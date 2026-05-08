@@ -16,5 +16,18 @@
     "tsx": "^4.21.0",
     "turbo": "^2.5.4",
     "typescript": "^5.9.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "sharp",
+      "bcrypt",
+      "@prisma/client",
+      "@prisma/engines",
+      "prisma",
+      "esbuild",
+      "msgpackr-extract",
+      "@scarf/scarf",
+      "@nestjs/core"
+    ]
   }
 }
