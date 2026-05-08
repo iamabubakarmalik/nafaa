@@ -1,0 +1,193 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;500;600;700&display=swap');
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --border: 214 32% 91%;
+    --primary: 142 76% 36%;
+    --primary-foreground: 355 100% 97%;
+    --accent: 38 92% 50%;
+  }
+
+  .dark {
+    --background: 222 47% 6%;
+    --foreground: 210 40% 98%;
+    --muted: 217 33% 12%;
+    --muted-foreground: 215 20% 65%;
+    --border: 217 33% 17%;
+    --primary: 142 71% 45%;
+    --primary-foreground: 144 80% 10%;
+    --accent: 38 92% 55%;
+  }
+
+  * {
+    @apply border-slate-200 dark:border-slate-800;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    @apply antialiased;
+  }
+
+  body {
+    @apply bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
+
+  body[dir="rtl"] {
+    font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', serif;
+  }
+
+  ::selection {
+    @apply bg-brand-200 dark:bg-brand-800/50 text-brand-900 dark:text-brand-50;
+  }
+
+  ::-webkit-scrollbar {
+    @apply w-2 h-2;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-slate-100 dark:bg-slate-900;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 dark:bg-slate-700 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-400 dark:bg-slate-600;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-brand-600 via-brand-500 to-emerald-500 bg-clip-text text-transparent;
+  }
+
+  .glass {
+    @apply bg-white/70 dark:bg-slate-950/70 backdrop-blur-xl border border-slate-200/50 dark:border-slate-800/50;
+  }
+
+  .container-custom {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .section-padding {
+    @apply py-16 sm:py-20 lg:py-24;
+  }
+}
+
+/* Article content styles */
+.article-content h2 {
+  @apply text-2xl lg:text-3xl font-extrabold mt-10 mb-4 gradient-text;
+}
+.article-content h3 {
+  @apply text-xl font-extrabold mt-8 mb-3;
+}
+.article-content p {
+  @apply text-slate-700 dark:text-slate-300 leading-relaxed text-base lg:text-lg my-4;
+}
+.article-content ul,
+.article-content ol {
+  @apply my-4 ml-5 space-y-1.5;
+}
+.article-content ul {
+  @apply list-disc;
+}
+.article-content ol {
+  @apply list-decimal;
+}
+.article-content li {
+  @apply text-slate-700 dark:text-slate-300 leading-relaxed;
+}
+.article-content a {
+  @apply text-brand-600 dark:text-brand-400 font-semibold hover:underline;
+}
+.article-content blockquote {
+  @apply border-l-4 border-brand-500 pl-4 my-5 italic text-slate-600 dark:text-slate-400;
+}
+.article-content table {
+  @apply min-w-full my-6;
+}
+.article-content thead {
+  @apply bg-slate-50 dark:bg-slate-900;
+}
+.article-content th {
+  @apply px-4 py-3 text-left text-xs font-bold uppercase tracking-wider;
+}
+.article-content td {
+  @apply px-4 py-2.5 text-sm border-b border-slate-200 dark:border-slate-800;
+}
+.article-content strong {
+  @apply font-bold text-slate-900 dark:text-white;
+}
+
+/* Custom scrollbar for inline scrolls */
+.scrollbar-thin::-webkit-scrollbar {
+  height: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  @apply bg-slate-300 dark:bg-slate-700 rounded-full;
+}
+
+/* Article content styles */
+.article-content h2 {
+  @apply text-2xl lg:text-3xl font-extrabold mt-10 mb-4 gradient-text;
+}
+.article-content h3 {
+  @apply text-xl font-extrabold mt-8 mb-3;
+}
+.article-content p {
+  @apply text-slate-700 dark:text-slate-300 leading-relaxed text-base lg:text-lg my-4;
+}
+.article-content ul,
+.article-content ol {
+  @apply my-4 ml-5 space-y-1.5;
+}
+.article-content ul {
+  @apply list-disc;
+}
+.article-content ol {
+  @apply list-decimal;
+}
+.article-content li {
+  @apply text-slate-700 dark:text-slate-300 leading-relaxed;
+}
+.article-content a {
+  @apply text-brand-600 dark:text-brand-400 font-semibold hover:underline;
+}
+.article-content blockquote {
+  @apply border-l-4 border-brand-500 pl-4 my-5 italic text-slate-600 dark:text-slate-400;
+}
+.article-content table {
+  @apply min-w-full my-6;
+}
+.article-content thead {
+  @apply bg-slate-50 dark:bg-slate-900;
+}
+.article-content th {
+  @apply px-4 py-3 text-left text-xs font-bold uppercase tracking-wider;
+}
+.article-content td {
+  @apply px-4 py-2.5 text-sm border-b border-slate-200 dark:border-slate-800;
+}
+.article-content strong {
+  @apply font-bold text-slate-900 dark:text-white;
+}
+
+/* Custom scrollbar for inline scrolls */
+.scrollbar-thin::-webkit-scrollbar {
+  height: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  @apply bg-slate-300 dark:bg-slate-700 rounded-full;
+}

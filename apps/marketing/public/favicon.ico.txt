@@ -1,0 +1,3 @@
+Place your favicon.ico (32x32) at: public/favicon.ico
+Recommended sizes: 16x16, 32x32, 48x48
+Generator: https://realfavicongenerator.net/

@@ -1,0 +1,120 @@
+import { Injectable } from '@nestjs/common';
+import * as ExcelJS from 'exceljs';
+import { PrismaService } from '../../../prisma/prisma.service';
+
+@Injectable()
+export class AdminExportsService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async exportTenants(): Promise<Buffer> {
+    const tenants = await this.prisma.tenant.findMany({
+      where: { slug: { not: 'nafaa-system' } },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        _count: { select: { users: true, products: true, sales: true } },
+        subscriptions: {
+          where: { status: { in: ['ACTIVE', 'TRIAL'] } },
+          include: { plan: true },
+          take: 1,
+        },
+      },
+    });
+
+    const wb = new ExcelJS.Workbook();
+    const sheet = wb.addWorksheet('Tenants');
+
+    sheet.columns = [
+      { header: 'Name', key: 'name', width: 30 },
+      { header: 'Slug', key: 'slug', width: 25 },
+      { header: 'Status', key: 'status', width: 15 },
+      { header: 'Phone', key: 'phone', width: 18 },
+      { header: 'Country', key: 'country', width: 14 },
+      { header: 'Plan', key: 'plan', width: 18 },
+      { header: 'Users', key: 'users', width: 10 },
+      { header: 'Products', key: 'products', width: 12 },
+      { header: 'Sales', key: 'sales', width: 10 },
+      { header: 'Referral Code', key: 'referralCode', width: 20 },
+      { header: 'Account Credit', key: 'credit', width: 16 },
+      { header: 'Joined', key: 'createdAt', width: 22 },
+    ];
+
+    sheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    sheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF6366F1' },
+    };
+
+    for (const t of tenants) {
+      sheet.addRow({
+        name: t.name,
+        slug: t.slug,
+        status: t.status,
+        phone: t.phone || '',
+        country: t.country,
+        plan: t.subscriptions[0]?.plan.name || 'No Plan',
+        users: t._count.users,
+        products: t._count.products,
+        sales: t._count.sales,
+        referralCode: t.referralCode || '',
+        credit: t.accountCredit,
+        createdAt: t.createdAt,
+      });
+    }
+
+    const buffer = await wb.xlsx.writeBuffer();
+    return Buffer.from(buffer as ArrayBuffer);
+  }
+
+  async exportPayments(): Promise<Buffer> {
+    const payments = await this.prisma.payment.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 5000,
+      include: {
+        tenant: { select: { name: true } },
+        invoice: { select: { invoiceNumber: true } },
+      },
+    });
+
+    const wb = new ExcelJS.Workbook();
+    const sheet = wb.addWorksheet('Payments');
+
+    sheet.columns = [
+      { header: 'Date', key: 'createdAt', width: 22 },
+      { header: 'Tenant', key: 'tenant', width: 25 },
+      { header: 'Invoice', key: 'invoice', width: 18 },
+      { header: 'Amount', key: 'amount', width: 14 },
+      { header: 'Provider', key: 'provider', width: 16 },
+      { header: 'Status', key: 'status', width: 14 },
+      { header: 'Payer Name', key: 'payerName', width: 25 },
+      { header: 'Bank', key: 'bankName', width: 18 },
+      { header: 'Transaction ID', key: 'transactionId', width: 22 },
+      { header: 'Approved At', key: 'approvedAt', width: 22 },
+    ];
+
+    sheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    sheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF10B981' },
+    };
+
+    for (const p of payments) {
+      sheet.addRow({
+        createdAt: p.createdAt,
+        tenant: p.tenant.name,
+        invoice: p.invoice?.invoiceNumber || '',
+        amount: p.amount,
+        provider: p.provider,
+        status: p.status,
+        payerName: p.payerName || '',
+        bankName: p.bankName || '',
+        transactionId: p.transactionId || '',
+        approvedAt: p.approvedAt || '',
+      });
+    }
+
+    const buffer = await wb.xlsx.writeBuffer();
+    return Buffer.from(buffer as ArrayBuffer);
+  }
+}

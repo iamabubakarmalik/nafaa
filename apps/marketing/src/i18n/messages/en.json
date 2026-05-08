@@ -1,0 +1,88 @@
+{
+  "nav": {
+    "home": "Home",
+    "features": "Features",
+    "pricing": "Pricing",
+    "industries": "Industries",
+    "about": "About",
+    "blog": "Blog",
+    "contact": "Contact",
+    "login": "Login",
+    "signup": "Start Free Trial"
+  },
+  "hero": {
+    "badge": "Pakistan's #1 Retail Software",
+    "title": "Run Your Shop Smarter, Sell Faster, Profit More",
+    "subtitle": "Nafaa is the all-in-one POS, inventory, and accounting platform built for Pakistan's shopkeepers. Trusted by thousands of bakeries, kiryana stores, mobile shops, and pharmacies across Pakistan.",
+    "cta_primary": "Start 7-Day Free Trial",
+    "cta_secondary": "Watch Demo (2 min)",
+    "trust": "Trusted by 5,000+ Pakistani businesses",
+    "no_cc": "No credit card required • Setup in 5 minutes"
+  },
+  "stats": {
+    "shops": "Active Shops",
+    "transactions": "Daily Transactions",
+    "uptime": "System Uptime",
+    "support": "Customer Support"
+  },
+  "features": {
+    "title": "Everything Your Shop Needs",
+    "subtitle": "From POS to profit reports — Nafaa handles it all",
+    "items": {
+      "pos": {
+        "title": "Lightning-Fast POS",
+        "desc": "Process sales in seconds with barcode scanning, multi-payment support, and instant receipts."
+      },
+      "inventory": {
+        "title": "Smart Inventory",
+        "desc": "Auto-track stock, low-stock alerts, multi-shop transfers, and waste reduction."
+      },
+      "khata": {
+        "title": "Digital Khata",
+        "desc": "Replace your paper khata with digital ledgers. Track udhaar, send reminders via WhatsApp."
+      },
+      "reports": {
+        "title": "Real-Time Reports",
+        "desc": "See sales, profit, and trends live. Export to Excel/PDF anytime."
+      },
+      "multishop": {
+        "title": "Multi-Shop Ready",
+        "desc": "Manage 1, 5, or 50 branches from one dashboard with role-based access."
+      },
+      "offline": {
+        "title": "Works Offline",
+        "desc": "No internet? No problem. Continue selling — data syncs when online."
+      }
+    }
+  },
+  "industries": {
+    "title": "Built for Every Pakistani Business",
+    "subtitle": "Specialized features for your industry"
+  },
+  "pricing": {
+    "title": "Simple, Transparent Pricing",
+    "subtitle": "Choose the plan that fits your business. Cancel anytime.",
+    "monthly": "Monthly",
+    "yearly": "Yearly (Save 15%)",
+    "per_month": "/month",
+    "popular": "MOST POPULAR",
+    "cta": "Get Started"
+  },
+  "testimonials": {
+    "title": "Loved by Shopkeepers Across Pakistan",
+    "subtitle": "Real stories from real businesses"
+  },
+  "cta": {
+    "title": "Ready to Grow Your Business?",
+    "subtitle": "Join 5,000+ Pakistani shops already using Nafaa",
+    "button": "Start Free Trial Now"
+  },
+  "footer": {
+    "tagline": "Pakistan's #1 retail OS — built with ❤️ in Lahore",
+    "product": "Product",
+    "company": "Company",
+    "resources": "Resources",
+    "legal": "Legal",
+    "copyright": "© {year} Nafaa Technologies. All rights reserved."
+  }
+}

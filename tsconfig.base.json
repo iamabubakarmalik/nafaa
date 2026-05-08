@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowJs": false,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "noUncheckedIndexedAccess": true,
+    "baseUrl": ".",
+    "paths": {
+      "@nafaa/shared-types": ["packages/shared-types/src"],
+      "@nafaa/shared-ui": ["packages/shared-ui/src"],
+      "@nafaa/shared-utils": ["packages/shared-utils/src"],
+      "@nafaa/shared-hooks": ["packages/shared-hooks/src"],
+      "@nafaa/api-client": ["packages/api-client/src"],
+      "@nafaa/shared-config/*": ["packages/shared-config/*"]
+    }
+  }
+}
