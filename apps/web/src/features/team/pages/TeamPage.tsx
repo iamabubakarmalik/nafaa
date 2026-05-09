@@ -207,7 +207,7 @@ export default function TeamPage() {
                         </span>
                       </div>
                       <div className="text-[10px] text-slate-400 mt-1">
-                        Last login: {formatDate(m.lastLoginAt)}
+                        Last login: {formatDate(m.lastLoginAt ?? null)}
                       </div>
                     </div>
                   </div>

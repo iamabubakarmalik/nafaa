@@ -28,6 +28,7 @@ export interface Sale {
   changeAmount: number;
   paymentMethod: PaymentMethod;
   soldAt: string;
+  status?: 'COMPLETED' | 'PARTIALLY_RETURNED' | 'FULLY_RETURNED';
   customer?: {
     id: string;
     name: string;

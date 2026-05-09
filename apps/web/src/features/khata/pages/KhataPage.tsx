@@ -142,14 +142,14 @@ export default function KhataPage() {
             <p className="text-xs text-slate-500">Click to view ledger</p>
           </div>
           <div className="max-h-[600px] overflow-y-auto divide-y divide-slate-100">
-            {(allCustomers?.items ?? []).filter((c) => c.balance > 0).length === 0 ? (
+            {(allCustomers?.items ?? []).filter((c) => (c as any).balance > 0).length === 0 ? (
               <div className="p-6 text-sm text-slate-500 text-center">
                 Koi customer udhaar mein nahi hai 🎉
               </div>
             ) : (
               (allCustomers?.items ?? [])
-                .filter((c) => c.balance > 0)
-                .sort((a, b) => b.balance - a.balance)
+                .filter((c) => (c as any).balance > 0)
+                .sort((a: any, b: any) => b.balance - a.balance)
                 .map((c) => (
                   <button
                     key={c.id}
@@ -164,7 +164,7 @@ export default function KhataPage() {
                         <div className="text-xs text-slate-500">{c.phone || 'No phone'}</div>
                       </div>
                       <div className="font-bold text-rose-700 text-right">
-                        {formatPKR(c.balance)}
+                        formatPKR((c as any).balance)
                       </div>
                     </div>
                   </button>
