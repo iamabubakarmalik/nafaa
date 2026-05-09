@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="blogBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#blogBg)"/>
+
+  <!-- Decorative -->
+  <circle cx="1050" cy="120" r="180" fill="#16a34a" opacity="0.2"/>
+  <circle cx="150" cy="500" r="220" fill="#f59e0b" opacity="0.15"/>
+
+  <g transform="translate(80, 80)">
+    <rect width="80" height="80" rx="18" fill="#16a34a"/>
+    <g transform="translate(40, 41)" stroke="#ffffff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <line x1="-16" y1="-16" x2="-16" y2="16"/>
+      <line x1="-16" y1="16" x2="16" y2="-16"/>
+      <line x1="16" y1="-16" x2="16" y2="16"/>
+      <polyline points="7,-16 16,-16 16,-7"/>
+    </g>
+    <circle cx="62" cy="18" r="5" fill="#f59e0b"/>
+  </g>
+  <text x="180" y="115" font-family="Inter" font-size="36" font-weight="900" fill="#ffffff">Nafaa Blog</text>
+  <text x="180" y="150" font-family="Inter" font-size="18" font-weight="600" fill="rgba(255,255,255,0.6)">Tips, tutorials & success stories</text>
+
+  <text x="80" y="320" font-family="Inter" font-size="68" font-weight="900" fill="#ffffff" letter-spacing="-2">Pakistani Retail</text>
+  <text x="80" y="395" font-family="Inter" font-size="68" font-weight="900" fill="#fbbf24" letter-spacing="-2">Knowledge Hub</text>
+
+  <text x="80" y="480" font-family="Inter" font-size="22" font-weight="500" fill="rgba(255,255,255,0.8)">Real stories • Expert insights • How-to guides</text>
+
+  <text x="80" y="580" font-family="Inter" font-size="20" font-weight="700" fill="#22c55e">nafaa.pk/blog</text>
+</svg>

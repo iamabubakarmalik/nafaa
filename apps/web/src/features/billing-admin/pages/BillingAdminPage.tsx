@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { billingAdminApi } from '@/api/billing-admin.api';
 import { Button } from '@/components/ui/Button';
-import { formatPKR } from '@nafaa/shared-utils';
+import { formatPKR } from '@/lib/format';
 import { useAuthStore } from '@/store/auth.store';
 import { toast } from 'sonner';
 

@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { AlertTriangle, Package, ShoppingBag, ArrowRight } from 'lucide-react';
 import { productsApi } from '@/api/products.api';
-import { formatPKR } from '@nafaa/shared-utils';
+import { formatPKR } from '@/lib/format';
 
 export default function LowStockPage() {
   const { data: lowStock = [], isLoading } = useQuery({

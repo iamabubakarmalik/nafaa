@@ -7,7 +7,7 @@ import {
 import { subscriptionsApi } from '@/api/subscriptions.api';
 import { billingApi, type InvoiceStatus, type PaymentStatus } from '@/api/billing.api';
 import { Button } from '@/components/ui/Button';
-import { formatPKR } from '@nafaa/shared-utils';
+import { formatPKR } from '@/lib/format';
 
 const formatDate = (value: string) =>
   new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium' }).format(new Date(value));

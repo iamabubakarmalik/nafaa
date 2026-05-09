@@ -7,7 +7,7 @@ import { customerLedgerApi, type LedgerType } from '@/api/customer-ledger.api';
 import { customersApi } from '@/api/customers.api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { formatPKR } from '@nafaa/shared-utils';
+import { formatPKR } from '@/lib/format';
 import { toast } from 'sonner';
 
 const formatDate = (value: string) =>

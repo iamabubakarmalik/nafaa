@@ -4,7 +4,7 @@ import { Plus, Package, Search, Trash2, Boxes } from 'lucide-react';
 import { productsApi } from '@/api/products.api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { formatPKR } from '@nafaa/shared-utils';
+import { formatPKR } from '@/lib/format';
 import { toast } from 'sonner';
 
 const defaultForm = {

@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1748 2480" width="1748" height="2480">
+  <defs>
+    <linearGradient id="flyerBg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#16a34a"/>
+      <stop offset="50%" stop-color="#15803d"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1748" height="2480" fill="url(#flyerBg)"/>
+
+  <!-- Logo top -->
+  <g transform="translate(774, 200)">
+    <rect width="200" height="200" rx="44" fill="#ffffff"/>
+    <g transform="translate(100, 102)" stroke="#16a34a" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <line x1="-42" y1="-42" x2="-42" y2="42"/>
+      <line x1="-42" y1="42" x2="42" y2="-42"/>
+      <line x1="42" y1="-42" x2="42" y2="42"/>
+      <polyline points="20,-42 42,-42 42,-20"/>
+    </g>
+    <circle cx="158" cy="48" r="14" fill="#f59e0b"/>
+  </g>
+
+  <text x="874" y="540" font-family="Inter" font-size="120" font-weight="900" fill="#ffffff" text-anchor="middle">Nafaa</text>
+
+  <!-- Headline -->
+  <text x="874" y="780" font-family="Inter" font-size="80" font-weight="900" fill="#ffffff" text-anchor="middle">Apni Dukan</text>
+  <text x="874" y="880" font-family="Inter" font-size="80" font-weight="900" fill="#fbbf24" text-anchor="middle">Online Laao!</text>
+
+  <text x="874" y="1000" font-family="Inter" font-size="40" font-weight="500" fill="rgba(255,255,255,0.9)" text-anchor="middle">Pakistan's #1 Shop Management Software</text>
+
+  <!-- Features list -->
+  <g transform="translate(200, 1140)" font-family="Inter" font-size="36" font-weight="700" fill="#ffffff">
+    <text>✅ Lightning Fast POS Counter</text>
+    <text y="80">✅ Digital Khata Book + WhatsApp Reminders</text>
+    <text y="160">✅ Real-time Inventory & Stock Alerts</text>
+    <text y="240">✅ Multi-Shop Management</text>
+    <text y="320">✅ Live Profit Reports</text>
+    <text y="400">✅ Works Offline (No Internet Needed)</text>
+    <text y="480">✅ JazzCash, EasyPaisa, Bank Support</text>
+  </g>
+
+  <!-- Big CTA -->
+  <g transform="translate(274, 1810)">
+    <rect width="1200" height="200" rx="100" fill="#fbbf24"/>
+    <text x="600" y="115" font-family="Inter" font-size="68" font-weight="900" fill="#0f172a" text-anchor="middle">7 Din FREE Trial!</text>
+    <text x="600" y="170" font-family="Inter" font-size="24" font-weight="700" fill="#0f172a" text-anchor="middle">No credit card required</text>
+  </g>
+
+  <!-- Contact bottom -->
+  <g transform="translate(874, 2120)" text-anchor="middle">
+    <text font-family="Inter" font-size="56" font-weight="900" fill="#ffffff">nafaa.pk</text>
+    <text y="80" font-family="Inter" font-size="32" font-weight="600" fill="rgba(255,255,255,0.85)">📱 +92 300 1234567</text>
+    <text y="135" font-family="Inter" font-size="32" font-weight="600" fill="rgba(255,255,255,0.85)">📧 hello@nafaa.pk</text>
+    <text y="220" font-family="Inter" font-size="22" font-weight="500" fill="rgba(255,255,255,0.6)">🇵🇰 Made in Lahore for Pakistan</text>
+  </g>
+</svg>

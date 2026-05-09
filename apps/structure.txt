@@ -1,0 +1,457 @@
+.
+├── admin
+│   ├── eslint.config.js
+│   ├── index.html
+│   ├── package.json
+│   ├── postcss.config.js
+│   ├── public
+│   │   ├── favicon.ico
+│   │   ├── favicon.svg
+│   │   ├── icons.svg
+│   │   └── logo.svg
+│   ├── README.md
+│   ├── src
+│   │   ├── api
+│   │   │   ├── admin
+│   │   │   ├── admin-activity.api.ts
+│   │   │   ├── admin-analytics.api.ts
+│   │   │   ├── admin-auth.api.ts
+│   │   │   ├── admin-billing.api.ts
+│   │   │   ├── admin-broadcast.api.ts
+│   │   │   ├── admin-bulk.api.ts
+│   │   │   ├── admin-communications.api.ts
+│   │   │   ├── admin-customers.api.ts
+│   │   │   ├── admin-email-templates.api.ts
+│   │   │   ├── admin-health.api.ts
+│   │   │   ├── admin-impersonate.api.ts
+│   │   │   ├── admin-invoices.api.ts
+│   │   │   ├── admin-notes.api.ts
+│   │   │   ├── admin-notifications.api.ts
+│   │   │   ├── admin-plans.api.ts
+│   │   │   ├── admin-platform-discounts.api.ts
+│   │   │   ├── admin-products.api.ts
+│   │   │   ├── admin-referrals.api.ts
+│   │   │   ├── admin-sales.api.ts
+│   │   │   ├── admin-settings.api.ts
+│   │   │   ├── admin-subscriptions.api.ts
+│   │   │   ├── admin-system.api.ts
+│   │   │   ├── admin-tenants.api.ts
+│   │   │   ├── admin-users.api.ts
+│   │   │   └── client.ts
+│   │   ├── App.tsx
+│   │   ├── assets
+│   │   │   ├── hero.png
+│   │   │   └── vite.svg
+│   │   ├── components
+│   │   │   ├── brand
+│   │   │   ├── layout
+│   │   │   ├── notifications
+│   │   │   └── ui
+│   │   ├── features
+│   │   │   ├── activity
+│   │   │   ├── admin-customers
+│   │   │   ├── admin-exports
+│   │   │   ├── admin-products
+│   │   │   ├── admin-sales
+│   │   │   ├── analytics
+│   │   │   ├── auth
+│   │   │   ├── billing
+│   │   │   ├── broadcast
+│   │   │   ├── bulk-actions
+│   │   │   ├── bulk-communications
+│   │   │   ├── dashboard
+│   │   │   ├── email-logs
+│   │   │   ├── email-templates
+│   │   │   ├── health
+│   │   │   ├── invoices
+│   │   │   ├── notes
+│   │   │   ├── notifications
+│   │   │   ├── plans
+│   │   │   ├── platform-discounts
+│   │   │   ├── referrals
+│   │   │   ├── settings
+│   │   │   ├── sms-logs
+│   │   │   ├── sms-templates
+│   │   │   ├── subscriptions
+│   │   │   ├── tenants
+│   │   │   └── users
+│   │   ├── index.css
+│   │   ├── lib
+│   │   │   └── cn.ts
+│   │   ├── main.tsx
+│   │   ├── routes
+│   │   │   └── ProtectedRoute.tsx
+│   │   └── store
+│   │       └── auth.store.ts
+│   ├── tailwind.config.js
+│   ├── tsconfig.app.json
+│   ├── tsconfig.json
+│   ├── tsconfig.node.json
+│   └── vite.config.ts
+├── api
+│   ├── dist-script
+│   │   └── create-super-admin.js
+│   ├── eslint.config.mjs
+│   ├── nest-cli.json
+│   ├── package.json
+│   ├── prisma
+│   │   ├── migrations
+│   │   │   ├── 20260507201325_init_auth_foundation
+│   │   │   ├── 20260507212633_add_products_module
+│   │   │   ├── 20260507213831_add_customers_and_sales_pos
+│   │   │   ├── 20260507220635_add_suppliers_purchases_stock_movements
+│   │   │   ├── 20260507221635_add_categories_expenses
+│   │   │   ├── 20260507223623_add_settings_and_barcode_index
+│   │   │   ├── 20260507225156_add_team_khata_adjustments
+│   │   │   ├── 20260507231237_add_cash_register_shops_activity
+│   │   │   ├── 20260507233616_add_returns_discounts_loyalty
+│   │   │   ├── 20260508094940_add_billing_subscriptions
+│   │   │   ├── 20260508100539_add_referrals_credits_stripe
+│   │   │   ├── 20260508132522_admin_full_control_modules
+│   │   │   ├── 20260508142628_add_email_sms_integration
+│   │   │   ├── 20260508145051_add_admin_notifications
+│   │   │   └── migration_lock.toml
+│   │   └── schema.prisma
+│   ├── README.md
+│   ├── src
+│   │   ├── app.controller.spec.ts
+│   │   ├── app.controller.ts
+│   │   ├── app.module.ts
+│   │   ├── app.service.ts
+│   │   ├── common
+│   │   │   ├── decorators
+│   │   │   ├── filters
+│   │   │   ├── guards
+│   │   │   ├── interceptors
+│   │   │   ├── types
+│   │   │   └── utils
+│   │   ├── config
+│   │   │   └── env.validation.ts
+│   │   ├── main.ts
+│   │   ├── modules
+│   │   │   ├── activity-log
+│   │   │   ├── admin
+│   │   │   ├── auth
+│   │   │   ├── backup
+│   │   │   ├── billing
+│   │   │   ├── billing-admin
+│   │   │   ├── billing-public
+│   │   │   ├── cash-register
+│   │   │   ├── categories
+│   │   │   ├── customer-ledger
+│   │   │   ├── customers
+│   │   │   ├── dashboard
+│   │   │   ├── discounts
+│   │   │   ├── email
+│   │   │   ├── expense-categories
+│   │   │   ├── expenses
+│   │   │   ├── exports
+│   │   │   ├── feature-gating
+│   │   │   ├── inventory
+│   │   │   ├── loyalty
+│   │   │   ├── notification-prefs
+│   │   │   ├── notifications
+│   │   │   ├── plans
+│   │   │   ├── profit-report
+│   │   │   ├── purchases
+│   │   │   ├── referrals
+│   │   │   ├── reports
+│   │   │   ├── returns
+│   │   │   ├── sales
+│   │   │   ├── search
+│   │   │   ├── settings
+│   │   │   ├── shops
+│   │   │   ├── sms
+│   │   │   ├── stock-adjustments
+│   │   │   ├── stock-movements
+│   │   │   ├── stripe
+│   │   │   ├── subscriptions
+│   │   │   ├── suppliers
+│   │   │   ├── team
+│   │   │   ├── transfers
+│   │   │   └── uploads
+│   │   ├── prisma
+│   │   │   ├── prisma.module.ts
+│   │   │   └── prisma.service.ts
+│   │   └── scripts
+│   │       ├── create-super-admin.js
+│   │       └── create-super-admin.ts
+│   ├── test
+│   │   ├── app.e2e-spec.ts
+│   │   └── jest-e2e.json
+│   ├── tsconfig.build.json
+│   ├── tsconfig.json
+│   └── uploads
+├── desktop
+├── marketing
+│   ├── next-env.d.ts
+│   ├── next.config.ts
+│   ├── package.json
+│   ├── pnpm-workspace.yaml
+│   ├── postcss.config.mjs
+│   ├── public
+│   │   ├── apple-touch-icon.png
+│   │   ├── favicon-32.png
+│   │   ├── favicon.ico
+│   │   ├── favicon.ico.txt
+│   │   ├── file.svg
+│   │   ├── globe.svg
+│   │   ├── icon-192.png
+│   │   ├── icon-256.png
+│   │   ├── icon-384.png
+│   │   ├── icon-512.png
+│   │   ├── logo-full.svg
+│   │   ├── logo.png
+│   │   ├── logo.svg
+│   │   ├── manifest.json
+│   │   ├── next.svg
+│   │   ├── og
+│   │   │   ├── og-default.png
+│   │   │   ├── og-features.png
+│   │   │   ├── og-industry-bakery.png
+│   │   │   ├── og-industry-kiryana.png
+│   │   │   ├── og-industry-mobile-shop.png
+│   │   │   ├── og-industry-pharmacy.png
+│   │   │   ├── og-pricing.png
+│   │   │   └── og-whatsapp.png
+│   │   ├── og-image.png
+│   │   ├── vercel.svg
+│   │   └── window.svg
+│   ├── README.md
+│   ├── src
+│   │   ├── app
+│   │   │   ├── about
+│   │   │   ├── api-docs
+│   │   │   ├── blog
+│   │   │   ├── careers
+│   │   │   ├── changelog
+│   │   │   ├── contact
+│   │   │   ├── cookies
+│   │   │   ├── error.tsx
+│   │   │   ├── favicon.ico
+│   │   │   ├── features
+│   │   │   ├── globals.css
+│   │   │   ├── help
+│   │   │   ├── industries
+│   │   │   ├── integrations
+│   │   │   ├── layout.tsx
+│   │   │   ├── loading.tsx
+│   │   │   ├── not-found.tsx
+│   │   │   ├── page.tsx
+│   │   │   ├── partners
+│   │   │   ├── press
+│   │   │   ├── pricing
+│   │   │   ├── privacy
+│   │   │   ├── refund
+│   │   │   ├── robots.ts
+│   │   │   ├── security
+│   │   │   ├── sitemap.ts
+│   │   │   ├── status
+│   │   │   └── terms
+│   │   ├── components
+│   │   │   ├── brand
+│   │   │   ├── home
+│   │   │   ├── layout
+│   │   │   ├── legal
+│   │   │   ├── providers
+│   │   │   ├── share
+│   │   │   └── ui
+│   │   ├── i18n
+│   │   │   ├── config.ts
+│   │   │   └── messages
+│   │   └── lib
+│   │       ├── blog
+│   │       ├── cn.ts
+│   │       └── seo.ts
+│   ├── tailwind.config.ts
+│   └── tsconfig.json
+├── mobile
+│   ├── app
+│   │   ├── _layout.tsx
+│   │   ├── (tabs)
+│   │   │   ├── _layout.tsx
+│   │   │   ├── customers.tsx
+│   │   │   ├── index.tsx
+│   │   │   ├── more.tsx
+│   │   │   ├── pos.tsx
+│   │   │   └── products.tsx
+│   │   ├── auth
+│   │   │   ├── _layout.tsx
+│   │   │   ├── login.tsx
+│   │   │   └── register.tsx
+│   │   ├── notifications
+│   │   │   └── index.tsx
+│   │   ├── plan
+│   │   │   └── index.tsx
+│   │   ├── referrals
+│   │   │   └── index.tsx
+│   │   ├── reports
+│   │   │   └── index.tsx
+│   │   ├── sales
+│   │   │   ├── [id].tsx
+│   │   │   └── index.tsx
+│   │   └── settings
+│   │       └── index.tsx
+│   ├── app.json
+│   ├── App.tsx
+│   ├── assets
+│   │   ├── adaptive-icon.png
+│   │   ├── favicon.png
+│   │   ├── icon.png
+│   │   ├── notification-icon.png
+│   │   ├── splash-icon.png
+│   │   └── splash.png
+│   ├── babel.config.js
+│   ├── expo-env.d.ts
+│   ├── global.css
+│   ├── index.ts
+│   ├── metro.config.js
+│   ├── nativewind-env.d.ts
+│   ├── package.json
+│   ├── pnpm-lock.yaml
+│   ├── pnpm-workspace.yaml
+│   ├── src
+│   │   ├── api
+│   │   │   ├── auth.api.ts
+│   │   │   ├── client.ts
+│   │   │   ├── customers.api.ts
+│   │   │   ├── dashboard.api.ts
+│   │   │   ├── notifications.api.ts
+│   │   │   ├── products.api.ts
+│   │   │   ├── reports.api.ts
+│   │   │   └── sales.api.ts
+│   │   ├── components
+│   │   │   ├── brand
+│   │   │   ├── common
+│   │   │   ├── inventory
+│   │   │   ├── layout
+│   │   │   ├── pos
+│   │   │   ├── scanner
+│   │   │   └── ui
+│   │   ├── constants
+│   │   │   └── colors.ts
+│   │   ├── hooks
+│   │   │   └── usePushNotifications.ts
+│   │   ├── i18n
+│   │   │   ├── messages
+│   │   │   └── useTranslation.ts
+│   │   ├── lib
+│   │   │   ├── cn.ts
+│   │   │   ├── format.ts
+│   │   │   └── share.ts
+│   │   ├── store
+│   │   │   ├── auth.store.ts
+│   │   │   ├── locale.store.ts
+│   │   │   └── theme.store.ts
+│   │   └── types
+│   ├── tailwind.config.js
+│   └── tsconfig.json
+├── structure.txt
+└── web
+    ├── eslint.config.js
+    ├── index.html
+    ├── package.json
+    ├── postcss.config.js
+    ├── public
+    │   ├── favicon.ico
+    │   ├── favicon.svg
+    │   ├── icon-192.png
+    │   ├── icon-512.png
+    │   ├── icons.svg
+    │   └── logo.svg
+    ├── README.md
+    ├── src
+    │   ├── api
+    │   │   ├── activity-log.api.ts
+    │   │   ├── auth.api.ts
+    │   │   ├── backup.api.ts
+    │   │   ├── billing-admin.api.ts
+    │   │   ├── billing.api.ts
+    │   │   ├── cash-register.api.ts
+    │   │   ├── categories.api.ts
+    │   │   ├── client.ts
+    │   │   ├── customer-ledger.api.ts
+    │   │   ├── customers.api.ts
+    │   │   ├── dashboard.api.ts
+    │   │   ├── discounts.api.ts
+    │   │   ├── expenses.api.ts
+    │   │   ├── loyalty.api.ts
+    │   │   ├── notifications.api.ts
+    │   │   ├── plan-usage.api.ts
+    │   │   ├── plans.api.ts
+    │   │   ├── products.api.ts
+    │   │   ├── profit-report.api.ts
+    │   │   ├── purchases.api.ts
+    │   │   ├── referrals.api.ts
+    │   │   ├── reports.api.ts
+    │   │   ├── returns.api.ts
+    │   │   ├── sales.api.ts
+    │   │   ├── search.api.ts
+    │   │   ├── settings.api.ts
+    │   │   ├── shops.api.ts
+    │   │   ├── stock-adjustments.api.ts
+    │   │   ├── stock-movements.api.ts
+    │   │   ├── stripe.api.ts
+    │   │   ├── subscriptions.api.ts
+    │   │   ├── suppliers.api.ts
+    │   │   ├── team.api.ts
+    │   │   └── transfers.api.ts
+    │   ├── App.tsx
+    │   ├── assets
+    │   │   ├── hero.png
+    │   │   └── vite.svg
+    │   ├── components
+    │   │   ├── barcode
+    │   │   ├── brand
+    │   │   ├── layout
+    │   │   ├── notifications
+    │   │   ├── search
+    │   │   └── ui
+    │   ├── features
+    │   │   ├── activity-log
+    │   │   ├── auth
+    │   │   ├── backup
+    │   │   ├── barcodes
+    │   │   ├── billing
+    │   │   ├── billing-admin
+    │   │   ├── cash-register
+    │   │   ├── categories
+    │   │   ├── customers
+    │   │   ├── dashboard
+    │   │   ├── discounts
+    │   │   ├── expenses
+    │   │   ├── exports
+    │   │   ├── khata
+    │   │   ├── low-stock
+    │   │   ├── loyalty
+    │   │   ├── plan-usage
+    │   │   ├── pos
+    │   │   ├── products
+    │   │   ├── profit-report
+    │   │   ├── purchases
+    │   │   ├── referrals
+    │   │   ├── reports
+    │   │   ├── returns
+    │   │   ├── sales
+    │   │   ├── settings
+    │   │   ├── shops
+    │   │   ├── stock-adjustments
+    │   │   ├── stock-movements
+    │   │   ├── suppliers
+    │   │   ├── team
+    │   │   └── transfers
+    │   ├── index.css
+    │   ├── lib
+    │   │   └── cn.ts
+    │   ├── main.tsx
+    │   ├── routes
+    │   │   └── ProtectedRoute.tsx
+    │   └── store
+    │       └── auth.store.ts
+    ├── tailwind.config.js
+    ├── tsconfig.app.json
+    ├── tsconfig.json
+    ├── tsconfig.node.json
+    └── vite.config.ts
+
+229 directories, 226 files

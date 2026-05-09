@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import { Printer, ArrowLeft } from 'lucide-react';
 import { salesApi } from '@/api/sales.api';
-import { formatPKR } from '@nafaa/shared-utils';
+import { formatPKR } from '@/lib/format';
 
 const formatDate = (value: string) =>
   new Intl.DateTimeFormat('en-PK', {

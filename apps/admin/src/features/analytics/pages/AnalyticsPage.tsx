@@ -7,7 +7,7 @@ import {
   Tooltip, AreaChart, Area,
 } from 'recharts';
 import { adminAnalyticsApi } from '@/api/admin-analytics.api';
-import { formatPKR } from '@nafaa/shared-utils';
+import { formatPKR } from '@/lib/format';
 
 export default function AnalyticsPage() {
   const { data: mrr } = useQuery({

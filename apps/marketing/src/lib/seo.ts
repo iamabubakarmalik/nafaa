@@ -10,22 +10,48 @@ interface SEOProps {
   image?: string;
   type?: 'website' | 'article';
   keywords?: string[];
+  publishedTime?: string;
+  authors?: string[];
+}
+
+// Page-specific OG images
+const ogImageMap: Record<string, string> = {
+  '/': '/og/og-default.png',
+  '/pricing': '/og/og-pricing.png',
+  '/features': '/og/og-features.png',
+  '/blog': '/og/og-blog.png',
+  '/industries/bakery': '/og/og-industry-bakery.png',
+  '/industries/kiryana': '/og/og-industry-kiryana.png',
+  '/industries/mobile-shop': '/og/og-industry-mobile-shop.png',
+  '/industries/pharmacy': '/og/og-industry-pharmacy.png',
+};
+
+function pickOgImage(path: string): string {
+  if (ogImageMap[path]) return ogImageMap[path];
+  if (path.startsWith('/blog/')) return '/og/og-blog.png';
+  if (path.startsWith('/industries/')) return '/og/og-default.png';
+  return '/og/og-default.png';
 }
 
 export function buildMetadata({
   title,
   description,
   path = '/',
-  image = '/og-image.png',
+  image,
   type = 'website',
   keywords = [],
+  publishedTime,
+  authors,
 }: SEOProps = {}): Metadata {
-  const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} — Pakistan's #1 Retail POS & Inventory Software`;
+  const fullTitle = title
+    ? `${title} | ${SITE_NAME}`
+    : `${SITE_NAME} — Pakistan's #1 Retail POS & Inventory Software`;
   const desc =
     description ||
     'Nafaa is Pakistan-first POS, inventory, and accounting software for shops, bakeries, kiryana stores, mobile shops, and pharmacies. Free trial — no credit card required.';
   const url = `${SITE_URL}${path}`;
-  const imageUrl = image.startsWith('http') ? image : `${SITE_URL}${image}`;
+  const finalImage = image || pickOgImage(path);
+  const imageUrl = finalImage.startsWith('http') ? finalImage : `${SITE_URL}${finalImage}`;
 
   const defaultKeywords = [
     'POS software Pakistan',
@@ -49,7 +75,7 @@ export function buildMetadata({
     title: fullTitle,
     description: desc,
     keywords: [...defaultKeywords, ...keywords],
-    authors: [{ name: 'Nafaa Technologies', url: SITE_URL }],
+    authors: authors ? authors.map((name) => ({ name })) : [{ name: 'Nafaa Technologies', url: SITE_URL }],
     creator: 'Nafaa Technologies',
     publisher: 'Nafaa Technologies',
     robots: {
@@ -87,6 +113,7 @@ export function buildMetadata({
           alt: fullTitle,
         },
       ],
+      ...(type === 'article' && publishedTime ? { publishedTime } : {}),
     },
     twitter: {
       card: 'summary_large_image',
@@ -117,6 +144,7 @@ export function buildJsonLdOrg() {
     description:
       "Pakistan's #1 retail POS, inventory, and accounting software for shops, bakeries, kiryana stores, mobile shops, and pharmacies.",
     url: SITE_URL,
+    image: `${SITE_URL}/og/og-default.png`,
     aggregateRating: {
       '@type': 'AggregateRating',
       ratingValue: '4.9',
@@ -136,7 +164,7 @@ export function buildJsonLdOrg() {
       url: SITE_URL,
       logo: {
         '@type': 'ImageObject',
-        url: `${SITE_URL}/logo.png`,
+        url: `${SITE_URL}/icon-512.png`,
       },
       address: {
         '@type': 'PostalAddress',
@@ -150,6 +178,12 @@ export function buildJsonLdOrg() {
         areaServed: 'PK',
         availableLanguage: ['English', 'Urdu'],
       },
+      sameAs: [
+        'https://facebook.com/nafaapk',
+        'https://twitter.com/nafaapk',
+        'https://instagram.com/nafaapk',
+        'https://linkedin.com/company/nafaapk',
+      ],
     },
   };
 }
@@ -165,6 +199,19 @@ export function buildJsonLdFAQ(faqs: Array<{ q: string; a: string }>) {
         '@type': 'Answer',
         text: f.a,
       },
+    })),
+  };
+}
+
+export function buildJsonLdBreadcrumb(items: Array<{ name: string; url: string }>) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: items.map((item, idx) => ({
+      '@type': 'ListItem',
+      position: idx + 1,
+      name: item.name,
+      item: `${SITE_URL}${item.url}`,
     })),
   };
 }

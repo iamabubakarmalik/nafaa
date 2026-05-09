@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="ogBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#16a34a"/>
+      <stop offset="50%" stop-color="#15803d"/>
+      <stop offset="100%" stop-color="#0f766e"/>
+    </linearGradient>
+    <linearGradient id="ogIcon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22c55e"/>
+      <stop offset="100%" stop-color="#15803d"/>
+    </linearGradient>
+    <pattern id="ogGrid" width="60" height="60" patternUnits="userSpaceOnUse">
+      <circle cx="30" cy="30" r="1.5" fill="rgba(255,255,255,0.08)"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#ogBg)"/>
+  <rect width="1200" height="630" fill="url(#ogGrid)"/>
+
+  <!-- Decorative blobs -->
+  <circle cx="100" cy="80" r="120" fill="rgba(255,255,255,0.05)"/>
+  <circle cx="1100" cy="550" r="180" fill="rgba(245,158,11,0.1)"/>
+
+  <!-- Logo icon -->
+  <g transform="translate(80, 80)">
+    <rect width="120" height="120" rx="28" ry="28" fill="#ffffff"/>
+    <g transform="translate(60, 62)" stroke="#16a34a" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <line x1="-26" y1="-26" x2="-26" y2="26"/>
+      <line x1="-26" y1="26" x2="26" y2="-26"/>
+      <line x1="26" y1="-26" x2="26" y2="26"/>
+      <polyline points="12,-26 26,-26 26,-12"/>
+    </g>
+    <circle cx="92" cy="28" r="8" fill="#f59e0b"/>
+  </g>
+
+  <!-- Brand text -->
+  <text x="230" y="125" font-family="Inter, system-ui, sans-serif" font-size="56" font-weight="900" fill="#ffffff">
+    Nafaa
+  </text>
+  <text x="230" y="160" font-family="Inter, system-ui, sans-serif" font-size="20" font-weight="600" fill="rgba(255,255,255,0.85)" letter-spacing="3">
+    PAKISTAN'S #1 RETAIL OS
+  </text>
+
+  <!-- Hero text -->
+  <text x="80" y="320" font-family="Inter, system-ui, sans-serif" font-size="72" font-weight="900" fill="#ffffff">
+    Run Your Shop
+  </text>
+  <text x="80" y="395" font-family="Inter, system-ui, sans-serif" font-size="72" font-weight="900" fill="#fbbf24">
+    Smarter, Sell Faster
+  </text>
+
+  <!-- Subtitle -->
+  <text x="80" y="455" font-family="Inter, system-ui, sans-serif" font-size="28" font-weight="500" fill="rgba(255,255,255,0.92)">
+    POS • Inventory • Khata • Reports — All in One
+  </text>
+
+  <!-- Stats badges -->
+  <g transform="translate(80, 510)">
+    <rect width="200" height="60" rx="12" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+    <text x="20" y="32" font-family="Inter, sans-serif" font-size="14" fill="rgba(255,255,255,0.7)" font-weight="600">TRUSTED BY</text>
+    <text x="20" y="50" font-family="Inter, sans-serif" font-size="20" font-weight="800" fill="#ffffff">5,000+ Shops</text>
+  </g>
+  <g transform="translate(300, 510)">
+    <rect width="200" height="60" rx="12" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+    <text x="20" y="32" font-family="Inter, sans-serif" font-size="14" fill="rgba(255,255,255,0.7)" font-weight="600">FREE TRIAL</text>
+    <text x="20" y="50" font-family="Inter, sans-serif" font-size="20" font-weight="800" fill="#ffffff">7 Days Free</text>
+  </g>
+  <g transform="translate(520, 510)">
+    <rect width="240" height="60" rx="12" fill="rgba(245,158,11,0.95)"/>
+    <text x="20" y="38" font-family="Inter, sans-serif" font-size="20" font-weight="800" fill="#0f172a">Start at nafaa.pk →</text>
+  </g>
+
+  <!-- Pakistan flag emoji area -->
+  <text x="1100" y="600" font-family="Inter, sans-serif" font-size="22" fill="rgba(255,255,255,0.6)" text-anchor="end">🇵🇰 Made in Pakistan</text>
+</svg>

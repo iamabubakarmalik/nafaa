@@ -9,7 +9,7 @@ import { billingApi, type PaymentProvider } from '@/api/billing.api';
 import { stripeApi } from '@/api/stripe.api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { formatPKR } from '@nafaa/shared-utils';
+import { formatPKR } from '@/lib/format';
 import { toast } from 'sonner';
 
 export default function PayInvoicePage() {

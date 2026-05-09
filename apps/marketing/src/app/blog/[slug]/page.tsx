@@ -9,6 +9,7 @@ import { CTA } from '@/components/home/CTA';
 import { getPostBySlug, getRelatedPosts, blogPosts, categories } from '@/lib/blog/posts';
 import { buildMetadata } from '@/lib/seo';
 import Script from 'next/script';
+import { ShareButtons } from '@/components/share/ShareButtons';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://nafaa.pk';
 
@@ -182,36 +183,12 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
               {/* Share */}
               <div className="mt-8 pt-8 border-t border-slate-200 dark:border-slate-800">
-                <div className="flex items-center gap-3 flex-wrap">
-                  <span className="font-bold inline-flex items-center gap-2">
-                    <Share2 className="h-4 w-4" /> Share this article:
-                  </span>
-                  <a
-                    href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodeURIComponent(url)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-brand-100 dark:hover:bg-brand-950 hover:text-brand-600 flex items-center justify-center transition-colors"
-                  >
-                    <Twitter className="h-4 w-4" />
-                  </a>
-                  <a
-                    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-brand-100 dark:hover:bg-brand-950 hover:text-brand-600 flex items-center justify-center transition-colors"
-                  >
-                    <Facebook className="h-4 w-4" />
-                  </a>
-                  <a
-                    href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-brand-100 dark:hover:bg-brand-950 hover:text-brand-600 flex items-center justify-center transition-colors"
-                  >
-                    <Linkedin className="h-4 w-4" />
-                  </a>
-                </div>
-              </div>
+  <ShareButtons
+    url={`/blog/${slug}`}
+    title={post.title}
+    description={post.excerpt}
+  />
+</div>
             </Container>
           </section>
         </article>

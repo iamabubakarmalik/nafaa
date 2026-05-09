@@ -5,7 +5,7 @@ import { adminInvoicesApi } from '@/api/admin-invoices.api';
 import { adminTenantsApi } from '@/api/admin-tenants.api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { formatPKR } from '@nafaa/shared-utils';
+import { formatPKR } from '@/lib/format';
 import { toast } from 'sonner';
 
 const formatDate = (v: string) =>

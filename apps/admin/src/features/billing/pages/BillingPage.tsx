@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { adminBillingApi, type PaymentStatus } from '@/api/admin-billing.api';
 import { Button } from '@/components/ui/Button';
-import { formatPKR } from '@nafaa/shared-utils';
+import { formatPKR } from '@/lib/format';
 import { toast } from 'sonner';
 
 const formatDate = (v: string) =>

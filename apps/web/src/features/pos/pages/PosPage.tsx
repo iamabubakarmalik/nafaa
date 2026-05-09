@@ -14,7 +14,7 @@ import { productsApi, type Product } from '@/api/products.api';
 import { customersApi } from '@/api/customers.api';
 import { salesApi, type PaymentMethod } from '@/api/sales.api';
 import { Button } from '@/components/ui/Button';
-import { formatPKR } from '@nafaa/shared-utils';
+import { formatPKR } from '@/lib/format';
 import { toast } from 'sonner';
 import BarcodeScanner from '@/components/barcode/BarcodeScanner';
 

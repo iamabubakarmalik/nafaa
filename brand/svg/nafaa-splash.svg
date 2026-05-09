@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1284 2778" width="1284" height="2778">
+  <defs>
+    <linearGradient id="splashBg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#16a34a"/>
+      <stop offset="100%" stop-color="#15803d"/>
+    </linearGradient>
+    <linearGradient id="splashIcon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#dcfce9"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1284" height="2778" fill="url(#splashBg)"/>
+
+  <!-- Center icon -->
+  <g transform="translate(642, 1389)">
+    <rect x="-180" y="-180" width="360" height="360" rx="80" ry="80" fill="rgba(255,255,255,0.15)"/>
+    <rect x="-160" y="-160" width="320" height="320" rx="72" ry="72" fill="url(#splashIcon)"/>
+    <g transform="translate(0, 12)" stroke="#16a34a" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <line x1="-72" y1="-72" x2="-72" y2="72"/>
+      <line x1="-72" y1="72" x2="72" y2="-72"/>
+      <line x1="72" y1="-72" x2="72" y2="72"/>
+      <polyline points="32,-72 72,-72 72,-32"/>
+    </g>
+    <circle cx="120" cy="-130" r="20" fill="#f59e0b"/>
+  </g>
+
+  <!-- Tagline -->
+  <text x="642" y="1700" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="900" fill="#ffffff" text-anchor="middle">
+    Nafaa
+  </text>
+  <text x="642" y="1760" font-family="Inter, system-ui, sans-serif" font-size="28" font-weight="600" fill="rgba(255,255,255,0.85)" text-anchor="middle" letter-spacing="4">
+    Run Your Shop Smarter
+  </text>
+
+  <!-- Made in Pakistan -->
+  <text x="642" y="2680" font-family="Inter, system-ui, sans-serif" font-size="22" fill="rgba(255,255,255,0.7)" text-anchor="middle">
+    🇵🇰 Made in Pakistan
+  </text>
+</svg>

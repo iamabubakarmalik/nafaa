@@ -6,7 +6,7 @@ import {
 import { adminPlansApi, type AdminPlan, type UpsertPlanPayload } from '@/api/admin-plans.api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { formatPKR } from '@nafaa/shared-utils';
+import { formatPKR } from '@/lib/format';
 import { toast } from 'sonner';
 
 const FEATURE_KEYS: Array<keyof UpsertPlanPayload> = [

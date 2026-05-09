@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Package, Search, AlertTriangle, XCircle, CheckCircle2 } from 'lucide-react';
 import { adminProductsApi } from '@/api/admin-products.api';
-import { formatPKR } from '@nafaa/shared-utils';
+import { formatPKR } from '@/lib/format';
 
 export default function AdminProductsPage() {
   const [search, setSearch] = useState('');

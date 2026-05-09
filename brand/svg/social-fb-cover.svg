@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 312" width="820" height="312">
+  <defs>
+    <linearGradient id="fbBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#16a34a"/>
+      <stop offset="100%" stop-color="#0f766e"/>
+    </linearGradient>
+  </defs>
+  <rect width="820" height="312" fill="url(#fbBg)"/>
+
+  <g transform="translate(40, 40)">
+    <rect width="70" height="70" rx="16" fill="#ffffff"/>
+    <g transform="translate(35, 36)" stroke="#16a34a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <line x1="-14" y1="-14" x2="-14" y2="14"/>
+      <line x1="-14" y1="14" x2="14" y2="-14"/>
+      <line x1="14" y1="-14" x2="14" y2="14"/>
+      <polyline points="6,-14 14,-14 14,-6"/>
+    </g>
+    <circle cx="54" cy="16" r="4" fill="#f59e0b"/>
+  </g>
+
+  <text x="130" y="85" font-family="Inter" font-size="44" font-weight="900" fill="#ffffff">Nafaa</text>
+  <text x="40" y="180" font-family="Inter" font-size="36" font-weight="900" fill="#ffffff">Run Your Shop Smarter</text>
+  <text x="40" y="220" font-family="Inter" font-size="20" font-weight="600" fill="rgba(255,255,255,0.85)">Pakistan's #1 Retail POS • Trusted by 5,000+ shops</text>
+
+  <g transform="translate(40, 250)">
+    <rect width="180" height="44" rx="22" fill="#fbbf24"/>
+    <text x="90" y="29" font-family="Inter" font-size="16" font-weight="800" fill="#0f172a" text-anchor="middle">Try Free at nafaa.pk</text>
+  </g>
+</svg>

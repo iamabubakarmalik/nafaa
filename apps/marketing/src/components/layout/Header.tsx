@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { LangSwitcher } from '@/components/ui/LangSwitcher';
 import { cn } from '@/lib/cn';
+import { Logo } from '@/components/brand/Logo';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:5173';
 
@@ -50,9 +51,8 @@ export function Header() {
           <div className="flex h-16 lg:h-18 items-center justify-between">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-brand-500 via-brand-600 to-emerald-600 flex items-center justify-center shadow-lg shadow-brand-500/30 group-hover:shadow-brand-500/50 transition-all">
-                <Sparkles className="h-5 w-5 text-white" />
-              </div>
+              <Logo size={40} className="drop-shadow-lg" />
+
               <div className="hidden sm:block">
                 <div className={cn('text-xl font-extrabold tracking-tight', locale === 'ur' && 'font-urdu')}>
                   {locale === 'ur' ? 'نفع' : 'Nafaa'}

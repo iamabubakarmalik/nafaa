@@ -11,6 +11,7 @@ import { useAuthStore } from '@/store/auth.store';
 import { adminAuthApi } from '@/api/admin-auth.api';
 import { toast } from 'sonner';
 import NotificationBell from '@/components/notifications/NotificationBell';
+import { Logo } from '@/components/brand/Logo';
 
 const navGroups = [
   {
@@ -82,9 +83,8 @@ export default function AdminShell() {
     <>
       <div className="px-6 py-6 border-b border-admin-800/50 flex-shrink-0">
         <div className="flex items-center gap-3">
-          <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-admin-500 to-admin-700 flex items-center justify-center shadow-soft">
-            <ShieldCheck className="h-5 w-5 text-white" />
-          </div>
+          <Logo size={44} />
+
           <div>
             <div className="font-bold text-lg text-white">Nafaa Admin</div>
             <div className="text-xs text-admin-300">Super Admin</div>

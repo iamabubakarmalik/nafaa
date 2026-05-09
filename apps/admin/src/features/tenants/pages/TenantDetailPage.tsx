@@ -9,7 +9,7 @@ import {
 import { adminTenantsApi, type TenantStatus } from '@/api/admin-tenants.api';
 import { adminImpersonateApi } from '@/api/admin-impersonate.api';
 import { Button } from '@/components/ui/Button';
-import { formatPKR } from '@nafaa/shared-utils';
+import { formatPKR } from '@/lib/format';
 import { toast } from 'sonner';
 import TenantNotesPanel from '@/features/notes/pages/TenantNotesPanel';
 

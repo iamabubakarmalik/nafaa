@@ -1,0 +1,287 @@
+.
+├── apps
+│   ├── admin
+│   │   ├── eslint.config.js
+│   │   ├── index.html
+│   │   ├── package.json
+│   │   ├── postcss.config.js
+│   │   ├── public
+│   │   │   ├── favicon.ico
+│   │   │   ├── favicon.svg
+│   │   │   ├── icons.svg
+│   │   │   └── logo.svg
+│   │   ├── README.md
+│   │   ├── src
+│   │   │   ├── api
+│   │   │   ├── App.tsx
+│   │   │   ├── assets
+│   │   │   ├── components
+│   │   │   ├── features
+│   │   │   ├── index.css
+│   │   │   ├── lib
+│   │   │   ├── main.tsx
+│   │   │   ├── routes
+│   │   │   └── store
+│   │   ├── tailwind.config.js
+│   │   ├── tsconfig.app.json
+│   │   ├── tsconfig.json
+│   │   ├── tsconfig.node.json
+│   │   └── vite.config.ts
+│   ├── api
+│   │   ├── dist-script
+│   │   │   └── create-super-admin.js
+│   │   ├── eslint.config.mjs
+│   │   ├── nest-cli.json
+│   │   ├── package.json
+│   │   ├── prisma
+│   │   │   ├── migrations
+│   │   │   └── schema.prisma
+│   │   ├── README.md
+│   │   ├── src
+│   │   │   ├── app.controller.spec.ts
+│   │   │   ├── app.controller.ts
+│   │   │   ├── app.module.ts
+│   │   │   ├── app.service.ts
+│   │   │   ├── common
+│   │   │   ├── config
+│   │   │   ├── main.ts
+│   │   │   ├── modules
+│   │   │   ├── prisma
+│   │   │   └── scripts
+│   │   ├── test
+│   │   │   ├── app.e2e-spec.ts
+│   │   │   └── jest-e2e.json
+│   │   ├── tsconfig.build.json
+│   │   ├── tsconfig.json
+│   │   └── uploads
+│   ├── desktop
+│   ├── marketing
+│   │   ├── next-env.d.ts
+│   │   ├── next.config.ts
+│   │   ├── package.json
+│   │   ├── pnpm-workspace.yaml
+│   │   ├── postcss.config.mjs
+│   │   ├── public
+│   │   │   ├── apple-touch-icon.png
+│   │   │   ├── favicon-32.png
+│   │   │   ├── favicon.ico
+│   │   │   ├── favicon.ico.txt
+│   │   │   ├── file.svg
+│   │   │   ├── globe.svg
+│   │   │   ├── icon-192.png
+│   │   │   ├── icon-256.png
+│   │   │   ├── icon-384.png
+│   │   │   ├── icon-512.png
+│   │   │   ├── logo-full.svg
+│   │   │   ├── logo.png
+│   │   │   ├── logo.svg
+│   │   │   ├── manifest.json
+│   │   │   ├── next.svg
+│   │   │   ├── og
+│   │   │   ├── og-image.png
+│   │   │   ├── vercel.svg
+│   │   │   └── window.svg
+│   │   ├── README.md
+│   │   ├── src
+│   │   │   ├── app
+│   │   │   ├── components
+│   │   │   ├── i18n
+│   │   │   └── lib
+│   │   ├── tailwind.config.ts
+│   │   └── tsconfig.json
+│   ├── mobile
+│   │   ├── app
+│   │   │   ├── _layout.tsx
+│   │   │   ├── (tabs)
+│   │   │   ├── auth
+│   │   │   ├── notifications
+│   │   │   ├── plan
+│   │   │   ├── referrals
+│   │   │   ├── reports
+│   │   │   ├── sales
+│   │   │   └── settings
+│   │   ├── app.json
+│   │   ├── App.tsx
+│   │   ├── assets
+│   │   │   ├── adaptive-icon.png
+│   │   │   ├── favicon.png
+│   │   │   ├── icon.png
+│   │   │   ├── notification-icon.png
+│   │   │   ├── splash-icon.png
+│   │   │   └── splash.png
+│   │   ├── babel.config.js
+│   │   ├── expo-env.d.ts
+│   │   ├── global.css
+│   │   ├── index.ts
+│   │   ├── metro.config.js
+│   │   ├── nativewind-env.d.ts
+│   │   ├── package.json
+│   │   ├── pnpm-lock.yaml
+│   │   ├── pnpm-workspace.yaml
+│   │   ├── src
+│   │   │   ├── api
+│   │   │   ├── components
+│   │   │   ├── constants
+│   │   │   ├── hooks
+│   │   │   ├── i18n
+│   │   │   ├── lib
+│   │   │   ├── store
+│   │   │   └── types
+│   │   ├── tailwind.config.js
+│   │   └── tsconfig.json
+│   └── web
+│       ├── eslint.config.js
+│       ├── index.html
+│       ├── package.json
+│       ├── postcss.config.js
+│       ├── public
+│       │   ├── favicon.ico
+│       │   ├── favicon.svg
+│       │   ├── icon-192.png
+│       │   ├── icon-512.png
+│       │   ├── icons.svg
+│       │   └── logo.svg
+│       ├── README.md
+│       ├── src
+│       │   ├── api
+│       │   ├── App.tsx
+│       │   ├── assets
+│       │   ├── components
+│       │   ├── features
+│       │   ├── index.css
+│       │   ├── lib
+│       │   ├── main.tsx
+│       │   ├── routes
+│       │   └── store
+│       ├── tailwind.config.js
+│       ├── tsconfig.app.json
+│       ├── tsconfig.json
+│       ├── tsconfig.node.json
+│       └── vite.config.ts
+├── brand
+│   ├── app-icons
+│   ├── app-store
+│   │   ├── appstore-feature.png
+│   │   └── playstore-feature.png
+│   ├── ASSET-INDEX.md
+│   ├── BRAND-GUIDELINES.md
+│   ├── email
+│   │   ├── email-header.png
+│   │   └── email-signature.png
+│   ├── favicon
+│   │   └── favicon.png
+│   ├── generate-all-assets.js
+│   ├── generate-icons.js
+│   ├── marketing
+│   │   ├── feature-card.png
+│   │   ├── stats.png
+│   │   └── testimonial.png
+│   ├── og
+│   │   ├── og-default.png
+│   │   ├── og-features.png
+│   │   ├── og-industry-bakery.png
+│   │   ├── og-industry-kiryana.png
+│   │   ├── og-industry-mobile-shop.png
+│   │   ├── og-industry-pharmacy.png
+│   │   └── og-pricing.png
+│   ├── png
+│   │   ├── adaptive-icon-foreground-512.png
+│   │   ├── app-icon-1024.png
+│   │   ├── apple-touch-icon-152.png
+│   │   ├── apple-touch-icon-167.png
+│   │   ├── apple-touch-icon.png
+│   │   ├── favicon-16.png
+│   │   ├── favicon-32.png
+│   │   ├── favicon-48.png
+│   │   ├── icon-192.png
+│   │   ├── icon-256.png
+│   │   ├── icon-384.png
+│   │   ├── icon-512.png
+│   │   ├── logo-1024.png
+│   │   ├── logo-256.png
+│   │   ├── logo-512.png
+│   │   ├── logo-full-1280.png
+│   │   ├── notification-icon-96.png
+│   │   └── splash-1284x2778.png
+│   ├── print
+│   │   ├── bc-front.png
+│   │   └── rollup-banner.png
+│   ├── social
+│   │   ├── fb-cover.png
+│   │   ├── instagram-post.png
+│   │   ├── instagram-story.png
+│   │   ├── linkedin-banner.png
+│   │   └── twitter-header.png
+│   ├── svg
+│   │   ├── appstore-feature.svg
+│   │   ├── email-header.svg
+│   │   ├── email-signature.svg
+│   │   ├── marketing-feature-card.svg
+│   │   ├── marketing-promo.svg
+│   │   ├── marketing-stats.svg
+│   │   ├── marketing-testimonial.svg
+│   │   ├── nafaa-icon-dark.svg
+│   │   ├── nafaa-icon-mono-black.svg
+│   │   ├── nafaa-icon-mono-white.svg
+│   │   ├── nafaa-icon.svg
+│   │   ├── nafaa-logo-full.svg
+│   │   ├── nafaa-splash.svg
+│   │   ├── nafaa-urdu.svg
+│   │   ├── nafaa-wordmark.svg
+│   │   ├── og-blog.svg
+│   │   ├── og-default.svg
+│   │   ├── og-features.svg
+│   │   ├── og-industry-bakery.svg
+│   │   ├── og-industry-kiryana.svg
+│   │   ├── og-industry-mobile-shop.svg
+│   │   ├── og-industry-pharmacy.svg
+│   │   ├── og-pricing.svg
+│   │   ├── playstore-feature.svg
+│   │   ├── print-business-card-back.svg
+│   │   ├── print-business-card-front.svg
+│   │   ├── print-flyer-a5.svg
+│   │   ├── print-rollup-banner.svg
+│   │   ├── social-fb-cover.svg
+│   │   ├── social-instagram-post.svg
+│   │   ├── social-instagram-story.svg
+│   │   ├── social-linkedin-banner.svg
+│   │   ├── social-twitter-header.svg
+│   │   └── whatsapp-share.svg
+│   └── whatsapp
+│       └── whatsapp-share.png
+├── infra
+│   ├── docker
+│   └── scripts
+├── package.json
+├── packages
+│   ├── api-client
+│   │   ├── package.json
+│   │   └── src
+│   │       └── index.ts
+│   ├── shared-config
+│   │   └── package.json
+│   ├── shared-hooks
+│   │   ├── package.json
+│   │   └── src
+│   │       └── index.ts
+│   ├── shared-types
+│   │   ├── package.json
+│   │   └── src
+│   │       ├── index.ts
+│   │       └── lib
+│   ├── shared-ui
+│   │   ├── package.json
+│   │   └── src
+│   │       └── index.ts
+│   └── shared-utils
+│       ├── package.json
+│       └── src
+│           └── index.ts
+├── pnpm-lock.yaml
+├── pnpm-workspace.yaml
+├── README.md
+├── structure.txt
+├── tsconfig.base.json
+└── turbo.json
+
+91 directories, 194 files

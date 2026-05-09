@@ -4,7 +4,7 @@ import { Printer, ScanLine, Plus, Minus } from 'lucide-react';
 import JsBarcode from 'jsbarcode';
 import { productsApi, type Product } from '@/api/products.api';
 import { Button } from '@/components/ui/Button';
-import { formatPKR } from '@nafaa/shared-utils';
+import { formatPKR } from '@/lib/format';
 
 interface LabelItem {
   product: Product;

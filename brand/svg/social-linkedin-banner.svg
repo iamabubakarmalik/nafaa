@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1584 396" width="1584" height="396">
+  <defs>
+    <linearGradient id="liBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#15803d"/>
+    </linearGradient>
+  </defs>
+  <rect width="1584" height="396" fill="url(#liBg)"/>
+
+  <g transform="translate(80, 60)">
+    <rect width="90" height="90" rx="20" fill="#16a34a"/>
+    <g transform="translate(45, 47)" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <line x1="-18" y1="-18" x2="-18" y2="18"/>
+      <line x1="-18" y1="18" x2="18" y2="-18"/>
+      <line x1="18" y1="-18" x2="18" y2="18"/>
+      <polyline points="8,-18 18,-18 18,-8"/>
+    </g>
+    <circle cx="70" cy="20" r="5" fill="#f59e0b"/>
+  </g>
+
+  <text x="200" y="115" font-family="Inter" font-size="48" font-weight="900" fill="#ffffff">Nafaa Technologies</text>
+  <text x="200" y="155" font-family="Inter" font-size="20" font-weight="600" fill="rgba(255,255,255,0.7)">Empowering Pakistan's 5M+ Retailers with World-Class Software</text>
+
+  <g transform="translate(80, 260)">
+    <text font-family="Inter" font-size="18" font-weight="700" fill="#22c55e">📍 Lahore, Pakistan</text>
+    <text x="0" y="35" font-family="Inter" font-size="18" font-weight="700" fill="#fbbf24">🚀 5,000+ Active Shops</text>
+    <text x="0" y="70" font-family="Inter" font-size="18" font-weight="700" fill="#ffffff">🌐 nafaa.pk</text>
+  </g>
+</svg>

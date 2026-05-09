@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 2000" width="850" height="2000">
+  <defs>
+    <linearGradient id="rollBg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#15803d"/>
+      <stop offset="50%" stop-color="#16a34a"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+  </defs>
+  <rect width="850" height="2000" fill="url(#rollBg)"/>
+
+  <g transform="translate(325, 150)">
+    <rect width="200" height="200" rx="44" fill="#ffffff"/>
+    <g transform="translate(100, 102)" stroke="#16a34a" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <line x1="-42" y1="-42" x2="-42" y2="42"/>
+      <line x1="-42" y1="42" x2="42" y2="-42"/>
+      <line x1="42" y1="-42" x2="42" y2="42"/>
+      <polyline points="20,-42 42,-42 42,-20"/>
+    </g>
+    <circle cx="158" cy="48" r="14" fill="#f59e0b"/>
+  </g>
+
+  <text x="425" y="450" font-family="Inter" font-size="100" font-weight="900" fill="#ffffff" text-anchor="middle">Nafaa</text>
+
+  <text x="425" y="660" font-family="Inter" font-size="64" font-weight="900" fill="#ffffff" text-anchor="middle">Pakistan's #1</text>
+  <text x="425" y="750" font-family="Inter" font-size="64" font-weight="900" fill="#fbbf24" text-anchor="middle">Shop Software</text>
+
+  <text x="425" y="900" font-family="Inter" font-size="32" font-weight="500" fill="rgba(255,255,255,0.9)" text-anchor="middle">All-in-One Retail Platform</text>
+
+  <!-- Stats badges -->
+  <g transform="translate(125, 1000)">
+    <rect width="600" height="80" rx="40" fill="rgba(255,255,255,0.15)"/>
+    <text x="300" y="54" font-family="Inter" font-size="28" font-weight="700" fill="#ffffff" text-anchor="middle">⭐ 5,000+ Active Shops</text>
+  </g>
+  <g transform="translate(125, 1110)">
+    <rect width="600" height="80" rx="40" fill="rgba(255,255,255,0.15)"/>
+    <text x="300" y="54" font-family="Inter" font-size="28" font-weight="700" fill="#ffffff" text-anchor="middle">⚡ 5-Second POS Checkout</text>
+  </g>
+  <g transform="translate(125, 1220)">
+    <rect width="600" height="80" rx="40" fill="rgba(255,255,255,0.15)"/>
+    <text x="300" y="54" font-family="Inter" font-size="28" font-weight="700" fill="#ffffff" text-anchor="middle">🇵🇰 Made for Pakistan</text>
+  </g>
+
+  <!-- Big CTA -->
+  <g transform="translate(125, 1430)">
+    <rect width="600" height="180" rx="90" fill="#fbbf24"/>
+    <text x="300" y="105" font-family="Inter" font-size="52" font-weight="900" fill="#0f172a" text-anchor="middle">FREE 7-Day Trial</text>
+    <text x="300" y="155" font-family="Inter" font-size="22" font-weight="600" fill="#0f172a" text-anchor="middle">No credit card needed</text>
+  </g>
+
+  <!-- QR + URL -->
+  <g transform="translate(325, 1690)">
+    <rect width="200" height="200" rx="16" fill="#ffffff"/>
+    <text x="100" y="115" font-family="Inter" font-size="20" font-weight="800" fill="#0f172a" text-anchor="middle">[ QR CODE ]</text>
+  </g>
+
+  <text x="425" y="1955" font-family="Inter" font-size="44" font-weight="900" fill="#fbbf24" text-anchor="middle">nafaa.pk</text>
+</svg>

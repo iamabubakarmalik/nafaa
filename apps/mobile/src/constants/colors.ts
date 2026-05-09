@@ -1,0 +1,41 @@
+export const lightColors = {
+  background: '#ffffff',
+  foreground: '#0f172a',
+  card: '#ffffff',
+  cardForeground: '#0f172a',
+  muted: '#f1f5f9',
+  mutedForeground: '#64748b',
+  border: '#e2e8f0',
+  input: '#e2e8f0',
+  primary: '#16a34a',
+  primaryForeground: '#ffffff',
+  accent: '#f59e0b',
+  accentForeground: '#1f2937',
+  destructive: '#dc2626',
+  destructiveForeground: '#ffffff',
+  success: '#16a34a',
+  warning: '#f59e0b',
+  info: '#0ea5e9',
+};
+
+export const darkColors = {
+  background: '#0a0a0a',
+  foreground: '#fafafa',
+  card: '#171717',
+  cardForeground: '#fafafa',
+  muted: '#262626',
+  mutedForeground: '#a3a3a3',
+  border: '#262626',
+  input: '#262626',
+  primary: '#22c55e',
+  primaryForeground: '#0a0a0a',
+  accent: '#fbbf24',
+  accentForeground: '#0a0a0a',
+  destructive: '#ef4444',
+  destructiveForeground: '#fafafa',
+  success: '#22c55e',
+  warning: '#fbbf24',
+  info: '#38bdf8',
+};
+
+export type Colors = typeof lightColors;

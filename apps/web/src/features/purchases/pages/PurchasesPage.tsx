@@ -15,7 +15,7 @@ import { productsApi } from '@/api/products.api';
 import { purchasesApi } from '@/api/purchases.api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { formatPKR } from '@nafaa/shared-utils';
+import { formatPKR } from '@/lib/format';
 import type { PaymentMethod } from '@/api/sales.api';
 import { toast } from 'sonner';
 

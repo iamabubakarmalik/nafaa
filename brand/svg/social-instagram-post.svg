@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <defs>
+    <linearGradient id="igBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#16a34a"/>
+      <stop offset="100%" stop-color="#0e7490"/>
+    </linearGradient>
+  </defs>
+  <rect width="1080" height="1080" fill="url(#igBg)"/>
+
+  <circle cx="100" cy="150" r="200" fill="rgba(255,255,255,0.05)"/>
+  <circle cx="980" cy="950" r="280" fill="rgba(245,158,11,0.1)"/>
+
+  <!-- Logo center top -->
+  <g transform="translate(440, 120)">
+    <rect width="200" height="200" rx="44" fill="#ffffff"/>
+    <g transform="translate(100, 102)" stroke="#16a34a" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <line x1="-42" y1="-42" x2="-42" y2="42"/>
+      <line x1="-42" y1="42" x2="42" y2="-42"/>
+      <line x1="42" y1="-42" x2="42" y2="42"/>
+      <polyline points="20,-42 42,-42 42,-20"/>
+    </g>
+    <circle cx="158" cy="48" r="14" fill="#f59e0b"/>
+  </g>
+
+  <text x="540" y="420" font-family="Inter" font-size="80" font-weight="900" fill="#ffffff" text-anchor="middle">Nafaa</text>
+
+  <text x="540" y="540" font-family="Inter" font-size="56" font-weight="900" fill="#ffffff" text-anchor="middle">Pakistan's #1</text>
+  <text x="540" y="620" font-family="Inter" font-size="56" font-weight="900" fill="#fbbf24" text-anchor="middle">Shop Software</text>
+
+  <text x="540" y="720" font-family="Inter" font-size="32" font-weight="500" fill="rgba(255,255,255,0.85)" text-anchor="middle">POS • Inventory • Khata • Reports</text>
+
+  <g transform="translate(290, 800)">
+    <rect width="500" height="80" rx="40" fill="#fbbf24"/>
+    <text x="250" y="54" font-family="Inter" font-size="32" font-weight="800" fill="#0f172a" text-anchor="middle">Start 7-Day Free Trial</text>
+  </g>
+
+  <text x="540" y="970" font-family="Inter" font-size="28" font-weight="700" fill="#ffffff" text-anchor="middle">nafaa.pk</text>
+  <text x="540" y="1010" font-family="Inter" font-size="22" font-weight="500" fill="rgba(255,255,255,0.7)" text-anchor="middle">🇵🇰 Made in Pakistan</text>
+</svg>

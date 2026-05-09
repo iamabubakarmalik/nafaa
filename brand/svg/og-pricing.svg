@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="pricingBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#15803d"/>
+      <stop offset="100%" stop-color="#064e3b"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#pricingBg)"/>
+
+  <!-- Logo small top-left -->
+  <g transform="translate(60, 50)">
+    <rect width="60" height="60" rx="14" fill="#ffffff"/>
+    <g transform="translate(30, 31)" stroke="#16a34a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <line x1="-13" y1="-13" x2="-13" y2="13"/>
+      <line x1="-13" y1="13" x2="13" y2="-13"/>
+      <line x1="13" y1="-13" x2="13" y2="13"/>
+      <polyline points="6,-13 13,-13 13,-6"/>
+    </g>
+    <circle cx="46" cy="14" r="4" fill="#f59e0b"/>
+  </g>
+  <text x="140" y="85" font-family="Inter" font-size="32" font-weight="800" fill="#ffffff">Nafaa Pricing</text>
+
+  <!-- Big "From Rs 1,500" -->
+  <text x="600" y="230" font-family="Inter" font-size="32" font-weight="600" fill="rgba(255,255,255,0.7)" text-anchor="middle">Plans starting from</text>
+  <text x="600" y="350" font-family="Inter" font-size="140" font-weight="900" fill="#fbbf24" text-anchor="middle">Rs 1,500</text>
+  <text x="600" y="395" font-family="Inter" font-size="28" font-weight="500" fill="rgba(255,255,255,0.85)" text-anchor="middle">per month • 7-day free trial</text>
+
+  <!-- Feature pills -->
+  <g transform="translate(180, 460)">
+    <rect width="190" height="50" rx="25" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)"/>
+    <text x="95" y="33" font-family="Inter" font-size="18" font-weight="700" fill="#ffffff" text-anchor="middle">✓ Unlimited POS</text>
+  </g>
+  <g transform="translate(390, 460)">
+    <rect width="190" height="50" rx="25" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)"/>
+    <text x="95" y="33" font-family="Inter" font-size="18" font-weight="700" fill="#ffffff" text-anchor="middle">✓ Multi-Shop</text>
+  </g>
+  <g transform="translate(600, 460)">
+    <rect width="190" height="50" rx="25" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)"/>
+    <text x="95" y="33" font-family="Inter" font-size="18" font-weight="700" fill="#ffffff" text-anchor="middle">✓ WhatsApp</text>
+  </g>
+  <g transform="translate(810, 460)">
+    <rect width="210" height="50" rx="25" fill="rgba(245,158,11,0.95)"/>
+    <text x="105" y="33" font-family="Inter" font-size="18" font-weight="800" fill="#0f172a" text-anchor="middle">30-Day Refund</text>
+  </g>
+
+  <text x="600" y="580" font-family="Inter" font-size="22" font-weight="600" fill="rgba(255,255,255,0.7)" text-anchor="middle">nafaa.pk/pricing</text>
+</svg>

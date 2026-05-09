@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search, Package, Users, Receipt, Truck, X } from 'lucide-react';
 import { searchApi, type SearchResults } from '@/api/search.api';
-import { formatPKR } from '@nafaa/shared-utils';
+import { formatPKR } from '@/lib/format';
 
 export default function GlobalSearch() {
   const [open, setOpen] = useState(false);

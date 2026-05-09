@@ -1,0 +1,285 @@
+.
+├── dist-script
+│   └── create-super-admin.js
+├── eslint.config.mjs
+├── nest-cli.json
+├── package.json
+├── prisma
+│   ├── migrations
+│   │   ├── 20260507201325_init_auth_foundation
+│   │   │   └── migration.sql
+│   │   ├── 20260507212633_add_products_module
+│   │   │   └── migration.sql
+│   │   ├── 20260507213831_add_customers_and_sales_pos
+│   │   │   └── migration.sql
+│   │   ├── 20260507220635_add_suppliers_purchases_stock_movements
+│   │   │   └── migration.sql
+│   │   ├── 20260507221635_add_categories_expenses
+│   │   │   └── migration.sql
+│   │   ├── 20260507223623_add_settings_and_barcode_index
+│   │   │   └── migration.sql
+│   │   ├── 20260507225156_add_team_khata_adjustments
+│   │   │   └── migration.sql
+│   │   ├── 20260507231237_add_cash_register_shops_activity
+│   │   │   └── migration.sql
+│   │   ├── 20260507233616_add_returns_discounts_loyalty
+│   │   │   └── migration.sql
+│   │   ├── 20260508094940_add_billing_subscriptions
+│   │   │   └── migration.sql
+│   │   ├── 20260508100539_add_referrals_credits_stripe
+│   │   │   └── migration.sql
+│   │   ├── 20260508132522_admin_full_control_modules
+│   │   │   └── migration.sql
+│   │   ├── 20260508142628_add_email_sms_integration
+│   │   │   └── migration.sql
+│   │   ├── 20260508145051_add_admin_notifications
+│   │   │   └── migration.sql
+│   │   └── migration_lock.toml
+│   └── schema.prisma
+├── README.md
+├── src
+│   ├── app.controller.spec.ts
+│   ├── app.controller.ts
+│   ├── app.module.ts
+│   ├── app.service.ts
+│   ├── common
+│   │   ├── decorators
+│   │   ├── filters
+│   │   │   └── global-exception.filter.ts
+│   │   ├── guards
+│   │   ├── interceptors
+│   │   │   └── response.interceptor.ts
+│   │   ├── types
+│   │   └── utils
+│   │       ├── password.util.ts
+│   │       └── slug.util.ts
+│   ├── config
+│   │   └── env.validation.ts
+│   ├── main.ts
+│   ├── modules
+│   │   ├── activity-log
+│   │   │   ├── activity-log.controller.ts
+│   │   │   ├── activity-log.module.ts
+│   │   │   └── activity-log.service.ts
+│   │   ├── admin
+│   │   │   ├── activity
+│   │   │   ├── admin.module.ts
+│   │   │   ├── analytics
+│   │   │   ├── auth
+│   │   │   ├── billing
+│   │   │   ├── broadcast
+│   │   │   ├── bulk
+│   │   │   ├── common
+│   │   │   ├── communications
+│   │   │   ├── customers
+│   │   │   ├── discounts
+│   │   │   ├── email-templates
+│   │   │   ├── exports
+│   │   │   ├── health
+│   │   │   ├── impersonate
+│   │   │   ├── invoices
+│   │   │   ├── notes
+│   │   │   ├── notifications
+│   │   │   ├── plans
+│   │   │   ├── platform-discounts
+│   │   │   ├── products
+│   │   │   ├── referrals
+│   │   │   ├── sales
+│   │   │   ├── settings
+│   │   │   ├── subscriptions
+│   │   │   ├── system
+│   │   │   ├── tenants
+│   │   │   └── users
+│   │   ├── auth
+│   │   │   ├── auth.controller.ts
+│   │   │   ├── auth.module.ts
+│   │   │   ├── auth.service.ts
+│   │   │   ├── decorators
+│   │   │   ├── dto
+│   │   │   ├── guards
+│   │   │   ├── interfaces
+│   │   │   └── strategies
+│   │   ├── backup
+│   │   │   ├── backup.controller.ts
+│   │   │   ├── backup.module.ts
+│   │   │   └── backup.service.ts
+│   │   ├── billing
+│   │   │   ├── billing.controller.ts
+│   │   │   ├── billing.module.ts
+│   │   │   ├── billing.service.ts
+│   │   │   └── dto
+│   │   ├── billing-admin
+│   │   │   ├── billing-admin.controller.ts
+│   │   │   ├── billing-admin.module.ts
+│   │   │   ├── billing-admin.service.ts
+│   │   │   └── dto
+│   │   ├── billing-public
+│   │   ├── cash-register
+│   │   │   ├── cash-register.controller.ts
+│   │   │   ├── cash-register.module.ts
+│   │   │   ├── cash-register.service.ts
+│   │   │   └── dto
+│   │   ├── categories
+│   │   │   ├── categories.controller.ts
+│   │   │   ├── categories.module.ts
+│   │   │   ├── categories.service.ts
+│   │   │   └── dto
+│   │   ├── customer-ledger
+│   │   │   ├── customer-ledger.controller.ts
+│   │   │   ├── customer-ledger.module.ts
+│   │   │   ├── customer-ledger.service.ts
+│   │   │   └── dto
+│   │   ├── customers
+│   │   │   ├── customers.controller.ts
+│   │   │   ├── customers.module.ts
+│   │   │   ├── customers.service.ts
+│   │   │   └── dto
+│   │   ├── dashboard
+│   │   │   ├── dashboard.controller.ts
+│   │   │   ├── dashboard.module.ts
+│   │   │   └── dashboard.service.ts
+│   │   ├── discounts
+│   │   │   ├── discounts.controller.ts
+│   │   │   ├── discounts.module.ts
+│   │   │   ├── discounts.service.ts
+│   │   │   └── dto
+│   │   ├── email
+│   │   │   ├── dto
+│   │   │   ├── email.module.ts
+│   │   │   └── email.service.ts
+│   │   ├── expense-categories
+│   │   │   ├── dto
+│   │   │   ├── expense-categories.controller.ts
+│   │   │   ├── expense-categories.module.ts
+│   │   │   └── expense-categories.service.ts
+│   │   ├── expenses
+│   │   │   ├── dto
+│   │   │   ├── expenses.controller.ts
+│   │   │   ├── expenses.module.ts
+│   │   │   └── expenses.service.ts
+│   │   ├── exports
+│   │   │   ├── exports.controller.ts
+│   │   │   ├── exports.module.ts
+│   │   │   └── exports.service.ts
+│   │   ├── feature-gating
+│   │   │   ├── feature-gating.controller.ts
+│   │   │   ├── feature-gating.module.ts
+│   │   │   └── feature-gating.service.ts
+│   │   ├── inventory
+│   │   │   └── products
+│   │   ├── loyalty
+│   │   │   ├── loyalty.controller.ts
+│   │   │   ├── loyalty.module.ts
+│   │   │   └── loyalty.service.ts
+│   │   ├── notification-prefs
+│   │   │   ├── notification-prefs.controller.ts
+│   │   │   ├── notification-prefs.module.ts
+│   │   │   └── notification-prefs.service.ts
+│   │   ├── notifications
+│   │   │   ├── dto
+│   │   │   ├── notifications.controller.ts
+│   │   │   ├── notifications.module.ts
+│   │   │   └── notifications.service.ts
+│   │   ├── plans
+│   │   │   ├── dto
+│   │   │   ├── plans.controller.ts
+│   │   │   ├── plans.module.ts
+│   │   │   └── plans.service.ts
+│   │   ├── profit-report
+│   │   │   ├── profit-report.controller.ts
+│   │   │   ├── profit-report.module.ts
+│   │   │   └── profit-report.service.ts
+│   │   ├── purchases
+│   │   │   ├── dto
+│   │   │   ├── purchases.controller.ts
+│   │   │   ├── purchases.module.ts
+│   │   │   └── purchases.service.ts
+│   │   ├── referrals
+│   │   │   ├── dto
+│   │   │   ├── referrals.controller.ts
+│   │   │   ├── referrals.module.ts
+│   │   │   └── referrals.service.ts
+│   │   ├── reports
+│   │   │   ├── reports.controller.ts
+│   │   │   ├── reports.module.ts
+│   │   │   └── reports.service.ts
+│   │   ├── returns
+│   │   │   ├── dto
+│   │   │   ├── returns.controller.ts
+│   │   │   ├── returns.module.ts
+│   │   │   └── returns.service.ts
+│   │   ├── sales
+│   │   │   ├── dto
+│   │   │   ├── sales.controller.ts
+│   │   │   ├── sales.module.ts
+│   │   │   └── sales.service.ts
+│   │   ├── search
+│   │   │   ├── search.controller.ts
+│   │   │   ├── search.module.ts
+│   │   │   └── search.service.ts
+│   │   ├── settings
+│   │   │   ├── dto
+│   │   │   ├── settings.controller.ts
+│   │   │   ├── settings.module.ts
+│   │   │   └── settings.service.ts
+│   │   ├── shops
+│   │   │   ├── dto
+│   │   │   ├── shops.controller.ts
+│   │   │   ├── shops.module.ts
+│   │   │   └── shops.service.ts
+│   │   ├── sms
+│   │   │   ├── dto
+│   │   │   ├── sms.module.ts
+│   │   │   └── sms.service.ts
+│   │   ├── stock-adjustments
+│   │   │   ├── dto
+│   │   │   ├── stock-adjustments.controller.ts
+│   │   │   ├── stock-adjustments.module.ts
+│   │   │   └── stock-adjustments.service.ts
+│   │   ├── stock-movements
+│   │   │   ├── stock-movements.controller.ts
+│   │   │   ├── stock-movements.module.ts
+│   │   │   └── stock-movements.service.ts
+│   │   ├── stripe
+│   │   │   ├── stripe.controller.ts
+│   │   │   ├── stripe.module.ts
+│   │   │   └── stripe.service.ts
+│   │   ├── subscriptions
+│   │   │   ├── dto
+│   │   │   ├── subscriptions.controller.ts
+│   │   │   ├── subscriptions.module.ts
+│   │   │   └── subscriptions.service.ts
+│   │   ├── suppliers
+│   │   │   ├── dto
+│   │   │   ├── suppliers.controller.ts
+│   │   │   ├── suppliers.module.ts
+│   │   │   └── suppliers.service.ts
+│   │   ├── team
+│   │   │   ├── dto
+│   │   │   ├── team.controller.ts
+│   │   │   ├── team.module.ts
+│   │   │   └── team.service.ts
+│   │   ├── transfers
+│   │   │   ├── dto
+│   │   │   ├── transfers.controller.ts
+│   │   │   ├── transfers.module.ts
+│   │   │   └── transfers.service.ts
+│   │   └── uploads
+│   │       ├── uploads.controller.ts
+│   │       ├── uploads.module.ts
+│   │       └── uploads.service.ts
+│   ├── prisma
+│   │   ├── prisma.module.ts
+│   │   └── prisma.service.ts
+│   └── scripts
+│       ├── create-super-admin.js
+│       └── create-super-admin.ts
+├── structure.txt
+├── test
+│   ├── app.e2e-spec.ts
+│   └── jest-e2e.json
+├── tsconfig.build.json
+├── tsconfig.json
+└── uploads
+
+130 directories, 153 files

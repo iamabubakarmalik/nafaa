@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { dashboardApi } from '@/api/dashboard.api';
 import { Button } from '@/components/ui/Button';
-import { formatPKR } from '@nafaa/shared-utils';
+import { formatPKR } from '@/lib/format';
 
 const formatDate = (value: string) =>
   new Intl.DateTimeFormat('en-PK', {

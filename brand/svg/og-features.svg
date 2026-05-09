@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="featBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#16a34a"/>
+      <stop offset="100%" stop-color="#0e7490"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#featBg)"/>
+
+  <text x="60" y="90" font-family="Inter" font-size="28" font-weight="800" fill="#ffffff">Nafaa Features</text>
+  <text x="60" y="180" font-family="Inter" font-size="64" font-weight="900" fill="#ffffff">All-in-One</text>
+  <text x="60" y="250" font-family="Inter" font-size="64" font-weight="900" fill="#fbbf24">Retail Platform</text>
+
+  <!-- Feature grid -->
+  <g transform="translate(60, 300)">
+    <g>
+      <rect width="260" height="100" rx="16" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)"/>
+      <text x="20" y="40" font-size="36">⚡</text>
+      <text x="70" y="42" font-family="Inter" font-size="20" font-weight="800" fill="#ffffff">Lightning POS</text>
+      <text x="70" y="68" font-family="Inter" font-size="14" fill="rgba(255,255,255,0.8)">Sales in 5 seconds</text>
+    </g>
+    <g transform="translate(280, 0)">
+      <rect width="260" height="100" rx="16" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)"/>
+      <text x="20" y="40" font-size="36">📦</text>
+      <text x="70" y="42" font-family="Inter" font-size="20" font-weight="800" fill="#ffffff">Smart Inventory</text>
+      <text x="70" y="68" font-family="Inter" font-size="14" fill="rgba(255,255,255,0.8)">Auto stock alerts</text>
+    </g>
+    <g transform="translate(560, 0)">
+      <rect width="260" height="100" rx="16" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)"/>
+      <text x="20" y="40" font-size="36">📖</text>
+      <text x="70" y="42" font-family="Inter" font-size="20" font-weight="800" fill="#ffffff">Digital Khata</text>
+      <text x="70" y="68" font-family="Inter" font-size="14" fill="rgba(255,255,255,0.8)">WhatsApp reminders</text>
+    </g>
+    <g transform="translate(840, 0)">
+      <rect width="260" height="100" rx="16" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)"/>
+      <text x="20" y="40" font-size="36">📊</text>
+      <text x="70" y="42" font-family="Inter" font-size="20" font-weight="800" fill="#ffffff">Live Reports</text>
+      <text x="70" y="68" font-family="Inter" font-size="14" fill="rgba(255,255,255,0.8)">Real-time profit</text>
+    </g>
+  </g>
+
+  <g transform="translate(60, 420)">
+    <g>
+      <rect width="260" height="100" rx="16" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)"/>
+      <text x="20" y="40" font-size="36">🏪</text>
+      <text x="70" y="42" font-family="Inter" font-size="20" font-weight="800" fill="#ffffff">Multi-Shop</text>
+      <text x="70" y="68" font-family="Inter" font-size="14" fill="rgba(255,255,255,0.8)">Manage 50 branches</text>
+    </g>
+    <g transform="translate(280, 0)">
+      <rect width="260" height="100" rx="16" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)"/>
+      <text x="20" y="40" font-size="36">📡</text>
+      <text x="70" y="42" font-family="Inter" font-size="20" font-weight="800" fill="#ffffff">Offline Mode</text>
+      <text x="70" y="68" font-family="Inter" font-size="14" fill="rgba(255,255,255,0.8)">Works without net</text>
+    </g>
+    <g transform="translate(560, 0)">
+      <rect width="260" height="100" rx="16" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)"/>
+      <text x="20" y="40" font-size="36">🎁</text>
+      <text x="70" y="42" font-family="Inter" font-size="20" font-weight="800" fill="#ffffff">Loyalty Points</text>
+      <text x="70" y="68" font-family="Inter" font-size="14" fill="rgba(255,255,255,0.8)">Reward customers</text>
+    </g>
+    <g transform="translate(840, 0)">
+      <rect width="260" height="100" rx="16" fill="rgba(245,158,11,0.95)"/>
+      <text x="130" y="48" font-family="Inter" font-size="20" font-weight="800" fill="#0f172a" text-anchor="middle">+ 50 More</text>
+      <text x="130" y="74" font-family="Inter" font-size="13" font-weight="600" fill="#0f172a" text-anchor="middle">Try Free →</text>
+    </g>
+  </g>
+</svg>

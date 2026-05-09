@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Gift, Crown, Users, TrendingUp, Award } from 'lucide-react';
 import { adminReferralsApi } from '@/api/admin-referrals.api';
-import { formatPKR } from '@nafaa/shared-utils';
+import { formatPKR } from '@/lib/format';
 
 export default function ReferralsPage() {
   const { data: stats } = useQuery({

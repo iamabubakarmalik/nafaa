@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Users, Search, Wallet, TrendingUp } from 'lucide-react';
 import { adminCustomersApi } from '@/api/admin-customers.api';
-import { formatPKR } from '@nafaa/shared-utils';
+import { formatPKR } from '@/lib/format';
 
 export default function AdminCustomersPage() {
   const [search, setSearch] = useState('');

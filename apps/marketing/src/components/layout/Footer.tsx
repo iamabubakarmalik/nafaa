@@ -5,6 +5,7 @@ import { Sparkles, Mail, Phone, MapPin, Facebook, Instagram, Linkedin, Youtube, 
 import { useLocale } from '@/components/providers/LocaleProvider';
 import { Container } from '@/components/ui/Container';
 import { cn } from '@/lib/cn';
+import { Logo } from '@/components/brand/Logo';
 
 const SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'hello@nafaa.pk';
 const SUPPORT_PHONE = process.env.NEXT_PUBLIC_SUPPORT_PHONE || '+923001234567';
@@ -75,9 +76,7 @@ export function Footer() {
           {/* Brand */}
           <div className="space-y-5">
             <Link href="/" className="inline-flex items-center gap-2.5">
-              <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-brand-500 via-brand-600 to-emerald-600 flex items-center justify-center shadow-lg shadow-brand-500/30">
-                <Sparkles className="h-5 w-5 text-white" />
-              </div>
+              <Logo size={40} className="drop-shadow-lg" />
               <div>
                 <div className="text-xl font-extrabold">Nafaa</div>
                 <div className="text-[10px] text-slate-500 dark:text-slate-400 -mt-1">

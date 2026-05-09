@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 120" width="600" height="120">
+  <defs>
+    <linearGradient id="emailBg" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#16a34a"/>
+      <stop offset="100%" stop-color="#15803d"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="120" fill="url(#emailBg)"/>
+
+  <g transform="translate(30, 30)">
+    <rect width="60" height="60" rx="14" fill="#ffffff"/>
+    <g transform="translate(30, 31)" stroke="#16a34a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <line x1="-13" y1="-13" x2="-13" y2="13"/>
+      <line x1="-13" y1="13" x2="13" y2="-13"/>
+      <line x1="13" y1="-13" x2="13" y2="13"/>
+      <polyline points="6,-13 13,-13 13,-6"/>
+    </g>
+    <circle cx="46" cy="14" r="4" fill="#f59e0b"/>
+  </g>
+
+  <text x="110" y="60" font-family="Inter" font-size="32" font-weight="900" fill="#ffffff">Nafaa</text>
+  <text x="110" y="85" font-family="Inter" font-size="13" font-weight="600" fill="rgba(255,255,255,0.85)" letter-spacing="2">PAKISTAN'S #1 RETAIL OS</text>
+
+  <text x="570" y="68" font-family="Inter" font-size="14" font-weight="600" fill="rgba(255,255,255,0.85)" text-anchor="end">nafaa.pk</text>
+</svg>

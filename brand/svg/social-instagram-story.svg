@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920" width="1080" height="1920">
+  <defs>
+    <linearGradient id="storyBg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#15803d"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1080" height="1920" fill="url(#storyBg)"/>
+
+  <!-- Logo -->
+  <g transform="translate(440, 280)">
+    <rect width="200" height="200" rx="44" fill="#ffffff"/>
+    <g transform="translate(100, 102)" stroke="#16a34a" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <line x1="-42" y1="-42" x2="-42" y2="42"/>
+      <line x1="-42" y1="42" x2="42" y2="-42"/>
+      <line x1="42" y1="-42" x2="42" y2="42"/>
+      <polyline points="20,-42 42,-42 42,-20"/>
+    </g>
+    <circle cx="158" cy="48" r="14" fill="#f59e0b"/>
+  </g>
+
+  <text x="540" y="600" font-family="Inter" font-size="100" font-weight="900" fill="#ffffff" text-anchor="middle">Nafaa</text>
+
+  <text x="540" y="800" font-family="Inter" font-size="80" font-weight="900" fill="#ffffff" text-anchor="middle">Apni Dukan</text>
+  <text x="540" y="900" font-family="Inter" font-size="80" font-weight="900" fill="#fbbf24" text-anchor="middle">Online Laao!</text>
+
+  <text x="540" y="1050" font-family="Inter" font-size="36" font-weight="500" fill="rgba(255,255,255,0.9)" text-anchor="middle">5,000+ shopkeepers ka</text>
+  <text x="540" y="1110" font-family="Inter" font-size="36" font-weight="500" fill="rgba(255,255,255,0.9)" text-anchor="middle">trusted partner</text>
+
+  <!-- Feature pills -->
+  <g transform="translate(180, 1230)">
+    <rect width="720" height="80" rx="40" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+    <text x="360" y="54" font-family="Inter" font-size="32" font-weight="700" fill="#ffffff" text-anchor="middle">⚡ Lightning POS + Khata Book</text>
+  </g>
+  <g transform="translate(180, 1340)">
+    <rect width="720" height="80" rx="40" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+    <text x="360" y="54" font-family="Inter" font-size="32" font-weight="700" fill="#ffffff" text-anchor="middle">📊 Live Profit Reports</text>
+  </g>
+  <g transform="translate(180, 1450)">
+    <rect width="720" height="80" rx="40" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+    <text x="360" y="54" font-family="Inter" font-size="32" font-weight="700" fill="#ffffff" text-anchor="middle">📱 Works on Mobile</text>
+  </g>
+
+  <!-- CTA -->
+  <g transform="translate(180, 1620)">
+    <rect width="720" height="120" rx="60" fill="#fbbf24"/>
+    <text x="360" y="78" font-family="Inter" font-size="42" font-weight="900" fill="#0f172a" text-anchor="middle">7 Din Free Try Karein!</text>
+  </g>
+
+  <text x="540" y="1820" font-family="Inter" font-size="36" font-weight="700" fill="#22c55e" text-anchor="middle">→ nafaa.pk</text>
+</svg>

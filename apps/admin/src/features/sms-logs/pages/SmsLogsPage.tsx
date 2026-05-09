@@ -6,7 +6,7 @@ import {
 import { adminCommunicationsApi } from '@/api/admin-communications.api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { formatPKR } from '@nafaa/shared-utils';
+import { formatPKR } from '@/lib/format';
 import { toast } from 'sonner';
 
 const formatDate = (v: string) =>

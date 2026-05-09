@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 600" width="1050" height="600">
+  <defs>
+    <linearGradient id="bcBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#16a34a"/>
+      <stop offset="100%" stop-color="#0f766e"/>
+    </linearGradient>
+  </defs>
+  <rect width="1050" height="600" fill="url(#bcBg)"/>
+
+  <!-- Decorative -->
+  <circle cx="950" cy="100" r="80" fill="rgba(255,255,255,0.08)"/>
+  <circle cx="100" cy="500" r="120" fill="rgba(245,158,11,0.12)"/>
+
+  <g transform="translate(60, 200)">
+    <rect width="120" height="120" rx="28" fill="#ffffff"/>
+    <g transform="translate(60, 62)" stroke="#16a34a" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <line x1="-26" y1="-26" x2="-26" y2="26"/>
+      <line x1="-26" y1="26" x2="26" y2="-26"/>
+      <line x1="26" y1="-26" x2="26" y2="26"/>
+      <polyline points="12,-26 26,-26 26,-12"/>
+    </g>
+    <circle cx="92" cy="28" r="8" fill="#f59e0b"/>
+  </g>
+
+  <text x="220" y="280" font-family="Inter" font-size="72" font-weight="900" fill="#ffffff">Nafaa</text>
+  <text x="220" y="320" font-family="Inter" font-size="18" font-weight="600" fill="rgba(255,255,255,0.85)" letter-spacing="3">PAKISTAN'S #1 RETAIL OS</text>
+
+  <text x="60" y="540" font-family="Inter" font-size="20" font-weight="700" fill="#fbbf24">nafaa.pk</text>
+  <text x="990" y="540" font-family="Inter" font-size="14" font-weight="500" fill="rgba(255,255,255,0.7)" text-anchor="end">🇵🇰 Made in Pakistan</text>
+</svg>

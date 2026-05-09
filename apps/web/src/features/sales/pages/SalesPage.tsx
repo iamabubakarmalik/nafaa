@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Receipt, TrendingUp, Wallet, CalendarDays, ArrowUpRight } from 'lucide-react';
 import { salesApi } from '@/api/sales.api';
-import { formatPKR } from '@nafaa/shared-utils';
+import { formatPKR } from '@/lib/format';
 import { Button } from '@/components/ui/Button';
 
 const formatDate = (value: string) =>

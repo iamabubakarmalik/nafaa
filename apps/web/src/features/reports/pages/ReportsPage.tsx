@@ -25,7 +25,7 @@ import {
   Legend,
 } from 'recharts';
 import { reportsApi } from '@/api/reports.api';
-import { formatPKR } from '@nafaa/shared-utils';
+import { formatPKR } from '@/lib/format';
 
 const dayLabels = (date: string) => {
   const d = new Date(date);

@@ -7,7 +7,7 @@ import {
 import { plansApi, type Plan } from '@/api/plans.api';
 import { subscriptionsApi, type BillingInterval } from '@/api/subscriptions.api';
 import { Button } from '@/components/ui/Button';
-import { formatPKR } from '@nafaa/shared-utils';
+import { formatPKR } from '@/lib/format';
 import { toast } from 'sonner';
 
 const planIcons: Record<string, any> = {

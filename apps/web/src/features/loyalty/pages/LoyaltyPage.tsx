@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Award, Star, TrendingUp, Gift, Crown } from 'lucide-react';
 import { loyaltyApi } from '@/api/loyalty.api';
-import { formatPKR } from '@nafaa/shared-utils';
+import { formatPKR } from '@/lib/format';
 
 export default function LoyaltyPage() {
   const { data, isLoading } = useQuery({

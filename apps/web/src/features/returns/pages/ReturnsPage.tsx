@@ -8,7 +8,7 @@ import { returnsApi } from '@/api/returns.api';
 import { salesApi, type PaymentMethod } from '@/api/sales.api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { formatPKR } from '@nafaa/shared-utils';
+import { formatPKR } from '@/lib/format';
 import { toast } from 'sonner';
 
 const formatDate = (value: string) =>

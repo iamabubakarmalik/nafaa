@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 500" width="1500" height="500">
+  <defs>
+    <linearGradient id="twBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#15803d"/>
+      <stop offset="50%" stop-color="#16a34a"/>
+      <stop offset="100%" stop-color="#0e7490"/>
+    </linearGradient>
+  </defs>
+  <rect width="1500" height="500" fill="url(#twBg)"/>
+
+  <circle cx="200" cy="100" r="180" fill="rgba(255,255,255,0.08)"/>
+  <circle cx="1300" cy="400" r="220" fill="rgba(245,158,11,0.12)"/>
+
+  <text x="750" y="220" font-family="Inter" font-size="80" font-weight="900" fill="#ffffff" text-anchor="middle">Nafaa</text>
+  <text x="750" y="285" font-family="Inter" font-size="32" font-weight="600" fill="rgba(255,255,255,0.85)" text-anchor="middle">Pakistan's #1 Retail POS</text>
+  <text x="750" y="360" font-family="Inter" font-size="22" font-weight="500" fill="#fbbf24" text-anchor="middle">🇵🇰 Made for Pakistani Shopkeepers</text>
+</svg>

@@ -27,9 +27,17 @@ async function bootstrap() {
   ].filter((u): u is string => !!u);
 
   app.enableCors({
-    origin: corsOrigins,
-    credentials: true,
-  });
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:8081',
+    /^http:\/\/192\.168\.\d+\.\d+(:\d+)?$/,  // ← Ye LAN IPs allow karega
+    /^exp:\/\/192\.168\.\d+\.\d+(:\d+)?$/,
+  ],
+  credentials: true,
+});
+
 
   app.useStaticAssets(join(process.cwd(), 'uploads'), {
     prefix: '/uploads/',
@@ -58,7 +66,7 @@ async function bootstrap() {
   await prismaService.enableShutdownHooks(app);
 
   const port = configService.get<number>('PORT') ?? 4000;
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
 
   console.log(`🚀 Nafaa API running on http://localhost:${port}/api`);
   console.log(`📘 Swagger docs on http://localhost:${port}/docs`);

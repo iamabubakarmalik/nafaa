@@ -16,9 +16,8 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
+      "@/*": ["./src/*"],
       "@nafaa/shared-types": ["../../packages/shared-types/src"],
       "@nafaa/shared-utils": ["../../packages/shared-utils/src"]
     }
