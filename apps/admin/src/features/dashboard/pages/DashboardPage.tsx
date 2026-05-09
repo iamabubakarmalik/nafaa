@@ -216,7 +216,7 @@ export default function DashboardPage() {
                     outerRadius={90}
                     innerRadius={50}
                     paddingAngle={3}
-                    label={(e) => `${e.name}: ${e.count}`}
+                    label={(e: any) => `${e.name}: ${e.value}`}
                   >
                     {planDist.map((_, idx) => (
                       <Cell key={idx} fill={PIE_COLORS[idx % PIE_COLORS.length]} />

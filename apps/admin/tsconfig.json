@@ -15,6 +15,8 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
+    "types": ["vite/client"],
+
     "paths": {
       "@/*": ["./src/*"],
       "@nafaa/shared-utils": ["../../packages/shared-utils/src"],
