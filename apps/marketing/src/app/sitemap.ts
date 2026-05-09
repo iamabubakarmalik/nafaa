@@ -6,6 +6,9 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://nafaa.pk';
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
 
+  // -------------------------
+  // STATIC ROUTES
+  // -------------------------
   const staticRoutes = [
     { path: '', priority: 1.0, changeFrequency: 'daily' as const },
     { path: '/features', priority: 0.95, changeFrequency: 'weekly' as const },
@@ -29,24 +32,43 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: '/cookies', priority: 0.4, changeFrequency: 'yearly' as const },
   ];
 
+  // -------------------------
+  // INDUSTRY ROUTES
+  // -------------------------
   const industries = [
-    'bakery', 'kiryana', 'mobile-shop', 'pharmacy', 'restaurant',
-    'garments', 'meat', 'vegetables', 'cosmetics', 'electronics',
-    'hardware', 'auto-parts',
+    'bakery',
+    'kiryana',
+    'mobile-shop',
+    'pharmacy',
+    'restaurant',
+    'garments',
+    'meat',
+    'vegetables',
+    'cosmetics',
+    'electronics',
+    'hardware',
+    'auto-parts',
   ];
+
   const industryRoutes = industries.map((slug) => ({
     path: `/industries/${slug}`,
     priority: 0.8,
     changeFrequency: 'monthly' as const,
   }));
 
+  // -------------------------
+  // BLOG ROUTES
+  // -------------------------
   const blogRoutes = blogPosts.map((p) => ({
     path: `/blog/${p.slug}`,
     priority: 0.7,
     changeFrequency: 'monthly' as const,
-    lastModified: new Date(p.publishedAt),
+    lastModified: p.publishedAt ? new Date(p.publishedAt) : now,
   }));
 
+  // -------------------------
+  // CATEGORY ROUTES
+  // -------------------------
   const categoryRoutes = categories
     .filter((c) => c.slug !== 'all')
     .map((c) => ({
@@ -55,11 +77,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'weekly' as const,
     }));
 
-  const all = [...staticRoutes, ...industryRoutes, ...blogRoutes, ...categoryRoutes];
+  // -------------------------
+  // COMBINE ALL
+  // -------------------------
+  const allRoutes = [
+    ...staticRoutes,
+    ...industryRoutes,
+    ...blogRoutes,
+    ...categoryRoutes,
+  ];
 
-  return all.map((r) => ({
+  // -------------------------
+  // FINAL OUTPUT
+  // -------------------------
+  return allRoutes.map((r) => ({
     url: `${SITE_URL}${r.path}`,
-    lastModified: 'lastModified' in r && r.lastModified ? r.lastModified : now,
+    lastModified: now, // safe default for all routes
     changeFrequency: r.changeFrequency,
     priority: r.priority,
     alternates: {
