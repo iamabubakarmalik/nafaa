@@ -29,6 +29,11 @@ export class AdminAuthService {
       throw new UnauthorizedException('Admin access only');
     }
 
+    // Admin accounts MUST have a password (no Google-only admins)
+    if (!user.passwordHash) {
+      throw new UnauthorizedException('Admin account has no password set');
+    }
+
     const ok = await comparePassword(dto.password, user.passwordHash);
     if (!ok) throw new UnauthorizedException('Invalid credentials');
 

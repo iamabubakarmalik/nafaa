@@ -40,6 +40,11 @@ export class SubmitPaymentDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
+  payerPhone?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   uploadId?: string;
 
   @ApiPropertyOptional()

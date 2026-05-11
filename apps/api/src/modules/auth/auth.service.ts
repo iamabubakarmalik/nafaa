@@ -6,8 +6,9 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { UserRole } from '@prisma/client';
-import { addMinutes } from 'date-fns';
+import { AuthProvider, UserRole } from '@prisma/client';
+import { addHours, addMinutes } from 'date-fns';
+import * as crypto from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { comparePassword, hashPassword } from '../../common/utils/password.util';
 import { generateOtp, generateSlug } from '../../common/utils/slug.util';
@@ -36,6 +37,7 @@ export class AuthService {
     private readonly adminNotifications: AdminNotificationsService,
   ) {}
 
+  // ===== REGISTER (Email/Password — NO OTP) =====
   async register(dto: RegisterDto) {
     const existing = await this.prisma.user.findUnique({
       where: { email: dto.email.toLowerCase() },
@@ -46,14 +48,13 @@ export class AuthService {
       const phoneExists = await this.prisma.user.findUnique({
         where: { phone: dto.phone },
       });
-      if (phoneExists) throw new ConflictException('Phone number already registered');
+      if (phoneExists) throw new ConflictException('Phone already registered');
     }
 
-    let referrer = null as null | { id: string };
+    let referrer: { id: string } | null = null;
     if (dto.referralCode) {
-      const code = dto.referralCode.trim().toUpperCase();
       const found = await this.prisma.tenant.findUnique({
-        where: { referralCode: code },
+        where: { referralCode: dto.referralCode.trim().toUpperCase() },
       });
       if (!found) throw new BadRequestException('Invalid referral code');
       referrer = { id: found.id };
@@ -63,10 +64,8 @@ export class AuthService {
     const slug = generateSlug(dto.shopName);
 
     let myCode = makeReferralCode(dto.shopName);
-    for (let attempt = 0; attempt < 5; attempt++) {
-      const exists = await this.prisma.tenant.findUnique({
-        where: { referralCode: myCode },
-      });
+    for (let i = 0; i < 5; i++) {
+      const exists = await this.prisma.tenant.findUnique({ where: { referralCode: myCode } });
       if (!exists) break;
       myCode = makeReferralCode(dto.shopName);
     }
@@ -90,7 +89,13 @@ export class AuthService {
           phone: dto.phone,
           passwordHash,
           role: UserRole.OWNER,
+          authProvider: AuthProvider.EMAIL,
+          emailVerified: false,
         },
+      });
+
+      await tx.onboardingProgress.create({
+        data: { tenantId: tenant.id, userId: user.id, currentStep: 1 },
       });
 
       if (referrer) {
@@ -117,56 +122,8 @@ export class AuthService {
       return { tenant, user };
     });
 
-    // Notify admin about new tenant
-    this.adminNotifications
-      .create({
-        type: 'NEW_TENANT',
-        priority: 'NORMAL',
-        title: '🎉 New Shop Registered!',
-        message: `${result.tenant.name} (${result.user.fullName}) ne signup kiya hai${
-          referrer ? ' (via referral)' : ''
-        }`,
-        link: `/tenants/${result.tenant.id}`,
-        tenantId: result.tenant.id,
-        entityType: 'tenant',
-        entityId: result.tenant.id,
-        metadata: {
-          email: result.user.email,
-          phone: result.user.phone,
-          referralCode: dto.referralCode,
-        },
-      })
-      .catch((e) => console.error('Admin notification failed:', e.message));
-
-    // Welcome email + SMS
-    this.emailService
-      .send({
-        tenantId: result.tenant.id,
-        templateSlug: 'welcome',
-        toEmail: result.user.email,
-        toName: result.user.fullName,
-        variables: {
-          name: result.user.fullName,
-          shopName: result.tenant.name,
-          loginUrl: this.configService.get<string>('APP_URL') + '/login',
-        },
-      })
-      .catch((e) => console.error('Welcome email failed:', e.message));
-
-    if (result.user.phone) {
-      this.smsService
-        .send({
-          tenantId: result.tenant.id,
-          templateSlug: 'welcome',
-          toPhone: result.user.phone,
-          variables: {
-            name: result.user.fullName,
-            shopName: result.tenant.name,
-            loginUrl: this.configService.get<string>('APP_URL') + '/login',
-          },
-        })
-        .catch((e) => console.error('Welcome SMS failed:', e.message));
-    }
+    this.notifyAdminNewSignup(result.tenant, result.user, 'EMAIL', dto.referralCode);
+    this.sendWelcomeEmail(result.tenant, result.user);
 
     const tokens = await this.issueTokens({
       sub: result.user.id,
@@ -182,6 +139,7 @@ export class AuthService {
     };
   }
 
+  // ===== LOGIN (Email/Password) =====
   async login(dto: LoginDto, meta?: { userAgent?: string; ip?: string }) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email.toLowerCase() },
@@ -190,6 +148,13 @@ export class AuthService {
 
     if (!user || !user.isActive) {
       throw new UnauthorizedException('Invalid email or password');
+    }
+
+    // Google-only user can't login with password
+    if (!user.passwordHash) {
+      throw new UnauthorizedException(
+        'Ye account Google se bana hai. "Continue with Google" use karein ya password set karein.',
+      );
     }
 
     const ok = await comparePassword(dto.password, user.passwordHash);
@@ -218,6 +183,362 @@ export class AuthService {
     };
   }
 
+  // ===== GOOGLE AUTH (Core logic — used by web callback AND mobile) =====
+  async googleAuth(googleUser: {
+    googleId: string;
+    email: string;
+    fullName: string;
+    avatarUrl?: string;
+  }) {
+    // Find existing user by googleId OR email
+    let user = await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          { googleId: googleUser.googleId },
+          { email: googleUser.email.toLowerCase() },
+        ],
+      },
+      include: { tenant: true },
+    });
+
+    if (user) {
+      // Existing user → link Google if not already linked
+      if (!user.googleId) {
+        user = await this.prisma.user.update({
+          where: { id: user.id },
+          data: {
+            googleId: googleUser.googleId,
+            avatarUrl: googleUser.avatarUrl ?? user.avatarUrl,
+            emailVerified: true,
+            emailVerifiedAt: user.emailVerifiedAt ?? new Date(),
+            authProvider: user.passwordHash ? AuthProvider.HYBRID : AuthProvider.GOOGLE,
+            lastLoginAt: new Date(),
+          },
+          include: { tenant: true },
+        });
+      } else {
+        await this.prisma.user.update({
+          where: { id: user.id },
+          data: { lastLoginAt: new Date() },
+        });
+      }
+
+      const tokens = await this.issueTokens({
+        sub: user.id,
+        tenantId: user.tenantId,
+        email: user.email,
+        role: user.role,
+      });
+
+      return {
+        user: this.sanitizeUser(user),
+        tenant: user.tenant,
+        ...tokens,
+        isNewUser: false,
+      };
+    }
+
+    // No user found → return tempToken so frontend can ask for shopName
+    const tempToken = await this.jwtService.signAsync(
+      {
+        googleId: googleUser.googleId,
+        email: googleUser.email,
+        fullName: googleUser.fullName,
+        avatarUrl: googleUser.avatarUrl,
+        purpose: 'google_signup',
+      },
+      {
+        secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
+        expiresIn: '15m',
+      },
+    );
+
+    return {
+      needsShopName: true,
+      tempToken,
+      email: googleUser.email,
+      fullName: googleUser.fullName,
+      avatarUrl: googleUser.avatarUrl,
+    };
+  }
+
+  // ===== COMPLETE GOOGLE SIGNUP (new user provides shopName) =====
+  async completeGoogleSignup(tempToken: string, shopName: string) {
+    let payload: any;
+    try {
+      payload = await this.jwtService.verifyAsync(tempToken, {
+        secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
+      });
+    } catch {
+      throw new BadRequestException('Token expired ya invalid — Google se dobara try karein');
+    }
+
+    if (payload.purpose !== 'google_signup') {
+      throw new BadRequestException('Invalid token');
+    }
+
+    // Double-check user doesn't exist now
+    const existing = await this.prisma.user.findFirst({
+      where: {
+        OR: [{ googleId: payload.googleId }, { email: payload.email.toLowerCase() }],
+      },
+      include: { tenant: true },
+    });
+    if (existing) {
+      // Existing user — just log them in
+      return this.googleAuth({
+        googleId: payload.googleId,
+        email: payload.email,
+        fullName: payload.fullName,
+        avatarUrl: payload.avatarUrl,
+      });
+    }
+
+    const slug = generateSlug(shopName);
+    const referralCode = makeReferralCode(shopName);
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      const tenant = await tx.tenant.create({
+        data: { name: shopName, slug, referralCode },
+      });
+
+      const newUser = await tx.user.create({
+        data: {
+          tenantId: tenant.id,
+          fullName: payload.fullName,
+          email: payload.email.toLowerCase(),
+          passwordHash: null, // Google-only user
+          googleId: payload.googleId,
+          avatarUrl: payload.avatarUrl,
+          emailVerified: true,
+          emailVerifiedAt: new Date(),
+          authProvider: AuthProvider.GOOGLE,
+          role: UserRole.OWNER,
+        },
+      });
+
+      await tx.onboardingProgress.create({
+        data: { tenantId: tenant.id, userId: newUser.id, currentStep: 1 },
+      });
+
+      return { tenant, user: newUser };
+    });
+
+    this.notifyAdminNewSignup(result.tenant, result.user, 'GOOGLE');
+    this.sendWelcomeEmail(result.tenant, result.user);
+
+    const tokens = await this.issueTokens({
+      sub: result.user.id,
+      tenantId: result.tenant.id,
+      email: result.user.email,
+      role: result.user.role,
+    });
+
+    return {
+      user: this.sanitizeUser(result.user),
+      tenant: result.tenant,
+      ...tokens,
+      isNewUser: true,
+    };
+  }
+
+  // ===== GOOGLE MOBILE — verify ID token from native SDK =====
+  async googleMobile(idToken: string, shopName?: string) {
+    // Verify ID token with Google's tokeninfo endpoint
+    let payload: any;
+    try {
+      const res = await fetch(
+        `https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`,
+      );
+      if (!res.ok) throw new Error('Token verification failed');
+      payload = await res.json();
+    } catch {
+      throw new BadRequestException('Google ID token invalid');
+    }
+
+    if (!payload?.sub || !payload?.email) {
+      throw new BadRequestException('Google token mein required fields nahi');
+    }
+
+    // Verify audience matches our client IDs
+    const allowedAudiences = [
+      this.configService.get<string>('GOOGLE_CLIENT_ID'),
+      this.configService.get<string>('GOOGLE_IOS_CLIENT_ID'),
+      this.configService.get<string>('GOOGLE_ANDROID_CLIENT_ID'),
+      this.configService.get<string>('GOOGLE_WEB_CLIENT_ID'),
+    ].filter(Boolean);
+
+    if (allowedAudiences.length > 0 && !allowedAudiences.includes(payload.aud)) {
+      throw new BadRequestException('Token audience galat hai');
+    }
+
+    const googleUser = {
+      googleId: payload.sub,
+      email: payload.email,
+      fullName: payload.name || payload.email.split('@')[0],
+      avatarUrl: payload.picture,
+    };
+
+    const result = await this.googleAuth(googleUser);
+
+    // If needs shopName and we have it, complete signup immediately
+    if ('needsShopName' in result && result.needsShopName && shopName) {
+      return this.completeGoogleSignup(result.tempToken, shopName);
+    }
+
+    return result;
+  }
+
+  // ===== SET PASSWORD (Google-only user wants to add password) =====
+  async setPassword(userId: string, newPassword: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException();
+
+    if (user.passwordHash) {
+      throw new BadRequestException(
+        'Aap ka password pehle se set hai. Change password use karein.',
+      );
+    }
+
+    const passwordHash = await hashPassword(newPassword);
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        passwordHash,
+        authProvider: user.googleId ? AuthProvider.HYBRID : AuthProvider.EMAIL,
+      },
+    });
+
+    return { success: true, message: 'Password set ho gaya — ab aap email/password se bhi login kar sakte hain' };
+  }
+
+  // ===== CHANGE PASSWORD =====
+  async changePassword(userId: string, currentPassword: string, newPassword: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException();
+
+    if (!user.passwordHash) {
+      throw new BadRequestException('Aap ka password set nahi hai. Pehle "Set Password" use karein.');
+    }
+
+    const ok = await comparePassword(currentPassword, user.passwordHash);
+    if (!ok) throw new UnauthorizedException('Current password galat hai');
+
+    if (currentPassword === newPassword) {
+      throw new BadRequestException('Naya password purane se alag hona chahiye');
+    }
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash: await hashPassword(newPassword) },
+    });
+
+    return { success: true, message: 'Password change ho gaya' };
+  }
+
+  // ===== DISCONNECT GOOGLE =====
+  async disconnectGoogle(userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException();
+
+    if (!user.googleId) {
+      throw new BadRequestException('Google account connected nahi hai');
+    }
+
+    if (!user.passwordHash) {
+      throw new BadRequestException(
+        'Pehle password set karein, phir Google disconnect kar sakte hain (warna login nahi kar paayenge)',
+      );
+    }
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        googleId: null,
+        authProvider: AuthProvider.EMAIL,
+      },
+    });
+
+    return { success: true, message: 'Google account disconnect ho gaya' };
+  }
+
+  // ===== EMAIL VERIFICATION (Send OTP for in-app verify) =====
+  async sendVerifyEmailOtp(userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException();
+
+    if (user.emailVerified) {
+      return { success: true, message: 'Email already verified', alreadyVerified: true };
+    }
+
+    const code = generateOtp(6);
+    await this.prisma.otpCode.create({
+      data: {
+        email: user.email,
+        userId: user.id,
+        code,
+        purpose: OtpPurpose.VERIFY_EMAIL,
+        expiresAt: addMinutes(new Date(), 10),
+      },
+    });
+
+    this.emailService
+      .send({
+        tenantId: user.tenantId,
+        toEmail: user.email,
+        toName: user.fullName,
+        subject: `🔐 Nafaa Email Verification Code: ${code}`,
+        bodyHtml: this.otpEmailTemplate({ name: user.fullName, code }),
+        bodyText: `Aap ka verification code: ${code}. 10 minutes ke liye valid hai.`,
+      })
+      .catch((e) => console.error('Verify email OTP failed:', e.message));
+
+    console.log(`📧 Verify-email OTP for ${user.email}: ${code}`);
+
+    return {
+      success: true,
+      message: 'OTP code email pe bhej diya gaya',
+      devCode: process.env.NODE_ENV !== 'production' ? code : undefined,
+    };
+  }
+
+  async confirmVerifyEmail(userId: string, code: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException();
+
+    if (user.emailVerified) {
+      return { success: true, message: 'Email already verified' };
+    }
+
+    const otp = await this.prisma.otpCode.findFirst({
+      where: {
+        email: user.email,
+        code,
+        purpose: OtpPurpose.VERIFY_EMAIL,
+        verifiedAt: null,
+        expiresAt: { gt: new Date() },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!otp) throw new BadRequestException('Invalid ya expired OTP');
+
+    await this.prisma.$transaction([
+      this.prisma.otpCode.update({
+        where: { id: otp.id },
+        data: { verifiedAt: new Date() },
+      }),
+      this.prisma.user.update({
+        where: { id: user.id },
+        data: { emailVerified: true, emailVerifiedAt: new Date() },
+      }),
+    ]);
+
+    return { success: true, message: 'Email successfully verified! ✅' };
+  }
+
+  // ===== REFRESH =====
   async refresh(refreshToken: string) {
     let payload: JwtPayload;
     try {
@@ -243,16 +564,15 @@ export class AuthService {
 
     await this.prisma.session.delete({ where: { id: matched.id } });
 
-    const cleanPayload: JwtPayload = {
+    return this.issueTokens({
       sub: payload.sub,
       tenantId: payload.tenantId,
       email: payload.email,
       role: payload.role,
-    };
-
-    return this.issueTokens(cleanPayload);
+    });
   }
 
+  // ===== LOGOUT =====
   async logout(userId: string, refreshToken?: string) {
     if (!refreshToken) {
       await this.prisma.session.deleteMany({ where: { userId } });
@@ -268,6 +588,7 @@ export class AuthService {
     return { success: true };
   }
 
+  // ===== ME =====
   async me(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -280,78 +601,102 @@ export class AuthService {
     };
   }
 
-  async sendOtp(email: string, purpose: OtpPurpose) {
+  // ===== FORGOT PASSWORD =====
+  async forgotPassword(email: string) {
     const user = await this.prisma.user.findUnique({
       where: { email: email.toLowerCase() },
+      include: { tenant: true },
     });
 
-    const code = generateOtp(6);
-    const expiresAt = addMinutes(new Date(), 10);
+    if (!user) {
+      return { success: true, message: 'Agar email registered hai, link bhej diya gaya' };
+    }
 
-    await this.prisma.otpCode.create({
+    if (!user.passwordHash) {
+      return {
+        success: true,
+        message: 'Ye account Google se bana hai — Continue with Google use karein',
+      };
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    await this.prisma.user.update({
+      where: { id: user.id },
       data: {
-        email: email.toLowerCase(),
-        userId: user?.id ?? null,
-        code,
-        purpose,
-        expiresAt,
+        passwordResetToken: token,
+        passwordResetExpires: addHours(new Date(), 1),
       },
     });
+
+    const resetUrl = `${this.configService.get('APP_URL')}/reset-password?token=${token}`;
 
     this.emailService
       .send({
-        tenantId: user?.tenantId,
-        toEmail: email.toLowerCase(),
-        toName: user?.fullName,
-        subject: `Your Nafaa OTP code: ${code}`,
-        bodyHtml: `<h2>Your OTP Code</h2><p>Your verification code is: <strong style="font-size:24px">${code}</strong></p><p>Valid for 10 minutes.</p>`,
-        bodyText: `Your Nafaa OTP code is: ${code}. Valid for 10 minutes.`,
+        tenantId: user.tenantId,
+        toEmail: user.email,
+        toName: user.fullName,
+        subject: '🔐 Password Reset — Nafaa',
+        bodyHtml: this.passwordResetEmailTemplate({
+          name: user.fullName,
+          resetUrl,
+          shopName: user.tenant.name,
+        }),
+        bodyText: `Reset link: ${resetUrl} (1 ghante mein expire)`,
       })
-      .catch((e) => console.error('OTP email failed:', e.message));
+      .catch(() => {});
 
-    console.log(`📧 OTP for ${email} (${purpose}): ${code}`);
-
-    return {
-      success: true,
-      message: 'OTP sent successfully',
-      devCode: process.env.NODE_ENV !== 'production' ? code : undefined,
-    };
+    return { success: true, message: 'Agar email registered hai, link bhej diya gaya' };
   }
 
-  async verifyOtp(email: string, code: string, purpose: OtpPurpose) {
-    const otp = await this.prisma.otpCode.findFirst({
-      where: {
-        email: email.toLowerCase(),
-        code,
-        purpose,
-        verifiedAt: null,
-        expiresAt: { gt: new Date() },
+  async resetPassword(token: string, newPassword: string) {
+    const user = await this.prisma.user.findFirst({
+      where: { passwordResetToken: token, passwordResetExpires: { gt: new Date() } },
+    });
+    if (!user) throw new BadRequestException('Invalid ya expired token');
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash: await hashPassword(newPassword),
+        passwordResetToken: null,
+        passwordResetExpires: null,
+        authProvider: user.googleId ? AuthProvider.HYBRID : AuthProvider.EMAIL,
       },
-      orderBy: { createdAt: 'desc' },
     });
 
-    if (!otp) throw new BadRequestException('Invalid or expired OTP');
+    await this.prisma.session.deleteMany({ where: { userId: user.id } });
 
-    await this.prisma.otpCode.update({
-      where: { id: otp.id },
-      data: { verifiedAt: new Date() },
-    });
+    return { success: true, message: 'Password reset ho gaya' };
+  }
 
-    if (purpose === OtpPurpose.VERIFY_EMAIL && otp.userId) {
-      await this.prisma.user.update({
-        where: { id: otp.userId },
-        data: { emailVerified: true },
+  // ===== UPDATE PROFILE =====
+  async updateProfile(
+    userId: string,
+    data: { fullName?: string; phone?: string; avatarUrl?: string },
+  ) {
+    const updates: any = {};
+    if (data.fullName) updates.fullName = data.fullName;
+    if (data.phone !== undefined) updates.phone = data.phone || null;
+    if (data.avatarUrl !== undefined) updates.avatarUrl = data.avatarUrl || null;
+
+    if (updates.phone) {
+      const exists = await this.prisma.user.findFirst({
+        where: { phone: updates.phone, id: { not: userId } },
       });
+      if (exists) throw new ConflictException('Phone already in use');
     }
 
-    return { success: true, message: 'OTP verified successfully' };
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data: updates,
+      include: { tenant: true },
+    });
+
+    return this.sanitizeUser(user);
   }
 
-  private async issueTokens(
-    payload: JwtPayload,
-    userAgent?: string,
-    ip?: string,
-  ) {
+  // ===== HELPERS =====
+  private async issueTokens(payload: JwtPayload, userAgent?: string, ip?: string) {
     const accessSecret = this.configService.get<string>('JWT_ACCESS_SECRET')!;
     const refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET')!;
     const accessExpires = this.configService.get<string>('JWT_ACCESS_EXPIRES_IN')!;
@@ -359,12 +704,11 @@ export class AuthService {
 
     const accessToken = await this.jwtService.signAsync(
       { ...payload },
-      { secret: accessSecret, expiresIn: accessExpires as unknown as number },
+      { secret: accessSecret, expiresIn: accessExpires as any },
     );
-
     const refreshToken = await this.jwtService.signAsync(
       { ...payload },
-      { secret: refreshSecret, expiresIn: refreshExpires as unknown as number },
+      { secret: refreshSecret, expiresIn: refreshExpires as any },
     );
 
     const refreshTokenHash = await hashPassword(refreshToken);
@@ -372,20 +716,86 @@ export class AuthService {
     expiresAt.setDate(expiresAt.getDate() + 30);
 
     await this.prisma.session.create({
-      data: {
-        userId: payload.sub,
-        refreshTokenHash,
-        userAgent,
-        ipAddress: ip,
-        expiresAt,
-      },
+      data: { userId: payload.sub, refreshTokenHash, userAgent, ipAddress: ip, expiresAt },
     });
 
     return { accessToken, refreshToken };
   }
 
-  private sanitizeUser<T extends { passwordHash?: string }>(user: T) {
-    const { passwordHash: _ph, ...rest } = user as T & { passwordHash: string };
-    return rest;
+  private sanitizeUser<T extends { passwordHash?: string | null }>(user: T) {
+    const { passwordHash, ...rest } = user as any;
+    return {
+      ...rest,
+      hasPassword: !!passwordHash,
+    };
+  }
+
+  private notifyAdminNewSignup(tenant: any, user: any, provider: string, referralCode?: string) {
+    this.adminNotifications
+      .create({
+        type: 'NEW_TENANT',
+        priority: 'NORMAL',
+        title: `🎉 New Shop (${provider})`,
+        message: `${tenant.name} (${user.fullName}) ne ${provider.toLowerCase()} se signup kiya`,
+        link: `/tenants/${tenant.id}`,
+        tenantId: tenant.id,
+        entityType: 'tenant',
+        entityId: tenant.id,
+        metadata: { email: user.email, provider, referralCode },
+      })
+      .catch(() => {});
+  }
+
+  private sendWelcomeEmail(tenant: any, user: any) {
+    this.emailService
+      .send({
+        tenantId: tenant.id,
+        templateSlug: 'welcome',
+        toEmail: user.email,
+        toName: user.fullName,
+        variables: {
+          name: user.fullName,
+          shopName: tenant.name,
+          loginUrl: this.configService.get<string>('APP_URL') + '/login',
+        },
+      })
+      .catch(() => {});
+  }
+
+  private otpEmailTemplate({ name, code }: { name: string; code: string }) {
+    return `
+<!DOCTYPE html><html><body style="margin:0;background:#f3f4f6;font-family:Arial,sans-serif">
+<table width="100%" style="padding:40px 20px"><tr><td align="center">
+<table width="600" style="background:#fff;border-radius:16px;overflow:hidden">
+<tr><td style="background:linear-gradient(135deg,#16a34a,#15803d);padding:32px;text-align:center">
+  <h1 style="color:#fff;margin:0">🔐 Verification Code</h1>
+</td></tr>
+<tr><td style="padding:32px;text-align:center">
+  <p style="font-size:15px;color:#475569">Assalam-o-Alaikum <strong>${name}</strong>,</p>
+  <p style="font-size:14px;color:#475569">Aap ka verification code:</p>
+  <div style="font-size:42px;font-weight:bold;color:#16a34a;letter-spacing:8px;margin:24px 0;padding:20px;background:#f0fdf4;border-radius:12px">${code}</div>
+  <p style="font-size:13px;color:#dc2626;background:#fee2e2;padding:12px;border-radius:8px">⏰ 10 minutes ke liye valid</p>
+</td></tr>
+</table></td></tr></table></body></html>`;
+  }
+
+  private passwordResetEmailTemplate({ name, resetUrl, shopName }: any) {
+    return `
+<!DOCTYPE html><html><body style="margin:0;background:#f3f4f6;font-family:Arial,sans-serif">
+<table width="100%" style="padding:40px 20px"><tr><td align="center">
+<table width="600" style="background:#fff;border-radius:16px;overflow:hidden">
+<tr><td style="background:linear-gradient(135deg,#16a34a,#15803d);padding:32px;text-align:center">
+  <h1 style="color:#fff;margin:0">🔐 Password Reset</h1>
+  <p style="color:#dcfce7;margin:8px 0 0">${shopName}</p>
+</td></tr>
+<tr><td style="padding:32px">
+  <p>Assalam-o-Alaikum <strong>${name}</strong>,</p>
+  <p style="color:#475569">Password reset karne ke liye button par click karein:</p>
+  <p style="text-align:center;margin:24px 0">
+    <a href="${resetUrl}" style="background:#16a34a;color:#fff;padding:14px 28px;border-radius:12px;text-decoration:none;font-weight:bold">Reset Password →</a>
+  </p>
+  <p style="font-size:12px;color:#dc2626;background:#fee2e2;padding:12px;border-radius:8px">⏰ Link 1 ghante mein expire ho jayega</p>
+</td></tr>
+</table></td></tr></table></body></html>`;
   }
 }

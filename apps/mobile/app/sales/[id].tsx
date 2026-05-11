@@ -1,18 +1,16 @@
-import { View, Text, ScrollView, Pressable, Alert } from 'react-native';
+import { useState } from 'react';
+import {
+  View, Text, ScrollView, Pressable, Alert,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
+import * as Linking from 'expo-linking';
 import {
-  ArrowLeft,
-  Printer,
-  Share2,
-  MessageCircle,
-  Receipt,
-  User,
-  Calendar,
-  CreditCard,
+  ArrowLeft, Printer, Share2, MessageCircle, Receipt, User, Calendar,
+  CreditCard, X as XIcon,
 } from 'lucide-react-native';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -22,8 +20,11 @@ import { useAuthStore } from '@/store/auth.store';
 import { formatPKRFull, formatDate, formatTime } from '@/lib/format';
 import Toast from 'react-native-toast-message';
 
+import { useTranslation } from '@/i18n/useTranslation';
 export default function SaleDetailScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { tenant } = useAuthStore();
 
@@ -33,10 +34,22 @@ export default function SaleDetailScreen() {
     enabled: !!id,
   });
 
+  const voidMutation = useMutation({
+    mutationFn: (reason: string) => salesApi.voidSale(id, reason),
+    onSuccess: () => {
+      Toast.show({ type: 'success', text1: 'Sale void ho gayi' });
+      queryClient.invalidateQueries({ queryKey: ['sale', id] });
+      queryClient.invalidateQueries({ queryKey: ['sales'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+    },
+    onError: (e: any) =>
+      Toast.show({ type: 'error', text1: e?.response?.data?.message || 'Fail' }),
+  });
+
   const generateReceiptHTML = () => {
     if (!sale) return '';
     const itemsHTML = sale.items
-      ?.map(
+      .map(
         (item) => `
         <tr>
           <td style="padding: 6px 0; border-bottom: 1px dashed #ddd;">${item.product.name}</td>
@@ -60,7 +73,7 @@ export default function SaleDetailScreen() {
           </style>
         </head>
         <body>
-          <h1>${tenant?.name || 'Nafaa'}</h1>
+          <h1>${sale.tenant?.name || tenant?.name || 'Receipt'}</h1>
           <p class="center" style="font-size: 11px; color: #666; margin: 4px 0;">
             ${formatDate(sale.soldAt)} ${formatTime(sale.soldAt)}
           </p>
@@ -88,11 +101,11 @@ export default function SaleDetailScreen() {
               <td style="padding-top: 4px;">Paid (${sale.paymentMethod})</td>
               <td style="text-align: right; padding-top: 4px;">Rs ${sale.paidAmount.toLocaleString()}</td>
             </tr>
-            ${sale.creditAmount > 0 ? `<tr><td>Credit/Khata</td><td style="text-align: right;">Rs ${sale.creditAmount.toLocaleString()}</td></tr>` : ''}
+            ${sale.creditAmount > 0 ? `<tr><td>Khata</td><td style="text-align: right;">Rs ${sale.creditAmount.toLocaleString()}</td></tr>` : ''}
           </table>
           <p class="footer">
-            Thank you for shopping! 🙏<br/>
-            Powered by Nafaa - nafaa.pk
+            Shukriya! 🙏<br/>
+            Powered by Nafaa POS
           </p>
         </body>
       </html>
@@ -103,47 +116,72 @@ export default function SaleDetailScreen() {
     try {
       await Print.printAsync({ html: generateReceiptHTML() });
     } catch (e: any) {
-      Toast.show({ type: 'error', text1: 'Print failed', text2: e.message });
+      Toast.show({ type: 'error', text1: 'Print fail', text2: e.message });
     }
   };
 
-  const handleShareReceipt = async () => {
+  const handleShare = async () => {
     try {
       const { uri } = await Print.printToFileAsync({ html: generateReceiptHTML() });
-      const isAvailable = await Sharing.isAvailableAsync();
-      if (isAvailable) {
+      const ok = await Sharing.isAvailableAsync();
+      if (ok) {
         await Sharing.shareAsync(uri, {
           mimeType: 'application/pdf',
           dialogTitle: `Receipt ${sale?.saleNumber}`,
           UTI: 'com.adobe.pdf',
         });
       }
-    } catch (e: any) {
-      Toast.show({ type: 'error', text1: 'Share failed' });
+    } catch {
+      Toast.show({ type: 'error', text1: 'Share fail' });
     }
   };
 
-  const handleWhatsApp = async () => {
-    if (!sale?.customer) {
-      Alert.alert('No Customer', 'This sale has no customer linked.');
+  const handleWhatsApp = () => {
+    if (!sale?.customer?.phone) {
+      Alert.alert('Phone nahi hai', 'Customer ka phone number nahi hai');
       return;
     }
-    handleShareReceipt();
+    const phone = sale.customer.phone.replace(/[^0-9]/g, '');
+    const items = sale.items
+      .map((it) => `• ${it.product.name} × ${it.quantity} = Rs ${it.total}`)
+      .join('\n');
+    const message = `*${sale.tenant?.name || tenant?.name}*\n\nReceipt: ${sale.saleNumber}\nDate: ${formatDate(sale.soldAt)}\n\n${items}\n\n*Total: Rs ${sale.total}*\nPaid: Rs ${sale.paidAmount}${sale.creditAmount > 0 ? `\nKhata: Rs ${sale.creditAmount}` : ''}\n\nShukriya! 🙏`;
+    const url = `whatsapp://send?phone=${phone}&text=${encodeURIComponent(message)}`;
+    Linking.openURL(url).catch(() => {
+      Linking.openURL(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`);
+    });
+  };
+
+  const handleVoid = () => {
+    Alert.prompt(
+      'Sale Void Karein',
+      'Wajah likhein (optional)',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Void',
+          style: 'destructive',
+          onPress: (reason?: string) => voidMutation.mutate(reason || 'No reason'),
+        },
+      ],
+      'plain-text',
+    );
   };
 
   if (!sale) {
     return (
       <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-950 items-center justify-center">
-        <Text className="text-neutral-500">Loading...</Text>
+        <Text className="text-neutral-500">{t('auto.section.loading')}</Text>
       </SafeAreaView>
     );
   }
+
+  const isVoided = sale.status === 'VOIDED';
 
   return (
     <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-950" edges={['top']}>
       <Stack.Screen options={{ headerShown: false }} />
 
-      {/* Header */}
       <View className="px-5 pt-4 pb-3 flex-row items-center gap-3">
         <Pressable
           onPress={() => router.back()}
@@ -152,12 +190,24 @@ export default function SaleDetailScreen() {
         >
           <ArrowLeft size={20} color="#16a34a" />
         </Pressable>
-        <Text className="flex-1 text-xl font-bold text-neutral-900 dark:text-white">
-          Sale Details
-        </Text>
+        <Text className="flex-1 text-xl font-bold text-neutral-900 dark:text-white">{t('auto.id.sale_detail')}</Text>
+        {!isVoided && (
+          <Pressable
+            onPress={handleVoid}
+            className="h-11 w-11 rounded-2xl bg-rose-100 dark:bg-rose-950/40 items-center justify-center"
+          >
+            <XIcon size={18} color="#dc2626" />
+          </Pressable>
+        )}
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+        {isVoided && (
+          <View className="mx-5 mb-3 p-3 rounded-xl bg-rose-100 dark:bg-rose-950/40 border border-rose-300">
+            <Text className="text-center text-rose-700 dark:text-rose-400 font-bold">{t('auto.id.this_sale_is_voided')}</Text>
+          </View>
+        )}
+
         {/* Receipt summary */}
         <View className="px-5">
           <Card variant="outline" className="p-5">
@@ -171,7 +221,7 @@ export default function SaleDetailScreen() {
               <Text className="text-sm text-neutral-500 mt-0.5 font-mono">
                 {sale.saleNumber}
               </Text>
-              <Badge variant="success" size="md" className="mt-2">
+              <Badge variant={isVoided ? 'danger' : 'success'} size="md" className="mt-2">
                 {sale.status}
               </Badge>
             </View>
@@ -180,29 +230,32 @@ export default function SaleDetailScreen() {
               <View className="flex-row justify-between">
                 <View className="flex-row items-center gap-2">
                   <Calendar size={14} color="#9ca3af" />
-                  <Text className="text-sm text-neutral-500">Date</Text>
+                  <Text className="text-sm text-neutral-500">{t('auto.id.date')}</Text>
                 </View>
-                <Text className="text-sm font-semibold text-neutral-900 dark:text-white">
+                <Text className="text-sm font-bold text-neutral-900 dark:text-white">
                   {formatDate(sale.soldAt)} {formatTime(sale.soldAt)}
                 </Text>
               </View>
-
               <View className="flex-row justify-between">
                 <View className="flex-row items-center gap-2">
                   <User size={14} color="#9ca3af" />
-                  <Text className="text-sm text-neutral-500">Customer</Text>
+                  <Text className="text-sm text-neutral-500">{t('auto.id.customer')}</Text>
                 </View>
-                <Text className="text-sm font-semibold text-neutral-900 dark:text-white">
-                  {sale.customer?.name || 'Walk-in'}
-                </Text>
+                <Pressable
+                  onPress={() => sale.customer && router.push(`/customers/${sale.customer.id}`)}
+                  disabled={!sale.customer}
+                >
+                  <Text className="text-sm font-bold text-neutral-900 dark:text-white">
+                    {sale.customer?.name || 'Walk-in'}
+                  </Text>
+                </Pressable>
               </View>
-
               <View className="flex-row justify-between">
                 <View className="flex-row items-center gap-2">
                   <CreditCard size={14} color="#9ca3af" />
-                  <Text className="text-sm text-neutral-500">Payment</Text>
+                  <Text className="text-sm text-neutral-500">{t('auto.id.payment')}</Text>
                 </View>
-                <Text className="text-sm font-semibold text-neutral-900 dark:text-white">
+                <Text className="text-sm font-bold text-neutral-900 dark:text-white">
                   {sale.paymentMethod}
                 </Text>
               </View>
@@ -212,19 +265,19 @@ export default function SaleDetailScreen() {
 
         {/* Items */}
         <View className="px-5 mt-4">
-          <Text className="text-sm font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wide mb-2">
-            Items ({sale.items?.length ?? 0})
+          <Text className="text-xs font-bold uppercase tracking-wider text-neutral-500 mb-2">
+            Items ({sale.items.length})
           </Text>
           <Card variant="outline" className="p-0">
-            {sale.items?.map((item, idx) => (
+            {sale.items.map((item, idx) => (
               <View
                 key={item.id}
                 className={`flex-row items-center px-4 py-3 ${
-                  idx !== sale.items!.length - 1 ? 'border-b border-neutral-100 dark:border-neutral-800' : ''
+                  idx !== sale.items.length - 1 ? 'border-b border-neutral-100 dark:border-neutral-800' : ''
                 }`}
               >
                 <View className="flex-1">
-                  <Text className="font-semibold text-neutral-900 dark:text-white" numberOfLines={1}>
+                  <Text className="font-bold text-neutral-900 dark:text-white" numberOfLines={1}>
                     {item.product.name}
                   </Text>
                   <Text className="text-xs text-neutral-500 mt-0.5">
@@ -243,21 +296,43 @@ export default function SaleDetailScreen() {
         <View className="px-5 mt-4">
           <Card variant="outline" className="p-4">
             <View className="flex-row justify-between py-1">
-              <Text className="text-sm text-neutral-500">Paid Amount</Text>
+              <Text className="text-sm text-neutral-500">{t('auto.receipt.subtotal')}</Text>
+              <Text className="text-sm font-bold text-neutral-900 dark:text-white">
+                {formatPKRFull(sale.subtotal)}
+              </Text>
+            </View>
+            {sale.discount > 0 && (
+              <View className="flex-row justify-between py-1">
+                <Text className="text-sm text-neutral-500">{t('auto.receipt.discount')}</Text>
+                <Text className="text-sm font-bold text-rose-700">
+                  -{formatPKRFull(sale.discount)}
+                </Text>
+              </View>
+            )}
+            <View className="flex-row justify-between py-1">
+              <Text className="text-sm text-neutral-500">{t('auto.index.paid')}</Text>
               <Text className="text-sm font-bold text-emerald-700">
                 {formatPKRFull(sale.paidAmount)}
               </Text>
             </View>
             {sale.creditAmount > 0 && (
               <View className="flex-row justify-between py-1">
-                <Text className="text-sm text-neutral-500">Credit (Khata)</Text>
+                <Text className="text-sm text-neutral-500">{t('auto.id.khata')}</Text>
                 <Text className="text-sm font-bold text-amber-700">
                   {formatPKRFull(sale.creditAmount)}
                 </Text>
               </View>
             )}
+            {sale.changeAmount > 0 && (
+              <View className="flex-row justify-between py-1">
+                <Text className="text-sm text-neutral-500">{t('auto.id.change')}</Text>
+                <Text className="text-sm font-bold text-emerald-700">
+                  {formatPKRFull(sale.changeAmount)}
+                </Text>
+              </View>
+            )}
             <View className="flex-row justify-between pt-2 mt-2 border-t border-neutral-200 dark:border-neutral-800">
-              <Text className="text-base font-bold text-neutral-900 dark:text-white">Total</Text>
+              <Text className="text-base font-bold text-neutral-900 dark:text-white">{t('auto.receipt.total')}</Text>
               <Text className="text-lg font-bold text-emerald-700 dark:text-emerald-400">
                 {formatPKRFull(sale.total)}
               </Text>
@@ -274,21 +349,22 @@ export default function SaleDetailScreen() {
             className="flex-1 h-12 rounded-xl bg-neutral-100 dark:bg-neutral-800 items-center justify-center flex-row gap-2 active:opacity-70"
           >
             <Printer size={18} color="#16a34a" />
-            <Text className="font-bold text-neutral-900 dark:text-white">Print</Text>
+            <Text className="font-bold text-neutral-900 dark:text-white">{t('auto.id.print')}</Text>
           </Pressable>
           <Pressable
-            onPress={handleShareReceipt}
+            onPress={handleShare}
             className="flex-1 h-12 rounded-xl bg-blue-100 dark:bg-blue-950/40 items-center justify-center flex-row gap-2 active:opacity-70"
           >
             <Share2 size={18} color="#2563eb" />
-            <Text className="font-bold text-blue-700 dark:text-blue-300">Share</Text>
+            <Text className="font-bold text-blue-700 dark:text-blue-300">{t('auto.id.share')}</Text>
           </Pressable>
           <Pressable
             onPress={handleWhatsApp}
-            className="flex-1 h-12 rounded-xl bg-green-600 items-center justify-center flex-row gap-2 active:opacity-70"
+            disabled={!sale.customer?.phone}
+            className="flex-1 h-12 rounded-xl bg-green-600 items-center justify-center flex-row gap-2 active:opacity-70 disabled:opacity-50"
           >
             <MessageCircle size={18} color="#ffffff" />
-            <Text className="font-bold text-white">WhatsApp</Text>
+            <Text className="font-bold text-white">{t('auto.section.whatsapp')}</Text>
           </Pressable>
         </View>
       </View>

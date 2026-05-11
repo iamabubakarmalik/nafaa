@@ -1,0 +1,25 @@
+# Apps EAS doesn't need to upload/install
+apps/api
+apps/admin
+apps/web
+apps/marketing
+apps/desktop
+
+# Backup folders
+**/*.backup
+**/*.bak
+**/*.i18n-backup
+**/*.hook-fix-backup
+**/*.tfix-backup
+**/*.damaged
+
+# Build artifacts
+**/dist
+**/build
+**/.next
+**/.turbo
+**/.expo
+
+# IDE
+.vscode
+.idea

@@ -1,0 +1,13 @@
+auto-install-peers=true
+strict-peer-dependencies=false
+node-linker=hoisted
+shamefully-hoist=true
+enable-pre-post-scripts=true
+
+# CRITICAL: Hoist Expo + RN native modules so Metro resolves them everywhere
+public-hoist-pattern[]=*expo*
+public-hoist-pattern[]=*react-native*
+public-hoist-pattern[]=@react-native*
+public-hoist-pattern[]=metro*
+public-hoist-pattern[]=@expo*
+public-hoist-pattern[]=*babel*

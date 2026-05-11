@@ -1,5 +1,11 @@
 {
   "name": "@nafaa/shared-config",
   "version": "1.0.0",
-  "private": true
+  "private": true,
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js",
+    "./*": "./*",
+    "./package.json": "./package.json"
+  }
 }

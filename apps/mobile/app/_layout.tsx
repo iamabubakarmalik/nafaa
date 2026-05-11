@@ -1,24 +1,26 @@
 import '../global.css';
 import { useEffect } from 'react';
-import { View } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as SplashScreen from 'expo-splash-screen';
-import * as SystemUI from 'expo-system-ui';
 import Toast from 'react-native-toast-message';
-import { colorScheme as nwColorScheme } from 'nativewind';
 import { useAuthStore } from '@/store/auth.store';
 import { useThemeStore } from '@/store/theme.store';
 import { useLocaleStore } from '@/store/locale.store';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: { retry: 1, staleTime: 30 * 1000, refetchOnWindowFocus: false },
+    queries: {
+      retry: 1,
+      staleTime: 30 * 1000,
+      refetchOnWindowFocus: false,
+    },
   },
 });
 
@@ -39,36 +41,30 @@ function useProtectedRoute() {
 }
 
 function RootLayoutNav() {
-  const { isDark, mode } = useThemeStore();
-  useProtectedRoute();
+  // Selector subscriptions — these trigger proper re-renders on change
+  const isDark = useThemeStore((s) => s.isDark);
+  const isRTL = useLocaleStore((s) => s.isRTL);
 
-  // Sync NativeWind colorScheme + system UI bg with theme store
-  useEffect(() => {
-    nwColorScheme.set(mode === 'system' ? 'system' : (isDark ? 'dark' : 'light'));
-    SystemUI.setBackgroundColorAsync(isDark ? '#0a0a0a' : '#fafafa').catch(() => {});
-  }, [isDark, mode]);
+  useProtectedRoute();
+  usePushNotifications();
 
   return (
-    <View style={{ flex: 1, backgroundColor: isDark ? '#0a0a0a' : '#fafafa' }}>
+    <>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <Stack
+        // Force full re-mount when theme/locale changes — ensures every
+        // screen pulls fresh styles and dark:/rtl classes apply.
+        key={`${isDark ? 'dark' : 'light'}-${isRTL ? 'rtl' : 'ltr'}`}
         screenOptions={{
           headerShown: false,
           animation: 'slide_from_right',
           contentStyle: { backgroundColor: isDark ? '#0a0a0a' : '#fafafa' },
         }}
       >
-        <Stack.Screen name="auth" options={{ animation: 'fade' }} />
         <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="sales/index" />
-        <Stack.Screen name="sales/[id]" />
-        <Stack.Screen name="reports/index" />
-        <Stack.Screen name="notifications/index" options={{ animation: 'slide_from_bottom' }} />
-        <Stack.Screen name="settings/index" />
-        <Stack.Screen name="plan/index" />
-        <Stack.Screen name="referrals/index" />
+        <Stack.Screen name="auth" options={{ animation: 'fade' }} />
       </Stack>
-    </View>
+    </>
   );
 }
 
@@ -82,7 +78,7 @@ export default function RootLayout() {
       await Promise.all([initAuth(), initTheme(), initLocale()]);
       await SplashScreen.hideAsync();
     })();
-  }, []);
+  }, [initAuth, initTheme, initLocale]);
 
   if (!isInitialized) return null;
 

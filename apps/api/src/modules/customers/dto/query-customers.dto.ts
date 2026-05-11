@@ -1,12 +1,37 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { IsBooleanString, IsInt, IsOptional, IsString, Min } from 'class-validator';
 
 export class QueryCustomersDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   search?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  city?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBooleanString()
+  hasCredit?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBooleanString()
+  isVip?: string;
+
+  @ApiPropertyOptional({ enum: ['name', 'totalSpent', 'balance', 'createdAt'] })
+  @IsOptional()
+  @IsString()
+  sortBy?: 'name' | 'totalSpent' | 'balance' | 'createdAt';
+
+  @ApiPropertyOptional({ enum: ['asc', 'desc'] })
+  @IsOptional()
+  @IsString()
+  sortOrder?: 'asc' | 'desc';
 
   @ApiPropertyOptional({ default: 1 })
   @IsOptional()

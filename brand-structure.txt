@@ -1,0 +1,94 @@
+brand
+├── .DS_Store
+├── app-icons
+├── app-store
+│   ├── appstore-feature.png
+│   └── playstore-feature.png
+├── ASSET-INDEX.md
+├── BRAND-GUIDELINES.md
+├── email
+│   ├── email-header.png
+│   └── email-signature.png
+├── favicon
+│   └── favicon.png
+├── generate-all-assets.js
+├── generate-icons.js
+├── marketing
+│   ├── feature-card.png
+│   ├── stats.png
+│   └── testimonial.png
+├── og
+│   ├── og-default.png
+│   ├── og-features.png
+│   ├── og-industry-bakery.png
+│   ├── og-industry-kiryana.png
+│   ├── og-industry-mobile-shop.png
+│   ├── og-industry-pharmacy.png
+│   └── og-pricing.png
+├── png
+│   ├── adaptive-icon-foreground-512.png
+│   ├── app-icon-1024.png
+│   ├── apple-touch-icon-152.png
+│   ├── apple-touch-icon-167.png
+│   ├── apple-touch-icon.png
+│   ├── favicon-16.png
+│   ├── favicon-32.png
+│   ├── favicon-48.png
+│   ├── icon-192.png
+│   ├── icon-256.png
+│   ├── icon-384.png
+│   ├── icon-512.png
+│   ├── logo-1024.png
+│   ├── logo-256.png
+│   ├── logo-512.png
+│   ├── logo-full-1280.png
+│   ├── notification-icon-96.png
+│   └── splash-1284x2778.png
+├── print
+│   ├── bc-front.png
+│   └── rollup-banner.png
+├── social
+│   ├── fb-cover.png
+│   ├── instagram-post.png
+│   ├── instagram-story.png
+│   ├── linkedin-banner.png
+│   └── twitter-header.png
+├── svg
+│   ├── appstore-feature.svg
+│   ├── email-header.svg
+│   ├── email-signature.svg
+│   ├── marketing-feature-card.svg
+│   ├── marketing-promo.svg
+│   ├── marketing-stats.svg
+│   ├── marketing-testimonial.svg
+│   ├── nafaa-icon-dark.svg
+│   ├── nafaa-icon-mono-black.svg
+│   ├── nafaa-icon-mono-white.svg
+│   ├── nafaa-icon.svg
+│   ├── nafaa-logo-full.svg
+│   ├── nafaa-splash.svg
+│   ├── nafaa-urdu.svg
+│   ├── nafaa-wordmark.svg
+│   ├── og-blog.svg
+│   ├── og-default.svg
+│   ├── og-features.svg
+│   ├── og-industry-bakery.svg
+│   ├── og-industry-kiryana.svg
+│   ├── og-industry-mobile-shop.svg
+│   ├── og-industry-pharmacy.svg
+│   ├── og-pricing.svg
+│   ├── playstore-feature.svg
+│   ├── print-business-card-back.svg
+│   ├── print-business-card-front.svg
+│   ├── print-flyer-a5.svg
+│   ├── print-rollup-banner.svg
+│   ├── social-fb-cover.svg
+│   ├── social-instagram-post.svg
+│   ├── social-instagram-story.svg
+│   ├── social-linkedin-banner.svg
+│   ├── social-twitter-header.svg
+│   └── whatsapp-share.svg
+└── whatsapp
+    └── whatsapp-share.png
+
+12 directories, 80 files

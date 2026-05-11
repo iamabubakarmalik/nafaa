@@ -6,8 +6,7 @@ import {
   Activity, BarChart3, Settings as SettingsIcon, ScanLine, ShieldCheck,
   BookOpen, ClipboardCheck, AlertTriangle, Menu, X, Building2,
   ArrowRightLeft, Download, Database, RotateCcw, Award, Percent,
-  TrendingUp, CreditCard, Gift, Gauge,
-} from 'lucide-react';
+  TrendingUp, CreditCard, Gift, Gauge, Hash, UserCircle, LifeBuoy, ScrollText } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/store/auth.store';
 import { authApi } from '@/api/auth.api';
@@ -42,6 +41,8 @@ const navGroups = [
     label: 'Inventory',
     items: [
       { to: '/products', label: 'Products', icon: Package },
+      { to: '/brands', label: 'Brands', icon: Building2 },
+      { to: '/tags', label: 'Tags', icon: Hash },
       { to: '/categories', label: 'Categories', icon: Tag },
       { to: '/low-stock', label: 'Low Stock Alerts', icon: AlertTriangle },
       { to: '/barcode-labels', label: 'Barcode Labels', icon: ScanLine },
@@ -75,6 +76,9 @@ const navGroups = [
       { to: '/team', label: 'Team', icon: ShieldCheck },
       { to: '/shops', label: 'Shops / Branches', icon: Building2 },
       { to: '/activity-log', label: 'Activity Log', icon: Activity },
+      { to: '/profile', label: 'My Profile', icon: UserCircle },
+      { to: '/help', label: 'Help Center', icon: LifeBuoy },
+      { to: '/legal', label: 'Terms & Privacy', icon: ScrollText },
       { to: '/settings', label: 'Settings', icon: SettingsIcon },
     ],
   },

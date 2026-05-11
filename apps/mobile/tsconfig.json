@@ -4,7 +4,17 @@
     "strict": true,
     "moduleResolution": "bundler",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@nafaa/api-client": ["../../packages/api-client/src/index.ts"],
+      "@nafaa/api-client/*": ["../../packages/api-client/src/*"],
+      "@nafaa/shared-types": ["../../packages/shared-types/src/index.ts"],
+      "@nafaa/shared-types/*": ["../../packages/shared-types/src/*"],
+      "@nafaa/shared-utils": ["../../packages/shared-utils/src/index.ts"],
+      "@nafaa/shared-utils/*": ["../../packages/shared-utils/src/*"],
+      "@nafaa/shared-hooks": ["../../packages/shared-hooks/src/index.ts"],
+      "@nafaa/shared-hooks/*": ["../../packages/shared-hooks/src/*"],
+      "@nafaa/shared-ui": ["../../packages/shared-ui/src/index.ts"],
+      "@nafaa/shared-ui/*": ["../../packages/shared-ui/src/*"]
     }
   },
   "include": [

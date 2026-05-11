@@ -35,4 +35,46 @@ export class ReportsController {
   paymentMethods(@GetUser() user: AuthenticatedUser) {
     return this.reportsService.paymentMethods(user);
   }
+
+  @Get('hourly-today')
+  hourlyToday(@GetUser() user: AuthenticatedUser) {
+    return this.reportsService.hourlySalesToday(user);
+  }
+
+  @Get('cashier-performance')
+  cashierPerformance(
+    @GetUser() user: AuthenticatedUser,
+    @Query('days') days?: string,
+  ) {
+    return this.reportsService.cashierPerformance(user, days ? Number(days) : 30);
+  }
+
+  @Get('top-customers')
+  topCustomers(
+    @GetUser() user: AuthenticatedUser,
+    @Query('limit') limit?: string,
+  ) {
+    return this.reportsService.topCustomers(user, limit ? Number(limit) : 10);
+  }
+
+  @Get('inventory-value')
+  inventoryValue(@GetUser() user: AuthenticatedUser) {
+    return this.reportsService.inventoryValue(user);
+  }
+
+  @Get('expense-breakdown')
+  expenseBreakdown(
+    @GetUser() user: AuthenticatedUser,
+    @Query('days') days?: string,
+  ) {
+    return this.reportsService.expenseBreakdown(user, days ? Number(days) : 30);
+  }
+
+  @Get('profit-loss')
+  profitAndLoss(
+    @GetUser() user: AuthenticatedUser,
+    @Query('days') days?: string,
+  ) {
+    return this.reportsService.profitAndLoss(user, days ? Number(days) : 30);
+  }
 }

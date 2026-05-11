@@ -23,6 +23,7 @@ import { Input } from '@/components/ui/Input';
 import { salesApi } from '@/api/sales.api';
 import { formatPKRFull, formatRelative } from '@/lib/format';
 
+import { useTranslation } from '@/i18n/useTranslation';
 const statusColors: Record<string, 'success' | 'warning' | 'danger' | 'info'> = {
   COMPLETED: 'success',
   PARTIALLY_RETURNED: 'warning',
@@ -31,6 +32,7 @@ const statusColors: Record<string, 'success' | 'warning' | 'danger' | 'info'> = 
 };
 
 export default function SalesScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [search, setSearch] = useState('');
   const [refreshing, setRefreshing] = useState(false);
@@ -60,9 +62,7 @@ export default function SalesScreen() {
           <ArrowLeft size={20} color="#16a34a" />
         </Pressable>
         <View className="flex-1">
-          <Text className="text-2xl font-bold text-neutral-900 dark:text-white">
-            Sales History
-          </Text>
+          <Text className="text-2xl font-bold text-neutral-900 dark:text-white">{t('auto.index.sales_history')}</Text>
           <Text className="text-xs text-neutral-500 mt-0.5">
             {data?.meta?.total ?? 0} total sales
           </Text>
@@ -90,9 +90,7 @@ export default function SalesScreen() {
         ListEmptyComponent={
           <View className="items-center py-20">
             <Receipt size={48} color="#d1d5db" />
-            <Text className="mt-4 text-base font-semibold text-neutral-700 dark:text-neutral-300">
-              No sales yet
-            </Text>
+            <Text className="mt-4 text-base font-semibold text-neutral-700 dark:text-neutral-300">{t('auto.index.no_sales_yet')}</Text>
           </View>
         }
         ItemSeparatorComponent={() => <View className="h-2.5" />}

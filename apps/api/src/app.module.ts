@@ -10,6 +10,7 @@ import { envValidationSchema } from './config/env.validation';
 import { ActivityLogModule } from './modules/activity-log/activity-log.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { OnboardingModule } from './modules/onboarding/onboarding.module';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 import { BackupModule } from './modules/backup/backup.module';
 import { BillingModule } from './modules/billing/billing.module';
@@ -47,6 +48,11 @@ import { SuppliersModule } from './modules/suppliers/suppliers.module';
 import { TeamModule } from './modules/team/team.module';
 import { TransfersModule } from './modules/transfers/transfers.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
+import { BrandsModule } from './modules/brands/brands.module';
+import { TagsModule } from './modules/tags/tags.module';
+import { ProductVariantsModule } from './modules/product-variants/product-variants.module';
+import { ProductImagesModule } from './modules/product-images/product-images.module';
+import { ProductBatchesModule } from './modules/product-batches/product-batches.module';
 import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
@@ -66,6 +72,7 @@ import { PrismaModule } from './prisma/prisma.module';
     ReferralsModule,
     FeatureGatingModule,
     AuthModule,
+    OnboardingModule,
     DashboardModule,
     ProductsModule,
     CategoriesModule,
@@ -97,6 +104,12 @@ import { PrismaModule } from './prisma/prisma.module';
     BillingModule,
     StripeModule,
     AdminModule,
+    BrandsModule,
+    TagsModule,
+    ProductVariantsModule,
+    ProductImagesModule,
+    ProductBatchesModule,
+
   ],
   controllers: [AppController],
   providers: [

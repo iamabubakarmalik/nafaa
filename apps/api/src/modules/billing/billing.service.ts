@@ -21,12 +21,31 @@ export class BillingService {
 
   bankInfo() {
     return {
+      holderName: this.configService.get('NAFAA_PAYMENT_HOLDER_NAME'),
+      bank: {
+        name: this.configService.get('NAFAA_BANK_NAME'),
+        accountTitle: this.configService.get('NAFAA_BANK_ACCOUNT_TITLE'),
+        accountNumber: this.configService.get('NAFAA_BANK_ACCOUNT_NUMBER'),
+        iban: this.configService.get('NAFAA_BANK_IBAN'),
+      },
+      jazzcash: {
+        number: this.configService.get('NAFAA_JAZZCASH_NUMBER'),
+        title: this.configService.get('NAFAA_PAYMENT_HOLDER_NAME'),
+      },
+      easypaisa: {
+        number: this.configService.get('NAFAA_EASYPAISA_NUMBER'),
+        title: this.configService.get('NAFAA_PAYMENT_HOLDER_NAME'),
+      },
+      nayapay: {
+        number: this.configService.get('NAFAA_NAYAPAY_NUMBER'),
+        handle: this.configService.get('NAFAA_NAYAPAY_HANDLE'),
+        title: this.configService.get('NAFAA_PAYMENT_HOLDER_NAME'),
+      },
+      // Backward compatibility
       bankName: this.configService.get('NAFAA_BANK_NAME'),
       accountTitle: this.configService.get('NAFAA_BANK_ACCOUNT_TITLE'),
       accountNumber: this.configService.get('NAFAA_BANK_ACCOUNT_NUMBER'),
       iban: this.configService.get('NAFAA_BANK_IBAN'),
-      jazzcash: this.configService.get('NAFAA_JAZZCASH_NUMBER'),
-      easypaisa: this.configService.get('NAFAA_EASYPAISA_NUMBER'),
     };
   }
 
@@ -97,12 +116,12 @@ export class BillingService {
     await this.notifications.create({
       tenantId: user.tenantId,
       type: 'INFO',
-      title: 'Payment Submitted',
-      message: `Aap ki payment Rs ${dto.amount} review ke liye submit ho gayi.`,
+      title: 'Payment Submitted ✅',
+      message: `Aap ki payment Rs ${dto.amount} review ke liye submit ho gayi. Admin 24 hours mein approve karega.`,
       link: '/billing',
     });
 
-    // Admin notification — HIGH PRIORITY
+    // Admin notification
     const tenant = await this.prisma.tenant.findUnique({
       where: { id: user.tenantId },
       select: { name: true },

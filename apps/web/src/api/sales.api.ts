@@ -28,10 +28,11 @@ export interface Sale {
   changeAmount: number;
   paymentMethod: PaymentMethod;
   soldAt: string;
-  status?: 'COMPLETED' | 'PARTIALLY_RETURNED' | 'FULLY_RETURNED';
+  status?: 'COMPLETED' | 'PARTIALLY_RETURNED' | 'FULLY_RETURNED' | 'VOIDED';
   customer?: {
     id: string;
     name: string;
+    phone?: string | null;
   } | null;
   createdBy?: {
     id: string;
@@ -88,4 +89,7 @@ export const salesApi = {
 
   getOne: (id: string) =>
     apiClient.get<{ data: Sale }>(`/sales/${id}`).then(unwrap),
+
+  voidSale: (id: string, reason?: string) =>
+    apiClient.post<{ data: any }>(`/sales/${id}/void`, { reason }).then(unwrap),
 };

@@ -1,18 +1,10 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PaymentMethod } from '@prisma/client';
 import {
-  ArrayMinSize,
-  IsArray,
-  IsBoolean,
-  IsEnum,
-  IsInt,
-  IsNumber,
-  IsOptional,
-  IsString,
-  Min,
-  ValidateNested,
+  ArrayMinSize, IsArray, IsBoolean, IsEnum, IsInt, IsNumber,
+  IsOptional, IsString, Min, ValidateNested,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 
 class CreateSaleItemDto {
   @ApiProperty()
@@ -32,6 +24,7 @@ export class CreateSaleDto {
   customerId?: string;
 
   @ApiProperty({ enum: PaymentMethod, example: 'CASH' })
+  @Transform(({ value }) => (value === 'BANK' ? 'BANK_TRANSFER' : value))
   @IsEnum(PaymentMethod)
   paymentMethod!: PaymentMethod;
 
@@ -57,7 +50,7 @@ export class CreateSaleDto {
   @Min(0)
   loyaltyPointsToUse?: number;
 
-  @ApiPropertyOptional({ example: false })
+  @ApiPropertyOptional({ example: false, description: 'Auto-true if creditAmount > 0' })
   @IsOptional()
   @IsBoolean()
   allowCredit?: boolean;

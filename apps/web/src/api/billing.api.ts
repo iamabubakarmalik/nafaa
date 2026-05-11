@@ -2,18 +2,27 @@ import { apiClient } from './client';
 import { useAuthStore } from '@/store/auth.store';
 
 export type PaymentProvider =
-  | 'MANUAL_BANK' | 'JAZZCASH' | 'EASYPAISA' | 'STRIPE' | 'CASH';
+  | 'MANUAL_BANK' | 'JAZZCASH' | 'EASYPAISA' | 'NAYAPAY' | 'STRIPE' | 'CASH';
 export type PaymentStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'REFUNDED';
 export type InvoiceStatus =
   | 'DRAFT' | 'PENDING' | 'PAID' | 'OVERDUE' | 'CANCELLED' | 'REFUNDED';
 
 export interface BankInfo {
+  holderName: string;
+  bank: {
+    name: string;
+    accountTitle: string;
+    accountNumber: string;
+    iban: string;
+  };
+  jazzcash: { number: string; title: string };
+  easypaisa: { number: string; title: string };
+  nayapay: { number: string; handle: string; title: string };
+  // Backward compat
   bankName: string;
   accountTitle: string;
   accountNumber: string;
   iban: string;
-  jazzcash: string;
-  easypaisa: string;
 }
 
 export interface Invoice {
@@ -66,6 +75,7 @@ export interface SubmitPaymentPayload {
   accountNumber?: string;
   transactionId?: string;
   payerName?: string;
+  payerPhone?: string;
   uploadId?: string;
   notes?: string;
 }

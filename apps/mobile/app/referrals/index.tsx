@@ -13,7 +13,9 @@ import { apiClient } from '@/api/client';
 import { formatPKRFull } from '@/lib/format';
 import Toast from 'react-native-toast-message';
 
+import { useTranslation } from '@/i18n/useTranslation';
 export default function ReferralsScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { tenant } = useAuthStore();
 
@@ -62,8 +64,8 @@ export default function ReferralsScreen() {
           <ArrowLeft size={20} color="#16a34a" />
         </Pressable>
         <View className="flex-1">
-          <Text className="text-2xl font-bold text-neutral-900 dark:text-white">Referrals</Text>
-          <Text className="text-xs text-neutral-500">Earn while you share</Text>
+          <Text className="text-2xl font-bold text-neutral-900 dark:text-white">{t('auto.index.referrals')}</Text>
+          <Text className="text-xs text-neutral-500">{t('auto.index.earn_while_you_share')}</Text>
         </View>
       </View>
 
@@ -71,10 +73,8 @@ export default function ReferralsScreen() {
         <View className="px-5">
           <View className="rounded-3xl overflow-hidden p-6" style={{ backgroundColor: '#16a34a' }}>
             <Gift size={36} color="#ffffff" />
-            <Text className="mt-3 text-2xl font-bold text-white">Earn Rs 500+</Text>
-            <Text className="text-white/90 text-sm mt-1">
-              For every successful referral, get rewarded
-            </Text>
+            <Text className="mt-3 text-2xl font-bold text-white">{t('auto.index.earn_rs_500')}</Text>
+            <Text className="text-white/90 text-sm mt-1">{t('auto.index.for_every_successful_referral_get_reward')}</Text>
           </View>
         </View>
 
@@ -82,21 +82,21 @@ export default function ReferralsScreen() {
           <View className="flex-row gap-2">
             <Card variant="outline" className="flex-1 p-3">
               <Users size={18} color="#2563eb" />
-              <Text className="mt-2 text-xs text-neutral-500 font-semibold">Referred</Text>
+              <Text className="mt-2 text-xs text-neutral-500 font-semibold">{t('auto.index.referred')}</Text>
               <Text className="text-xl font-bold text-neutral-900 dark:text-white">
                 {stats.totalReferrals}
               </Text>
             </Card>
             <Card variant="outline" className="flex-1 p-3">
               <TrendingUp size={18} color="#16a34a" />
-              <Text className="mt-2 text-xs text-neutral-500 font-semibold">Converted</Text>
+              <Text className="mt-2 text-xs text-neutral-500 font-semibold">{t('auto.index.converted')}</Text>
               <Text className="text-xl font-bold text-emerald-700">
                 {stats.convertedCount}
               </Text>
             </Card>
             <Card variant="outline" className="flex-1 p-3">
               <Wallet size={18} color="#f59e0b" />
-              <Text className="mt-2 text-xs text-neutral-500 font-semibold">Earned</Text>
+              <Text className="mt-2 text-xs text-neutral-500 font-semibold">{t('auto.index.earned')}</Text>
               <Text className="text-xl font-bold text-amber-700">
                 {formatPKRFull(stats.totalEarned)}
               </Text>
@@ -105,9 +105,7 @@ export default function ReferralsScreen() {
         </View>
 
         <View className="px-5 mt-4">
-          <Text className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2 px-1">
-            Your Referral Code
-          </Text>
+          <Text className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2 px-1">{t('auto.index.your_referral_code')}</Text>
           <Card variant="outline" className="bg-pink-50 dark:bg-pink-950/30 border-pink-200 dark:border-pink-900/50 p-5">
             <View className="items-center">
               <Text className="text-3xl font-bold tracking-widest text-pink-700 dark:text-pink-300 font-mono">
@@ -118,7 +116,7 @@ export default function ReferralsScreen() {
                 className="mt-3 px-5 py-2 rounded-xl bg-pink-600 flex-row items-center gap-2 active:opacity-80"
               >
                 <Copy size={16} color="#ffffff" />
-                <Text className="text-white font-bold text-sm">Copy Code</Text>
+                <Text className="text-white font-bold text-sm">{t('auto.index.copy_code')}</Text>
               </Pressable>
             </View>
           </Card>
@@ -130,7 +128,7 @@ export default function ReferralsScreen() {
             className="h-14 rounded-2xl bg-brand-600 items-center justify-center flex-row gap-2 active:opacity-80"
           >
             <Share2 size={20} color="#ffffff" />
-            <Text className="text-white font-bold text-base">Share with Friends</Text>
+            <Text className="text-white font-bold text-base">{t('auto.index.share_with_friends')}</Text>
           </Pressable>
         </View>
       </ScrollView>

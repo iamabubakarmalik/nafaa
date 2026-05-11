@@ -39,3 +39,19 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Migration / backup artifacts (never commit)
+*.i18n-backup
+*.hook-fix-backup
+*.tfix-backup
+*.nested-fix-backup
+*.damaged
+*.backup
+*.bak
+
+# i18n build artifact
+src/i18n/extracted.json
+
+# Debug/test routes (if accidentally created)
+app/locale-debug.tsx
+app/theme-test.tsx

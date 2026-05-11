@@ -3,13 +3,25 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import LoginPage from '@/features/auth/pages/LoginPage';
 import RegisterPage from '@/features/auth/pages/RegisterPage';
+import ForgotPasswordPage from '@/features/auth/pages/ForgotPasswordPage';
+import ResetPasswordPage from '@/features/auth/pages/ResetPasswordPage';
+import GoogleSuccessPage from '@/features/auth/pages/GoogleSuccessPage';
+import GoogleCompleteSignupPage from '@/features/auth/pages/GoogleCompleteSignupPage';
+import GoogleErrorPage from '@/features/auth/pages/GoogleErrorPage';
 import DashboardPage from '@/features/dashboard/pages/DashboardPage';
-import ProductsPage from '@/features/products/pages/ProductsPage';
-import CustomersPage from '@/features/customers/pages/CustomersPage';
+import BrandsPage from '@/features/brands/pages/BrandsPage';
+import TagsPage from '@/features/tags/pages/TagsPage';
+import ProductsListPage from '@/features/products/pages/ProductsListPage';
+import ProductFormPage from '@/features/products/pages/ProductFormPage';
+import CustomersListPage from '@/features/customers/pages/CustomersListPage';
+import CustomerFormPage from '@/features/customers/pages/CustomerFormPage';
+import CustomerDetailPage from '@/features/customers/pages/CustomerDetailPage';
 import PosPage from '@/features/pos/pages/PosPage';
 import SalesPage from '@/features/sales/pages/SalesPage';
 import ReceiptPage from '@/features/sales/pages/ReceiptPage';
-import SuppliersPage from '@/features/suppliers/pages/SuppliersPage';
+import SuppliersListPage from '@/features/suppliers/pages/SuppliersListPage';
+import SupplierFormPage from '@/features/suppliers/pages/SupplierFormPage';
+import SupplierDetailPage from '@/features/suppliers/pages/SupplierDetailPage';
 import PurchasesPage from '@/features/purchases/pages/PurchasesPage';
 import CategoriesPage from '@/features/categories/pages/CategoriesPage';
 import ExpensesPage from '@/features/expenses/pages/ExpensesPage';
@@ -36,7 +48,13 @@ import BillingPage from '@/features/billing/pages/BillingPage';
 import PayInvoicePage from '@/features/billing/pages/PayInvoicePage';
 import ReferralsPage from '@/features/referrals/pages/ReferralsPage';
 import PlanUsagePage from '@/features/plan-usage/pages/PlanUsagePage';
+import ProfilePage from '@/features/profile/pages/ProfilePage';
+import HelpPage from '@/features/help/pages/HelpPage';
+import LegalPage from '@/features/legal/pages/LegalPage';
+import OnboardingPage from '@/features/onboarding/pages/OnboardingPage';
+
 import { ProtectedRoute, PublicOnlyRoute } from '@/routes/ProtectedRoute';
+import OnboardingGate from '@/routes/OnboardingGate';
 import AppShell from '@/components/layout/AppShell';
 
 const queryClient = new QueryClient({
@@ -53,45 +71,75 @@ export default function App() {
           <Route element={<PublicOnlyRoute />}>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/auth/google/success" element={<GoogleSuccessPage />} />
+            <Route path="/auth/google/complete-signup" element={<GoogleCompleteSignupPage />} />
+            <Route path="/auth/google/error" element={<GoogleErrorPage />} />
           </Route>
 
           <Route element={<ProtectedRoute />}>
-            <Route element={<AppShell />}>
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/products" element={<ProductsPage />} />
-              <Route path="/categories" element={<CategoriesPage />} />
-              <Route path="/customers" element={<CustomersPage />} />
-              <Route path="/pos" element={<PosPage />} />
-              <Route path="/sales" element={<SalesPage />} />
-              <Route path="/returns" element={<ReturnsPage />} />
-              <Route path="/discounts" element={<DiscountsPage />} />
-              <Route path="/loyalty" element={<LoyaltyPage />} />
-              <Route path="/profit-report" element={<ProfitReportPage />} />
-              <Route path="/suppliers" element={<SuppliersPage />} />
-              <Route path="/purchases" element={<PurchasesPage />} />
-              <Route path="/expenses" element={<ExpensesPage />} />
-              <Route path="/stock-movements" element={<StockMovementsPage />} />
-              <Route path="/stock-adjustments" element={<StockAdjustmentsPage />} />
-              <Route path="/low-stock" element={<LowStockPage />} />
-              <Route path="/reports" element={<ReportsPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/barcode-labels" element={<BarcodeLabelsPage />} />
-              <Route path="/team" element={<TeamPage />} />
-              <Route path="/khata" element={<KhataPage />} />
-              <Route path="/cash-register" element={<CashRegisterPage />} />
-              <Route path="/shops" element={<ShopsPage />} />
-              <Route path="/activity-log" element={<ActivityLogPage />} />
-              <Route path="/transfers" element={<TransfersPage />} />
-              <Route path="/exports" element={<ExportsPage />} />
-              <Route path="/backup" element={<BackupPage />} />
-              <Route path="/plans" element={<PlansPage />} />
-              <Route path="/billing" element={<BillingPage />} />
-              <Route path="/billing/invoice/:id/pay" element={<PayInvoicePage />} />
-              <Route path="/referrals" element={<ReferralsPage />} />
-              <Route path="/plan-usage" element={<PlanUsagePage />} />
+            <Route element={<OnboardingGate />}>
+              <Route element={<AppShell />}>
+                <Route path="/dashboard" element={<DashboardPage />} />
+
+                {/* PRODUCTS — IMPORTANT: order matters! Specific routes BEFORE generic */}
+                <Route path="/products/new" element={<ProductFormPage />} />
+                <Route path="/products/:id/edit" element={<ProductFormPage />} />
+                <Route path="/products" element={<ProductsListPage />} />
+
+                <Route path="/brands" element={<BrandsPage />} />
+                <Route path="/tags" element={<TagsPage />} />
+                <Route path="/categories" element={<CategoriesPage />} />
+
+                {/* CUSTOMERS — naya design (CustomersListPage), specific routes BEFORE generic */}
+                <Route path="/customers/new" element={<CustomerFormPage />} />
+                <Route path="/customers/:id/edit" element={<CustomerFormPage />} />
+                <Route path="/customers/:id" element={<CustomerDetailPage />} />
+                <Route path="/customers" element={<CustomersListPage />} />
+
+                <Route path="/pos" element={<PosPage />} />
+                <Route path="/sales" element={<SalesPage />} />
+                <Route path="/returns" element={<ReturnsPage />} />
+                <Route path="/discounts" element={<DiscountsPage />} />
+                <Route path="/loyalty" element={<LoyaltyPage />} />
+                <Route path="/profit-report" element={<ProfitReportPage />} />
+
+                {/* SUPPLIERS — naya design (SuppliersListPage), specific routes BEFORE generic */}
+                <Route path="/suppliers/new" element={<SupplierFormPage />} />
+                <Route path="/suppliers/:id/edit" element={<SupplierFormPage />} />
+                <Route path="/suppliers/:id" element={<SupplierDetailPage />} />
+                <Route path="/suppliers" element={<SuppliersListPage />} />
+
+                <Route path="/purchases" element={<PurchasesPage />} />
+                <Route path="/expenses" element={<ExpensesPage />} />
+                <Route path="/stock-movements" element={<StockMovementsPage />} />
+                <Route path="/stock-adjustments" element={<StockAdjustmentsPage />} />
+                <Route path="/low-stock" element={<LowStockPage />} />
+                <Route path="/reports" element={<ReportsPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/barcode-labels" element={<BarcodeLabelsPage />} />
+                <Route path="/team" element={<TeamPage />} />
+                <Route path="/khata" element={<KhataPage />} />
+                <Route path="/cash-register" element={<CashRegisterPage />} />
+                <Route path="/shops" element={<ShopsPage />} />
+                <Route path="/activity-log" element={<ActivityLogPage />} />
+                <Route path="/transfers" element={<TransfersPage />} />
+                <Route path="/exports" element={<ExportsPage />} />
+                <Route path="/backup" element={<BackupPage />} />
+                <Route path="/plans" element={<PlansPage />} />
+                <Route path="/billing" element={<BillingPage />} />
+                <Route path="/billing/invoice/:id/pay" element={<PayInvoicePage />} />
+                <Route path="/referrals" element={<ReferralsPage />} />
+                <Route path="/plan-usage" element={<PlanUsagePage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/help" element={<HelpPage />} />
+                <Route path="/legal" element={<LegalPage />} />
+              </Route>
             </Route>
 
             <Route path="/sales/:id/receipt" element={<ReceiptPage />} />
+            <Route path="/onboarding" element={<OnboardingPage />} />
           </Route>
 
           <Route path="/" element={<Navigate to="/dashboard" replace />} />

@@ -1,16 +1,10 @@
 import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  NotFoundException,
-  Param,
-  Patch,
-  Post,
-  Query,
+  Body, Controller, Delete, Get, NotFoundException,
+  Param, Patch, Post, Query, UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../auth/decorators/get-user.decorator';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -20,6 +14,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 
 @ApiTags('Products')
 @ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('products')
 export class ProductsController {
   constructor(
@@ -28,33 +23,26 @@ export class ProductsController {
   ) {}
 
   @Post()
-  create(
-    @GetUser() user: AuthenticatedUser,
-    @Body() dto: CreateProductDto,
-  ) {
+  create(@GetUser() user: AuthenticatedUser, @Body() dto: CreateProductDto) {
     return this.productsService.create(user, dto);
   }
 
   @Get()
-  findAll(
-    @GetUser() user: AuthenticatedUser,
-    @Query() query: QueryProductsDto,
-  ) {
+  findAll(@GetUser() user: AuthenticatedUser, @Query() query: QueryProductsDto) {
     return this.productsService.findAll(user, query);
   }
 
   @Get('low-stock')
   async lowStock(@GetUser() user: AuthenticatedUser) {
-    const products = await this.prisma.$queryRaw<any[]>`
+    return this.prisma.$queryRaw<any[]>`
       SELECT id, name, sku, barcode, unit, stock, "lowStockAlert", price, "costPrice"
       FROM "Product"
       WHERE "tenantId" = ${user.tenantId}
         AND "isActive" = true
         AND stock <= "lowStockAlert"
       ORDER BY stock ASC
-      LIMIT 50
+      LIMIT 100
     `;
-    return products;
   }
 
   @Get('barcode/:code')
@@ -68,20 +56,37 @@ export class ProductsController {
         OR: [{ barcode: code }, { sku: code }],
         isActive: true,
       },
-      include: { category: true },
+      include: {
+        category: true,
+        brand: true,
+        images: { orderBy: [{ isPrimary: 'desc' }], take: 1 },
+        variants: { where: { isActive: true } },
+      },
     });
 
     if (!product) {
-      throw new NotFoundException('Product not found for this barcode');
+      const variant = await this.prisma.productVariant.findFirst({
+        where: {
+          OR: [{ barcode: code }, { sku: code }],
+          isActive: true,
+          product: { tenantId: user.tenantId, isActive: true },
+        },
+        include: {
+          product: {
+            include: {
+              images: { orderBy: [{ isPrimary: 'desc' }], take: 1 },
+            },
+          },
+        },
+      });
+      if (!variant) throw new NotFoundException('Product not found for this code');
+      return { ...variant.product, matchedVariant: variant };
     }
     return product;
   }
 
   @Get(':id')
-  findOne(
-    @GetUser() user: AuthenticatedUser,
-    @Param('id') id: string,
-  ) {
+  findOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {
     return this.productsService.findOne(user, id);
   }
 
@@ -94,11 +99,29 @@ export class ProductsController {
     return this.productsService.update(user, id, dto);
   }
 
-  @Delete(':id')
-  remove(
+  @Patch(':id/toggle-featured')
+  toggleFeatured(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.productsService.toggleFeatured(user, id);
+  }
+
+  @Patch(':id/toggle-active')
+  toggleActive(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.productsService.toggleActive(user, id);
+  }
+
+  @Post('bulk-action')
+  bulkAction(
     @GetUser() user: AuthenticatedUser,
-    @Param('id') id: string,
+    @Body() body: {
+      productIds: string[];
+      action: 'activate' | 'deactivate' | 'delete' | 'feature' | 'unfeature';
+    },
   ) {
+    return this.productsService.bulkAction(user, body.productIds, body.action);
+  }
+
+  @Delete(':id')
+  remove(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {
     return this.productsService.remove(user, id);
   }
 }

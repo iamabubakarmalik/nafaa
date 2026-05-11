@@ -1,48 +1,108 @@
 import { apiClient } from './client';
 
+export type PaymentMethod =
+  | 'CASH' | 'CARD' | 'BANK_TRANSFER' | 'JAZZCASH' | 'EASYPAISA';
+
+export interface CreateSalePayload {
+  customerId?: string;
+  paymentMethod: PaymentMethod;
+  paidAmount: number;
+  discount?: number;
+  allowCredit?: boolean;
+  items: Array<{ productId: string; quantity: number }>;
+}
+
+export interface SaleItem {
+  id: string;
+  quantity: number;
+  price: number;
+  total: number;
+  product: {
+    id: string;
+    name: string;
+    unit: string;
+    sku?: string | null;
+    barcode?: string | null;
+  };
+}
+
 export interface Sale {
   id: string;
   saleNumber: string;
+  subtotal: number;
+  discount: number;
   total: number;
   paidAmount: number;
+  changeAmount: number;
   creditAmount: number;
-  paymentMethod: string;
-  status: string;
+  paymentMethod: PaymentMethod;
+  status: 'COMPLETED' | 'PARTIALLY_RETURNED' | 'FULLY_RETURNED' | 'VOIDED';
   soldAt: string;
-  customer?: { id: string; name: string } | null;
-  items?: Array<{
-    id: string;
-    quantity: number;
-    price: number;
-    total: number;
-    product: { name: string };
-  }>;
+  customer?: { id: string; name: string; phone?: string | null } | null;
+  createdBy?: { id: string; fullName: string } | null;
+  tenant?: { id: string; name: string };
+  items: SaleItem[];
 }
 
-export interface CreateSalePayload {
-  items: Array<{ productId: string; quantity: number }>;
-  paymentMethod: 'CASH' | 'CARD' | 'JAZZCASH' | 'EASYPAISA' | 'BANK' | 'CREDIT';
-  paidAmount?: number;
-  customerId?: string;
-  discountAmount?: number;
-  notes?: string;
+export interface SalesListParams {
+  search?: string;
+  page?: number;
+  limit?: number;
 }
 
-export interface ListResponse<T> {
-  items: T[];
+export interface SalesListResponse {
+  items: Sale[];
   meta: { page: number; limit: number; total: number; totalPages: number };
 }
 
+function unwrapOne<T>(res: any): T {
+  const body = res?.data;
+  if (body?.data) return body.data as T;
+  return body as T;
+}
+
+function unwrapSalesList(res: any, params?: SalesListParams): SalesListResponse {
+  const body = res?.data;
+  let arr: Sale[] = [];
+
+  if (Array.isArray(body)) arr = body;
+  else if (Array.isArray(body?.data)) arr = body.data;
+  else if (Array.isArray(body?.data?.items)) {
+    return body.data;
+  } else if (Array.isArray(body?.items)) {
+    return body;
+  }
+
+  const filtered = params?.search
+    ? arr.filter((s) =>
+        s.saleNumber.toLowerCase().includes(params.search!.toLowerCase()),
+      )
+    : arr;
+
+  const limit = params?.limit ?? 50;
+  return {
+    items: filtered.slice(0, limit),
+    meta: { page: 1, limit, total: filtered.length, totalPages: 1 },
+  };
+}
+
 export const salesApi = {
-  list: (params?: { search?: string; page?: number; limit?: number }) =>
-    apiClient.get<ListResponse<Sale>>('/sales', { params }).then((r) => r.data),
+  create: (payload: CreateSalePayload): Promise<Sale> =>
+    apiClient.post('/sales', payload).then((r) => unwrapOne<Sale>(r)),
 
-  byId: (id: string) =>
-    apiClient.get<Sale>(`/sales/${id}`).then((r) => r.data),
+  list: (params?: SalesListParams): Promise<SalesListResponse> =>
+    apiClient
+      .get('/sales', { params })
+      .then((r) => unwrapSalesList(r, params)),
 
-  create: (payload: CreateSalePayload) =>
-    apiClient.post<Sale>('/sales', payload).then((r) => r.data),
+  summary: (): Promise<any> =>
+    apiClient.get('/sales/summary').then((r) => unwrapOne<any>(r)),
 
-  summary: () =>
-    apiClient.get<any>('/sales/summary').then((r) => r.data),
+  byId: (id: string): Promise<Sale> =>
+    apiClient.get(`/sales/${id}`).then((r) => unwrapOne<Sale>(r)),
+
+  voidSale: (id: string, reason?: string): Promise<Sale> =>
+    apiClient
+      .post(`/sales/${id}/void`, { reason })
+      .then((r) => unwrapOne<Sale>(r)),
 };

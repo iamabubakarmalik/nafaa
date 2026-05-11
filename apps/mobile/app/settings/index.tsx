@@ -1,60 +1,37 @@
-import { View, Text, ScrollView, Pressable, Switch, Alert } from 'react-native';
+import { View, Text, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, Stack } from 'expo-router';
-import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import * as Haptics from 'expo-haptics';
 import {
-  ArrowLeft,
-  Moon,
-  Sun,
-  Monitor,
-  Globe,
-  Bell,
-  Fingerprint,
-  Vibrate,
-  Volume2,
-  Trash2,
-  HelpCircle,
+  ArrowLeft, Store, Globe, Calculator, Receipt, ShoppingCart,
+  Package, Users, Bell, Shield, Palette, ChevronRight, Settings as SettingsIcon,
 } from 'lucide-react-native';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { useThemeStore, type ThemeMode } from '@/store/theme.store';
-import { useLocaleStore } from '@/store/locale.store';
+import { settingsApi } from '@/api/settings.api';
+
 import { useTranslation } from '@/i18n/useTranslation';
-import Toast from 'react-native-toast-message';
+const sections = [
+  { id: 'business', label: 'Business Profile', desc: 'Shop name, logo, contact', icon: Store, color: '#16a34a', bg: '#dcfce7' },
+  { id: 'localization', label: 'Localization', desc: 'Language, currency, timezone', icon: Globe, color: '#2563eb', bg: '#dbeafe' },
+  { id: 'tax', label: 'Tax & Pricing', desc: 'GST, tax rate, rounding', icon: Calculator, color: '#f59e0b', bg: '#fef3c7' },
+  { id: 'receipt', label: 'Receipt', desc: 'Invoice format, header/footer', icon: Receipt, color: '#7c3aed', bg: '#ede9fe' },
+  { id: 'pos', label: 'POS Settings', desc: 'Sale flow, payments', icon: ShoppingCart, color: '#ec4899', bg: '#fce7f3' },
+  { id: 'inventory', label: 'Inventory', desc: 'Stock alerts, expiry', icon: Package, color: '#0891b2', bg: '#cffafe' },
+  { id: 'customer', label: 'Customers & Udhaar', desc: 'Credit, loyalty', icon: Users, color: '#6366f1', bg: '#e0e7ff' },
+  { id: 'notifications', label: 'Notifications', desc: 'Email, SMS, push', icon: Bell, color: '#ea580c', bg: '#ffedd5' },
+  { id: 'security', label: 'Security', desc: 'PIN, 2FA, sessions', icon: Shield, color: '#dc2626', bg: '#fee2e2' },
+  { id: 'appearance', label: 'Appearance', desc: 'Theme, colors', icon: Palette, color: '#14b8a6', bg: '#ccfbf1' },
+];
 
-export default function SettingsScreen() {
-  const router = useRouter();
+export default function SettingsHubScreen() {
   const { t } = useTranslation();
-  const { mode, isDark, setMode } = useThemeStore();
-  const { locale, setLocale } = useLocaleStore();
-
-  const [pushEnabled, setPushEnabled] = useState(true);
-  const [biometricEnabled, setBiometricEnabled] = useState(false);
-  const [hapticEnabled, setHapticEnabled] = useState(true);
-  const [soundsEnabled, setSoundsEnabled] = useState(true);
-
-  const themeOptions: { mode: ThemeMode; label: string; icon: any }[] = [
-    { mode: 'light', label: 'Light', icon: Sun },
-    { mode: 'dark', label: 'Dark', icon: Moon },
-    { mode: 'system', label: 'Auto', icon: Monitor },
-  ];
-
-  const clearCache = () => {
-    Alert.alert('Clear Cache', 'This will remove cached data. Continue?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Clear',
-        style: 'destructive',
-        onPress: () => Toast.show({ type: 'success', text1: 'Cache cleared' }),
-      },
-    ]);
-  };
+  const router = useRouter();
+  const { data } = useQuery({ queryKey: ['settings'], queryFn: settingsApi.get });
 
   return (
     <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-950" edges={['top']}>
       <Stack.Screen options={{ headerShown: false }} />
 
-      {/* Header */}
       <View className="px-5 pt-4 pb-3 flex-row items-center gap-3">
         <Pressable
           onPress={() => router.back()}
@@ -63,203 +40,76 @@ export default function SettingsScreen() {
         >
           <ArrowLeft size={20} color="#16a34a" />
         </Pressable>
-        <Text className="flex-1 text-2xl font-bold text-neutral-900 dark:text-white">
-          Settings
-        </Text>
+        <View className="flex-1">
+          <Text className="text-2xl font-extrabold text-neutral-900 dark:text-white">{t('auto.index.settings')}</Text>
+          <Text className="text-xs text-neutral-500 mt-0.5" numberOfLines={1}>
+            {data?.tenant?.name || 'Shop configuration'}
+          </Text>
+        </View>
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
-        {/* Theme */}
-        <View className="px-5 mt-2">
-          <Text className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2 px-1">
-            Appearance
-          </Text>
-          <Card variant="outline" className="p-3">
-            <View className="flex-row gap-2">
-              {themeOptions.map((opt) => {
-                const Icon = opt.icon;
-                const isActive = mode === opt.mode;
-                return (
-                  <Pressable
-                    key={opt.mode}
-                    onPress={() => setMode(opt.mode)}
-                    className={`flex-1 py-3 rounded-xl items-center ${
-                      isActive
-                        ? 'bg-brand-600'
-                        : 'bg-neutral-100 dark:bg-neutral-800'
-                    }`}
-                  >
-                    <Icon size={20} color={isActive ? '#fff' : isDark ? '#d4d4d8' : '#525252'} />
-                    <Text
-                      className={`mt-1 text-xs font-bold ${
-                        isActive ? 'text-white' : 'text-neutral-700 dark:text-neutral-300'
-                      }`}
-                    >
-                      {opt.label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </Card>
+      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 60 }}>
+        {/* Hero */}
+        <View
+          className="rounded-3xl p-5 mb-5 overflow-hidden"
+          style={{
+            backgroundColor: '#16a34a',
+            shadowColor: '#16a34a',
+            shadowOpacity: 0.3,
+            shadowRadius: 16,
+            shadowOffset: { width: 0, height: 8 },
+            elevation: 10,
+          }}
+        >
+          <View
+            className="h-14 w-14 rounded-2xl items-center justify-center mb-3"
+            style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
+          >
+            <SettingsIcon size={26} color="#ffffff" />
+          </View>
+          <Text className="text-2xl font-extrabold text-white">{t('auto.index.shop_settings')}</Text>
+          <Text className="text-xs text-emerald-100 mt-1">{t('auto.index.apni_dukan_ki_har_cheez_customize_karein')}</Text>
         </View>
 
-        {/* Language */}
-        <View className="px-5 mt-5">
-          <Text className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2 px-1">
-            Language
-          </Text>
-          <Card variant="outline" className="p-3">
-            <View className="flex-row gap-2">
-              {(['en', 'ur'] as const).map((lang) => {
-                const isActive = locale === lang;
-                return (
-                  <Pressable
-                    key={lang}
-                    onPress={() => setLocale(lang)}
-                    className={`flex-1 py-3 rounded-xl items-center ${
-                      isActive ? 'bg-brand-600' : 'bg-neutral-100 dark:bg-neutral-800'
-                    }`}
-                  >
-                    <Globe size={18} color={isActive ? '#fff' : isDark ? '#d4d4d8' : '#525252'} />
-                    <Text
-                      className={`mt-1 text-sm font-bold ${
-                        isActive ? 'text-white' : 'text-neutral-700 dark:text-neutral-300'
-                      }`}
-                    >
-                      {lang === 'en' ? 'English' : 'اردو'}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </Card>
+        {/* Sections list */}
+        <View className="gap-2.5">
+          {sections.map((s) => {
+            const Icon = s.icon;
+            return (
+              <Pressable
+                key={s.id}
+                onPress={() => {
+                  Haptics.selectionAsync();
+                  router.push(`/settings/${s.id}` as any);
+                }}
+                className="rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 p-4 flex-row items-center gap-3 active:opacity-70"
+                style={{
+                  shadowColor: '#000',
+                  shadowOpacity: 0.03,
+                  shadowRadius: 6,
+                  elevation: 1,
+                }}
+              >
+                <View
+                  className="h-12 w-12 rounded-2xl items-center justify-center"
+                  style={{ backgroundColor: s.bg }}
+                >
+                  <Icon size={22} color={s.color} />
+                </View>
+                <View className="flex-1 min-w-0">
+                  <Text className="font-extrabold text-neutral-900 dark:text-white" numberOfLines={1}>
+                    {s.label}
+                  </Text>
+                  <Text className="text-xs text-neutral-500 mt-0.5" numberOfLines={1}>
+                    {s.desc}
+                  </Text>
+                </View>
+                <ChevronRight size={18} color="#9ca3af" />
+              </Pressable>
+            );
+          })}
         </View>
-
-        {/* Notifications */}
-        <View className="px-5 mt-5">
-          <Text className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2 px-1">
-            Notifications & Feedback
-          </Text>
-          <Card variant="outline" className="p-0">
-            <ToggleRow
-              icon={Bell}
-              label="Push Notifications"
-              value={pushEnabled}
-              onChange={setPushEnabled}
-              isDark={isDark}
-            />
-            <ToggleRow
-              icon={Vibrate}
-              label="Haptic Feedback"
-              value={hapticEnabled}
-              onChange={setHapticEnabled}
-              isDark={isDark}
-            />
-            <ToggleRow
-              icon={Volume2}
-              label="Sound Effects"
-              value={soundsEnabled}
-              onChange={setSoundsEnabled}
-              isDark={isDark}
-              isLast
-            />
-          </Card>
-        </View>
-
-        {/* Security */}
-        <View className="px-5 mt-5">
-          <Text className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2 px-1">
-            Security
-          </Text>
-          <Card variant="outline" className="p-0">
-            <ToggleRow
-              icon={Fingerprint}
-              label="Biometric Login"
-              value={biometricEnabled}
-              onChange={setBiometricEnabled}
-              isDark={isDark}
-              isLast
-            />
-          </Card>
-        </View>
-
-        {/* Storage */}
-        <View className="px-5 mt-5">
-          <Text className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2 px-1">
-            Storage
-          </Text>
-          <Card variant="outline" className="p-0">
-            <Pressable
-              onPress={clearCache}
-              className="flex-row items-center px-4 py-3.5 active:bg-neutral-50 dark:active:bg-neutral-800"
-            >
-              <View className="h-9 w-9 rounded-xl bg-red-50 dark:bg-red-950/40 items-center justify-center">
-                <Trash2 size={18} color="#dc2626" />
-              </View>
-              <Text className="flex-1 ml-3 text-sm font-semibold text-red-600 dark:text-red-400">
-                Clear Cache
-              </Text>
-              <Text className="text-xs text-neutral-500">~ 4.2 MB</Text>
-            </Pressable>
-          </Card>
-        </View>
-
-        {/* Help */}
-        <View className="px-5 mt-5">
-          <Card variant="outline" className="p-0">
-            <Pressable className="flex-row items-center px-4 py-3.5 active:bg-neutral-50 dark:active:bg-neutral-800">
-              <View className="h-9 w-9 rounded-xl bg-blue-50 dark:bg-blue-950/40 items-center justify-center">
-                <HelpCircle size={18} color="#2563eb" />
-              </View>
-              <Text className="flex-1 ml-3 text-sm font-semibold text-neutral-900 dark:text-white">
-                Help & Support
-              </Text>
-            </Pressable>
-          </Card>
-        </View>
-
-        <Text className="text-center text-xs text-neutral-400 mt-8">
-          Nafaa v1.0.0 • Build 2026.05.08
-        </Text>
       </ScrollView>
     </SafeAreaView>
-  );
-}
-
-function ToggleRow({
-  icon: Icon,
-  label,
-  value,
-  onChange,
-  isDark,
-  isLast,
-}: {
-  icon: any;
-  label: string;
-  value: boolean;
-  onChange: (v: boolean) => void;
-  isDark: boolean;
-  isLast?: boolean;
-}) {
-  return (
-    <View
-      className={`flex-row items-center px-4 py-3.5 ${
-        !isLast ? 'border-b border-neutral-100 dark:border-neutral-800' : ''
-      }`}
-    >
-      <View className="h-9 w-9 rounded-xl bg-neutral-100 dark:bg-neutral-800 items-center justify-center">
-        <Icon size={18} color={isDark ? '#d4d4d8' : '#525252'} />
-      </View>
-      <Text className="flex-1 ml-3 text-sm font-semibold text-neutral-900 dark:text-white">
-        {label}
-      </Text>
-      <Switch
-        value={value}
-        onValueChange={onChange}
-        trackColor={{ false: '#d1d5db', true: '#16a34a' }}
-        thumbColor="#fff"
-      />
-    </View>
   );
 }

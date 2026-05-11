@@ -24,6 +24,9 @@ export const envValidationSchema = Joi.object({
   NAFAA_BANK_IBAN: Joi.string().optional(),
   NAFAA_JAZZCASH_NUMBER: Joi.string().optional(),
   NAFAA_EASYPAISA_NUMBER: Joi.string().optional(),
+  NAFAA_NAYAPAY_NUMBER: Joi.string().optional(),
+  NAFAA_NAYAPAY_HANDLE: Joi.string().optional(),
+  NAFAA_PAYMENT_HOLDER_NAME: Joi.string().optional(),
 
   UPLOAD_DIR: Joi.string().default('./uploads'),
   UPLOAD_MAX_SIZE_MB: Joi.number().default(10),

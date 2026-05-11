@@ -20,15 +20,16 @@
   },
   "pnpm": {
     "onlyBuiltDependencies": [
-      "sharp",
-      "bcrypt",
+      "@nestjs/core",
       "@prisma/client",
       "@prisma/engines",
-      "prisma",
+      "@scarf/scarf",
+      "bcrypt",
       "esbuild",
       "msgpackr-extract",
-      "@scarf/scarf",
-      "@nestjs/core"
+      "prisma",
+      "sharp",
+      "unrs-resolver"
     ],
     "overrides": {
       "expo": "~54.0.34",
@@ -45,7 +46,8 @@
       "react-dom": "19.1.0",
       "react-native": "0.81.5",
       "react-native-reanimated": "~4.1.7",
-      "react-native-svg": "~15.12.1"
+      "react-native-svg": "~15.12.1",
+      "@types/react": "~19.1.10"
     },
     "peerDependencyRules": {
       "allowedVersions": {
@@ -56,5 +58,9 @@
   },
   "dependencies": {
     "sharp": "^0.33.5"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=11.0.0"
   }
 }

@@ -1,40 +1,123 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1284 2778" width="1284" height="2778">
   <defs>
-    <linearGradient id="splashBg" x1="0%" y1="0%" x2="0%" y2="100%">
+    <!-- Background: deep green gradient with subtle radial accent -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
       <stop offset="0%" stop-color="#16a34a"/>
-      <stop offset="100%" stop-color="#15803d"/>
+      <stop offset="50%" stop-color="#15803d"/>
+      <stop offset="100%" stop-color="#14532d"/>
     </linearGradient>
-    <linearGradient id="splashIcon" x1="0%" y1="0%" x2="100%" y2="100%">
+
+    <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.12)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </radialGradient>
+
+    <!-- Icon tile gradient -->
+    <linearGradient id="iconTile" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#ffffff"/>
-      <stop offset="100%" stop-color="#dcfce9"/>
+      <stop offset="100%" stop-color="#f0fdf4"/>
+    </linearGradient>
+
+    <!-- Soft shadow under icon tile -->
+    <filter id="iconShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="24"/>
+      <feOffset dx="0" dy="20" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.35"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Arrow gradient (the "growth" mark) -->
+    <linearGradient id="arrowGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#15803d"/>
+      <stop offset="100%" stop-color="#22c55e"/>
     </linearGradient>
   </defs>
 
-  <rect width="1284" height="2778" fill="url(#splashBg)"/>
+  <!-- Background -->
+  <rect width="1284" height="2778" fill="url(#bgGrad)"/>
+  <ellipse cx="642" cy="1389" rx="900" ry="900" fill="url(#bgGlow)"/>
 
-  <!-- Center icon -->
-  <g transform="translate(642, 1389)">
-    <rect x="-180" y="-180" width="360" height="360" rx="80" ry="80" fill="rgba(255,255,255,0.15)"/>
-    <rect x="-160" y="-160" width="320" height="320" rx="72" ry="72" fill="url(#splashIcon)"/>
-    <g transform="translate(0, 12)" stroke="#16a34a" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" fill="none">
-      <line x1="-72" y1="-72" x2="-72" y2="72"/>
-      <line x1="-72" y1="72" x2="72" y2="-72"/>
-      <line x1="72" y1="-72" x2="72" y2="72"/>
-      <polyline points="32,-72 72,-72 72,-32"/>
-    </g>
-    <circle cx="120" cy="-130" r="20" fill="#f59e0b"/>
+  <!-- Subtle dot pattern (light texture) -->
+  <g fill="rgba(255,255,255,0.04)">
+    <circle cx="120" cy="380" r="3"/>
+    <circle cx="1160" cy="500" r="3"/>
+    <circle cx="200" cy="2300" r="3"/>
+    <circle cx="1080" cy="2200" r="3"/>
+    <circle cx="640" cy="220" r="2"/>
+    <circle cx="320" cy="2500" r="2"/>
   </g>
 
-  <!-- Tagline -->
-  <text x="642" y="1700" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="900" fill="#ffffff" text-anchor="middle">
+  <!-- Icon container -->
+  <g transform="translate(642, 1289)" filter="url(#iconShadow)">
+    <!-- Outer soft ring -->
+    <rect x="-200" y="-200" width="400" height="400" rx="92" ry="92"
+          fill="rgba(255,255,255,0.12)"/>
+    <!-- Inner tile -->
+    <rect x="-170" y="-170" width="340" height="340" rx="78" ry="78"
+          fill="url(#iconTile)"/>
+
+    <!-- The arrow mark — diagonal growth arrow (clean "N↗" stylization) -->
+    <g stroke="url(#arrowGrad)" stroke-width="28" stroke-linecap="round"
+       stroke-linejoin="round" fill="none">
+      <!-- Diagonal upward stroke -->
+      <line x1="-70" y1="70" x2="70" y2="-70"/>
+      <!-- Left vertical (start of N) -->
+      <line x1="-70" y1="-70" x2="-70" y2="70"/>
+      <!-- Right vertical (end of N) -->
+      <line x1="70" y1="-70" x2="70" y2="70"/>
+      <!-- Arrowhead -->
+      <polyline points="30,-70 70,-70 70,-30"/>
+    </g>
+
+    <!-- Accent dot (top right of tile) -->
+    <circle cx="135" cy="-135" r="22" fill="#f59e0b"/>
+    <circle cx="135" cy="-135" r="22" fill="none"
+            stroke="rgba(255,255,255,0.4)" stroke-width="3"/>
+  </g>
+
+  <!-- Brand name -->
+  <text x="642" y="1780" font-family="Inter, -apple-system, system-ui, sans-serif"
+        font-size="120" font-weight="900" fill="#ffffff" text-anchor="middle"
+        letter-spacing="-2">
     Nafaa
   </text>
-  <text x="642" y="1760" font-family="Inter, system-ui, sans-serif" font-size="28" font-weight="600" fill="rgba(255,255,255,0.85)" text-anchor="middle" letter-spacing="4">
-    Run Your Shop Smarter
+
+  <!-- Tagline -->
+  <text x="642" y="1850" font-family="Inter, -apple-system, system-ui, sans-serif"
+        font-size="36" font-weight="500" fill="rgba(255,255,255,0.85)"
+        text-anchor="middle" letter-spacing="6">
+    RUN YOUR SHOP SMARTER
   </text>
 
-  <!-- Made in Pakistan -->
-  <text x="642" y="2680" font-family="Inter, system-ui, sans-serif" font-size="22" fill="rgba(255,255,255,0.7)" text-anchor="middle">
-    🇵🇰 Made in Pakistan
+  <!-- Decorative divider -->
+  <line x1="542" y1="1900" x2="742" y2="1900"
+        stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+
+  <!-- Urdu tagline -->
+  <text x="642" y="1970" font-family="'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', serif"
+        font-size="44" font-weight="500" fill="rgba(255,255,255,0.9)"
+        text-anchor="middle">
+    اپنی دکان سمارٹ طریقے سے چلائیں
+  </text>
+
+  <!-- Made in Pakistan badge (bottom) -->
+  <g transform="translate(642, 2650)">
+    <rect x="-150" y="-25" width="300" height="50" rx="25" ry="25"
+          fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+    <text x="0" y="8" font-family="Inter, sans-serif" font-size="22" font-weight="600"
+          fill="rgba(255,255,255,0.85)" text-anchor="middle" letter-spacing="2">
+      🇵🇰  MADE IN PAKISTAN
+    </text>
+  </g>
+
+  <!-- Version (tiny, bottom corner) -->
+  <text x="642" y="2730" font-family="Inter, sans-serif" font-size="14"
+        fill="rgba(255,255,255,0.4)" text-anchor="middle" letter-spacing="1">
+    v1.0.0
   </text>
 </svg>

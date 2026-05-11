@@ -155,7 +155,14 @@ export class SmsService {
       throw new Error(`LifetimeSMS error: HTTP ${res.status}`);
     }
 
-    const data = await res.json();
+    const data = (await res.json()) as {
+      status?: string;
+      error?: any;
+      message?: string;
+      message_id?: string;
+      id?: string;
+      sid?: string;
+    };
     if (data.status === 'error' || data.error) {
       throw new Error(data.message ?? 'LifetimeSMS unknown error');
     }
@@ -189,8 +196,15 @@ export class SmsService {
       throw new Error(`Twilio error: ${errText}`);
     }
 
-    const data = await res.json();
-    return data.sid;
+    const data = (await res.json()) as {
+      status?: string;
+      error?: any;
+      message?: string;
+      message_id?: string;
+      id?: string;
+      sid?: string;
+    };
+    return (data as { sid: string }).sid;
   }
 
   async listLogs(params: {

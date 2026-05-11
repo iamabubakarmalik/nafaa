@@ -5,26 +5,36 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
+    "scheme": "nafaa",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "primaryColor": "#16a34a",
+    "description": "Pakistan's smart POS — Sales, inventory, khata, and reports in one app.",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#16a34a"
     },
-    "scheme": "nafaa",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "updates": {
+      "url": "https://u.expo.dev/378f6d14-5716-469e-9275-0af06ec03668",
+      "fallbackToCacheTimeout": 0
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "pk.nafaa.app",
-      "buildNumber": "1.0.0",
+      "buildNumber": "1",
       "infoPlist": {
-        "NSCameraUsageDescription": "Nafaa needs camera access to scan barcodes for products.",
-        "NSPhotoLibraryUsageDescription": "Nafaa needs photo library access to upload product images.",
-        "NSFaceIDUsageDescription": "Nafaa uses Face ID for secure login."
-      }
+        "NSCameraUsageDescription": "Nafaa needs camera access to scan product barcodes.",
+        "NSPhotoLibraryUsageDescription": "Nafaa needs photo library access to upload product images and shop logo.",
+        "NSPhotoLibraryAddUsageDescription": "Nafaa saves receipts and reports to your photo library.",
+        "NSFaceIDUsageDescription": "Nafaa uses Face ID for secure login.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "associatedDomains": ["applinks:nafaa.pk"]
     },
     "android": {
       "package": "pk.nafaa.app",
@@ -41,7 +51,18 @@
         "BLUETOOTH",
         "BLUETOOTH_ADMIN",
         "BLUETOOTH_CONNECT",
-        "BLUETOOTH_SCAN"
+        "BLUETOOTH_SCAN",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ],
+      "blockedPermissions": ["android.permission.RECORD_AUDIO"],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [{ "scheme": "https", "host": "nafaa.pk" }],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
       ]
     },
     "web": {
@@ -53,6 +74,7 @@
       "expo-router",
       "expo-secure-store",
       "expo-localization",
+      "expo-updates",
       [
         "expo-camera",
         {
@@ -68,7 +90,8 @@
       [
         "expo-notifications",
         {
-          "color": "#16a34a"
+          "color": "#16a34a",
+          "icon": "./assets/notification-icon.png"
         }
       ],
       "expo-font"
@@ -77,9 +100,14 @@
       "typedRoutes": true
     },
     "extra": {
+      "router": {},
       "eas": {
-        "projectId": "00000000-0000-0000-0000-000000000000"
-      }
-    }
+        "projectId": "378f6d14-5716-469e-9275-0af06ec03668"
+      },
+      "googleIosClientId": "109272166338-4fic8s75hh9e7otuvjgtaj1q02s8vp26.apps.googleusercontent.com",
+      "googleAndroidClientId": "109272166338-j3miqlc4kn1441l24dgd8tv1fphkid1k.apps.googleusercontent.com",
+      "googleWebClientId": "109272166338-vnd7gh3vnjds2m3gt5i2psnsanav06ep.apps.googleusercontent.com"
+    },
+    "owner": "abubakamalik"
   }
 }

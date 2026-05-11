@@ -1,26 +1,35 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
-  IsBoolean,
-  IsInt,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-  MaxLength,
-  Min,
+  IsArray, IsBoolean, IsInt, IsNotEmpty, IsNumber, IsOptional,
+  IsString, MaxLength, Min,
 } from 'class-validator';
 
 export class CreateProductDto {
   @ApiProperty({ example: 'Chocolate Cake' })
   @IsString()
   @IsNotEmpty()
-  @MaxLength(120)
+  @MaxLength(200)
   name!: string;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
+  description?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  shortDescription?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   categoryId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  brandId?: string;
 
   @ApiPropertyOptional({ example: 'CAKE-001' })
   @IsOptional()
@@ -51,6 +60,18 @@ export class CreateProductDto {
   @Min(0)
   costPrice?: number;
 
+  @ApiPropertyOptional({ example: 1000 })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  wholesalePrice?: number;
+
+  @ApiPropertyOptional({ example: 17 })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  taxRate?: number;
+
   @ApiPropertyOptional({ example: 10 })
   @IsOptional()
   @IsInt()
@@ -63,8 +84,45 @@ export class CreateProductDto {
   @Min(0)
   lowStockAlert?: number;
 
-  @ApiPropertyOptional({ example: true })
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsNumber()
+  weight?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  weightUnit?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  dimensions?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  expiryTracked?: boolean;
+
+  @ApiPropertyOptional()
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  isFeatured?: boolean;
+
+  @ApiPropertyOptional({ type: [String] })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  tagIds?: string[];
+
+  @ApiPropertyOptional({ type: [String] })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  imageUrls?: string[];
 }

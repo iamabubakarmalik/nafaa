@@ -1,78 +1,85 @@
-import { View, Text, ScrollView, Pressable } from 'react-native';
+import { useState } from 'react';
+import {
+  View, Text, ScrollView, Pressable, RefreshControl,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, Stack } from 'expo-router';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  ArrowLeft,
-  Sparkles,
-  Check,
-  Crown,
-  Zap,
-  Rocket,
-  ExternalLink,
+  ArrowLeft, Sparkles, Check, X, Crown, Zap, Rocket, ArrowRight,
 } from 'lucide-react-native';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { plansApi, type Plan } from '@/api/plans.api';
+import {
+  subscriptionsApi, type BillingInterval,
+} from '@/api/subscriptions.api';
 import { formatPKRFull } from '@/lib/format';
-import * as Linking from 'expo-linking';
+import Toast from 'react-native-toast-message';
 
-const plans = [
-  {
-    name: 'Free Trial',
-    price: 0,
-    icon: Sparkles,
-    color: '#737373',
-    features: ['30 Products', '2 Users', '1 Shop', 'Basic POS', '7-day trial'],
-  },
-  {
-    name: 'Basic',
-    price: 1500,
-    icon: Zap,
-    color: '#2563eb',
-    features: ['500 Products', '3 Users', '1 Shop', 'POS + Khata', 'Reports', 'Excel Export'],
-  },
-  {
-    name: 'Pro',
-    price: 3500,
-    icon: Rocket,
-    color: '#16a34a',
-    popular: true,
-    features: [
-      '5,000 Products',
-      '10 Users',
-      '3 Shops',
-      'Multi-Shop',
-      'Loyalty Points',
-      'WhatsApp Receipts',
-      'Profit Reports',
-      'Backup',
-    ],
-  },
-  {
-    name: 'Enterprise',
-    price: 9500,
-    icon: Crown,
-    color: '#f59e0b',
-    features: [
-      'Unlimited Everything',
-      '24/7 Priority Support',
-      'Custom Branding',
-      'Dedicated Manager',
-      'API Access',
-    ],
-  },
-];
+import { useTranslation } from '@/i18n/useTranslation';
+const planIcons: Record<string, any> = {
+  'free-trial': Sparkles,
+  basic: Zap,
+  pro: Rocket,
+  enterprise: Crown,
+};
 
-const APP_URL = process.env.EXPO_PUBLIC_APP_URL || 'https://nafaa.pk';
+const planColors: Record<string, string> = {
+  'free-trial': '#737373',
+  basic: '#2563eb',
+  pro: '#16a34a',
+  enterprise: '#f59e0b',
+};
 
 export default function PlanScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const [refreshing, setRefreshing] = useState(false);
+  const [interval, setInterval] = useState<BillingInterval>('MONTHLY');
+
+  const { data: plans = [], refetch } = useQuery({
+    queryKey: ['plans'],
+    queryFn: plansApi.list,
+  });
+
+  const { data: current, refetch: refetchCurrent } = useQuery({
+    queryKey: ['subscription-current'],
+    queryFn: subscriptionsApi.current,
+  });
+
+  const startMutation = useMutation({
+    mutationFn: ({ planId, interval }: { planId: string; interval: BillingInterval }) =>
+      subscriptionsApi.start(planId, interval),
+    onSuccess: (data) => {
+      Toast.show({ type: 'success', text1: 'Plan select ho gaya', text2: 'Ab payment karein' });
+      queryClient.invalidateQueries({ queryKey: ['subscription-current'] });
+      router.push(`/billing/invoice/${data.invoice.id}`);
+    },
+    onError: (e: any) =>
+      Toast.show({ type: 'error', text1: e?.response?.data?.message || 'Fail' }),
+  });
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await Promise.all([refetch(), refetchCurrent()]);
+    setRefreshing(false);
+  };
+
+  const getPrice = (p: Plan) =>
+    interval === 'MONTHLY' ? p.priceMonthly :
+    interval === 'QUARTERLY' ? p.priceQuarterly : p.priceYearly;
+
+  const intervalLabel = {
+    MONTHLY: '/month', QUARTERLY: '/3 months', YEARLY: '/year',
+  }[interval];
 
   return (
     <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-950" edges={['top']}>
       <Stack.Screen options={{ headerShown: false }} />
 
-      {/* Header */}
       <View className="px-5 pt-4 pb-3 flex-row items-center gap-3">
         <Pressable
           onPress={() => router.back()}
@@ -82,44 +89,84 @@ export default function PlanScreen() {
           <ArrowLeft size={20} color="#16a34a" />
         </Pressable>
         <View className="flex-1">
-          <Text className="text-2xl font-bold text-neutral-900 dark:text-white">
-            Choose Your Plan
-          </Text>
-          <Text className="text-xs text-neutral-500">7-day free trial included</Text>
+          <Text className="text-2xl font-bold text-neutral-900 dark:text-white">{t('auto.index.plans_pricing')}</Text>
+          <Text className="text-xs text-neutral-500">{t('auto.index.apna_plan_choose_karein')}</Text>
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 40 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#16a34a" />}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Current plan banner */}
-        <View className="px-5 pb-3">
-          <Card variant="outline" className="bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-900/50 p-4">
-            <View className="flex-row items-center gap-3">
-              <View className="h-12 w-12 rounded-2xl bg-emerald-200 dark:bg-emerald-900/50 items-center justify-center">
-                <Check size={22} color="#16a34a" />
+        {current && (
+          <View className="px-5 mb-3">
+            <Card variant="outline" className="bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 p-4">
+              <View className="flex-row items-center gap-3">
+                <View className="h-12 w-12 rounded-2xl bg-emerald-200 dark:bg-emerald-900/50 items-center justify-center">
+                  <Check size={22} color="#16a34a" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-xs text-emerald-700 dark:text-emerald-400 font-bold uppercase tracking-wider">{t('auto.index.current_plan')}</Text>
+                  <Text className="text-base font-bold text-emerald-900 dark:text-emerald-200">
+                    {current.plan.name} • {current.status}
+                  </Text>
+                  <Text className="text-xs text-emerald-700 dark:text-emerald-400 mt-0.5">
+                    Expires: {new Date(current.currentPeriodEnd).toLocaleDateString('en-PK')}
+                  </Text>
+                </View>
               </View>
-              <View className="flex-1">
-                <Text className="text-xs text-emerald-700 dark:text-emerald-400 font-semibold uppercase tracking-wide">
-                  Current Plan
+            </Card>
+          </View>
+        )}
+
+        {/* Interval toggle */}
+        <View className="px-5 mb-4">
+          <View className="flex-row bg-white dark:bg-neutral-900 rounded-2xl p-1 border border-neutral-200 dark:border-neutral-800">
+            {(['MONTHLY', 'QUARTERLY', 'YEARLY'] as BillingInterval[]).map((i) => (
+              <Pressable
+                key={i}
+                onPress={() => setInterval(i)}
+                className={`flex-1 py-2.5 rounded-xl ${
+                  interval === i ? 'bg-brand-600' : ''
+                }`}
+              >
+                <Text
+                  className={`text-center text-sm font-bold ${
+                    interval === i ? 'text-white' : 'text-neutral-700 dark:text-neutral-300'
+                  }`}
+                >
+                  {i === 'MONTHLY' ? 'Monthly' : i === 'QUARTERLY' ? 'Quarterly' : 'Yearly'}
                 </Text>
-                <Text className="text-base font-bold text-emerald-900 dark:text-emerald-200">
-                  Free Trial • 5 days left
-                </Text>
-              </View>
-            </View>
-          </Card>
+                {i === 'YEARLY' && (
+                  <Text
+                    className={`text-center text-[9px] mt-0.5 ${
+                      interval === i ? 'text-white/80' : 'text-emerald-600'
+                    }`}
+                  >{t('auto.index.save_15')}</Text>
+                )}
+              </Pressable>
+            ))}
+          </View>
         </View>
 
         {/* Plans */}
         <View className="px-5 gap-3">
           {plans.map((plan) => {
-            const Icon = plan.icon;
+            const Icon = planIcons[plan.slug] || Sparkles;
+            const color = planColors[plan.slug] || '#737373';
+            const isCurrent = current?.plan.id === plan.id;
+            const isPopular = plan.slug === 'pro';
+            const price = getPrice(plan);
+
             return (
               <Card
-                key={plan.name}
+                key={plan.id}
                 variant="outline"
-                className={`p-5 relative ${plan.popular ? 'border-2 border-brand-500' : ''}`}
+                className={`p-5 relative ${isPopular ? 'border-2 border-brand-500' : ''}`}
               >
-                {plan.popular && (
+                {isPopular && (
                   <View className="absolute -top-3 right-5">
                     <Badge variant="brand" size="md">⭐ MOST POPULAR</Badge>
                   </View>
@@ -127,70 +174,103 @@ export default function PlanScreen() {
 
                 <View className="flex-row items-center gap-3 mb-3">
                   <View
-                    className="h-12 w-12 rounded-2xl items-center justify-center"
-                    style={{ backgroundColor: plan.color + '20' }}
+                    className="h-14 w-14 rounded-2xl items-center justify-center"
+                    style={{ backgroundColor: color + '20' }}
                   >
-                    <Icon size={24} color={plan.color} />
+                    <Icon size={26} color={color} />
                   </View>
                   <View className="flex-1">
                     <Text className="text-xl font-bold text-neutral-900 dark:text-white">
                       {plan.name}
                     </Text>
-                    {plan.price > 0 ? (
-                      <View className="flex-row items-baseline gap-1">
-                        <Text className="text-2xl font-bold text-neutral-900 dark:text-white">
-                          {formatPKRFull(plan.price)}
-                        </Text>
-                        <Text className="text-sm text-neutral-500">/month</Text>
-                      </View>
-                    ) : (
-                      <Text className="text-base font-bold text-emerald-600">FREE</Text>
-                    )}
+                    <Text className="text-xs text-neutral-500" numberOfLines={2}>
+                      {plan.description}
+                    </Text>
                   </View>
                 </View>
 
-                <View className="gap-2 mb-4">
-                  {plan.features.map((f) => (
-                    <View key={f} className="flex-row items-center gap-2">
-                      <View className="h-4 w-4 rounded-full bg-emerald-100 dark:bg-emerald-950/40 items-center justify-center">
-                        <Check size={10} color="#16a34a" />
+                <View className="bg-neutral-50 dark:bg-neutral-800 rounded-2xl p-4 mb-3">
+                  {price > 0 ? (
+                    <>
+                      <View className="flex-row items-baseline gap-1">
+                        <Text className="text-3xl font-bold text-neutral-900 dark:text-white">
+                          {formatPKRFull(price)}
+                        </Text>
+                        <Text className="text-sm text-neutral-500">{intervalLabel}</Text>
                       </View>
-                      <Text className="text-sm text-neutral-700 dark:text-neutral-300">{f}</Text>
-                    </View>
-                  ))}
+                    </>
+                  ) : (
+                    <Text className="text-2xl font-bold text-emerald-600">
+                      FREE • {plan.trialDays} days trial
+                    </Text>
+                  )}
                 </View>
 
-                <Button
-                  variant={plan.popular ? 'primary' : 'secondary'}
-                  size="md"
-                  onPress={() => Linking.openURL(`${APP_URL}/billing`)}
-                >
-                  <Text
-                    className={`font-bold ${
-                      plan.popular ? 'text-white' : 'text-neutral-900 dark:text-white'
-                    }`}
+                {/* Limits */}
+                <View className="gap-1.5 mb-3">
+                  <FeatureRow enabled label={`${plan.maxProducts >= 999999 ? 'Unlimited' : plan.maxProducts} Products`} />
+                  <FeatureRow enabled label={`${plan.maxUsers >= 999 ? 'Unlimited' : plan.maxUsers} Users`} />
+                  <FeatureRow enabled label={`${plan.maxShops >= 999 ? 'Unlimited' : plan.maxShops} Shop${plan.maxShops > 1 ? 's' : ''}`} />
+                  <FeatureRow enabled label={`${plan.maxSalesPerMonth >= 999999 ? 'Unlimited' : plan.maxSalesPerMonth} sales/month`} />
+                </View>
+
+                <View className="gap-1.5 mb-4 pt-3 border-t border-neutral-100 dark:border-neutral-800">
+                  <FeatureRow enabled={plan.featurePos} label="POS Counter" />
+                  <FeatureRow enabled={plan.featureKhata} label="Khata (Udhaar)" />
+                  <FeatureRow enabled={plan.featureBarcodeScanner} label="Barcode Scanner" />
+                  <FeatureRow enabled={plan.featureReports} label="Reports" />
+                  <FeatureRow enabled={plan.featureMultiShop} label="Multi-Shop" />
+                  <FeatureRow enabled={plan.featureLoyalty} label="Loyalty Points" />
+                  <FeatureRow enabled={plan.featureWhatsappReceipt} label="WhatsApp Receipt" />
+                  <FeatureRow enabled={plan.featureExports} label="Excel/PDF Export" />
+                </View>
+
+                {isCurrent ? (
+                  <Button variant="secondary" size="md" disabled>
+                    <Check size={16} color="#737373" />
+                    <Text className="font-bold text-neutral-700 dark:text-neutral-300">{t('auto.index.current_plan')}</Text>
+                  </Button>
+                ) : plan.priceMonthly === 0 ? (
+                  <Button variant="secondary" size="md">
+                    <Text className="font-bold text-neutral-700 dark:text-neutral-300">{t('auto.index.free_trial')}</Text>
+                  </Button>
+                ) : (
+                  <Button
+                    size="md"
+                    loading={startMutation.isPending}
+                    onPress={() => startMutation.mutate({ planId: plan.id, interval })}
+                    className={isPopular ? 'bg-brand-600' : ''}
                   >
-                    {plan.price === 0 ? 'Current Plan' : 'Upgrade Now'}
-                  </Text>
-                  <ExternalLink size={14} color={plan.popular ? '#fff' : '#16a34a'} />
-                </Button>
+                    <Text className="text-white font-bold">{t('auto.index.subscribe_now')}</Text>
+                    <ArrowRight size={16} color="#ffffff" />
+                  </Button>
+                )}
               </Card>
             );
           })}
         </View>
-
-        {/* Money back guarantee */}
-        <View className="px-5 mt-6 items-center">
-          <View className="flex-row items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/50">
-            <Text className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
-              🛡️ 30-day money-back guarantee
-            </Text>
-          </View>
-          <Text className="text-xs text-neutral-500 mt-3 text-center">
-            Need a custom plan? Contact our sales team
-          </Text>
-        </View>
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+function FeatureRow({ enabled, label }: { enabled: boolean; label: string }) {
+  return (
+    <View className="flex-row items-center gap-2">
+      {enabled ? (
+        <View className="h-4 w-4 rounded-full bg-emerald-100 dark:bg-emerald-950/40 items-center justify-center">
+          <Check size={10} color="#16a34a" />
+        </View>
+      ) : (
+        <View className="h-4 w-4 rounded-full bg-neutral-100 dark:bg-neutral-800 items-center justify-center">
+          <X size={10} color="#9ca3af" />
+        </View>
+      )}
+      <Text
+        className={`text-xs ${enabled ? 'text-neutral-700 dark:text-neutral-300' : 'text-neutral-400 line-through'}`}
+      >
+        {label}
+      </Text>
+    </View>
   );
 }

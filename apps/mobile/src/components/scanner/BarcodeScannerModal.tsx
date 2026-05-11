@@ -7,6 +7,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as Haptics from 'expo-haptics';
 import { X, Zap, ZapOff, ScanLine, Camera } from 'lucide-react-native';
 
+import { useTranslation } from '@/i18n/useTranslation';
 const { width: SCREEN_W } = Dimensions.get('window');
 const FRAME_W = Math.min(SCREEN_W * 0.78, 320);
 const FRAME_H = FRAME_W * 0.65;
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export function BarcodeScannerModal({ visible, onClose, onScan }: Props) {
+  const { t } = useTranslation();
   const [permission, requestPermission] = useCameraPermissions();
   const [torchOn, setTorchOn] = useState(false);
   const [scanned, setScanned] = useState(false);
@@ -133,7 +135,7 @@ export function BarcodeScannerModal({ visible, onClose, onScan }: Props) {
 
             <View style={styles.titleBadge}>
               <ScanLine size={16} color="#ffffff" />
-              <Text style={styles.titleText}>Scan Barcode</Text>
+              <Text style={styles.titleText}>{t('auto.BarcodeScannerModal.scan_barcode')}</Text>
             </View>
 
             <Pressable
@@ -155,12 +157,10 @@ export function BarcodeScannerModal({ visible, onClose, onScan }: Props) {
               <View style={styles.permissionIcon}>
                 <Camera size={36} color="#ffffff" />
               </View>
-              <Text style={styles.permissionTitle}>Camera Access Required</Text>
-              <Text style={styles.permissionText}>
-                Barcode scan karne ke liye camera ki ijaazat chahiye
-              </Text>
+              <Text style={styles.permissionTitle}>{t('auto.BarcodeScannerModal.camera_access_required')}</Text>
+              <Text style={styles.permissionText}>{t('auto.BarcodeScannerModal.barcode_scan_karne_ke_liye_camera_ki_ija')}</Text>
               <Pressable onPress={requestPermission} style={styles.permissionButton}>
-                <Text style={styles.permissionButtonText}>Grant Permission</Text>
+                <Text style={styles.permissionButtonText}>{t('auto.BarcodeScannerModal.grant_permission')}</Text>
               </Pressable>
             </View>
           )}

@@ -1,29 +1,79 @@
 {
-  "cli": { "version": ">= 13.0.0" },
+  "cli": {
+    "version": ">= 18.0.0",
+    "appVersionSource": "remote",
+    "requireCommit": false
+  },
   "build": {
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "env": { "EXPO_PUBLIC_ENV": "development" }
+      "channel": "development",
+      "env": {
+        "EXPO_PUBLIC_ENV": "development"
+      },
+      "ios": {
+        "resourceClass": "m-medium",
+        "simulator": true,
+        "image": "latest"
+      },
+      "android": {
+        "buildType": "apk",
+        "resourceClass": "medium",
+        "image": "latest"
+      },
+      "node": "22.13.0"
     },
     "preview": {
       "distribution": "internal",
-      "android": { "buildType": "apk" },
+      "channel": "preview",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://staging-api.nafaa.pk/api",
-        "EXPO_PUBLIC_ENV": "staging"
-      }
+        "EXPO_PUBLIC_ENV": "staging",
+        "EXPO_PUBLIC_API_URL": "https://staging-api.nafaa.pk/api"
+      },
+      "ios": {
+        "resourceClass": "m-medium",
+        "simulator": false,
+        "image": "latest"
+      },
+      "android": {
+        "buildType": "apk",
+        "resourceClass": "medium",
+        "image": "latest"
+      },
+      "node": "22.13.0"
     },
     "production": {
+      "channel": "production",
       "autoIncrement": true,
       "env": {
+        "EXPO_PUBLIC_ENV": "production",
         "EXPO_PUBLIC_API_URL": "https://api.nafaa.pk/api",
-        "EXPO_PUBLIC_APP_URL": "https://nafaa.pk",
-        "EXPO_PUBLIC_ENV": "production"
-      }
+        "EXPO_PUBLIC_APP_URL": "https://nafaa.pk"
+      },
+      "ios": {
+        "resourceClass": "m-medium",
+        "image": "latest"
+      },
+      "android": {
+        "buildType": "app-bundle",
+        "resourceClass": "medium",
+        "image": "latest"
+      },
+      "node": "22.13.0"
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "appleId": "YOUR_APPLE_ID@example.com",
+        "ascAppId": "YOUR_ASC_APP_ID",
+        "appleTeamId": "YOUR_APPLE_TEAM_ID"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./google-play-service-account.json",
+        "track": "internal"
+      }
+    }
   }
 }

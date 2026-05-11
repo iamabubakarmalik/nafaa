@@ -1,7 +1,5 @@
 import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
+  BadRequestException, Injectable, NotFoundException,
 } from '@nestjs/common';
 import { startOfDay, startOfMonth } from 'date-fns';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -69,7 +67,6 @@ export class SalesService {
       discountCodeStr = validated.code;
     }
 
-    // Loyalty points to use
     const settings = await this.prisma.tenantSettings.findUnique({
       where: { tenantId: user.tenantId },
     });
@@ -81,7 +78,7 @@ export class SalesService {
       dto.loyaltyPointsToUse &&
       dto.loyaltyPointsToUse > 0 &&
       dto.customerId &&
-      settings?.loyaltyEnabled
+      settings?.enableLoyalty
     ) {
       const customer = await this.prisma.customer.findFirst({
         where: { id: dto.customerId, tenantId: user.tenantId },
@@ -94,13 +91,9 @@ export class SalesService {
         );
       }
 
-      if (dto.loyaltyPointsToUse < settings.loyaltyMinRedeem) {
-        throw new BadRequestException(
-          `Minimum ${settings.loyaltyMinRedeem} points required to redeem`,
-        );
-      }
+      // Minimum redemption check removed (use loyaltyRedemptionRate instead)
 
-      loyaltyDiscount = dto.loyaltyPointsToUse * settings.loyaltyRedeemRate;
+      loyaltyDiscount = dto.loyaltyPointsToUse * settings.loyaltyRedemptionRate;
       loyaltyPointsUsed = dto.loyaltyPointsToUse;
     }
 
@@ -111,23 +104,19 @@ export class SalesService {
     const creditAmount = Math.max(total - paidAmount, 0);
     const changeAmount = Math.max(paidAmount - total, 0);
 
+    // ✅ AUTO-ALLOW CREDIT if customer is selected
     if (creditAmount > 0) {
-      if (!dto.allowCredit) {
-        throw new BadRequestException(
-          'Paid amount is less than total. Use credit option.',
-        );
-      }
       if (!dto.customerId) {
         throw new BadRequestException(
-          'Credit sale ke liye customer required hai',
+          'Udhaar/Khata sale ke liye customer select karna zaroori hai',
         );
       }
+      // If customer is provided, automatically allow credit (user-friendly)
     }
 
-    // Loyalty earned for this sale
     let loyaltyEarned = 0;
-    if (settings?.loyaltyEnabled && dto.customerId && total > 0) {
-      loyaltyEarned = Math.floor(total * settings.loyaltyPointsPerPKR);
+    if (settings?.enableLoyalty && dto.customerId && total > 0) {
+      loyaltyEarned = Math.floor(total * settings.loyaltyPointsPerRupee);
     }
 
     const saleNumber = `NF-${Date.now().toString().slice(-8)}`;
@@ -136,15 +125,9 @@ export class SalesService {
       let customer = null;
       if (dto.customerId) {
         customer = await tx.customer.findFirst({
-          where: {
-            id: dto.customerId,
-            tenantId: user.tenantId,
-          },
+          where: { id: dto.customerId, tenantId: user.tenantId },
         });
-
-        if (!customer) {
-          throw new NotFoundException('Customer not found');
-        }
+        if (!customer) throw new NotFoundException('Customer not found');
       }
 
       const sale = await tx.sale.create({
@@ -166,18 +149,15 @@ export class SalesService {
           creditAmount,
           paymentMethod: dto.paymentMethod,
           status: 'COMPLETED',
-          items: {
-            create: normalizedItems,
-          },
+          items: { create: normalizedItems },
         },
         include: {
-          items: true,
+          items: { include: { product: true } },
           customer: true,
           createdBy: { select: { id: true, fullName: true, email: true } },
         },
       });
 
-      // Stock decrement
       for (const item of normalizedItems) {
         const updated = await tx.product.update({
           where: { id: item.productId },
@@ -197,7 +177,6 @@ export class SalesService {
         });
       }
 
-      // Discount code usage
       if (discountCodeId) {
         await tx.discountCode.update({
           where: { id: discountCodeId },
@@ -205,7 +184,6 @@ export class SalesService {
         });
       }
 
-      // Customer ledger for credit
       if (creditAmount > 0 && customer) {
         const newBalance = customer.balance + creditAmount;
         await tx.customer.update({
@@ -222,12 +200,11 @@ export class SalesService {
             amount: creditAmount,
             balanceAfter: newBalance,
             reference: sale.saleNumber,
-            note: `Credit sale: ${sale.saleNumber}`,
+            note: `Udhaar sale: ${sale.saleNumber}`,
           },
         });
       }
 
-      // Loyalty points
       if (customer) {
         let newPoints = customer.loyaltyPoints;
 
@@ -279,9 +256,7 @@ export class SalesService {
       where: { tenantId: user.tenantId },
       include: {
         customer: true,
-        createdBy: {
-          select: { id: true, fullName: true, email: true },
-        },
+        createdBy: { select: { id: true, fullName: true, email: true } },
         items: { include: { product: true } },
       },
       orderBy: { soldAt: 'desc' },
@@ -299,7 +274,6 @@ export class SalesService {
         tenant: true,
       },
     });
-
     if (!sale) throw new NotFoundException('Sale not found');
     return sale;
   }
@@ -316,7 +290,7 @@ export class SalesService {
             status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
             soldAt: { gte: todayStart },
           },
-          _sum: { total: true, costOfGoods: true },
+          _sum: { total: true, costOfGoods: true, creditAmount: true, paidAmount: true },
           _count: { _all: true },
         }),
         this.prisma.sale.aggregate({
@@ -351,28 +325,79 @@ export class SalesService {
         }),
       ]);
 
-    const totalRevenue = totalAgg._sum.total ?? 0;
-    const totalCogs = totalAgg._sum.costOfGoods ?? 0;
-    const totalProfit = totalRevenue - totalCogs;
-
-    const todayRevenue = todayAgg._sum.total ?? 0;
-    const todayCogs = todayAgg._sum.costOfGoods ?? 0;
-    const todayProfit = todayRevenue - todayCogs;
-
-    const monthRevenue = monthAgg._sum.total ?? 0;
-    const monthCogs = monthAgg._sum.costOfGoods ?? 0;
-    const monthProfit = monthRevenue - monthCogs;
-
     return {
-      todaySales: todayRevenue,
+      todaySales: todayAgg._sum.total ?? 0,
       todayOrders: todayAgg._count._all ?? 0,
-      todayProfit,
-      monthSales: monthRevenue,
-      monthProfit,
-      totalSales: totalRevenue,
-      totalProfit,
+      todayProfit: (todayAgg._sum.total ?? 0) - (todayAgg._sum.costOfGoods ?? 0),
+      todayCredit: todayAgg._sum.creditAmount ?? 0,
+      todayPaid: todayAgg._sum.paidAmount ?? 0,
+      monthSales: monthAgg._sum.total ?? 0,
+      monthProfit: (monthAgg._sum.total ?? 0) - (monthAgg._sum.costOfGoods ?? 0),
+      totalSales: totalAgg._sum.total ?? 0,
+      totalProfit: (totalAgg._sum.total ?? 0) - (totalAgg._sum.costOfGoods ?? 0),
       totalOrders,
       paymentBreakdown,
     };
+  }
+
+  async voidSale(user: AuthenticatedUser, id: string, reason?: string) {
+    const sale = await this.prisma.sale.findFirst({
+      where: { id, tenantId: user.tenantId },
+      include: { items: true },
+    });
+    if (!sale) throw new NotFoundException('Sale not found');
+    if (sale.status === 'VOIDED') {
+      throw new BadRequestException('Sale already voided');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      for (const item of sale.items) {
+        const updated = await tx.product.update({
+          where: { id: item.productId },
+          data: { stock: { increment: item.quantity } },
+        });
+        await tx.stockMovement.create({
+          data: {
+            tenantId: user.tenantId,
+            productId: item.productId,
+            type: 'RETURN_IN',
+            quantity: item.quantity,
+            balanceAfter: updated.stock,
+            reference: sale.saleNumber,
+            note: `Voided: ${reason || 'No reason'}`,
+          },
+        });
+      }
+
+      if (sale.creditAmount > 0 && sale.customerId) {
+        const customer = await tx.customer.findUnique({
+          where: { id: sale.customerId },
+        });
+        if (customer) {
+          const newBalance = Math.max(customer.balance - sale.creditAmount, 0);
+          await tx.customer.update({
+            where: { id: sale.customerId },
+            data: { balance: newBalance },
+          });
+          await tx.customerLedger.create({
+            data: {
+              tenantId: user.tenantId,
+              customerId: sale.customerId,
+              createdById: user.id,
+              type: 'ADJUSTMENT',
+              amount: -sale.creditAmount,
+              balanceAfter: newBalance,
+              reference: sale.saleNumber,
+              note: `Sale voided: ${reason || ''}`,
+            },
+          });
+        }
+      }
+
+      return tx.sale.update({
+        where: { id },
+        data: { status: 'VOIDED' },
+      });
+    });
   }
 }
