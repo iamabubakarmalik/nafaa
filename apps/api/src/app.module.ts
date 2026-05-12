@@ -53,6 +53,7 @@ import { TagsModule } from './modules/tags/tags.module';
 import { ProductVariantsModule } from './modules/product-variants/product-variants.module';
 import { ProductImagesModule } from './modules/product-images/product-images.module';
 import { ProductBatchesModule } from './modules/product-batches/product-batches.module';
+import { HealthController } from './health/health.controller';
 import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
@@ -111,7 +112,7 @@ import { PrismaModule } from './prisma/prisma.module';
     ProductBatchesModule,
 
   ],
-  controllers: [AppController],
+  controllers: [AppController, HealthController],
   providers: [
     AppService,
     { provide: APP_GUARD, useClass: ThrottlerGuard },
