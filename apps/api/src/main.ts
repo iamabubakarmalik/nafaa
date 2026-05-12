@@ -1,4 +1,4 @@
-import { ValidationPipe, Logger } from '@nestjs/common';
+import { ValidationPipe, Logger, RequestMethod } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
@@ -136,7 +136,10 @@ async function bootstrap() {
 
   // ─── Global API prefix ───────────────────────────────────────────────────────
   app.setGlobalPrefix('api', {
-    exclude: ['/health', '/'], // health check + root without /api prefix
+    exclude: [
+      { path: 'health', method: RequestMethod.GET },
+      { path: '/', method: RequestMethod.GET },
+    ],
   });
 
   // ─── Global validation ───────────────────────────────────────────────────────
