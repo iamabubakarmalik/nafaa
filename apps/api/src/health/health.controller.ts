@@ -12,6 +12,7 @@ export class HealthController {
       status: 'ok',
       docs: '/docs',
       api: '/api',
+      timestamp: new Date().toISOString(),
     };
   }
 
@@ -20,7 +21,7 @@ export class HealthController {
     let dbStatus = 'ok';
     try {
       await this.prisma.$queryRaw`SELECT 1`;
-    } catch {
+    } catch (e) {
       dbStatus = 'error';
     }
 
@@ -28,7 +29,7 @@ export class HealthController {
       status: dbStatus === 'ok' ? 'healthy' : 'unhealthy',
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
-      env: process.env.NODE_ENV,
+      env: process.env.NODE_ENV ?? 'development',
       database: dbStatus,
     };
   }
