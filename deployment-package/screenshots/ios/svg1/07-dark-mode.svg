@@ -1,0 +1,219 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1290 2796" width="1290" height="2796">
+  <defs>
+    <linearGradient id="bg7" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <linearGradient id="darkCard" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22c55e"/>
+      <stop offset="100%" stop-color="#15803d"/>
+    </linearGradient>
+    <linearGradient id="phoneG7" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <filter id="shadow7">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="25"/>
+      <feOffset dx="0" dy="25"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.5"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow7">
+      <feGaussianBlur stdDeviation="15"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1290" height="2796" fill="url(#bg7)"/>
+  
+  <!-- Stars -->
+  <g fill="#fbbf24" opacity="0.6">
+    <circle cx="100" cy="200" r="3"/>
+    <circle cx="300" cy="400" r="2"/>
+    <circle cx="1200" cy="300" r="3"/>
+    <circle cx="1100" cy="500" r="2"/>
+    <circle cx="200" cy="2300" r="3"/>
+    <circle cx="1150" cy="2400" r="2"/>
+    <circle cx="800" cy="2500" r="3"/>
+  </g>
+
+  <text x="645" y="220" font-family="Inter, sans-serif" font-size="96" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="-2">
+    🌙 Dark Mode
+  </text>
+  <text x="645" y="320" font-family="Inter, sans-serif" font-size="64" font-weight="800" fill="#fbbf24" text-anchor="middle">
+    Aankhon Pe Aram
+  </text>
+  <text x="645" y="400" font-family="Inter, sans-serif" font-size="38" font-weight="500" fill="rgba(255,255,255,0.85)" text-anchor="middle">
+    Raat Mein Bhi Comfortable
+  </text>
+
+  <g transform="translate(195, 470)" filter="url(#shadow7)">
+    <rect x="0" y="0" width="900" height="1900" rx="80" ry="80" fill="#000000"/>
+    <rect x="20" y="20" width="860" height="1860" rx="64" ry="64" fill="url(#phoneG7)"/>
+    
+    <text x="80" y="80" font-family="Inter, sans-serif" font-size="32" font-weight="700" fill="#ffffff">9:41</text>
+    <g transform="translate(780, 65)">
+      <rect x="0" y="6" width="50" height="22" rx="6" fill="none" stroke="#ffffff" stroke-width="2"/>
+      <rect x="54" y="10" width="38" height="14" rx="3" fill="#22c55e"/>
+    </g>
+
+    <text x="60" y="180" font-family="Inter, sans-serif" font-size="32" font-weight="500" fill="#9ca3af">
+      Good Evening 🌙
+    </text>
+    <text x="60" y="240" font-family="Inter, sans-serif" font-size="48" font-weight="900" fill="#ffffff">
+      Malik Ahmad
+    </text>
+    <text x="60" y="290" font-family="Inter, sans-serif" font-size="28" font-weight="600" fill="#22c55e">
+      👑 Malik Kiryana Store
+    </text>
+
+    <!-- Main sales card (dark) -->
+    <g transform="translate(60, 340)" filter="url(#glow7)">
+      <rect width="780" height="380" rx="40" ry="40" fill="url(#darkCard)"/>
+      
+      <text x="40" y="80" font-family="Inter, sans-serif" font-size="28" font-weight="700" fill="rgba(255,255,255,0.9)" letter-spacing="3">
+        ✨ AAJ KI SALES
+      </text>
+      <text x="40" y="200" font-family="Inter, sans-serif" font-size="120" font-weight="900" fill="#ffffff">
+        Rs 72.3K
+      </text>
+      
+      <g transform="translate(40, 230)">
+        <rect width="280" height="55" rx="28" ry="28" fill="rgba(255,255,255,0.25)"/>
+        <text x="140" y="38" font-family="Inter, sans-serif" font-size="26" font-weight="700" fill="#ffffff" text-anchor="middle">
+          📈 +220% vs kal
+        </text>
+      </g>
+      
+      <text x="40" y="330" font-family="Inter, sans-serif" font-size="28" font-weight="600" fill="rgba(255,255,255,0.95)">
+        🛒 58 orders   👥 41 customers
+      </text>
+    </g>
+
+    <!-- Dark stats cards -->
+    <g transform="translate(60, 760)">
+      <rect width="380" height="200" rx="32" ry="32" fill="#1e293b" stroke="#334155" stroke-width="2"/>
+      <text x="40" y="55" font-family="Inter, sans-serif" font-size="24" font-weight="600" fill="#22c55e">
+        💎 NET PROFIT
+      </text>
+      <text x="40" y="125" font-family="Inter, sans-serif" font-size="58" font-weight="900" fill="#ffffff">
+        Rs 22.4K
+      </text>
+      <text x="40" y="170" font-family="Inter, sans-serif" font-size="22" font-weight="600" fill="#86efac">
+        Margin: 31% ⬆
+      </text>
+      
+      <g transform="translate(400, 0)">
+        <rect width="380" height="200" rx="32" ry="32" fill="#1e293b" stroke="#334155" stroke-width="2"/>
+        <text x="40" y="55" font-family="Inter, sans-serif" font-size="24" font-weight="600" fill="#fbbf24">
+          🛒 ORDERS
+        </text>
+        <text x="40" y="125" font-family="Inter, sans-serif" font-size="58" font-weight="900" fill="#ffffff">
+          58
+        </text>
+        <text x="40" y="170" font-family="Inter, sans-serif" font-size="22" font-weight="600" fill="#fde047">
+          Avg Rs 1,246
+        </text>
+      </g>
+    </g>
+
+    <!-- Recent sales dark -->
+    <text x="60" y="1020" font-family="Inter, sans-serif" font-size="32" font-weight="800" fill="#ffffff">
+      📋 Recent Sales
+    </text>
+
+    <g transform="translate(60, 1050)">
+      <rect width="780" height="100" rx="24" ry="24" fill="#1e293b" stroke="#334155" stroke-width="2"/>
+      <circle cx="60" cy="50" r="30" fill="#16a34a"/>
+      <text x="60" y="60" font-family="Inter, sans-serif" font-size="28" font-weight="900" fill="#ffffff" text-anchor="middle">B</text>
+      <text x="110" y="45" font-family="Inter, sans-serif" font-size="26" font-weight="800" fill="#ffffff">
+        Bilal Hassan
+      </text>
+      <text x="110" y="75" font-family="Inter, sans-serif" font-size="20" font-weight="500" fill="#9ca3af">
+        5 items • Cash payment • 2 min ago
+      </text>
+      <text x="750" y="55" font-family="Inter, sans-serif" font-size="32" font-weight="900" fill="#22c55e" text-anchor="end">
+        Rs 5,850
+      </text>
+    </g>
+
+    <g transform="translate(60, 1170)">
+      <rect width="780" height="100" rx="24" ry="24" fill="#1e293b" stroke="#334155" stroke-width="2"/>
+      <circle cx="60" cy="50" r="30" fill="#dc2626"/>
+      <text x="60" y="60" font-family="Inter, sans-serif" font-size="28" font-weight="900" fill="#ffffff" text-anchor="middle">A</text>
+      <text x="110" y="45" font-family="Inter, sans-serif" font-size="26" font-weight="800" fill="#ffffff">
+        Ahmad Khan
+      </text>
+      <text x="110" y="75" font-family="Inter, sans-serif" font-size="20" font-weight="500" fill="#9ca3af">
+        3 items • Khata (Udhaar) • 8 min ago
+      </text>
+      <text x="750" y="55" font-family="Inter, sans-serif" font-size="32" font-weight="900" fill="#fbbf24" text-anchor="end">
+        Rs 2,300
+      </text>
+    </g>
+
+    <g transform="translate(60, 1290)">
+      <rect width="780" height="100" rx="24" ry="24" fill="#1e293b" stroke="#334155" stroke-width="2"/>
+      <circle cx="60" cy="50" r="30" fill="#3b82f6"/>
+      <text x="60" y="60" font-family="Inter, sans-serif" font-size="28" font-weight="900" fill="#ffffff" text-anchor="middle">M</text>
+      <text x="110" y="45" font-family="Inter, sans-serif" font-size="26" font-weight="800" fill="#ffffff">
+        Malik Tariq
+      </text>
+      <text x="110" y="75" font-family="Inter, sans-serif" font-size="20" font-weight="500" fill="#9ca3af">
+        8 items • JazzCash • 15 min ago
+      </text>
+      <text x="750" y="55" font-family="Inter, sans-serif" font-size="32" font-weight="900" fill="#22c55e" text-anchor="end">
+        Rs 8,420
+      </text>
+    </g>
+
+    <!-- Dark mode benefits card -->
+    <g transform="translate(60, 1430)">
+      <rect width="780" height="200" rx="40" ry="40" fill="#0f172a" stroke="#22c55e" stroke-width="3"/>
+      <text x="60" y="60" font-family="Inter, sans-serif" font-size="36" font-weight="900" fill="#22c55e">
+        🌙 Dark Mode Benefits
+      </text>
+      <text x="60" y="110" font-family="Inter, sans-serif" font-size="22" font-weight="500" fill="#e5e7eb">
+        ✓ Battery save (OLED screens)
+      </text>
+      <text x="60" y="145" font-family="Inter, sans-serif" font-size="22" font-weight="500" fill="#e5e7eb">
+        ✓ Less eye strain in low light
+      </text>
+      <text x="60" y="180" font-family="Inter, sans-serif" font-size="22" font-weight="500" fill="#e5e7eb">
+        ✓ Premium aesthetic feel
+      </text>
+    </g>
+
+    <!-- Toggle illustration -->
+    <g transform="translate(60, 1660)">
+      <rect width="780" height="160" rx="40" ry="40" fill="#1e293b"/>
+      <text x="60" y="60" font-family="Inter, sans-serif" font-size="28" font-weight="800" fill="#ffffff">
+        Appearance Mode
+      </text>
+      <text x="60" y="100" font-family="Inter, sans-serif" font-size="22" font-weight="500" fill="#9ca3af">
+        Light / Dark / System ⚙️
+      </text>
+      
+      <!-- Toggle switch -->
+      <g transform="translate(620, 50)">
+        <rect width="120" height="60" rx="30" ry="30" fill="#22c55e"/>
+        <circle cx="90" cy="30" r="22" fill="#ffffff"/>
+        <text x="90" y="38" font-family="Inter, sans-serif" font-size="20" text-anchor="middle">🌙</text>
+      </g>
+    </g>
+  </g>
+
+  <text x="645" y="2540" font-family="Inter, sans-serif" font-size="54" font-weight="900" fill="#ffffff" text-anchor="middle">
+    Beautiful in Any Light
+  </text>
+  <text x="645" y="2620" font-family="Inter, sans-serif" font-size="36" font-weight="600" fill="#fbbf24" text-anchor="middle">
+    Auto-switches with system
+  </text>
+  
+  <g transform="translate(495, 2700)">
+    <rect width="300" height="60" rx="30" ry="30" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+    <text x="150" y="40" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#ffffff" text-anchor="middle">
+      🌙 PREMIUM DARK MODE
+    </text>
+  </g>
+</svg>

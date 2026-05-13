@@ -1,0 +1,242 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1290 2796" width="1290" height="2796">
+  <defs>
+    <linearGradient id="bg10" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#16a34a"/>
+      <stop offset="50%" stop-color="#15803d"/>
+      <stop offset="100%" stop-color="#14532d"/>
+    </linearGradient>
+    <linearGradient id="ctaBtn" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <radialGradient id="glow10" cx="50%" cy="50%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.3)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </radialGradient>
+    <filter id="bigShadow">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="30"/>
+      <feOffset dx="0" dy="20"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.4"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1290" height="2796" fill="url(#bg10)"/>
+  
+  <!-- Big glow -->
+  <ellipse cx="645" cy="1400" rx="700" ry="700" fill="url(#glow10)"/>
+  
+  <!-- Decorative -->
+  <g fill="rgba(255,255,255,0.06)">
+    <circle cx="100" cy="300" r="60"/>
+    <circle cx="1200" cy="500" r="80"/>
+    <circle cx="200" cy="2400" r="100"/>
+    <circle cx="1100" cy="2200" r="70"/>
+  </g>
+  
+  <!-- Stars -->
+  <g fill="#fbbf24">
+    <text x="200" y="400" font-family="Inter, sans-serif" font-size="36">✨</text>
+    <text x="1080" y="350" font-family="Inter, sans-serif" font-size="40">⭐</text>
+    <text x="150" y="2500" font-family="Inter, sans-serif" font-size="32">✨</text>
+    <text x="1120" y="2450" font-family="Inter, sans-serif" font-size="36">⭐</text>
+  </g>
+
+  <!-- Big logo at top -->
+  <g transform="translate(495, 350)" filter="url(#bigShadow)">
+    <rect width="300" height="300" rx="72" ry="72" fill="#ffffff"/>
+    
+    <!-- Logo design -->
+    <g transform="translate(150, 150)" stroke="#16a34a" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <line x1="-60" y1="60" x2="60" y2="-60"/>
+      <line x1="-60" y1="-60" x2="-60" y2="60"/>
+      <line x1="60" y1="-60" x2="60" y2="60"/>
+      <polyline points="20,-60 60,-60 60,-20"/>
+    </g>
+    <circle cx="220" cy="80" r="16" fill="#f59e0b"/>
+  </g>
+
+  <!-- Headlines -->
+  <text x="645" y="780" font-family="Inter, sans-serif" font-size="120" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="-3">
+    Nafaa
+  </text>
+  <text x="645" y="870" font-family="Inter, sans-serif" font-size="48" font-weight="700" fill="#fbbf24" text-anchor="middle" letter-spacing="2">
+    Run Your Shop Smarter
+  </text>
+  
+  <!-- Tagline -->
+  <text x="645" y="970" font-family="'Noto Nastaliq Urdu', serif" font-size="56" font-weight="500" fill="rgba(255,255,255,0.95)" text-anchor="middle">
+    اپنی دکان سمارٹ طریقے سے چلائیں
+  </text>
+
+  <!-- Big stats card -->
+  <g transform="translate(60, 1080)" filter="url(#bigShadow)">
+    <rect width="1170" height="280" rx="40" ry="40" fill="#ffffff"/>
+    
+    <!-- Stat 1 -->
+    <g transform="translate(40, 60)">
+      <text x="170" y="60" font-family="Inter, sans-serif" font-size="64" font-weight="900" fill="#16a34a" text-anchor="middle">
+        50,000+
+      </text>
+      <text x="170" y="100" font-family="Inter, sans-serif" font-size="22" font-weight="600" fill="#6b7280" text-anchor="middle">
+        Happy Shopkeepers
+      </text>
+      <text x="170" y="130" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="#16a34a" text-anchor="middle">
+        🏪 Across Pakistan
+      </text>
+    </g>
+    
+    <!-- Divider -->
+    <line x1="320" y1="60" x2="320" y2="220" stroke="#e5e7eb" stroke-width="2"/>
+    
+    <!-- Stat 2 -->
+    <g transform="translate(360, 60)">
+      <text x="170" y="60" font-family="Inter, sans-serif" font-size="64" font-weight="900" fill="#16a34a" text-anchor="middle">
+        Rs 50Cr+
+      </text>
+      <text x="170" y="100" font-family="Inter, sans-serif" font-size="22" font-weight="600" fill="#6b7280" text-anchor="middle">
+        Sales Processed
+      </text>
+      <text x="170" y="130" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="#16a34a" text-anchor="middle">
+        💰 Monthly Volume
+      </text>
+    </g>
+    
+    <!-- Divider -->
+    <line x1="640" y1="60" x2="640" y2="220" stroke="#e5e7eb" stroke-width="2"/>
+    
+    <!-- Stat 3 -->
+    <g transform="translate(680, 60)">
+      <text x="170" y="60" font-family="Inter, sans-serif" font-size="64" font-weight="900" fill="#16a34a" text-anchor="middle">
+        ⭐ 4.9
+      </text>
+      <text x="170" y="100" font-family="Inter, sans-serif" font-size="22" font-weight="600" fill="#6b7280" text-anchor="middle">
+        App Store Rating
+      </text>
+      <text x="170" y="130" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="#16a34a" text-anchor="middle">
+        12,847 Reviews
+      </text>
+    </g>
+    
+    <!-- Divider -->
+    <line x1="960" y1="60" x2="960" y2="220" stroke="#e5e7eb" stroke-width="2"/>
+    
+    <!-- Stat 4 -->
+    <g transform="translate(1000, 60)">
+      <text x="85" y="60" font-family="Inter, sans-serif" font-size="64" font-weight="900" fill="#16a34a" text-anchor="middle">
+        FREE
+      </text>
+      <text x="85" y="100" font-family="Inter, sans-serif" font-size="22" font-weight="600" fill="#6b7280" text-anchor="middle">
+        Forever Plan
+      </text>
+      <text x="85" y="130" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="#16a34a" text-anchor="middle">
+        🎁 No Hidden Cost
+      </text>
+    </g>
+  </g>
+
+  <!-- Features quick list -->
+  <g transform="translate(120, 1450)">
+    <text x="0" y="50" font-family="Inter, sans-serif" font-size="38" font-weight="900" fill="#ffffff">
+      ⚡ Everything You Need
+    </text>
+    
+    <g transform="translate(0, 90)">
+      <!-- Row 1 -->
+      <text x="0" y="30" font-family="Inter, sans-serif" font-size="26" font-weight="700" fill="#ffffff">
+        ✅ POS Billing
+      </text>
+      <text x="540" y="30" font-family="Inter, sans-serif" font-size="26" font-weight="700" fill="#ffffff">
+        ✅ Barcode Scan
+      </text>
+      
+      <!-- Row 2 -->
+      <text x="0" y="80" font-family="Inter, sans-serif" font-size="26" font-weight="700" fill="#ffffff">
+        ✅ Inventory Management
+      </text>
+      <text x="540" y="80" font-family="Inter, sans-serif" font-size="26" font-weight="700" fill="#ffffff">
+        ✅ Khata / Udhaar
+      </text>
+      
+      <!-- Row 3 -->
+      <text x="0" y="130" font-family="Inter, sans-serif" font-size="26" font-weight="700" fill="#ffffff">
+        ✅ Sales Reports
+      </text>
+      <text x="540" y="130" font-family="Inter, sans-serif" font-size="26" font-weight="700" fill="#ffffff">
+        ✅ Cloud Backup
+      </text>
+      
+      <!-- Row 4 -->
+      <text x="0" y="180" font-family="Inter, sans-serif" font-size="26" font-weight="700" fill="#ffffff">
+        ✅ Urdu + English
+      </text>
+      <text x="540" y="180" font-family="Inter, sans-serif" font-size="26" font-weight="700" fill="#ffffff">
+        ✅ Dark Mode
+      </text>
+      
+      <!-- Row 5 -->
+      <text x="0" y="230" font-family="Inter, sans-serif" font-size="26" font-weight="700" fill="#ffffff">
+        ✅ WhatsApp Receipts
+      </text>
+      <text x="540" y="230" font-family="Inter, sans-serif" font-size="26" font-weight="700" fill="#ffffff">
+        ✅ Multi-Shop Support
+      </text>
+    </g>
+  </g>
+
+  <!-- Big CTA button -->
+  <g transform="translate(195, 1900)" filter="url(#bigShadow)">
+    <rect width="900" height="180" rx="90" ry="90" fill="url(#ctaBtn)"/>
+    <text x="450" y="100" font-family="Inter, sans-serif" font-size="56" font-weight="900" fill="#111827" text-anchor="middle">
+      Free Mein Try Karein 🚀
+    </text>
+    <text x="450" y="150" font-family="Inter, sans-serif" font-size="26" font-weight="700" fill="#7c2d12" text-anchor="middle">
+      Download Now • Setup in 2 minutes
+    </text>
+  </g>
+
+  <!-- Bottom badges -->
+  <g transform="translate(120, 2200)">
+    <rect width="510" height="80" rx="40" ry="40" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+    <text x="255" y="52" font-family="Inter, sans-serif" font-size="28" font-weight="700" fill="#ffffff" text-anchor="middle">
+      📱 iOS &amp; Android
+    </text>
+    
+    <g transform="translate(540, 0)">
+      <rect width="510" height="80" rx="40" ry="40" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+      <text x="255" y="52" font-family="Inter, sans-serif" font-size="28" font-weight="700" fill="#ffffff" text-anchor="middle">
+        ⚡ Works Offline Too
+      </text>
+    </g>
+  </g>
+
+  <!-- Reviews snippet -->
+  <g transform="translate(195, 2330)">
+    <rect width="900" height="120" rx="40" ry="40" fill="#ffffff"/>
+    <text x="450" y="50" font-family="Inter, sans-serif" font-size="28" font-weight="800" fill="#111827" text-anchor="middle">
+      "Best POS app for Pakistani shops!"
+    </text>
+    <text x="450" y="85" font-family="Inter, sans-serif" font-size="22" font-weight="600" fill="#fbbf24" text-anchor="middle">
+      ⭐⭐⭐⭐⭐ — 4.9 average rating
+    </text>
+    <text x="450" y="110" font-family="Inter, sans-serif" font-size="18" font-weight="500" fill="#6b7280" text-anchor="middle">
+      — Ahmad K., Kiryana Store Owner, Lahore
+    </text>
+  </g>
+
+  <!-- Made in Pakistan badge -->
+  <g transform="translate(495, 2510)">
+    <rect width="300" height="80" rx="40" ry="40" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+    <text x="150" y="52" font-family="Inter, sans-serif" font-size="28" font-weight="800" fill="#ffffff" text-anchor="middle">
+      🇵🇰 MADE IN PAKISTAN
+    </text>
+  </g>
+
+  <!-- Bottom text -->
+  <text x="645" y="2680" font-family="Inter, sans-serif" font-size="32" font-weight="700" fill="#ffffff" text-anchor="middle">
+    Aaj Hi Apni Dukan Ko Smart Banayein
+  </text>
+  <text x="645" y="2730" font-family="Inter, sans-serif" font-size="24" font-weight="500" fill="rgba(255,255,255,0.8)" text-anchor="middle">
+    Join 50,000+ shopkeepers who switched to Nafaa
+  </text>
+</svg>

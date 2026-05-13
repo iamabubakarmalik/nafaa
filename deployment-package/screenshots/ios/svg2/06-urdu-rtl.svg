@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1290 2796" width="1290" height="2796">
+  <defs>
+    <linearGradient id="bg6" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#059669"/>
+      <stop offset="100%" stop-color="#064e3b"/>
+    </linearGradient>
+    <linearGradient id="card6" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+    <filter id="shadow6" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="40"/>
+      <feOffset dx="0" dy="30"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.4"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1290" height="2796" fill="url(#bg6)"/>
+  <circle cx="1100" cy="500" r="220" fill="rgba(255,255,255,0.05)"/>
+  <circle cx="200" cy="2300" r="250" fill="rgba(255,255,255,0.04)"/>
+
+  <text x="645" y="220" font-family="Inter, sans-serif" font-size="80" font-weight="900" fill="#ffffff" text-anchor="middle">100% Urdu</text>
+  <text x="645" y="320" font-family="Inter, sans-serif" font-size="80" font-weight="900" fill="#fbbf24" text-anchor="middle">RTL Layout 🇵🇰</text>
+  <text x="645" y="400" font-family="Inter, sans-serif" font-size="36" font-weight="500" fill="rgba(255,255,255,0.9)" text-anchor="middle">Pakistan ke har shopkeeper ke liye banayi gayi</text>
+
+  <g transform="translate(195, 530)" filter="url(#shadow6)">
+    <rect x="0" y="0" width="900" height="1900" rx="90" ry="90" fill="#1a1a1a"/>
+    <rect x="15" y="15" width="870" height="1870" rx="78" ry="78" fill="#000000"/>
+    <rect x="30" y="30" width="840" height="1840" rx="68" ry="68" fill="#0a0a0a"/>
+
+    <rect x="350" y="50" width="200" height="40" rx="20" ry="20" fill="#1a1a1a"/>
+    <text x="80" y="125" font-family="Inter, sans-serif" font-size="28" font-weight="700" fill="#ffffff">9:41</text>
+
+    <!-- Urdu Header (RTL) -->
+    <text x="800" y="220" font-family="Inter, sans-serif" font-size="48" font-weight="900" fill="#ffffff" text-anchor="end">ڈیش بورڈ</text>
+    <text x="800" y="265" font-family="Inter, sans-serif" font-size="26" font-weight="500" fill="#9ca3af" text-anchor="end">احمد کریانہ سٹور</text>
+
+    <!-- Big Card with Urdu -->
+    <g transform="translate(60, 310)">
+      <rect x="0" y="0" width="780" height="340" rx="40" ry="40" fill="url(#card6)"/>
+      <text x="750" y="65" font-family="Inter, sans-serif" font-size="26" font-weight="700" fill="rgba(255,255,255,0.85)" text-anchor="end">آج کی فروخت</text>
+      <text x="750" y="190" font-family="Inter, sans-serif" font-size="120" font-weight="900" fill="#ffffff" text-anchor="end">64,500 روپے</text>
+
+      <g transform="translate(750, 230)">
+        <rect x="-260" y="0" width="260" height="60" rx="30" ry="30" fill="rgba(255,255,255,0.25)"/>
+        <text x="-130" y="40" font-family="Inter, sans-serif" font-size="22" font-weight="700" fill="#ffffff" text-anchor="middle">↗ کل سے 24.5% زیادہ</text>
+      </g>
+
+      <text x="750" y="320" font-family="Inter, sans-serif" font-size="24" font-weight="500" fill="rgba(255,255,255,0.9)" text-anchor="end">📊 42 آرڈرز • منافع: 18,200 روپے</text>
+    </g>
+
+    <!-- Quick Stats Grid (Urdu, RTL) -->
+    <g transform="translate(60, 690)">
+      <rect x="0" y="0" width="370" height="180" rx="32" ry="32" fill="#1a1a1a" stroke="#262626" stroke-width="2"/>
+      <text x="335" y="50" font-family="Inter, sans-serif" font-size="22" font-weight="700" fill="#9ca3af" text-anchor="end">گاہک</text>
+      <circle cx="60" cy="60" r="32" fill="#1e3a8a"/>
+      <text x="60" y="75" font-family="Inter, sans-serif" font-size="32" text-anchor="middle">👥</text>
+      <text x="335" y="130" font-family="Inter, sans-serif" font-size="48" font-weight="900" fill="#ffffff" text-anchor="end">328</text>
+
+      <rect x="410" y="0" width="370" height="180" rx="32" ry="32" fill="#1a1a1a" stroke="#262626" stroke-width="2"/>
+      <text x="745" y="50" font-family="Inter, sans-serif" font-size="22" font-weight="700" fill="#9ca3af" text-anchor="end">مصنوعات</text>
+      <circle cx="470" cy="60" r="32" fill="#7c2d12"/>
+      <text x="470" y="75" font-family="Inter, sans-serif" font-size="32" text-anchor="middle">📦</text>
+      <text x="745" y="130" font-family="Inter, sans-serif" font-size="48" font-weight="900" fill="#ffffff" text-anchor="end">1,547</text>
+    </g>
+
+    <!-- Top Customers Section (RTL) -->
+    <g transform="translate(60, 910)">
+      <text x="780" y="40" font-family="Inter, sans-serif" font-size="32" font-weight="900" fill="#ffffff" text-anchor="end">🏆 سب سے زیادہ خریدنے والے</text>
+    </g>
+
+    <!-- Customer 1 -->
+    <g transform="translate(60, 970)">
+      <rect x="0" y="0" width="780" height="140" rx="28" ry="28" fill="#1a1a1a" stroke="#fbbf24" stroke-width="2"/>
+      <circle cx="700" cy="70" r="40" fill="#fef3c7"/>
+      <text x="700" y="86" font-family="Inter, sans-serif" font-size="36" font-weight="900" fill="#92400e" text-anchor="middle">#1</text>
+      <text x="630" y="50" font-family="Inter, sans-serif" font-size="32" font-weight="900" fill="#ffffff" text-anchor="end">احمد علی</text>
+      <text x="630" y="88" font-family="Inter, sans-serif" font-size="22" font-weight="500" fill="#9ca3af" text-anchor="end">📞 0321-1234567</text>
+      <text x="630" y="120" font-family="Inter, sans-serif" font-size="26" font-weight="900" fill="#fbbf24" text-anchor="end">85,500 روپے کا خریدا</text>
+    </g>
+
+    <!-- Customer 2 -->
+    <g transform="translate(60, 1130)">
+      <rect x="0" y="0" width="780" height="140" rx="28" ry="28" fill="#1a1a1a" stroke="#3b82f6" stroke-width="2"/>
+      <circle cx="700" cy="70" r="40" fill="#dbeafe"/>
+      <text x="700" y="86" font-family="Inter, sans-serif" font-size="36" font-weight="900" fill="#1e40af" text-anchor="middle">#2</text>
+      <text x="630" y="50" font-family="Inter, sans-serif" font-size="32" font-weight="900" fill="#ffffff" text-anchor="end">ملک طارق</text>
+      <text x="630" y="88" font-family="Inter, sans-serif" font-size="22" font-weight="500" fill="#9ca3af" text-anchor="end">📞 0300-9876543</text>
+      <text x="630" y="120" font-family="Inter, sans-serif" font-size="26" font-weight="900" fill="#3b82f6" text-anchor="end">62,300 روپے کا خریدا</text>
+    </g>
+
+    <!-- Customer 3 -->
+    <g transform="translate(60, 1290)">
+      <rect x="0" y="0" width="780" height="140" rx="28" ry="28" fill="#1a1a1a" stroke="#22c55e" stroke-width="2"/>
+      <circle cx="700" cy="70" r="40" fill="#dcfce7"/>
+      <text x="700" y="86" font-family="Inter, sans-serif" font-size="36" font-weight="900" fill="#15803d" text-anchor="middle">#3</text>
+      <text x="630" y="50" font-family="Inter, sans-serif" font-size="32" font-weight="900" fill="#ffffff" text-anchor="end">بلال حسن</text>
+      <text x="630" y="88" font-family="Inter, sans-serif" font-size="22" font-weight="500" fill="#9ca3af" text-anchor="end">📞 0333-5556677</text>
+      <text x="630" y="120" font-family="Inter, sans-serif" font-size="26" font-weight="900" fill="#22c55e" text-anchor="end">48,800 روپے کا خریدا</text>
+    </g>
+
+    <!-- Action Button -->
+    <g transform="translate(60, 1470)">
+      <rect x="0" y="0" width="780" height="140" rx="40" ry="40" fill="#10b981"/>
+      <text x="390" y="90" font-family="Inter, sans-serif" font-size="40" font-weight="900" fill="#ffffff" text-anchor="middle">نئی فروخت شروع کریں 🛒</text>
+    </g>
+
+    <!-- Bottom Tab Bar (Urdu, RTL) -->
+    <g transform="translate(60, 1650)">
+      <rect x="0" y="0" width="780" height="100" rx="28" ry="28" fill="#1a1a1a"/>
+      <g transform="translate(80, 30)">
+        <text x="0" y="20" font-family="Inter, sans-serif" font-size="28" text-anchor="middle">⚙️</text>
+        <text x="0" y="55" font-family="Inter, sans-serif" font-size="18" font-weight="700" fill="#9ca3af" text-anchor="middle">مزید</text>
+      </g>
+      <g transform="translate(230, 30)">
+        <text x="0" y="20" font-family="Inter, sans-serif" font-size="28" text-anchor="middle">👥</text>
+        <text x="0" y="55" font-family="Inter, sans-serif" font-size="18" font-weight="700" fill="#9ca3af" text-anchor="middle">کھاتہ</text>
+      </g>
+      <g transform="translate(380, 30)">
+        <text x="0" y="20" font-family="Inter, sans-serif" font-size="28" text-anchor="middle">📦</text>
+        <text x="0" y="55" font-family="Inter, sans-serif" font-size="18" font-weight="700" fill="#9ca3af" text-anchor="middle">مصنوعات</text>
+      </g>
+      <g transform="translate(550, 30)">
+        <circle cx="0" cy="10" r="32" fill="#16a34a"/>
+        <text x="0" y="22" font-family="Inter, sans-serif" font-size="32" text-anchor="middle">🛒</text>
+        <text x="0" y="62" font-family="Inter, sans-serif" font-size="18" font-weight="700" fill="#16a34a" text-anchor="middle">فروخت</text>
+      </g>
+      <g transform="translate(700, 30)">
+        <text x="0" y="20" font-family="Inter, sans-serif" font-size="28" text-anchor="middle">🏠</text>
+        <text x="0" y="55" font-family="Inter, sans-serif" font-size="18" font-weight="700" fill="#ffffff" text-anchor="middle">ہوم</text>
+      </g>
+    </g>
+
+    <rect x="270" y="1790" width="300" height="6" rx="3" ry="3" fill="#ffffff"/>
+  </g>
+
+  <text x="645" y="2680" font-family="Inter, sans-serif" font-size="34" font-weight="700" fill="rgba(255,255,255,0.95)" text-anchor="middle">🇵🇰 اردو + ڈارک موڈ + RTL</text>
+  <text x="645" y="2730" font-family="Inter, sans-serif" font-size="26" font-weight="500" fill="rgba(255,255,255,0.7)" text-anchor="middle">Pakistani users ke liye perfectly designed</text>
+</svg>

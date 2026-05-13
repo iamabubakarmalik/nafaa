@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1290 2796" width="1290" height="2796">
+  <defs>
+    <linearGradient id="bg2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#4c1d95"/>
+    </linearGradient>
+    <filter id="shadow2" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="40"/>
+      <feOffset dx="0" dy="30"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.4"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1290" height="2796" fill="url(#bg2)"/>
+
+  <circle cx="1100" cy="300" r="200" fill="rgba(255,255,255,0.05)"/>
+  <circle cx="100" cy="2400" r="250" fill="rgba(255,255,255,0.04)"/>
+
+  <!-- Headline -->
+  <text x="645" y="220" font-family="Inter, sans-serif" font-size="80" font-weight="900" fill="#ffffff" text-anchor="middle">Lightning Fast</text>
+  <text x="645" y="320" font-family="Inter, sans-serif" font-size="80" font-weight="900" fill="#fbbf24" text-anchor="middle">POS Billing ⚡</text>
+  <text x="645" y="400" font-family="Inter, sans-serif" font-size="36" font-weight="500" fill="rgba(255,255,255,0.9)" text-anchor="middle">Barcode scan • Cash, Card, JazzCash, EasyPaisa</text>
+
+  <!-- iPhone Frame -->
+  <g transform="translate(195, 530)" filter="url(#shadow2)">
+    <rect x="0" y="0" width="900" height="1900" rx="90" ry="90" fill="#1a1a1a"/>
+    <rect x="15" y="15" width="870" height="1870" rx="78" ry="78" fill="#000000"/>
+    <rect x="30" y="30" width="840" height="1840" rx="68" ry="68" fill="#f9fafb"/>
+
+    <rect x="350" y="50" width="200" height="40" rx="20" ry="20" fill="#000000"/>
+    <text x="80" y="125" font-family="Inter, sans-serif" font-size="28" font-weight="700" fill="#000000">9:41</text>
+
+    <!-- Header -->
+    <text x="80" y="220" font-family="Inter, sans-serif" font-size="48" font-weight="900" fill="#111827">New Sale</text>
+    <text x="80" y="265" font-family="Inter, sans-serif" font-size="26" font-weight="500" fill="#737373">Order #NF-58291</text>
+
+    <!-- Search Bar -->
+    <rect x="60" y="310" width="780" height="100" rx="50" ry="50" fill="#ffffff" stroke="#e5e7eb" stroke-width="2"/>
+    <circle cx="120" cy="360" r="20" fill="none" stroke="#9ca3af" stroke-width="4"/>
+    <line x1="135" y1="375" x2="155" y2="395" stroke="#9ca3af" stroke-width="4"/>
+    <text x="180" y="375" font-family="Inter, sans-serif" font-size="30" font-weight="500" fill="#9ca3af">Scan barcode or search...</text>
+    <rect x="720" y="335" width="100" height="50" rx="25" ry="25" fill="#7c3aed"/>
+    <text x="770" y="370" font-family="Inter, sans-serif" font-size="28" text-anchor="middle">📷</text>
+
+    <!-- Cart Items -->
+    <text x="80" y="475" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#737373">CART (4 ITEMS)</text>
+
+    <!-- Item 1 -->
+    <g transform="translate(60, 510)">
+      <rect x="0" y="0" width="780" height="140" rx="24" ry="24" fill="#ffffff" stroke="#e5e7eb" stroke-width="2"/>
+      <rect x="20" y="20" width="100" height="100" rx="20" ry="20" fill="#fef3c7"/>
+      <text x="70" y="85" font-family="Inter, sans-serif" font-size="48" text-anchor="middle">🍵</text>
+      <text x="150" y="55" font-family="Inter, sans-serif" font-size="30" font-weight="700" fill="#111827">Tapal Danedar 950g</text>
+      <text x="150" y="95" font-family="Inter, sans-serif" font-size="22" font-weight="500" fill="#9ca3af">Rs 1,250 × 2</text>
+      <text x="750" y="80" font-family="Inter, sans-serif" font-size="36" font-weight="900" fill="#7c3aed" text-anchor="end">Rs 2,500</text>
+    </g>
+
+    <!-- Item 2 -->
+    <g transform="translate(60, 670)">
+      <rect x="0" y="0" width="780" height="140" rx="24" ry="24" fill="#ffffff" stroke="#e5e7eb" stroke-width="2"/>
+      <rect x="20" y="20" width="100" height="100" rx="20" ry="20" fill="#dbeafe"/>
+      <text x="70" y="85" font-family="Inter, sans-serif" font-size="48" text-anchor="middle">🥛</text>
+      <text x="150" y="55" font-family="Inter, sans-serif" font-size="30" font-weight="700" fill="#111827">Olper's Milk 1L</text>
+      <text x="150" y="95" font-family="Inter, sans-serif" font-size="22" font-weight="500" fill="#9ca3af">Rs 220 × 5</text>
+      <text x="750" y="80" font-family="Inter, sans-serif" font-size="36" font-weight="900" fill="#7c3aed" text-anchor="end">Rs 1,100</text>
+    </g>
+
+    <!-- Item 3 -->
+    <g transform="translate(60, 830)">
+      <rect x="0" y="0" width="780" height="140" rx="24" ry="24" fill="#ffffff" stroke="#e5e7eb" stroke-width="2"/>
+      <rect x="20" y="20" width="100" height="100" rx="20" ry="20" fill="#fef3c7"/>
+      <text x="70" y="85" font-family="Inter, sans-serif" font-size="48" text-anchor="middle">🍪</text>
+      <text x="150" y="55" font-family="Inter, sans-serif" font-size="30" font-weight="700" fill="#111827">Peek Freans Sooper</text>
+      <text x="150" y="95" font-family="Inter, sans-serif" font-size="22" font-weight="500" fill="#9ca3af">Rs 50 × 12</text>
+      <text x="750" y="80" font-family="Inter, sans-serif" font-size="36" font-weight="900" fill="#7c3aed" text-anchor="end">Rs 600</text>
+    </g>
+
+    <!-- Item 4 -->
+    <g transform="translate(60, 990)">
+      <rect x="0" y="0" width="780" height="140" rx="24" ry="24" fill="#ffffff" stroke="#e5e7eb" stroke-width="2"/>
+      <rect x="20" y="20" width="100" height="100" rx="20" ry="20" fill="#fce7f3"/>
+      <text x="70" y="85" font-family="Inter, sans-serif" font-size="48" text-anchor="middle">🍫</text>
+      <text x="150" y="55" font-family="Inter, sans-serif" font-size="30" font-weight="700" fill="#111827">Cadbury Dairy Milk</text>
+      <text x="150" y="95" font-family="Inter, sans-serif" font-size="22" font-weight="500" fill="#9ca3af">Rs 180 × 3</text>
+      <text x="750" y="80" font-family="Inter, sans-serif" font-size="36" font-weight="900" fill="#7c3aed" text-anchor="end">Rs 540</text>
+    </g>
+
+    <!-- Total Summary -->
+    <g transform="translate(60, 1170)">
+      <rect x="0" y="0" width="780" height="280" rx="32" ry="32" fill="#7c3aed"/>
+      <text x="30" y="55" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="rgba(255,255,255,0.7)">SUBTOTAL</text>
+      <text x="750" y="55" font-family="Inter, sans-serif" font-size="28" font-weight="700" fill="#ffffff" text-anchor="end">Rs 4,740</text>
+
+      <text x="30" y="105" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="rgba(255,255,255,0.7)">DISCOUNT</text>
+      <text x="750" y="105" font-family="Inter, sans-serif" font-size="28" font-weight="700" fill="#fbbf24" text-anchor="end">- Rs 240</text>
+
+      <line x1="30" y1="140" x2="750" y2="140" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+
+      <text x="30" y="200" font-family="Inter, sans-serif" font-size="36" font-weight="900" fill="#ffffff">TOTAL</text>
+      <text x="750" y="210" font-family="Inter, sans-serif" font-size="64" font-weight="900" fill="#ffffff" text-anchor="end">Rs 4,500</text>
+    </g>
+
+    <!-- Pay Button -->
+    <g transform="translate(60, 1490)">
+      <rect x="0" y="0" width="780" height="140" rx="40" ry="40" fill="#16a34a"/>
+      <text x="390" y="90" font-family="Inter, sans-serif" font-size="44" font-weight="900" fill="#ffffff" text-anchor="middle">💳  CHECKOUT NOW</text>
+    </g>
+
+    <!-- Payment Method Pills -->
+    <g transform="translate(60, 1670)">
+      <rect x="0" y="0" width="180" height="80" rx="40" ry="40" fill="#dcfce7" stroke="#16a34a" stroke-width="3"/>
+      <text x="90" y="52" font-family="Inter, sans-serif" font-size="26" font-weight="700" fill="#15803d" text-anchor="middle">💵 Cash</text>
+
+      <rect x="200" y="0" width="180" height="80" rx="40" ry="40" fill="#fee2e2"/>
+      <text x="290" y="52" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#991b1b" text-anchor="middle">JazzCash</text>
+
+      <rect x="400" y="0" width="180" height="80" rx="40" ry="40" fill="#dbeafe"/>
+      <text x="490" y="52" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#1e3a8a" text-anchor="middle">EasyPaisa</text>
+
+      <rect x="600" y="0" width="180" height="80" rx="40" ry="40" fill="#fef3c7"/>
+      <text x="690" y="52" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#92400e" text-anchor="middle">📒 Khata</text>
+    </g>
+
+    <rect x="270" y="1790" width="300" height="6" rx="3" ry="3" fill="#000000"/>
+  </g>
+
+  <text x="645" y="2680" font-family="Inter, sans-serif" font-size="34" font-weight="700" fill="rgba(255,255,255,0.95)" text-anchor="middle">⚡ Bill 30 seconds mein complete</text>
+  <text x="645" y="2730" font-family="Inter, sans-serif" font-size="26" font-weight="500" fill="rgba(255,255,255,0.7)" text-anchor="middle">All Pakistani payment methods supported</text>
+</svg>

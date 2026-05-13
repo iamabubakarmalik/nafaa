@@ -1,0 +1,214 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1290 2796" width="1290" height="2796">
+  <defs>
+    <linearGradient id="bg6" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#059669"/>
+      <stop offset="100%" stop-color="#064e3b"/>
+    </linearGradient>
+    <linearGradient id="urduCard" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+    <linearGradient id="phoneG6" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1f2937"/>
+      <stop offset="100%" stop-color="#111827"/>
+    </linearGradient>
+    <filter id="shadow6">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="20"/>
+      <feOffset dx="0" dy="20"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.4"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1290" height="2796" fill="url(#bg6)"/>
+  <circle cx="200" cy="600" r="180" fill="rgba(255,255,255,0.06)"/>
+  <circle cx="1100" cy="2200" r="160" fill="rgba(255,255,255,0.05)"/>
+
+  <text x="645" y="220" font-family="'Noto Nastaliq Urdu', serif" font-size="96" font-weight="900" fill="#ffffff" text-anchor="middle">
+    اردو میں استعمال کریں
+  </text>
+  <text x="645" y="350" font-family="Inter, sans-serif" font-size="64" font-weight="800" fill="#fbbf24" text-anchor="middle">
+    🇵🇰 Full Urdu Support
+  </text>
+  <text x="645" y="430" font-family="Inter, sans-serif" font-size="36" font-weight="500" fill="rgba(255,255,255,0.9)" text-anchor="middle">
+    Right-to-Left Layout • Native Feel
+  </text>
+
+  <g transform="translate(195, 490)" filter="url(#shadow6)">
+    <rect x="0" y="0" width="900" height="1880" rx="80" ry="80" fill="url(#phoneG6)"/>
+    <rect x="20" y="20" width="860" height="1840" rx="64" ry="64" fill="#ffffff"/>
+    
+    <!-- Status bar (RTL — time on right) -->
+    <g transform="translate(60, 65)">
+      <rect x="0" y="6" width="50" height="22" rx="6" fill="none" stroke="#111827" stroke-width="2"/>
+      <rect x="4" y="10" width="38" height="14" rx="3" fill="#16a34a"/>
+    </g>
+    <text x="820" y="80" font-family="Inter, sans-serif" font-size="32" font-weight="700" fill="#111827" text-anchor="end">9:41</text>
+
+    <!-- Header (RTL) -->
+    <text x="820" y="200" font-family="'Noto Nastaliq Urdu', serif" font-size="48" font-weight="900" fill="#111827" text-anchor="end">
+      السلام علیکم 👋
+    </text>
+    <text x="820" y="260" font-family="'Noto Nastaliq Urdu', serif" font-size="42" font-weight="800" fill="#16a34a" text-anchor="end">
+      ملک احمد
+    </text>
+    <text x="820" y="305" font-family="'Noto Nastaliq Urdu', serif" font-size="28" font-weight="600" fill="#6b7280" text-anchor="end">
+      ملک کریانہ سٹور
+    </text>
+
+    <!-- Main sales card RTL -->
+    <g transform="translate(60, 340)">
+      <rect width="780" height="360" rx="40" ry="40" fill="url(#urduCard)"/>
+      
+      <text x="740" y="80" font-family="'Noto Nastaliq Urdu', serif" font-size="30" font-weight="700" fill="rgba(255,255,255,0.9)" text-anchor="end">
+        آج کی سیلز ✨
+      </text>
+      <text x="740" y="200" font-family="Inter, sans-serif" font-size="120" font-weight="900" fill="#ffffff" text-anchor="end">
+        ‎60,500‎ ₨
+      </text>
+      
+      <!-- Trend RTL -->
+      <g transform="translate(490, 230)">
+        <rect width="250" height="55" rx="28" ry="28" fill="rgba(255,255,255,0.25)"/>
+        <text x="125" y="38" font-family="'Noto Nastaliq Urdu', serif" font-size="24" font-weight="700" fill="#ffffff" text-anchor="middle">
+          📈 +180٪ کل سے زیادہ
+        </text>
+      </g>
+      
+      <text x="740" y="320" font-family="'Noto Nastaliq Urdu', serif" font-size="26" font-weight="600" fill="rgba(255,255,255,0.95)" text-anchor="end">
+        🛒 42 آرڈرز • 👥 28 گاہک
+      </text>
+    </g>
+
+    <!-- Quick stats RTL -->
+    <g transform="translate(60, 740)">
+      <!-- Card right (Net Profit) -->
+      <g transform="translate(400, 0)">
+        <rect width="380" height="200" rx="32" ry="32" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="2"/>
+        <text x="350" y="55" font-family="'Noto Nastaliq Urdu', serif" font-size="24" font-weight="700" fill="#16a34a" text-anchor="end">
+          خالص منافع 💎
+        </text>
+        <text x="350" y="120" font-family="Inter, sans-serif" font-size="58" font-weight="900" fill="#15803d" text-anchor="end">
+          ‎18,200‎ ₨
+        </text>
+        <text x="350" y="170" font-family="'Noto Nastaliq Urdu', serif" font-size="22" font-weight="600" fill="#16a34a" text-anchor="end">
+          منافع: 30٪ ⬆
+        </text>
+      </g>
+      
+      <!-- Card left (Orders) -->
+      <rect width="380" height="200" rx="32" ry="32" fill="#fef3c7" stroke="#fde68a" stroke-width="2"/>
+      <text x="350" y="55" font-family="'Noto Nastaliq Urdu', serif" font-size="24" font-weight="700" fill="#d97706" text-anchor="end">
+        آرڈرز 🛒
+      </text>
+      <text x="350" y="120" font-family="Inter, sans-serif" font-size="58" font-weight="900" fill="#92400e" text-anchor="end">
+        42
+      </text>
+      <text x="350" y="170" font-family="'Noto Nastaliq Urdu', serif" font-size="22" font-weight="600" fill="#d97706" text-anchor="end">
+        اوسط ‎1,440‎ ₨
+      </text>
+    </g>
+
+    <!-- Recent sales heading -->
+    <text x="820" y="1010" font-family="'Noto Nastaliq Urdu', serif" font-size="32" font-weight="900" fill="#111827" text-anchor="end">
+      📋 حالیہ فروخت
+    </text>
+
+    <!-- Sale items RTL -->
+    <g transform="translate(60, 1050)">
+      <rect width="780" height="120" rx="28" ry="28" fill="#fafafa" stroke="#e5e7eb" stroke-width="2"/>
+      <text x="740" y="50" font-family="'Noto Nastaliq Urdu', serif" font-size="28" font-weight="800" fill="#111827" text-anchor="end">
+        بلال حسن
+      </text>
+      <text x="740" y="85" font-family="'Noto Nastaliq Urdu', serif" font-size="22" font-weight="500" fill="#6b7280" text-anchor="end">
+        تاپال چائے، اولپرز، چاول
+      </text>
+      <text x="100" y="50" font-family="Inter, sans-serif" font-size="32" font-weight="900" fill="#16a34a">
+        ‎4,850‎ ₨
+      </text>
+      <text x="100" y="85" font-family="'Noto Nastaliq Urdu', serif" font-size="22" font-weight="600" fill="#16a34a">
+        ✅ نقد
+      </text>
+    </g>
+
+    <g transform="translate(60, 1190)">
+      <rect width="780" height="120" rx="28" ry="28" fill="#fef3c7" stroke="#fde68a" stroke-width="2"/>
+      <text x="740" y="50" font-family="'Noto Nastaliq Urdu', serif" font-size="28" font-weight="800" fill="#111827" text-anchor="end">
+        احمد خان
+      </text>
+      <text x="740" y="85" font-family="'Noto Nastaliq Urdu', serif" font-size="22" font-weight="500" fill="#6b7280" text-anchor="end">
+        نمک، چینی، تیل
+      </text>
+      <text x="100" y="50" font-family="Inter, sans-serif" font-size="32" font-weight="900" fill="#d97706">
+        ‎2,300‎ ₨
+      </text>
+      <text x="100" y="85" font-family="'Noto Nastaliq Urdu', serif" font-size="22" font-weight="600" fill="#d97706">
+        📒 ادھار
+      </text>
+    </g>
+
+    <g transform="translate(60, 1330)">
+      <rect width="780" height="120" rx="28" ry="28" fill="#fafafa" stroke="#e5e7eb" stroke-width="2"/>
+      <text x="740" y="50" font-family="'Noto Nastaliq Urdu', serif" font-size="28" font-weight="800" fill="#111827" text-anchor="end">
+        ملک طارق
+      </text>
+      <text x="740" y="85" font-family="'Noto Nastaliq Urdu', serif" font-size="22" font-weight="500" fill="#6b7280" text-anchor="end">
+        بسکٹ، کولڈ ڈرنک
+      </text>
+      <text x="100" y="50" font-family="Inter, sans-serif" font-size="32" font-weight="900" fill="#16a34a">
+        ‎850‎ ₨
+      </text>
+      <text x="100" y="85" font-family="'Noto Nastaliq Urdu', serif" font-size="22" font-weight="600" fill="#3b82f6">
+        💳 جاز کیش
+      </text>
+    </g>
+
+    <!-- Language showcase card -->
+    <g transform="translate(60, 1500)">
+      <rect width="780" height="200" rx="40" ry="40" fill="#dcfce7" stroke="#86efac" stroke-width="2"/>
+      <text x="60" y="70" font-family="'Noto Nastaliq Urdu', serif" font-size="38" font-weight="900" fill="#15803d">
+        ⭐ مکمل اردو سپورٹ
+      </text>
+      <text x="60" y="115" font-family="'Noto Nastaliq Urdu', serif" font-size="26" font-weight="500" fill="#16a34a">
+        دائیں سے بائیں خوبصورت لے آؤٹ
+      </text>
+      <text x="60" y="160" font-family="Inter, sans-serif" font-size="22" font-weight="700" fill="#15803d">
+        ✓ Urdu Script  ✓ RTL  ✓ Numbers
+      </text>
+    </g>
+
+    <!-- Bottom nav RTL -->
+    <g transform="translate(60, 1730)">
+      <rect width="780" height="110" rx="36" ry="36" fill="#ffffff" stroke="#e5e7eb" stroke-width="2"/>
+      <!-- Items reversed for RTL -->
+      <text x="100" y="50" font-family="Inter, sans-serif" font-size="32" text-anchor="middle">⚙️</text>
+      <text x="100" y="85" font-family="'Noto Nastaliq Urdu', serif" font-size="20" fill="#9ca3af" text-anchor="middle">مزید</text>
+      
+      <text x="260" y="50" font-family="Inter, sans-serif" font-size="32" text-anchor="middle">👥</text>
+      <text x="260" y="85" font-family="'Noto Nastaliq Urdu', serif" font-size="20" fill="#9ca3af" text-anchor="middle">کھاتہ</text>
+      
+      <text x="420" y="50" font-family="Inter, sans-serif" font-size="32" text-anchor="middle">📦</text>
+      <text x="420" y="85" font-family="'Noto Nastaliq Urdu', serif" font-size="20" fill="#9ca3af" text-anchor="middle">پراڈکٹس</text>
+      
+      <text x="580" y="50" font-family="Inter, sans-serif" font-size="32" text-anchor="middle">🛒</text>
+      <text x="580" y="85" font-family="'Noto Nastaliq Urdu', serif" font-size="20" fill="#9ca3af" text-anchor="middle">پی او ایس</text>
+      
+      <text x="700" y="50" font-family="Inter, sans-serif" font-size="32" text-anchor="middle">🏠</text>
+      <text x="700" y="85" font-family="'Noto Nastaliq Urdu', serif" font-size="20" fill="#16a34a" text-anchor="middle" font-weight="700">گھر</text>
+    </g>
+  </g>
+
+  <text x="645" y="2540" font-family="'Noto Nastaliq Urdu', serif" font-size="56" font-weight="900" fill="#ffffff" text-anchor="middle">
+    اپنی زبان، اپنا کاروبار
+  </text>
+  <text x="645" y="2620" font-family="Inter, sans-serif" font-size="36" font-weight="600" fill="#fbbf24" text-anchor="middle">
+    First POS with Native Urdu in Pakistan
+  </text>
+  
+  <g transform="translate(495, 2700)">
+    <rect width="300" height="60" rx="30" ry="30" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+    <text x="150" y="40" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#ffffff" text-anchor="middle">
+      🇵🇰 PROUDLY PAKISTANI
+    </text>
+  </g>
+</svg>

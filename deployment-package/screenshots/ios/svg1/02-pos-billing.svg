@@ -1,0 +1,229 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1290 2796" width="1290" height="2796">
+  <defs>
+    <linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#5b21b6"/>
+    </linearGradient>
+    <linearGradient id="phoneG2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1f2937"/>
+      <stop offset="100%" stop-color="#111827"/>
+    </linearGradient>
+    <linearGradient id="totalCard" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#16a34a"/>
+      <stop offset="100%" stop-color="#14532d"/>
+    </linearGradient>
+    <filter id="shadow2" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="20"/>
+      <feOffset dx="0" dy="20"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.4"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1290" height="2796" fill="url(#bg2)"/>
+  
+  <!-- Decorative -->
+  <circle cx="100" cy="500" r="200" fill="rgba(255,255,255,0.06)"/>
+  <circle cx="1200" cy="2300" r="150" fill="rgba(255,255,255,0.05)"/>
+
+  <!-- Headline -->
+  <text x="645" y="220" font-family="Inter, sans-serif" font-size="96" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="-2">
+    Sirf 30 Seconds!
+  </text>
+  <text x="645" y="320" font-family="Inter, sans-serif" font-size="64" font-weight="800" fill="#fbbf24" text-anchor="middle">
+    Bill Banao ⚡
+  </text>
+  <text x="645" y="400" font-family="Inter, sans-serif" font-size="42" font-weight="500" fill="rgba(255,255,255,0.9)" text-anchor="middle">
+    Barcode Scan • Khata • Receipt
+  </text>
+
+  <!-- iPhone -->
+  <g transform="translate(195, 470)" filter="url(#shadow2)">
+    <rect x="0" y="0" width="900" height="1900" rx="80" ry="80" fill="url(#phoneG2)"/>
+    <rect x="20" y="20" width="860" height="1860" rx="64" ry="64" fill="#ffffff"/>
+    
+    <!-- Status bar -->
+    <text x="80" y="80" font-family="Inter, sans-serif" font-size="32" font-weight="700" fill="#111827">9:41</text>
+    <g transform="translate(780, 65)">
+      <rect x="0" y="6" width="50" height="22" rx="6" fill="none" stroke="#111827" stroke-width="2"/>
+      <rect x="54" y="10" width="38" height="14" rx="3" fill="#16a34a"/>
+    </g>
+
+    <!-- Header -->
+    <text x="60" y="200" font-family="Inter, sans-serif" font-size="48" font-weight="900" fill="#111827">
+      🛒 New Sale
+    </text>
+    <text x="60" y="250" font-family="Inter, sans-serif" font-size="28" font-weight="500" fill="#6b7280">
+      Bill #NF-2026-04785
+    </text>
+
+    <!-- Search bar -->
+    <g transform="translate(60, 290)">
+      <rect width="780" height="100" rx="50" ry="50" fill="#f3f4f6" stroke="#e5e7eb" stroke-width="2"/>
+      <text x="50" y="65" font-family="Inter, sans-serif" font-size="32">🔍</text>
+      <text x="110" y="65" font-family="Inter, sans-serif" font-size="28" fill="#9ca3af">
+        Search products...
+      </text>
+      <rect x="640" y="20" width="120" height="60" rx="30" ry="30" fill="#16a34a"/>
+      <text x="700" y="60" font-family="Inter, sans-serif" font-size="32" text-anchor="middle">📷</text>
+    </g>
+
+    <!-- Cart heading -->
+    <text x="60" y="450" font-family="Inter, sans-serif" font-size="32" font-weight="800" fill="#111827">
+      🛍️ Cart (5 items)
+    </text>
+
+    <!-- Cart Item 1: Tapal Chai -->
+    <g transform="translate(60, 480)">
+      <rect width="780" height="160" rx="32" ry="32" fill="#fafafa" stroke="#e5e7eb" stroke-width="2"/>
+      <rect x="20" y="20" width="120" height="120" rx="20" ry="20" fill="#fef3c7"/>
+      <text x="80" y="100" font-family="Inter, sans-serif" font-size="60" text-anchor="middle">☕</text>
+      <text x="170" y="60" font-family="Inter, sans-serif" font-size="32" font-weight="800" fill="#111827">
+        Tapal Danedar Chai
+      </text>
+      <text x="170" y="105" font-family="Inter, sans-serif" font-size="24" font-weight="500" fill="#6b7280">
+        500g • Stock: 24
+      </text>
+      <text x="170" y="140" font-family="Inter, sans-serif" font-size="28" font-weight="700" fill="#16a34a">
+        Rs 850 × 2
+      </text>
+      <text x="760" y="100" font-family="Inter, sans-serif" font-size="36" font-weight="900" fill="#111827" text-anchor="end">
+        Rs 1,700
+      </text>
+    </g>
+
+    <!-- Cart Item 2: National Pickle -->
+    <g transform="translate(60, 660)">
+      <rect width="780" height="160" rx="32" ry="32" fill="#fafafa" stroke="#e5e7eb" stroke-width="2"/>
+      <rect x="20" y="20" width="120" height="120" rx="20" ry="20" fill="#fee2e2"/>
+      <text x="80" y="100" font-family="Inter, sans-serif" font-size="60" text-anchor="middle">🥒</text>
+      <text x="170" y="60" font-family="Inter, sans-serif" font-size="32" font-weight="800" fill="#111827">
+        National Mix Pickle
+      </text>
+      <text x="170" y="105" font-family="Inter, sans-serif" font-size="24" font-weight="500" fill="#6b7280">
+        1kg • Stock: 15
+      </text>
+      <text x="170" y="140" font-family="Inter, sans-serif" font-size="28" font-weight="700" fill="#16a34a">
+        Rs 420 × 3
+      </text>
+      <text x="760" y="100" font-family="Inter, sans-serif" font-size="36" font-weight="900" fill="#111827" text-anchor="end">
+        Rs 1,260
+      </text>
+    </g>
+
+    <!-- Cart Item 3: Olper's Milk -->
+    <g transform="translate(60, 840)">
+      <rect width="780" height="160" rx="32" ry="32" fill="#fafafa" stroke="#e5e7eb" stroke-width="2"/>
+      <rect x="20" y="20" width="120" height="120" rx="20" ry="20" fill="#dbeafe"/>
+      <text x="80" y="100" font-family="Inter, sans-serif" font-size="60" text-anchor="middle">🥛</text>
+      <text x="170" y="60" font-family="Inter, sans-serif" font-size="32" font-weight="800" fill="#111827">
+        Olper's Full Cream
+      </text>
+      <text x="170" y="105" font-family="Inter, sans-serif" font-size="24" font-weight="500" fill="#6b7280">
+        1L Tetra • Stock: 48
+      </text>
+      <text x="170" y="140" font-family="Inter, sans-serif" font-size="28" font-weight="700" fill="#16a34a">
+        Rs 250 × 6
+      </text>
+      <text x="760" y="100" font-family="Inter, sans-serif" font-size="36" font-weight="900" fill="#111827" text-anchor="end">
+        Rs 1,500
+      </text>
+    </g>
+
+    <!-- More items indicator -->
+    <text x="450" y="1050" font-family="Inter, sans-serif" font-size="24" font-weight="600" fill="#9ca3af" text-anchor="middle">
+      + 2 more items...
+    </text>
+
+    <!-- Customer & Discount -->
+    <g transform="translate(60, 1090)">
+      <rect width="380" height="120" rx="24" ry="24" fill="#fef3c7" stroke="#fde68a" stroke-width="2"/>
+      <text x="30" y="50" font-family="Inter, sans-serif" font-size="24" font-weight="600" fill="#92400e">
+        👤 CUSTOMER
+      </text>
+      <text x="30" y="90" font-family="Inter, sans-serif" font-size="28" font-weight="800" fill="#111827">
+        Bilal Hassan
+      </text>
+      
+      <g transform="translate(400, 0)">
+        <rect width="380" height="120" rx="24" ry="24" fill="#ede9fe" stroke="#ddd6fe" stroke-width="2"/>
+        <text x="30" y="50" font-family="Inter, sans-serif" font-size="24" font-weight="600" fill="#6b21a8">
+          🏷️ DISCOUNT
+        </text>
+        <text x="30" y="90" font-family="Inter, sans-serif" font-size="28" font-weight="800" fill="#111827">
+          Rs 200 (3.5%)
+        </text>
+      </g>
+    </g>
+
+    <!-- Total Card -->
+    <g transform="translate(60, 1240)">
+      <rect width="780" height="320" rx="40" ry="40" fill="url(#totalCard)"/>
+      
+      <!-- Subtotal -->
+      <text x="40" y="70" font-family="Inter, sans-serif" font-size="26" font-weight="500" fill="rgba(255,255,255,0.85)">
+        Subtotal (5 items)
+      </text>
+      <text x="740" y="70" font-family="Inter, sans-serif" font-size="32" font-weight="700" fill="#ffffff" text-anchor="end">
+        Rs 5,750
+      </text>
+      
+      <!-- Discount -->
+      <text x="40" y="120" font-family="Inter, sans-serif" font-size="26" font-weight="500" fill="rgba(255,255,255,0.85)">
+        Discount
+      </text>
+      <text x="740" y="120" font-family="Inter, sans-serif" font-size="32" font-weight="700" fill="#fbbf24" text-anchor="end">
+        - Rs 200
+      </text>
+      
+      <!-- GST -->
+      <text x="40" y="170" font-family="Inter, sans-serif" font-size="26" font-weight="500" fill="rgba(255,255,255,0.85)">
+        GST (17%)
+      </text>
+      <text x="740" y="170" font-family="Inter, sans-serif" font-size="32" font-weight="700" fill="#ffffff" text-anchor="end">
+        Rs 944
+      </text>
+      
+      <!-- Divider -->
+      <line x1="40" y1="200" x2="740" y2="200" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+      
+      <!-- TOTAL -->
+      <text x="40" y="270" font-family="Inter, sans-serif" font-size="36" font-weight="900" fill="#ffffff">
+        TOTAL
+      </text>
+      <text x="740" y="270" font-family="Inter, sans-serif" font-size="64" font-weight="900" fill="#ffffff" text-anchor="end">
+        Rs 6,494
+      </text>
+    </g>
+
+    <!-- Payment buttons -->
+    <g transform="translate(60, 1610)">
+      <rect width="380" height="180" rx="32" ry="32" fill="#16a34a"/>
+      <text x="190" y="80" font-family="Inter, sans-serif" font-size="48" text-anchor="middle">💵</text>
+      <text x="190" y="130" font-family="Inter, sans-serif" font-size="28" font-weight="800" fill="#ffffff" text-anchor="middle">CASH</text>
+      <text x="190" y="160" font-family="Inter, sans-serif" font-size="20" font-weight="500" fill="rgba(255,255,255,0.85)" text-anchor="middle">Tap to confirm</text>
+      
+      <g transform="translate(400, 0)">
+        <rect width="380" height="180" rx="32" ry="32" fill="#f59e0b"/>
+        <text x="190" y="80" font-family="Inter, sans-serif" font-size="48" text-anchor="middle">📒</text>
+        <text x="190" y="130" font-family="Inter, sans-serif" font-size="28" font-weight="800" fill="#ffffff" text-anchor="middle">KHATA</text>
+        <text x="190" y="160" font-family="Inter, sans-serif" font-size="20" font-weight="500" fill="rgba(255,255,255,0.85)" text-anchor="middle">Udhaar par</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- Bottom CTA -->
+  <text x="645" y="2540" font-family="Inter, sans-serif" font-size="54" font-weight="900" fill="#ffffff" text-anchor="middle">
+    JazzCash • Cash • Khata
+  </text>
+  <text x="645" y="2620" font-family="Inter, sans-serif" font-size="36" font-weight="600" fill="#fbbf24" text-anchor="middle">
+    Har Payment Method Support
+  </text>
+  
+  <g transform="translate(495, 2700)">
+    <rect width="300" height="60" rx="30" ry="30" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+    <text x="150" y="40" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#ffffff" text-anchor="middle">
+      ⚡ FAST &amp; SECURE
+    </text>
+  </g>
+</svg>

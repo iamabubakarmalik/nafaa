@@ -1,0 +1,162 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1290 2796" width="1290" height="2796">
+  <defs>
+    <linearGradient id="bg10" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#16a34a"/>
+      <stop offset="50%" stop-color="#15803d"/>
+      <stop offset="100%" stop-color="#052e16"/>
+    </linearGradient>
+    <radialGradient id="glow10" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="rgba(251, 191, 36, 0.25)"/>
+      <stop offset="100%" stop-color="rgba(251, 191, 36, 0)"/>
+    </radialGradient>
+    <filter id="shadow10" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="60"/>
+      <feOffset dx="0" dy="40"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.5"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1290" height="2796" fill="url(#bg10)"/>
+  <ellipse cx="645" cy="1400" rx="900" ry="900" fill="url(#glow10)"/>
+
+  <!-- Sparkle decoration -->
+  <g fill="rgba(251, 191, 36, 0.5)">
+    <circle cx="150" cy="400" r="6"/>
+    <circle cx="1140" cy="600" r="8"/>
+    <circle cx="200" cy="2200" r="6"/>
+    <circle cx="1080" cy="2300" r="10"/>
+    <circle cx="640" cy="280" r="4"/>
+    <circle cx="350" cy="2400" r="5"/>
+  </g>
+
+  <!-- App Icon -->
+  <g transform="translate(645, 380)" filter="url(#shadow10)">
+    <rect x="-150" y="-150" width="300" height="300" rx="68" ry="68" fill="rgba(255,255,255,0.15)"/>
+    <rect x="-130" y="-130" width="260" height="260" rx="58" ry="58" fill="#ffffff"/>
+    <g stroke="#16a34a" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <line x1="-60" y1="60" x2="60" y2="-60"/>
+      <line x1="-60" y1="-60" x2="-60" y2="60"/>
+      <line x1="60" y1="-60" x2="60" y2="60"/>
+      <polyline points="25,-60 60,-60 60,-25"/>
+    </g>
+    <circle cx="105" cy="-105" r="18" fill="#fbbf24"/>
+  </g>
+
+  <!-- App Name -->
+  <text x="645" y="640" font-family="Inter, sans-serif" font-size="140" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="-4">Nafaa</text>
+  <text x="645" y="700" font-family="Inter, sans-serif" font-size="32" font-weight="600" fill="rgba(255,255,255,0.85)" text-anchor="middle" letter-spacing="6">RUN YOUR SHOP SMARTER</text>
+
+  <!-- Urdu tagline -->
+  <line x1="500" y1="740" x2="790" y2="740" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+  <text x="645" y="800" font-family="Inter, sans-serif" font-size="44" font-weight="500" fill="rgba(255,255,255,0.95)" text-anchor="middle">اپنی دکان سمارٹ طریقے سے چلائیں</text>
+
+  <!-- Big stats grid -->
+  <g transform="translate(120, 900)">
+
+    <!-- Stat 1 -->
+    <g transform="translate(0, 0)">
+      <rect x="0" y="0" width="490" height="200" rx="40" ry="40" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+      <text x="40" y="80" font-family="Inter, sans-serif" font-size="72" font-weight="900" fill="#fbbf24">5,000+</text>
+      <text x="40" y="130" font-family="Inter, sans-serif" font-size="26" font-weight="700" fill="#ffffff">Happy Shopkeepers</text>
+      <text x="40" y="165" font-family="Inter, sans-serif" font-size="20" font-weight="500" fill="rgba(255,255,255,0.7)">Across Pakistan 🇵🇰</text>
+    </g>
+
+    <!-- Stat 2 -->
+    <g transform="translate(560, 0)">
+      <rect x="0" y="0" width="490" height="200" rx="40" ry="40" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+      <text x="40" y="80" font-family="Inter, sans-serif" font-size="72" font-weight="900" fill="#fbbf24">Rs 10Cr+</text>
+      <text x="40" y="130" font-family="Inter, sans-serif" font-size="26" font-weight="700" fill="#ffffff">Sales Processed</text>
+      <text x="40" y="165" font-family="Inter, sans-serif" font-size="20" font-weight="500" fill="rgba(255,255,255,0.7)">Every month 📊</text>
+    </g>
+
+    <!-- Stat 3 -->
+    <g transform="translate(0, 240)">
+      <rect x="0" y="0" width="490" height="200" rx="40" ry="40" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+      <text x="40" y="80" font-family="Inter, sans-serif" font-size="72" font-weight="900" fill="#fbbf24">4.8★</text>
+      <text x="40" y="130" font-family="Inter, sans-serif" font-size="26" font-weight="700" fill="#ffffff">App Rating</text>
+      <text x="40" y="165" font-family="Inter, sans-serif" font-size="20" font-weight="500" fill="rgba(255,255,255,0.7)">From 1,200+ reviews ⭐</text>
+    </g>
+
+    <!-- Stat 4 -->
+    <g transform="translate(560, 240)">
+      <rect x="0" y="0" width="490" height="200" rx="40" ry="40" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+      <text x="40" y="80" font-family="Inter, sans-serif" font-size="72" font-weight="900" fill="#fbbf24">24/7</text>
+      <text x="40" y="130" font-family="Inter, sans-serif" font-size="26" font-weight="700" fill="#ffffff">Urdu Support</text>
+      <text x="40" y="165" font-family="Inter, sans-serif" font-size="20" font-weight="500" fill="rgba(255,255,255,0.7)">WhatsApp chat 💬</text>
+    </g>
+
+  </g>
+
+  <!-- Features list -->
+  <g transform="translate(120, 1430)">
+    <text x="525" y="0" font-family="Inter, sans-serif" font-size="36" font-weight="900" fill="#ffffff" text-anchor="middle">⚡ Everything You Need</text>
+
+    <g transform="translate(0, 60)">
+      <g transform="translate(0, 0)">
+        <circle cx="30" cy="30" r="25" fill="rgba(251,191,36,0.2)"/>
+        <text x="30" y="42" font-family="Inter, sans-serif" font-size="24" text-anchor="middle">✓</text>
+        <text x="75" y="38" font-family="Inter, sans-serif" font-size="26" font-weight="700" fill="#ffffff">Lightning Fast POS</text>
+      </g>
+
+      <g transform="translate(540, 0)">
+        <circle cx="30" cy="30" r="25" fill="rgba(251,191,36,0.2)"/>
+        <text x="30" y="42" font-family="Inter, sans-serif" font-size="24" text-anchor="middle">✓</text>
+        <text x="75" y="38" font-family="Inter, sans-serif" font-size="26" font-weight="700" fill="#ffffff">Khata / Udhaar Book</text>
+      </g>
+
+      <g transform="translate(0, 70)">
+        <circle cx="30" cy="30" r="25" fill="rgba(251,191,36,0.2)"/>
+        <text x="30" y="42" font-family="Inter, sans-serif" font-size="24" text-anchor="middle">✓</text>
+        <text x="75" y="38" font-family="Inter, sans-serif" font-size="26" font-weight="700" fill="#ffffff">Smart Inventory</text>
+      </g>
+
+      <g transform="translate(540, 70)">
+        <circle cx="30" cy="30" r="25" fill="rgba(251,191,36,0.2)"/>
+        <text x="30" y="42" font-family="Inter, sans-serif" font-size="24" text-anchor="middle">✓</text>
+        <text x="75" y="38" font-family="Inter, sans-serif" font-size="26" font-weight="700" fill="#ffffff">Profit & Loss Reports</text>
+      </g>
+
+      <g transform="translate(0, 140)">
+        <circle cx="30" cy="30" r="25" fill="rgba(251,191,36,0.2)"/>
+        <text x="30" y="42" font-family="Inter, sans-serif" font-size="24" text-anchor="middle">✓</text>
+        <text x="75" y="38" font-family="Inter, sans-serif" font-size="26" font-weight="700" fill="#ffffff">100% Urdu + RTL</text>
+      </g>
+
+      <g transform="translate(540, 140)">
+        <circle cx="30" cy="30" r="25" fill="rgba(251,191,36,0.2)"/>
+        <text x="30" y="42" font-family="Inter, sans-serif" font-size="24" text-anchor="middle">✓</text>
+        <text x="75" y="38" font-family="Inter, sans-serif" font-size="26" font-weight="700" fill="#ffffff">Bluetooth Printer</text>
+      </g>
+
+      <g transform="translate(0, 210)">
+        <circle cx="30" cy="30" r="25" fill="rgba(251,191,36,0.2)"/>
+        <text x="30" y="42" font-family="Inter, sans-serif" font-size="24" text-anchor="middle">✓</text>
+        <text x="75" y="38" font-family="Inter, sans-serif" font-size="26" font-weight="700" fill="#ffffff">WhatsApp Receipts</text>
+      </g>
+
+      <g transform="translate(540, 210)">
+        <circle cx="30" cy="30" r="25" fill="rgba(251,191,36,0.2)"/>
+        <text x="30" y="42" font-family="Inter, sans-serif" font-size="24" text-anchor="middle">✓</text>
+        <text x="75" y="38" font-family="Inter, sans-serif" font-size="26" font-weight="700" fill="#ffffff">Cloud Backup</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- CTA Button -->
+  <g transform="translate(190, 2050)">
+    <rect x="0" y="0" width="910" height="160" rx="80" ry="80" fill="#fbbf24" filter="url(#shadow10)"/>
+    <text x="455" y="105" font-family="Inter, sans-serif" font-size="50" font-weight="900" fill="#7f1d1d" text-anchor="middle">🚀  Get Started Free</text>
+  </g>
+
+  <text x="645" y="2280" font-family="Inter, sans-serif" font-size="28" font-weight="600" fill="rgba(255,255,255,0.85)" text-anchor="middle">No credit card required • 14-day free trial</text>
+
+  <!-- Made in Pakistan -->
+  <g transform="translate(495, 2550)">
+    <rect x="0" y="0" width="300" height="60" rx="30" ry="30" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+    <text x="150" y="40" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#ffffff" text-anchor="middle">🇵🇰  MADE IN PAKISTAN</text>
+  </g>
+
+  <text x="645" y="2680" font-family="Inter, sans-serif" font-size="34" font-weight="700" fill="rgba(255,255,255,0.95)" text-anchor="middle">Pakistan's #1 POS for Modern Shops</text>
+  <text x="645" y="2730" font-family="Inter, sans-serif" font-size="22" font-weight="500" fill="rgba(255,255,255,0.6)" text-anchor="middle">v1.0.0 • Available now on App Store</text>
+</svg>

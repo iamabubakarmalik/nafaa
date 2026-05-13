@@ -1,0 +1,193 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1290 2796" width="1290" height="2796">
+  <defs>
+    <linearGradient id="bg8" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ea580c"/>
+      <stop offset="100%" stop-color="#7c2d12"/>
+    </linearGradient>
+    <linearGradient id="phoneG8" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1f2937"/>
+      <stop offset="100%" stop-color="#111827"/>
+    </linearGradient>
+    <filter id="shadow8">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="20"/>
+      <feOffset dx="0" dy="20"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.4"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1290" height="2796" fill="url(#bg8)"/>
+  <circle cx="200" cy="500" r="180" fill="rgba(255,255,255,0.06)"/>
+  <circle cx="1100" cy="2300" r="200" fill="rgba(255,255,255,0.05)"/>
+
+  <text x="645" y="220" font-family="Inter, sans-serif" font-size="92" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="-2">
+    Receipt Bhejein
+  </text>
+  <text x="645" y="320" font-family="Inter, sans-serif" font-size="64" font-weight="800" fill="#fbbf24" text-anchor="middle">
+    💬 Ek Click Mein
+  </text>
+  <text x="645" y="400" font-family="Inter, sans-serif" font-size="38" font-weight="500" fill="rgba(255,255,255,0.9)" text-anchor="middle">
+    WhatsApp • Print • PDF • SMS
+  </text>
+
+  <g transform="translate(195, 470)" filter="url(#shadow8)">
+    <rect x="0" y="0" width="900" height="1900" rx="80" ry="80" fill="url(#phoneG8)"/>
+    <rect x="20" y="20" width="860" height="1860" rx="64" ry="64" fill="#fff7ed"/>
+    
+    <text x="80" y="80" font-family="Inter, sans-serif" font-size="32" font-weight="700" fill="#111827">9:41</text>
+    <g transform="translate(780, 65)">
+      <rect x="0" y="6" width="50" height="22" rx="6" fill="none" stroke="#111827" stroke-width="2"/>
+      <rect x="54" y="10" width="38" height="14" rx="3" fill="#16a34a"/>
+    </g>
+
+    <!-- Success message -->
+    <g transform="translate(60, 160)">
+      <circle cx="50" cy="50" r="50" fill="#16a34a"/>
+      <text x="50" y="65" font-family="Inter, sans-serif" font-size="50" text-anchor="middle">✓</text>
+      <text x="130" y="40" font-family="Inter, sans-serif" font-size="36" font-weight="900" fill="#111827">
+        Sale Complete!
+      </text>
+      <text x="130" y="75" font-family="Inter, sans-serif" font-size="22" font-weight="500" fill="#16a34a">
+        Receipt is ready
+      </text>
+    </g>
+
+    <!-- Receipt paper -->
+    <g transform="translate(120, 290)">
+      <!-- Paper shadow -->
+      <rect x="2" y="4" width="660" height="1180" rx="0" ry="0" fill="rgba(0,0,0,0.1)"/>
+      <!-- Paper -->
+      <rect x="0" y="0" width="660" height="1180" fill="#ffffff"/>
+      
+      <!-- Zigzag top -->
+      <path d="M 0 0 L 30 15 L 60 0 L 90 15 L 120 0 L 150 15 L 180 0 L 210 15 L 240 0 L 270 15 L 300 0 L 330 15 L 360 0 L 390 15 L 420 0 L 450 15 L 480 0 L 510 15 L 540 0 L 570 15 L 600 0 L 630 15 L 660 0 L 660 -10 L 0 -10 Z" fill="#ffffff"/>
+      
+      <!-- Logo -->
+      <g transform="translate(280, 40)">
+        <rect width="100" height="100" rx="24" ry="24" fill="#16a34a"/>
+        <text x="50" y="70" font-family="Inter, sans-serif" font-size="60" font-weight="900" fill="#ffffff" text-anchor="middle">N</text>
+      </g>
+      
+      <text x="330" y="180" font-family="Inter, sans-serif" font-size="34" font-weight="900" fill="#111827" text-anchor="middle">
+        Malik Kiryana Store
+      </text>
+      <text x="330" y="220" font-family="Inter, sans-serif" font-size="20" font-weight="500" fill="#6b7280" text-anchor="middle">
+        Main Bazar, Lahore
+      </text>
+      <text x="330" y="250" font-family="Inter, sans-serif" font-size="20" font-weight="500" fill="#6b7280" text-anchor="middle">
+        📞 0321-1234567 • GST: 1234567
+      </text>
+
+      <!-- Divider -->
+      <line x1="40" y1="290" x2="620" y2="290" stroke="#e5e7eb" stroke-width="2" stroke-dasharray="8,8"/>
+
+      <!-- Invoice info -->
+      <text x="40" y="340" font-family="Inter, sans-serif" font-size="22" font-weight="500" fill="#6b7280">Invoice #</text>
+      <text x="620" y="340" font-family="Inter, sans-serif" font-size="22" font-weight="800" fill="#111827" text-anchor="end">NF-2026-04785</text>
+      
+      <text x="40" y="380" font-family="Inter, sans-serif" font-size="22" font-weight="500" fill="#6b7280">Date</text>
+      <text x="620" y="380" font-family="Inter, sans-serif" font-size="22" font-weight="800" fill="#111827" text-anchor="end">May 12, 2026 • 9:42 AM</text>
+      
+      <text x="40" y="420" font-family="Inter, sans-serif" font-size="22" font-weight="500" fill="#6b7280">Cashier</text>
+      <text x="620" y="420" font-family="Inter, sans-serif" font-size="22" font-weight="800" fill="#111827" text-anchor="end">Malik Ahmad</text>
+      
+      <text x="40" y="460" font-family="Inter, sans-serif" font-size="22" font-weight="500" fill="#6b7280">Customer</text>
+      <text x="620" y="460" font-family="Inter, sans-serif" font-size="22" font-weight="800" fill="#111827" text-anchor="end">Bilal Hassan</text>
+
+      <line x1="40" y1="490" x2="620" y2="490" stroke="#e5e7eb" stroke-width="2" stroke-dasharray="8,8"/>
+
+      <!-- Items header -->
+      <text x="40" y="540" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="#6b7280" letter-spacing="2">ITEM</text>
+      <text x="400" y="540" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="#6b7280" letter-spacing="2" text-anchor="middle">QTY</text>
+      <text x="620" y="540" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="#6b7280" letter-spacing="2" text-anchor="end">TOTAL</text>
+
+      <!-- Items -->
+      <text x="40" y="590" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#111827">Tapal Danedar 500g</text>
+      <text x="400" y="590" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#111827" text-anchor="middle">2</text>
+      <text x="620" y="590" font-family="Inter, sans-serif" font-size="24" font-weight="800" fill="#111827" text-anchor="end">Rs 1,700</text>
+      <text x="40" y="615" font-family="Inter, sans-serif" font-size="18" font-weight="500" fill="#9ca3af">Rs 850 each</text>
+
+      <text x="40" y="670" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#111827">National Pickle 1kg</text>
+      <text x="400" y="670" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#111827" text-anchor="middle">3</text>
+      <text x="620" y="670" font-family="Inter, sans-serif" font-size="24" font-weight="800" fill="#111827" text-anchor="end">Rs 1,260</text>
+      <text x="40" y="695" font-family="Inter, sans-serif" font-size="18" font-weight="500" fill="#9ca3af">Rs 420 each</text>
+
+      <text x="40" y="750" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#111827">Olper's Milk 1L</text>
+      <text x="400" y="750" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#111827" text-anchor="middle">6</text>
+      <text x="620" y="750" font-family="Inter, sans-serif" font-size="24" font-weight="800" fill="#111827" text-anchor="end">Rs 1,500</text>
+      <text x="40" y="775" font-family="Inter, sans-serif" font-size="18" font-weight="500" fill="#9ca3af">Rs 250 each</text>
+
+      <text x="40" y="830" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#111827">Peek Freans Biscuits</text>
+      <text x="400" y="830" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#111827" text-anchor="middle">4</text>
+      <text x="620" y="830" font-family="Inter, sans-serif" font-size="24" font-weight="800" fill="#111827" text-anchor="end">Rs 720</text>
+      <text x="40" y="855" font-family="Inter, sans-serif" font-size="18" font-weight="500" fill="#9ca3af">Rs 180 each</text>
+
+      <text x="40" y="910" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#111827">Cadbury Chocolate</text>
+      <text x="400" y="910" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#111827" text-anchor="middle">5</text>
+      <text x="620" y="910" font-family="Inter, sans-serif" font-size="24" font-weight="800" fill="#111827" text-anchor="end">Rs 600</text>
+      <text x="40" y="935" font-family="Inter, sans-serif" font-size="18" font-weight="500" fill="#9ca3af">Rs 120 each</text>
+
+      <line x1="40" y1="970" x2="620" y2="970" stroke="#e5e7eb" stroke-width="2" stroke-dasharray="8,8"/>
+
+      <!-- Totals -->
+      <text x="40" y="1010" font-family="Inter, sans-serif" font-size="22" font-weight="500" fill="#6b7280">Subtotal</text>
+      <text x="620" y="1010" font-family="Inter, sans-serif" font-size="22" font-weight="700" fill="#111827" text-anchor="end">Rs 5,780</text>
+      
+      <text x="40" y="1045" font-family="Inter, sans-serif" font-size="22" font-weight="500" fill="#6b7280">Discount (3.5%)</text>
+      <text x="620" y="1045" font-family="Inter, sans-serif" font-size="22" font-weight="700" fill="#dc2626" text-anchor="end">- Rs 200</text>
+      
+      <text x="40" y="1080" font-family="Inter, sans-serif" font-size="22" font-weight="500" fill="#6b7280">GST (17%)</text>
+      <text x="620" y="1080" font-family="Inter, sans-serif" font-size="22" font-weight="700" fill="#111827" text-anchor="end">Rs 949</text>
+
+      <line x1="40" y1="1100" x2="620" y2="1100" stroke="#111827" stroke-width="3"/>
+
+      <text x="40" y="1150" font-family="Inter, sans-serif" font-size="34" font-weight="900" fill="#111827">TOTAL</text>
+      <text x="620" y="1150" font-family="Inter, sans-serif" font-size="40" font-weight="900" fill="#16a34a" text-anchor="end">Rs 6,529</text>
+    </g>
+
+    <!-- Send options -->
+    <g transform="translate(60, 1530)">
+      <text x="0" y="40" font-family="Inter, sans-serif" font-size="28" font-weight="800" fill="#111827">
+        📤 Send Receipt
+      </text>
+      
+      <g transform="translate(0, 60)">
+        <!-- WhatsApp -->
+        <rect width="245" height="140" rx="28" ry="28" fill="#dcfce7" stroke="#86efac" stroke-width="2"/>
+        <text x="123" y="60" font-family="Inter, sans-serif" font-size="48" text-anchor="middle">💬</text>
+        <text x="123" y="105" font-family="Inter, sans-serif" font-size="22" font-weight="800" fill="#15803d" text-anchor="middle">WhatsApp</text>
+        <text x="123" y="128" font-family="Inter, sans-serif" font-size="16" font-weight="600" fill="#16a34a" text-anchor="middle">Most popular</text>
+        
+        <!-- Print -->
+        <g transform="translate(267, 0)">
+          <rect width="245" height="140" rx="28" ry="28" fill="#dbeafe" stroke="#93c5fd" stroke-width="2"/>
+          <text x="123" y="60" font-family="Inter, sans-serif" font-size="48" text-anchor="middle">🖨️</text>
+          <text x="123" y="105" font-family="Inter, sans-serif" font-size="22" font-weight="800" fill="#1e40af" text-anchor="middle">Print</text>
+          <text x="123" y="128" font-family="Inter, sans-serif" font-size="16" font-weight="600" fill="#2563eb" text-anchor="middle">Bluetooth</text>
+        </g>
+        
+        <!-- PDF -->
+        <g transform="translate(534, 0)">
+          <rect width="245" height="140" rx="28" ry="28" fill="#fef3c7" stroke="#fde68a" stroke-width="2"/>
+          <text x="123" y="60" font-family="Inter, sans-serif" font-size="48" text-anchor="middle">📄</text>
+          <text x="123" y="105" font-family="Inter, sans-serif" font-size="22" font-weight="800" fill="#92400e" text-anchor="middle">PDF</text>
+          <text x="123" y="128" font-family="Inter, sans-serif" font-size="16" font-weight="600" fill="#d97706" text-anchor="middle">Email</text>
+        </g>
+      </g>
+    </g>
+  </g>
+
+  <text x="645" y="2540" font-family="Inter, sans-serif" font-size="54" font-weight="900" fill="#ffffff" text-anchor="middle">
+    Professional Receipts
+  </text>
+  <text x="645" y="2620" font-family="Inter, sans-serif" font-size="36" font-weight="600" fill="#fbbf24" text-anchor="middle">
+    Customize with your shop logo
+  </text>
+  
+  <g transform="translate(495, 2700)">
+    <rect width="300" height="60" rx="30" ry="30" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+    <text x="150" y="40" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#ffffff" text-anchor="middle">
+      💼 BUSINESS READY
+    </text>
+  </g>
+</svg>
