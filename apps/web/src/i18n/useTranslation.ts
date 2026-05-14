@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useLocaleStore } from '@/store/locale.store';
-import en from '../messages/en.json';
-import ur from '../messages/ur.json';
+import en from './messages/en.json';
+import ur from './messages/ur.json';
 
 const messages = { en, ur } as const;
 
