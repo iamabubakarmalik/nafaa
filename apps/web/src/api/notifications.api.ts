@@ -17,6 +17,9 @@ export type NotificationType =
   | 'EXPENSE_ADDED'
   | 'INVOICE_DUE'
   | 'SUBSCRIPTION_EXPIRING'
+  | 'REGISTER_OPENED'
+  | 'REGISTER_CLOSED'
+  | 'CREDIT_ALERT'
   | 'SYSTEM';
 
 export interface Notification {
@@ -42,11 +45,6 @@ export interface NotificationListResponse {
 
 function unwrapList(res: any): NotificationListResponse {
   const body = res?.data;
-  // Possible shapes:
-  // 1. { data: { items: [...], meta: {...} } }
-  // 2. { items: [...], meta: {...} }
-  // 3. [...] (raw array)
-  // 4. { data: [...] }
   if (body?.data?.items) return body.data;
   if (body?.items) return body;
   if (Array.isArray(body?.data)) {
@@ -71,10 +69,8 @@ function unwrapOne<T>(res: any): T {
 }
 
 export const notificationsApi = {
-  list: (params?: { limit?: number; page?: number; unreadOnly?: boolean }) =>
-    apiClient
-      .get('/notifications', { params })
-      .then(unwrapList),
+  list: (params?: { limit?: number; page?: number; unreadOnly?: boolean }): Promise<NotificationListResponse> =>
+    apiClient.get('/notifications', { params }).then(unwrapList),
 
   unreadCount: (): Promise<number> =>
     apiClient.get('/notifications/unread-count').then((r) => {

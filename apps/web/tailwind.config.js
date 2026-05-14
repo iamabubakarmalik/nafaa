@@ -1,22 +1,25 @@
 /** @type {import('tailwindcss').Config} */
-export default {
-  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+module.exports = {
+  darkMode: 'class',
+  content: ['./index.html', './src/**/*.{js,jsx,ts,tsx}'],
   theme: {
     extend: {
       colors: {
         brand: {
-          50: '#eef9f3',
-          100: '#d6f0e3',
-          200: '#aee0c7',
-          300: '#7ecaa6',
-          400: '#4eaf81',
-          500: '#2c9466',
-          600: '#1f7752',
-          700: '#1a5f43',
-          800: '#174c37',
-          900: '#143f2e',
+          50: '#f0fdf6',
+          100: '#dcfce9',
+          200: '#bbf7d3',
+          300: '#86efb1',
+          400: '#4ade87',
+          500: '#22c562',
+          600: '#16a34a',
+          700: '#15803d',
+          800: '#166534',
+          900: '#14532d',
+          950: '#052e16',
         },
         accent: {
+          400: '#fbbf24',
           500: '#f59e0b',
           600: '#d97706',
         },
@@ -26,7 +29,7 @@ export default {
         urdu: ['Noto Nastaliq Urdu', 'serif'],
       },
       boxShadow: {
-        soft: '0 10px 40px -15px rgba(0,0,0,0.15)',
+        soft: '0 10px 40px -10px rgba(0, 0, 0, 0.15)',
       },
     },
   },

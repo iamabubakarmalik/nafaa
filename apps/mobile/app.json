@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "primaryColor": "#16a34a",
-    "description": "Pakistan's smart POS — Sales, inventory, khata, and reports in one app.",
+    "description": "Pakistan's smart POS \u2014 Sales, inventory, khata, and reports in one app.",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -22,10 +22,12 @@
     "runtimeVersion": {
       "policy": "appVersion"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "pk.nafaa.app",
+      "bundleIdentifier": "com.nafaa.app",
       "buildNumber": "1",
       "infoPlist": {
         "NSCameraUsageDescription": "Nafaa needs camera access to scan product barcodes.",
@@ -34,11 +36,13 @@
         "NSFaceIDUsageDescription": "Nafaa uses Face ID for secure login.",
         "ITSAppUsesNonExemptEncryption": false
       },
-      "associatedDomains": ["applinks:nafaa.pk"]
+      "associatedDomains": [
+        "applinks:nafaa.pk"
+      ]
     },
     "android": {
-      "package": "pk.nafaa.app",
-      "versionCode": 1,
+      "package": "com.nafaa.app",
+      "versionCode": 3,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#16a34a"
@@ -55,13 +59,23 @@
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE"
       ],
-      "blockedPermissions": ["android.permission.RECORD_AUDIO"],
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO"
+      ],
       "intentFilters": [
         {
           "action": "VIEW",
           "autoVerify": true,
-          "data": [{ "scheme": "https", "host": "nafaa.pk" }],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "data": [
+            {
+              "scheme": "https",
+              "host": "nafaa.pk"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },

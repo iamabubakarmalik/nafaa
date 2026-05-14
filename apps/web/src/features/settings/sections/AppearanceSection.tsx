@@ -1,5 +1,10 @@
 import { ChoiceGroup, Field, Toggle } from './_shared';
 
+import { Sun, Moon, Monitor, Check, Languages } from 'lucide-react';
+import { useThemeStore, type ThemeMode } from '@/store/theme.store';
+import { useLocaleStore, type Locale } from '@/store/locale.store';
+import { useTranslation } from '@/i18n/useTranslation';
+
 const BRAND_COLORS = [
   '#16a34a', '#2563eb', '#7c3aed', '#ec4899', '#f59e0b',
   '#dc2626', '#0891b2', '#ea580c', '#0f172a',

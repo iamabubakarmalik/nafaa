@@ -1,72 +1,96 @@
-import { Mail, Phone, MapPin, MessageCircle, Clock } from 'lucide-react';
+import { Mail, Phone, MapPin, MessageCircle, Clock, Sparkles } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Container } from '@/components/ui/Container';
 import { Badge } from '@/components/ui/Badge';
 import { ContactForm } from './ContactClient';
+import { CTA } from '@/components/home/CTA';
 import { buildMetadata } from '@/lib/seo';
 
 const SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'hello@nafaa.pk';
-const SUPPORT_PHONE = process.env.NEXT_PUBLIC_SUPPORT_PHONE || '+923001234567';
-const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP || '+923001234567';
+const SUPPORT_PHONE = process.env.NEXT_PUBLIC_SUPPORT_PHONE || '+923241772933';
+const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP || '+923241772933';
 
 export const metadata = buildMetadata({
-  title: 'Contact Us — Get in Touch',
-  description: 'Contact Nafaa support team. WhatsApp, phone, and email — we\'re available 24/7 for our customers across Pakistan.',
+  title: 'Contact Us — Nafaa',
+  description: 'Get in touch with Nafaa. We are available 24/7 to help Pakistani businesses grow.',
   path: '/contact',
 });
 
 const contacts = [
-  { icon: Mail, label: 'Email', value: SUPPORT_EMAIL, href: `mailto:${SUPPORT_EMAIL}`, color: 'from-blue-500 to-cyan-500' },
-  { icon: Phone, label: 'Phone', value: SUPPORT_PHONE, href: `tel:${SUPPORT_PHONE}`, color: 'from-emerald-500 to-teal-500' },
+  { icon: Mail, label: 'Email', value: SUPPORT_EMAIL, href: `mailto:${SUPPORT_EMAIL}` },
+  { icon: Phone, label: 'Phone', value: SUPPORT_PHONE, href: `tel:${SUPPORT_PHONE}` },
   {
     icon: MessageCircle,
     label: 'WhatsApp',
     value: WHATSAPP,
     href: `https://wa.me/${WHATSAPP.replace(/[^0-9]/g, '')}`,
-    color: 'from-green-500 to-green-600',
+    highlight: true,
   },
-  { icon: MapPin, label: 'Office', value: 'Lahore, Pakistan', href: '#', color: 'from-rose-500 to-pink-500' },
+  { icon: MapPin, label: 'Office', value: 'Gujranwala, Pakistan', href: '#' },
 ];
 
 export default function ContactPage() {
   return (
     <>
       <Header />
+
       <main>
         {/* Hero */}
-        <section className="relative pt-20 pb-12 overflow-hidden">
-          <div className="absolute inset-0 bg-grid-pattern opacity-50 dark:opacity-30 pointer-events-none" />
+        <section className="relative pt-20 pb-14 overflow-hidden">
+          <div className="absolute inset-0 bg-grid-pattern opacity-40" />
+
           <Container className="relative text-center">
-            <Badge variant="brand">💬 We're Here to Help</Badge>
-            <h1 className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight">
-              <span className="gradient-text">Get in Touch</span>
+            <Badge variant="gradient">💬 Support 24/7</Badge>
+
+            <h1 className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-extrabold">
+              <span className="gradient-text">Talk to Nafaa Team</span>
             </h1>
-            <p className="mt-5 text-lg lg:text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-              Sawal? Demo chahiye? Custom plan? Hum 24/7 available hain.
+
+            <p className="mt-5 text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+              Sawal ho ya business grow karna ho — hum hamesha yahan hain.
             </p>
           </Container>
         </section>
 
-        {/* Contact options */}
-        <section className="py-12">
+        {/* Contact Cards */}
+        <section className="py-10">
           <Container>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {contacts.map((c) => {
                 const Icon = c.icon;
+
                 return (
                   <a
                     key={c.label}
                     href={c.href}
                     target={c.label === 'WhatsApp' ? '_blank' : undefined}
-                    rel="noopener noreferrer"
-                    className="group rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-xl hover:-translate-y-1 transition-all text-center"
+                    className={`group rounded-3xl p-6 text-center transition-all duration-300 border
+                    ${
+                      c.highlight
+                        ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-xl scale-[1.03]'
+                        : 'bg-white/80 dark:bg-slate-900/80 backdrop-blur border-slate-200 dark:border-slate-800 hover:shadow-2xl hover:-translate-y-1'
+                    }`}
                   >
-                    <div className={`inline-flex h-14 w-14 rounded-2xl bg-gradient-to-br ${c.color} items-center justify-center shadow-lg`}>
-                      <Icon className="h-7 w-7 text-white" />
+                    <div
+                      className={`inline-flex h-14 w-14 rounded-2xl items-center justify-center shadow-lg
+                      ${
+                        c.highlight
+                          ? 'bg-white/20 animate-pulse'
+                          : 'bg-gradient-to-br from-brand-500 to-emerald-600'
+                      }`}
+                    >
+                      <Icon className="text-white" />
                     </div>
+
                     <h3 className="mt-4 font-bold">{c.label}</h3>
-                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-400 break-all">{c.value}</p>
+                    <p
+                      className={`text-sm mt-1 ${
+                        c.highlight ? 'text-white/90' : 'text-slate-600 dark:text-slate-400'
+                      }`}
+                    >
+                      {c.value}
+                    </p>
                   </a>
                 );
               })}
@@ -74,65 +98,77 @@ export default function ContactPage() {
           </Container>
         </section>
 
-        {/* Form + Hours */}
-        <section className="py-12 lg:py-20">
+        {/* Form + Side */}
+        <section className="py-16">
           <Container>
-            <div className="grid lg:grid-cols-[1.5fr_1fr] gap-10">
+            <div className="grid lg:grid-cols-2 gap-12 items-start">
+              
               {/* Form */}
               <div>
-                <Badge variant="accent">📨 Send a Message</Badge>
-                <h2 className="mt-5 text-3xl sm:text-4xl font-extrabold mb-7">
-                  Hum aap se zaroor contact karenge
+                <Badge variant="accent">📨 Send Message</Badge>
+                <h2 className="mt-5 text-3xl font-extrabold mb-6">
+                  Hum aap ki madad ke liye ready hain
                 </h2>
+
                 <ContactForm />
               </div>
 
-              {/* Hours + extra */}
-              <div className="space-y-5">
-                <div className="rounded-3xl bg-gradient-to-br from-brand-600 to-emerald-700 p-7 text-white">
-                  <Clock className="h-10 w-10 mb-4" />
-                  <h3 className="text-xl font-extrabold">Working Hours</h3>
+              {/* Side Info */}
+              <div className="space-y-6 sticky top-24">
+                
+                {/* WhatsApp CTA */}
+                <a
+                  href={`https://wa.me/${WHATSAPP.replace(/[^0-9]/g, '')}`}
+                  target="_blank"
+                  className="block rounded-3xl bg-gradient-to-br from-green-500 to-emerald-600 p-7 text-white shadow-xl hover:scale-[1.02] transition"
+                >
+                  <MessageCircle className="mb-3" />
+                  <h3 className="font-extrabold text-xl">Chat on WhatsApp</h3>
+                  <p className="text-sm mt-2 text-white/90">
+                    Sab se fast response ke liye WhatsApp par baat karein.
+                  </p>
+                </a>
+
+                {/* Hours */}
+                <div className="rounded-3xl bg-gradient-to-br from-brand-600 to-emerald-700 p-7 text-white shadow-xl">
+                  <Clock className="mb-3" />
+                  <h3 className="font-extrabold text-xl">Working Hours</h3>
+
                   <div className="mt-4 space-y-2 text-sm">
-                    <div className="flex justify-between border-b border-white/20 pb-2">
-                      <span>Monday - Friday</span>
+                    <div className="flex justify-between">
+                      <span>Mon - Fri</span>
                       <span className="font-bold">9 AM - 9 PM</span>
                     </div>
-                    <div className="flex justify-between border-b border-white/20 pb-2">
+                    <div className="flex justify-between">
                       <span>Saturday</span>
                       <span className="font-bold">10 AM - 6 PM</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Sunday</span>
-                      <span className="font-bold">Emergency Only</span>
+                      <span className="font-bold">Emergency</span>
                     </div>
-                  </div>
-                  <div className="mt-5 pt-5 border-t border-white/20 text-xs">
-                    Pro & Enterprise customers ko 24/7 priority support milti hai.
                   </div>
                 </div>
 
-                <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-7">
-                  <h3 className="text-lg font-extrabold">Quick Links</h3>
-                  <div className="mt-4 space-y-3 text-sm">
-                    <a href="/help" className="block text-slate-700 dark:text-slate-300 hover:text-brand-600">
-                      📚 Help Center & Guides
-                    </a>
-                    <a href="/blog" className="block text-slate-700 dark:text-slate-300 hover:text-brand-600">
-                      📰 Blog & Tutorials
-                    </a>
-                    <a href="/api-docs" className="block text-slate-700 dark:text-slate-300 hover:text-brand-600">
-                      🔌 API Documentation
-                    </a>
-                    <a href="/status" className="block text-slate-700 dark:text-slate-300 hover:text-brand-600">
-                      ⚡ System Status Page
-                    </a>
-                  </div>
+                {/* Trust */}
+                <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-7 shadow">
+                  <Sparkles className="text-brand-500 mb-3" />
+                  <h3 className="font-extrabold text-lg">
+                    Fast Response Guarantee
+                  </h3>
+                  <p className="text-sm mt-2 text-slate-600 dark:text-slate-400">
+                    Hum 2–6 hours ke andar reply karte hain. Urgent cases ke liye WhatsApp best hai.
+                  </p>
                 </div>
+
               </div>
             </div>
           </Container>
         </section>
+
+        <CTA />
       </main>
+
       <Footer />
     </>
   );

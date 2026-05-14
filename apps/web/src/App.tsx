@@ -1,6 +1,12 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
+import { useEffect } from 'react';
+import { useThemeStore } from '@/store/theme.store';
+import { useLocaleStore } from '@/store/locale.store';
+
+import NotificationsPage from '@/features/notifications/NotificationsPage';
+
 import LoginPage from '@/features/auth/pages/LoginPage';
 import RegisterPage from '@/features/auth/pages/RegisterPage';
 import ForgotPasswordPage from '@/features/auth/pages/ForgotPasswordPage';
@@ -8,6 +14,7 @@ import ResetPasswordPage from '@/features/auth/pages/ResetPasswordPage';
 import GoogleSuccessPage from '@/features/auth/pages/GoogleSuccessPage';
 import GoogleCompleteSignupPage from '@/features/auth/pages/GoogleCompleteSignupPage';
 import GoogleErrorPage from '@/features/auth/pages/GoogleErrorPage';
+
 import DashboardPage from '@/features/dashboard/pages/DashboardPage';
 import BrandsPage from '@/features/brands/pages/BrandsPage';
 import TagsPage from '@/features/tags/pages/TagsPage';
@@ -64,10 +71,19 @@ const queryClient = new QueryClient({
 });
 
 export default function App() {
+  const initTheme = useThemeStore((s) => s.initialize);
+  const initLocale = useLocaleStore((s) => s.initialize);
+
+  useEffect(() => {
+    initTheme();
+    initLocale();
+  }, [initTheme, initLocale]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
+          {/* Public Routes */}
           <Route element={<PublicOnlyRoute />}>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
@@ -78,12 +94,11 @@ export default function App() {
             <Route path="/auth/google/error" element={<GoogleErrorPage />} />
           </Route>
 
+          {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>
             <Route element={<OnboardingGate />}>
               <Route element={<AppShell />}>
                 <Route path="/dashboard" element={<DashboardPage />} />
-
-                {/* PRODUCTS — IMPORTANT: order matters! Specific routes BEFORE generic */}
                 <Route path="/products/new" element={<ProductFormPage />} />
                 <Route path="/products/:id/edit" element={<ProductFormPage />} />
                 <Route path="/products" element={<ProductsListPage />} />
@@ -92,7 +107,6 @@ export default function App() {
                 <Route path="/tags" element={<TagsPage />} />
                 <Route path="/categories" element={<CategoriesPage />} />
 
-                {/* CUSTOMERS — naya design (CustomersListPage), specific routes BEFORE generic */}
                 <Route path="/customers/new" element={<CustomerFormPage />} />
                 <Route path="/customers/:id/edit" element={<CustomerFormPage />} />
                 <Route path="/customers/:id" element={<CustomerDetailPage />} />
@@ -105,7 +119,6 @@ export default function App() {
                 <Route path="/loyalty" element={<LoyaltyPage />} />
                 <Route path="/profit-report" element={<ProfitReportPage />} />
 
-                {/* SUPPLIERS — naya design (SuppliersListPage), specific routes BEFORE generic */}
                 <Route path="/suppliers/new" element={<SupplierFormPage />} />
                 <Route path="/suppliers/:id/edit" element={<SupplierFormPage />} />
                 <Route path="/suppliers/:id" element={<SupplierDetailPage />} />
@@ -138,6 +151,7 @@ export default function App() {
               </Route>
             </Route>
 
+            <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/sales/:id/receipt" element={<ReceiptPage />} />
             <Route path="/onboarding" element={<OnboardingPage />} />
           </Route>
@@ -146,6 +160,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </BrowserRouter>
+
       <Toaster position="top-right" richColors />
     </QueryClientProvider>
   );

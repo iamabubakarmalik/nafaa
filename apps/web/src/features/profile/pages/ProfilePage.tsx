@@ -60,22 +60,25 @@ export default function ProfilePage() {
   }, [me]);
 
   const updateProfileMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiClient.patch('/auth/me', {
-        fullName: fullName.trim(),
-        phone: phone.trim() || undefined,
-      });
-      return res.data?.data ?? res.data;
-    },
-    onSuccess: (data) => {
-      toast.success('✅ Profile updated!');
-      if (data && setUser) setUser(data);
-      setEditOpen(false);
-      queryClient.invalidateQueries({ queryKey: ['me'] });
-    },
-    onError: (e: any) =>
-      toast.error(e?.response?.data?.message || 'Update failed'),
-  });
+  mutationFn: async () => {
+    const res = await apiClient.patch('/auth/me', {
+      fullName: fullName.trim(),
+      phone: phone.trim() || undefined,
+    });
+    return res.data?.data ?? res.data;
+  },
+  onSuccess: (data) => {
+    toast.success('✅ Profile updated!');
+    const currentTenant = useAuthStore.getState().tenant;
+    if (data && setUser && currentTenant) {
+      setUser(data, currentTenant);
+    }
+    setEditOpen(false);
+    queryClient.invalidateQueries({ queryKey: ['me'] });
+  },
+  onError: (e: any) =>
+    toast.error(e?.response?.data?.message || 'Update failed'),
+});
 
   const changePasswordMutation = useMutation({
     mutationFn: async () => {
