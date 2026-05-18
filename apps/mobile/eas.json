@@ -10,7 +10,8 @@
       "distribution": "internal",
       "channel": "development",
       "env": {
-        "EXPO_PUBLIC_ENV": "development"
+        "EXPO_PUBLIC_ENV": "development",
+        "PNPM_VERSION": "11.0.8"
       },
       "ios": {
         "resourceClass": "m-medium",
@@ -29,7 +30,8 @@
       "channel": "preview",
       "env": {
         "EXPO_PUBLIC_ENV": "staging",
-        "EXPO_PUBLIC_API_URL": "https://staging-api.nafaa.pk/api"
+        "EXPO_PUBLIC_API_URL": "https://staging-api.nafaa.pk/api",
+        "PNPM_VERSION": "11.0.8"
       },
       "ios": {
         "resourceClass": "m-medium",
@@ -49,7 +51,8 @@
       "env": {
         "EXPO_PUBLIC_ENV": "production",
         "EXPO_PUBLIC_API_URL": "https://api.nafaa.pk/api",
-        "EXPO_PUBLIC_APP_URL": "https://nafaa.pk"
+        "EXPO_PUBLIC_APP_URL": "https://nafaa.pk",
+        "PNPM_VERSION": "11.0.8"
       },
       "ios": {
         "resourceClass": "m-medium",
@@ -66,9 +69,9 @@
   "submit": {
     "production": {
       "ios": {
-        "appleId": "YOUR_APPLE_ID@example.com",
-        "ascAppId": "YOUR_ASC_APP_ID",
-        "appleTeamId": "YOUR_APPLE_TEAM_ID"
+        "appleId": "rashdan@natiq.se",
+        "ascAppId": "6769007778",
+        "appleTeamId": "A48F33D4Q8"
       },
       "android": {
         "serviceAccountKeyPath": "./google-play-service-account.json",

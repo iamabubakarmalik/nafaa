@@ -4,6 +4,11 @@ node_modules/
 .pnp.js
 .pnpm-store/
 
+# Lockfiles from other package managers (this monorepo uses pnpm only)
+package-lock.json
+yarn.lock
+bun.lockb
+
 # Build outputs
 dist/
 build/

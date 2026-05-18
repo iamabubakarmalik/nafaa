@@ -20,6 +20,11 @@ apps/desktop
 **/.turbo
 **/.expo
 
+# Foreign lockfiles (this monorepo uses pnpm only)
+package-lock.json
+yarn.lock
+bun.lockb
+
 # IDE
 .vscode
 .idea
