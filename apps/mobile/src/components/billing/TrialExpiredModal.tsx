@@ -13,7 +13,7 @@ import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 export function TrialExpiredModal() {
   const router = useRouter();
   const { needsUpgrade, subscription } = useSubscriptionStatus();
-  const clearSession = useAuthStore((s) => s.clearSession);
+  const logout = useAuthStore((s) => s.logout);
 
   if (!needsUpgrade) return null;
 
@@ -84,7 +84,7 @@ export function TrialExpiredModal() {
             <Pressable
               onPress={() => {
                 Haptics.selectionAsync();
-                clearSession();
+                logout();
                 router.replace('/auth/login');
               }}
               className="h-12 rounded-2xl items-center justify-center flex-row gap-2 active:opacity-70"

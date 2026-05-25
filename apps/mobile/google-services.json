@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "834553733513",
+    "project_id": "nafaa-pos",
+    "storage_bucket": "nafaa-pos.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:834553733513:android:64996fff2e6e1347070158",
+        "android_client_info": {
+          "package_name": "com.nafaa.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDEEOsiB6FYRhn8vyONeS891hn4YLvPRZo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

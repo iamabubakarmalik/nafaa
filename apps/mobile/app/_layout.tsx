@@ -12,6 +12,8 @@ import { useThemeStore } from '@/store/theme.store';
 import { useLocaleStore } from '@/store/locale.store';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { TrialExpiredModal } from '@/components/billing/TrialExpiredModal';
+import { Crash } from '@/lib/crashReporting';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -76,6 +78,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     (async () => {
+      Crash.init();
       await Promise.all([initAuth(), initTheme(), initLocale()]);
       await SplashScreen.hideAsync();
     })();
@@ -84,7 +87,8 @@ export default function RootLayout() {
   if (!isInitialized) return null;
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <ErrorBoundary>
+      <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <RootLayoutNav />
@@ -93,5 +97,6 @@ export default function RootLayout() {
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
+    </ErrorBoundary>
   );
 }

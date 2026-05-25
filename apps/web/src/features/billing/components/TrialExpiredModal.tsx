@@ -6,7 +6,7 @@ import { useAuthStore } from '@/store/auth.store';
 export function TrialExpiredModal() {
   const navigate = useNavigate();
   const { needsUpgrade, subscription } = useSubscriptionStatus();
-  const clearSession = useAuthStore((s) => s.clearSession);
+  const logout = useAuthStore((s) => s.logout);
 
   if (!needsUpgrade) return null;
 
@@ -44,7 +44,7 @@ export function TrialExpiredModal() {
           <ArrowRight className="h-5 w-5 text-white" />
         </button>
         <button
-          onClick={() => { clearSession(); navigate('/login'); }}
+          onClick={() => { logout(); navigate('/login'); }}
           className="w-full h-12 rounded-2xl flex items-center justify-center gap-2 text-neutral-400 hover:text-neutral-300 transition"
         >
           <LogOut className="h-4 w-4" />
