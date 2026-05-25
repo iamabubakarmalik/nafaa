@@ -1,5 +1,7 @@
 import type { NextConfig } from 'next';
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.nafaa.pk';
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
@@ -28,8 +30,15 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      { source: '/signup', destination: process.env.NEXT_PUBLIC_APP_URL + '/register', permanent: false },
-      { source: '/login', destination: process.env.NEXT_PUBLIC_APP_URL + '/login', permanent: false },
+      // Old signup URL → app register (preserves query params automatically)
+      { source: '/signup', destination: `${APP_URL}/register`, permanent: false },
+      { source: '/sign-up', destination: `${APP_URL}/register`, permanent: false },
+      // Login redirect to app (preserves ?ref= automatically per Next.js spec)
+      { source: '/login', destination: `${APP_URL}/login`, permanent: false },
+      { source: '/sign-in', destination: `${APP_URL}/login`, permanent: false },
+      // Dashboard shortcuts
+      { source: '/dashboard', destination: `${APP_URL}/dashboard`, permanent: false },
+      { source: '/app', destination: APP_URL, permanent: false },
     ];
   },
 };
