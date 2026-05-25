@@ -19,6 +19,7 @@ import { formatPKRFull } from '@/lib/format';
 import Toast from 'react-native-toast-message';
 
 import { useTranslation } from '@/i18n/useTranslation';
+import { PlanConfirmationSheet } from '@/components/billing/PlanConfirmationSheet';
 const planIcons: Record<string, any> = {
   'free-trial': Sparkles,
   basic: Zap,
@@ -38,6 +39,7 @@ export default function PlanScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [interval, setInterval] = useState<BillingInterval>('MONTHLY');
 
   const { data: plans = [], refetch } = useQuery({
@@ -238,7 +240,7 @@ export default function PlanScreen() {
                   <Button
                     size="md"
                     loading={startMutation.isPending}
-                    onPress={() => startMutation.mutate({ planId: plan.id, interval })}
+                    onPress={() => { setSelectedPlan(plan); }}
                     className={isPopular ? 'bg-brand-600' : ''}
                   >
                     <Text className="text-white font-bold">{t('auto.index.subscribe_now')}</Text>
@@ -250,6 +252,13 @@ export default function PlanScreen() {
           })}
         </View>
       </ScrollView>
+          <PlanConfirmationSheet
+        visible={!!selectedPlan}
+        onClose={() => setSelectedPlan(null)}
+        plan={selectedPlan}
+        interval={interval}
+        currentPlanName={current?.plan?.name}
+      />
     </SafeAreaView>
   );
 }

@@ -11,6 +11,7 @@ import { useAuthStore } from '@/store/auth.store';
 import { useThemeStore } from '@/store/theme.store';
 import { useLocaleStore } from '@/store/locale.store';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { TrialExpiredModal } from '@/components/billing/TrialExpiredModal';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -88,6 +89,7 @@ export default function RootLayout() {
         <QueryClientProvider client={queryClient}>
           <RootLayoutNav />
           <Toast position="top" topOffset={60} />
+          <TrialExpiredModal />
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
