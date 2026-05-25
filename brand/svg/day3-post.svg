@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e40af"/>
+      <stop offset="50%" stop-color="#1d4ed8"/>
+      <stop offset="100%" stop-color="#1e3a8a"/>
+    </linearGradient>
+    <filter id="sh" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="15"/>
+      <feOffset dy="10"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.3"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1080" height="1080" fill="url(#bg)"/>
+
+  <!-- Decorative dots -->
+  <g fill="rgba(255,255,255,0.06)">
+    <circle cx="120" cy="200" r="6"/>
+    <circle cx="960" cy="250" r="6"/>
+    <circle cx="180" cy="900" r="6"/>
+    <circle cx="900" cy="850" r="6"/>
+  </g>
+
+  <!-- Nafaa logo top -->
+  <g transform="translate(120, 110)" filter="url(#sh)">
+    <rect x="-50" y="-50" width="100" height="100" rx="22" fill="#16a34a"/>
+    <g transform="translate(0, 4)" stroke="#ffffff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <line x1="-22" y1="-25" x2="-22" y2="25"/>
+      <line x1="-22" y1="25" x2="22" y2="-25"/>
+      <line x1="22" y1="-25" x2="22" y2="25"/>
+      <polyline points="9,-25 22,-25 22,-12"/>
+    </g>
+    <circle cx="40" cy="-40" r="7" fill="#f59e0b"/>
+  </g>
+  <text x="200" y="120" font-family="Inter, sans-serif" font-size="36" font-weight="900" fill="#ffffff">Nafaa</text>
+  <text x="200" y="148" font-family="Inter, sans-serif" font-size="16" font-weight="700" fill="#fbbf24" letter-spacing="2">DUKAN POS APP</text>
+
+  <!-- Top hook -->
+  <text x="540" y="260" font-family="Inter, sans-serif" font-size="48" font-weight="900" fill="#fbbf24" text-anchor="middle" letter-spacing="2">💰 KAMAI BARHAYIN</text>
+  <text x="540" y="320" font-family="'Noto Nastaliq Urdu', serif" font-size="44" fill="#ffffff" text-anchor="middle">روزانہ کی کمائی دگنی کریں</text>
+
+  <!-- BIG number -->
+  <text x="540" y="600" font-family="Inter, sans-serif" font-size="340" font-weight="900" fill="#fbbf24" text-anchor="middle" letter-spacing="-10">2X</text>
+
+  <!-- Benefits -->
+  <text x="540" y="700" font-family="Inter, sans-serif" font-size="36" font-weight="700" fill="#ffffff" text-anchor="middle">✓ Tezi say bechain</text>
+  <text x="540" y="755" font-family="Inter, sans-serif" font-size="36" font-weight="700" fill="#ffffff" text-anchor="middle">✓ Zyada customers</text>
+  <text x="540" y="810" font-family="Inter, sans-serif" font-size="36" font-weight="700" fill="#ffffff" text-anchor="middle">✓ Sahi hisaab kitaab</text>
+
+  <!-- Urdu emotional -->
+  <text x="540" y="900" font-family="'Noto Nastaliq Urdu', serif" font-size="42" fill="#fbbf24" text-anchor="middle">جیب میں روزانہ زیادہ پیسے</text>
+
+  <!-- CTA -->
+  <g transform="translate(540, 980)">
+    <rect x="-260" y="-50" width="520" height="100" rx="50" fill="#fbbf24"/>
+    <text x="0" y="14" font-family="Inter, sans-serif" font-size="36" font-weight="900" fill="#1e3a8a" text-anchor="middle" letter-spacing="2">FREE INSTALL →</text>
+  </g>
+
+  <text x="540" y="1050" font-family="Inter, sans-serif" font-size="22" font-weight="700" fill="rgba(255,255,255,0.8)" text-anchor="middle" letter-spacing="3">🇵🇰 nafaa.pk</text>
+</svg>

@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920" width="1080" height="1920">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fb923c"/>
+      <stop offset="100%" stop-color="#9a3412"/>
+    </linearGradient>
+    <filter id="sh" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="20"/>
+      <feOffset dy="15"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.4"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1080" height="1920" fill="url(#bg)"/>
+
+  <!-- Brand -->
+  <g transform="translate(540, 180)">
+    <g transform="translate(-60, 0)" filter="url(#sh)">
+      <rect x="-50" y="-50" width="100" height="100" rx="22" fill="#ffffff"/>
+      <g transform="translate(0, 4)" stroke="#16a34a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none">
+        <line x1="-22" y1="-25" x2="-22" y2="25"/>
+        <line x1="-22" y1="25" x2="22" y2="-25"/>
+        <line x1="22" y1="-25" x2="22" y2="25"/>
+        <polyline points="9,-25 22,-25 22,-12"/>
+      </g>
+      <circle cx="40" cy="-40" r="7" fill="#16a34a"/>
+    </g>
+    <text x="20" y="14" font-family="Inter, sans-serif" font-size="48" font-weight="900" fill="#ffffff">Nafaa</text>
+  </g>
+
+  <!-- Hook -->
+  <text x="540" y="380" font-family="Inter, sans-serif" font-size="60" font-weight="900" fill="#ffffff" text-anchor="middle">PAKISTAN'S #1</text>
+  <text x="540" y="460" font-family="'Noto Nastaliq Urdu', serif" font-size="54" fill="#fef3c7" text-anchor="middle">پاکستان کا نمبر ون</text>
+
+  <!-- Big stat -->
+  <text x="540" y="720" font-family="Inter, sans-serif" font-size="240" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="-5">1000+</text>
+  <text x="540" y="820" font-family="Inter, sans-serif" font-size="48" font-weight="800" fill="#fef3c7" text-anchor="middle">Khush Dukandar</text>
+  <text x="540" y="880" font-family="'Noto Nastaliq Urdu', serif" font-size="44" fill="#ffffff" text-anchor="middle">خوش دکاندار</text>
+
+  <!-- Stats cards -->
+  <g transform="translate(540, 1100)">
+    <g transform="translate(-200, 0)">
+      <rect x="-160" y="-70" width="320" height="140" rx="25" fill="#ffffff"/>
+      <text x="0" y="-10" font-family="Inter, sans-serif" font-size="60" font-weight="900" fill="#ea580c" text-anchor="middle">50+</text>
+      <text x="0" y="35" font-family="Inter, sans-serif" font-size="22" font-weight="700" fill="#7c2d12" text-anchor="middle">Cities</text>
+    </g>
+    <g transform="translate(200, 0)">
+      <rect x="-160" y="-70" width="320" height="140" rx="25" fill="#ffffff"/>
+      <text x="0" y="-10" font-family="Inter, sans-serif" font-size="60" font-weight="900" fill="#ea580c" text-anchor="middle">50K+</text>
+      <text x="0" y="35" font-family="Inter, sans-serif" font-size="22" font-weight="700" fill="#7c2d12" text-anchor="middle">Sales</text>
+    </g>
+  </g>
+
+  <!-- Star rating -->
+  <g transform="translate(540, 1380)">
+    <rect x="-300" y="-60" width="600" height="120" rx="25" fill="#ffffff"/>
+    <text x="0" y="20" font-family="sans-serif" font-size="60" fill="#fbbf24" text-anchor="middle">⭐ 5.0 RATING</text>
+  </g>
+
+  <!-- Sub hook -->
+  <text x="540" y="1580" font-family="Inter, sans-serif" font-size="40" font-weight="800" fill="#ffffff" text-anchor="middle">Aap bhi join karein!</text>
+  <text x="540" y="1640" font-family="'Noto Nastaliq Urdu', serif" font-size="40" fill="#fef3c7" text-anchor="middle">آپ بھی شامل ہوں</text>
+
+  <!-- CTA -->
+  <g transform="translate(540, 1780)">
+    <rect x="-300" y="-60" width="600" height="120" rx="60" fill="#ffffff"/>
+    <text x="0" y="20" font-family="Inter, sans-serif" font-size="44" font-weight="900" fill="#c2410c" text-anchor="middle">JOIN NOW →</text>
+  </g>
+
+  <text x="540" y="1900" font-family="Inter, sans-serif" font-size="26" font-weight="800" fill="rgba(255,255,255,0.85)" text-anchor="middle" letter-spacing="3">🇵🇰 nafaa.pk</text>
+</svg>

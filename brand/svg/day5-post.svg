@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#dc2626"/>
+      <stop offset="100%" stop-color="#991b1b"/>
+    </linearGradient>
+    <filter id="sh" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="15"/>
+      <feOffset dy="10"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.3"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1080" height="1080" fill="url(#bg)"/>
+
+  <!-- Nafaa logo -->
+  <g transform="translate(120, 110)" filter="url(#sh)">
+    <rect x="-50" y="-50" width="100" height="100" rx="22" fill="#16a34a"/>
+    <g transform="translate(0, 4)" stroke="#ffffff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <line x1="-22" y1="-25" x2="-22" y2="25"/>
+      <line x1="-22" y1="25" x2="22" y2="-25"/>
+      <line x1="22" y1="-25" x2="22" y2="25"/>
+      <polyline points="9,-25 22,-25 22,-12"/>
+    </g>
+    <circle cx="40" cy="-40" r="7" fill="#f59e0b"/>
+  </g>
+  <text x="200" y="120" font-family="Inter, sans-serif" font-size="36" font-weight="900" fill="#ffffff">Nafaa</text>
+  <text x="200" y="148" font-family="Inter, sans-serif" font-size="16" font-weight="700" fill="#fbbf24" letter-spacing="2">DUKAN POS APP</text>
+
+  <!-- Urgent badge -->
+  <g transform="translate(540, 290)">
+    <rect x="-220" y="-40" width="440" height="80" rx="40" fill="#fbbf24"/>
+    <text x="0" y="14" font-family="Inter, sans-serif" font-size="36" font-weight="900" fill="#991b1b" text-anchor="middle" letter-spacing="3">⏰ LIMITED TIME</text>
+  </g>
+
+  <!-- Hook -->
+  <text x="540" y="450" font-family="Inter, sans-serif" font-size="88" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="-2">FREE FOREVER</text>
+  <text x="540" y="530" font-family="'Noto Nastaliq Urdu', serif" font-size="56" fill="#fbbf24" text-anchor="middle">پہلے ۱۰۰۰ دکانداروں کیلئے</text>
+  <text x="540" y="590" font-family="Inter, sans-serif" font-size="34" font-weight="700" fill="#ffffff" text-anchor="middle">Bilkul FREE, hamesha ke liye</text>
+
+  <!-- Icon (white card) -->
+  <g transform="translate(540, 770)" filter="url(#sh)">
+    <rect x="-110" y="-110" width="220" height="220" rx="50" fill="#ffffff"/>
+    <g transform="translate(0, 10)" stroke="#16a34a" stroke-width="22" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <line x1="-48" y1="-54" x2="-48" y2="54"/>
+      <line x1="-48" y1="54" x2="48" y2="-54"/>
+      <line x1="48" y1="-54" x2="48" y2="54"/>
+      <polyline points="20,-54 48,-54 48,-26"/>
+    </g>
+    <circle cx="85" cy="-85" r="15" fill="#f59e0b"/>
+  </g>
+
+  <!-- Urgency text -->
+  <text x="540" y="930" font-family="Inter, sans-serif" font-size="34" font-weight="800" fill="#ffffff" text-anchor="middle">Mauqa haath se na jaane dein</text>
+  <text x="540" y="975" font-family="'Noto Nastaliq Urdu', serif" font-size="38" fill="#fbbf24" text-anchor="middle">دیر مت کریں — ابھی</text>
+
+  <!-- CTA -->
+  <g transform="translate(540, 1030)">
+    <rect x="-260" y="-30" width="520" height="60" rx="30" fill="#fbbf24"/>
+    <text x="0" y="10" font-family="Inter, sans-serif" font-size="28" font-weight="900" fill="#991b1b" text-anchor="middle" letter-spacing="2">CLAIM YOUR SPOT →</text>
+  </g>
+</svg>

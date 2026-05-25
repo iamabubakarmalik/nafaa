@@ -88,5 +88,6 @@
         "enabled": false
       }
     }
-  }
+  },
+  "packageManager": "pnpm@11.0.8"
 }

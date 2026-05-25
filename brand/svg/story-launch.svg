@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920" width="1080" height="1920">
+  <defs>
+    <linearGradient id="bgStory" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#22c55e"/>
+      <stop offset="50%" stop-color="#16a34a"/>
+      <stop offset="100%" stop-color="#14532d"/>
+    </linearGradient>
+    <filter id="shStory" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="25"/>
+      <feOffset dy="18"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.4"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1080" height="1920" fill="url(#bgStory)"/>
+
+  <!-- Top badge -->
+  <g transform="translate(540, 300)">
+    <rect x="-220" y="-38" width="440" height="76" rx="38" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
+    <text x="0" y="14" font-family="Inter, sans-serif" font-size="32" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="4">🚀 NOW LIVE</text>
+  </g>
+
+  <!-- Big icon -->
+  <g transform="translate(540, 720)" filter="url(#shStory)">
+    <rect x="-200" y="-200" width="400" height="400" rx="90" fill="#ffffff"/>
+    <g transform="translate(0, 18)" stroke="#16a34a" stroke-width="40" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <line x1="-88" y1="-98" x2="-88" y2="98"/>
+      <line x1="-88" y1="98" x2="88" y2="-98"/>
+      <line x1="88" y1="-98" x2="88" y2="98"/>
+      <polyline points="36,-98 88,-98 88,-46"/>
+    </g>
+    <circle cx="160" cy="-160" r="28" fill="#f59e0b"/>
+  </g>
+
+  <!-- Brand -->
+  <text x="540" y="1150" font-family="Inter, sans-serif" font-size="180" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="-5">Nafaa</text>
+
+  <!-- Hook -->
+  <text x="540" y="1240" font-family="'Noto Nastaliq Urdu', serif" font-size="60" fill="#fbbf24" text-anchor="middle">دکان کا نیا ساتھی</text>
+  <text x="540" y="1320" font-family="Inter, sans-serif" font-size="38" font-weight="600" fill="rgba(255,255,255,0.95)" text-anchor="middle">Ab dukaan smart tareeqay say chalayein</text>
+
+  <!-- Big features -->
+  <g transform="translate(540, 1450)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="44" font-weight="800" fill="#ffffff" text-anchor="middle">✓ FREE FOREVER</text>
+    <text x="0" y="80" font-family="Inter, sans-serif" font-size="44" font-weight="800" fill="#ffffff" text-anchor="middle">✓ URDU SUPPORT</text>
+    <text x="0" y="160" font-family="Inter, sans-serif" font-size="44" font-weight="800" fill="#ffffff" text-anchor="middle">✓ MADE IN 🇵🇰</text>
+  </g>
+
+  <!-- CTA -->
+  <g transform="translate(540, 1750)">
+    <rect x="-280" y="-55" width="560" height="110" rx="55" fill="#ffffff"/>
+    <text x="0" y="16" font-family="Inter, sans-serif" font-size="40" font-weight="900" fill="#15803d" text-anchor="middle" letter-spacing="2">DOWNLOAD NOW →</text>
+  </g>
+
+  <text x="540" y="1880" font-family="Inter, sans-serif" font-size="30" font-weight="700" fill="rgba(255,255,255,0.85)" text-anchor="middle" letter-spacing="3">🇵🇰 nafaa.pk</text>
+</svg>

@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <defs>
+    <linearGradient id="bg4" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f0fdf4"/>
+      <stop offset="100%" stop-color="#dcfce7"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1080" height="1080" fill="url(#bg4)"/>
+
+  <!-- Top label -->
+  <text x="540" y="130" font-family="Inter, sans-serif" font-size="32" font-weight="800" fill="#15803d" text-anchor="middle" letter-spacing="4">⭐ DUKANDAR KEH RAHY HAIN</text>
+
+  <!-- Quote card -->
+  <g transform="translate(540, 470)">
+    <rect x="-440" y="-220" width="880" height="440" rx="30" fill="#ffffff" stroke="#bbf7d0" stroke-width="3"/>
+
+    <!-- 5 stars -->
+    <text x="0" y="-130" font-family="sans-serif" font-size="56" fill="#f59e0b" text-anchor="middle">⭐ ⭐ ⭐ ⭐ ⭐</text>
+
+    <!-- Quote -->
+    <text x="0" y="-50" font-family="Inter, sans-serif" font-size="40" font-weight="700" fill="#14532d" text-anchor="middle">"Pehle din hi 50 sales</text>
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="40" font-weight="700" fill="#14532d" text-anchor="middle">aasaani say kar li."</text>
+
+    <!-- Urdu version -->
+    <text x="0" y="70" font-family="'Noto Nastaliq Urdu', serif" font-size="36" fill="#15803d" text-anchor="middle">پہلے دن ہی پچاس سیلز</text>
+
+    <!-- Customer info -->
+    <circle cx="-150" cy="160" r="32" fill="#16a34a"/>
+    <text x="-150" y="172" font-family="Inter, sans-serif" font-size="32" font-weight="900" fill="#ffffff" text-anchor="middle">A</text>
+    <text x="-100" y="155" font-family="Inter, sans-serif" font-size="26" font-weight="800" fill="#14532d">Ahmad Bhai</text>
+    <text x="-100" y="185" font-family="Inter, sans-serif" font-size="22" font-weight="600" fill="#16a34a">Kiryana Store, Lahore</text>
+  </g>
+
+  <!-- Bottom hook -->
+  <text x="540" y="800" font-family="Inter, sans-serif" font-size="38" font-weight="800" fill="#15803d" text-anchor="middle">Aap bhi try karein —</text>
+  <text x="540" y="850" font-family="'Noto Nastaliq Urdu', serif" font-size="44" fill="#15803d" text-anchor="middle">آج ہی استعمال کریں</text>
+
+  <!-- CTA -->
+  <g transform="translate(540, 950)">
+    <rect x="-240" y="-44" width="480" height="88" rx="44" fill="#16a34a"/>
+    <text x="0" y="14" font-family="Inter, sans-serif" font-size="34" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="2">FREE DOWNLOAD →</text>
+  </g>
+
+  <text x="540" y="1040" font-family="Inter, sans-serif" font-size="22" font-weight="700" fill="#15803d" text-anchor="middle">🇵🇰 nafaa.pk</text>
+</svg>

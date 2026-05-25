@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" width="320" height="80">
+  <defs>
+    <linearGradient id="brandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22c55e"/>
+      <stop offset="50%" stop-color="#16a34a"/>
+      <stop offset="100%" stop-color="#15803d"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+      <feOffset dx="0" dy="2" result="offsetblur"/>
+      <feFlood flood-color="#16a34a" flood-opacity="0.25"/>
+      <feComposite in2="offsetblur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Icon: Rounded square background -->
+  <rect x="4" y="8" width="64" height="64" rx="16" ry="16" fill="url(#brandGrad)" filter="url(#softShadow)"/>
+
+  <!-- Stylized "N" letter mark with upward arrow integration -->
+  <g transform="translate(36, 40)" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <!-- Left vertical of N -->
+    <line x1="-14" y1="-14" x2="-14" y2="14"/>
+    <!-- Diagonal of N (becomes upward arrow) -->
+    <line x1="-14" y1="14" x2="14" y2="-14"/>
+    <!-- Right vertical of N -->
+    <line x1="14" y1="-14" x2="14" y2="14"/>
+    <!-- Arrow head on top-right -->
+    <polyline points="6,-14 14,-14 14,-6"/>
+  </g>
+
+  <!-- Accent dot (crescent / profit symbol) -->
+  <circle cx="58" cy="20" r="4" fill="url(#accentGrad)"/>
+
+  <!-- Wordmark: Nafaa -->
+  <text x="86" y="50" font-family="Inter, system-ui, sans-serif" font-size="36" font-weight="800" fill="#0f172a" letter-spacing="-1.5">
+    Nafaa
+  </text>
+
+  <!-- Tagline -->
+  <text x="88" y="66" font-family="Inter, system-ui, sans-serif" font-size="9" font-weight="600" fill="#64748b" letter-spacing="2">
+    PAKISTAN'S #1 RETAIL OS
+  </text>
+</svg>

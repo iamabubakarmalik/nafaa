@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <defs>
+    <linearGradient id="bg2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fef3c7"/>
+      <stop offset="100%" stop-color="#fde68a"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1080" height="1080" fill="url(#bg2)"/>
+
+  <!-- Top label -->
+  <text x="540" y="140" font-family="Inter, sans-serif" font-size="32" font-weight="800" fill="#92400e" text-anchor="middle" letter-spacing="4">😩 KYA YEH AAP HAIN?</text>
+
+  <!-- Problem list -->
+  <g transform="translate(540, 240)">
+    <g transform="translate(0, 0)">
+      <rect x="-420" y="-40" width="840" height="100" rx="20" fill="#ffffff" stroke="#fcd34d" stroke-width="3"/>
+      <text x="-380" y="20" font-family="sans-serif" font-size="44" text-anchor="middle">❌</text>
+      <text x="-320" y="0" font-family="Inter, sans-serif" font-size="30" font-weight="700" fill="#78350f">Register pe ginti karte karte raat ho jati hai</text>
+      <text x="-320" y="40" font-family="'Noto Nastaliq Urdu', serif" font-size="26" fill="#92400e">رجسٹر پر گنتی کرتے رات</text>
+    </g>
+
+    <g transform="translate(0, 140)">
+      <rect x="-420" y="-40" width="840" height="100" rx="20" fill="#ffffff" stroke="#fcd34d" stroke-width="3"/>
+      <text x="-380" y="20" font-family="sans-serif" font-size="44" text-anchor="middle">❌</text>
+      <text x="-320" y="0" font-family="Inter, sans-serif" font-size="30" font-weight="700" fill="#78350f">Udhaar yaad nahi rehta, paisa doob jata hai</text>
+      <text x="-320" y="40" font-family="'Noto Nastaliq Urdu', serif" font-size="26" fill="#92400e">ادھار یاد نہیں رہتا</text>
+    </g>
+
+    <g transform="translate(0, 280)">
+      <rect x="-420" y="-40" width="840" height="100" rx="20" fill="#ffffff" stroke="#fcd34d" stroke-width="3"/>
+      <text x="-380" y="20" font-family="sans-serif" font-size="44" text-anchor="middle">❌</text>
+      <text x="-320" y="0" font-family="Inter, sans-serif" font-size="30" font-weight="700" fill="#78350f">Stock khatam ho jata hai, pata hi nahi chalta</text>
+      <text x="-320" y="40" font-family="'Noto Nastaliq Urdu', serif" font-size="26" fill="#92400e">سٹاک ختم، خبر نہیں</text>
+    </g>
+  </g>
+
+  <!-- Solution arrow -->
+  <text x="540" y="760" font-family="sans-serif" font-size="64" text-anchor="middle">⬇️</text>
+
+  <!-- Solution card -->
+  <g transform="translate(540, 880)">
+    <rect x="-440" y="-80" width="880" height="160" rx="30" fill="#16a34a"/>
+    <text x="0" y="-15" font-family="Inter, sans-serif" font-size="44" font-weight="900" fill="#ffffff" text-anchor="middle">Nafaa Sab Solve Karta Hai</text>
+    <text x="0" y="35" font-family="'Noto Nastaliq Urdu', serif" font-size="36" fill="#fef3c7" text-anchor="middle">سب کا حل — مفت ڈاؤن لوڈ کریں</text>
+  </g>
+
+  <!-- Footer -->
+  <text x="540" y="1030" font-family="Inter, sans-serif" font-size="24" font-weight="800" fill="#78350f" text-anchor="middle">🇵🇰 nafaa.pk</text>
+</svg>

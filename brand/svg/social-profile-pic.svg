@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#22c55e"/>
+      <stop offset="100%" stop-color="#15803d"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Full green background (safe for circle crop on Instagram/WhatsApp DP) -->
+  <rect width="1080" height="1080" fill="url(#bgGrad)"/>
+
+  <!-- White "N arrow" — centered, inside circle safe zone -->
+  <g transform="translate(540, 570)" stroke="#ffffff" stroke-width="78" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <line x1="-170" y1="-190" x2="-170" y2="190"/>
+    <line x1="-170" y1="190" x2="170" y2="-190"/>
+    <line x1="170" y1="-190" x2="170" y2="190"/>
+    <polyline points="68,-190 170,-190 170,-88"/>
+  </g>
+
+  <!-- Orange accent dot -->
+  <circle cx="780" cy="290" r="56" fill="#f59e0b"/>
+</svg>

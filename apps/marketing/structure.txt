@@ -1,0 +1,141 @@
+.
+├── .env.local
+├── .gitignore
+├── next-env.d.ts
+├── next.config.ts
+├── package.json
+├── pnpm-lock.yaml
+├── pnpm-workspace.yaml
+├── postcss.config.mjs
+├── public
+│   ├── apple-touch-icon.png
+│   ├── favicon-32.png
+│   ├── favicon.ico
+│   ├── favicon.ico.txt
+│   ├── file.svg
+│   ├── globe.svg
+│   ├── icon-192.png
+│   ├── icon-256.png
+│   ├── icon-384.png
+│   ├── icon-512.png
+│   ├── logo-full.svg
+│   ├── logo.png
+│   ├── logo.svg
+│   ├── manifest.json
+│   ├── next.svg
+│   ├── og
+│   │   ├── og-default.png
+│   │   ├── og-features.png
+│   │   ├── og-industry-bakery.png
+│   │   ├── og-industry-kiryana.png
+│   │   ├── og-industry-mobile-shop.png
+│   │   ├── og-industry-pharmacy.png
+│   │   ├── og-pricing.png
+│   │   └── og-whatsapp.png
+│   ├── og-image.png
+│   ├── vercel.svg
+│   └── window.svg
+├── README.md
+├── src
+│   ├── app
+│   │   ├── about
+│   │   │   └── page.tsx
+│   │   ├── account-deletion
+│   │   │   └── page.tsx
+│   │   ├── api-docs
+│   │   │   └── page.tsx
+│   │   ├── blog
+│   │   │   ├── [slug]
+│   │   │   │   └── page.tsx
+│   │   │   ├── category
+│   │   │   │   └── [slug]
+│   │   │   │       └── page.tsx
+│   │   │   └── page.tsx
+│   │   ├── careers
+│   │   │   └── page.tsx
+│   │   ├── changelog
+│   │   │   └── page.tsx
+│   │   ├── contact
+│   │   │   ├── ContactClient.tsx
+│   │   │   └── page.tsx
+│   │   ├── cookies
+│   │   │   └── page.tsx
+│   │   ├── data-deletion
+│   │   │   └── page.tsx
+│   │   ├── error.tsx
+│   │   ├── features
+│   │   │   └── page.tsx
+│   │   ├── globals.css
+│   │   ├── help
+│   │   │   └── page.tsx
+│   │   ├── industries
+│   │   │   ├── [slug]
+│   │   │   │   └── page.tsx
+│   │   │   └── page.tsx
+│   │   ├── integrations
+│   │   │   └── page.tsx
+│   │   ├── layout.tsx
+│   │   ├── loading.tsx
+│   │   ├── not-found.tsx
+│   │   ├── page.tsx
+│   │   ├── partners
+│   │   │   └── page.tsx
+│   │   ├── press
+│   │   │   └── page.tsx
+│   │   ├── pricing
+│   │   │   ├── page.tsx
+│   │   │   └── PricingClient.tsx
+│   │   ├── privacy
+│   │   │   └── page.tsx
+│   │   ├── refund
+│   │   │   └── page.tsx
+│   │   ├── robots.ts
+│   │   ├── security
+│   │   │   └── page.tsx
+│   │   ├── sitemap.ts
+│   │   ├── status
+│   │   │   └── page.tsx
+│   │   └── terms
+│   │       └── page.tsx
+│   ├── components
+│   │   ├── brand
+│   │   │   └── Logo.tsx
+│   │   ├── home
+│   │   │   ├── CTA.tsx
+│   │   │   ├── FAQ.tsx
+│   │   │   ├── Features.tsx
+│   │   │   ├── Hero.tsx
+│   │   │   ├── Industries.tsx
+│   │   │   ├── Stats.tsx
+│   │   │   └── Testimonials.tsx
+│   │   ├── layout
+│   │   │   ├── Footer.tsx
+│   │   │   └── Header.tsx
+│   │   ├── legal
+│   │   │   └── LegalLayout.tsx
+│   │   ├── providers
+│   │   │   ├── LocaleProvider.tsx
+│   │   │   └── ThemeProvider.tsx
+│   │   ├── share
+│   │   │   └── ShareButtons.tsx
+│   │   └── ui
+│   │       ├── Badge.tsx
+│   │       ├── Button.tsx
+│   │       ├── Container.tsx
+│   │       ├── LangSwitcher.tsx
+│   │       └── ThemeToggle.tsx
+│   ├── i18n
+│   │   ├── config.ts
+│   │   └── messages
+│   │       ├── en.json
+│   │       └── ur.json
+│   └── lib
+│       ├── blog
+│       │   └── posts.ts
+│       ├── cn.ts
+│       └── seo.ts
+├── structure.txt
+├── tailwind.config.ts
+└── tsconfig.json
+
+42 directories, 97 files

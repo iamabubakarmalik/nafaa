@@ -1,51 +1,78 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920" width="1080" height="1920">
   <defs>
-    <linearGradient id="storyBg" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#15803d"/>
-      <stop offset="100%" stop-color="#0f172a"/>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#22c55e"/>
+      <stop offset="50%" stop-color="#16a34a"/>
+      <stop offset="100%" stop-color="#14532d"/>
     </linearGradient>
+    <linearGradient id="tile" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f0fdf4"/>
+    </linearGradient>
+    <filter id="bigShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="30"/>
+      <feOffset dy="25"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.4"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
   </defs>
-  <rect width="1080" height="1920" fill="url(#storyBg)"/>
 
-  <!-- Logo -->
-  <g transform="translate(440, 280)">
-    <rect width="200" height="200" rx="44" fill="#ffffff"/>
-    <g transform="translate(100, 102)" stroke="#16a34a" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none">
-      <line x1="-42" y1="-42" x2="-42" y2="42"/>
-      <line x1="-42" y1="42" x2="42" y2="-42"/>
-      <line x1="42" y1="-42" x2="42" y2="42"/>
-      <polyline points="20,-42 42,-42 42,-20"/>
+  <rect width="1080" height="1920" fill="url(#bgGrad)"/>
+
+  <!-- Decorative dots scattered -->
+  <g fill="rgba(255,255,255,0.06)">
+    <circle cx="120" cy="200" r="6"/>
+    <circle cx="960" cy="300" r="6"/>
+    <circle cx="200" cy="1700" r="6"/>
+    <circle cx="900" cy="1750" r="6"/>
+    <circle cx="540" cy="100" r="4"/>
+    <circle cx="540" cy="1850" r="4"/>
+  </g>
+
+  <!-- Top label -->
+  <g transform="translate(540, 280)">
+    <rect x="-220" y="-35" width="440" height="70" rx="35" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+    <text x="0" y="13" font-family="Inter, sans-serif" font-size="30" font-weight="800" fill="#ffffff" text-anchor="middle" letter-spacing="4">🎉 LAUNCH DAY</text>
+  </g>
+
+  <!-- Center icon BIG -->
+  <g transform="translate(540, 720)" filter="url(#bigShadow)">
+    <rect x="-200" y="-200" width="400" height="400" rx="90" fill="url(#tile)"/>
+    <g transform="translate(0, 10)" stroke="#16a34a" stroke-width="36" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <line x1="-85" y1="-95" x2="-85" y2="95"/>
+      <line x1="-85" y1="95" x2="85" y2="-95"/>
+      <line x1="85" y1="-95" x2="85" y2="95"/>
+      <polyline points="38,-95 85,-95 85,-48"/>
     </g>
-    <circle cx="158" cy="48" r="14" fill="#f59e0b"/>
+    <circle cx="160" cy="-160" r="26" fill="#fbbf24"/>
+    <circle cx="160" cy="-160" r="26" fill="none" stroke="rgba(22,163,74,0.4)" stroke-width="4"/>
   </g>
 
-  <text x="540" y="600" font-family="Inter" font-size="100" font-weight="900" fill="#ffffff" text-anchor="middle">Nafaa</text>
+  <!-- Brand name -->
+  <text x="540" y="1130" font-family="Inter, sans-serif" font-size="180" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="-5">Nafaa</text>
 
-  <text x="540" y="800" font-family="Inter" font-size="80" font-weight="900" fill="#ffffff" text-anchor="middle">Apni Dukan</text>
-  <text x="540" y="900" font-family="Inter" font-size="80" font-weight="900" fill="#fbbf24" text-anchor="middle">Online Laao!</text>
+  <!-- Tagline English -->
+  <text x="540" y="1210" font-family="Inter, sans-serif" font-size="38" font-weight="600" fill="rgba(255,255,255,0.95)" text-anchor="middle" letter-spacing="6">RUN YOUR SHOP SMARTER</text>
 
-  <text x="540" y="1050" font-family="Inter" font-size="36" font-weight="500" fill="rgba(255,255,255,0.9)" text-anchor="middle">5,000+ shopkeepers ka</text>
-  <text x="540" y="1110" font-family="Inter" font-size="36" font-weight="500" fill="rgba(255,255,255,0.9)" text-anchor="middle">trusted partner</text>
+  <!-- Divider -->
+  <line x1="380" y1="1270" x2="700" y2="1270" stroke="rgba(255,255,255,0.4)" stroke-width="3"/>
 
-  <!-- Feature pills -->
-  <g transform="translate(180, 1230)">
-    <rect width="720" height="80" rx="40" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
-    <text x="360" y="54" font-family="Inter" font-size="32" font-weight="700" fill="#ffffff" text-anchor="middle">⚡ Lightning POS + Khata Book</text>
-  </g>
-  <g transform="translate(180, 1340)">
-    <rect width="720" height="80" rx="40" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
-    <text x="360" y="54" font-family="Inter" font-size="32" font-weight="700" fill="#ffffff" text-anchor="middle">📊 Live Profit Reports</text>
-  </g>
-  <g transform="translate(180, 1450)">
-    <rect width="720" height="80" rx="40" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
-    <text x="360" y="54" font-family="Inter" font-size="32" font-weight="700" fill="#ffffff" text-anchor="middle">📱 Works on Mobile</text>
+  <!-- Urdu tagline -->
+  <text x="540" y="1340" font-family="'Noto Nastaliq Urdu', serif" font-size="54" fill="rgba(255,255,255,0.95)" text-anchor="middle">اپنی دکان سمارٹ طریقے سے چلائیں</text>
+
+  <!-- Features list -->
+  <g transform="translate(540, 1480)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="32" font-weight="700" fill="#ffffff" text-anchor="middle">💰 POS  •  📦 Stock  •  📒 Khata</text>
+    <text x="0" y="60" font-family="Inter, sans-serif" font-size="32" font-weight="700" fill="#ffffff" text-anchor="middle">📊 Reports  •  🌙 Dark Mode</text>
+    <text x="0" y="120" font-family="'Noto Nastaliq Urdu', serif" font-size="38" fill="#fbbf24" text-anchor="middle">اردو سپورٹ کے ساتھ</text>
   </g>
 
-  <!-- CTA -->
-  <g transform="translate(180, 1620)">
-    <rect width="720" height="120" rx="60" fill="#fbbf24"/>
-    <text x="360" y="78" font-family="Inter" font-size="42" font-weight="900" fill="#0f172a" text-anchor="middle">7 Din Free Try Karein!</text>
+  <!-- CTA button -->
+  <g transform="translate(540, 1740)">
+    <rect x="-260" y="-50" width="520" height="100" rx="50" fill="#ffffff"/>
+    <text x="0" y="15" font-family="Inter, sans-serif" font-size="38" font-weight="900" fill="#15803d" text-anchor="middle" letter-spacing="2">Download Now →</text>
   </g>
 
-  <text x="540" y="1820" font-family="Inter" font-size="36" font-weight="700" fill="#22c55e" text-anchor="middle">→ nafaa.pk</text>
+  <!-- Footer -->
+  <text x="540" y="1870" font-family="Inter, sans-serif" font-size="28" font-weight="600" fill="rgba(255,255,255,0.8)" text-anchor="middle" letter-spacing="3">🇵🇰  nafaa.pk</text>
 </svg>

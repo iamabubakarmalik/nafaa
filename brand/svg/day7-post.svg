@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fb923c"/>
+      <stop offset="100%" stop-color="#c2410c"/>
+    </linearGradient>
+    <filter id="sh" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="15"/>
+      <feOffset dy="10"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.3"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1080" height="1080" fill="url(#bg)"/>
+
+  <!-- Nafaa logo -->
+  <g transform="translate(120, 110)" filter="url(#sh)">
+    <rect x="-50" y="-50" width="100" height="100" rx="22" fill="#ffffff"/>
+    <g transform="translate(0, 4)" stroke="#16a34a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <line x1="-22" y1="-25" x2="-22" y2="25"/>
+      <line x1="-22" y1="25" x2="22" y2="-25"/>
+      <line x1="22" y1="-25" x2="22" y2="25"/>
+      <polyline points="9,-25 22,-25 22,-12"/>
+    </g>
+    <circle cx="40" cy="-40" r="7" fill="#16a34a"/>
+  </g>
+  <text x="200" y="120" font-family="Inter, sans-serif" font-size="36" font-weight="900" fill="#ffffff">Nafaa</text>
+  <text x="200" y="148" font-family="Inter, sans-serif" font-size="16" font-weight="700" fill="#fef3c7" letter-spacing="2">DUKAN POS APP</text>
+
+  <!-- Hook -->
+  <text x="540" y="250" font-family="Inter, sans-serif" font-size="44" font-weight="900" fill="#ffffff" text-anchor="middle">🇵🇰 PAKISTAN'S CHOICE</text>
+  <text x="540" y="310" font-family="'Noto Nastaliq Urdu', serif" font-size="44" fill="#fef3c7" text-anchor="middle">پاکستان کا اعتماد</text>
+
+  <!-- Stats grid -->
+  <g transform="translate(540, 500)">
+    <!-- Stat 1: Users -->
+    <g transform="translate(-220, -100)">
+      <rect x="-160" y="-90" width="320" height="180" rx="25" fill="#ffffff" filter="url(#sh)"/>
+      <text x="0" y="-20" font-family="Inter, sans-serif" font-size="72" font-weight="900" fill="#ea580c" text-anchor="middle">1000+</text>
+      <text x="0" y="30" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#7c2d12" text-anchor="middle">Dukandar</text>
+      <text x="0" y="60" font-family="'Noto Nastaliq Urdu', serif" font-size="22" fill="#9a3412" text-anchor="middle">دکاندار</text>
+    </g>
+
+    <!-- Stat 2: Cities -->
+    <g transform="translate(220, -100)">
+      <rect x="-160" y="-90" width="320" height="180" rx="25" fill="#ffffff" filter="url(#sh)"/>
+      <text x="0" y="-20" font-family="Inter, sans-serif" font-size="72" font-weight="900" fill="#ea580c" text-anchor="middle">50+</text>
+      <text x="0" y="30" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#7c2d12" text-anchor="middle">Cities</text>
+      <text x="0" y="60" font-family="'Noto Nastaliq Urdu', serif" font-size="22" fill="#9a3412" text-anchor="middle">شہر</text>
+    </g>
+
+    <!-- Stat 3: Transactions -->
+    <g transform="translate(-220, 130)">
+      <rect x="-160" y="-90" width="320" height="180" rx="25" fill="#ffffff" filter="url(#sh)"/>
+      <text x="0" y="-20" font-family="Inter, sans-serif" font-size="72" font-weight="900" fill="#ea580c" text-anchor="middle">50K+</text>
+      <text x="0" y="30" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#7c2d12" text-anchor="middle">Sales</text>
+      <text x="0" y="60" font-family="'Noto Nastaliq Urdu', serif" font-size="22" fill="#9a3412" text-anchor="middle">سیلز</text>
+    </g>
+
+    <!-- Stat 4: Rating -->
+    <g transform="translate(220, 130)">
+      <rect x="-160" y="-90" width="320" height="180" rx="25" fill="#ffffff" filter="url(#sh)"/>
+      <text x="0" y="-30" font-family="Inter, sans-serif" font-size="56" font-weight="900" fill="#ea580c" text-anchor="middle">⭐ 5.0</text>
+      <text x="0" y="25" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#7c2d12" text-anchor="middle">Rating</text>
+      <text x="0" y="55" font-family="'Noto Nastaliq Urdu', serif" font-size="22" fill="#9a3412" text-anchor="middle">ریٹنگ</text>
+    </g>
+  </g>
+
+  <!-- Bottom hook -->
+  <text x="540" y="830" font-family="Inter, sans-serif" font-size="38" font-weight="800" fill="#ffffff" text-anchor="middle">Aap bhi join karein!</text>
+  <text x="540" y="880" font-family="'Noto Nastaliq Urdu', serif" font-size="38" fill="#fef3c7" text-anchor="middle">آپ بھی شامل ہوں</text>
+
+  <!-- CTA -->
+  <g transform="translate(540, 980)">
+    <rect x="-260" y="-44" width="520" height="88" rx="44" fill="#ffffff"/>
+    <text x="0" y="14" font-family="Inter, sans-serif" font-size="34" font-weight="900" fill="#c2410c" text-anchor="middle" letter-spacing="2">JOIN US →</text>
+  </g>
+
+  <text x="540" y="1050" font-family="Inter, sans-serif" font-size="22" font-weight="700" fill="rgba(255,255,255,0.9)" text-anchor="middle" letter-spacing="3">🇵🇰 nafaa.pk</text>
+</svg>
