@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { hashPassword } from '../../common/utils/password.util';
+import { hashPassword, comparePassword } from '../../common/utils/password.util';
 import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
 import { UpdateSettingsDto } from './dto/update-settings.dto';
 
@@ -151,7 +151,6 @@ export class SettingsService {
     if (!settings?.managerPin) {
       return { valid: false, message: 'PIN not set' };
     }
-    const { comparePassword } = await import('../../common/utils/password.util');
     const ok = await comparePassword(pin, settings.managerPin);
     return { valid: ok, message: ok ? 'PIN correct' : 'Invalid PIN' };
   }

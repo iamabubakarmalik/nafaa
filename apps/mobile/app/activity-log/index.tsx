@@ -53,7 +53,8 @@ export default function ActivityLogScreen() {
     return logs.filter(
       (l) =>
         l.action.toLowerCase().includes(q) ||
-        l.entity.toLowerCase().includes(q) ||
+        (l.entityType || "").toLowerCase().includes(q) ||
+        (l.description || '').toLowerCase().includes(q) ||
         (l.user?.fullName || '').toLowerCase().includes(q),
     );
   }, [logs, search]);
@@ -151,8 +152,13 @@ export default function ActivityLogScreen() {
                             {l.action}
                           </Text>
                         </View>
-                        <Text className="text-xs font-bold text-neutral-700">{l.entity}</Text>
+                        <Text className="text-xs font-bold text-neutral-700">{l.entityType || "system"}</Text>
                       </View>
+                      {l.description && (
+                        <Text className="text-sm text-neutral-700 dark:text-neutral-300 mt-1.5 leading-5">
+                          {l.description}
+                        </Text>
+                      )}
                       {l.user && (
                         <View className="flex-row items-center gap-1 mt-1.5">
                           <User size={10} color="#737373" />

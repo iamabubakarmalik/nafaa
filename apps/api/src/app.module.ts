@@ -7,6 +7,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import { PermissionsGuard } from './common/guards/permissions.guard';
 import { envValidationSchema } from './config/env.validation';
 import { ActivityLogModule } from './modules/activity-log/activity-log.module';
 import { AdminModule } from './modules/admin/admin.module';
@@ -120,6 +121,7 @@ import { PrismaModule } from './prisma/prisma.module';
     AppService,
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: PermissionsGuard },
     { provide: APP_GUARD, useClass: SubscriptionGuard },
     { provide: APP_INTERCEPTOR, useClass: ResponseInterceptor },
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },

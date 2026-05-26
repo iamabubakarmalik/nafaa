@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useRef, useState } from 'react';
+import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -48,74 +48,82 @@ import { toast } from 'sonner';
 import GlobalSearch from '@/components/search/GlobalSearch';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import { Logo } from '@/components/brand/Logo';
+import { hasPermission, PERMISSIONS, type PermissionKey } from '@/lib/permissions';
 
 const SIDEBAR_SCROLL_KEY = 'nafaa-sidebar-scroll';
 
-const navGroups = [
+type NavItem = {
+  to: string;
+  label: string;
+  icon: any;
+  permission?: PermissionKey;
+};
+
+const navGroups: { label: string; items: NavItem[] }[] = [
   {
     label: 'Overview',
     items: [
       { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-      { to: '/reports', label: 'Reports', icon: BarChart3 },
-      { to: '/profit-report', label: 'Profit by Product', icon: TrendingUp },
+      { to: '/reports', label: 'Reports', icon: BarChart3, permission: PERMISSIONS.REPORTS_VIEW },
+      { to: '/profit-report', label: 'Profit by Product', icon: TrendingUp, permission: PERMISSIONS.PROFIT_REPORT_VIEW },
     ],
   },
   {
     label: 'Sales',
     items: [
-      { to: '/pos', label: 'POS', icon: ShoppingCart },
-      { to: '/sales', label: 'Sales History', icon: Receipt },
-      { to: '/returns', label: 'Returns', icon: RotateCcw },
-      { to: '/customers', label: 'Customers', icon: Users },
-      { to: '/khata', label: 'Khata (Udhaar)', icon: BookOpen },
-      { to: '/loyalty', label: 'Loyalty Points', icon: Award },
-      { to: '/discounts', label: 'Discount Codes', icon: Percent },
-      { to: '/cash-register', label: 'Cash Register', icon: Wallet },
+      { to: '/pos', label: 'POS', icon: ShoppingCart, permission: PERMISSIONS.POS_USE },
+      { to: '/sales', label: 'Sales History', icon: Receipt, permission: PERMISSIONS.SALES_VIEW },
+      { to: '/returns', label: 'Returns', icon: RotateCcw, permission: PERMISSIONS.RETURNS_VIEW },
+      { to: '/customers', label: 'Customers', icon: Users, permission: PERMISSIONS.CUSTOMERS_VIEW },
+      { to: '/khata', label: 'Khata (Udhaar)', icon: BookOpen, permission: PERMISSIONS.KHATA_VIEW },
+      { to: '/loyalty', label: 'Loyalty Points', icon: Award, permission: PERMISSIONS.LOYALTY_VIEW },
+      { to: '/discounts', label: 'Discount Codes', icon: Percent, permission: PERMISSIONS.DISCOUNTS_VIEW },
+      { to: '/cash-register', label: 'Cash Register', icon: Wallet, permission: PERMISSIONS.CASH_REGISTER_VIEW },
     ],
   },
   {
     label: 'Inventory',
     items: [
-      { to: '/products', label: 'Products', icon: Package },
-      { to: '/brands', label: 'Brands', icon: Building2 },
-      { to: '/tags', label: 'Tags', icon: Hash },
-      { to: '/categories', label: 'Categories', icon: Tag },
-      { to: '/low-stock', label: 'Low Stock Alerts', icon: AlertTriangle },
-      { to: '/barcode-labels', label: 'Barcode Labels', icon: ScanLine },
-      { to: '/stock-movements', label: 'Stock Movements', icon: Activity },
-      { to: '/stock-adjustments', label: 'Adjustments', icon: ClipboardCheck },
-      { to: '/transfers', label: 'Stock Transfers', icon: ArrowRightLeft },
-      { to: '/suppliers', label: 'Suppliers', icon: Truck },
-      { to: '/purchases', label: 'Purchases', icon: PackagePlus },
+      { to: '/products', label: 'Products', icon: Package, permission: PERMISSIONS.PRODUCTS_VIEW },
+      { to: '/brands', label: 'Brands', icon: Building2, permission: PERMISSIONS.BRANDS_VIEW },
+      { to: '/tags', label: 'Tags', icon: Hash, permission: PERMISSIONS.TAGS_VIEW },
+      { to: '/categories', label: 'Categories', icon: Tag, permission: PERMISSIONS.CATEGORIES_VIEW },
+      { to: '/low-stock', label: 'Low Stock Alerts', icon: AlertTriangle, permission: PERMISSIONS.LOW_STOCK_VIEW },
+      { to: '/barcode-labels', label: 'Barcode Labels', icon: ScanLine, permission: PERMISSIONS.BARCODE_LABELS_VIEW },
+      { to: '/stock-movements', label: 'Stock Movements', icon: Activity, permission: PERMISSIONS.STOCK_MOVEMENTS_VIEW },
+      { to: '/stock-adjustments', label: 'Adjustments', icon: ClipboardCheck, permission: PERMISSIONS.STOCK_ADJUSTMENTS_MANAGE },
+      { to: '/transfers', label: 'Stock Transfers', icon: ArrowRightLeft, permission: PERMISSIONS.STOCK_TRANSFERS_MANAGE },
+      { to: '/suppliers', label: 'Suppliers', icon: Truck, permission: PERMISSIONS.SUPPLIERS_VIEW },
+      { to: '/purchases', label: 'Purchases', icon: PackagePlus, permission: PERMISSIONS.PURCHASES_VIEW },
     ],
   },
   {
     label: 'Finance & Plan',
     items: [
-      { to: '/expenses', label: 'Expenses', icon: Wallet },
-      { to: '/billing', label: 'Billing', icon: CreditCard },
-      { to: '/plans', label: 'Plans', icon: Sparkles },
-      { to: '/plan-usage', label: 'Plan Usage', icon: Gauge },
-      { to: '/referrals', label: 'Referrals', icon: Gift },
+      { to: '/expenses', label: 'Expenses', icon: Wallet, permission: PERMISSIONS.EXPENSES_VIEW },
+      { to: '/billing', label: 'Billing', icon: CreditCard, permission: PERMISSIONS.BILLING_VIEW },
+      { to: '/plans', label: 'Plans', icon: Sparkles, permission: PERMISSIONS.PLANS_VIEW },
+      { to: '/plan-usage', label: 'Plan Usage', icon: Gauge, permission: PERMISSIONS.PLAN_USAGE_VIEW },
+      { to: '/referrals', label: 'Referrals', icon: Gift, permission: PERMISSIONS.REFERRALS_VIEW },
     ],
   },
   {
     label: 'Data',
     items: [
-      { to: '/exports', label: 'Exports', icon: Download },
-      { to: '/backup', label: 'Backup', icon: Database },
+      { to: '/exports', label: 'Exports', icon: Download, permission: PERMISSIONS.EXPORTS_VIEW },
+      { to: '/backup', label: 'Backup', icon: Database, permission: PERMISSIONS.BACKUP_MANAGE },
     ],
   },
   {
     label: 'System',
     items: [
-      { to: '/team', label: 'Team', icon: ShieldCheck },
-      { to: '/shops', label: 'Shops / Branches', icon: Building2 },
-      { to: '/activity-log', label: 'Activity Log', icon: Activity },
+      { to: '/team', label: 'Team', icon: ShieldCheck, permission: PERMISSIONS.TEAM_VIEW },
+      { to: '/shops', label: 'Shops / Branches', icon: Building2, permission: PERMISSIONS.SHOPS_VIEW },
+      { to: '/activity-log', label: 'Activity Log', icon: Activity, permission: PERMISSIONS.ACTIVITY_VIEW },
       { to: '/profile', label: 'My Profile', icon: UserCircle },
       { to: '/help', label: 'Help Center', icon: LifeBuoy },
       { to: '/legal', label: 'Terms & Privacy', icon: ScrollText },
-      { to: '/settings', label: 'Settings', icon: SettingsIcon },
+      { to: '/settings', label: 'Settings', icon: SettingsIcon, permission: PERMISSIONS.SETTINGS_VIEW },
     ],
   },
 ];
@@ -123,6 +131,8 @@ const navGroups = [
 type SidebarContentProps = {
   tenantName?: string;
   userEmail?: string;
+  role?: any;
+  permissions?: string[];
   onLogout: () => void;
   onItemClick?: () => void;
 };
@@ -130,29 +140,39 @@ type SidebarContentProps = {
 const SidebarContent = memo(function SidebarContent({
   tenantName,
   userEmail,
+  role,
+  permissions,
   onLogout,
   onItemClick,
 }: SidebarContentProps) {
   const navRef = useRef<HTMLElement | null>(null);
+
+  const filteredGroups = useMemo(() => {
+    return navGroups
+      .map((group) => ({
+        ...group,
+        items: group.items.filter((item) =>
+          item.permission
+            ? hasPermission(role, permissions, item.permission)
+            : true,
+        ),
+      }))
+      .filter((group) => group.items.length > 0);
+  }, [role, permissions]);
 
   useEffect(() => {
     const nav = navRef.current;
     if (!nav) return;
 
     const saved = sessionStorage.getItem(SIDEBAR_SCROLL_KEY);
-    if (saved) {
-      nav.scrollTop = Number(saved);
-    }
+    if (saved) nav.scrollTop = Number(saved);
 
     const handleScroll = () => {
       sessionStorage.setItem(SIDEBAR_SCROLL_KEY, String(nav.scrollTop));
     };
 
     nav.addEventListener('scroll', handleScroll, { passive: true });
-
-    return () => {
-      nav.removeEventListener('scroll', handleScroll);
-    };
+    return () => nav.removeEventListener('scroll', handleScroll);
   }, []);
 
   return (
@@ -189,7 +209,7 @@ const SidebarContent = memo(function SidebarContent({
         ref={navRef}
         className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 py-4 space-y-5 sidebar-scroll"
       >
-        {navGroups.map((group) => (
+        {filteredGroups.map((group) => (
           <div key={group.label}>
             <div className="px-3 mb-2 text-[11px] uppercase tracking-[0.18em] text-slate-500 font-semibold">
               {group.label}
@@ -248,7 +268,6 @@ export default function AppShell() {
         await authApi.logout(refreshToken);
       }
     } catch (error) {
-      // optional: silently ignore logout API error
     } finally {
       logout();
       toast.success('Logout ho gaya');
@@ -259,16 +278,16 @@ export default function AppShell() {
   return (
     <div className="h-screen bg-slate-100 overflow-hidden">
       <div className="h-full grid lg:grid-cols-[280px_minmax(0,1fr)]">
-        {/* Desktop Sidebar */}
         <aside className="hidden lg:flex h-screen flex-col bg-slate-950 text-white border-r border-slate-800">
           <SidebarContent
             tenantName={tenant?.name}
             userEmail={user?.email}
+            role={user?.role}
+            permissions={user?.permissions}
             onLogout={handleLogout}
           />
         </aside>
 
-        {/* Mobile Sidebar */}
         {mobileOpen && (
           <div className="fixed inset-0 z-50 lg:hidden">
             <div
@@ -287,6 +306,8 @@ export default function AppShell() {
               <SidebarContent
                 tenantName={tenant?.name}
                 userEmail={user?.email}
+                role={user?.role}
+                permissions={user?.permissions}
                 onLogout={handleLogout}
                 onItemClick={() => setMobileOpen(false)}
               />
@@ -294,7 +315,6 @@ export default function AppShell() {
           </div>
         )}
 
-        {/* Right Side Layout */}
         <div className="min-w-0 h-screen flex flex-col overflow-hidden">
           <header className="sticky top-0 z-20 shrink-0 border-b border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 print:hidden">
             <div className="px-4 sm:px-6 py-4 flex items-center justify-between gap-3">
@@ -339,7 +359,6 @@ export default function AppShell() {
             </div>
           </header>
 
-          {/* Main Content */}
           <main className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 print:p-0 print:overflow-visible">
             <Outlet />
           </main>

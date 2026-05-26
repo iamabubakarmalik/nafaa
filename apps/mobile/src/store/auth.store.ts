@@ -6,8 +6,10 @@ export interface AuthUser {
   fullName: string;
   email: string;
   phone?: string | null;
-  role: string;
+  role: 'SUPER_ADMIN' | 'OWNER' | 'MANAGER' | 'CASHIER' | 'STAFF';
   tenantId: string;
+  permissions?: string[];
+  emailVerified?: boolean;
 }
 
 export interface AuthTenant {

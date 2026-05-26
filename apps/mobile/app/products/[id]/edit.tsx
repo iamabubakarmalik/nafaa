@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, Pressable, KeyboardAvoidingView, Platform,
-  TextInput, Alert,
+  TextInput, Alert, Image, ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
@@ -9,18 +9,23 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import {
   ArrowLeft, Save, Star, Eye, EyeOff, Package, DollarSign, Boxes, Hash,
-  Check, Sparkles, TrendingUp, AlertTriangle, Calendar, Tag as TagIcon,
-  Building2, Trash2, ImageIcon, Layers,
+  Check, TrendingUp, Calendar, Tag as TagIcon, Building2, Trash2,
+  ImageIcon, Layers, Upload, Star as StarFilled, GripVertical,
 } from 'lucide-react-native';
 import { productsApi, type UpdateProductPayload } from '@/api/products.api';
 import { brandsApi } from '@/api/brands.api';
 import { categoriesApi } from '@/api/categories.api';
 import { tagsApi } from '@/api/tags.api';
+import { productImagesApi } from '@/api/product-images.api';
+import { productVariantsApi, type UpsertVariantPayload } from '@/api/product-variants.api';
+import { pickAndUploadProductImages } from '@/lib/uploadProductImage';
+import MobileVariantBuilder from '@/components/products/MobileVariantBuilder';
 import { formatPKRFull } from '@/lib/format';
 import Toast from 'react-native-toast-message';
 
 import { useTranslation } from '@/i18n/useTranslation';
-type Section = 'basic' | 'pricing' | 'inventory' | 'tags' | 'media';
+
+type Section = 'basic' | 'pricing' | 'inventory' | 'images' | 'variants' | 'tags';
 
 const sections: {
   id: Section;
@@ -31,8 +36,9 @@ const sections: {
   { id: 'basic', label: 'Basic', icon: Package, color: '#16a34a' },
   { id: 'pricing', label: 'Price', icon: DollarSign, color: '#2563eb' },
   { id: 'inventory', label: 'Stock', icon: Boxes, color: '#f59e0b' },
-  { id: 'tags', label: 'Tags', icon: Hash, color: '#ec4899' },
-  { id: 'media', label: 'Media', icon: ImageIcon, color: '#8b5cf6' },
+  { id: 'images', label: 'Images', icon: ImageIcon, color: '#8b5cf6' },
+  { id: 'variants', label: 'Variants', icon: Layers, color: '#ec4899' },
+  { id: 'tags', label: 'Tags', icon: Hash, color: '#0ea5e9' },
 ];
 
 function ThemedInput({ label, required, hint, ...props }: any) {
@@ -65,6 +71,7 @@ export default function EditProductScreen() {
   const [section, setSection] = useState<Section>('basic');
   const [form, setForm] = useState<UpdateProductPayload>({});
   const [originalLoaded, setOriginalLoaded] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const { data: product } = useQuery({
     queryKey: ['product', id],
@@ -114,7 +121,32 @@ export default function EditProductScreen() {
     },
   });
 
-  // Load product data into form
+  const { data: images = [], refetch: refetchImages } = useQuery({
+    queryKey: ['product-images', id],
+    queryFn: async () => {
+      try {
+        const r = await productImagesApi.list(id);
+        return Array.isArray(r) ? r : [];
+      } catch {
+        return [];
+      }
+    },
+    enabled: !!id,
+  });
+
+  const { data: variants = [], refetch: refetchVariants } = useQuery({
+    queryKey: ['product-variants', id],
+    queryFn: async () => {
+      try {
+        const r = await productVariantsApi.list(id);
+        return Array.isArray(r) ? r : [];
+      } catch {
+        return [];
+      }
+    },
+    enabled: !!id,
+  });
+
   useEffect(() => {
     if (product && !originalLoaded) {
       setForm({
@@ -148,7 +180,6 @@ export default function EditProductScreen() {
       Toast.show({ type: 'success', text1: '✅ Updated!' });
       queryClient.invalidateQueries({ queryKey: ['product', id] });
       queryClient.invalidateQueries({ queryKey: ['products'] });
-      router.back();
     },
     onError: (e: any) => {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -172,6 +203,43 @@ export default function EditProductScreen() {
     },
   });
 
+  const addImageMutation = useMutation({
+    mutationFn: (payload: { url: string; uploadId?: string; isPrimary?: boolean }) =>
+      productImagesApi.add(id, payload),
+    onSuccess: () => refetchImages(),
+  });
+
+  const setPrimaryMutation = useMutation({
+    mutationFn: (imageId: string) => productImagesApi.setPrimary(id, imageId),
+    onSuccess: () => {
+      Haptics.selectionAsync();
+      refetchImages();
+      Toast.show({ type: 'success', text1: 'Primary image set' });
+    },
+  });
+
+  const removeImageMutation = useMutation({
+    mutationFn: (imageId: string) => productImagesApi.remove(id, imageId),
+    onSuccess: () => {
+      refetchImages();
+      Toast.show({ type: 'success', text1: 'Image removed' });
+    },
+  });
+
+  const bulkVariantsMutation = useMutation({
+    mutationFn: (vs: UpsertVariantPayload[]) => productVariantsApi.bulkCreate(id, vs),
+    onSuccess: () => {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      refetchVariants();
+      Toast.show({ type: 'success', text1: 'Variants generated!' });
+    },
+  });
+
+  const removeVariantMutation = useMutation({
+    mutationFn: (vid: string) => productVariantsApi.remove(id, vid),
+    onSuccess: () => refetchVariants(),
+  });
+
   const toggleTag = (tagId: string) => {
     Haptics.selectionAsync();
     setForm((f) => ({
@@ -193,6 +261,59 @@ export default function EditProductScreen() {
     ]);
   };
 
+  const handlePickImages = async () => {
+    try {
+      setUploading(true);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      const uploaded = await pickAndUploadProductImages(5);
+
+      for (let i = 0; i < uploaded.length; i++) {
+        const u = uploaded[i];
+        await addImageMutation.mutateAsync({
+          url: u.url,
+          uploadId: u.uploadId,
+          isPrimary: images.length === 0 && i === 0,
+        });
+      }
+
+      if (uploaded.length > 0) {
+        Toast.show({
+          type: 'success',
+          text1: `${uploaded.length} image(s) uploaded`,
+        });
+      }
+    } catch (e: any) {
+      Toast.show({
+        type: 'error',
+        text1: e?.message || 'Upload failed',
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const confirmRemoveImage = (imageId: string) => {
+    Alert.alert('Remove image?', 'Sure?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Remove',
+        style: 'destructive',
+        onPress: () => removeImageMutation.mutate(imageId),
+      },
+    ]);
+  };
+
+  const confirmRemoveVariant = (vid: string, name: string) => {
+    Alert.alert('Remove variant?', `Remove "${name}"?`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Remove',
+        style: 'destructive',
+        onPress: () => removeVariantMutation.mutate(vid),
+      },
+    ]);
+  };
+
   const currentSection = sections.find((s) => s.id === section)!;
   const profit = (form.price ?? 0) - (form.costPrice ?? 0);
   const margin = (form.price ?? 0) > 0 ? (profit / (form.price ?? 1)) * 100 : 0;
@@ -201,7 +322,7 @@ export default function EditProductScreen() {
     return (
       <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-950 items-center justify-center">
         <Package size={36} color="#9ca3af" />
-        <Text className="mt-3 text-neutral-500">{t('auto.section.loading')}</Text>
+        <Text className="mt-3 text-neutral-500">Loading...</Text>
       </SafeAreaView>
     );
   }
@@ -220,7 +341,9 @@ export default function EditProductScreen() {
           <ArrowLeft size={20} color="#16a34a" />
         </Pressable>
         <View className="flex-1">
-          <Text className="text-xl font-extrabold text-neutral-900 dark:text-white" numberOfLines={1}>{t('auto.edit.edit_product')}</Text>
+          <Text className="text-xl font-extrabold text-neutral-900 dark:text-white" numberOfLines={1}>
+            Edit Product
+          </Text>
           <Text className="text-[11px] text-neutral-500" numberOfLines={1}>
             {product.name}
           </Text>
@@ -315,7 +438,9 @@ export default function EditProductScreen() {
               <Text style={{ color: '#ffffff', fontWeight: '800', fontSize: 16 }}>
                 Editing: {currentSection.label}
               </Text>
-              <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 11, marginTop: 2 }}>{t('auto.edit.tap_save_changes_niche_to_apply')}</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 11, marginTop: 2 }}>
+                Tap Save Changes neeche to apply
+              </Text>
             </View>
           </View>
 
@@ -331,9 +456,7 @@ export default function EditProductScreen() {
               <ThemedInput
                 label="Short Description"
                 value={form.shortDescription ?? ''}
-                onChangeText={(t: string) =>
-                  setForm({ ...form, shortDescription: t })
-                }
+                onChangeText={(t: string) => setForm({ ...form, shortDescription: t })}
               />
               <ThemedInput
                 label="Description"
@@ -344,59 +467,23 @@ export default function EditProductScreen() {
 
               {categories.length > 0 && (
                 <View>
-                  <Text className="text-sm font-bold text-neutral-700 dark:text-neutral-200 mb-2">{t('auto.new.category')}</Text>
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={{ gap: 8, paddingRight: 20 }}
-                  >
+                  <Text className="text-sm font-bold text-neutral-700 dark:text-neutral-200 mb-2">Category</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingRight: 20 }}>
                     <Pressable
                       onPress={() => setForm({ ...form, categoryId: undefined })}
-                      style={{
-                        paddingHorizontal: 14,
-                        height: 38,
-                        borderRadius: 12,
-                        borderWidth: 2,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        backgroundColor: !form.categoryId ? '#16a34a' : '#ffffff',
-                        borderColor: !form.categoryId ? '#16a34a' : '#e5e7eb',
-                      }}
+                      style={{ paddingHorizontal: 14, height: 38, borderRadius: 12, borderWidth: 2, alignItems: 'center', justifyContent: 'center', backgroundColor: !form.categoryId ? '#16a34a' : '#ffffff', borderColor: !form.categoryId ? '#16a34a' : '#e5e7eb' }}
                     >
-                      <Text
-                        style={{
-                          fontSize: 13,
-                          fontWeight: '700',
-                          color: !form.categoryId ? '#ffffff' : '#374151',
-                        }}
-                      >{t('auto.new.none')}</Text>
+                      <Text style={{ fontSize: 13, fontWeight: '700', color: !form.categoryId ? '#ffffff' : '#374151' }}>None</Text>
                     </Pressable>
-                    {categories.map((c) => {
+                    {categories.map((c: any) => {
                       const active = form.categoryId === c.id;
                       return (
                         <Pressable
                           key={c.id}
                           onPress={() => setForm({ ...form, categoryId: c.id })}
-                          style={{
-                            paddingHorizontal: 14,
-                            height: 38,
-                            borderRadius: 12,
-                            borderWidth: 2,
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            backgroundColor: active ? c.color || '#16a34a' : '#ffffff',
-                            borderColor: active ? c.color || '#16a34a' : '#e5e7eb',
-                          }}
+                          style={{ paddingHorizontal: 14, height: 38, borderRadius: 12, borderWidth: 2, alignItems: 'center', justifyContent: 'center', backgroundColor: active ? c.color || '#16a34a' : '#ffffff', borderColor: active ? c.color || '#16a34a' : '#e5e7eb' }}
                         >
-                          <Text
-                            style={{
-                              fontSize: 13,
-                              fontWeight: '700',
-                              color: active ? '#ffffff' : '#374151',
-                            }}
-                          >
-                            {c.name}
-                          </Text>
+                          <Text style={{ fontSize: 13, fontWeight: '700', color: active ? '#ffffff' : '#374151' }}>{c.name}</Text>
                         </Pressable>
                       );
                     })}
@@ -408,60 +495,24 @@ export default function EditProductScreen() {
                 <View>
                   <View className="flex-row items-center gap-1.5 mb-2">
                     <Building2 size={14} color="#8b5cf6" />
-                    <Text className="text-sm font-bold text-neutral-700 dark:text-neutral-200">{t('auto.new.brand')}</Text>
+                    <Text className="text-sm font-bold text-neutral-700 dark:text-neutral-200">Brand</Text>
                   </View>
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={{ gap: 8, paddingRight: 20 }}
-                  >
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingRight: 20 }}>
                     <Pressable
                       onPress={() => setForm({ ...form, brandId: undefined })}
-                      style={{
-                        paddingHorizontal: 14,
-                        height: 38,
-                        borderRadius: 12,
-                        borderWidth: 2,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        backgroundColor: !form.brandId ? '#7c3aed' : '#ffffff',
-                        borderColor: !form.brandId ? '#7c3aed' : '#e5e7eb',
-                      }}
+                      style={{ paddingHorizontal: 14, height: 38, borderRadius: 12, borderWidth: 2, alignItems: 'center', justifyContent: 'center', backgroundColor: !form.brandId ? '#7c3aed' : '#ffffff', borderColor: !form.brandId ? '#7c3aed' : '#e5e7eb' }}
                     >
-                      <Text
-                        style={{
-                          fontSize: 13,
-                          fontWeight: '700',
-                          color: !form.brandId ? '#ffffff' : '#374151',
-                        }}
-                      >{t('auto.new.none')}</Text>
+                      <Text style={{ fontSize: 13, fontWeight: '700', color: !form.brandId ? '#ffffff' : '#374151' }}>None</Text>
                     </Pressable>
-                    {brands.map((b) => {
+                    {brands.map((b: any) => {
                       const active = form.brandId === b.id;
                       return (
                         <Pressable
                           key={b.id}
                           onPress={() => setForm({ ...form, brandId: b.id })}
-                          style={{
-                            paddingHorizontal: 14,
-                            height: 38,
-                            borderRadius: 12,
-                            borderWidth: 2,
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            backgroundColor: active ? '#7c3aed' : '#ffffff',
-                            borderColor: active ? '#7c3aed' : '#e5e7eb',
-                          }}
+                          style={{ paddingHorizontal: 14, height: 38, borderRadius: 12, borderWidth: 2, alignItems: 'center', justifyContent: 'center', backgroundColor: active ? '#7c3aed' : '#ffffff', borderColor: active ? '#7c3aed' : '#e5e7eb' }}
                         >
-                          <Text
-                            style={{
-                              fontSize: 13,
-                              fontWeight: '700',
-                              color: active ? '#ffffff' : '#374151',
-                            }}
-                          >
-                            {b.name}
-                          </Text>
+                          <Text style={{ fontSize: 13, fontWeight: '700', color: active ? '#ffffff' : '#374151' }}>{b.name}</Text>
                         </Pressable>
                       );
                     })}
@@ -471,67 +522,33 @@ export default function EditProductScreen() {
 
               <View className="flex-row gap-3">
                 <View className="flex-1">
-                  <ThemedInput
-                    label="SKU"
-                    value={form.sku ?? ''}
-                    onChangeText={(t: string) => setForm({ ...form, sku: t })}
-                    autoCapitalize="characters"
-                  />
+                  <ThemedInput label="SKU" value={form.sku ?? ''} onChangeText={(t: string) => setForm({ ...form, sku: t })} autoCapitalize="characters" />
                 </View>
                 <View className="flex-1">
-                  <ThemedInput
-                    label="Unit"
-                    value={form.unit ?? 'pcs'}
-                    onChangeText={(t: string) => setForm({ ...form, unit: t })}
-                  />
+                  <ThemedInput label="Unit" value={form.unit ?? 'pcs'} onChangeText={(t: string) => setForm({ ...form, unit: t })} />
                 </View>
               </View>
 
-              <ThemedInput
-                label="Barcode"
-                value={form.barcode ?? ''}
-                onChangeText={(t: string) => setForm({ ...form, barcode: t })}
-                keyboardType="number-pad"
-              />
+              <ThemedInput label="Barcode" value={form.barcode ?? ''} onChangeText={(t: string) => setForm({ ...form, barcode: t })} keyboardType="number-pad" />
 
               <View className="flex-row gap-2 mt-1">
                 <Pressable
                   onPress={() => setForm({ ...form, isActive: !form.isActive })}
                   className="flex-1 flex-row items-center gap-2 px-4 py-3 rounded-2xl border-2"
-                  style={{
-                    borderColor: form.isActive ? '#16a34a' : '#e5e7eb',
-                    backgroundColor: form.isActive ? '#dcfce7' : '#ffffff',
-                  }}
+                  style={{ borderColor: form.isActive ? '#16a34a' : '#e5e7eb', backgroundColor: form.isActive ? '#dcfce7' : '#ffffff' }}
                 >
-                  {form.isActive ? (
-                    <Eye size={18} color="#16a34a" />
-                  ) : (
-                    <EyeOff size={18} color="#6b7280" />
-                  )}
-                  <Text
-                    className="font-bold text-sm flex-1"
-                    style={{ color: form.isActive ? '#15803d' : '#6b7280' }}
-                  >
+                  {form.isActive ? <Eye size={18} color="#16a34a" /> : <EyeOff size={18} color="#6b7280" />}
+                  <Text className="font-bold text-sm flex-1" style={{ color: form.isActive ? '#15803d' : '#6b7280' }}>
                     {form.isActive ? 'Active' : 'Inactive'}
                   </Text>
                 </Pressable>
                 <Pressable
                   onPress={() => setForm({ ...form, isFeatured: !form.isFeatured })}
                   className="flex-1 flex-row items-center gap-2 px-4 py-3 rounded-2xl border-2"
-                  style={{
-                    borderColor: form.isFeatured ? '#f59e0b' : '#e5e7eb',
-                    backgroundColor: form.isFeatured ? '#fef3c7' : '#ffffff',
-                  }}
+                  style={{ borderColor: form.isFeatured ? '#f59e0b' : '#e5e7eb', backgroundColor: form.isFeatured ? '#fef3c7' : '#ffffff' }}
                 >
-                  <Star
-                    size={18}
-                    color={form.isFeatured ? '#f59e0b' : '#6b7280'}
-                    fill={form.isFeatured ? '#f59e0b' : 'none'}
-                  />
-                  <Text
-                    className="font-bold text-sm flex-1"
-                    style={{ color: form.isFeatured ? '#b45309' : '#6b7280' }}
-                  >
+                  <Star size={18} color={form.isFeatured ? '#f59e0b' : '#6b7280'} fill={form.isFeatured ? '#f59e0b' : 'none'} />
+                  <Text className="font-bold text-sm flex-1" style={{ color: form.isFeatured ? '#b45309' : '#6b7280' }}>
                     {form.isFeatured ? 'Featured' : 'Normal'}
                   </Text>
                 </Pressable>
@@ -542,64 +559,23 @@ export default function EditProductScreen() {
           {/* PRICING */}
           {section === 'pricing' && (
             <View className="gap-4">
-              <ThemedInput
-                label="Sell Price"
-                required
-                value={String(form.price ?? '')}
-                onChangeText={(t: string) =>
-                  setForm({ ...form, price: Number(t) || 0 })
-                }
-                keyboardType="numeric"
-              />
-              <ThemedInput
-                label="Cost Price"
-                value={String(form.costPrice ?? '')}
-                onChangeText={(t: string) =>
-                  setForm({ ...form, costPrice: Number(t) || 0 })
-                }
-                keyboardType="numeric"
-              />
-              <ThemedInput
-                label="Wholesale Price"
-                value={form.wholesalePrice !== undefined ? String(form.wholesalePrice) : ''}
-                onChangeText={(t: string) =>
-                  setForm({ ...form, wholesalePrice: t ? Number(t) : undefined })
-                }
-                keyboardType="numeric"
-              />
-              <ThemedInput
-                label="Tax Rate (%)"
-                value={String(form.taxRate ?? 0)}
-                onChangeText={(t: string) =>
-                  setForm({ ...form, taxRate: Number(t) || 0 })
-                }
-                keyboardType="numeric"
-              />
+              <ThemedInput label="Sell Price" required value={String(form.price ?? '')} onChangeText={(t: string) => setForm({ ...form, price: Number(t) || 0 })} keyboardType="numeric" />
+              <ThemedInput label="Cost Price" value={String(form.costPrice ?? '')} onChangeText={(t: string) => setForm({ ...form, costPrice: Number(t) || 0 })} keyboardType="numeric" />
+              <ThemedInput label="Wholesale Price" value={form.wholesalePrice !== undefined ? String(form.wholesalePrice) : ''} onChangeText={(t: string) => setForm({ ...form, wholesalePrice: t ? Number(t) : undefined })} keyboardType="numeric" />
+              <ThemedInput label="Tax Rate (%)" value={String(form.taxRate ?? 0)} onChangeText={(t: string) => setForm({ ...form, taxRate: Number(t) || 0 })} keyboardType="numeric" />
 
-              <View
-                style={{
-                  borderRadius: 20,
-                  padding: 18,
-                  marginTop: 6,
-                  backgroundColor:
-                    margin > 30 ? '#16a34a' : margin > 10 ? '#f59e0b' : '#737373',
-                }}
-              >
+              <View style={{ borderRadius: 20, padding: 18, marginTop: 6, backgroundColor: margin > 30 ? '#16a34a' : margin > 10 ? '#f59e0b' : '#737373' }}>
                 <View className="flex-row items-center gap-2 mb-2">
                   <TrendingUp size={16} color="#ffffff" />
-                  <Text className="text-xs font-bold uppercase tracking-wider text-white/80">{t('auto.new.profit_margin')}</Text>
+                  <Text className="text-xs font-bold uppercase tracking-wider text-white/80">Profit Margin</Text>
                 </View>
                 <Text className="text-4xl font-extrabold text-white">
-                  {(form.price ?? 0) > 0 && form.costPrice
-                    ? `${margin.toFixed(1)}%`
-                    : '—'}
+                  {(form.price ?? 0) > 0 && form.costPrice ? `${margin.toFixed(1)}%` : '—'}
                 </Text>
                 <View className="mt-3 pt-3 border-t border-white/20 flex-row items-center justify-between">
                   <View>
-                    <Text className="text-[10px] font-bold uppercase tracking-wider text-white/70">{t('auto.new.profit_per_unit')}</Text>
-                    <Text className="text-base font-extrabold text-white mt-0.5">
-                      {formatPKRFull(profit)}
-                    </Text>
+                    <Text className="text-[10px] font-bold uppercase tracking-wider text-white/70">Profit per unit</Text>
+                    <Text className="text-base font-extrabold text-white mt-0.5">{formatPKRFull(profit)}</Text>
                   </View>
                 </View>
               </View>
@@ -609,69 +585,177 @@ export default function EditProductScreen() {
           {/* INVENTORY */}
           {section === 'inventory' && (
             <View className="gap-4">
-              <ThemedInput
-                label="Current Stock"
-                value={String(form.stock ?? 0)}
-                onChangeText={(t: string) =>
-                  setForm({ ...form, stock: Number(t) || 0 })
-                }
-                keyboardType="numeric"
-              />
-              <ThemedInput
-                label="Low Stock Alert"
-                value={String(form.lowStockAlert ?? 5)}
-                onChangeText={(t: string) =>
-                  setForm({ ...form, lowStockAlert: Number(t) || 5 })
-                }
-                keyboardType="numeric"
-              />
+              <ThemedInput label="Current Stock" value={String(form.stock ?? 0)} onChangeText={(t: string) => setForm({ ...form, stock: Number(t) || 0 })} keyboardType="numeric" />
+              <ThemedInput label="Low Stock Alert" value={String(form.lowStockAlert ?? 5)} onChangeText={(t: string) => setForm({ ...form, lowStockAlert: Number(t) || 5 })} keyboardType="numeric" />
 
               <Pressable
-                onPress={() =>
-                  setForm({ ...form, expiryTracked: !form.expiryTracked })
-                }
+                onPress={() => setForm({ ...form, expiryTracked: !form.expiryTracked })}
                 className="flex-row items-center gap-3 p-4 rounded-2xl border-2"
-                style={{
-                  borderColor: form.expiryTracked ? '#f59e0b' : '#e5e7eb',
-                  backgroundColor: form.expiryTracked ? '#fef3c7' : '#ffffff',
-                }}
+                style={{ borderColor: form.expiryTracked ? '#f59e0b' : '#e5e7eb', backgroundColor: form.expiryTracked ? '#fef3c7' : '#ffffff' }}
               >
-                <View
-                  className="h-12 w-12 rounded-2xl items-center justify-center"
-                  style={{
-                    backgroundColor: form.expiryTracked ? '#f59e0b' : '#f3f4f6',
-                  }}
-                >
-                  <Calendar
-                    size={22}
-                    color={form.expiryTracked ? '#ffffff' : '#6b7280'}
-                  />
+                <View className="h-12 w-12 rounded-2xl items-center justify-center" style={{ backgroundColor: form.expiryTracked ? '#f59e0b' : '#f3f4f6' }}>
+                  <Calendar size={22} color={form.expiryTracked ? '#ffffff' : '#6b7280'} />
                 </View>
                 <View className="flex-1">
-                  <Text className="text-base font-bold text-neutral-900 dark:text-white">{t('auto.new.track_expiry_batches')}</Text>
-                  <Text className="text-xs text-neutral-500 mt-0.5">{t('auto.edit.pharmacy_food_perishables')}</Text>
+                  <Text className="text-base font-bold text-neutral-900 dark:text-white">Track Expiry / Batches</Text>
+                  <Text className="text-xs text-neutral-500 mt-0.5">Pharmacy, food, perishables</Text>
                 </View>
-                <View
-                  style={{
-                    height: 28,
-                    width: 48,
-                    borderRadius: 14,
-                    padding: 2,
-                    justifyContent: 'center',
-                    backgroundColor: form.expiryTracked ? '#f59e0b' : '#d1d5db',
-                  }}
-                >
-                  <View
-                    style={{
-                      height: 24,
-                      width: 24,
-                      borderRadius: 12,
-                      backgroundColor: '#ffffff',
-                      transform: [{ translateX: form.expiryTracked ? 20 : 0 }],
-                    }}
-                  />
+                <View style={{ height: 28, width: 48, borderRadius: 14, padding: 2, justifyContent: 'center', backgroundColor: form.expiryTracked ? '#f59e0b' : '#d1d5db' }}>
+                  <View style={{ height: 24, width: 24, borderRadius: 12, backgroundColor: '#ffffff', transform: [{ translateX: form.expiryTracked ? 20 : 0 }] }} />
                 </View>
               </Pressable>
+            </View>
+          )}
+
+          {/* IMAGES */}
+          {section === 'images' && (
+            <View className="gap-4">
+              <Pressable
+                onPress={handlePickImages}
+                disabled={uploading}
+                className="rounded-3xl border-2 border-dashed p-8 items-center"
+                style={{ borderColor: '#8b5cf6', backgroundColor: '#f5f3ff' }}
+              >
+                {uploading ? (
+                  <>
+                    <ActivityIndicator size="large" color="#8b5cf6" />
+                    <Text className="mt-3 text-base font-bold text-violet-900">Uploading...</Text>
+                  </>
+                ) : (
+                  <>
+                    <View className="h-16 w-16 rounded-3xl bg-violet-200 items-center justify-center">
+                      <Upload size={28} color="#7c3aed" />
+                    </View>
+                    <Text className="mt-4 text-base font-bold text-violet-900">Tap to upload images</Text>
+                    <Text className="text-xs text-violet-700 mt-1 text-center">
+                      Gallery se 5 tak images select karein
+                    </Text>
+                  </>
+                )}
+              </Pressable>
+
+              <View>
+                <View className="flex-row items-center gap-2 mb-2">
+                  <ImageIcon size={16} color="#8b5cf6" />
+                  <Text className="text-sm font-bold text-neutral-700 dark:text-neutral-200">
+                    Gallery ({images.length})
+                  </Text>
+                </View>
+
+                {images.length === 0 ? (
+                  <View className="rounded-2xl border border-dashed border-neutral-200 bg-white p-6 items-center">
+                    <Text className="text-sm text-neutral-500">No images yet</Text>
+                  </View>
+                ) : (
+                  <View className="flex-row flex-wrap" style={{ gap: 10 }}>
+                    {images.map((img: any) => (
+                      <View
+                        key={img.id}
+                        style={{ width: '31%', aspectRatio: 1, position: 'relative' }}
+                        className="rounded-2xl overflow-hidden border border-neutral-200 bg-white"
+                      >
+                        <Image source={{ uri: img.url }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+
+                        {img.isPrimary && (
+                          <View
+                            style={{ position: 'absolute', top: 4, left: 4 }}
+                            className="px-2 py-0.5 rounded-md flex-row items-center gap-1"
+                          >
+                            <View style={{ backgroundColor: '#f59e0b', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                              <StarFilled size={9} color="#ffffff" fill="#ffffff" />
+                              <Text style={{ color: '#ffffff', fontSize: 9, fontWeight: '800' }}>PRIMARY</Text>
+                            </View>
+                          </View>
+                        )}
+
+                        <View style={{ position: 'absolute', bottom: 4, left: 4, right: 4, flexDirection: 'row', gap: 4 }}>
+                          {!img.isPrimary && (
+                            <Pressable
+                              onPress={() => setPrimaryMutation.mutate(img.id)}
+                              style={{ flex: 1, height: 26, borderRadius: 6, backgroundColor: 'rgba(245, 158, 11, 0.95)', alignItems: 'center', justifyContent: 'center' }}
+                            >
+                              <Star size={12} color="#ffffff" />
+                            </Pressable>
+                          )}
+                          <Pressable
+                            onPress={() => confirmRemoveImage(img.id)}
+                            style={{ flex: 1, height: 26, borderRadius: 6, backgroundColor: 'rgba(220, 38, 38, 0.95)', alignItems: 'center', justifyContent: 'center' }}
+                          >
+                            <Trash2 size={12} color="#ffffff" />
+                          </Pressable>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+            </View>
+          )}
+
+          {/* VARIANTS */}
+          {section === 'variants' && (
+            <View className="gap-4">
+              <MobileVariantBuilder
+                basePrice={form.price ?? 0}
+                baseCostPrice={form.costPrice ?? 0}
+                onGenerate={(vs) => bulkVariantsMutation.mutate(vs)}
+              />
+
+              <View>
+                <View className="flex-row items-center gap-2 mb-2">
+                  <Layers size={16} color="#ec4899" />
+                  <Text className="text-sm font-bold text-neutral-700 dark:text-neutral-200">
+                    Existing Variants ({variants.length})
+                  </Text>
+                </View>
+
+                {variants.length === 0 ? (
+                  <View className="rounded-2xl border border-dashed border-neutral-200 bg-white p-6 items-center">
+                    <Layers size={24} color="#9ca3af" />
+                    <Text className="mt-2 text-sm text-neutral-500">No variants yet</Text>
+                    <Text className="text-xs text-neutral-400 mt-0.5">Use builder above to generate</Text>
+                  </View>
+                ) : (
+                  <View className="gap-2">
+                    {variants.map((v: any) => (
+                      <View
+                        key={v.id}
+                        className="rounded-2xl bg-white border border-neutral-200 p-3 flex-row items-center gap-3"
+                      >
+                        {v.colorHex ? (
+                          <View
+                            className="h-12 w-12 rounded-xl border-2 border-neutral-200"
+                            style={{ backgroundColor: v.colorHex }}
+                          />
+                        ) : (
+                          <View className="h-12 w-12 rounded-xl bg-violet-100 items-center justify-center">
+                            <Layers size={18} color="#8b5cf6" />
+                          </View>
+                        )}
+                        <View className="flex-1">
+                          <Text className="font-bold text-neutral-900" numberOfLines={1}>
+                            {v.name}
+                          </Text>
+                          <View className="flex-row items-center gap-3 mt-0.5">
+                            <Text className="text-xs text-emerald-700 font-bold">
+                              {formatPKRFull(v.price)}
+                            </Text>
+                            <Text className="text-xs text-neutral-500 font-bold">
+                              {v.stock} {v.unit || product.unit}
+                            </Text>
+                          </View>
+                        </View>
+                        <Pressable
+                          onPress={() => confirmRemoveVariant(v.id, v.name)}
+                          className="h-9 w-9 rounded-lg bg-rose-50 border border-rose-200 items-center justify-center"
+                        >
+                          <Trash2 size={14} color="#dc2626" />
+                        </Pressable>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
             </View>
           )}
 
@@ -681,14 +765,7 @@ export default function EditProductScreen() {
               {allTags.length === 0 ? (
                 <View className="rounded-3xl border-2 border-dashed border-pink-200 bg-pink-50 p-8 items-center">
                   <Hash size={28} color="#ec4899" />
-                  <Text className="mt-4 text-base font-bold text-pink-900">{t('auto.index.no_tags_yet')}</Text>
-                  <Pressable
-                    onPress={() => router.push('/tags')}
-                    className="mt-4 px-5 py-2.5 rounded-xl"
-                    style={{ backgroundColor: '#ec4899' }}
-                  >
-                    <Text className="text-white font-bold text-sm">{t('auto.new.create_tags')}</Text>
-                  </Pressable>
+                  <Text className="mt-4 text-base font-bold text-pink-900">No tags yet</Text>
                 </View>
               ) : (
                 <>
@@ -699,12 +776,12 @@ export default function EditProductScreen() {
                     </Text>
                   </View>
                   <View className="flex-row flex-wrap gap-2">
-                    {allTags.map((t) => {
-                      const active = form.tagIds?.includes(t.id);
+                    {allTags.map((tag: any) => {
+                      const active = form.tagIds?.includes(tag.id);
                       return (
                         <Pressable
-                          key={t.id}
-                          onPress={() => toggleTag(t.id)}
+                          key={tag.id}
+                          onPress={() => toggleTag(tag.id)}
                           style={{
                             flexDirection: 'row',
                             alignItems: 'center',
@@ -713,38 +790,16 @@ export default function EditProductScreen() {
                             height: 36,
                             borderRadius: 999,
                             borderWidth: 2,
-                            backgroundColor: active ? `${t.color}20` : '#ffffff',
-                            borderColor: active ? t.color : '#e5e7eb',
+                            backgroundColor: active ? `${tag.color}20` : '#ffffff',
+                            borderColor: active ? tag.color : '#e5e7eb',
                           }}
                         >
-                          <View
-                            style={{
-                              height: 8,
-                              width: 8,
-                              borderRadius: 4,
-                              backgroundColor: t.color,
-                            }}
-                          />
-                          <Text
-                            style={{
-                              fontSize: 13,
-                              fontWeight: '700',
-                              color: active ? t.color : '#6b7280',
-                            }}
-                          >
-                            {t.name}
+                          <View style={{ height: 8, width: 8, borderRadius: 4, backgroundColor: tag.color }} />
+                          <Text style={{ fontSize: 13, fontWeight: '700', color: active ? tag.color : '#6b7280' }}>
+                            {tag.name}
                           </Text>
                           {active && (
-                            <View
-                              style={{
-                                height: 18,
-                                width: 18,
-                                borderRadius: 9,
-                                backgroundColor: t.color,
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                              }}
-                            >
+                            <View style={{ height: 18, width: 18, borderRadius: 9, backgroundColor: tag.color, alignItems: 'center', justifyContent: 'center' }}>
                               <Check size={10} color="#ffffff" />
                             </View>
                           )}
@@ -756,91 +811,25 @@ export default function EditProductScreen() {
               )}
             </View>
           )}
-
-          {/* MEDIA */}
-          {section === 'media' && (
-            <View className="gap-4">
-              <View className="rounded-3xl border-2 border-dashed border-violet-200 bg-violet-50 p-8 items-center">
-                <View className="h-16 w-16 rounded-3xl bg-violet-100 items-center justify-center">
-                  <ImageIcon size={28} color="#8b5cf6" />
-                </View>
-                <Text className="mt-4 text-base font-bold text-violet-900">{t('auto.edit.image_management')}</Text>
-                <Text className="text-xs text-violet-700 mt-1 text-center">{t('auto.edit.images_aur_variants_ke_liye_full_editor_')}</Text>
-                <Text className="mt-3 text-[11px] text-neutral-500 text-center">
-                  Current: {product.images?.length ?? 0} images, {product.variants?.length ?? 0} variants
-                </Text>
-              </View>
-
-              {(product.variants?.length ?? 0) > 0 && (
-                <View>
-                  <View className="flex-row items-center gap-2 mb-2">
-                    <Layers size={16} color="#8b5cf6" />
-                    <Text className="text-sm font-bold text-neutral-700 dark:text-neutral-200">
-                      Existing Variants ({product.variants?.length})
-                    </Text>
-                  </View>
-                  <View className="gap-2">
-                    {product.variants?.map((v: any) => (
-                      <View
-                        key={v.id}
-                        className="rounded-2xl bg-white border border-neutral-200 p-3 flex-row items-center gap-3"
-                      >
-                        {v.colorHex ? (
-                          <View
-                            className="h-10 w-10 rounded-xl border-2 border-neutral-200"
-                            style={{ backgroundColor: v.colorHex }}
-                          />
-                        ) : (
-                          <View className="h-10 w-10 rounded-xl bg-violet-100 items-center justify-center">
-                            <Layers size={16} color="#8b5cf6" />
-                          </View>
-                        )}
-                        <View className="flex-1">
-                          <Text className="font-bold text-neutral-900">
-                            {v.name}
-                          </Text>
-                          <Text className="text-xs text-neutral-500 mt-0.5">
-                            {formatPKRFull(v.price)} • {v.stock} {v.unit || product.unit}
-                          </Text>
-                        </View>
-                      </View>
-                    ))}
-                  </View>
-                </View>
-              )}
-            </View>
-          )}
         </ScrollView>
 
         {/* Save Button */}
         <View
           className="px-5 py-3 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900"
-          style={{
-            shadowColor: '#000',
-            shadowOpacity: 0.05,
-            shadowRadius: 8,
-            shadowOffset: { width: 0, height: -2 },
-            elevation: 8,
-          }}
+          style={{ shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: -2 }, elevation: 8 }}
         >
           <Pressable
             onPress={() => updateMutation.mutate()}
             disabled={updateMutation.isPending}
             className="h-12 rounded-2xl items-center justify-center flex-row gap-2 active:opacity-80"
-            style={{
-              backgroundColor: updateMutation.isPending ? '#9ca3af' : '#16a34a',
-              shadowColor: '#16a34a',
-              shadowOpacity: 0.4,
-              shadowRadius: 12,
-              elevation: 6,
-            }}
+            style={{ backgroundColor: updateMutation.isPending ? '#9ca3af' : '#16a34a', shadowColor: '#16a34a', shadowOpacity: 0.4, shadowRadius: 12, elevation: 6 }}
           >
             {updateMutation.isPending ? (
-              <Text className="text-white font-extrabold text-base">{t('auto.edit.saving')}</Text>
+              <Text className="text-white font-extrabold text-base">Saving...</Text>
             ) : (
               <>
                 <Save size={20} color="#ffffff" />
-                <Text className="text-white font-extrabold text-base">{t('auto.edit.save_changes')}</Text>
+                <Text className="text-white font-extrabold text-base">Save Changes</Text>
               </>
             )}
           </Pressable>

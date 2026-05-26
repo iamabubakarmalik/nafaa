@@ -1,0 +1,128 @@
+export const PERMISSIONS = {
+  POS_USE: 'pos.use',
+
+  SALES_VIEW: 'sales.view',
+  RETURNS_VIEW: 'returns.view',
+  CUSTOMERS_VIEW: 'customers.view',
+  CUSTOMERS_EDIT: 'customers.edit',
+  KHATA_VIEW: 'khata.view',
+  LOYALTY_VIEW: 'loyalty.view',
+  DISCOUNTS_VIEW: 'discounts.view',
+  CASH_REGISTER_VIEW: 'cash_register.view',
+
+  PRODUCTS_VIEW: 'products.view',
+  PRODUCTS_CREATE: 'products.create',
+  PRODUCTS_EDIT: 'products.edit',
+  PRODUCTS_DELETE: 'products.delete',
+
+  BRANDS_VIEW: 'brands.view',
+  TAGS_VIEW: 'tags.view',
+  CATEGORIES_VIEW: 'categories.view',
+
+  LOW_STOCK_VIEW: 'low_stock.view',
+  BARCODE_LABELS_VIEW: 'barcode_labels.view',
+  STOCK_MOVEMENTS_VIEW: 'stock_movements.view',
+  STOCK_ADJUSTMENTS_MANAGE: 'stock_adjustments.manage',
+  STOCK_TRANSFERS_MANAGE: 'stock_transfers.manage',
+  SUPPLIERS_VIEW: 'suppliers.view',
+  PURCHASES_VIEW: 'purchases.view',
+
+  REPORTS_VIEW: 'reports.view',
+  PROFIT_REPORT_VIEW: 'profit_report.view',
+
+  EXPENSES_VIEW: 'expenses.view',
+  EXPORTS_VIEW: 'exports.view',
+  BACKUP_MANAGE: 'backup.manage',
+
+  TEAM_VIEW: 'team.view',
+  TEAM_MANAGE: 'team.manage',
+  SHOPS_VIEW: 'shops.view',
+  ACTIVITY_VIEW: 'activity.view',
+  SETTINGS_VIEW: 'settings.view',
+  SETTINGS_EDIT: 'settings.edit',
+
+  BILLING_VIEW: 'billing.view',
+  BILLING_MANAGE: 'billing.manage',
+  PLANS_VIEW: 'plans.view',
+  PLAN_USAGE_VIEW: 'plan_usage.view',
+  REFERRALS_VIEW: 'referrals.view',
+} as const;
+
+export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
+export const ALL_PERMISSIONS: PermissionKey[] = Object.values(PERMISSIONS);
+
+export const DEFAULT_ROLE_PERMISSIONS: Record<string, PermissionKey[]> = {
+  OWNER: ALL_PERMISSIONS,
+
+  MANAGER: [
+    PERMISSIONS.POS_USE,
+    PERMISSIONS.SALES_VIEW,
+    PERMISSIONS.RETURNS_VIEW,
+    PERMISSIONS.CUSTOMERS_VIEW,
+    PERMISSIONS.CUSTOMERS_EDIT,
+    PERMISSIONS.KHATA_VIEW,
+    PERMISSIONS.LOYALTY_VIEW,
+    PERMISSIONS.DISCOUNTS_VIEW,
+    PERMISSIONS.CASH_REGISTER_VIEW,
+
+    PERMISSIONS.PRODUCTS_VIEW,
+    PERMISSIONS.PRODUCTS_CREATE,
+    PERMISSIONS.PRODUCTS_EDIT,
+    PERMISSIONS.PRODUCTS_DELETE,
+    PERMISSIONS.BRANDS_VIEW,
+    PERMISSIONS.TAGS_VIEW,
+    PERMISSIONS.CATEGORIES_VIEW,
+    PERMISSIONS.LOW_STOCK_VIEW,
+    PERMISSIONS.BARCODE_LABELS_VIEW,
+    PERMISSIONS.STOCK_MOVEMENTS_VIEW,
+    PERMISSIONS.STOCK_ADJUSTMENTS_MANAGE,
+    PERMISSIONS.STOCK_TRANSFERS_MANAGE,
+    PERMISSIONS.SUPPLIERS_VIEW,
+    PERMISSIONS.PURCHASES_VIEW,
+
+    PERMISSIONS.REPORTS_VIEW,
+    PERMISSIONS.PROFIT_REPORT_VIEW,
+    PERMISSIONS.EXPENSES_VIEW,
+    PERMISSIONS.EXPORTS_VIEW,
+
+    PERMISSIONS.TEAM_VIEW,
+    PERMISSIONS.SHOPS_VIEW,
+    PERMISSIONS.ACTIVITY_VIEW,
+    PERMISSIONS.SETTINGS_VIEW,
+
+    PERMISSIONS.BILLING_VIEW,
+    PERMISSIONS.PLANS_VIEW,
+    PERMISSIONS.PLAN_USAGE_VIEW,
+    PERMISSIONS.REFERRALS_VIEW,
+  ],
+
+  CASHIER: [
+    PERMISSIONS.POS_USE,
+    PERMISSIONS.SALES_VIEW,
+    PERMISSIONS.RETURNS_VIEW,
+    PERMISSIONS.CUSTOMERS_VIEW,
+    PERMISSIONS.KHATA_VIEW,
+    PERMISSIONS.LOYALTY_VIEW,
+    PERMISSIONS.DISCOUNTS_VIEW,
+    PERMISSIONS.CASH_REGISTER_VIEW,
+    PERMISSIONS.PRODUCTS_VIEW,
+  ],
+
+  STAFF: [
+    PERMISSIONS.PRODUCTS_VIEW,
+    PERMISSIONS.LOW_STOCK_VIEW,
+    PERMISSIONS.STOCK_MOVEMENTS_VIEW,
+    PERMISSIONS.SUPPLIERS_VIEW,
+  ],
+
+  SUPER_ADMIN: ALL_PERMISSIONS,
+};
+
+export function hasPermission(
+  userRole: string,
+  userPermissions: string[] | undefined,
+  required: PermissionKey,
+): boolean {
+  if (userRole === 'OWNER' || userRole === 'SUPER_ADMIN') return true;
+  return (userPermissions ?? []).includes(required);
+}

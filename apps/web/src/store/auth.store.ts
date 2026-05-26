@@ -6,7 +6,8 @@ export interface AuthUser {
   fullName: string;
   email: string;
   phone?: string;
-  role: 'OWNER' | 'MANAGER' | 'CASHIER' | 'STAFF';
+  role: 'SUPER_ADMIN' | 'OWNER' | 'MANAGER' | 'CASHIER' | 'STAFF';
+  permissions?: string[];
   emailVerified: boolean;
 }
 
@@ -48,7 +49,7 @@ export const useAuthStore = create<AuthState>()(
         set({ accessToken, refreshToken, user, tenant, isAuthenticated: true }),
       setTokens: (accessToken, refreshToken) =>
         set({ accessToken, refreshToken }),
-      setUser: (user, tenant) => set({ user, tenant }),
+      setUser: (user, tenant) => set({ user, tenant, isAuthenticated: true }),
       logout: () =>
         set({
           accessToken: null,

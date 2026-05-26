@@ -2,7 +2,7 @@
   "expo": {
     "name": "Nafaa POS",
     "slug": "nafaa",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "nafaa",
@@ -28,7 +28,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.nafaa.app",
-      "buildNumber": "3",
+      "buildNumber": "4",
       "infoPlist": {
         "NSCameraUsageDescription": "Nafaa needs camera access to scan product barcodes.",
         "NSPhotoLibraryUsageDescription": "Nafaa needs photo library access to upload product images and shop logo.",
@@ -43,7 +43,7 @@
     },
     "android": {
       "package": "com.nafaa.app",
-      "versionCode": 7,
+      "versionCode": 9,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#16a34a"

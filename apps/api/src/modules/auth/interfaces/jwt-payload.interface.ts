@@ -5,8 +5,10 @@ export interface JwtPayload {
   tenantId: string;
   email: string;
   role: UserRole;
+  permissions?: string[];
 }
 
 export interface AuthenticatedUser extends JwtPayload {
   id: string;
+  permissions: string[];
 }

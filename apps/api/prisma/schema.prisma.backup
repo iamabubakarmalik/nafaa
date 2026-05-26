@@ -526,7 +526,6 @@ model User {
   passwordResetToken   String?   @unique
   passwordResetExpires DateTime?
   pushTokens           String[]  @default([])
-  permissions          String[]  @default([])
   lastLoginAt          DateTime?
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt

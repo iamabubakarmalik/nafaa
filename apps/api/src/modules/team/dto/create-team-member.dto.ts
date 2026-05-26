@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import {
+  IsArray,
   IsEmail,
   IsEnum,
   IsNotEmpty,
@@ -36,4 +37,14 @@ export class CreateTeamMemberDto {
   @ApiProperty({ enum: UserRole, example: 'CASHIER' })
   @IsEnum(UserRole)
   role!: UserRole;
+
+  @ApiPropertyOptional({
+    type: [String],
+    example: ['pos.use', 'products.view'],
+    description: 'Granular permission keys. If empty, role defaults applied.',
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  permissions?: string[];
 }

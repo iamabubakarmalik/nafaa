@@ -1,7 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
-import { useEffect } from 'react';
+import { useEffect, type ReactElement } from 'react';
 import { useThemeStore } from '@/store/theme.store';
 import { useLocaleStore } from '@/store/locale.store';
 
@@ -63,6 +63,8 @@ import OnboardingPage from '@/features/onboarding/pages/OnboardingPage';
 import { ProtectedRoute, PublicOnlyRoute } from '@/routes/ProtectedRoute';
 import OnboardingGate from '@/routes/OnboardingGate';
 import AppShell from '@/components/layout/AppShell';
+import PermissionRoute from '@/routes/PermissionRoute';
+import { PERMISSIONS } from '@/lib/permissions';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -79,11 +81,14 @@ export default function App() {
     initLocale();
   }, [initTheme, initLocale]);
 
+  const secure = (permission: any, node: ReactElement) => (
+    <PermissionRoute permission={permission}>{node}</PermissionRoute>
+  );
+
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
-          {/* Public Routes */}
           <Route element={<PublicOnlyRoute />}>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
@@ -94,57 +99,58 @@ export default function App() {
             <Route path="/auth/google/error" element={<GoogleErrorPage />} />
           </Route>
 
-          {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>
             <Route element={<OnboardingGate />}>
               <Route element={<AppShell />}>
                 <Route path="/dashboard" element={<DashboardPage />} />
-                <Route path="/products/new" element={<ProductFormPage />} />
-                <Route path="/products/:id/edit" element={<ProductFormPage />} />
-                <Route path="/products" element={<ProductsListPage />} />
 
-                <Route path="/brands" element={<BrandsPage />} />
-                <Route path="/tags" element={<TagsPage />} />
-                <Route path="/categories" element={<CategoriesPage />} />
+                <Route path="/products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <ProductFormPage />)} />
+                <Route path="/products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <ProductFormPage />)} />
+                <Route path="/products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ProductsListPage />)} />
 
-                <Route path="/customers/new" element={<CustomerFormPage />} />
-                <Route path="/customers/:id/edit" element={<CustomerFormPage />} />
-                <Route path="/customers/:id" element={<CustomerDetailPage />} />
-                <Route path="/customers" element={<CustomersListPage />} />
+                <Route path="/brands" element={secure(PERMISSIONS.BRANDS_VIEW, <BrandsPage />)} />
+                <Route path="/tags" element={secure(PERMISSIONS.TAGS_VIEW, <TagsPage />)} />
+                <Route path="/categories" element={secure(PERMISSIONS.CATEGORIES_VIEW, <CategoriesPage />)} />
 
-                <Route path="/pos" element={<PosPage />} />
-                <Route path="/sales" element={<SalesPage />} />
-                <Route path="/returns" element={<ReturnsPage />} />
-                <Route path="/discounts" element={<DiscountsPage />} />
-                <Route path="/loyalty" element={<LoyaltyPage />} />
-                <Route path="/profit-report" element={<ProfitReportPage />} />
+                <Route path="/customers/new" element={secure(PERMISSIONS.CUSTOMERS_EDIT, <CustomerFormPage />)} />
+                <Route path="/customers/:id/edit" element={secure(PERMISSIONS.CUSTOMERS_EDIT, <CustomerFormPage />)} />
+                <Route path="/customers/:id" element={secure(PERMISSIONS.CUSTOMERS_VIEW, <CustomerDetailPage />)} />
+                <Route path="/customers" element={secure(PERMISSIONS.CUSTOMERS_VIEW, <CustomersListPage />)} />
 
-                <Route path="/suppliers/new" element={<SupplierFormPage />} />
-                <Route path="/suppliers/:id/edit" element={<SupplierFormPage />} />
-                <Route path="/suppliers/:id" element={<SupplierDetailPage />} />
-                <Route path="/suppliers" element={<SuppliersListPage />} />
+                <Route path="/pos" element={secure(PERMISSIONS.POS_USE, <PosPage />)} />
+                <Route path="/sales" element={secure(PERMISSIONS.SALES_VIEW, <SalesPage />)} />
+                <Route path="/returns" element={secure(PERMISSIONS.RETURNS_VIEW, <ReturnsPage />)} />
+                <Route path="/discounts" element={secure(PERMISSIONS.DISCOUNTS_VIEW, <DiscountsPage />)} />
+                <Route path="/loyalty" element={secure(PERMISSIONS.LOYALTY_VIEW, <LoyaltyPage />)} />
+                <Route path="/profit-report" element={secure(PERMISSIONS.PROFIT_REPORT_VIEW, <ProfitReportPage />)} />
+                <Route path="/khata" element={secure(PERMISSIONS.KHATA_VIEW, <KhataPage />)} />
+                <Route path="/cash-register" element={secure(PERMISSIONS.CASH_REGISTER_VIEW, <CashRegisterPage />)} />
 
-                <Route path="/purchases" element={<PurchasesPage />} />
-                <Route path="/expenses" element={<ExpensesPage />} />
-                <Route path="/stock-movements" element={<StockMovementsPage />} />
-                <Route path="/stock-adjustments" element={<StockAdjustmentsPage />} />
-                <Route path="/low-stock" element={<LowStockPage />} />
-                <Route path="/reports" element={<ReportsPage />} />
-                <Route path="/settings" element={<SettingsPage />} />
-                <Route path="/barcode-labels" element={<BarcodeLabelsPage />} />
-                <Route path="/team" element={<TeamPage />} />
-                <Route path="/khata" element={<KhataPage />} />
-                <Route path="/cash-register" element={<CashRegisterPage />} />
-                <Route path="/shops" element={<ShopsPage />} />
-                <Route path="/activity-log" element={<ActivityLogPage />} />
-                <Route path="/transfers" element={<TransfersPage />} />
-                <Route path="/exports" element={<ExportsPage />} />
-                <Route path="/backup" element={<BackupPage />} />
-                <Route path="/plans" element={<PlansPage />} />
-                <Route path="/billing" element={<BillingPage />} />
-                <Route path="/billing/invoice/:id/pay" element={<PayInvoicePage />} />
-                <Route path="/referrals" element={<ReferralsPage />} />
-                <Route path="/plan-usage" element={<PlanUsagePage />} />
+                <Route path="/suppliers/new" element={secure(PERMISSIONS.SUPPLIERS_VIEW, <SupplierFormPage />)} />
+                <Route path="/suppliers/:id/edit" element={secure(PERMISSIONS.SUPPLIERS_VIEW, <SupplierFormPage />)} />
+                <Route path="/suppliers/:id" element={secure(PERMISSIONS.SUPPLIERS_VIEW, <SupplierDetailPage />)} />
+                <Route path="/suppliers" element={secure(PERMISSIONS.SUPPLIERS_VIEW, <SuppliersListPage />)} />
+
+                <Route path="/purchases" element={secure(PERMISSIONS.PURCHASES_VIEW, <PurchasesPage />)} />
+                <Route path="/expenses" element={secure(PERMISSIONS.EXPENSES_VIEW, <ExpensesPage />)} />
+                <Route path="/stock-movements" element={secure(PERMISSIONS.STOCK_MOVEMENTS_VIEW, <StockMovementsPage />)} />
+                <Route path="/stock-adjustments" element={secure(PERMISSIONS.STOCK_ADJUSTMENTS_MANAGE, <StockAdjustmentsPage />)} />
+                <Route path="/low-stock" element={secure(PERMISSIONS.LOW_STOCK_VIEW, <LowStockPage />)} />
+                <Route path="/reports" element={secure(PERMISSIONS.REPORTS_VIEW, <ReportsPage />)} />
+                <Route path="/settings" element={secure(PERMISSIONS.SETTINGS_VIEW, <SettingsPage />)} />
+                <Route path="/barcode-labels" element={secure(PERMISSIONS.BARCODE_LABELS_VIEW, <BarcodeLabelsPage />)} />
+                <Route path="/team" element={secure(PERMISSIONS.TEAM_VIEW, <TeamPage />)} />
+                <Route path="/shops" element={secure(PERMISSIONS.SHOPS_VIEW, <ShopsPage />)} />
+                <Route path="/activity-log" element={secure(PERMISSIONS.ACTIVITY_VIEW, <ActivityLogPage />)} />
+                <Route path="/transfers" element={secure(PERMISSIONS.STOCK_TRANSFERS_MANAGE, <TransfersPage />)} />
+                <Route path="/exports" element={secure(PERMISSIONS.EXPORTS_VIEW, <ExportsPage />)} />
+                <Route path="/backup" element={secure(PERMISSIONS.BACKUP_MANAGE, <BackupPage />)} />
+                <Route path="/plans" element={secure(PERMISSIONS.PLANS_VIEW, <PlansPage />)} />
+                <Route path="/billing" element={secure(PERMISSIONS.BILLING_VIEW, <BillingPage />)} />
+                <Route path="/billing/invoice/:id/pay" element={secure(PERMISSIONS.BILLING_VIEW, <PayInvoicePage />)} />
+                <Route path="/referrals" element={secure(PERMISSIONS.REFERRALS_VIEW, <ReferralsPage />)} />
+                <Route path="/plan-usage" element={secure(PERMISSIONS.PLAN_USAGE_VIEW, <PlanUsagePage />)} />
+
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/help" element={<HelpPage />} />
                 <Route path="/legal" element={<LegalPage />} />
