@@ -31,11 +31,19 @@ interface AuthState {
     accessToken: string;
     refreshToken: string;
   }) => Promise<void>;
+  updateTokens: (accessToken: string, refreshToken: string) => Promise<void>;
   logout: () => Promise<void>;
   initialize: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+const STORAGE_KEYS = {
+  user: 'auth-user',
+  tenant: 'auth-tenant',
+  access: 'access-token',
+  refresh: 'refresh-token',
+} as const;
+
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   tenant: null,
   accessToken: null,
@@ -43,19 +51,40 @@ export const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: false,
   isInitialized: false,
 
+  // CRITICAL: Update Zustand state FIRST (synchronous), then persist to SecureStore
+  // This prevents the race condition where navigation happens before token saved
   setSession: async ({ user, tenant, accessToken, refreshToken }) => {
-    await SecureStore.setItemAsync('auth-user', JSON.stringify(user));
-    await SecureStore.setItemAsync('auth-tenant', JSON.stringify(tenant));
-    await SecureStore.setItemAsync('access-token', accessToken);
-    await SecureStore.setItemAsync('refresh-token', refreshToken);
+    // 1. Update in-memory state IMMEDIATELY (sync) so guards see logged-in state
     set({ user, tenant, accessToken, refreshToken, isAuthenticated: true });
+
+    // 2. Persist to SecureStore in background (parallel, non-blocking)
+    try {
+      await Promise.all([
+        SecureStore.setItemAsync(STORAGE_KEYS.user, JSON.stringify(user)),
+        SecureStore.setItemAsync(STORAGE_KEYS.tenant, JSON.stringify(tenant)),
+        SecureStore.setItemAsync(STORAGE_KEYS.access, accessToken),
+        SecureStore.setItemAsync(STORAGE_KEYS.refresh, refreshToken),
+      ]);
+    } catch (e) {
+      console.error('[auth.store] SecureStore persist failed:', e);
+    }
+  },
+
+  // Used by API client when refreshing access token
+  updateTokens: async (accessToken, refreshToken) => {
+    set({ accessToken, refreshToken });
+    try {
+      await Promise.all([
+        SecureStore.setItemAsync(STORAGE_KEYS.access, accessToken),
+        SecureStore.setItemAsync(STORAGE_KEYS.refresh, refreshToken),
+      ]);
+    } catch (e) {
+      console.error('[auth.store] Token update persist failed:', e);
+    }
   },
 
   logout: async () => {
-    await SecureStore.deleteItemAsync('auth-user');
-    await SecureStore.deleteItemAsync('auth-tenant');
-    await SecureStore.deleteItemAsync('access-token');
-    await SecureStore.deleteItemAsync('refresh-token');
+    // Clear state immediately
     set({
       user: null,
       tenant: null,
@@ -63,14 +92,27 @@ export const useAuthStore = create<AuthState>((set) => ({
       refreshToken: null,
       isAuthenticated: false,
     });
+    // Clear storage in background
+    try {
+      await Promise.all([
+        SecureStore.deleteItemAsync(STORAGE_KEYS.user),
+        SecureStore.deleteItemAsync(STORAGE_KEYS.tenant),
+        SecureStore.deleteItemAsync(STORAGE_KEYS.access),
+        SecureStore.deleteItemAsync(STORAGE_KEYS.refresh),
+      ]);
+    } catch (e) {
+      console.error('[auth.store] Logout cleanup failed:', e);
+    }
   },
 
   initialize: async () => {
     try {
-      const userStr = await SecureStore.getItemAsync('auth-user');
-      const tenantStr = await SecureStore.getItemAsync('auth-tenant');
-      const accessToken = await SecureStore.getItemAsync('access-token');
-      const refreshToken = await SecureStore.getItemAsync('refresh-token');
+      const [userStr, tenantStr, accessToken, refreshToken] = await Promise.all([
+        SecureStore.getItemAsync(STORAGE_KEYS.user),
+        SecureStore.getItemAsync(STORAGE_KEYS.tenant),
+        SecureStore.getItemAsync(STORAGE_KEYS.access),
+        SecureStore.getItemAsync(STORAGE_KEYS.refresh),
+      ]);
 
       if (userStr && tenantStr && accessToken && refreshToken) {
         set({
@@ -82,7 +124,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         });
       }
     } catch (e) {
-      console.error('Auth initialization failed:', e);
+      console.error('[auth.store] Initialization failed:', e);
     } finally {
       set({ isInitialized: true });
     }

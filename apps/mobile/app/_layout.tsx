@@ -30,17 +30,22 @@ const queryClient = new QueryClient({
 function useProtectedRoute() {
   const segments = useSegments();
   const router = useRouter();
-  const { isAuthenticated, isInitialized } = useAuthStore();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isInitialized = useAuthStore((s) => s.isInitialized);
 
   useEffect(() => {
-    if (!isInitialized) return;
+    // Wait until store hydrated AND segments are available
+    if (!isInitialized || !segments.length) return;
+
     const inAuthGroup = segments[0] === 'auth';
+    const inOnboarding = segments[0] === 'onboarding';
+
     if (!isAuthenticated && !inAuthGroup) {
       router.replace('/auth/login');
     } else if (isAuthenticated && inAuthGroup) {
       router.replace('/(tabs)');
     }
-  }, [isAuthenticated, isInitialized, segments]);
+  }, [isAuthenticated, isInitialized, segments, router]);
 }
 
 function RootLayoutNav() {
