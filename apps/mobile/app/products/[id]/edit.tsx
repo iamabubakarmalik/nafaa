@@ -18,7 +18,7 @@ import { categoriesApi } from '@/api/categories.api';
 import { tagsApi } from '@/api/tags.api';
 import { productImagesApi } from '@/api/product-images.api';
 import { productVariantsApi, type UpsertVariantPayload } from '@/api/product-variants.api';
-import { pickAndUploadProductImages } from '@/lib/uploadProductImage';
+import { ImagePickerSheet } from '@/components/uploads';
 import MobileVariantBuilder from '@/components/products/MobileVariantBuilder';
 import { formatPKRFull } from '@/lib/format';
 import Toast from 'react-native-toast-message';
@@ -72,6 +72,7 @@ export default function EditProductScreen() {
   const [form, setForm] = useState<UpdateProductPayload>({});
   const [originalLoaded, setOriginalLoaded] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [showPicker, setShowPicker] = useState(false);
 
   const { data: product } = useQuery({
     queryKey: ['product', id],
@@ -261,34 +262,31 @@ export default function EditProductScreen() {
     ]);
   };
 
-  const handlePickImages = async () => {
-    try {
-      setUploading(true);
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      const uploaded = await pickAndUploadProductImages(5);
+  const handlePickImages = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setShowPicker(true);
+  };
 
-      for (let i = 0; i < uploaded.length; i++) {
-        const u = uploaded[i];
+  const handleUploaded = async (records: any[]) => {
+    try {
+      for (let i = 0; i < records.length; i++) {
+        const r = records[i];
         await addImageMutation.mutateAsync({
-          url: u.url,
-          uploadId: u.uploadId,
+          url: r.url,
+          uploadId: r.id,
           isPrimary: images.length === 0 && i === 0,
         });
       }
-
-      if (uploaded.length > 0) {
+      if (records.length > 0) {
         Toast.show({
           type: 'success',
-          text1: `${uploaded.length} image(s) uploaded`,
+          text1: `${records.length} image(s) uploaded`,
         });
       }
     } catch (e: any) {
-      Toast.show({
-        type: 'error',
-        text1: e?.message || 'Upload failed',
-      });
+      Toast.show({ type: 'error', text1: e?.message || 'Save failed' });
     } finally {
-      setUploading(false);
+      setShowPicker(false);
     }
   };
 
@@ -612,26 +610,16 @@ export default function EditProductScreen() {
             <View className="gap-4">
               <Pressable
                 onPress={handlePickImages}
-                disabled={uploading}
                 className="rounded-3xl border-2 border-dashed p-8 items-center"
                 style={{ borderColor: '#8b5cf6', backgroundColor: '#f5f3ff' }}
               >
-                {uploading ? (
-                  <>
-                    <ActivityIndicator size="large" color="#8b5cf6" />
-                    <Text className="mt-3 text-base font-bold text-violet-900">Uploading...</Text>
-                  </>
-                ) : (
-                  <>
-                    <View className="h-16 w-16 rounded-3xl bg-violet-200 items-center justify-center">
-                      <Upload size={28} color="#7c3aed" />
-                    </View>
-                    <Text className="mt-4 text-base font-bold text-violet-900">Tap to upload images</Text>
-                    <Text className="text-xs text-violet-700 mt-1 text-center">
-                      Gallery se 5 tak images select karein
-                    </Text>
-                  </>
-                )}
+                <View className="h-16 w-16 rounded-3xl bg-violet-200 items-center justify-center">
+                  <Upload size={28} color="#7c3aed" />
+                </View>
+                <Text className="mt-4 text-base font-bold text-violet-900">Add Product Photos</Text>
+                <Text className="text-xs text-violet-700 mt-1 text-center">
+                  Camera ya Gallery se images add karein
+                </Text>
               </Pressable>
 
               <View>
@@ -835,6 +823,14 @@ export default function EditProductScreen() {
           </Pressable>
         </View>
       </KeyboardAvoidingView>
+    <ImagePickerSheet
+        visible={showPicker}
+        onClose={() => setShowPicker(false)}
+        purpose="product-image"
+        multiple={true}
+        title="Product Photos"
+        onUploaded={handleUploaded}
+      />
     </SafeAreaView>
   );
 }

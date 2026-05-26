@@ -142,3 +142,96 @@ export function hasAnyPermission(
 ): boolean {
   return required.some((perm) => hasPermission(role, permissions, perm));
 }
+
+export const PERMISSION_LABELS: Record<string, string> = {
+  'pos.use': 'POS',
+  'sales.view': 'Sales History',
+  'returns.view': 'Returns',
+  'customers.view': 'Customers View',
+  'customers.edit': 'Customers Edit',
+  'khata.view': 'Khata / Udhaar',
+  'loyalty.view': 'Loyalty Points',
+  'discounts.view': 'Discount Codes',
+  'cash_register.view': 'Cash Register',
+  'products.view': 'Products View',
+  'products.create': 'Products Create',
+  'products.edit': 'Products Edit',
+  'products.delete': 'Products Delete',
+  'brands.view': 'Brands',
+  'tags.view': 'Tags',
+  'categories.view': 'Categories',
+  'low_stock.view': 'Low Stock',
+  'barcode_labels.view': 'Barcode Labels',
+  'stock_movements.view': 'Stock Movements',
+  'stock_adjustments.manage': 'Stock Adjustments',
+  'stock_transfers.manage': 'Stock Transfers',
+  'suppliers.view': 'Suppliers',
+  'purchases.view': 'Purchases',
+  'reports.view': 'Reports',
+  'profit_report.view': 'Profit Report',
+  'expenses.view': 'Expenses',
+  'exports.view': 'Exports',
+  'backup.manage': 'Backup',
+  'team.view': 'View Team',
+  'team.manage': 'Manage Team',
+  'shops.view': 'Shops',
+  'activity.view': 'Activity Log',
+  'settings.view': 'Settings View',
+  'settings.edit': 'Settings Edit',
+  'billing.view': 'Billing',
+  'billing.manage': 'Billing Manage',
+  'plans.view': 'Plans',
+  'plan_usage.view': 'Plan Usage',
+  'referrals.view': 'Referrals',
+};
+
+export const PERMISSION_GROUPS: Array<{
+  title: string;
+  color: string;
+  permissions: PermissionKey[];
+}> = [
+  {
+    title: 'Sales',
+    color: '#16a34a',
+    permissions: [
+      PERMISSIONS.POS_USE, PERMISSIONS.SALES_VIEW, PERMISSIONS.RETURNS_VIEW,
+      PERMISSIONS.CUSTOMERS_VIEW, PERMISSIONS.CUSTOMERS_EDIT,
+      PERMISSIONS.KHATA_VIEW, PERMISSIONS.LOYALTY_VIEW,
+      PERMISSIONS.DISCOUNTS_VIEW, PERMISSIONS.CASH_REGISTER_VIEW,
+    ],
+  },
+  {
+    title: 'Inventory',
+    color: '#2563eb',
+    permissions: [
+      PERMISSIONS.PRODUCTS_VIEW, PERMISSIONS.PRODUCTS_CREATE,
+      PERMISSIONS.PRODUCTS_EDIT, PERMISSIONS.PRODUCTS_DELETE,
+      PERMISSIONS.BRANDS_VIEW, PERMISSIONS.TAGS_VIEW, PERMISSIONS.CATEGORIES_VIEW,
+      PERMISSIONS.LOW_STOCK_VIEW, PERMISSIONS.BARCODE_LABELS_VIEW,
+      PERMISSIONS.STOCK_MOVEMENTS_VIEW, PERMISSIONS.STOCK_ADJUSTMENTS_MANAGE,
+      PERMISSIONS.STOCK_TRANSFERS_MANAGE,
+      PERMISSIONS.SUPPLIERS_VIEW, PERMISSIONS.PURCHASES_VIEW,
+    ],
+  },
+  {
+    title: 'Reports & Finance',
+    color: '#f59e0b',
+    permissions: [
+      PERMISSIONS.REPORTS_VIEW, PERMISSIONS.PROFIT_REPORT_VIEW,
+      PERMISSIONS.EXPENSES_VIEW, PERMISSIONS.EXPORTS_VIEW,
+      PERMISSIONS.BACKUP_MANAGE,
+    ],
+  },
+  {
+    title: 'System',
+    color: '#7c3aed',
+    permissions: [
+      PERMISSIONS.TEAM_VIEW, PERMISSIONS.TEAM_MANAGE,
+      PERMISSIONS.SHOPS_VIEW, PERMISSIONS.ACTIVITY_VIEW,
+      PERMISSIONS.SETTINGS_VIEW, PERMISSIONS.SETTINGS_EDIT,
+      PERMISSIONS.BILLING_VIEW, PERMISSIONS.BILLING_MANAGE,
+      PERMISSIONS.PLANS_VIEW, PERMISSIONS.PLAN_USAGE_VIEW,
+      PERMISSIONS.REFERRALS_VIEW,
+    ],
+  },
+];

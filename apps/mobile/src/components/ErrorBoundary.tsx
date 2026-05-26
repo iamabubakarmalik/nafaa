@@ -2,7 +2,7 @@ import React, { Component, ReactNode } from 'react';
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AlertTriangle, RefreshCw } from 'lucide-react-native';
-import { Crash } from '@/lib/crashReporting';
+import { recordError } from '@/lib/crashReporting';
 
 interface Props { children: ReactNode }
 interface State { hasError: boolean; error: Error | null; errorInfo: React.ErrorInfo | null }
@@ -19,10 +19,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    Crash.recordError(error, {
-      componentStack: errorInfo.componentStack?.slice(0, 500) || 'unknown',
-      boundary: 'global',
-    });
+    recordError(error, `componentStack: ${errorInfo.componentStack?.slice(0, 500) || 'unknown'}`);
     this.setState({ errorInfo });
   }
 

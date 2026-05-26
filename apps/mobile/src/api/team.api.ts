@@ -1,6 +1,6 @@
 import { apiClient } from './client';
 
-export type UserRole = 'OWNER' | 'MANAGER' | 'CASHIER' | 'STAFF';
+export type UserRole = 'SUPER_ADMIN' | 'OWNER' | 'MANAGER' | 'CASHIER' | 'STAFF';
 
 export interface TeamMember {
   id: string;
@@ -9,6 +9,7 @@ export interface TeamMember {
   phone?: string | null;
   role: UserRole;
   isActive: boolean;
+  permissions?: string[];
   lastLoginAt?: string | null;
   createdAt: string;
 }
@@ -18,7 +19,13 @@ export interface CreateTeamMemberPayload {
   email: string;
   phone?: string;
   password: string;
-  role: UserRole;
+  role: Exclude<UserRole, 'OWNER' | 'SUPER_ADMIN'>;
+  permissions?: string[];
+}
+
+export interface TeamPermissionCatalog {
+  allPermissions: string[];
+  defaultsByRole: Record<string, string[]>;
 }
 
 function unwrapOne<T>(res: any): T {
@@ -37,10 +44,19 @@ function unwrapArr<T>(res: any): T[] {
 export const teamApi = {
   list: (): Promise<TeamMember[]> =>
     apiClient.get('/team').then((r) => unwrapArr<TeamMember>(r)),
+
+  catalog: (): Promise<TeamPermissionCatalog> =>
+    apiClient.get('/team/permissions/catalog').then((r) => unwrapOne<TeamPermissionCatalog>(r)),
+
   create: (payload: CreateTeamMemberPayload): Promise<TeamMember> =>
     apiClient.post('/team', payload).then((r) => unwrapOne<TeamMember>(r)),
+
+  updatePermissions: (id: string, permissions: string[]): Promise<TeamMember> =>
+    apiClient.patch(`/team/${id}/permissions`, { permissions }).then((r) => unwrapOne<TeamMember>(r)),
+
   toggle: (id: string): Promise<TeamMember> =>
     apiClient.patch(`/team/${id}/toggle`).then((r) => unwrapOne<TeamMember>(r)),
+
   remove: (id: string): Promise<{ message: string }> =>
     apiClient.delete(`/team/${id}`).then((r) => unwrapOne<{ message: string }>(r)),
 };
