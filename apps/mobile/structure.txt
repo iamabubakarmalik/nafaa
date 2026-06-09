@@ -1,20 +1,150 @@
-/Users/abubakarmalik/Projects/nafaa/apps/web
+.
 ├── .env
+├── .env.dev-backup
+├── .env.local-backup
+├── .env.production
+├── .env.staging
+├── .expo
+│   ├── devices.json
+│   ├── README.md
+│   └── types
+│       └── router.d.ts
 ├── .gitignore
-├── README.md
-├── eslint.config.js
-├── index.html
+├── .npmrc
+├── 1.txt
+├── app
+│   ├── _layout.tsx
+│   ├── (tabs)
+│   │   ├── _layout.tsx
+│   │   ├── customers.tsx
+│   │   ├── index.tsx
+│   │   ├── more.tsx
+│   │   ├── pos.tsx
+│   │   └── products.tsx
+│   ├── account
+│   │   └── security.tsx
+│   ├── activity-log
+│   │   └── index.tsx
+│   ├── auth
+│   │   ├── _layout.tsx
+│   │   ├── change-password.tsx
+│   │   ├── forgot-password.tsx
+│   │   ├── google-complete.tsx
+│   │   ├── login.tsx
+│   │   ├── register.tsx
+│   │   ├── reset-password.tsx
+│   │   └── verify-otp.tsx
+│   ├── backup
+│   │   └── index.tsx
+│   ├── barcode-labels
+│   │   └── index.tsx
+│   ├── billing
+│   │   ├── index.tsx
+│   │   └── invoice
+│   │       └── [id].tsx
+│   ├── brands
+│   │   └── index.tsx
+│   ├── cash-register
+│   │   └── index.tsx
+│   ├── categories
+│   │   └── index.tsx
+│   ├── customers
+│   │   ├── [id]
+│   │   │   ├── edit.tsx
+│   │   │   └── index.tsx
+│   │   └── new.tsx
+│   ├── discounts
+│   │   └── index.tsx
+│   ├── expenses
+│   │   └── index.tsx
+│   ├── exports
+│   │   └── index.tsx
+│   ├── help
+│   │   └── index.tsx
+│   ├── khata
+│   │   ├── [customerId].tsx
+│   │   └── index.tsx
+│   ├── legal
+│   │   └── index.tsx
+│   ├── low-stock
+│   │   └── index.tsx
+│   ├── loyalty
+│   │   └── index.tsx
+│   ├── notifications
+│   │   └── index.tsx
+│   ├── onboarding
+│   │   └── index.tsx
+│   ├── plan
+│   │   └── index.tsx
+│   ├── plan-usage
+│   │   └── index.tsx
+│   ├── products
+│   │   ├── [id]
+│   │   │   ├── edit.tsx
+│   │   │   └── index.tsx
+│   │   └── new.tsx
+│   ├── profile
+│   │   └── index.tsx
+│   ├── profit-report
+│   │   └── index.tsx
+│   ├── purchases
+│   │   ├── [id].tsx
+│   │   ├── index.tsx
+│   │   └── new.tsx
+│   ├── referrals
+│   │   └── index.tsx
+│   ├── reports
+│   │   └── index.tsx
+│   ├── returns
+│   │   ├── index.tsx
+│   │   └── new.tsx
+│   ├── sales
+│   │   ├── [id]
+│   │   │   └── receipt.tsx
+│   │   ├── [id].tsx
+│   │   └── index.tsx
+│   ├── settings
+│   │   ├── [section].tsx
+│   │   └── index.tsx
+│   ├── shops
+│   │   └── index.tsx
+│   ├── stock-adjustments
+│   │   └── index.tsx
+│   ├── stock-movements
+│   │   └── index.tsx
+│   ├── suppliers
+│   │   ├── [id]
+│   │   │   ├── edit.tsx
+│   │   │   └── index.tsx
+│   │   ├── index.tsx
+│   │   └── new.tsx
+│   ├── tags
+│   │   └── index.tsx
+│   ├── team
+│   │   └── index.tsx
+│   └── transfers
+│       └── index.tsx
+├── app.json
+├── assets
+│   ├── adaptive-icon.png
+│   ├── favicon.png
+│   ├── icon.png
+│   ├── notification-icon.png
+│   ├── splash-icon.png
+│   └── splash.png
+├── babel.config.js
+├── eas.json
+├── expo-env.d.ts
+├── global.css
+├── google-services.json
+├── GoogleService-Info.plist
+├── metro.config.js
+├── nativewind-env.d.ts
 ├── package.json
-├── postcss.config.js
-├── public
-│   ├── favicon.ico
-│   ├── favicon.svg
-│   ├── icon-192.png
-│   ├── icon-512.png
-│   ├── icons.svg
-│   └── logo.svg
+├── plugins
+│   └── with-firebase-podfile-fix.js
+├── pnpm-lock.yaml
 ├── src
-│   ├── App.tsx
 │   ├── api
 │   │   ├── activity-log.api.ts
 │   │   ├── auth.api.ts
@@ -29,6 +159,7 @@
 │   │   ├── dashboard.api.ts
 │   │   ├── discounts.api.ts
 │   │   ├── expenses.api.ts
+│   │   ├── exports.api.ts
 │   │   ├── loyalty.api.ts
 │   │   ├── notifications.api.ts
 │   │   ├── onboarding.api.ts
@@ -40,11 +171,9 @@
 │   │   ├── products.api.ts
 │   │   ├── profit-report.api.ts
 │   │   ├── purchases.api.ts
-│   │   ├── referrals.api.ts
 │   │   ├── reports.api.ts
 │   │   ├── returns.api.ts
 │   │   ├── sales.api.ts
-│   │   ├── search.api.ts
 │   │   ├── settings.api.ts
 │   │   ├── shops.api.ts
 │   │   ├── stock-adjustments.api.ts
@@ -56,205 +185,59 @@
 │   │   ├── team.api.ts
 │   │   ├── transfers.api.ts
 │   │   └── uploads.api.ts
-│   ├── assets
-│   │   ├── hero.png
-│   │   └── vite.svg
 │   ├── components
-│   │   ├── barcode
-│   │   │   └── BarcodeScanner.tsx
+│   │   ├── billing
+│   │   │   ├── BillingBanners.tsx
+│   │   │   ├── PendingUpgradeBanner.tsx
+│   │   │   ├── PlanConfirmationSheet.tsx
+│   │   │   ├── TrialBanner.tsx
+│   │   │   └── TrialExpiredModal.tsx
 │   │   ├── brand
 │   │   │   └── Logo.tsx
-│   │   ├── layout
-│   │   │   └── AppShell.tsx
-│   │   ├── notifications
-│   │   │   └── NotificationBell.tsx
-│   │   ├── search
-│   │   │   └── GlobalSearch.tsx
+│   │   ├── charts
+│   │   │   ├── BarChart.tsx
+│   │   │   ├── DonutChart.tsx
+│   │   │   └── MiniLineChart.tsx
+│   │   ├── ErrorBoundary.tsx
+│   │   ├── inventory
+│   │   │   └── ColorPicker.tsx
+│   │   ├── products
+│   │   │   └── MobileVariantBuilder.tsx
+│   │   ├── scanner
+│   │   │   └── BarcodeScannerModal.tsx
 │   │   ├── ui
+│   │   │   ├── Badge.tsx
 │   │   │   ├── Button.tsx
+│   │   │   ├── Card.tsx
 │   │   │   └── Input.tsx
 │   │   └── uploads
-│   │       ├── AvatarUpload.tsx
-│   │       ├── ImageGallery.tsx
-│   │       ├── UploadDropzone.tsx
+│   │       ├── ImagePickerSheet.tsx
 │   │       └── index.ts
-│   ├── features
-│   │   ├── activity-log
-│   │   │   └── pages
-│   │   │       └── ActivityLogPage.tsx
-│   │   ├── auth
-│   │   │   ├── components
-│   │   │   └── pages
-│   │   │       ├── ForgotPasswordPage.tsx
-│   │   │       ├── GoogleCompleteSignupPage.tsx
-│   │   │       ├── GoogleErrorPage.tsx
-│   │   │       ├── GoogleSuccessPage.tsx
-│   │   │       ├── LoginPage.tsx
-│   │   │       ├── RegisterPage.tsx
-│   │   │       └── ResetPasswordPage.tsx
-│   │   ├── backup
-│   │   │   └── pages
-│   │   │       └── BackupPage.tsx
-│   │   ├── barcodes
-│   │   │   └── pages
-│   │   │       └── BarcodeLabelsPage.tsx
-│   │   ├── billing
-│   │   │   ├── components
-│   │   │   └── pages
-│   │   │       ├── BillingPage.tsx
-│   │   │       ├── PayInvoicePage.tsx
-│   │   │       └── PlansPage.tsx
-│   │   ├── brands
-│   │   │   └── pages
-│   │   │       └── BrandsPage.tsx
-│   │   ├── cash-register
-│   │   │   └── pages
-│   │   │       └── CashRegisterPage.tsx
-│   │   ├── categories
-│   │   │   └── pages
-│   │   │       └── CategoriesPage.tsx
-│   │   ├── customers
-│   │   │   └── pages
-│   │   │       ├── CustomerDetailPage.tsx
-│   │   │       ├── CustomerFormPage.tsx
-│   │   │       ├── CustomersListPage.tsx
-│   │   │       └── CustomersPage.tsx
-│   │   ├── dashboard
-│   │   │   └── pages
-│   │   │       └── DashboardPage.tsx
-│   │   ├── discounts
-│   │   │   └── pages
-│   │   │       └── DiscountsPage.tsx
-│   │   ├── expenses
-│   │   │   └── pages
-│   │   │       └── ExpensesPage.tsx
-│   │   ├── exports
-│   │   │   └── pages
-│   │   │       └── ExportsPage.tsx
-│   │   ├── help
-│   │   │   └── pages
-│   │   │       └── HelpPage.tsx
-│   │   ├── khata
-│   │   │   └── pages
-│   │   │       └── KhataPage.tsx
-│   │   ├── legal
-│   │   │   └── pages
-│   │   │       └── LegalPage.tsx
-│   │   ├── low-stock
-│   │   │   └── pages
-│   │   │       └── LowStockPage.tsx
-│   │   ├── loyalty
-│   │   │   └── pages
-│   │   │       └── LoyaltyPage.tsx
-│   │   ├── notifications
-│   │   │   └── NotificationsPage.tsx
-│   │   ├── onboarding
-│   │   │   ├── components
-│   │   │   └── pages
-│   │   │       └── OnboardingPage.tsx
-│   │   ├── plan-usage
-│   │   │   └── pages
-│   │   │       └── PlanUsagePage.tsx
-│   │   ├── pos
-│   │   │   └── pages
-│   │   │       └── PosPage.tsx
-│   │   ├── products
-│   │   │   ├── components
-│   │   │   │   └── VariantBuilder.tsx
-│   │   │   └── pages
-│   │   │       ├── ProductFormPage.tsx
-│   │   │       └── ProductsListPage.tsx
-│   │   ├── profile
-│   │   │   ├── components
-│   │   │   │   └── AccountSecurity.tsx
-│   │   │   └── pages
-│   │   │       └── ProfilePage.tsx
-│   │   ├── profit-report
-│   │   │   └── pages
-│   │   │       └── ProfitReportPage.tsx
-│   │   ├── purchases
-│   │   │   └── pages
-│   │   │       └── PurchasesPage.tsx
-│   │   ├── referrals
-│   │   │   └── pages
-│   │   │       └── ReferralsPage.tsx
-│   │   ├── reports
-│   │   │   └── pages
-│   │   │       └── ReportsPage.tsx
-│   │   ├── returns
-│   │   │   └── pages
-│   │   │       └── ReturnsPage.tsx
-│   │   ├── sales
-│   │   │   └── pages
-│   │   │       ├── ReceiptPage.tsx
-│   │   │       └── SalesPage.tsx
-│   │   ├── settings
-│   │   │   ├── pages
-│   │   │   │   └── SettingsPage.tsx
-│   │   │   └── sections
-│   │   │       ├── AppearanceSection.tsx
-│   │   │       ├── BusinessProfileSection.tsx
-│   │   │       ├── CustomerSection.tsx
-│   │   │       ├── InventorySection.tsx
-│   │   │       ├── LocalizationSection.tsx
-│   │   │       ├── LogoUploader.tsx
-│   │   │       ├── NotificationsSection.tsx
-│   │   │       ├── POSSection.tsx
-│   │   │       ├── ReceiptSection.tsx
-│   │   │       ├── SecuritySection.tsx
-│   │   │       ├── TaxSection.tsx
-│   │   │       └── _shared.tsx
-│   │   ├── shops
-│   │   │   └── pages
-│   │   │       └── ShopsPage.tsx
-│   │   ├── stock-adjustments
-│   │   │   └── pages
-│   │   │       └── StockAdjustmentsPage.tsx
-│   │   ├── stock-movements
-│   │   │   └── pages
-│   │   │       └── StockMovementsPage.tsx
-│   │   ├── suppliers
-│   │   │   └── pages
-│   │   │       ├── SupplierDetailPage.tsx
-│   │   │       ├── SupplierFormPage.tsx
-│   │   │       ├── SuppliersListPage.tsx
-│   │   │       └── SuppliersPage.tsx
-│   │   ├── tags
-│   │   │   └── pages
-│   │   │       └── TagsPage.tsx
-│   │   ├── team
-│   │   │   └── pages
-│   │   │       └── TeamPage.tsx
-│   │   └── transfers
-│   │       └── pages
-│   │           └── TransfersPage.tsx
+│   ├── constants
+│   │   └── colors.ts
 │   ├── hooks
-│   │   ├── useImageUpload.ts
-│   │   └── useNotificationSound.ts
+│   │   ├── useGoogleAuth.ts
+│   │   ├── useImagePicker.ts
+│   │   ├── usePermission.ts
+│   │   ├── usePushNotifications.ts
+│   │   └── useSubscriptionStatus.ts
 │   ├── i18n
 │   │   ├── messages
 │   │   │   ├── en.json
 │   │   │   └── ur.json
 │   │   └── useTranslation.ts
-│   ├── index.css
 │   ├── lib
 │   │   ├── cn.ts
-│   │   └── format.ts
-│   ├── main.tsx
-│   ├── routes
-│   │   ├── OnboardingGate.tsx
-│   │   └── ProtectedRoute.tsx
-│   ├── store
-│   │   ├── auth.store.ts
-│   │   ├── locale.store.ts
-│   │   └── theme.store.ts
-│   └── vite-env.d.ts
+│   │   ├── crashReporting.ts
+│   │   ├── format.ts
+│   │   ├── permissions.ts
+│   │   └── share.ts
+│   └── store
+│       ├── auth.store.ts
+│       ├── locale.store.ts
+│       └── theme.store.ts
+├── structure.txt
 ├── tailwind.config.js
-├── tsconfig.app.json
-├── tsconfig.json
-├── tsconfig.node.json
-├── tsconfig.tsbuildinfo
-├── vercel.json
-└── vite.config.ts
+└── tsconfig.json
 
-101 directories, 157 files
+67 directories, 174 files

@@ -56,10 +56,17 @@
 │   │   │   └── migration.sql
 │   │   ├── 20260511111542_comprehensive_settings
 │   │   │   └── migration.sql
+│   │   ├── 20260526112638_add_user_permissions
+│   │   │   └── migration.sql
 │   │   └── migration_lock.toml
 │   ├── schema.prisma
+│   ├── schema.prisma.backup
 │   └── seed-email-templates.ts
 ├── README.md
+├── scripts
+│   ├── backfill-permissions.ts
+│   ├── normalize-permissions-v2.ts
+│   └── upgrade-permissions-v2.ts
 ├── src
 │   ├── .DS_Store
 │   ├── app.controller.spec.ts
@@ -67,10 +74,14 @@
 │   ├── app.module.ts
 │   ├── app.service.ts
 │   ├── common
+│   │   ├── constants
+│   │   │   └── permissions.constants.ts
 │   │   ├── decorators
+│   │   │   └── permissions.decorator.ts
 │   │   ├── filters
 │   │   │   └── global-exception.filter.ts
 │   │   ├── guards
+│   │   │   └── permissions.guard.ts
 │   │   ├── interceptors
 │   │   │   └── response.interceptor.ts
 │   │   ├── types
@@ -455,6 +466,9 @@
 │   │   │   └── stripe.service.ts
 │   │   ├── subscriptions
 │   │   │   ├── dto
+│   │   │   ├── guards
+│   │   │   │   └── subscription.guard.ts
+│   │   │   ├── subscription-cron.service.ts
 │   │   │   ├── subscriptions.controller.ts
 │   │   │   ├── subscriptions.module.ts
 │   │   │   └── subscriptions.service.ts
@@ -474,7 +488,8 @@
 │   │   │   └── tags.service.ts
 │   │   ├── team
 │   │   │   ├── dto
-│   │   │   │   └── create-team-member.dto.ts
+│   │   │   │   ├── create-team-member.dto.ts
+│   │   │   │   └── update-permissions.dto.ts
 │   │   │   ├── team.controller.ts
 │   │   │   ├── team.module.ts
 │   │   │   └── team.service.ts
@@ -507,4 +522,4 @@
 └── uploads
     └── .gitkeep
 
-165 directories, 343 files
+169 directories, 354 files

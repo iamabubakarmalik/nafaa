@@ -50,14 +50,25 @@ async function bootstrap() {
   // ─── Body parsing (Stripe webhook needs raw body) ────────────────────────────
   app.use('/api/stripe/webhook', bodyParser.raw({ type: 'application/json' }));
 
+    // ─── Body parsing (Stripe webhook + multipart uploads need raw body) ─────────
+  app.use('/api/stripe/webhook', bodyParser.raw({ type: 'application/json' }));
+
+  // Helper: skip body-parser for multipart/form-data (multer handles it)
+  const isMultipart = (req: any) =>
+    req.headers['content-type']?.toLowerCase().includes('multipart/form-data');
+
   app.use((req: any, res: any, next: any) => {
-    if (req.originalUrl === '/api/stripe/webhook') {
-      next();
-    } else {
-      bodyParser.json({ limit: '50mb' })(req, res, next);
-    }
+    if (req.originalUrl === '/api/stripe/webhook') return next();
+    if (isMultipart(req)) return next(); // ✅ multer will handle
+    bodyParser.json({ limit: '50mb' })(req, res, next);
   });
-  app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
+
+  app.use((req: any, res: any, next: any) => {
+    if (req.originalUrl === '/api/stripe/webhook') return next();
+    if (isMultipart(req)) return next(); // ✅ multer will handle
+    bodyParser.urlencoded({ extended: true, limit: '50mb' })(req, res, next);
+  });
+
 
   // ─── CORS: Smart environment-based configuration ─────────────────────────────
   // PRODUCTION: Only allow nafaa.pk + subdomains (locked down)
@@ -68,6 +79,7 @@ async function bootstrap() {
     'https://app.nafaa.pk',
     'https://admin.nafaa.pk',
     'https://marketing.nafaa.pk',
+    'https://api.nafaa.pk',
     // Vercel preview URLs (Vercel auto-generates preview deployments)
     /^https:\/\/.*\.vercel\.app$/,
   ];

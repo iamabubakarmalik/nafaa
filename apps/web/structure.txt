@@ -100,6 +100,10 @@
 │   │   │       └── BarcodeLabelsPage.tsx
 │   │   ├── billing
 │   │   │   ├── components
+│   │   │   │   ├── BillingBanners.tsx
+│   │   │   │   ├── PendingUpgradeBanner.tsx
+│   │   │   │   ├── TrialBanner.tsx
+│   │   │   │   └── TrialExpiredModal.tsx
 │   │   │   └── pages
 │   │   │       ├── BillingPage.tsx
 │   │   │       ├── PayInvoicePage.tsx
@@ -230,7 +234,9 @@
 │   │           └── TransfersPage.tsx
 │   ├── hooks
 │   │   ├── useImageUpload.ts
-│   │   └── useNotificationSound.ts
+│   │   ├── useNotificationSound.ts
+│   │   ├── usePermission.ts
+│   │   └── useSubscriptionStatus.ts
 │   ├── i18n
 │   │   ├── messages
 │   │   │   ├── en.json
@@ -239,10 +245,12 @@
 │   ├── index.css
 │   ├── lib
 │   │   ├── cn.ts
-│   │   └── format.ts
+│   │   ├── format.ts
+│   │   └── permissions.ts
 │   ├── main.tsx
 │   ├── routes
 │   │   ├── OnboardingGate.tsx
+│   │   ├── PermissionRoute.tsx
 │   │   └── ProtectedRoute.tsx
 │   ├── store
 │   │   ├── auth.store.ts
@@ -258,4 +266,4 @@
 ├── vercel.json
 └── vite.config.ts
 
-101 directories, 158 files
+101 directories, 166 files
