@@ -11,10 +11,45 @@ class CreateSaleItemDto {
   @IsString()
   productId!: string;
 
-  @ApiProperty({ example: 1 })
+  @ApiPropertyOptional({ description: 'Variant ID if product has variants' })
+  @IsOptional()
+  @IsString()
+  variantId?: string;
+
+  @ApiProperty({ example: 1.5, description: 'Decimal quantity (e.g. 12.5 sqft)' })
   @IsNumber()
-  @Min(1)
+  @Min(0.01)
   quantity!: number;
+
+  @ApiPropertyOptional({
+    description: 'Manual price override per unit. If not set, uses product/variant price.',
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  priceOverride?: number;
+
+  @ApiPropertyOptional({
+    description: 'Item-level discount amount (PKR)',
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  lineDiscount?: number;
+
+  @ApiPropertyOptional({
+    description: 'Use wholesale price for this line',
+  })
+  @IsOptional()
+  @IsBoolean()
+  useWholesale?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Optional note for this line (e.g. "12ft × 12ft = 144 sqft")',
+  })
+  @IsOptional()
+  @IsString()
+  note?: string;
 }
 
 export class CreateSaleDto {
@@ -50,10 +85,17 @@ export class CreateSaleDto {
   @Min(0)
   loyaltyPointsToUse?: number;
 
-  @ApiPropertyOptional({ example: false, description: 'Auto-true if creditAmount > 0' })
+  @ApiPropertyOptional({ example: false })
   @IsOptional()
   @IsBoolean()
   allowCredit?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Optional sale-level note (e.g. delivery address)',
+  })
+  @IsOptional()
+  @IsString()
+  note?: string;
 
   @ApiProperty({ type: [CreateSaleItemDto] })
   @IsArray()

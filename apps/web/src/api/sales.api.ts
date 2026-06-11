@@ -7,15 +7,25 @@ export type PaymentMethod =
   | 'JAZZCASH'
   | 'EASYPAISA';
 
+export interface CreateSaleItem {
+  productId: string;
+  variantId?: string;
+  quantity: number;
+  priceOverride?: number;
+  lineDiscount?: number;
+  useWholesale?: boolean;
+  note?: string;
+}
+
 export interface CreateSalePayload {
   customerId?: string;
   paymentMethod: PaymentMethod;
   paidAmount: number;
   discount?: number;
-  items: Array<{
-    productId: string;
-    quantity: number;
-  }>;
+  discountCode?: string;
+  loyaltyPointsToUse?: number;
+  note?: string;
+  items: CreateSaleItem[];
 }
 
 export interface Sale {
@@ -26,6 +36,8 @@ export interface Sale {
   total: number;
   paidAmount: number;
   changeAmount: number;
+  creditAmount: number;
+  costOfGoods: number;
   paymentMethod: PaymentMethod;
   soldAt: string;
   status?: 'COMPLETED' | 'PARTIALLY_RETURNED' | 'FULLY_RETURNED' | 'VOIDED';
@@ -33,6 +45,7 @@ export interface Sale {
     id: string;
     name: string;
     phone?: string | null;
+    balance?: number;
   } | null;
   createdBy?: {
     id: string;
@@ -51,6 +64,7 @@ export interface Sale {
     id: string;
     quantity: number;
     price: number;
+    costPrice: number;
     total: number;
     product: {
       id: string;
@@ -59,14 +73,30 @@ export interface Sale {
       sku?: string | null;
       barcode?: string | null;
     };
+    variantLink?: {
+      variant: {
+        id: string;
+        name: string;
+        sku?: string | null;
+        color?: string | null;
+        colorHex?: string | null;
+        size?: string | null;
+        imageUrl?: string | null;
+      };
+    } | null;
   }>;
 }
 
 export interface SalesSummary {
   todaySales: number;
   todayOrders: number;
+  todayProfit: number;
+  todayCredit: number;
+  todayPaid: number;
   monthSales: number;
+  monthProfit: number;
   totalSales: number;
+  totalProfit: number;
   totalOrders: number;
   paymentBreakdown: Array<{
     paymentMethod: PaymentMethod;

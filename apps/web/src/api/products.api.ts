@@ -76,6 +76,8 @@ export interface CreateProductPayload {
   isFeatured?: boolean;
   tagIds?: string[];
   imageUrls?: string[];
+  metaTitle?: string;
+  metaDescription?: string;
 }
 
 export type UpdateProductPayload = Partial<CreateProductPayload>;

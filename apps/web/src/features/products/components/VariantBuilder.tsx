@@ -1,7 +1,6 @@
-import { useState } from 'react';
-import { Plus, Trash2, Wand2, Palette } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Plus, Wand2, Palette, Ruler } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
 import type { UpsertVariantPayload } from '@/api/product-variants.api';
 
 const COLOR_PRESETS = [
@@ -34,7 +33,9 @@ export function VariantBuilder({ basePrice, baseCostPrice, onGenerate }: Props) 
 
   const toggleColor = (c: { name: string; hex: string }) => {
     setColors((prev) =>
-      prev.find((x) => x.name === c.name) ? prev.filter((x) => x.name !== c.name) : [...prev, c],
+      prev.find((x) => x.name === c.name)
+        ? prev.filter((x) => x.name !== c.name)
+        : [...prev, c],
     );
   };
 
@@ -43,24 +44,43 @@ export function VariantBuilder({ basePrice, baseCostPrice, onGenerate }: Props) 
   };
 
   const addCustomColor = () => {
-    if (!customColorName.trim()) return;
-    setColors((prev) => [...prev, { name: customColorName.trim(), hex: customColorHex }]);
+    const name = customColorName.trim();
+    if (!name) return;
+
+    const exists = colors.some((x) => x.name.toLowerCase() === name.toLowerCase());
+    if (!exists) {
+      setColors((prev) => [...prev, { name, hex: customColorHex }]);
+    }
+
     setCustomColorName('');
   };
 
   const addCustomSize = () => {
-    if (!customSize.trim()) return;
-    setSizes((prev) => [...prev, customSize.trim()]);
+    const value = customSize.trim();
+    if (!value) return;
+
+    const exists = sizes.some((x) => x.toLowerCase() === value.toLowerCase());
+    if (!exists) {
+      setSizes((prev) => [...prev, value]);
+    }
+
     setCustomSize('');
   };
 
-  const totalVariants = Math.max(colors.length, 1) * Math.max(sizes.length, 1);
+  const canGenerate = colors.length > 0 || sizes.length > 0;
+
+  const totalVariants = useMemo(() => {
+    if (!canGenerate) return 0;
+    if (colors.length > 0 && sizes.length > 0) return colors.length * sizes.length;
+    if (colors.length > 0) return colors.length;
+    return sizes.length;
+  }, [canGenerate, colors.length, sizes.length]);
 
   const generate = () => {
+    if (!canGenerate) return;
+
     const result: UpsertVariantPayload[] = [];
     let order = 0;
-
-    if (colors.length === 0 && sizes.length === 0) return;
 
     if (colors.length === 0) {
       sizes.forEach((s) => {
@@ -106,20 +126,19 @@ export function VariantBuilder({ basePrice, baseCostPrice, onGenerate }: Props) 
   };
 
   return (
-    <div className="rounded-2xl bg-gradient-to-br from-violet-50 to-pink-50 border border-violet-200 p-5 space-y-5">
-      <div className="flex items-center gap-2">
-        <div className="h-10 w-10 rounded-xl bg-violet-600 text-white flex items-center justify-center">
+    <div className="rounded-3xl bg-gradient-to-br from-violet-50 via-pink-50 to-amber-50 border border-violet-200 p-5 space-y-5">
+      <div className="flex items-center gap-3">
+        <div className="h-11 w-11 rounded-2xl bg-violet-600 text-white flex items-center justify-center shadow">
           <Wand2 className="h-5 w-5" />
         </div>
         <div>
-          <h3 className="font-bold text-slate-900">Variant Builder</h3>
+          <h3 className="font-extrabold text-slate-900">Variant Builder</h3>
           <p className="text-xs text-slate-600">
-            Pick colors and sizes — we'll generate all combinations
+            Colors aur sizes/codes choose karo — combinations auto ban jayengi
           </p>
         </div>
       </div>
 
-      {/* Colors */}
       <div>
         <div className="flex items-center gap-2 mb-2">
           <Palette className="h-4 w-4 text-violet-700" />
@@ -170,9 +189,12 @@ export function VariantBuilder({ basePrice, baseCostPrice, onGenerate }: Props) 
         </div>
       </div>
 
-      {/* Sizes */}
       <div>
-        <label className="block text-sm font-bold text-slate-700 mb-2">Sizes</label>
+        <div className="flex items-center gap-2 mb-2">
+          <Ruler className="h-4 w-4 text-pink-700" />
+          <label className="text-sm font-bold text-slate-700">Sizes / Codes / Capacity</label>
+        </div>
+
         <div className="flex flex-wrap gap-2">
           {SIZE_PRESETS.map((s) => {
             const active = sizes.includes(s);
@@ -198,7 +220,7 @@ export function VariantBuilder({ basePrice, baseCostPrice, onGenerate }: Props) 
             type="text"
             value={customSize}
             onChange={(e) => setCustomSize(e.target.value)}
-            placeholder="Custom size (e.g. 250g, 1L, 32GB)"
+            placeholder="Custom size / code (e.g. 250g, 1L, 32GB, 1D, 17R)"
             className="flex-1 h-10 rounded-lg border border-slate-200 px-3 text-sm"
           />
           <Button size="sm" variant="secondary" onClick={addCustomSize}>
@@ -207,20 +229,64 @@ export function VariantBuilder({ basePrice, baseCostPrice, onGenerate }: Props) 
         </div>
       </div>
 
-      {/* Summary + generate */}
-      <div className="rounded-xl bg-white border border-violet-200 p-4 flex items-center justify-between">
+      {(colors.length > 0 || sizes.length > 0) && (
+        <div className="rounded-2xl bg-white border border-slate-200 p-4 space-y-3">
+          <div className="text-xs font-bold uppercase tracking-wider text-slate-500">
+            Selected options
+          </div>
+
+          {colors.length > 0 && (
+            <div>
+              <div className="text-xs font-semibold text-slate-600 mb-1">Colors</div>
+              <div className="flex flex-wrap gap-2">
+                {colors.map((c) => (
+                  <span
+                    key={c.name}
+                    className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-50 border border-violet-200 text-xs font-semibold text-slate-700"
+                  >
+                    <span
+                      className="h-3 w-3 rounded-full border border-slate-300"
+                      style={{ backgroundColor: c.hex }}
+                    />
+                    {c.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {sizes.length > 0 && (
+            <div>
+              <div className="text-xs font-semibold text-slate-600 mb-1">Sizes / Codes</div>
+              <div className="flex flex-wrap gap-2">
+                {sizes.map((s) => (
+                  <span
+                    key={s}
+                    className="inline-flex items-center px-3 py-1 rounded-full bg-pink-50 border border-pink-200 text-xs font-semibold text-slate-700"
+                  >
+                    {s}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="rounded-2xl bg-white border border-violet-200 p-4 flex items-center justify-between">
         <div>
           <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">
             Will generate
           </div>
           <div className="text-2xl font-bold text-violet-700">{totalVariants} variants</div>
           <div className="text-xs text-slate-500 mt-0.5">
-            {colors.length} colors × {sizes.length} sizes
+            {colors.length} colors × {sizes.length} sizes/codes
           </div>
         </div>
+
         <Button
           onClick={generate}
-          disabled={colors.length === 0 && sizes.length === 0}
+          disabled={!canGenerate}
           className="bg-violet-600 hover:bg-violet-700"
         >
           <Wand2 className="h-4 w-4" /> Generate

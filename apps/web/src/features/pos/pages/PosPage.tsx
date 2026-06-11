@@ -4,28 +4,53 @@ import {
   Search, ShoppingCart, Trash2, Plus, Minus, Receipt, ScanLine, Camera,
   Package, User, CreditCard, Banknote, Smartphone, Building2, X,
   CheckCircle2, AlertCircle, Sparkles, Wallet, Zap, BookOpen,
-  TrendingUp, TrendingDown, Calendar, Phone, Star, History,
-  HandCoins, ArrowDownCircle, ArrowUpCircle, Info,
+  TrendingDown, Phone, Star, History, HandCoins,
+  ArrowDownCircle, ArrowUpCircle, Info, Ruler, Edit3, Pause,
+  PlayCircle, Layers, Percent, Tag, UserPlus, Eye, EyeOff, ChevronDown,
 } from 'lucide-react';
 import { productsApi, type Product } from '@/api/products.api';
+import { productVariantsApi, type ProductVariant } from '@/api/product-variants.api';
 import { customersApi } from '@/api/customers.api';
 import { salesApi, type PaymentMethod } from '@/api/sales.api';
 import { Button } from '@/components/ui/Button';
 import { formatPKR } from '@/lib/format';
 import { toast } from 'sonner';
 import BarcodeScanner from '@/components/barcode/BarcodeScanner';
+import { LengthWidthCalculator } from '../components/LengthWidthCalculator';
+import { VariantPicker } from '../components/VariantPicker';
 
 type CartItem = {
+  cartLineId: string;
   productId: string;
+  variantId?: string;
   name: string;
-  price: number;
+  variantName?: string;
+  variantImage?: string;
+  variantColor?: string;
+  variantColorHex?: string;
+  variantSize?: string;
+  basePrice: number;
+  wholesalePrice?: number | null;
   stock: number;
   quantity: number;
   unit: string;
   category?: { name: string; color: string } | null;
+  useWholesale: boolean;
+  priceOverride?: number;
+  lineDiscount: number;
+  note?: string;
 };
 
 type SaleMode = 'FULL_PAYMENT' | 'PARTIAL_CREDIT' | 'FULL_CREDIT';
+
+type HeldCart = {
+  id: string;
+  items: CartItem[];
+  customerId: string;
+  customerName: string;
+  total: number;
+  heldAt: number;
+};
 
 const paymentMethodConfig: Record<PaymentMethod, { label: string; icon: any; color: string; bg: string }> = {
   CASH: { label: 'Cash', icon: Banknote, color: '#16a34a', bg: 'bg-emerald-50 border-emerald-300' },
@@ -35,6 +60,25 @@ const paymentMethodConfig: Record<PaymentMethod, { label: string; icon: any; col
   BANK_TRANSFER: { label: 'Bank', icon: Building2, color: '#7c3aed', bg: 'bg-violet-50 border-violet-300' },
 };
 
+const HOLD_KEY = 'nafaa.pos.held-carts';
+const LW_UNITS = new Set(['sqft', 'sqm', 'meter', 'ft', 'yard', 'gaj']);
+
+const loadHeldCarts = (): HeldCart[] => {
+  try {
+    const raw = localStorage.getItem(HOLD_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return [];
+};
+
+const saveHeldCarts = (carts: HeldCart[]) => {
+  try {
+    localStorage.setItem(HOLD_KEY, JSON.stringify(carts));
+  } catch {}
+};
+
+const cartLineId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
 export default function PosPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
@@ -43,22 +87,30 @@ export default function PosPage() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH');
   const [paidAmount, setPaidAmount] = useState('');
   const [saleMode, setSaleMode] = useState<SaleMode>('FULL_PAYMENT');
+  const [globalDiscount, setGlobalDiscount] = useState('');
   const [scannerOpen, setScannerOpen] = useState(false);
   const [barcodeInput, setBarcodeInput] = useState('');
-  const [customerSearch, setCustomerSearch] = useState('');
+  const [lwOpen, setLwOpen] = useState<CartItem | null>(null);
+  const [variantPickerProduct, setVariantPickerProduct] = useState<Product | null>(null);
+  const [variantPickerData, setVariantPickerData] = useState<ProductVariant[]>([]);
+  const [editingLine, setEditingLine] = useState<string | null>(null);
+  const [heldCarts, setHeldCarts] = useState<HeldCart[]>([]);
+  const [showHeldCarts, setShowHeldCarts] = useState(false);
+  const [showCustomerAdd, setShowCustomerAdd] = useState(false);
+  const [newCustomer, setNewCustomer] = useState({ name: '', phone: '' });
+  const [hidePrices, setHidePrices] = useState(false);
   const barcodeRef = useRef<HTMLInputElement>(null);
 
   const { data: productsData, isLoading: productsLoading } = useQuery({
     queryKey: ['products-for-pos'],
-    queryFn: () => productsApi.list({ page: 1, limit: 100 }),
+    queryFn: () => productsApi.list({ page: 1, limit: 200 }),
   });
 
   const { data: customersData } = useQuery({
     queryKey: ['customers-for-pos'],
-    queryFn: () => customersApi.list({ page: 1, limit: 200 }),
+    queryFn: () => customersApi.list({ page: 1, limit: 500 }),
   });
 
-  // Customer detail query (for full credit summary)
   const { data: customerDetail } = useQuery({
     queryKey: ['customer-detail', customerId],
     queryFn: () => customersApi.get(customerId),
@@ -67,6 +119,11 @@ export default function PosPage() {
 
   const products = productsData?.items ?? [];
   const customers = customersData?.items ?? [];
+
+  // Load held carts on mount
+  useEffect(() => {
+    setHeldCarts(loadHeldCarts());
+  }, []);
 
   const filteredProducts = useMemo(() => {
     const q = search.toLowerCase().trim();
@@ -79,32 +136,34 @@ export default function PosPage() {
     );
   }, [products, search]);
 
-  const filteredCustomers = useMemo(() => {
-    const q = customerSearch.toLowerCase().trim();
-    if (!q) return customers;
-    return customers.filter(
-      (c) =>
-        c.name.toLowerCase().includes(q) ||
-        (c.phone || '').toLowerCase().includes(q),
-    );
-  }, [customers, customerSearch]);
-
+  // Subtotal & totals
   const subtotal = useMemo(
-    () => cart.reduce((sum, item) => sum + item.price * item.quantity, 0),
+    () =>
+      cart.reduce((sum, item) => {
+        const unitPrice = item.priceOverride ?? (item.useWholesale ? (item.wholesalePrice ?? item.basePrice) : item.basePrice);
+        return sum + unitPrice * item.quantity;
+      }, 0),
     [cart],
   );
+
+  const totalLineDiscount = useMemo(
+    () => cart.reduce((sum, item) => sum + (item.lineDiscount || 0), 0),
+    [cart],
+  );
+
+  const gDiscount = Number(globalDiscount) || 0;
+  const totalDiscount = totalLineDiscount + gDiscount;
+  const total = Math.max(subtotal - totalDiscount, 0);
+
   const totalItems = useMemo(
     () => cart.reduce((sum, item) => sum + item.quantity, 0),
     [cart],
   );
 
-  const total = subtotal;
-
-  // Sale mode logic — auto-calculate paid amount based on mode
   const effectivePaid = useMemo(() => {
     if (saleMode === 'FULL_PAYMENT') return total;
     if (saleMode === 'FULL_CREDIT') return 0;
-    return Number(paidAmount || 0); // PARTIAL_CREDIT
+    return Number(paidAmount || 0);
   }, [saleMode, total, paidAmount]);
 
   const change = Math.max(effectivePaid - total, 0);
@@ -113,7 +172,6 @@ export default function PosPage() {
 
   const selectedCustomer = customers.find((c) => c.id === customerId);
 
-  // Customer credit summary calculations
   const customerCreditSummary = useMemo(() => {
     if (!customerDetail) return null;
     const sales = (customerDetail as any).sales || [];
@@ -122,14 +180,12 @@ export default function PosPage() {
     const todaySales = sales.filter((s: any) => new Date(s.createdAt).toDateString() === today);
     const todayCredit = todaySales.reduce((sum: number, s: any) => sum + (s.creditAmount || 0), 0);
     const todayPaid = todaySales.reduce((sum: number, s: any) => sum + (s.paidAmount || 0), 0);
-    const todayTotal = todaySales.reduce((sum: number, s: any) => sum + (s.total || 0), 0);
 
     return {
       currentBalance: customerDetail.balance || 0,
       todaySalesCount: todaySales.length,
       todayCredit,
       todayPaid,
-      todayTotal,
       totalSales: sales.length,
       lastSaleDate: sales[0]?.createdAt,
     };
@@ -139,16 +195,12 @@ export default function PosPage() {
     mutationFn: salesApi.create,
     onSuccess: (sale) => {
       const msg = isCreditSale
-        ? `Sale + ${formatPKR(credit)} udhaar khata mein add ho gaya ✅`
-        : `Sale complete! • ${sale.saleNumber}`;
+        ? `Sale + ${formatPKR(credit)} udhaar khata mein add ho gaya`
+        : `Sale complete! ${sale.saleNumber}`;
       toast.success(msg, {
         description: `Total: ${formatPKR(total)}`,
       });
-      setCart([]);
-      setCustomerId('');
-      setPaymentMethod('CASH');
-      setPaidAmount('');
-      setSaleMode('FULL_PAYMENT');
+      resetCart();
       queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['products-for-pos'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-overview'] });
@@ -162,37 +214,132 @@ export default function PosPage() {
     },
   });
 
-  const addToCart = (product: Product) => {
+  const addCustomerMutation = useMutation({
+    mutationFn: customersApi.create,
+    onSuccess: (customer) => {
+      toast.success(`${customer.name} added`);
+      setCustomerId(customer.id);
+      setShowCustomerAdd(false);
+      setNewCustomer({ name: '', phone: '' });
+      queryClient.invalidateQueries({ queryKey: ['customers-for-pos'] });
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Add fail'),
+  });
+
+  const resetCart = () => {
+    setCart([]);
+    setCustomerId('');
+    setPaymentMethod('CASH');
+    setPaidAmount('');
+    setGlobalDiscount('');
+    setSaleMode('FULL_PAYMENT');
+  };
+
+  const addProductToCart = async (product: Product) => {
     if (product.stock <= 0) {
       toast.error(`${product.name} stock mein nahi hai`);
       return;
     }
-    setCart((prev) => {
-      const existing = prev.find((item) => item.productId === product.id);
-      if (existing) {
-        if (existing.quantity >= product.stock) {
-          toast.error('Available stock se zyada add nahi kar sakte');
-          return prev;
+
+    // If product has variants — open variant picker
+    if (product.hasVariants) {
+      try {
+        const variants = await productVariantsApi.list(product.id);
+        const active = variants.filter((v) => v.isActive);
+        if (active.length === 0) {
+          toast.error('No active variants for this product');
+          return;
         }
-        return prev.map((item) =>
-          item.productId === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item,
-        );
+        setVariantPickerData(variants);
+        setVariantPickerProduct(product);
+        return;
+      } catch {
+        toast.error('Failed to load variants');
+        return;
       }
-      return [
-        ...prev,
-        {
-          productId: product.id,
-          name: product.name,
-          price: product.price,
-          stock: product.stock,
-          quantity: 1,
-          unit: product.unit,
-          category: product.category,
-        },
-      ];
-    });
+    }
+
+    addToCart(product, null);
+  };
+
+  const addToCart = (product: Product, variant: ProductVariant | null) => {
+    const variantId = variant?.id;
+    const existingIndex = cart.findIndex(
+      (item) =>
+        item.productId === product.id &&
+        item.variantId === variantId &&
+        !item.priceOverride,
+    );
+
+    if (existingIndex >= 0) {
+      const existing = cart[existingIndex];
+      const stock = variant ? variant.stock : product.stock;
+      if (existing.quantity >= stock) {
+        toast.error('Available stock se zyada add nahi kar sakte');
+        return;
+      }
+      setCart((prev) =>
+        prev.map((item, i) =>
+          i === existingIndex ? { ...item, quantity: item.quantity + 1 } : item,
+        ),
+      );
+      return;
+    }
+
+    const newItem: CartItem = {
+      cartLineId: cartLineId(),
+      productId: product.id,
+      variantId,
+      name: product.name,
+      variantName: variant?.name,
+      variantImage: variant?.imageUrl ?? undefined,
+      variantColor: variant?.color ?? undefined,
+      variantColorHex: variant?.colorHex ?? undefined,
+      variantSize: variant?.size ?? undefined,
+      basePrice: variant?.price ?? product.price,
+      wholesalePrice: variant?.wholesalePrice ?? product.wholesalePrice,
+      stock: variant?.stock ?? product.stock,
+      quantity: 1,
+      unit: variant?.unit ?? product.unit,
+      category: product.category,
+      useWholesale: false,
+      lineDiscount: 0,
+    };
+
+    setCart((prev) => [...prev, newItem]);
+    toast.success(`${product.name}${variant ? ` (${variant.name})` : ''} added`);
+  };
+
+  const handleVariantSelect = (variant: ProductVariant) => {
+    if (variantPickerProduct) {
+      addToCart(variantPickerProduct, variant);
+    }
+    setVariantPickerProduct(null);
+    setVariantPickerData([]);
+  };
+
+  const updateCartLine = (cartLineId: string, patch: Partial<CartItem>) => {
+    setCart((prev) =>
+      prev.map((item) => (item.cartLineId === cartLineId ? { ...item, ...patch } : item)),
+    );
+  };
+
+  const removeCartLine = (cartLineId: string) => {
+    setCart((prev) => prev.filter((item) => item.cartLineId !== cartLineId));
+  };
+
+  const setLineQuantity = (cartLineId: string, qty: number) => {
+    const item = cart.find((i) => i.cartLineId === cartLineId);
+    if (!item) return;
+    if (qty < 0.01) {
+      removeCartLine(cartLineId);
+      return;
+    }
+    if (qty > item.stock) {
+      toast.error(`Stock available: ${item.stock} ${item.unit}`);
+      return;
+    }
+    updateCartLine(cartLineId, { quantity: Number(qty.toFixed(2)) });
   };
 
   const handleBarcodeScan = async (code: string) => {
@@ -200,8 +347,12 @@ export default function PosPage() {
     if (!code.trim()) return;
     try {
       const product = await productsApi.byBarcode(code.trim());
-      addToCart(product);
-      toast.success(`${product.name} added`);
+      // Check if barcode matched a variant
+      if ((product as any).matchedVariant) {
+        addToCart(product, (product as any).matchedVariant);
+      } else {
+        await addProductToCart(product);
+      }
     } catch {
       toast.error(`Barcode "${code}" se koi product nahi mila`);
     }
@@ -218,41 +369,12 @@ export default function PosPage() {
     barcodeRef.current?.focus();
   }, []);
 
-  // Auto-switch sale mode based on customer selection
   useEffect(() => {
     if (!customerId && (saleMode === 'PARTIAL_CREDIT' || saleMode === 'FULL_CREDIT')) {
       setSaleMode('FULL_PAYMENT');
       setPaidAmount('');
     }
   }, [customerId]);
-
-  const increaseQty = (productId: string) => {
-    setCart((prev) =>
-      prev.map((item) =>
-        item.productId === productId
-          ? item.quantity < item.stock
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-          : item,
-      ),
-    );
-  };
-
-  const decreaseQty = (productId: string) => {
-    setCart((prev) =>
-      prev
-        .map((item) =>
-          item.productId === productId
-            ? { ...item, quantity: item.quantity - 1 }
-            : item,
-        )
-        .filter((item) => item.quantity > 0),
-    );
-  };
-
-  const removeFromCart = (productId: string) => {
-    setCart((prev) => prev.filter((item) => item.productId !== productId));
-  };
 
   const handleCheckout = () => {
     if (cart.length === 0) {
@@ -267,15 +389,65 @@ export default function PosPage() {
       toast.error('Partial mein paid amount total se kam honi chahiye');
       return;
     }
+    if (saleMode === 'PARTIAL_CREDIT' && effectivePaid <= 0) {
+      toast.error('Partial mein paid amount zaroori hai');
+      return;
+    }
+
     checkoutMutation.mutate({
       customerId: customerId || undefined,
       paymentMethod,
       paidAmount: effectivePaid,
+      discount: gDiscount,
       items: cart.map((item) => ({
         productId: item.productId,
+        variantId: item.variantId,
         quantity: item.quantity,
+        priceOverride: item.priceOverride,
+        lineDiscount: item.lineDiscount || undefined,
+        useWholesale: item.useWholesale || undefined,
+        note: item.note,
       })),
     });
+  };
+
+  const holdCurrentCart = () => {
+    if (cart.length === 0) {
+      toast.error('Cart khaali hai');
+      return;
+    }
+    const held: HeldCart = {
+      id: cartLineId(),
+      items: cart,
+      customerId,
+      customerName: selectedCustomer?.name || 'Walk-in',
+      total,
+      heldAt: Date.now(),
+    };
+    const next = [held, ...heldCarts].slice(0, 10);
+    setHeldCarts(next);
+    saveHeldCarts(next);
+    resetCart();
+    toast.success('Cart held — POS ready for next customer');
+  };
+
+  const resumeHeldCart = (held: HeldCart) => {
+    if (cart.length > 0) {
+      if (!confirm('Current cart hai. Replace karein?')) return;
+    }
+    setCart(held.items);
+    setCustomerId(held.customerId);
+    const remaining = heldCarts.filter((c) => c.id !== held.id);
+    setHeldCarts(remaining);
+    saveHeldCarts(remaining);
+    setShowHeldCarts(false);
+    toast.success('Cart resumed');
+  };
+
+  const deleteHeldCart = (id: string) => {
+    const remaining = heldCarts.filter((c) => c.id !== id);
+    setHeldCarts(remaining);
+    saveHeldCarts(remaining);
   };
 
   const quickAmounts = useMemo(() => {
@@ -283,9 +455,9 @@ export default function PosPage() {
     return Array.from(amts).slice(0, 4);
   }, [total]);
 
-  const formatRelative = (date?: string) => {
+  const formatRelative = (date?: string | number) => {
     if (!date) return 'Never';
-    const d = new Date(date);
+    const d = typeof date === 'number' ? new Date(date) : new Date(date);
     const now = new Date();
     const diff = Math.floor((now.getTime() - d.getTime()) / 1000);
     if (diff < 60) return 'Abhi';
@@ -304,10 +476,185 @@ export default function PosPage() {
         />
       )}
 
-      <div className="grid xl:grid-cols-[1.5fr_460px] gap-6">
+      {lwOpen && (
+        <LengthWidthCalculator
+          productName={lwOpen.name + (lwOpen.variantName ? ` (${lwOpen.variantName})` : '')}
+          unit={lwOpen.unit}
+          initialQuantity={lwOpen.quantity}
+          onApply={(qty, note) => {
+            if (qty > lwOpen.stock) {
+              toast.error(`Stock available: ${lwOpen.stock} ${lwOpen.unit}`);
+              return;
+            }
+            updateCartLine(lwOpen.cartLineId, { quantity: qty, note });
+            setLwOpen(null);
+            toast.success(`Updated: ${qty.toFixed(2)} ${lwOpen.unit}`);
+          }}
+          onClose={() => setLwOpen(null)}
+        />
+      )}
+
+      {variantPickerProduct && (
+        <VariantPicker
+          product={variantPickerProduct}
+          variants={variantPickerData}
+          onSelect={handleVariantSelect}
+          onClose={() => {
+            setVariantPickerProduct(null);
+            setVariantPickerData([]);
+          }}
+        />
+      )}
+
+      {/* Customer quick add modal */}
+      {showCustomerAdd && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-200 bg-gradient-to-br from-violet-50 to-pink-50 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <UserPlus className="h-5 w-5 text-violet-600" />
+                <h3 className="font-bold text-slate-900">Quick Add Customer</h3>
+              </div>
+              <button
+                onClick={() => setShowCustomerAdd(false)}
+                className="h-8 w-8 rounded-lg hover:bg-white/50 flex items-center justify-center"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="p-5 space-y-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1">Name *</label>
+                <input
+                  autoFocus
+                  value={newCustomer.name}
+                  onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
+                  placeholder="Customer name"
+                  className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm focus:outline-none focus:border-violet-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1">Phone</label>
+                <input
+                  value={newCustomer.phone}
+                  onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })}
+                  placeholder="03XXXXXXXXX"
+                  className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm focus:outline-none focus:border-violet-500"
+                />
+              </div>
+              <Button
+                className="w-full"
+                onClick={() => {
+                  if (!newCustomer.name.trim()) {
+                    toast.error('Name zaroori hai');
+                    return;
+                  }
+                  addCustomerMutation.mutate({
+                    name: newCustomer.name.trim(),
+                    phone: newCustomer.phone.trim() || undefined,
+                  });
+                }}
+                loading={addCustomerMutation.isPending}
+              >
+                <UserPlus className="h-4 w-4" /> Add Customer
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Held carts modal */}
+      {showHeldCarts && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[80vh] flex flex-col">
+            <div className="px-5 py-4 border-b border-slate-200 bg-gradient-to-br from-amber-50 to-orange-50 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Pause className="h-5 w-5 text-amber-600" />
+                <div>
+                  <h3 className="font-bold text-slate-900">Held Carts</h3>
+                  <p className="text-xs text-slate-600">
+                    {heldCarts.length} cart{heldCarts.length !== 1 ? 's' : ''} on hold
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowHeldCarts(false)}
+                className="h-8 w-8 rounded-lg hover:bg-white/50 flex items-center justify-center"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              {heldCarts.length === 0 ? (
+                <div className="py-12 text-center text-slate-500">
+                  <Pause className="h-12 w-12 mx-auto opacity-30 mb-2" />
+                  <p className="font-bold">No held carts</p>
+                  <p className="text-xs mt-1">Hold a cart to switch between customers</p>
+                </div>
+              ) : (
+                heldCarts.map((held) => (
+                  <div
+                    key={held.id}
+                    className="rounded-2xl border-2 border-slate-200 hover:border-amber-400 p-3 transition group"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <User className="h-3.5 w-3.5 text-violet-600" />
+                          <div className="font-bold text-slate-900 truncate">
+                            {held.customerName}
+                          </div>
+                        </div>
+                        <div className="text-xs text-slate-500">
+                          {held.items.length} items • Held {formatRelative(held.heldAt)}
+                        </div>
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {held.items.slice(0, 3).map((item, i) => (
+                            <span
+                              key={i}
+                              className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 truncate max-w-[120px]"
+                            >
+                              {item.name}
+                            </span>
+                          ))}
+                          {held.items.length > 3 && (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-500">
+                              +{held.items.length - 3}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className="text-lg font-extrabold text-emerald-700">
+                          {formatPKR(held.total)}
+                        </div>
+                        <div className="flex gap-1 mt-2">
+                          <button
+                            onClick={() => resumeHeldCart(held)}
+                            className="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-[11px] font-bold inline-flex items-center gap-1"
+                          >
+                            <PlayCircle className="h-3 w-3" /> Resume
+                          </button>
+                          <button
+                            onClick={() => deleteHeldCart(held.id)}
+                            className="h-7 w-7 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="grid xl:grid-cols-[1.5fr_480px] gap-6">
         {/* ============== PRODUCTS SIDE ============== */}
         <section className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-          {/* Header */}
           <div className="px-6 py-5 border-b border-slate-100 bg-gradient-to-br from-white to-slate-50 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center gap-3">
@@ -318,37 +665,59 @@ export default function PosPage() {
                   <h2 className="text-2xl font-bold text-slate-900">POS Counter</h2>
                   <p className="text-xs text-slate-500 flex items-center gap-1.5">
                     <Sparkles className="h-3 w-3 text-amber-500" />
-                    Fast billing for Pakistani shops
+                    Fast billing • {filteredProducts.length} products
                   </p>
                 </div>
               </div>
 
-              <div className="relative w-full sm:w-[320px]">
-                <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  className="h-11 w-full rounded-2xl border border-slate-200 bg-white pl-10 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 transition"
-                  placeholder="Search by name, SKU..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-                {search && (
+              <div className="flex items-center gap-2">
+                {heldCarts.length > 0 && (
                   <button
-                    onClick={() => setSearch('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    onClick={() => setShowHeldCarts(true)}
+                    className="h-11 px-3 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-800 text-sm font-bold inline-flex items-center gap-1.5 relative"
                   >
-                    <X className="h-4 w-4" />
+                    <Pause className="h-4 w-4" />
+                    Held
+                    <span className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-amber-600 text-white text-[10px] font-bold flex items-center justify-center">
+                      {heldCarts.length}
+                    </span>
                   </button>
                 )}
+
+                <button
+                  onClick={() => setHidePrices((v) => !v)}
+                  className="h-11 w-11 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center"
+                  title={hidePrices ? 'Show prices' : 'Hide prices (customer mode)'}
+                >
+                  {hidePrices ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+
+                <div className="relative w-full sm:w-[280px]">
+                  <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500"
+                    placeholder="Search by name, SKU..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                  {search && (
+                    <button
+                      onClick={() => setSearch('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* Barcode Input */}
             <form onSubmit={handleBarcodeSubmit} className="flex gap-2">
               <div className="relative flex-1">
                 <ScanLine className="h-5 w-5 text-brand-600 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   ref={barcodeRef}
-                  className="h-12 w-full rounded-2xl border-2 border-brand-300 bg-gradient-to-br from-brand-50 to-white pl-11 pr-4 text-sm font-mono font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 transition placeholder:text-brand-400/70"
+                  className="h-12 w-full rounded-xl border-2 border-brand-300 bg-gradient-to-br from-brand-50 to-white pl-11 pr-4 text-sm font-mono font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 placeholder:text-brand-400/70"
                   placeholder="Barcode scan ya likhein..."
                   value={barcodeInput}
                   onChange={(e) => setBarcodeInput(e.target.value)}
@@ -369,11 +738,10 @@ export default function PosPage() {
             </form>
           </div>
 
-          {/* Products Grid */}
           {productsLoading ? (
             <div className="p-6 grid sm:grid-cols-2 2xl:grid-cols-3 gap-4">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="h-36 rounded-2xl bg-slate-100 animate-pulse" />
+                <div key={i} className="h-44 rounded-2xl bg-slate-100 animate-pulse" />
               ))}
             </div>
           ) : filteredProducts.length === 0 ? (
@@ -392,16 +760,17 @@ export default function PosPage() {
               style={{ maxHeight: 'calc(100vh - 320px)' }}
             >
               {filteredProducts.map((product) => {
-                const inCart = cart.find((c) => c.productId === product.id);
+                const inCart = cart.find((c) => c.productId === product.id && !c.variantId);
                 const outOfStock = product.stock <= 0;
-                const lowStock = product.stock > 0 && product.stock <= 5;
+                const lowStock = product.stock > 0 && product.stock <= product.lowStockAlert;
+                const primaryImage = product.images?.[0]?.url;
 
                 return (
                   <button
                     key={product.id}
-                    onClick={() => addToCart(product)}
+                    onClick={() => addProductToCart(product)}
                     disabled={outOfStock}
-                    className={`group relative text-left rounded-2xl border-2 transition-all p-4 ${
+                    className={`group relative text-left rounded-2xl border-2 transition-all overflow-hidden ${
                       outOfStock
                         ? 'border-slate-200 bg-slate-50 opacity-60 cursor-not-allowed'
                         : inCart
@@ -410,48 +779,67 @@ export default function PosPage() {
                     }`}
                   >
                     {inCart && (
-                      <div className="absolute -top-2 -right-2 h-7 w-7 rounded-full bg-brand-600 text-white text-xs font-bold flex items-center justify-center shadow-lg shadow-brand-500/40 ring-4 ring-white">
+                      <div className="absolute -top-2 -right-2 h-7 w-7 rounded-full bg-brand-600 text-white text-xs font-bold flex items-center justify-center shadow-lg shadow-brand-500/40 ring-4 ring-white z-10">
                         {inCart.quantity}
                       </div>
                     )}
 
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-brand-100 to-brand-200 flex items-center justify-center">
-                        <Package className="h-5 w-5 text-brand-700" />
-                      </div>
+                    {/* Image */}
+                    <div className="aspect-square bg-slate-100 overflow-hidden relative">
+                      {primaryImage ? (
+                        <img
+                          src={primaryImage}
+                          alt={product.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-brand-100 to-brand-200">
+                          <Package className="h-12 w-12 text-brand-400" />
+                        </div>
+                      )}
+
                       {outOfStock ? (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700">
+                        <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-600 text-white shadow">
                           OUT
-                        </span>
+                        </div>
                       ) : lowStock ? (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700">
+                        <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white shadow">
                           LOW
-                        </span>
+                        </div>
                       ) : null}
+
+                      {product.hasVariants && (
+                        <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-full text-[9px] font-bold bg-violet-600 text-white shadow inline-flex items-center gap-1">
+                          <Layers className="h-2.5 w-2.5" />
+                          VARIANTS
+                        </div>
+                      )}
                     </div>
 
-                    <div className="mt-3">
+                    <div className="p-3">
                       <div className="font-bold text-slate-900 text-sm line-clamp-2 leading-tight">
                         {product.name}
                       </div>
                       <div className="text-[10px] text-slate-500 mt-1 truncate font-mono">
                         {product.sku || product.barcode || 'No SKU'}
                       </div>
-                    </div>
 
-                    {product.category && (
-                      <span
-                        className="inline-block mt-2 px-2 py-0.5 rounded-full text-[10px] font-semibold text-white"
-                        style={{ backgroundColor: product.category.color }}
-                      >
-                        {product.category.name}
-                      </span>
-                    )}
+                      {product.category && (
+                        <span
+                          className="inline-block mt-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold text-white"
+                          style={{ backgroundColor: product.category.color }}
+                        >
+                          {product.category.name}
+                        </span>
+                      )}
 
-                    <div className="mt-3 flex items-end justify-between">
-                      <div className="text-lg font-bold text-slate-900">{formatPKR(product.price)}</div>
-                      <div className="text-[10px] text-slate-500 font-medium">
-                        {product.stock} {product.unit}
+                      <div className="mt-2 flex items-end justify-between">
+                        <div className="text-base font-bold text-slate-900">
+                          {hidePrices ? '••••' : formatPKR(product.price)}
+                        </div>
+                        <div className="text-[10px] text-slate-500 font-medium">
+                          {product.stock.toFixed(product.stock % 1 === 0 ? 0 : 2)} {product.unit}
+                        </div>
                       </div>
                     </div>
                   </button>
@@ -463,7 +851,6 @@ export default function PosPage() {
 
         {/* ============== CART SIDE ============== */}
         <aside className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-          {/* Cart Header */}
           <div className="px-6 py-5 border-b border-slate-100 bg-gradient-to-br from-slate-950 to-brand-800 text-white">
             <div className="flex items-center justify-between">
               <div>
@@ -471,37 +858,59 @@ export default function PosPage() {
                   <Receipt className="h-3 w-3" />
                   Cart
                 </div>
-                <h3 className="mt-2 text-2xl font-bold">{totalItems} items</h3>
-                <p className="text-xs text-white/70 mt-0.5">{cart.length} unique products</p>
+                <h3 className="mt-2 text-2xl font-bold">
+                  {totalItems.toFixed(totalItems % 1 === 0 ? 0 : 2)} items
+                </h3>
+                <p className="text-xs text-white/70 mt-0.5">{cart.length} lines</p>
               </div>
-              {cart.length > 0 && (
-                <button
-                  onClick={() => setCart([])}
-                  className="px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-xs font-bold transition"
-                >
-                  Clear All
-                </button>
-              )}
+              <div className="flex gap-2">
+                {cart.length > 0 && (
+                  <>
+                    <button
+                      onClick={holdCurrentCart}
+                      className="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 text-xs font-bold transition inline-flex items-center gap-1"
+                    >
+                      <Pause className="h-3 w-3" /> Hold
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (confirm('Clear cart?')) resetCart();
+                      }}
+                      className="px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-xs font-bold transition"
+                    >
+                      Clear
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
 
           <div className="flex-1 overflow-y-auto">
-            {/* ============== CUSTOMER SELECTION + CREDIT SUMMARY ============== */}
+            {/* Customer */}
             <div className="p-4 border-b border-slate-100 space-y-3">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                <User className="h-3 w-3" />
-                Customer / Khata
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                  <User className="h-3 w-3" />
+                  Customer / Khata
+                </label>
+                <button
+                  onClick={() => setShowCustomerAdd(true)}
+                  className="text-[10px] font-bold text-violet-600 hover:text-violet-700 inline-flex items-center gap-1"
+                >
+                  <UserPlus className="h-3 w-3" /> Quick Add
+                </button>
+              </div>
 
               <div className="relative">
                 <User className="h-4 w-4 text-violet-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <select
                   value={customerId}
                   onChange={(e) => setCustomerId(e.target.value)}
-                  className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500/30 appearance-none"
+                  className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-9 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500/30 appearance-none"
                 >
-                  <option value="">🚶 Walk-in Customer (No Tracking)</option>
-                  {filteredCustomers.map((customer) => (
+                  <option value="">Walk-in Customer (No Tracking)</option>
+                  {customers.map((customer) => (
                     <option key={customer.id} value={customer.id}>
                       {customer.name}
                       {customer.phone ? ` • ${customer.phone}` : ''}
@@ -509,12 +918,11 @@ export default function PosPage() {
                     </option>
                   ))}
                 </select>
+                <ChevronDown className="h-4 w-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
 
-              {/* === BEAUTIFUL CUSTOMER CREDIT SUMMARY === */}
               {selectedCustomer && customerCreditSummary && (
                 <div className="rounded-2xl bg-gradient-to-br from-violet-50 via-white to-amber-50 border-2 border-violet-200 overflow-hidden">
-                  {/* Customer header */}
                   <div className="p-3 bg-gradient-to-r from-violet-600 to-violet-700 text-white">
                     <div className="flex items-center gap-2">
                       <div className="h-9 w-9 rounded-xl bg-white/20 flex items-center justify-center font-bold">
@@ -531,7 +939,7 @@ export default function PosPage() {
                       </div>
                       {customerCreditSummary.currentBalance > 0 && (
                         <div className="text-right">
-                          <div className="text-[9px] text-white/70 font-semibold uppercase">Total Udhaar</div>
+                          <div className="text-[9px] text-white/70 font-semibold uppercase">Udhaar</div>
                           <div className="text-base font-extrabold text-amber-300">
                             {formatPKR(customerCreditSummary.currentBalance)}
                           </div>
@@ -540,7 +948,6 @@ export default function PosPage() {
                     </div>
                   </div>
 
-                  {/* Today's stats */}
                   <div className="grid grid-cols-3 divide-x divide-violet-100">
                     <div className="p-2.5 text-center">
                       <div className="text-[9px] text-slate-500 font-bold uppercase">Aaj Sales</div>
@@ -551,7 +958,7 @@ export default function PosPage() {
                     <div className="p-2.5 text-center bg-emerald-50/40">
                       <div className="text-[9px] text-emerald-700 font-bold uppercase flex items-center justify-center gap-0.5">
                         <ArrowDownCircle className="h-2.5 w-2.5" />
-                        Aaj Paid
+                        Paid
                       </div>
                       <div className="text-xs font-extrabold text-emerald-700 mt-0.5">
                         {formatPKR(customerCreditSummary.todayPaid)}
@@ -560,7 +967,7 @@ export default function PosPage() {
                     <div className="p-2.5 text-center bg-amber-50/40">
                       <div className="text-[9px] text-amber-700 font-bold uppercase flex items-center justify-center gap-0.5">
                         <ArrowUpCircle className="h-2.5 w-2.5" />
-                        Aaj Udhaar
+                        Udhaar
                       </div>
                       <div className="text-xs font-extrabold text-amber-700 mt-0.5">
                         {formatPKR(customerCreditSummary.todayCredit)}
@@ -568,7 +975,6 @@ export default function PosPage() {
                     </div>
                   </div>
 
-                  {/* Footer with last visit */}
                   <div className="px-3 py-2 bg-white/60 border-t border-violet-100 flex items-center justify-between text-[10px]">
                     <span className="text-slate-500 flex items-center gap-1">
                       <History className="h-2.5 w-2.5" />
@@ -583,7 +989,7 @@ export default function PosPage() {
               )}
             </div>
 
-            {/* Cart Items */}
+            {/* Cart items */}
             <div className="p-4 space-y-2">
               {cart.length === 0 ? (
                 <div className="rounded-2xl bg-gradient-to-br from-slate-50 to-white border-2 border-dashed border-slate-200 p-8 text-center">
@@ -594,57 +1000,226 @@ export default function PosPage() {
                   <p className="text-xs text-slate-500 mt-1">Products select karein ya barcode scan karein</p>
                 </div>
               ) : (
-                cart.map((item) => (
-                  <div
-                    key={item.productId}
-                    className="rounded-2xl border border-slate-200 bg-white p-3 hover:border-brand-300 transition group"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 flex-1">
-                        <div className="font-bold text-slate-900 text-sm line-clamp-1">{item.name}</div>
-                        <div className="text-xs text-slate-500 mt-0.5">
-                          {formatPKR(item.price)} × {item.quantity} {item.unit}
+                cart.map((item) => {
+                  const isEditing = editingLine === item.cartLineId;
+                  const unitPrice = item.priceOverride ?? (item.useWholesale ? (item.wholesalePrice ?? item.basePrice) : item.basePrice);
+                  const lineTotal = unitPrice * item.quantity - (item.lineDiscount || 0);
+                  const canUseLW = LW_UNITS.has(item.unit);
+
+                  return (
+                    <div
+                      key={item.cartLineId}
+                      className={`rounded-2xl border-2 transition ${
+                        isEditing
+                          ? 'border-brand-400 bg-brand-50/50 shadow-md'
+                          : 'border-slate-200 bg-white hover:border-brand-300'
+                      }`}
+                    >
+                      {/* Compact header */}
+                      <div className="p-3 flex items-start gap-2">
+                        {/* Variant image / icon */}
+                        <div className="h-12 w-12 rounded-xl bg-slate-100 overflow-hidden flex items-center justify-center shrink-0">
+                          {item.variantImage ? (
+                            <img src={item.variantImage} alt={item.name} className="h-full w-full object-cover" />
+                          ) : item.variantColorHex ? (
+                            <div className="h-full w-full" style={{ backgroundColor: item.variantColorHex }} />
+                          ) : (
+                            <Package className="h-5 w-5 text-slate-400" />
+                          )}
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="font-bold text-slate-900 text-sm line-clamp-1">{item.name}</div>
+                          {item.variantName && (
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              {item.variantColorHex && (
+                                <span
+                                  className="h-2.5 w-2.5 rounded-full border border-slate-300"
+                                  style={{ backgroundColor: item.variantColorHex }}
+                                />
+                              )}
+                              <span className="text-[11px] font-semibold text-violet-700">
+                                {item.variantName}
+                              </span>
+                            </div>
+                          )}
+                          <div className="text-[11px] text-slate-500 mt-0.5">
+                            {hidePrices ? '••••' : formatPKR(unitPrice)} × {item.quantity.toFixed(item.quantity % 1 === 0 ? 0 : 2)} {item.unit}
+                            {item.useWholesale && <span className="ml-1 text-amber-700 font-bold">(W)</span>}
+                            {item.priceOverride !== undefined && <span className="ml-1 text-blue-700 font-bold">(Custom)</span>}
+                          </div>
+                          {item.note && (
+                            <div className="text-[10px] text-emerald-700 mt-0.5 font-semibold flex items-center gap-1">
+                              <Ruler className="h-2.5 w-2.5" />
+                              {item.note}
+                            </div>
+                          )}
+                          {item.lineDiscount > 0 && (
+                            <div className="text-[10px] text-rose-600 mt-0.5 font-semibold inline-flex items-center gap-1">
+                              <Tag className="h-2.5 w-2.5" />
+                              -{formatPKR(item.lineDiscount)} discount
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="text-right shrink-0">
+                          <div className="font-extrabold text-slate-900 text-base">
+                            {hidePrices ? '••••' : formatPKR(lineTotal)}
+                          </div>
+                          <div className="flex gap-1 mt-1 justify-end">
+                            <button
+                              onClick={() => setEditingLine(isEditing ? null : item.cartLineId)}
+                              className={`h-6 w-6 rounded-lg flex items-center justify-center transition ${
+                                isEditing
+                                  ? 'bg-brand-600 text-white'
+                                  : 'bg-slate-100 hover:bg-brand-100 text-slate-600 hover:text-brand-700'
+                              }`}
+                              title="Edit line"
+                            >
+                              <Edit3 className="h-3 w-3" />
+                            </button>
+                            <button
+                              onClick={() => removeCartLine(item.cartLineId)}
+                              className="h-6 w-6 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </div>
                         </div>
                       </div>
-                      <button
-                        onClick={() => removeFromCart(item.productId)}
-                        className="text-rose-600 hover:bg-rose-50 rounded-lg p-1.5 opacity-0 group-hover:opacity-100 transition"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
 
-                    <div className="mt-2.5 flex items-center justify-between">
-                      <div className="inline-flex items-center gap-1 bg-slate-50 rounded-xl p-1">
-                        <button
-                          onClick={() => decreaseQty(item.productId)}
-                          className="h-7 w-7 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 flex items-center justify-center transition"
-                        >
-                          <Minus className="h-3 w-3" />
-                        </button>
-                        <span className="w-8 text-center font-bold text-sm">{item.quantity}</span>
-                        <button
-                          onClick={() => increaseQty(item.productId)}
-                          disabled={item.quantity >= item.stock}
-                          className="h-7 w-7 rounded-lg bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 text-white flex items-center justify-center transition"
-                        >
-                          <Plus className="h-3 w-3" />
-                        </button>
+                      {/* Quantity row */}
+                      <div className="px-3 pb-2 flex items-center justify-between gap-2">
+                        <div className="inline-flex items-center gap-1 bg-slate-50 rounded-xl p-1">
+                          <button
+                            onClick={() => setLineQuantity(item.cartLineId, item.quantity - 1)}
+                            className="h-7 w-7 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 flex items-center justify-center"
+                          >
+                            <Minus className="h-3 w-3" />
+                          </button>
+                          <input
+                            type="number"
+                            step="0.01"
+                            min="0.01"
+                            value={item.quantity}
+                            onChange={(e) => {
+                              const val = parseFloat(e.target.value);
+                              if (!isNaN(val) && val > 0 && val <= item.stock) {
+                                updateCartLine(item.cartLineId, { quantity: val });
+                              }
+                            }}
+                            className="w-16 text-center font-bold text-sm bg-transparent border-0 focus:outline-none"
+                          />
+                          <button
+                            onClick={() => setLineQuantity(item.cartLineId, item.quantity + 1)}
+                            disabled={item.quantity >= item.stock}
+                            className="h-7 w-7 rounded-lg bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 text-white flex items-center justify-center"
+                          >
+                            <Plus className="h-3 w-3" />
+                          </button>
+                        </div>
+
+                        {canUseLW && (
+                          <button
+                            onClick={() => setLwOpen(item)}
+                            className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-brand-600 to-emerald-600 text-white text-[10px] font-bold inline-flex items-center gap-1 shadow-sm"
+                          >
+                            <Ruler className="h-3 w-3" />
+                            Calculate
+                          </button>
+                        )}
                       </div>
-                      <div className="font-bold text-slate-900 text-base">
-                        {formatPKR(item.price * item.quantity)}
-                      </div>
+
+                      {/* Expanded editor */}
+                      {isEditing && (
+                        <div className="border-t-2 border-brand-200 bg-brand-50/30 p-3 space-y-2">
+                          {item.wholesalePrice && (
+                            <label className="flex items-center justify-between gap-2 text-xs cursor-pointer">
+                              <span className="font-bold text-slate-700">Use wholesale price</span>
+                              <input
+                                type="checkbox"
+                                checked={item.useWholesale}
+                                onChange={(e) => updateCartLine(item.cartLineId, { useWholesale: e.target.checked, priceOverride: undefined })}
+                                className="h-4 w-4 rounded"
+                              />
+                            </label>
+                          )}
+
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="block text-[10px] font-bold text-slate-600 mb-0.5">Custom price</label>
+                              <input
+                                type="number"
+                                step="0.01"
+                                placeholder={String(item.basePrice)}
+                                value={item.priceOverride ?? ''}
+                                onChange={(e) => {
+                                  const val = e.target.value === '' ? undefined : parseFloat(e.target.value);
+                                  updateCartLine(item.cartLineId, { priceOverride: val });
+                                }}
+                                className="h-9 w-full rounded-lg border border-slate-200 px-2 text-sm font-bold"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10px] font-bold text-slate-600 mb-0.5">Line discount (Rs)</label>
+                              <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={item.lineDiscount || ''}
+                                onChange={(e) => updateCartLine(item.cartLineId, { lineDiscount: parseFloat(e.target.value) || 0 })}
+                                className="h-9 w-full rounded-lg border border-slate-200 px-2 text-sm font-bold"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] font-bold text-slate-600 mb-0.5">Note</label>
+                            <input
+                              type="text"
+                              value={item.note ?? ''}
+                              onChange={(e) => updateCartLine(item.cartLineId, { note: e.target.value })}
+                              placeholder="Optional note"
+                              className="h-9 w-full rounded-lg border border-slate-200 px-2 text-sm"
+                            />
+                          </div>
+
+                          <button
+                            onClick={() => setEditingLine(null)}
+                            className="w-full h-9 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold"
+                          >
+                            Done
+                          </button>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>
 
-          {/* ============== BOTTOM: PAYMENT + SALE MODE ============== */}
+          {/* ============== BOTTOM ============== */}
           {cart.length > 0 && (
             <div className="border-t border-slate-200 bg-gradient-to-br from-slate-50 to-white p-4 space-y-3">
-              {/* === SALE MODE TOGGLE (CASH / PARTIAL / FULL UDHAAR) === */}
+              {/* Global discount */}
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5 flex items-center gap-1.5">
+                  <Percent className="h-3 w-3" />
+                  Global Discount (PKR)
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={globalDiscount}
+                  onChange={(e) => setGlobalDiscount(e.target.value)}
+                  placeholder="0"
+                  className="h-10 w-full rounded-xl border border-slate-200 px-3 text-sm font-bold"
+                />
+              </div>
+
+              {/* Sale Mode */}
               <div>
                 <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5 flex items-center gap-1.5">
                   <BookOpen className="h-3 w-3" />
@@ -714,15 +1289,9 @@ export default function PosPage() {
                     </span>
                   </button>
                 </div>
-                {!customerId && (saleMode === 'FULL_PAYMENT') && (
-                  <p className="text-[10px] text-slate-500 mt-1.5 flex items-center gap-1">
-                    <Info className="h-3 w-3" />
-                    Udhaar/Khata ke liye customer select karein
-                  </p>
-                )}
               </div>
 
-              {/* Payment Method (only for non-full-credit) */}
+              {/* Payment Method */}
               {saleMode !== 'FULL_CREDIT' && (
                 <div>
                   <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5 block">
@@ -738,9 +1307,7 @@ export default function PosPage() {
                           key={m}
                           onClick={() => setPaymentMethod(m)}
                           className={`flex flex-col items-center justify-center gap-1 p-2 rounded-xl border-2 transition ${
-                            active
-                              ? `${cfg.bg} shadow-sm`
-                              : 'bg-white border-slate-200 hover:border-slate-300'
+                            active ? `${cfg.bg} shadow-sm` : 'bg-white border-slate-200 hover:border-slate-300'
                           }`}
                         >
                           <Icon className="h-4 w-4" style={{ color: active ? cfg.color : '#94a3b8' }} />
@@ -754,22 +1321,21 @@ export default function PosPage() {
                 </div>
               )}
 
-              {/* Paid Amount (only in PARTIAL_CREDIT mode) */}
+              {/* Paid Amount */}
               {saleMode === 'PARTIAL_CREDIT' && (
                 <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-amber-700">
-                      Paid Amount (Rest goes to Khata)
-                    </label>
-                  </div>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-amber-700 mb-1.5 block">
+                    Paid Amount (Rest → Khata)
+                  </label>
                   <div className="relative">
                     <Wallet className="h-4 w-4 text-amber-500 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                       type="number"
+                      step="0.01"
                       value={paidAmount}
                       onChange={(e) => setPaidAmount(e.target.value)}
                       placeholder="0"
-                      max={total - 1}
+                      max={total - 0.01}
                       className="h-12 w-full rounded-xl border-2 border-amber-300 bg-amber-50 pl-9 pr-4 text-base font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/40"
                     />
                   </div>
@@ -779,7 +1345,7 @@ export default function PosPage() {
                         <button
                           key={`${idx}-${amt}`}
                           onClick={() => setPaidAmount(String(amt))}
-                          className="py-1.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-[10px] font-bold text-amber-800 transition"
+                          className="py-1.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-[10px] font-bold text-amber-800"
                         >
                           {formatPKR(amt)}
                         </button>
@@ -789,7 +1355,7 @@ export default function PosPage() {
                 </div>
               )}
 
-              {/* === BIG TOTALS SUMMARY === */}
+              {/* Totals */}
               <div className={`rounded-2xl p-4 space-y-2 text-white ${
                 saleMode === 'FULL_CREDIT'
                   ? 'bg-gradient-to-br from-rose-700 to-rose-900'
@@ -802,6 +1368,13 @@ export default function PosPage() {
                   <span className="font-semibold">{formatPKR(subtotal)}</span>
                 </div>
 
+                {totalDiscount > 0 && (
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-amber-300">Discount</span>
+                    <span className="font-bold text-amber-300">-{formatPKR(totalDiscount)}</span>
+                  </div>
+                )}
+
                 <div className="flex items-center justify-between pt-2 border-t border-white/10">
                   <span className="text-base font-bold">Total</span>
                   <span className="text-2xl font-extrabold">{formatPKR(total)}</span>
@@ -810,8 +1383,7 @@ export default function PosPage() {
                 {saleMode !== 'FULL_CREDIT' && (
                   <div className="flex items-center justify-between text-xs pt-2 border-t border-white/10">
                     <span className="text-emerald-300 font-semibold flex items-center gap-1">
-                      <ArrowDownCircle className="h-3 w-3" />
-                      Paid Now
+                      <ArrowDownCircle className="h-3 w-3" /> Paid Now
                     </span>
                     <span className="font-bold text-emerald-300">{formatPKR(effectivePaid)}</span>
                   </div>
@@ -820,8 +1392,7 @@ export default function PosPage() {
                 {change > 0 && (
                   <div className="flex items-center justify-between text-xs pt-2 border-t border-white/10">
                     <span className="text-emerald-300 font-semibold flex items-center gap-1">
-                      <TrendingDown className="h-3 w-3" />
-                      Change Wapis
+                      <TrendingDown className="h-3 w-3" /> Change Wapis
                     </span>
                     <span className="font-bold text-emerald-300">{formatPKR(change)}</span>
                   </div>
@@ -838,27 +1409,11 @@ export default function PosPage() {
                 )}
               </div>
 
-              {/* Future balance projection */}
-              {credit > 0 && customerCreditSummary && (
-                <div className="rounded-xl bg-rose-50 border border-rose-200 p-2.5 flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-rose-600 flex-shrink-0" />
-                  <p className="text-xs text-rose-800 font-semibold">
-                    Sale ke baad <span className="font-extrabold">{selectedCustomer?.name}</span> ka total udhaar:{' '}
-                    <span className="font-extrabold">
-                      {formatPKR(customerCreditSummary.currentBalance + credit)}
-                    </span>
-                  </p>
-                </div>
-              )}
-
               {credit > 0 && !customerId && (
                 <div className="rounded-xl bg-amber-50 border-2 border-amber-300 p-3 flex items-start gap-2">
-                  <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5" />
                   <div>
                     <p className="text-xs text-amber-900 font-bold">Customer required for credit</p>
-                    <p className="text-[10px] text-amber-700 mt-0.5">
-                      Udhaar track karne ke liye customer select karein
-                    </p>
                   </div>
                 </div>
               )}

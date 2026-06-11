@@ -15,8 +15,13 @@ export class SalesService {
   ) {}
 
   async create(user: AuthenticatedUser, dto: CreateSaleDto) {
-    const productIds = dto.items.map((item) => item.productId);
+    // Collect all unique product IDs and variant IDs
+    const productIds = [...new Set(dto.items.map((i) => i.productId))];
+    const variantIds = [
+      ...new Set(dto.items.map((i) => i.variantId).filter(Boolean) as string[]),
+    ];
 
+    // Fetch products
     const products = await this.prisma.product.findMany({
       where: {
         tenantId: user.tenantId,
@@ -29,44 +34,113 @@ export class SalesService {
       throw new NotFoundException('One or more products not found');
     }
 
+    // Fetch variants if any
+    const variants = variantIds.length
+      ? await this.prisma.productVariant.findMany({
+          where: {
+            id: { in: variantIds },
+            isActive: true,
+            product: { tenantId: user.tenantId, isActive: true },
+          },
+        })
+      : [];
+
+    if (variants.length !== variantIds.length) {
+      throw new NotFoundException('One or more variants not found or inactive');
+    }
+
     const productMap = new Map(products.map((p) => [p.id, p]));
+    const variantMap = new Map(variants.map((v) => [v.id, v]));
 
     let subtotal = 0;
     let costOfGoods = 0;
+    let totalLineDiscount = 0;
 
     const normalizedItems = dto.items.map((item) => {
       const product = productMap.get(item.productId);
       if (!product) throw new NotFoundException('Product not found');
 
-      if (product.stock < item.quantity) {
-        throw new BadRequestException(`Insufficient stock for ${product.name}`);
+      const variant = item.variantId ? variantMap.get(item.variantId) : null;
+      if (item.variantId && !variant) {
+        throw new NotFoundException('Variant not found');
+      }
+      if (variant && variant.productId !== product.id) {
+        throw new BadRequestException('Variant does not belong to this product');
       }
 
-      const lineTotal = product.price * item.quantity;
-      const lineCost = product.costPrice * item.quantity;
-      subtotal += lineTotal;
+      // Resolve unit price: priceOverride > wholesale > variant.price > product.price
+      let unitPrice: number;
+      if (item.priceOverride !== undefined && item.priceOverride !== null) {
+        unitPrice = item.priceOverride;
+      } else if (item.useWholesale) {
+        unitPrice =
+          (variant?.wholesalePrice ?? product.wholesalePrice ?? variant?.price ?? product.price);
+      } else {
+        unitPrice = variant?.price ?? product.price;
+      }
+
+      const unitCost = variant?.costPrice ?? product.costPrice ?? 0;
+      const quantity = Number(item.quantity);
+
+      // Stock check
+      const availableStock = variant ? variant.stock : product.stock;
+      const itemName = variant
+        ? `${product.name} (${variant.name})`
+        : product.name;
+
+      if (availableStock < quantity) {
+        throw new BadRequestException(
+          `Insufficient stock for ${itemName}. Available: ${availableStock}`,
+        );
+      }
+
+      const lineGross = unitPrice * quantity;
+      const lineDiscount = item.lineDiscount ?? 0;
+
+      if (lineDiscount > lineGross) {
+        throw new BadRequestException(
+          `Line discount cannot exceed line total for ${itemName}`,
+        );
+      }
+
+      const lineTotal = lineGross - lineDiscount;
+      const lineCost = unitCost * quantity;
+
+      subtotal += lineGross;
+      totalLineDiscount += lineDiscount;
       costOfGoods += lineCost;
 
       return {
         productId: product.id,
-        quantity: item.quantity,
-        price: product.price,
-        costPrice: product.costPrice,
+        variantId: variant?.id,
+        quantity,
+        price: unitPrice,
+        costPrice: unitCost,
+        lineDiscount,
         total: lineTotal,
+        note: item.note,
+        productSnapshot: { name: product.name, unit: product.unit },
+        variantSnapshot: variant ? { name: variant.name, sku: variant.sku } : null,
       };
     });
 
-    let discount = dto.discount ?? 0;
+    // Apply discount code
+    let discount = (dto.discount ?? 0) + totalLineDiscount;
     let discountCodeId: string | undefined;
     let discountCodeStr: string | undefined;
 
     if (dto.discountCode) {
-      const validated = await this.discounts.validate(user, dto.discountCode, subtotal);
+      const validated = await this.discounts.validate(
+        user,
+        dto.discountCode,
+        subtotal - totalLineDiscount,
+      );
       discount += validated.discount;
       discountCodeId = validated.id;
       discountCodeStr = validated.code;
     }
 
+    // Loyalty discount
     const settings = await this.prisma.tenantSettings.findUnique({
       where: { tenantId: user.tenantId },
     });
@@ -91,8 +165,6 @@ export class SalesService {
         );
       }
 
-      // Minimum redemption check removed (use loyaltyRedemptionRate instead)
-
       loyaltyDiscount = dto.loyaltyPointsToUse * settings.loyaltyRedemptionRate;
       loyaltyPointsUsed = dto.loyaltyPointsToUse;
     }
@@ -104,14 +176,13 @@ export class SalesService {
     const creditAmount = Math.max(total - paidAmount, 0);
     const changeAmount = Math.max(paidAmount - total, 0);
 
-    // ✅ AUTO-ALLOW CREDIT if customer is selected
+    // Auto-allow credit if customer selected
     if (creditAmount > 0) {
       if (!dto.customerId) {
         throw new BadRequestException(
           'Udhaar/Khata sale ke liye customer select karna zaroori hai',
         );
       }
-      // If customer is provided, automatically allow credit (user-friendly)
     }
 
     let loyaltyEarned = 0;
@@ -149,32 +220,73 @@ export class SalesService {
           creditAmount,
           paymentMethod: dto.paymentMethod,
           status: 'COMPLETED',
-          items: { create: normalizedItems },
+          items: {
+            create: normalizedItems.map((item) => ({
+              productId: item.productId,
+              quantity: item.quantity,
+              price: item.price,
+              costPrice: item.costPrice,
+              total: item.total,
+              ...(item.variantId && {
+                variantLink: {
+                  create: { variantId: item.variantId },
+                },
+              }),
+            })),
+          },
         },
         include: {
-          items: { include: { product: true } },
+          items: {
+            include: {
+              product: true,
+              variantLink: { include: { variant: true } },
+            },
+          },
           customer: true,
           createdBy: { select: { id: true, fullName: true, email: true } },
         },
       });
 
+      // Decrement stock — variant if specified, else product
       for (const item of normalizedItems) {
-        const updated = await tx.product.update({
-          where: { id: item.productId },
-          data: { stock: { decrement: item.quantity } },
-        });
-
-        await tx.stockMovement.create({
-          data: {
-            tenantId: user.tenantId,
-            productId: item.productId,
-            type: 'SALE_OUT',
-            quantity: -item.quantity,
-            balanceAfter: updated.stock,
-            reference: sale.saleNumber,
-            note: 'POS sale',
-          },
-        });
+        if (item.variantId) {
+          const updated = await tx.productVariant.update({
+            where: { id: item.variantId },
+            data: { stock: { decrement: item.quantity } },
+          });
+          // Also decrement parent product stock to keep it in sync
+          const parentUpdated = await tx.product.update({
+            where: { id: item.productId },
+            data: { stock: { decrement: item.quantity } },
+          });
+          await tx.stockMovement.create({
+            data: {
+              tenantId: user.tenantId,
+              productId: item.productId,
+              type: 'SALE_OUT',
+              quantity: -item.quantity,
+              balanceAfter: parentUpdated.stock,
+              reference: sale.saleNumber,
+              note: `Variant: ${updated.name}${item.note ? ` • ${item.note}` : ''}`,
+            },
+          });
+        } else {
+          const updated = await tx.product.update({
+            where: { id: item.productId },
+            data: { stock: { decrement: item.quantity } },
+          });
+          await tx.stockMovement.create({
+            data: {
+              tenantId: user.tenantId,
+              productId: item.productId,
+              type: 'SALE_OUT',
+              quantity: -item.quantity,
+              balanceAfter: updated.stock,
+              reference: sale.saleNumber,
+              note: item.note || 'POS sale',
+            },
+          });
+        }
       }
 
       if (discountCodeId) {
@@ -218,7 +330,7 @@ export class SalesService {
               points: -loyaltyPointsUsed,
               balanceAfter: newPoints,
               reference: sale.saleNumber,
-              note: `Redeemed for Rs ${loyaltyDiscount.toFixed(0)}`,
+              note: `Redeemed for Rs ${loyaltyDiscount.toFixed(2)}`,
             },
           });
         }
@@ -257,7 +369,12 @@ export class SalesService {
       include: {
         customer: true,
         createdBy: { select: { id: true, fullName: true, email: true } },
-        items: { include: { product: true } },
+        items: {
+          include: {
+            product: true,
+            variantLink: { include: { variant: true } },
+          },
+        },
       },
       orderBy: { soldAt: 'desc' },
       take: 50,
@@ -270,7 +387,12 @@ export class SalesService {
       include: {
         customer: true,
         createdBy: { select: { id: true, fullName: true, email: true } },
-        items: { include: { product: true } },
+        items: {
+          include: {
+            product: true,
+            variantLink: { include: { variant: true } },
+          },
+        },
         tenant: true,
       },
     });
@@ -343,7 +465,11 @@ export class SalesService {
   async voidSale(user: AuthenticatedUser, id: string, reason?: string) {
     const sale = await this.prisma.sale.findFirst({
       where: { id, tenantId: user.tenantId },
-      include: { items: true },
+      include: {
+        items: {
+          include: { variantLink: true },
+        },
+      },
     });
     if (!sale) throw new NotFoundException('Sale not found');
     if (sale.status === 'VOIDED') {
@@ -352,10 +478,19 @@ export class SalesService {
 
     return this.prisma.$transaction(async (tx) => {
       for (const item of sale.items) {
+        // Restore variant stock if applicable
+        if (item.variantLink) {
+          await tx.productVariant.update({
+            where: { id: item.variantLink.variantId },
+            data: { stock: { increment: item.quantity } },
+          });
+        }
+
         const updated = await tx.product.update({
           where: { id: item.productId },
           data: { stock: { increment: item.quantity } },
         });
+
         await tx.stockMovement.create({
           data: {
             tenantId: user.tenantId,

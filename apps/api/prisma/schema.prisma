@@ -680,8 +680,8 @@ model Product {
   costPrice       Float    @default(0)
   wholesalePrice  Float?
   taxRate         Float    @default(0)
-  stock           Int      @default(0)
-  lowStockAlert   Int      @default(5)
+  stock           Float    @default(0)
+  lowStockAlert   Float    @default(5)
   weight          Float?
   weightUnit      String?
   dimensions      String?
@@ -794,8 +794,8 @@ model ProductVariant {
   price         Float
   costPrice     Float    @default(0)
   wholesalePrice Float?
-  stock         Int      @default(0)
-  lowStockAlert Int      @default(5)
+  stock         Float    @default(0)
+  lowStockAlert Float    @default(5)
   imageUrl      String?
   isActive      Boolean  @default(true)
   sortOrder     Int      @default(0)
@@ -833,7 +833,7 @@ model ProductBatch {
   batchNumber  String
   manufactureDate DateTime?
   expiryDate   DateTime?
-  quantity     Int       @default(0)
+  quantity     Float     @default(0)
   costPrice    Float     @default(0)
   notes        String?
   isActive     Boolean   @default(true)
@@ -998,8 +998,8 @@ model SaleItem {
   id          String   @id @default(uuid())
   saleId      String
   productId   String
-  quantity    Int
-  returnedQty Int      @default(0)
+  quantity    Float
+  returnedQty Float    @default(0)
   price       Float
   costPrice   Float    @default(0)
   total       Float
@@ -1044,7 +1044,7 @@ model SaleReturnItem {
   returnId    String
   saleItemId  String
   productId   String
-  quantity    Int
+  quantity    Float
   refundPrice Float
   total       Float
 
@@ -1121,7 +1121,7 @@ model PurchaseItem {
   id         String   @id @default(uuid())
   purchaseId String
   productId  String
-  quantity   Int
+  quantity   Float
   costPrice  Float
   total      Float
   createdAt  DateTime @default(now())
@@ -1138,8 +1138,8 @@ model StockMovement {
   tenantId     String
   productId    String
   type         StockMovementType
-  quantity     Int
-  balanceAfter Int
+  quantity     Float
+  balanceAfter Float
   reference    String?
   note         String?
   createdAt    DateTime          @default(now())
@@ -1158,7 +1158,7 @@ model StockAdjustment {
   productId   String
   createdById String?
   type        StockMovementType
-  quantity    Int
+  quantity    Float
   reason      String
   note        String?
   createdAt   DateTime          @default(now())
@@ -1203,7 +1203,7 @@ model StockTransferItem {
   id         String   @id @default(uuid())
   transferId String
   productId  String
-  quantity   Int
+  quantity   Float
   createdAt  DateTime @default(now())
 
   transfer StockTransfer @relation(fields: [transferId], references: [id], onDelete: Cascade)

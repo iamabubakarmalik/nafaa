@@ -20,6 +20,7 @@ import BrandsPage from '@/features/brands/pages/BrandsPage';
 import TagsPage from '@/features/tags/pages/TagsPage';
 import ProductsListPage from '@/features/products/pages/ProductsListPage';
 import ProductFormPage from '@/features/products/pages/ProductFormPage';
+import CatalogPage from '@/features/catalog/pages/CatalogPage';
 import CustomersListPage from '@/features/customers/pages/CustomersListPage';
 import CustomerFormPage from '@/features/customers/pages/CustomerFormPage';
 import CustomerDetailPage from '@/features/customers/pages/CustomerDetailPage';
@@ -107,6 +108,8 @@ export default function App() {
                 <Route path="/products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <ProductFormPage />)} />
                 <Route path="/products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <ProductFormPage />)} />
                 <Route path="/products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ProductsListPage />)} />
+
+                <Route path="/catalog" element={secure(PERMISSIONS.PRODUCTS_VIEW, <CatalogPage />)} />
 
                 <Route path="/brands" element={secure(PERMISSIONS.BRANDS_VIEW, <BrandsPage />)} />
                 <Route path="/tags" element={secure(PERMISSIONS.TAGS_VIEW, <TagsPage />)} />

@@ -25,14 +25,29 @@ const sizes: Record<Size, string> = {
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'primary', size = 'md', loading, disabled, children, ...props }, ref) => (
+  (
+    {
+      className,
+      variant = 'primary',
+      size = 'md',
+      loading = false,
+      disabled = false,
+      children,
+      type = 'button',
+      ...props
+    },
+    ref,
+  ) => (
     <button
       ref={ref}
+      type={type}
       disabled={disabled || loading}
+      aria-busy={loading}
       className={cn(
-        'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-brand-500/40',
+        'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-all select-none disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-brand-500/40',
         variants[variant],
         sizes[size],
+        loading && 'pointer-events-none',
         className,
       )}
       {...props}
@@ -42,4 +57,5 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     </button>
   ),
 );
+
 Button.displayName = 'Button';
