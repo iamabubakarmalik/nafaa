@@ -10,14 +10,20 @@ import * as Haptics from 'expo-haptics';
 import {
   ArrowLeft, ArrowRight, Check, Store, User, MapPin, Settings,
   Package, Users, Sparkles, X, Clock, Phone, Crown, Plus, Trash2,
-  ChevronRight, SkipForward,
+  SkipForward, Search,
 } from 'lucide-react-native';
 import { onboardingApi } from '@/api/onboarding.api';
+import { useAuthStore } from '@/store/auth.store';
+import {
+  BusinessTypeSelector,
+  BUSINESS_TYPES,
+  type BusinessTypeCard,
+} from '@/components/onboarding/BusinessTypeSelector';
 import Toast from 'react-native-toast-message';
-
 import { useTranslation } from '@/i18n/useTranslation';
+
 const stepMeta = [
-  { num: 1, title: 'Business Info', icon: Store, color: '#16a34a' },
+  { num: 1, title: 'Business Type', icon: Store, color: '#16a34a' },
   { num: 2, title: 'Your Profile', icon: User, color: '#2563eb' },
   { num: 3, title: 'Shop Details', icon: MapPin, color: '#7c3aed' },
   { num: 4, title: 'Preferences', icon: Settings, color: '#ec4899' },
@@ -29,6 +35,7 @@ export default function OnboardingScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const updateTenant = useAuthStore((s) => s.updateTenant);
 
   const { data: options } = useQuery({
     queryKey: ['onboarding-options'],
@@ -41,6 +48,7 @@ export default function OnboardingScreen() {
   });
 
   const [step, setStep] = useState(1);
+  const [citySearch, setCitySearch] = useState('');
 
   useEffect(() => {
     if (progress) {
@@ -52,21 +60,25 @@ export default function OnboardingScreen() {
     }
   }, [progress]);
 
-  // Form states
-  const [s1, setS1] = useState({ businessType: '', businessSize: '', city: '', province: '' });
+  const [s1, setS1] = useState({ businessType: '', businessSize: 'SMALL', city: '', province: '' });
   const [s2, setS2] = useState({ whatsappNumber: '', cnic: '', preferredLanguage: 'roman_ur' });
-  const [s3, setS3] = useState({ shopAddress: '', openTime: '09:00', closeTime: '22:00', workingDays: ['mon','tue','wed','thu','fri','sat'], taxNumber: '' });
-  const [s4, setS4] = useState({ enabledCategories: [] as string[], paymentMethods: ['CASH'], receiptTemplate: 'THERMAL_58MM', lowStockThreshold: 10 });
+  const [s3, setS3] = useState({
+    shopAddress: '', openTime: '09:00', closeTime: '22:00',
+    workingDays: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat'], taxNumber: '',
+  });
+  const [s4, setS4] = useState({
+    enabledCategories: [] as string[], paymentMethods: ['CASH'],
+    receiptTemplate: 'THERMAL_58MM', lowStockThreshold: 10,
+  });
   const [s5Products, setS5Products] = useState<Array<{ name: string; price: string; stock: string }>>([]);
   const [s6Team, setS6Team] = useState<Array<{ fullName: string; email: string; password: string; role: 'MANAGER' | 'CASHIER' | 'STAFF' }>>([]);
   const [wantsTutorial, setWantsTutorial] = useState(true);
 
-  // Pre-fill from existing progress
   useEffect(() => {
     if (!progress) return;
     setS1({
       businessType: progress.businessType || '',
-      businessSize: progress.businessSize || '',
+      businessSize: progress.businessSize || 'SMALL',
       city: progress.city || '',
       province: progress.province || '',
     });
@@ -79,7 +91,7 @@ export default function OnboardingScreen() {
       shopAddress: progress.shopAddress || '',
       openTime: progress.openTime || '09:00',
       closeTime: progress.closeTime || '22:00',
-      workingDays: progress.workingDays?.length ? progress.workingDays : ['mon','tue','wed','thu','fri','sat'],
+      workingDays: progress.workingDays?.length ? progress.workingDays : ['mon', 'tue', 'wed', 'thu', 'fri', 'sat'],
       taxNumber: progress.taxNumber || '',
     });
     setS4({
@@ -90,9 +102,45 @@ export default function OnboardingScreen() {
     });
   }, [progress]);
 
+  // Filter cities by search
+  const filteredCities = useMemo(() => {
+    if (!options?.cities) return [];
+    const q = citySearch.toLowerCase().trim();
+    if (!q) return options.cities.slice(0, 15);
+    return options.cities.filter((c) => c.toLowerCase().includes(q));
+  }, [options, citySearch]);
+
+  // Map API business types to BusinessTypeCard format (with fallback)
+  const businessTypeOptions = useMemo(() => {
+    if (!options?.businessTypes) return BUSINESS_TYPES;
+    // If API returns expanded list with highlights, use it
+    if ((options.businessTypes[0] as any)?.highlights) {
+      return options.businessTypes as any;
+    }
+    // Otherwise use default BUSINESS_TYPES
+    return BUSINESS_TYPES;
+  }, [options]);
+
+  // Suggested categories based on selected business type
+  const suggestedCategories = useMemo(() => {
+    const type = s1.businessType || progress?.businessType || 'GENERAL';
+    return (
+      options?.suggestedCategories?.[type] ||
+      options?.suggestedCategories?.OTHER ||
+      []
+    );
+  }, [s1.businessType, progress, options]);
+
   const stepMutation = useMutation({
     mutationFn: async () => {
-      if (step === 1) return onboardingApi.step1(s1);
+      if (step === 1) {
+        const result = await onboardingApi.step1(s1);
+        // Auto-update tenant so other screens see new businessType
+        await updateTenant({ businessType: s1.businessType });
+        // Invalidate business config cache
+        queryClient.invalidateQueries({ queryKey: ['business-config'] });
+        return result;
+      }
       if (step === 2) return onboardingApi.step2(s2);
       if (step === 3) return onboardingApi.step3(s3);
       if (step === 4) return onboardingApi.step4(s4);
@@ -136,22 +184,17 @@ export default function OnboardingScreen() {
 
   const meta = stepMeta[step - 1];
 
-  // Validation
   const canProceed = useMemo(() => {
     if (step === 1) return !!s1.businessType && !!s1.businessSize && !!s1.city;
-    if (step === 2) return true; // all optional
-    if (step === 3) return true;
     if (step === 4) return s4.paymentMethods.length > 0;
-    if (step === 5) return true;
-    if (step === 6) return true;
     return true;
-  }, [step, s1, s2, s3, s4]);
+  }, [step, s1, s4]);
 
   if (isLoading || !options || !progress) {
     return (
       <SafeAreaView className="flex-1 bg-neutral-50 items-center justify-center">
         <Sparkles size={36} color="#16a34a" />
-        <Text className="mt-3 text-neutral-500">{t('auto.section.loading')}</Text>
+        <Text className="mt-3 text-neutral-500">Loading...</Text>
       </SafeAreaView>
     );
   }
@@ -168,7 +211,7 @@ export default function OnboardingScreen() {
             hitSlop={12}
             className="h-10 w-10 rounded-2xl bg-white dark:bg-neutral-900 items-center justify-center border border-neutral-200 dark:border-neutral-800"
           >
-            <ArrowLeft size={20} color="#16a34a" />
+            <ArrowLeft size={20} color={meta.color} />
           </Pressable>
         ) : (
           <View className="h-10 w-10" />
@@ -265,47 +308,31 @@ export default function OnboardingScreen() {
                   Step {step}
                 </Text>
                 <Text className="text-2xl font-extrabold text-white">{meta.title}</Text>
+                <Text className="text-xs text-white/80 mt-1">
+                  {step === 1 && 'Software auto-configure ho jayega'}
+                  {step === 2 && 'WhatsApp aur language'}
+                  {step === 3 && 'Shop address aur timings'}
+                  {step === 4 && 'Categories aur payment'}
+                  {step === 5 && 'Pehle products add karein'}
+                  {step === 6 && 'Team members (optional)'}
+                </Text>
               </View>
             </View>
           </View>
 
-          {/* ===== STEP 1: Business Info ===== */}
+          {/* ===== STEP 1: Business Type with BEAUTIFUL SELECTOR ===== */}
           {step === 1 && (
             <View className="gap-5">
-              <View>
-                <Text className="text-sm font-bold text-neutral-700 dark:text-neutral-200 mb-2">
-                  Aap ka business kya hai? <Text className="text-rose-600">*</Text>
-                </Text>
-                <View className="flex-row flex-wrap -m-1">
-                  {options.businessTypes.map((bt) => {
-                    const active = s1.businessType === bt.value;
-                    return (
-                      <View key={bt.value} className="w-1/2 p-1">
-                        <Pressable
-                          onPress={() => {
-                            Haptics.selectionAsync();
-                            setS1({ ...s1, businessType: bt.value });
-                          }}
-                          className="p-3 rounded-2xl border-2 items-center"
-                          style={{
-                            borderColor: active ? meta.color : '#e5e7eb',
-                            backgroundColor: active ? `${meta.color}15` : '#ffffff',
-                          }}
-                        >
-                          <Text className="text-3xl mb-1">{bt.emoji}</Text>
-                          <Text
-                            className="text-xs font-bold text-center"
-                            style={{ color: active ? meta.color : '#374151' }}
-                          >
-                            {bt.label}
-                          </Text>
-                        </Pressable>
-                      </View>
-                    );
-                  })}
-                </View>
-              </View>
+              <BusinessTypeSelector
+                value={s1.businessType}
+                options={businessTypeOptions as any}
+                onChange={(t) => setS1({ ...s1, businessType: t.value })}
+                onSelect={(t) => setS1({ ...s1, businessType: t.value })}
+                showConfirmButton={false}
+                primaryColor={meta.color}
+              />
 
+              {/* Business Size */}
               <View>
                 <Text className="text-sm font-bold text-neutral-700 dark:text-neutral-200 mb-2">
                   Business ka size? <Text className="text-rose-600">*</Text>
@@ -350,44 +377,55 @@ export default function OnboardingScreen() {
                 </View>
               </View>
 
+              {/* City with search */}
               <View>
                 <Text className="text-sm font-bold text-neutral-700 dark:text-neutral-200 mb-2">
                   Shahar (City) <Text className="text-rose-600">*</Text>
                 </Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{ gap: 8, paddingRight: 20 }}
-                >
-                  {options.cities.slice(0, 15).map((city) => {
+                <View className="flex-row items-center gap-2 rounded-2xl border border-neutral-200 bg-white px-4 h-11 mb-2">
+                  <Search size={16} color="#9ca3af" />
+                  <TextInput
+                    value={citySearch}
+                    onChangeText={setCitySearch}
+                    placeholder="Search city..."
+                    placeholderTextColor="#9ca3af"
+                    className="flex-1 text-sm text-neutral-900"
+                  />
+                </View>
+                <View className="flex-row flex-wrap -m-1">
+                  {filteredCities.map((city) => {
                     const active = s1.city === city;
                     return (
-                      <Pressable
-                        key={city}
-                        onPress={() => {
-                          Haptics.selectionAsync();
-                          setS1({ ...s1, city });
-                        }}
-                        className="h-10 px-4 rounded-full border-2 items-center justify-center"
-                        style={{
-                          borderColor: active ? meta.color : '#e5e7eb',
-                          backgroundColor: active ? meta.color : '#ffffff',
-                        }}
-                      >
-                        <Text
-                          className="text-sm font-bold"
-                          style={{ color: active ? '#ffffff' : '#374151' }}
+                      <View key={city} className="p-1">
+                        <Pressable
+                          onPress={() => {
+                            Haptics.selectionAsync();
+                            setS1({ ...s1, city });
+                          }}
+                          className="px-3 h-10 rounded-xl border-2 items-center justify-center"
+                          style={{
+                            borderColor: active ? meta.color : '#e5e7eb',
+                            backgroundColor: active ? meta.color : '#ffffff',
+                          }}
                         >
-                          {city}
-                        </Text>
-                      </Pressable>
+                          <Text
+                            className="text-xs font-bold"
+                            style={{ color: active ? '#ffffff' : '#374151' }}
+                          >
+                            {city}
+                          </Text>
+                        </Pressable>
+                      </View>
                     );
                   })}
-                </ScrollView>
+                </View>
               </View>
 
+              {/* Province */}
               <View>
-                <Text className="text-sm font-bold text-neutral-700 dark:text-neutral-200 mb-2">{t('auto.index.province')}</Text>
+                <Text className="text-sm font-bold text-neutral-700 dark:text-neutral-200 mb-2">
+                  Province (optional)
+                </Text>
                 <View className="flex-row flex-wrap -m-1">
                   {options.provinces.map((p) => {
                     const active = s1.province === p;
@@ -396,7 +434,7 @@ export default function OnboardingScreen() {
                         <Pressable
                           onPress={() => {
                             Haptics.selectionAsync();
-                            setS1({ ...s1, province: p });
+                            setS1({ ...s1, province: active ? '' : p });
                           }}
                           className="px-3 h-9 rounded-xl border-2 items-center justify-center"
                           style={{
@@ -419,11 +457,13 @@ export default function OnboardingScreen() {
             </View>
           )}
 
-          {/* ===== STEP 2: Profile ===== */}
+          {/* ===== STEP 2: Profile (CNIC Optional) ===== */}
           {step === 2 && (
             <View className="gap-5">
               <View>
-                <Text className="text-sm font-bold text-neutral-700 dark:text-neutral-200 mb-1.5">{t('auto.index.whatsapp_number')}</Text>
+                <Text className="text-sm font-bold text-neutral-700 dark:text-neutral-200 mb-1.5">
+                  WhatsApp Number
+                </Text>
                 <View className="flex-row items-center gap-2 rounded-2xl border border-neutral-200 bg-white px-4 h-12">
                   <Phone size={18} color="#9ca3af" />
                   <TextInput
@@ -435,11 +475,15 @@ export default function OnboardingScreen() {
                     className="flex-1 text-base text-neutral-900"
                   />
                 </View>
-                <Text className="text-[11px] text-neutral-500 mt-1">{t('auto.index.customers_ko_whatsapp_pe_receipts_bhejne')}</Text>
+                <Text className="text-[11px] text-neutral-500 mt-1">
+                  Customers ko WhatsApp pe receipts bhejne ke liye
+                </Text>
               </View>
 
               <View>
-                <Text className="text-sm font-bold text-neutral-700 dark:text-neutral-200 mb-1.5">{t('auto.index.cnic_optional')}</Text>
+                <Text className="text-sm font-bold text-neutral-700 dark:text-neutral-200 mb-1.5">
+                  CNIC <Text className="text-neutral-400 font-normal">(Optional)</Text>
+                </Text>
                 <View className="flex-row items-center gap-2 rounded-2xl border border-neutral-200 bg-white px-4 h-12">
                   <TextInput
                     value={s2.cnic}
@@ -451,11 +495,15 @@ export default function OnboardingScreen() {
                     maxLength={15}
                   />
                 </View>
-                <Text className="text-[11px] text-neutral-500 mt-1">{t('auto.index.sirf_verification_ke_liye_kabhi_share_na')}</Text>
+                <Text className="text-[11px] text-neutral-500 mt-1">
+                  Optional — sirf identity verification ke liye
+                </Text>
               </View>
 
               <View>
-                <Text className="text-sm font-bold text-neutral-700 dark:text-neutral-200 mb-2">{t('auto.index.preferred_language')}</Text>
+                <Text className="text-sm font-bold text-neutral-700 dark:text-neutral-200 mb-2">
+                  Preferred Language
+                </Text>
                 <View className="gap-2">
                   {options.languages.map((lang) => {
                     const active = s2.preferredLanguage === lang.value;
@@ -494,12 +542,12 @@ export default function OnboardingScreen() {
           {step === 3 && (
             <View className="gap-5">
               <View>
-                <Text className="text-sm font-bold text-neutral-700 mb-1.5">{t('auto.index.shop_address')}</Text>
+                <Text className="text-sm font-bold text-neutral-700 mb-1.5">Shop Address</Text>
                 <View className="rounded-2xl border border-neutral-200 bg-white px-4 py-3">
                   <TextInput
                     value={s3.shopAddress}
                     onChangeText={(t) => setS3({ ...s3, shopAddress: t })}
-                    placeholder="Shop ka pura address likhein..."
+                    placeholder="Shop ka pura address..."
                     placeholderTextColor="#9ca3af"
                     multiline
                     numberOfLines={3}
@@ -510,10 +558,10 @@ export default function OnboardingScreen() {
               </View>
 
               <View>
-                <Text className="text-sm font-bold text-neutral-700 mb-2">{t('auto.index.working_hours')}</Text>
+                <Text className="text-sm font-bold text-neutral-700 mb-2">Working Hours</Text>
                 <View className="flex-row gap-2">
                   <View className="flex-1">
-                    <Text className="text-[10px] text-neutral-500 font-bold uppercase mb-1">{t('auto.index.open')}</Text>
+                    <Text className="text-[10px] text-neutral-500 font-bold uppercase mb-1">Open</Text>
                     <View className="flex-row items-center gap-2 rounded-2xl border border-neutral-200 bg-white px-3 h-11">
                       <Clock size={16} color="#9ca3af" />
                       <TextInput
@@ -526,7 +574,7 @@ export default function OnboardingScreen() {
                     </View>
                   </View>
                   <View className="flex-1">
-                    <Text className="text-[10px] text-neutral-500 font-bold uppercase mb-1">{t('auto.index.close')}</Text>
+                    <Text className="text-[10px] text-neutral-500 font-bold uppercase mb-1">Close</Text>
                     <View className="flex-row items-center gap-2 rounded-2xl border border-neutral-200 bg-white px-3 h-11">
                       <Clock size={16} color="#9ca3af" />
                       <TextInput
@@ -542,7 +590,7 @@ export default function OnboardingScreen() {
               </View>
 
               <View>
-                <Text className="text-sm font-bold text-neutral-700 mb-2">{t('auto.index.working_days')}</Text>
+                <Text className="text-sm font-bold text-neutral-700 mb-2">Working Days</Text>
                 <View className="flex-row flex-wrap -m-1">
                   {options.workingDays.map((d) => {
                     const active = s3.workingDays.includes(d.value);
@@ -578,7 +626,9 @@ export default function OnboardingScreen() {
               </View>
 
               <View>
-                <Text className="text-sm font-bold text-neutral-700 mb-1.5">{t('auto.index.gst_ntn_optional')}</Text>
+                <Text className="text-sm font-bold text-neutral-700 mb-1.5">
+                  GST / NTN <Text className="text-neutral-400 font-normal">(Optional)</Text>
+                </Text>
                 <View className="rounded-2xl border border-neutral-200 bg-white px-4 h-12 flex-row items-center">
                   <TextInput
                     value={s3.taxNumber}
@@ -592,14 +642,16 @@ export default function OnboardingScreen() {
             </View>
           )}
 
-          {/* ===== STEP 4: Preferences ===== */}
+          {/* ===== STEP 4: Preferences with auto-suggested categories ===== */}
           {step === 4 && (
             <View className="gap-5">
               <View>
-                <Text className="text-sm font-bold text-neutral-700 mb-2">{t('auto.index.categories_shuru_karein')}</Text>
-                <Text className="text-xs text-neutral-500 mb-3">{t('auto.index.aap_ke_business_ke_liye_suggested')}</Text>
+                <Text className="text-sm font-bold text-neutral-700 mb-1">Categories shuru karein</Text>
+                <Text className="text-xs text-neutral-500 mb-3">
+                  ✨ Aap ke business ke liye auto-suggested
+                </Text>
                 <View className="flex-row flex-wrap -m-1">
-                  {(options.suggestedCategories[s1.businessType || progress.businessType || 'OTHER'] || []).map((cat) => {
+                  {suggestedCategories.map((cat: string) => {
                     const active = s4.enabledCategories.includes(cat);
                     return (
                       <View key={cat} className="p-1">
@@ -673,7 +725,7 @@ export default function OnboardingScreen() {
               </View>
 
               <View>
-                <Text className="text-sm font-bold text-neutral-700 mb-2">{t('auto.index.receipt_type')}</Text>
+                <Text className="text-sm font-bold text-neutral-700 mb-2">Receipt Type</Text>
                 <View className="gap-2">
                   {options.receiptTemplates.map((rt) => {
                     const active = s4.receiptTemplate === rt.value;
@@ -707,7 +759,7 @@ export default function OnboardingScreen() {
               </View>
 
               <View>
-                <Text className="text-sm font-bold text-neutral-700 mb-1.5">{t('auto.index.low_stock_alert_units')}</Text>
+                <Text className="text-sm font-bold text-neutral-700 mb-1.5">Low Stock Alert</Text>
                 <View className="rounded-2xl border border-neutral-200 bg-white px-4 h-12 flex-row items-center">
                   <TextInput
                     value={String(s4.lowStockThreshold)}
@@ -716,7 +768,7 @@ export default function OnboardingScreen() {
                     placeholder="10"
                     className="flex-1 text-base text-neutral-900 font-bold"
                   />
-                  <Text className="text-xs text-neutral-500">{t('auto.index.units')}</Text>
+                  <Text className="text-xs text-neutral-500">units</Text>
                 </View>
               </View>
             </View>
@@ -727,14 +779,13 @@ export default function OnboardingScreen() {
             <View className="gap-4">
               <View className="rounded-2xl bg-amber-50 border-2 border-amber-300 p-4 flex-row items-start gap-3">
                 <Sparkles size={18} color="#b45309" />
-                <Text className="flex-1 text-xs text-amber-900 leading-5">{t('auto.index.apne_pehle_2_3_products_quickly_add_kare')}</Text>
+                <Text className="flex-1 text-xs text-amber-900 leading-5">
+                  Pehle 2-3 products quickly add karein. Baad mein bhi add kar sakte hain.
+                </Text>
               </View>
 
               {s5Products.map((p, idx) => (
-                <View
-                  key={idx}
-                  className="rounded-2xl bg-white border border-neutral-200 p-3 gap-2"
-                >
+                <View key={idx} className="rounded-2xl bg-white border border-neutral-200 p-3 gap-2">
                   <View className="flex-row items-center gap-2">
                     <View className="h-7 w-7 rounded-lg bg-amber-100 items-center justify-center">
                       <Text className="text-xs font-extrabold text-amber-700">#{idx + 1}</Text>
@@ -754,7 +805,7 @@ export default function OnboardingScreen() {
                       next[idx] = { ...next[idx], name: t };
                       setS5Products(next);
                     }}
-                    placeholder="Product name (e.g. Sugar 1kg)"
+                    placeholder="Product name"
                     placeholderTextColor="#9ca3af"
                     className="border border-neutral-200 rounded-xl px-3 h-10 text-sm"
                   />
@@ -792,7 +843,7 @@ export default function OnboardingScreen() {
                 className="rounded-2xl border-2 border-dashed border-amber-300 bg-amber-50 p-4 flex-row items-center justify-center gap-2"
               >
                 <Plus size={18} color="#b45309" />
-                <Text className="font-extrabold text-amber-700">{t('auto.new.add_product')}</Text>
+                <Text className="font-extrabold text-amber-700">Add Product</Text>
               </Pressable>
             </View>
           )}
@@ -802,14 +853,13 @@ export default function OnboardingScreen() {
             <View className="gap-4">
               <View className="rounded-2xl bg-rose-50 border-2 border-rose-200 p-4 flex-row items-start gap-3">
                 <Crown size={18} color="#dc2626" />
-                <Text className="flex-1 text-xs text-rose-900 leading-5">{t('auto.index.apne_staff_cashier_manager_ko_add_karein')}</Text>
+                <Text className="flex-1 text-xs text-rose-900 leading-5">
+                  Staff add karein taa ke wo bhi POS use kar saken. Skip kar sakte hain.
+                </Text>
               </View>
 
               {s6Team.map((m, idx) => (
-                <View
-                  key={idx}
-                  className="rounded-2xl bg-white border border-neutral-200 p-3 gap-2"
-                >
+                <View key={idx} className="rounded-2xl bg-white border border-neutral-200 p-3 gap-2">
                   <View className="flex-row items-center gap-2">
                     <View className="h-7 w-7 rounded-lg bg-rose-100 items-center justify-center">
                       <Text className="text-xs font-extrabold text-rose-700">#{idx + 1}</Text>
@@ -853,7 +903,7 @@ export default function OnboardingScreen() {
                       next[idx] = { ...next[idx], password: t };
                       setS6Team(next);
                     }}
-                    placeholder="Set password (min 8)"
+                    placeholder="Set password"
                     placeholderTextColor="#9ca3af"
                     secureTextEntry
                     className="border border-neutral-200 rounded-xl px-3 h-10 text-sm"
@@ -895,13 +945,13 @@ export default function OnboardingScreen() {
                 className="rounded-2xl border-2 border-dashed border-rose-300 bg-rose-50 p-4 flex-row items-center justify-center gap-2"
               >
                 <Plus size={18} color="#dc2626" />
-                <Text className="font-extrabold text-rose-700">{t('auto.index.add_team_member')}</Text>
+                <Text className="font-extrabold text-rose-700">Add Team Member</Text>
               </Pressable>
 
               <View className="rounded-2xl bg-white border border-neutral-200 p-4 flex-row items-center gap-3">
                 <View className="flex-1">
-                  <Text className="font-bold text-neutral-900">{t('auto.index.tutorial_dekhna_chahte_hain')}</Text>
-                  <Text className="text-xs text-neutral-500 mt-0.5">{t('auto.index.app_use_karne_ki_guidance')}</Text>
+                  <Text className="font-bold text-neutral-900">Tutorial dekhna chahte hain?</Text>
+                  <Text className="text-xs text-neutral-500 mt-0.5">App use karne ki guidance</Text>
                 </View>
                 <Pressable
                   onPress={() => {
@@ -932,7 +982,7 @@ export default function OnboardingScreen() {
           )}
         </ScrollView>
 
-        {/* Bottom action bar */}
+        {/* Action bar */}
         <View className="px-5 py-4 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 flex-row gap-2">
           {(step === 5 || step === 6) && (
             <Pressable
@@ -941,7 +991,7 @@ export default function OnboardingScreen() {
               className="h-14 px-5 rounded-2xl items-center justify-center flex-row gap-1.5 border-2 border-neutral-200"
             >
               <SkipForward size={16} color="#6b7280" />
-              <Text className="text-neutral-700 font-bold text-sm">{t('auto.index.skip')}</Text>
+              <Text className="text-neutral-700 font-bold text-sm">Skip</Text>
             </Pressable>
           )}
           <Pressable

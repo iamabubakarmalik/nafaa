@@ -9,6 +9,7 @@ export interface AuthUser {
   role: 'SUPER_ADMIN' | 'OWNER' | 'MANAGER' | 'CASHIER' | 'STAFF';
   permissions?: string[];
   emailVerified: boolean;
+  avatarUrl?: string;
 }
 
 export interface AuthTenant {
@@ -18,6 +19,9 @@ export interface AuthTenant {
   status: 'ACTIVE' | 'SUSPENDED' | 'TRIAL';
   currency: string;
   language: string;
+  businessType?: string | null;
+  businessFeatures?: Record<string, boolean> | null;
+  defaultUnit?: string | null;
 }
 
 interface AuthState {
@@ -34,6 +38,7 @@ interface AuthState {
   }) => void;
   setTokens: (accessToken: string, refreshToken: string) => void;
   setUser: (user: AuthUser, tenant: AuthTenant) => void;
+  updateTenant: (patch: Partial<AuthTenant>) => void;
   logout: () => void;
 }
 
@@ -50,6 +55,10 @@ export const useAuthStore = create<AuthState>()(
       setTokens: (accessToken, refreshToken) =>
         set({ accessToken, refreshToken }),
       setUser: (user, tenant) => set({ user, tenant, isAuthenticated: true }),
+      updateTenant: (patch) =>
+        set((state) => ({
+          tenant: state.tenant ? { ...state.tenant, ...patch } : null,
+        })),
       logout: () =>
         set({
           accessToken: null,

@@ -17,28 +17,32 @@ import {
   PAYMENT_METHODS_LIST, PREFERRED_LANGUAGES, RECEIPT_TEMPLATES,
   SUGGESTED_CATEGORIES, TOTAL_STEPS, WORKING_DAYS,
 } from './constants/onboarding.constants';
+import {
+  BUSINESS_TEMPLATES, BUSINESS_TYPE_OPTIONS, getBusinessTemplate,
+} from './templates/business-templates';
 
 @Injectable()
 export class OnboardingService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /** Get static options (cities, business types, etc.) — for frontend dropdowns */
+  /** Get static options + business templates */
   getOptions() {
     return {
       cities: PAKISTAN_CITIES,
       provinces: PAKISTAN_PROVINCES,
-      businessTypes: BUSINESS_TYPES,
+      businessTypes: BUSINESS_TYPE_OPTIONS, // Now uses expanded templates
+      businessTypesLegacy: BUSINESS_TYPES,  // Keep for backward compat
       businessSizes: BUSINESS_SIZES,
       languages: PREFERRED_LANGUAGES,
       receiptTemplates: RECEIPT_TEMPLATES,
       paymentMethods: PAYMENT_METHODS_LIST,
       workingDays: WORKING_DAYS,
       suggestedCategories: SUGGESTED_CATEGORIES,
+      businessTemplates: BUSINESS_TEMPLATES, // Full templates
       totalSteps: TOTAL_STEPS,
     };
   }
 
-  /** Get current progress or create if missing */
   async getOrCreate(user: AuthenticatedUser) {
     let progress = await this.prisma.onboardingProgress.findUnique({
       where: { tenantId: user.tenantId },
@@ -57,7 +61,6 @@ export class OnboardingService {
     return this.enrich(progress);
   }
 
-  /** Force-create (used after registration) */
   async create(tenantId: string, userId: string) {
     const existing = await this.prisma.onboardingProgress.findUnique({
       where: { tenantId },
@@ -69,15 +72,63 @@ export class OnboardingService {
     });
   }
 
+  /**
+   * STEP 1 — Business Info + AUTO-CONFIGURE TENANT
+   * This is the magic — when user selects business type,
+   * we auto-apply template to tenant
+   */
   async updateStep1(user: AuthenticatedUser, dto: UpdateStep1Dto) {
     await this.ensureNotCompleted(user.tenantId);
-    return this.updateAndAdvance(user.tenantId, 1, dto);
+
+    // Normalize legacy values
+    const normalizedType = this.normalizeBusinessType(dto.businessType);
+    const template = getBusinessTemplate(normalizedType);
+
+    // Auto-configure tenant with business defaults
+    await this.prisma.tenant.update({
+      where: { id: user.tenantId },
+      data: {
+        businessType: normalizedType,
+        businessFeatures: template.features as any,
+        defaultUnit: template.defaultUnit,
+      },
+    });
+
+    // Also create/update tenant settings with sensible defaults
+    const existingSettings = await this.prisma.tenantSettings.findUnique({
+      where: { tenantId: user.tenantId },
+    });
+
+    const settingsData: any = {
+      trackExpiry: template.features.expiry,
+      enableTax: false,
+    };
+
+    if (!existingSettings) {
+      await this.prisma.tenantSettings.create({
+        data: {
+          tenantId: user.tenantId,
+          ...settingsData,
+        },
+      });
+    } else {
+      await this.prisma.tenantSettings.update({
+        where: { tenantId: user.tenantId },
+        data: settingsData,
+      });
+    }
+
+    return this.updateAndAdvance(user.tenantId, 1, {
+      businessType: dto.businessType,
+      businessSize: dto.businessSize,
+      city: dto.city,
+      province: dto.province,
+    });
   }
 
   async updateStep2(user: AuthenticatedUser, dto: UpdateStep2Dto) {
     await this.ensureNotCompleted(user.tenantId);
 
-    // Sync avatar + phone to user record
     const updates: any = {};
     if (dto.avatarUrl !== undefined) updates.avatarUrl = dto.avatarUrl;
     if (dto.whatsappNumber !== undefined) updates.phone = dto.whatsappNumber;
@@ -91,7 +142,6 @@ export class OnboardingService {
   async updateStep3(user: AuthenticatedUser, dto: UpdateStep3Dto) {
     await this.ensureNotCompleted(user.tenantId);
 
-    // Sync address to tenant
     if (dto.shopAddress !== undefined) {
       await this.prisma.tenant.update({
         where: { id: user.tenantId },
@@ -105,7 +155,6 @@ export class OnboardingService {
   async updateStep4(user: AuthenticatedUser, dto: UpdateStep4Dto) {
     await this.ensureNotCompleted(user.tenantId);
 
-    // Auto-create selected categories
     if (dto.enabledCategories && dto.enabledCategories.length > 0) {
       const existing = await this.prisma.category.findMany({
         where: { tenantId: user.tenantId },
@@ -119,17 +168,17 @@ export class OnboardingService {
 
       const palette = ['#16a34a', '#2563eb', '#7c3aed', '#ec4899', '#f59e0b', '#dc2626', '#0891b2', '#ea580c'];
 
-for (const [i, name] of toCreate.entries()) {
-  try {
-    await this.prisma.category.create({
-      data: {
-        tenantId: user.tenantId,
-        name,   
-        color: palette[i % palette.length]!,   
-      },
-    });
-  } catch {}
-}
+      for (const [i, name] of toCreate.entries()) {
+        try {
+          await this.prisma.category.create({
+            data: {
+              tenantId: user.tenantId,
+              name,
+              color: palette[i % palette.length]!,
+            },
+          });
+        } catch {}
+      }
     }
 
     return this.updateAndAdvance(user.tenantId, 4, dto);
@@ -138,11 +187,17 @@ for (const [i, name] of toCreate.entries()) {
   async updateStep5(user: AuthenticatedUser, dto: UpdateStep5Dto) {
     await this.ensureNotCompleted(user.tenantId);
 
+    // Get tenant to use default unit
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id: user.tenantId },
+      select: { defaultUnit: true },
+    });
+    const defaultUnit = tenant?.defaultUnit || 'pcs';
+
     let createdCount = 0;
     if (dto.products && dto.products.length > 0) {
       for (const p of dto.products) {
         try {
-          // Find or create category
           let categoryId: string | undefined;
           if (p.category) {
             const cat = await this.prisma.category.findFirst({
@@ -158,7 +213,7 @@ for (const [i, name] of toCreate.entries()) {
               price: p.price,
               costPrice: p.costPrice ?? 0,
               stock: p.stock ?? 0,
-              unit: p.unit ?? 'pcs',
+              unit: p.unit ?? defaultUnit,
               categoryId,
               lowStockAlert: 10,
             },
@@ -217,7 +272,6 @@ for (const [i, name] of toCreate.entries()) {
   async skipStep(user: AuthenticatedUser, step: number) {
     await this.ensureNotCompleted(user.tenantId);
 
-    // Steps 5 (products) and 6 (team) are skippable
     if (![5, 6].includes(step)) {
       throw new BadRequestException('Ye step skip nahi ho sakti');
     }
@@ -279,7 +333,110 @@ for (const [i, name] of toCreate.entries()) {
     );
   }
 
+  /**
+   * Get current business config for tenant
+   * Used by frontend hook useBusinessFeatures()
+   */
+  async getBusinessConfig(user: AuthenticatedUser) {
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id: user.tenantId },
+      select: {
+        businessType: true,
+        businessFeatures: true,
+        defaultUnit: true,
+      },
+    });
+
+    if (!tenant) throw new NotFoundException('Tenant not found');
+
+    // Always resolve to a valid template — fallback to GENERAL
+    const template =
+      (tenant.businessType && getBusinessTemplate(tenant.businessType)) ||
+      getBusinessTemplate('GENERAL');
+
+    // Defensive: ensure all template fields exist
+    const safeTemplate = {
+      label: template?.label || 'General Retail',
+      emoji: template?.emoji || '🏬',
+      description: template?.description || 'Configure your business type',
+      quickUnits: template?.quickUnits || ['pcs', 'kg', 'meter'],
+      suggestedCategories: template?.suggestedCategories || [],
+      highlights: template?.highlights || [],
+    };
+
+    const features =
+      (tenant.businessFeatures as any) ||
+      template?.features ||
+      {};
+
+    return {
+      businessType: tenant.businessType || 'GENERAL',
+      defaultUnit: tenant.defaultUnit || template?.defaultUnit || 'pcs',
+      features,
+      template: safeTemplate,
+    };
+  }
+
+  /**
+   * Update business features (toggle individual features)
+   */
+  async updateBusinessFeatures(
+    user: AuthenticatedUser,
+    features: Record<string, boolean>,
+  ) {
+    if (user.role !== 'OWNER') {
+      throw new ForbiddenException('Only owner can update business features');
+    }
+
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id: user.tenantId },
+      select: { businessFeatures: true },
+    });
+
+    const current = (tenant?.businessFeatures as any) || {};
+    const updated = { ...current, ...features };
+
+    await this.prisma.tenant.update({
+      where: { id: user.tenantId },
+      data: { businessFeatures: updated },
+    });
+
+    return { features: updated };
+  }
+
+  /**
+   * Change business type (re-applies template defaults)
+   */
+  async changeBusinessType(user: AuthenticatedUser, newType: string) {
+    if (user.role !== 'OWNER') {
+      throw new ForbiddenException('Only owner can change business type');
+    }
+
+    const normalizedType = this.normalizeBusinessType(newType);
+    const template = getBusinessTemplate(normalizedType);
+
+    await this.prisma.tenant.update({
+      where: { id: user.tenantId },
+      data: {
+        businessType: normalizedType,
+        businessFeatures: template.features as any,
+        defaultUnit: template.defaultUnit,
+      },
+    });
+
+    return this.getBusinessConfig(user);
+  }
+
   // ===== Helpers =====
+  private normalizeBusinessType(type: string): string {
+    const mapping: Record<string, string> = {
+      KIRYANA: 'GROCERY',
+      MOBILE_SHOP: 'MOBILE',
+      OTHER: 'GENERAL',
+    };
+    return mapping[type] || type;
+  }
+
   private async ensureNotCompleted(tenantId: string) {
     const p = await this.prisma.onboardingProgress.findUnique({
       where: { tenantId },

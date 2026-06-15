@@ -17,6 +17,9 @@ export interface AuthTenant {
   name: string;
   slug: string;
   status: string;
+  businessType?: string | null;
+  businessFeatures?: Record<string, boolean> | null;
+  defaultUnit?: string | null;
 }
 
 interface AuthState {
@@ -34,6 +37,7 @@ interface AuthState {
     refreshToken: string;
   }) => Promise<void>;
   updateTokens: (accessToken: string, refreshToken: string) => Promise<void>;
+  updateTenant: (patch: Partial<AuthTenant>) => Promise<void>;
   logout: () => Promise<void>;
   initialize: () => Promise<void>;
 }
@@ -53,13 +57,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isAuthenticated: false,
   isInitialized: false,
 
-  // CRITICAL: Update Zustand state FIRST (synchronous), then persist to SecureStore
-  // This prevents the race condition where navigation happens before token saved
   setSession: async ({ user, tenant, accessToken, refreshToken }) => {
-    // 1. Update in-memory state IMMEDIATELY (sync) so guards see logged-in state
     set({ user, tenant, accessToken, refreshToken, isAuthenticated: true });
-
-    // 2. Persist to SecureStore in background (parallel, non-blocking)
     try {
       await Promise.all([
         SecureStore.setItemAsync(STORAGE_KEYS.user, JSON.stringify(user)),
@@ -72,7 +71,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  // Used by API client when refreshing access token
   updateTokens: async (accessToken, refreshToken) => {
     set({ accessToken, refreshToken });
     try {
@@ -85,8 +83,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
+  updateTenant: async (patch) => {
+    const current = get().tenant;
+    if (!current) return;
+    const updated = { ...current, ...patch };
+    set({ tenant: updated });
+    try {
+      await SecureStore.setItemAsync(STORAGE_KEYS.tenant, JSON.stringify(updated));
+    } catch (e) {
+      console.error('[auth.store] Tenant update persist failed:', e);
+    }
+  },
+
   logout: async () => {
-    // Clear state immediately
     set({
       user: null,
       tenant: null,
@@ -94,7 +103,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       refreshToken: null,
       isAuthenticated: false,
     });
-    // Clear storage in background
     try {
       await Promise.all([
         SecureStore.deleteItemAsync(STORAGE_KEYS.user),

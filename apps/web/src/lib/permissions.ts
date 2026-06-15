@@ -38,6 +38,15 @@ export const PERMISSIONS = {
 
   TEAM_VIEW: 'team.view',
   TEAM_MANAGE: 'team.manage',
+
+  // ─── STAFF MANAGEMENT ───────────────────────────────────────────
+  STAFF_VIEW: 'staff.view',
+  STAFF_MANAGE: 'staff.manage',
+  STAFF_ATTENDANCE: 'staff.attendance',
+  STAFF_SALARY: 'staff.salary',
+
+  NOTIFICATIONS_VIEW: 'notifications.view',
+
   SHOPS_VIEW: 'shops.view',
   ACTIVITY_VIEW: 'activity.view',
   SETTINGS_VIEW: 'settings.view',
@@ -89,6 +98,11 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<UserRole, PermissionKey[]> = {
     PERMISSIONS.EXPORTS_VIEW,
 
     PERMISSIONS.TEAM_VIEW,
+    PERMISSIONS.STAFF_VIEW,
+    PERMISSIONS.STAFF_MANAGE,
+    PERMISSIONS.STAFF_ATTENDANCE,
+    PERMISSIONS.STAFF_SALARY,
+
     PERMISSIONS.SHOPS_VIEW,
     PERMISSIONS.ACTIVITY_VIEW,
     PERMISSIONS.SETTINGS_VIEW,
@@ -155,6 +169,12 @@ export const PERMISSION_LABELS: Record<string, string> = {
 
   [PERMISSIONS.TEAM_VIEW]: 'Team View',
   [PERMISSIONS.TEAM_MANAGE]: 'Team Manage',
+
+  [PERMISSIONS.STAFF_VIEW]: 'Staff View',
+  [PERMISSIONS.STAFF_MANAGE]: 'Staff Manage',
+  [PERMISSIONS.STAFF_ATTENDANCE]: 'Staff Attendance',
+  [PERMISSIONS.STAFF_SALARY]: 'Staff Salary',
+
   [PERMISSIONS.SHOPS_VIEW]: 'Shops / Branches',
   [PERMISSIONS.ACTIVITY_VIEW]: 'Activity Log',
   [PERMISSIONS.SETTINGS_VIEW]: 'Settings View',
@@ -212,6 +232,16 @@ export const PERMISSION_GROUPS = [
       PERMISSIONS.EXPENSES_VIEW,
       PERMISSIONS.EXPORTS_VIEW,
       PERMISSIONS.BACKUP_MANAGE,
+    ],
+  },
+  {
+    title: 'Staff Management',
+    color: '#ec4899',
+    permissions: [
+      PERMISSIONS.STAFF_VIEW,
+      PERMISSIONS.STAFF_MANAGE,
+      PERMISSIONS.STAFF_ATTENDANCE,
+      PERMISSIONS.STAFF_SALARY,
     ],
   },
   {

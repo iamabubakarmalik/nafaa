@@ -3,7 +3,8 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft, Save, Trash2, Star, Eye, Package, DollarSign,
-  Boxes, Image as ImageIcon, Layers, Hash, Globe, Plus, X, ExternalLink,
+  Boxes, Image as ImageIcon, Layers, Hash, Plus, X, ExternalLink,
+  Smartphone,
 } from 'lucide-react';
 import { productsApi, type CreateProductPayload } from '@/api/products.api';
 import { brandsApi } from '@/api/brands.api';
@@ -17,23 +18,25 @@ import {
 } from '@/api/product-variants.api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { UploadDropzone, ImageGallery, AvatarUpload } from '@/components/uploads';
+import { UploadDropzone, ImageGallery } from '@/components/uploads';
 import { VariantBuilder } from '../components/VariantBuilder';
 import { VariantCard } from '../components/VariantCard';
 import { UnitSelect } from '../components/UnitSelect';
 import { formatPKRFull } from '@/lib/format';
 import { toast } from 'sonner';
+import { useBusinessFeatures } from '@/hooks/useBusinessFeatures';
+import { BulkImeiAddModal } from '@/features/industries/mobile/components/BulkImeiAddModal';
+import { imeiApi } from '@/features/industries/mobile/api/imei.api';
 
-type Tab = 'basic' | 'pricing' | 'inventory' | 'images' | 'variants' | 'tags' | 'seo';
+type Tab = 'basic' | 'pricing' | 'inventory' | 'images' | 'variants' | 'tags' | 'imei';
 
-const tabs: { id: Tab; label: string; icon: any }[] = [
+const baseTabs: { id: Tab; label: string; icon: any }[] = [
   { id: 'basic', label: 'Basic Info', icon: Package },
   { id: 'pricing', label: 'Pricing & Tax', icon: DollarSign },
   { id: 'inventory', label: 'Inventory', icon: Boxes },
   { id: 'images', label: 'Images', icon: ImageIcon },
   { id: 'variants', label: 'Variants', icon: Layers },
   { id: 'tags', label: 'Tags', icon: Hash },
-  { id: 'seo', label: 'SEO & Extra', icon: Globe },
 ];
 
 const emptyForm: CreateProductPayload = {
@@ -59,8 +62,6 @@ const emptyForm: CreateProductPayload = {
   isFeatured: false,
   tagIds: [],
   imageUrls: [],
-  metaTitle: '',
-  metaDescription: '',
 };
 
 type VariantDraftMap = Record<string, UpsertVariantPayload>;
@@ -117,10 +118,19 @@ export default function ProductFormPage() {
   const queryClient = useQueryClient();
   const isEdit = Boolean(id);
   const submitLockRef = useRef(false);
+  const { features: businessFeatures } = useBusinessFeatures();
 
   const [tab, setTab] = useState<Tab>('basic');
   const [form, setForm] = useState<CreateProductPayload>(emptyForm);
   const [variantDrafts, setVariantDrafts] = useState<VariantDraftMap>({});
+  const [showImeiAdd, setShowImeiAdd] = useState(false);
+  const [imeiVariantContext, setImeiVariantContext] = useState<{ id?: string; name?: string }>({});
+
+  // Build tabs based on business features
+  const tabs = [...baseTabs];
+  if (isEdit && businessFeatures.imei) {
+    tabs.push({ id: 'imei', label: 'IMEI Tracking', icon: Smartphone });
+  }
 
   const { data: product } = useQuery({
     queryKey: ['product', id],
@@ -155,6 +165,12 @@ export default function ProductFormPage() {
     enabled: isEdit,
   });
 
+  const { data: imeis = [], refetch: refetchImeis } = useQuery({
+    queryKey: ['product-imeis', id],
+    queryFn: () => imeiApi.listByProduct(id!),
+    enabled: isEdit && businessFeatures.imei,
+  });
+
   useEffect(() => {
     if (product) {
       setForm({
@@ -180,8 +196,6 @@ export default function ProductFormPage() {
         isFeatured: product.isFeatured,
         tagIds: product.tags?.map((t) => t.tag.id) ?? [],
         imageUrls: product.images?.map((img) => img.url) ?? [],
-        metaTitle: product.metaTitle ?? '',
-        metaDescription: product.metaDescription ?? '',
       });
     }
   }, [product]);
@@ -206,12 +220,8 @@ export default function ProductFormPage() {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
-      // Strip SEO fields not yet supported by backend
-      const { metaTitle, metaDescription, ...cleanForm } = form as any;
-      if (isEdit) {
-        return productsApi.update(id!, cleanForm);
-      }
-      return productsApi.create(cleanForm);
+      if (isEdit) return productsApi.update(id!, form);
+      return productsApi.create(form);
     },
   });
 
@@ -294,6 +304,14 @@ export default function ProductFormPage() {
     },
   });
 
+  const removeImeiMutation = useMutation({
+    mutationFn: (imeiId: string) => imeiApi.remove(imeiId),
+    onSuccess: () => {
+      refetchImeis();
+      toast.success('IMEI removed');
+    },
+  });
+
   const handleSaveProduct = async () => {
     if (submitLockRef.current || saveMutation.isPending) return;
 
@@ -370,8 +388,29 @@ export default function ProductFormPage() {
   const profitMargin =
     form.price > 0 ? (((form.price - (form.costPrice ?? 0)) / form.price) * 100) : 0;
 
+  const imeiStats = {
+    total: imeis.length,
+    inStock: imeis.filter((i) => i.status === 'IN_STOCK').length,
+    sold: imeis.filter((i) => i.status === 'SOLD').length,
+  };
+
   return (
     <div className="space-y-6">
+      {showImeiAdd && id && (
+        <BulkImeiAddModal
+          productId={id}
+          productName={form.name}
+          variantId={imeiVariantContext.id}
+          variantName={imeiVariantContext.name}
+          defaultCostPrice={form.costPrice ?? 0}
+          onSuccess={() => refetchImeis()}
+          onClose={() => {
+            setShowImeiAdd(false);
+            setImeiVariantContext({});
+          }}
+        />
+      )}
+
       <div className="flex items-center justify-between flex-wrap gap-3">
         <Link
           to="/products"
@@ -428,7 +467,7 @@ export default function ProductFormPage() {
       <div className="flex gap-2 overflow-x-auto pb-2">
         {tabs.map((t) => {
           const Icon = t.icon;
-          const disabled = !isEdit && (t.id === 'images' || t.id === 'variants');
+          const disabled = !isEdit && (t.id === 'images' || t.id === 'variants' || t.id === 'imei');
           return (
             <button
               key={t.id}
@@ -445,309 +484,417 @@ export default function ProductFormPage() {
               <Icon className="h-4 w-4" />
               {t.label}
               {disabled && <span className="text-[10px]">(save first)</span>}
+              {t.id === 'imei' && isEdit && imeiStats.inStock > 0 && (
+                <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-full bg-emerald-500 text-white">
+                  {imeiStats.inStock}
+                </span>
+              )}
             </button>
           );
         })}
       </div>
 
-            <div className="grid xl:grid-cols-[1fr_380px] gap-6 items-stretch">
+      <div className="grid xl:grid-cols-[1fr_380px] gap-6 items-stretch">
         <div className="rounded-3xl bg-white border border-slate-200 shadow-sm p-6">
 
-        {tab === 'basic' && (
-          <div className="space-y-5 max-w-4xl">
-            <Input
-              label="Product Name *"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="e.g. Flora-17 Economy"
-            />
-
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                Short Description
-              </label>
-              <input
-                className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm"
-                value={form.shortDescription ?? ''}
-                onChange={(e) => setForm({ ...form, shortDescription: e.target.value })}
-                placeholder="One-liner that appears on cards"
+          {tab === 'basic' && (
+            <div className="space-y-5 max-w-4xl">
+              <Input
+                label="Product Name *"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                placeholder="e.g. Flora-17 Economy"
               />
-            </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                Full Description
-              </label>
-              <textarea
-                rows={5}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
-                value={form.description ?? ''}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                placeholder="Detailed description, features..."
-              />
-            </div>
-
-            <div className="grid sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Category</label>
-                <select
-                  className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm"
-                  value={form.categoryId ?? ''}
-                  onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
-                >
-                  <option value="">No category</option>
-                  {categories.map((c: any) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                  Short Description
+                </label>
+                <input
+                  className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm"
+                  value={form.shortDescription ?? ''}
+                  onChange={(e) => setForm({ ...form, shortDescription: e.target.value })}
+                  placeholder="One-liner that appears on cards"
+                />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Brand</label>
-                <select
-                  className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm"
-                  value={form.brandId ?? ''}
-                  onChange={(e) => setForm({ ...form, brandId: e.target.value })}
-                >
-                  <option value="">No brand</option>
-                  {brands.map((b) => (
-                    <option key={b.id} value={b.id}>{b.name}</option>
-                  ))}
-                </select>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                  Full Description
+                </label>
+                <textarea
+                  rows={5}
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+                  value={form.description ?? ''}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  placeholder="Detailed description, features..."
+                />
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Category</label>
+                  <select
+                    className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm"
+                    value={form.categoryId ?? ''}
+                    onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
+                  >
+                    <option value="">No category</option>
+                    {categories.map((c: any) => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Brand</label>
+                  <select
+                    className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm"
+                    value={form.brandId ?? ''}
+                    onChange={(e) => setForm({ ...form, brandId: e.target.value })}
+                  >
+                    <option value="">No brand</option>
+                    {brands.map((b) => (
+                      <option key={b.id} value={b.id}>{b.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid sm:grid-cols-3 gap-4">
+                <Input label="SKU" value={form.sku ?? ''} onChange={(e) => setForm({ ...form, sku: e.target.value })} placeholder="FL17-ECO" />
+                <Input label="Barcode" value={form.barcode ?? ''} onChange={(e) => setForm({ ...form, barcode: e.target.value })} placeholder="1234567890123" />
+                <UnitSelect
+                  value={form.unit ?? 'pcs'}
+                  onChange={(unit) => setForm({ ...form, unit })}
+                  label="Unit"
+                  hint="sqft for carpets, kg for grocery, pcs for mobile, etc."
+                />
+              </div>
+
+              <div className="flex flex-wrap gap-4 pt-2">
+                <label className="inline-flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={form.isActive ?? true} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} className="h-4 w-4 rounded" />
+                  <Eye className="h-4 w-4 text-slate-600" /> Active
+                </label>
+                <label className="inline-flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={form.isFeatured ?? false} onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })} className="h-4 w-4 rounded" />
+                  <Star className="h-4 w-4 text-amber-500" /> Featured
+                </label>
+                {businessFeatures.expiry && (
+                  <label className="inline-flex items-center gap-2 text-sm">
+                    <input type="checkbox" checked={form.expiryTracked ?? false} onChange={(e) => setForm({ ...form, expiryTracked: e.target.checked })} className="h-4 w-4 rounded" />
+                    Track Expiry / Batches
+                  </label>
+                )}
               </div>
             </div>
+          )}
 
-            <div className="grid sm:grid-cols-3 gap-4">
-              <Input label="SKU" value={form.sku ?? ''} onChange={(e) => setForm({ ...form, sku: e.target.value })} placeholder="FL17-ECO" />
-              <Input label="Barcode" value={form.barcode ?? ''} onChange={(e) => setForm({ ...form, barcode: e.target.value })} placeholder="1234567890123" />
-                            <UnitSelect
-                value={form.unit ?? 'pcs'}
-                onChange={(unit) => setForm({ ...form, unit })}
-                label="Unit"
-                hint="Selling unit — sqft for carpets, kg for grocery, etc."
+          {tab === 'pricing' && (
+            <div className="space-y-5 max-w-4xl">
+              <div className="grid sm:grid-cols-3 gap-4">
+                <Input label="Sell Price (PKR) *" type="number" value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} />
+                <Input label="Cost Price (PKR)" type="number" value={form.costPrice ?? 0} onChange={(e) => setForm({ ...form, costPrice: Number(e.target.value) })} />
+                <Input label="Wholesale Price (PKR)" type="number" value={form.wholesalePrice ?? ''} onChange={(e) => setForm({ ...form, wholesalePrice: e.target.value ? Number(e.target.value) : undefined })} hint="For B2B / bulk customers" />
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-4">
+                <Input label="Tax Rate (%)" type="number" value={form.taxRate ?? 0} onChange={(e) => setForm({ ...form, taxRate: Number(e.target.value) })} hint="GST or sales tax percentage" />
+              </div>
+
+              <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-5">
+                <div className="text-xs font-bold uppercase tracking-wider text-emerald-700">Profit Margin</div>
+                <div className="mt-2 text-3xl font-bold text-emerald-900">
+                  {form.price > 0 ? `${profitMargin.toFixed(2)}%` : '—'}
+                </div>
+                <div className="text-sm text-emerald-700 mt-1">
+                  Profit per unit: {formatPKRFull(profitPerUnit)}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {tab === 'inventory' && (
+            <div className="space-y-5 max-w-4xl">
+              <div className="grid sm:grid-cols-2 gap-4">
+                <Input label="Current Stock" type="number" value={form.stock ?? 0} onChange={(e) => setForm({ ...form, stock: Number(e.target.value) })} />
+                <Input label="Low Stock Alert" type="number" value={form.lowStockAlert ?? 5} onChange={(e) => setForm({ ...form, lowStockAlert: Number(e.target.value) })} hint="Alert when stock falls below this" />
+              </div>
+
+              <div className="grid sm:grid-cols-3 gap-4">
+                <Input label="Weight" type="number" value={form.weight ?? ''} onChange={(e) => setForm({ ...form, weight: e.target.value ? Number(e.target.value) : undefined })} />
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Weight Unit</label>
+                  <select className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm" value={form.weightUnit ?? 'g'} onChange={(e) => setForm({ ...form, weightUnit: e.target.value })}>
+                    <optgroup label="⚖️ Weight">
+                      <option value="g">Grams (g)</option>
+                      <option value="kg">Kilograms (kg)</option>
+                      <option value="mg">Milligrams (mg)</option>
+                      <option value="ton">Tons (ton)</option>
+                      <option value="lb">Pounds (lb)</option>
+                      <option value="oz">Ounces (oz)</option>
+                      <option value="pao">Pao (pao)</option>
+                      <option value="seer">Seer (seer)</option>
+                      <option value="maund">Maund (maund)</option>
+                    </optgroup>
+                    <optgroup label="💧 Volume">
+                      <option value="ml">Milliliters (ml)</option>
+                      <option value="l">Liters (l)</option>
+                      <option value="gallon">Gallons (gallon)</option>
+                    </optgroup>
+                  </select>
+                </div>
+                <Input label="Dimensions (L×W×H)" value={form.dimensions ?? ''} onChange={(e) => setForm({ ...form, dimensions: e.target.value })} placeholder="20×10×5 cm" />
+              </div>
+            </div>
+          )}
+
+          {tab === 'images' && isEdit && (
+            <div className="space-y-5">
+              <UploadDropzone
+                purpose="product-image"
+                maxFiles={20}
+                onUploaded={(records) => {
+                  records.forEach((r) => addImageMutation.mutate(r.url));
+                }}
+                hint="Drop product images here — first becomes primary"
               />
-
-            </div>
-
-            <div className="flex flex-wrap gap-4 pt-2">
-              <label className="inline-flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={form.isActive ?? true} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} className="h-4 w-4 rounded" />
-                <Eye className="h-4 w-4 text-slate-600" /> Active
-              </label>
-              <label className="inline-flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={form.isFeatured ?? false} onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })} className="h-4 w-4 rounded" />
-                <Star className="h-4 w-4 text-amber-500" /> Featured
-              </label>
-              <label className="inline-flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={form.expiryTracked ?? false} onChange={(e) => setForm({ ...form, expiryTracked: e.target.checked })} className="h-4 w-4 rounded" />
-                Track Expiry / Batches
-              </label>
-            </div>
-          </div>
-        )}
-
-        {tab === 'pricing' && (
-          <div className="space-y-5 max-w-4xl">
-            <div className="grid sm:grid-cols-3 gap-4">
-              <Input label="Sell Price (PKR) *" type="number" value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} />
-              <Input label="Cost Price (PKR)" type="number" value={form.costPrice ?? 0} onChange={(e) => setForm({ ...form, costPrice: Number(e.target.value) })} />
-              <Input label="Wholesale Price (PKR)" type="number" value={form.wholesalePrice ?? ''} onChange={(e) => setForm({ ...form, wholesalePrice: e.target.value ? Number(e.target.value) : undefined })} hint="For B2B / bulk customers" />
-            </div>
-
-            <div className="grid sm:grid-cols-2 gap-4">
-              <Input label="Tax Rate (%)" type="number" value={form.taxRate ?? 0} onChange={(e) => setForm({ ...form, taxRate: Number(e.target.value) })} hint="GST or sales tax percentage" />
-            </div>
-
-            <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-5">
-              <div className="text-xs font-bold uppercase tracking-wider text-emerald-700">Profit Margin</div>
-              <div className="mt-2 text-3xl font-bold text-emerald-900">
-                {form.price > 0 ? `${profitMargin.toFixed(2)}%` : '—'}
-              </div>
-              <div className="text-sm text-emerald-700 mt-1">
-                Profit per unit: {formatPKRFull(profitPerUnit)}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {tab === 'inventory' && (
-          <div className="space-y-5 max-w-4xl">
-            <div className="grid sm:grid-cols-2 gap-4">
-              <Input label="Current Stock" type="number" value={form.stock ?? 0} onChange={(e) => setForm({ ...form, stock: Number(e.target.value) })} />
-              <Input label="Low Stock Alert" type="number" value={form.lowStockAlert ?? 5} onChange={(e) => setForm({ ...form, lowStockAlert: Number(e.target.value) })} hint="Alert when stock falls below this" />
-            </div>
-
-            <div className="grid sm:grid-cols-3 gap-4">
-              <Input label="Weight" type="number" value={form.weight ?? ''} onChange={(e) => setForm({ ...form, weight: e.target.value ? Number(e.target.value) : undefined })} />
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Weight Unit</label>
-                <select className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm" value={form.weightUnit ?? 'g'} onChange={(e) => setForm({ ...form, weightUnit: e.target.value })}>
-                  <optgroup label="⚖️ Weight">
-                    <option value="g">Grams (g)</option>
-                    <option value="kg">Kilograms (kg)</option>
-                    <option value="mg">Milligrams (mg)</option>
-                    <option value="ton">Tons (ton)</option>
-                    <option value="lb">Pounds (lb)</option>
-                    <option value="oz">Ounces (oz)</option>
-                    <option value="pao">Pao (pao)</option>
-                    <option value="seer">Seer (seer)</option>
-                    <option value="maund">Maund (maund)</option>
-                  </optgroup>
-                  <optgroup label="💧 Volume">
-                    <option value="ml">Milliliters (ml)</option>
-                    <option value="l">Liters (l)</option>
-                    <option value="gallon">Gallons (gallon)</option>
-                  </optgroup>
-                </select>
+                <h3 className="font-bold text-slate-900 mb-3">Gallery ({images.length})</h3>
+                <ImageGallery
+                  images={images}
+                  onSetPrimary={(imgId) => setPrimaryMutation.mutate(imgId)}
+                  onRemove={(imgId) => removeImageMutation.mutate(imgId)}
+                  onReorder={(ids) => reorderImagesMutation.mutate(ids)}
+                />
               </div>
-              <Input label="Dimensions (L×W×H)" value={form.dimensions ?? ''} onChange={(e) => setForm({ ...form, dimensions: e.target.value })} placeholder="20×10×5 cm" />
             </div>
-          </div>
-        )}
+          )}
 
-        {tab === 'images' && isEdit && (
-          <div className="space-y-5">
-            <UploadDropzone
-              purpose="product-image"
-              maxFiles={20}
-              onUploaded={(records) => {
-                records.forEach((r) => addImageMutation.mutate(r.url));
-              }}
-              hint="Drop product images here — first becomes primary"
-            />
-            <div>
-              <h3 className="font-bold text-slate-900 mb-3">Gallery ({images.length})</h3>
-              <ImageGallery
-                images={images}
-                onSetPrimary={(imgId) => setPrimaryMutation.mutate(imgId)}
-                onRemove={(imgId) => removeImageMutation.mutate(imgId)}
-                onReorder={(ids) => reorderImagesMutation.mutate(ids)}
+          {tab === 'variants' && isEdit && (
+            <div className="space-y-6">
+              <VariantBuilder
+                basePrice={form.price ?? 0}
+                baseCostPrice={form.costPrice ?? 0}
+                onGenerate={(vs) => bulkVariantsMutation.mutate(vs)}
               />
-            </div>
-          </div>
-        )}
 
-        {tab === 'variants' && isEdit && (
-          <div className="space-y-6">
-            <VariantBuilder
-              basePrice={form.price ?? 0}
-              baseCostPrice={form.costPrice ?? 0}
-              onGenerate={(vs) => bulkVariantsMutation.mutate(vs)}
-            />
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-bold text-slate-900">
+                    Existing Variants ({variants.length})
+                  </h3>
+                  {variants.length > 0 && (
+                    <div className="text-xs text-slate-500">
+                      Image change = auto save • Other fields = press <strong>Save Variant</strong>
+                    </div>
+                  )}
+                </div>
 
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-slate-900">
-                  Existing Variants ({variants.length})
-                </h3>
-                {variants.length > 0 && (
-                  <div className="text-xs text-slate-500">
-                    Image change = auto save • Other fields = press <strong>Save Variant</strong>
+                {variants.length === 0 ? (
+                  <div className="rounded-2xl border-2 border-dashed border-slate-200 p-12 text-center">
+                    <Layers className="h-12 w-12 text-slate-300 mx-auto mb-3" />
+                    <div className="font-bold text-slate-700">No variants yet</div>
+                    <p className="text-sm text-slate-500 mt-1">Use builder above to generate variants</p>
+                  </div>
+                ) : (
+                  <div className="space-y-5">
+                    {variants.map((variant) => {
+                      const draft = variantDrafts[variant.id] ?? variantToDraft(variant);
+                      const rowLoading =
+                        saveVariantMutation.isPending &&
+                        saveVariantMutation.variables?.variantId === variant.id;
+                      const deleteLoading =
+                        removeVariantMutation.isPending &&
+                        removeVariantMutation.variables === variant.id;
+
+                      return (
+                        <VariantCard
+                          key={variant.id}
+                          variant={variant}
+                          draft={draft}
+                          parentUnit={form.unit ?? "pcs"}
+                          onUpdate={(patch) => updateVariantDraft(variant.id, patch)}
+                          onImageChange={(url) => handleVariantImageChange(variant.id, url)}
+                          onSave={() => handleVariantSave(variant.id)}
+                          onDelete={() => {
+                            if (confirm("Delete variant " + variant.name + "?")) {
+                              removeVariantMutation.mutate(variant.id);
+                            }
+                          }}
+                          saving={rowLoading}
+                          deleting={deleteLoading}
+                        />
+                      );
+                    })}
                   </div>
                 )}
               </div>
+            </div>
+          )}
 
-              {variants.length === 0 ? (
-                <div className="rounded-2xl border-2 border-dashed border-slate-200 p-12 text-center">
-                  <Layers className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-                  <div className="font-bold text-slate-700">No variants yet</div>
-                  <p className="text-sm text-slate-500 mt-1">Use builder above to generate variants</p>
+          {tab === 'tags' && (
+            <div className="max-w-3xl">
+              {allTags.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-slate-200 p-8 text-center text-sm text-slate-500">
+                  No tags yet. Create tags first from{' '}
+                  <Link to="/tags" className="text-brand-600 font-bold">Tags page</Link>
                 </div>
               ) : (
-                <div className="space-y-5">
-                  {variants.map((variant) => {
-                    const draft = variantDrafts[variant.id] ?? variantToDraft(variant);
-                    const rowLoading =
-                      saveVariantMutation.isPending &&
-                      saveVariantMutation.variables?.variantId === variant.id;
-                    const deleteLoading =
-                      removeVariantMutation.isPending &&
-                      removeVariantMutation.variables === variant.id;
-
+                <div className="flex flex-wrap gap-2">
+                  {allTags.map((t) => {
+                    const active = form.tagIds?.includes(t.id);
                     return (
-                      <VariantCard
-                        key={variant.id}
-                        variant={variant}
-                        draft={draft}
-                        parentUnit={form.unit ?? "pcs"}
-                        onUpdate={(patch) => updateVariantDraft(variant.id, patch)}
-                        onImageChange={(url) => handleVariantImageChange(variant.id, url)}
-                        onSave={() => handleVariantSave(variant.id)}
-                        onDelete={() => {
-                          if (confirm("Delete variant " + variant.name + "?")) {
-                            removeVariantMutation.mutate(variant.id);
-                          }
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => toggleTag(t.id)}
+                        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border-2 text-sm font-bold transition ${active ? 'shadow' : 'opacity-60 hover:opacity-100'}`}
+                        style={{
+                          backgroundColor: active ? `${t.color}20` : '#fff',
+                          borderColor: active ? t.color : '#e2e8f0',
+                          color: active ? t.color : '#475569',
                         }}
-                        saving={rowLoading}
-                        deleting={deleteLoading}
-                      />
+                      >
+                        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: t.color }} />
+                        {t.name}
+                        {active && <X className="h-3 w-3" />}
+                        {!active && <Plus className="h-3 w-3" />}
+                      </button>
                     );
                   })}
                 </div>
               )}
             </div>
-          </div>
-        )}
+          )}
 
-        {tab === 'tags' && (
-          <div className="max-w-3xl">
-            {allTags.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-slate-200 p-8 text-center text-sm text-slate-500">
-                No tags yet. Create tags first from{' '}
-                <Link to="/tags" className="text-brand-600 font-bold">Tags page</Link>
+          {tab === 'imei' && isEdit && businessFeatures.imei && (
+            <div className="space-y-5">
+              {/* Stats */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 p-4 text-center">
+                  <div className="text-[10px] uppercase tracking-wider text-blue-700 font-bold">Total IMEIs</div>
+                  <div className="text-3xl font-extrabold text-blue-900 mt-1">{imeiStats.total}</div>
+                </div>
+                <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-green-50 border-2 border-emerald-200 p-4 text-center">
+                  <div className="text-[10px] uppercase tracking-wider text-emerald-700 font-bold">In Stock</div>
+                  <div className="text-3xl font-extrabold text-emerald-900 mt-1">{imeiStats.inStock}</div>
+                </div>
+                <div className="rounded-2xl bg-gradient-to-br from-violet-50 to-purple-50 border-2 border-violet-200 p-4 text-center">
+                  <div className="text-[10px] uppercase tracking-wider text-violet-700 font-bold">Sold</div>
+                  <div className="text-3xl font-extrabold text-violet-900 mt-1">{imeiStats.sold}</div>
+                </div>
               </div>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {allTags.map((t) => {
-                  const active = form.tagIds?.includes(t.id);
-                  return (
-                    <button
-                      key={t.id}
-                      type="button"
-                      onClick={() => toggleTag(t.id)}
-                      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border-2 text-sm font-bold transition ${active ? 'shadow' : 'opacity-60 hover:opacity-100'}`}
-                      style={{
-                        backgroundColor: active ? `${t.color}20` : '#fff',
-                        borderColor: active ? t.color : '#e2e8f0',
-                        color: active ? t.color : '#475569',
-                      }}
-                    >
-                      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: t.color }} />
-                      {t.name}
-                      {active && <X className="h-3 w-3" />}
-                      {!active && <Plus className="h-3 w-3" />}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
 
-        {tab === 'seo' && (
-          <div className="space-y-5 max-w-3xl">
-            <p className="text-sm text-slate-500">These fields help your products appear better in search.</p>
-            <Input label="Meta Title" value={form.metaTitle ?? ''} onChange={(e) => setForm({ ...form, metaTitle: e.target.value })} placeholder="Defaults to product name" />
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Meta Description</label>
-              <textarea
-                rows={3}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
-                value={form.metaDescription ?? ''}
-                onChange={(e) => setForm({ ...form, metaDescription: e.target.value })}
-                placeholder="Short description for search engines (160 characters max)"
-                maxLength={160}
-              />
-            </div>
-          </div>
+              {/* Add buttons */}
+              <div className="flex gap-2 flex-wrap">
+                <Button
+                  onClick={() => {
+                    setImeiVariantContext({});
+                    setShowImeiAdd(true);
+                  }}
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                >
+                  <Plus className="h-4 w-4" /> Add IMEIs (Product Level)
+                </Button>
+
+                {variants.length > 0 && (
+                  <select
+                    onChange={(e) => {
+                      if (!e.target.value) return;
+                      const v = variants.find((vr) => vr.id === e.target.value);
+                      if (v) {
+                        setImeiVariantContext({ id: v.id, name: v.name });
+                        setShowImeiAdd(true);
+                      }
+                      e.target.value = '';
+                    }}
+                    className="h-10 rounded-xl border-2 border-blue-300 bg-blue-50 px-3 text-sm font-bold text-blue-700"
+                    defaultValue=""
+                  >
+                    <option value="">+ Add IMEIs for Variant...</option>
+                    {variants.map((v) => (
+                      <option key={v.id} value={v.id}>{v.name}</option>
+                    ))}
+                  </select>
                 )}
+              </div>
+
+              {/* IMEI list */}
+              {imeis.length === 0 ? (
+                <div className="rounded-2xl border-2 border-dashed border-blue-200 bg-blue-50/30 p-12 text-center">
+                  <Smartphone className="h-12 w-12 text-blue-300 mx-auto mb-3" />
+                  <div className="font-bold text-slate-700">No IMEIs added yet</div>
+                  <p className="text-sm text-slate-500 mt-1">Add IMEIs to track individual units</p>
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-slate-200 overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead className="bg-slate-50 border-b border-slate-200">
+                      <tr>
+                        <th className="px-3 py-2 text-left font-bold text-slate-700 text-xs uppercase">IMEI</th>
+                        <th className="px-3 py-2 text-left font-bold text-slate-700 text-xs uppercase">Variant</th>
+                        <th className="px-3 py-2 text-left font-bold text-slate-700 text-xs uppercase">Status</th>
+                        <th className="px-3 py-2 text-left font-bold text-slate-700 text-xs uppercase">Cost</th>
+                        <th className="px-3 py-2 text-right font-bold text-slate-700 text-xs uppercase">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {imeis.map((imei) => (
+                        <tr key={imei.id} className="hover:bg-slate-50">
+                          <td className="px-3 py-2">
+                            <div className="font-mono font-bold text-slate-900 text-xs">{imei.imei1}</div>
+                            {imei.imei2 && (
+                              <div className="font-mono text-[10px] text-slate-500">2: {imei.imei2}</div>
+                            )}
+                          </td>
+                          <td className="px-3 py-2 text-xs">
+                            {imei.variant?.name || <span className="text-slate-400">—</span>}
+                            {imei.color && (
+                              <span className="ml-1 text-[10px] text-violet-700 font-bold">{imei.color}</span>
+                            )}
+                          </td>
+                          <td className="px-3 py-2">
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              imei.status === 'IN_STOCK' ? 'bg-emerald-100 text-emerald-700' :
+                              imei.status === 'SOLD' ? 'bg-violet-100 text-violet-700' :
+                              imei.status === 'RETURNED' ? 'bg-amber-100 text-amber-700' :
+                              'bg-slate-100 text-slate-700'
+                            }`}>
+                              {imei.status}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2 text-xs font-bold">
+                            {formatPKRFull(imei.costPrice)}
+                          </td>
+                          <td className="px-3 py-2 text-right">
+                            {imei.status === 'IN_STOCK' && (
+                              <button
+                                onClick={() => {
+                                  if (confirm(`Remove IMEI ${imei.imei1}?`)) {
+                                    removeImeiMutation.mutate(imei.id);
+                                  }
+                                }}
+                                className="h-7 w-7 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 inline-flex items-center justify-center"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* SIDE PREVIEW PANEL */}
         <aside className="flex flex-col gap-4">
-          {/* PREMIUM CUSTOMER CARD */}
           <div className="rounded-3xl bg-white border border-slate-200 shadow-lg overflow-hidden">
-            {/* Compact header */}
             <div className="px-4 py-2.5 bg-gradient-to-r from-slate-900 to-slate-800 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -755,12 +902,9 @@ export default function ProductFormPage() {
                   Customer Preview
                 </div>
               </div>
-              <div className="text-[10px] text-white/60 font-medium">
-                Live
-              </div>
+              <div className="text-[10px] text-white/60 font-medium">Live</div>
             </div>
 
-            {/* Image — large square */}
             <div className="relative aspect-square bg-gradient-to-br from-slate-50 to-slate-100 overflow-hidden group">
               {images && images[0]?.url ? (
                 <img
@@ -777,7 +921,6 @@ export default function ProductFormPage() {
                 </div>
               )}
 
-              {/* Featured badge top-right */}
               {form.isFeatured && (
                 <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-amber-500 text-white text-[10px] font-bold shadow-lg flex items-center gap-1">
                   <Star className="h-3 w-3 fill-white" />
@@ -785,7 +928,6 @@ export default function ProductFormPage() {
                 </div>
               )}
 
-              {/* Image count indicator */}
               {images && images.length > 1 && (
                 <div className="absolute bottom-3 right-3 px-2 py-1 rounded-full bg-slate-900/70 backdrop-blur text-white text-[10px] font-bold">
                   +{images.length - 1} more
@@ -793,9 +935,7 @@ export default function ProductFormPage() {
               )}
             </div>
 
-            {/* Body */}
             <div className="p-4 space-y-3">
-              {/* Brand pill */}
               {form.brandId && brands.find((b) => b.id === form.brandId) && (
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-violet-50 border border-violet-200">
                   <span className="h-1.5 w-1.5 rounded-full bg-violet-500" />
@@ -805,7 +945,6 @@ export default function ProductFormPage() {
                 </div>
               )}
 
-              {/* Name + Description */}
               <div>
                 <h3 className="font-extrabold text-slate-900 text-lg leading-snug line-clamp-2">
                   {form.name || 'Product name'}
@@ -817,7 +956,6 @@ export default function ProductFormPage() {
                 )}
               </div>
 
-              {/* Price block — Daraz style */}
               <div className="flex items-baseline gap-2 pt-1">
                 <div className="text-3xl font-extrabold text-emerald-600 leading-none tracking-tight">
                   {formatPKRFull(form.price ?? 0)}
@@ -833,7 +971,6 @@ export default function ProductFormPage() {
                 </div>
               )}
 
-              {/* Variants showcase */}
               {variants.length > 0 && (
                 <div className="pt-3 border-t border-slate-100">
                   <div className="flex items-center justify-between mb-2">
@@ -853,23 +990,14 @@ export default function ProductFormPage() {
                         title={`${v.name}${v.price ? ` — ${formatPKRFull(v.price)}` : ''}`}
                       >
                         {v.imageUrl ? (
-                          <img
-                            src={v.imageUrl}
-                            alt={v.name}
-                            className="w-full h-full object-cover"
-                          />
+                          <img src={v.imageUrl} alt={v.name} className="w-full h-full object-cover" />
                         ) : v.colorHex ? (
-                          <div
-                            className="w-full h-full"
-                            style={{ backgroundColor: v.colorHex }}
-                          />
+                          <div className="w-full h-full" style={{ backgroundColor: v.colorHex }} />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-[9px] font-bold text-slate-600 bg-gradient-to-br from-slate-100 to-slate-200">
                             {v.size || v.name.slice(0, 3).toUpperCase()}
                           </div>
                         )}
-
-                        {/* Tooltip on hover */}
                         <div className="absolute inset-x-0 bottom-0 px-1 py-0.5 bg-slate-900/85 backdrop-blur text-white text-[8px] font-bold text-center truncate opacity-0 group-hover/v:opacity-100 transition-opacity">
                           {v.size || v.color || v.name.slice(0, 6)}
                         </div>
@@ -885,7 +1013,6 @@ export default function ProductFormPage() {
                 </div>
               )}
 
-              {/* Tags showcase */}
               {form.tagIds && form.tagIds.length > 0 && (
                 <div className="pt-3 border-t border-slate-100">
                   <div className="flex flex-wrap gap-1">
@@ -915,7 +1042,6 @@ export default function ProductFormPage() {
                 </div>
               )}
 
-              {/* CTA — only show if active */}
               {!form.isActive && (
                 <div className="rounded-lg bg-rose-50 border border-rose-200 px-3 py-2 text-[11px] font-bold text-rose-700 text-center">
                   ⚠ Product is INACTIVE — hidden from catalog
@@ -924,7 +1050,6 @@ export default function ProductFormPage() {
             </div>
           </div>
 
-          {/* Admin-only info card (separate from preview) */}
           <div className="rounded-2xl bg-slate-50 border border-slate-200 p-3">
             <div className="text-[10px] uppercase tracking-wider font-bold text-slate-500 mb-2 flex items-center gap-1.5">
               <Eye className="h-3 w-3" />
@@ -943,6 +1068,19 @@ export default function ProductFormPage() {
                 <div className="text-sm font-extrabold text-slate-900">{variants.length}</div>
               </div>
             </div>
+
+            {businessFeatures.imei && isEdit && (
+              <div className="mt-2 rounded-lg bg-blue-50 border border-blue-200 p-2">
+                <div className="text-[9px] text-blue-700 font-bold uppercase flex items-center gap-1">
+                  <Smartphone className="h-2.5 w-2.5" />
+                  IMEI Inventory
+                </div>
+                <div className="flex items-baseline gap-2 mt-1">
+                  <div className="text-sm font-extrabold text-blue-900">{imeiStats.inStock}</div>
+                  <div className="text-[10px] text-blue-700">in stock / {imeiStats.total} total</div>
+                </div>
+              </div>
+            )}
 
             {form.costPrice !== undefined && form.price > 0 && (
               <div className="mt-2 pt-2 border-t border-slate-200 space-y-1 text-[11px]">

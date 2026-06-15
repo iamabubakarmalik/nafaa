@@ -19,13 +19,15 @@ import CustomerSection from '../sections/CustomerSection';
 import NotificationsSection from '../sections/NotificationsSection';
 import SecuritySection from '../sections/SecuritySection';
 import AppearanceSection from '../sections/AppearanceSection';
+import BusinessConfigSection from '../sections/BusinessConfigSection';
 
 type SectionId =
-  | 'business' | 'localization' | 'tax' | 'receipt' | 'pos'
+  | 'business' | 'businessConfig' | 'localization' | 'tax' | 'receipt' | 'pos'
   | 'inventory' | 'customer' | 'notifications' | 'security' | 'appearance';
 
 const sections = [
   { id: 'business' as const, label: 'Business Profile', icon: Store, color: 'emerald', desc: 'Shop name, logo, contact' },
+  { id: 'businessConfig' as const, label: 'Business Type & Features', icon: Sparkles, color: 'violet', desc: 'Industry-specific features' },
   { id: 'localization' as const, label: 'Localization', icon: Globe, color: 'blue', desc: 'Language, currency, timezone' },
   { id: 'tax' as const, label: 'Tax & Pricing', icon: Calculator, color: 'amber', desc: 'GST, tax rate, rounding' },
   { id: 'receipt' as const, label: 'Receipt', icon: Receipt, color: 'violet', desc: 'Invoice format, header/footer' },
@@ -205,6 +207,7 @@ export default function SettingsPage() {
             {/* Section body */}
             <div className="p-6">
               {active === 'business' && <BusinessProfileSection s={merged} set={set} />}
+              {active === 'businessConfig' && <BusinessConfigSection />}
               {active === 'localization' && <LocalizationSection s={merged} set={set} />}
               {active === 'tax' && <TaxSection s={merged} set={set} />}
               {active === 'receipt' && <ReceiptSection s={merged} set={set} />}

@@ -29,16 +29,29 @@ export interface OnboardingProgress {
   wantsTutorial: boolean;
 }
 
+export interface BusinessTypeOption {
+  value: string;
+  label: string;
+  emoji: string;
+  category: string;
+  description?: string;
+  highlights?: string[];
+  defaultUnit?: string;
+  featureCount?: number;
+}
+
 export interface OnboardingOptions {
   cities: string[];
   provinces: string[];
-  businessTypes: Array<{ value: string; label: string; emoji: string; category: string }>;
+  businessTypes: BusinessTypeOption[];
+  businessTypesLegacy?: any[];
   businessSizes: Array<{ value: string; label: string; desc: string; icon: string }>;
   languages: Array<{ value: string; label: string; english: string }>;
   receiptTemplates: Array<{ value: string; label: string; desc: string }>;
   paymentMethods: Array<{ value: string; label: string; emoji: string }>;
   workingDays: Array<{ value: string; label: string; short: string }>;
   suggestedCategories: Record<string, string[]>;
+  businessTemplates?: Record<string, any>;
   totalSteps: number;
 }
 

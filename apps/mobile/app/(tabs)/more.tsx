@@ -9,11 +9,13 @@ import {
   User, Bell, HelpCircle, FileText, LogOut, ChevronRight, Sparkles,
   Building2, CreditCard, Award, Settings, Receipt, BarChart3, Gift,
   Hash, Package, Truck, BookOpen, ShoppingCart, RotateCcw, Percent,
+  Pill, Utensils, Scissors, Smartphone, Calendar,
   Wallet, AlertTriangle, ScanLine, Activity, ClipboardCheck,
   ArrowRightLeft, PackagePlus, Tag, ShieldCheck, Database, Download,
-  TrendingUp, Gauge, Crown, Search, X, Store,
+  TrendingUp, Gauge, Crown, Search, X, Store, UserCog,
 } from 'lucide-react-native';
 import { useAuthStore } from '@/store/auth.store';
+import { useBusinessFeatures } from '@/hooks/useBusinessFeatures';
 import { useThemeStore } from '@/store/theme.store';
 import { authApi } from '@/api/auth.api';
 import Toast from 'react-native-toast-message';
@@ -40,6 +42,7 @@ export default function MoreScreen() {
   const router = useRouter();
   const { user, tenant, refreshToken, logout } = useAuthStore();
   const { isDark } = useThemeStore();
+  const { features: businessFeatures, businessType } = useBusinessFeatures();
   const [search, setSearch] = useState('');
 
   const handleLogout = () => {
@@ -168,6 +171,82 @@ export default function MoreScreen() {
           color: '#f97316',
           bg: '#ffedd5',
         },
+      ],
+    },
+    {
+      title: 'Staff Management',
+      icon: UserCog,
+      items: [
+        {
+          icon: UserCog,
+          label: 'All Staff',
+          description: 'Employees, attendance, salary',
+          onPress: go('/staff'),
+          color: '#7c3aed',
+          bg: '#ede9fe',
+          badge: 'NEW',
+        },
+        {
+          icon: ClipboardCheck,
+          label: 'Attendance',
+          description: 'Daily check-in / out',
+          onPress: go('/staff/attendance'),
+          color: '#0ea5e9',
+          bg: '#e0f2fe',
+        },
+        {
+          icon: Wallet,
+          label: 'Process Salary',
+          description: 'Pay employees',
+          onPress: go('/staff/salary/new'),
+          color: '#16a34a',
+          bg: '#dcfce7',
+        },
+      ],
+    },
+    {
+      title: 'Industry Tools',
+      icon: Sparkles,
+      items: [
+        ...(businessFeatures.expiry || businessFeatures.batches
+          ? [
+              {
+                icon: Pill,
+                label: 'Expiry Dashboard',
+                description: 'Pharmacy expiry tracking',
+                onPress: go('/expiry-dashboard'),
+                color: '#dc2626',
+                bg: '#fee2e2',
+                badge: 'PHARMACY',
+              },
+            ]
+          : []),
+        ...(businessFeatures.tables
+          ? [
+              {
+                icon: Utensils,
+                label: 'Tables / Floor Plan',
+                description: 'Restaurant seating',
+                onPress: go('/tables'),
+                color: '#ea580c',
+                bg: '#ffedd5',
+                badge: 'RESTAURANT',
+              },
+            ]
+          : []),
+        ...(businessFeatures.appointments
+          ? [
+              {
+                icon: Scissors,
+                label: 'Appointments',
+                description: 'Salon bookings',
+                onPress: go('/appointments'),
+                color: '#a855f7',
+                bg: '#f3e8ff',
+                badge: 'SALON',
+              },
+            ]
+          : []),
       ],
     },
     {

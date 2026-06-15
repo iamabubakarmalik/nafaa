@@ -20,6 +20,7 @@ import BrandsPage from '@/features/brands/pages/BrandsPage';
 import TagsPage from '@/features/tags/pages/TagsPage';
 import ProductsListPage from '@/features/products/pages/ProductsListPage';
 import ProductFormPage from '@/features/products/pages/ProductFormPage';
+import ImeiInventoryPage from '@/features/industries/mobile/pages/ImeiInventoryPage';
 import CatalogPage from '@/features/catalog/pages/CatalogPage';
 import CustomersListPage from '@/features/customers/pages/CustomersListPage';
 import CustomerFormPage from '@/features/customers/pages/CustomerFormPage';
@@ -60,6 +61,16 @@ import ProfilePage from '@/features/profile/pages/ProfilePage';
 import HelpPage from '@/features/help/pages/HelpPage';
 import LegalPage from '@/features/legal/pages/LegalPage';
 import OnboardingPage from '@/features/onboarding/pages/OnboardingPage';
+
+// ─── Staff Management ──────────────────────────────────────────────
+import StaffListPage from '@/features/staff/pages/StaffListPage';
+import ExpiryDashboardPage from '@/features/industries/pharmacy/pages/ExpiryDashboardPage';
+import TablesPage from '@/features/industries/restaurant/pages/TablesPage';
+import AppointmentsPage from '@/features/industries/salon/pages/AppointmentsPage';
+import StaffFormPage from '@/features/staff/pages/StaffFormPage';
+import StaffDetailPage from '@/features/staff/pages/StaffDetailPage';
+import AttendancePage from '@/features/staff/pages/AttendancePage';
+import SalaryProcessPage from '@/features/staff/pages/SalaryProcessPage';
 
 import { ProtectedRoute, PublicOnlyRoute } from '@/routes/ProtectedRoute';
 import OnboardingGate from '@/routes/OnboardingGate';
@@ -105,8 +116,12 @@ export default function App() {
               <Route element={<AppShell />}>
                 <Route path="/dashboard" element={<DashboardPage />} />
 
+                {/* Notifications inside shell so header + sidebar visible */}
+                <Route path="/notifications" element={<NotificationsPage />} />
+
                 <Route path="/products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <ProductFormPage />)} />
                 <Route path="/products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <ProductFormPage />)} />
+                <Route path="/products/:id/imei" element={secure(PERMISSIONS.PRODUCTS_EDIT, <ImeiInventoryPage />)} />
                 <Route path="/products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ProductsListPage />)} />
 
                 <Route path="/catalog" element={secure(PERMISSIONS.PRODUCTS_VIEW, <CatalogPage />)} />
@@ -142,7 +157,19 @@ export default function App() {
                 <Route path="/reports" element={secure(PERMISSIONS.REPORTS_VIEW, <ReportsPage />)} />
                 <Route path="/settings" element={secure(PERMISSIONS.SETTINGS_VIEW, <SettingsPage />)} />
                 <Route path="/barcode-labels" element={secure(PERMISSIONS.BARCODE_LABELS_VIEW, <BarcodeLabelsPage />)} />
+
+                {/* Team & Staff */}
                 <Route path="/team" element={secure(PERMISSIONS.TEAM_VIEW, <TeamPage />)} />
+                <Route path="/staff" element={secure(PERMISSIONS.STAFF_VIEW, <StaffListPage />)} />
+                <Route path="/staff/new" element={secure(PERMISSIONS.STAFF_MANAGE, <StaffFormPage />)} />
+                <Route path="/staff/attendance" element={secure(PERMISSIONS.STAFF_VIEW, <AttendancePage />)} />
+                <Route path="/staff/salary/new" element={secure(PERMISSIONS.STAFF_MANAGE, <SalaryProcessPage />)} />
+                <Route path="/staff/:id" element={secure(PERMISSIONS.STAFF_VIEW, <StaffDetailPage />)} />
+                <Route path="/expiry-dashboard" element={<ExpiryDashboardPage />} />
+                <Route path="/tables" element={<TablesPage />} />
+                <Route path="/appointments" element={<AppointmentsPage />} />
+                <Route path="/staff/:id/edit" element={secure(PERMISSIONS.STAFF_MANAGE, <StaffFormPage />)} />
+
                 <Route path="/shops" element={secure(PERMISSIONS.SHOPS_VIEW, <ShopsPage />)} />
                 <Route path="/activity-log" element={secure(PERMISSIONS.ACTIVITY_VIEW, <ActivityLogPage />)} />
                 <Route path="/transfers" element={secure(PERMISSIONS.STOCK_TRANSFERS_MANAGE, <TransfersPage />)} />
@@ -160,7 +187,7 @@ export default function App() {
               </Route>
             </Route>
 
-            <Route path="/notifications" element={<NotificationsPage />} />
+            {/* Standalone routes (no shell) */}
             <Route path="/sales/:id/receipt" element={<ReceiptPage />} />
             <Route path="/onboarding" element={<OnboardingPage />} />
           </Route>

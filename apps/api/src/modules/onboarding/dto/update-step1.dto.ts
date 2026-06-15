@@ -2,11 +2,13 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsIn, IsOptional, IsString } from 'class-validator';
 
 const BUSINESS_TYPES = [
-  'KIRYANA','BAKERY','PHARMACY','MOBILE_SHOP','RESTAURANT',
-  'COSMETICS','CLOTHING','HARDWARE','STATIONERY','OTHER',
+  'CARPET', 'MOBILE', 'GROCERY', 'PHARMACY', 'RESTAURANT',
+  'SALON', 'CLOTHING', 'HARDWARE', 'STATIONERY', 'COSMETICS',
+  'BAKERY', 'GENERAL',
+  'KIRYANA', 'MOBILE_SHOP', 'OTHER',
 ];
 
-const BUSINESS_SIZES = ['SMALL','MEDIUM','LARGE'];
+const BUSINESS_SIZES = ['SMALL', 'MEDIUM', 'LARGE'];
 
 export class UpdateStep1Dto {
   @ApiProperty({ enum: BUSINESS_TYPES })

@@ -3,19 +3,33 @@ import { apiClient } from './client';
 export type PaymentMethod =
   | 'CASH' | 'CARD' | 'BANK_TRANSFER' | 'JAZZCASH' | 'EASYPAISA';
 
+export interface CreateSaleItem {
+  productId: string;
+  variantId?: string;
+  quantity: number;
+  priceOverride?: number;
+  lineDiscount?: number;
+  useWholesale?: boolean;
+  note?: string;
+}
+
 export interface CreateSalePayload {
   customerId?: string;
   paymentMethod: PaymentMethod;
   paidAmount: number;
   discount?: number;
+  discountCode?: string;
+  loyaltyPointsToUse?: number;
   allowCredit?: boolean;
-  items: Array<{ productId: string; quantity: number }>;
+  note?: string;
+  items: CreateSaleItem[];
 }
 
 export interface SaleItem {
   id: string;
   quantity: number;
   price: number;
+  costPrice?: number;
   total: number;
   product: {
     id: string;
@@ -24,6 +38,17 @@ export interface SaleItem {
     sku?: string | null;
     barcode?: string | null;
   };
+  variantLink?: {
+    variant: {
+      id: string;
+      name: string;
+      sku?: string | null;
+      color?: string | null;
+      colorHex?: string | null;
+      size?: string | null;
+      imageUrl?: string | null;
+    };
+  } | null;
 }
 
 export interface Sale {
@@ -35,10 +60,11 @@ export interface Sale {
   paidAmount: number;
   changeAmount: number;
   creditAmount: number;
+  costOfGoods?: number;
   paymentMethod: PaymentMethod;
   status: 'COMPLETED' | 'PARTIALLY_RETURNED' | 'FULLY_RETURNED' | 'VOIDED';
   soldAt: string;
-  customer?: { id: string; name: string; phone?: string | null } | null;
+  customer?: { id: string; name: string; phone?: string | null; balance?: number } | null;
   createdBy?: { id: string; fullName: string } | null;
   tenant?: { id: string; name: string };
   items: SaleItem[];
@@ -53,6 +79,24 @@ export interface SalesListParams {
 export interface SalesListResponse {
   items: Sale[];
   meta: { page: number; limit: number; total: number; totalPages: number };
+}
+
+export interface SalesSummary {
+  todaySales: number;
+  todayOrders: number;
+  todayProfit: number;
+  todayCredit: number;
+  todayPaid: number;
+  monthSales: number;
+  monthProfit: number;
+  totalSales: number;
+  totalProfit: number;
+  totalOrders: number;
+  paymentBreakdown: Array<{
+    paymentMethod: PaymentMethod;
+    _count: { _all: number };
+    _sum: { total: number | null };
+  }>;
 }
 
 function unwrapOne<T>(res: any): T {
@@ -95,10 +139,14 @@ export const salesApi = {
       .get('/sales', { params })
       .then((r) => unwrapSalesList(r, params)),
 
-  summary: (): Promise<any> =>
-    apiClient.get('/sales/summary').then((r) => unwrapOne<any>(r)),
+  summary: (): Promise<SalesSummary> =>
+    apiClient.get('/sales/summary').then((r) => unwrapOne<SalesSummary>(r)),
 
   byId: (id: string): Promise<Sale> =>
+    apiClient.get(`/sales/${id}`).then((r) => unwrapOne<Sale>(r)),
+
+  // Alias for compatibility
+  getOne: (id: string): Promise<Sale> =>
     apiClient.get(`/sales/${id}`).then((r) => unwrapOne<Sale>(r)),
 
   voidSale: (id: string, reason?: string): Promise<Sale> =>

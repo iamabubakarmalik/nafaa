@@ -1,6 +1,5 @@
 import {
-  Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe,
-  Patch, Post, UseGuards,
+  Body, Controller, Get, HttpCode, HttpStatus, Patch, Post, UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../auth/decorators/get-user.decorator';
@@ -23,70 +22,86 @@ export class OnboardingController {
   constructor(private readonly onboarding: OnboardingService) {}
 
   @Get('options')
-  @ApiOperation({ summary: 'Get static options (cities, business types, etc.)' })
+  @ApiOperation({ summary: 'Get options + business templates' })
   getOptions() {
     return this.onboarding.getOptions();
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get current onboarding progress' })
+  @ApiOperation({ summary: 'Get current progress' })
   get(@GetUser() user: AuthenticatedUser) {
     return this.onboarding.getOrCreate(user);
   }
 
+  @Get('business-config')
+  @ApiOperation({ summary: 'Get current business type, features & defaults' })
+  getBusinessConfig(@GetUser() user: AuthenticatedUser) {
+    return this.onboarding.getBusinessConfig(user);
+  }
+
+  @Patch('business-features')
+  @ApiOperation({ summary: 'Toggle individual business features' })
+  updateBusinessFeatures(
+    @GetUser() user: AuthenticatedUser,
+    @Body() body: { features: Record<string, boolean> },
+  ) {
+    return this.onboarding.updateBusinessFeatures(user, body.features);
+  }
+
+  @Post('change-business-type')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Change business type (re-applies template)' })
+  changeBusinessType(
+    @GetUser() user: AuthenticatedUser,
+    @Body() body: { businessType: string },
+  ) {
+    return this.onboarding.changeBusinessType(user, body.businessType);
+  }
+
   @Patch('step/1')
-  @ApiOperation({ summary: 'Update business info (Step 1)' })
   step1(@GetUser() user: AuthenticatedUser, @Body() dto: UpdateStep1Dto) {
     return this.onboarding.updateStep1(user, dto);
   }
 
   @Patch('step/2')
-  @ApiOperation({ summary: 'Update owner profile (Step 2)' })
   step2(@GetUser() user: AuthenticatedUser, @Body() dto: UpdateStep2Dto) {
     return this.onboarding.updateStep2(user, dto);
   }
 
   @Patch('step/3')
-  @ApiOperation({ summary: 'Update shop details (Step 3)' })
   step3(@GetUser() user: AuthenticatedUser, @Body() dto: UpdateStep3Dto) {
     return this.onboarding.updateStep3(user, dto);
   }
 
   @Patch('step/4')
-  @ApiOperation({ summary: 'Update preferences (Step 4)' })
   step4(@GetUser() user: AuthenticatedUser, @Body() dto: UpdateStep4Dto) {
     return this.onboarding.updateStep4(user, dto);
   }
 
   @Patch('step/5')
-  @ApiOperation({ summary: 'Add first products (Step 5)' })
   step5(@GetUser() user: AuthenticatedUser, @Body() dto: UpdateStep5Dto) {
     return this.onboarding.updateStep5(user, dto);
   }
 
   @Patch('step/6')
-  @ApiOperation({ summary: 'Add team members & finish (Step 6)' })
   step6(@GetUser() user: AuthenticatedUser, @Body() dto: UpdateStep6Dto) {
     return this.onboarding.updateStep6(user, dto);
   }
 
   @Post('skip')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Skip a step (only steps 5 & 6)' })
   skip(@GetUser() user: AuthenticatedUser, @Body() dto: SkipStepDto) {
     return this.onboarding.skipStep(user, dto.step);
   }
 
   @Post('complete')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Mark onboarding as complete' })
   complete(@GetUser() user: AuthenticatedUser) {
     return this.onboarding.complete(user);
   }
 
   @Post('reset')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Reset onboarding (owner only)' })
   reset(@GetUser() user: AuthenticatedUser) {
     return this.onboarding.reset(user);
   }

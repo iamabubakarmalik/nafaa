@@ -49,6 +49,8 @@ import { StripeModule } from './modules/stripe/stripe.module';
 import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
 import { SuppliersModule } from './modules/suppliers/suppliers.module';
 import { TeamModule } from './modules/team/team.module';
+import { StaffModule } from './modules/staff/staff.module';
+import { IndustriesModule } from './modules/industries/industries.module';
 import { TransfersModule } from './modules/transfers/transfers.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
 import { BrandsModule } from './modules/brands/brands.module';
@@ -96,6 +98,8 @@ import { PrismaModule } from './prisma/prisma.module';
     ReportsModule,
     ProfitReportModule,
     TeamModule,
+    StaffModule,
+    IndustriesModule,
     CustomerLedgerModule,
     ShopsModule,
     CashRegisterModule,

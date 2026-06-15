@@ -20,6 +20,7 @@ import { productImagesApi } from '@/api/product-images.api';
 import { productVariantsApi, type UpsertVariantPayload } from '@/api/product-variants.api';
 import { ImagePickerSheet } from '@/components/uploads';
 import MobileVariantBuilder from '@/components/products/MobileVariantBuilder';
+import { MobileVariantCard } from '@/components/products/MobileVariantCard';
 import { formatPKRFull } from '@/lib/format';
 import Toast from 'react-native-toast-message';
 
@@ -73,6 +74,8 @@ export default function EditProductScreen() {
   const [originalLoaded, setOriginalLoaded] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
+  const [variantDrafts, setVariantDrafts] = useState<Record<string, UpsertVariantPayload>>({});
+  const [variantPickerForId, setVariantPickerForId] = useState<string | null>(null);
 
   const { data: product } = useQuery({
     queryKey: ['product', id],
@@ -174,6 +177,32 @@ export default function EditProductScreen() {
     }
   }, [product, originalLoaded]);
 
+  // Sync variant drafts when variants load/refresh
+  useEffect(() => {
+    const next: Record<string, UpsertVariantPayload> = {};
+    variants.forEach((v: any) => {
+      next[v.id] = {
+        name: v.name,
+        sku: v.sku ?? undefined,
+        barcode: v.barcode ?? undefined,
+        color: v.color ?? undefined,
+        colorHex: v.colorHex ?? undefined,
+        size: v.size ?? undefined,
+        weight: v.weight ?? undefined,
+        unit: v.unit ?? undefined,
+        price: v.price,
+        costPrice: v.costPrice ?? 0,
+        wholesalePrice: v.wholesalePrice ?? undefined,
+        stock: v.stock ?? 0,
+        lowStockAlert: v.lowStockAlert ?? 5,
+        imageUrl: v.imageUrl ?? undefined,
+        isActive: v.isActive,
+        sortOrder: v.sortOrder ?? 0,
+      };
+    });
+    setVariantDrafts(next);
+  }, [variants]);
+
   const updateMutation = useMutation({
     mutationFn: () => productsApi.update(id, form),
     onSuccess: () => {
@@ -227,6 +256,64 @@ export default function EditProductScreen() {
     },
   });
 
+  const saveVariantMutation = useMutation({
+    mutationFn: ({ variantId, payload }: { variantId: string; payload: UpsertVariantPayload }) =>
+      productVariantsApi.update(id, variantId, payload),
+    onSuccess: () => {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      refetchVariants();
+      Toast.show({ type: 'success', text1: 'Variant updated' });
+    },
+    onError: (e: any) => {
+      Toast.show({
+        type: 'error',
+        text1: e?.response?.data?.message?.[0] || e?.response?.data?.message || 'Save failed',
+      });
+    },
+  });
+
+  const updateVariantDraft = (variantId: string, patch: Partial<UpsertVariantPayload>) => {
+    setVariantDrafts((prev) => ({
+      ...prev,
+      [variantId]: { ...(prev[variantId] ?? {} as UpsertVariantPayload), ...patch },
+    }));
+  };
+
+  const handleVariantImageChange = (variantId: string) => {
+    setVariantPickerForId(variantId);
+    setShowPicker(true);
+  };
+
+  const handleVariantSave = (variantId: string) => {
+    const draft = variantDrafts[variantId];
+    if (!draft?.name?.trim()) {
+      Toast.show({ type: 'error', text1: 'Variant name required' });
+      return;
+    }
+    const sanitized: UpsertVariantPayload = {
+      name: draft.name.trim(),
+      sku: draft.sku?.trim() || undefined,
+      barcode: draft.barcode?.trim() || undefined,
+      color: draft.color?.trim() || undefined,
+      colorHex: draft.colorHex?.trim() || undefined,
+      size: draft.size?.trim() || undefined,
+      weight: draft.weight === undefined || draft.weight === null ? undefined : Number(draft.weight),
+      unit: draft.unit?.trim() || undefined,
+      price: Number(draft.price ?? 0),
+      costPrice: Number(draft.costPrice ?? 0),
+      wholesalePrice:
+        draft.wholesalePrice === undefined || draft.wholesalePrice === null
+          ? undefined
+          : Number(draft.wholesalePrice),
+      stock: Number(draft.stock ?? 0),
+      lowStockAlert: Number(draft.lowStockAlert ?? 5),
+      imageUrl: draft.imageUrl?.trim() || undefined,
+      isActive: draft.isActive ?? true,
+      sortOrder: Number(draft.sortOrder ?? 0),
+    };
+    saveVariantMutation.mutate({ variantId, payload: sanitized });
+  };
+
   const bulkVariantsMutation = useMutation({
     mutationFn: (vs: UpsertVariantPayload[]) => productVariantsApi.bulkCreate(id, vs),
     onSuccess: () => {
@@ -269,6 +356,31 @@ export default function EditProductScreen() {
 
   const handleUploaded = async (records: any[]) => {
     try {
+      // If this upload was triggered for a specific variant, set variant image
+      if (variantPickerForId && records.length > 0) {
+        const url = records[0].url;
+        const draft = variantDrafts[variantPickerForId];
+        if (draft) {
+          const nextDraft = { ...draft, imageUrl: url };
+          setVariantDrafts((prev) => ({ ...prev, [variantPickerForId]: nextDraft }));
+          // Auto-save variant with new image
+          saveVariantMutation.mutate({
+            variantId: variantPickerForId,
+            payload: {
+              ...nextDraft,
+              price: Number(nextDraft.price ?? 0),
+              costPrice: Number(nextDraft.costPrice ?? 0),
+              stock: Number(nextDraft.stock ?? 0),
+              lowStockAlert: Number(nextDraft.lowStockAlert ?? 5),
+            },
+          });
+        }
+        setVariantPickerForId(null);
+        setShowPicker(false);
+        return;
+      }
+
+      // Otherwise — regular product images
       for (let i = 0; i < records.length; i++) {
         const r = records[i];
         await addImageMutation.mutateAsync({
@@ -704,43 +816,39 @@ export default function EditProductScreen() {
                     <Text className="text-xs text-neutral-400 mt-0.5">Use builder above to generate</Text>
                   </View>
                 ) : (
-                  <View className="gap-2">
-                    {variants.map((v: any) => (
-                      <View
-                        key={v.id}
-                        className="rounded-2xl bg-white border border-neutral-200 p-3 flex-row items-center gap-3"
-                      >
-                        {v.colorHex ? (
-                          <View
-                            className="h-12 w-12 rounded-xl border-2 border-neutral-200"
-                            style={{ backgroundColor: v.colorHex }}
-                          />
-                        ) : (
-                          <View className="h-12 w-12 rounded-xl bg-violet-100 items-center justify-center">
-                            <Layers size={18} color="#8b5cf6" />
-                          </View>
-                        )}
-                        <View className="flex-1">
-                          <Text className="font-bold text-neutral-900" numberOfLines={1}>
-                            {v.name}
-                          </Text>
-                          <View className="flex-row items-center gap-3 mt-0.5">
-                            <Text className="text-xs text-emerald-700 font-bold">
-                              {formatPKRFull(v.price)}
-                            </Text>
-                            <Text className="text-xs text-neutral-500 font-bold">
-                              {v.stock} {v.unit || product.unit}
-                            </Text>
-                          </View>
-                        </View>
-                        <Pressable
-                          onPress={() => confirmRemoveVariant(v.id, v.name)}
-                          className="h-9 w-9 rounded-lg bg-rose-50 border border-rose-200 items-center justify-center"
-                        >
-                          <Trash2 size={14} color="#dc2626" />
-                        </Pressable>
-                      </View>
-                    ))}
+                  <View className="gap-2.5">
+                    {variants.map((v: any) => {
+                      const draft = variantDrafts[v.id] ?? {
+                        name: v.name,
+                        price: v.price,
+                        costPrice: v.costPrice ?? 0,
+                        stock: v.stock ?? 0,
+                        lowStockAlert: v.lowStockAlert ?? 5,
+                        isActive: v.isActive,
+                        sortOrder: v.sortOrder ?? 0,
+                      };
+                      const saving =
+                        saveVariantMutation.isPending &&
+                        saveVariantMutation.variables?.variantId === v.id;
+                      const deleting =
+                        removeVariantMutation.isPending &&
+                        removeVariantMutation.variables === v.id;
+
+                      return (
+                        <MobileVariantCard
+                          key={v.id}
+                          variant={v}
+                          draft={draft}
+                          parentUnit={product.unit}
+                          onUpdate={(patch) => updateVariantDraft(v.id, patch)}
+                          onImageChange={() => handleVariantImageChange(v.id)}
+                          onSave={() => handleVariantSave(v.id)}
+                          onDelete={() => removeVariantMutation.mutate(v.id)}
+                          saving={saving}
+                          deleting={deleting}
+                        />
+                      );
+                    })}
                   </View>
                 )}
               </View>
