@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { formatPKR } from '@/lib/format';
 import { toast } from 'sonner';
-import { useAuthStore } from '@/store/auth.store';
 
 const formatDate = (value: string) =>
   new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
@@ -36,7 +35,6 @@ const txTypeConfig: Record<string, { label: string; tone: string; icon: any; isI
 
 export default function CashRegisterPage() {
   const queryClient = useQueryClient();
-  const currentShopId = useAuthStore((s) => s.currentShopId);
   const [openingBalance, setOpeningBalance] = useState('');
   const [openingNotes, setOpeningNotes] = useState('');
   const [closingBalance, setClosingBalance] = useState('');
@@ -45,16 +43,14 @@ export default function CashRegisterPage() {
   const [txReason, setTxReason] = useState('');
 
   const { data: current, isLoading } = useQuery({
-    queryKey: ['cash-register-current', currentShopId],
-    queryFn: () => cashRegisterApi.current(currentShopId || undefined),
-    enabled: !!currentShopId,
+    queryKey: ['cash-register-current'],
+    queryFn: cashRegisterApi.current,
     refetchInterval: 30000,
   });
 
   const { data: history = [] } = useQuery({
-    queryKey: ['cash-register-history', currentShopId],
-    queryFn: () => cashRegisterApi.history(currentShopId || undefined),
-    enabled: !!currentShopId,
+    queryKey: ['cash-register-history'],
+    queryFn: cashRegisterApi.history,
   });
 
   const openMutation = useMutation({
@@ -70,7 +66,7 @@ export default function CashRegisterPage() {
   });
 
   const txMutation = useMutation({
-    mutationFn: (payload: any) => cashRegisterApi.transaction(payload, currentShopId || undefined),
+    mutationFn: cashRegisterApi.transaction,
     onSuccess: (_, vars: any) => {
       toast.success(`${vars.type === 'CASH_IN' ? 'Cash added' : 'Cash withdrawn'}`, {
         description: `${formatPKR(vars.amount)} • ${vars.reason}`,
@@ -83,7 +79,7 @@ export default function CashRegisterPage() {
   });
 
   const closeMutation = useMutation({
-    mutationFn: (payload: any) => cashRegisterApi.close(payload, currentShopId || undefined),
+    mutationFn: cashRegisterApi.close,
     onSuccess: (data: any) => {
       const diff = data?.difference || 0;
       if (diff === 0) {
@@ -106,10 +102,9 @@ export default function CashRegisterPage() {
   });
 
   const handleOpen = () => {
-    if (!currentShopId) return toast.error('Top-bar se shop select karein');
     const bal = Number(openingBalance);
     if (isNaN(bal) || bal < 0) return toast.error('Valid opening balance likhein');
-    openMutation.mutate({ shopId: currentShopId, openingBalance: bal, notes: openingNotes.trim() || undefined });
+    openMutation.mutate({ openingBalance: bal, notes: openingNotes.trim() || undefined });
   };
 
   const handleTx = (type: 'CASH_IN' | 'CASH_OUT') => {

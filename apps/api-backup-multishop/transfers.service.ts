@@ -1,5 +1,7 @@
 import {
-  BadRequestException, Injectable, NotFoundException,
+  BadRequestException,
+  Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
@@ -19,30 +21,38 @@ export class TransfersService {
     }
 
     const [fromShop, toShop] = await Promise.all([
-      this.prisma.shop.findFirst({ where: { id: dto.fromShopId, tenantId: user.tenantId } }),
-      this.prisma.shop.findFirst({ where: { id: dto.toShopId, tenantId: user.tenantId } }),
+      this.prisma.shop.findFirst({
+        where: { id: dto.fromShopId, tenantId: user.tenantId },
+      }),
+      this.prisma.shop.findFirst({
+        where: { id: dto.toShopId, tenantId: user.tenantId },
+      }),
     ]);
-    if (!fromShop || !toShop) throw new NotFoundException('Shop not found');
 
-    // Validate items + check ShopStock at source
+    if (!fromShop || !toShop) {
+      throw new NotFoundException('Shop not found');
+    }
+
+    const productIds = dto.items.map((i) => i.productId);
+    const products = await this.prisma.product.findMany({
+      where: {
+        tenantId: user.tenantId,
+        id: { in: productIds },
+      },
+    });
+
+    if (products.length !== productIds.length) {
+      throw new NotFoundException('One or more products not found');
+    }
+
+    const productMap = new Map(products.map((p) => [p.id, p]));
+
     for (const item of dto.items) {
-      const product = await this.prisma.product.findFirst({
-        where: { id: item.productId, tenantId: user.tenantId },
-      });
-      if (!product) throw new NotFoundException(`Product ${item.productId} not found`);
-
-      const variantId = (item as any).variantId ?? null;
-      const sourceStock = await this.prisma.shopStock.findFirst({
-        where: {
-          shopId: dto.fromShopId,
-          productId: item.productId,
-          variantId,
-        },
-      });
-
-      if (!sourceStock || sourceStock.stock < item.quantity) {
+      const product = productMap.get(item.productId);
+      if (!product) throw new NotFoundException('Product not found');
+      if (product.stock < item.quantity) {
         throw new BadRequestException(
-          `${product.name} insufficient at ${fromShop.name}. Available: ${sourceStock?.stock ?? 0}`,
+          `Insufficient stock for ${product.name}. Available: ${product.stock}`,
         );
       }
     }
@@ -68,27 +78,15 @@ export class TransfersService {
           },
         },
         include: {
-          fromShop: true, toShop: true,
+          fromShop: true,
+          toShop: true,
           items: { include: { product: true } },
         },
       });
 
-      // Decrement from source ShopStock
       for (const item of dto.items) {
-        const variantId = (item as any).variantId ?? null;
-
-        const existingSource = await tx.shopStock.findFirst({
-          where: {
-            shopId: dto.fromShopId,
-            productId: item.productId,
-            variantId,
-          },
-        });
-        if (!existingSource) {
-          throw new BadRequestException('Source stock missing — refresh and retry');
-        }
-        await tx.shopStock.update({
-          where: { id: existingSource.id },
+        const updated = await tx.product.update({
+          where: { id: item.productId },
           data: { stock: { decrement: item.quantity } },
         });
 
@@ -98,7 +96,7 @@ export class TransfersService {
             productId: item.productId,
             type: 'TRANSFER_OUT',
             quantity: -item.quantity,
-            balanceAfter: 0,
+            balanceAfter: updated.stock,
             reference: transferNumber,
             note: `Transfer to ${toShop.name}`,
           },
@@ -122,8 +120,13 @@ export class TransfersService {
   async receive(user: AuthenticatedUser, id: string) {
     const transfer = await this.prisma.stockTransfer.findFirst({
       where: { id, tenantId: user.tenantId },
-      include: { items: true, fromShop: true, toShop: true },
+      include: {
+        items: true,
+        fromShop: true,
+        toShop: true,
+      },
     });
+
     if (!transfer) throw new NotFoundException('Transfer not found');
     if (transfer.status !== 'IN_TRANSIT') {
       throw new BadRequestException('Transfer is not in transit');
@@ -132,41 +135,22 @@ export class TransfersService {
     return this.prisma.$transaction(async (tx) => {
       const updated = await tx.stockTransfer.update({
         where: { id },
-        data: { status: 'RECEIVED', receivedAt: new Date() },
+        data: {
+          status: 'RECEIVED',
+          receivedAt: new Date(),
+        },
         include: {
-          fromShop: true, toShop: true,
+          fromShop: true,
+          toShop: true,
           items: { include: { product: true } },
         },
       });
 
-      // Increment destination ShopStock (create if doesn't exist)
       for (const item of transfer.items) {
-        const variantId = (item as any).variantId ?? null;
-
-        const existing = await tx.shopStock.findFirst({
-          where: {
-            shopId: transfer.toShopId,
-            productId: item.productId,
-            variantId,
-          },
+        const product = await tx.product.update({
+          where: { id: item.productId },
+          data: { stock: { increment: item.quantity } },
         });
-
-        if (existing) {
-          await tx.shopStock.update({
-            where: { id: existing.id },
-            data: { stock: { increment: item.quantity } },
-          });
-        } else {
-          await tx.shopStock.create({
-            data: {
-              tenantId: user.tenantId,
-              shopId: transfer.toShopId,
-              productId: item.productId,
-              variantId,
-              stock: item.quantity,
-            },
-          });
-        }
 
         await tx.stockMovement.create({
           data: {
@@ -174,7 +158,7 @@ export class TransfersService {
             productId: item.productId,
             type: 'TRANSFER_IN',
             quantity: item.quantity,
-            balanceAfter: 0,
+            balanceAfter: product.stock,
             reference: transfer.transferNumber,
             note: `Received from ${transfer.fromShop.name}`,
           },
@@ -190,9 +174,14 @@ export class TransfersService {
       where: { id, tenantId: user.tenantId },
       include: { items: true, fromShop: true },
     });
+
     if (!transfer) throw new NotFoundException('Transfer not found');
-    if (transfer.status === 'RECEIVED') throw new BadRequestException('Received transfer cancel nahi kar sakte');
-    if (transfer.status === 'CANCELLED') throw new BadRequestException('Already cancelled');
+    if (transfer.status === 'RECEIVED') {
+      throw new BadRequestException('Received transfer cancel nahi kar sakte');
+    }
+    if (transfer.status === 'CANCELLED') {
+      throw new BadRequestException('Already cancelled');
+    }
 
     return this.prisma.$transaction(async (tx) => {
       const updated = await tx.stockTransfer.update({
@@ -201,32 +190,11 @@ export class TransfersService {
       });
 
       if (transfer.status === 'IN_TRANSIT') {
-        // Return stock to source
         for (const item of transfer.items) {
-          const variantId = (item as any).variantId ?? null;
-          const existing = await tx.shopStock.findFirst({
-            where: {
-              shopId: transfer.fromShopId,
-              productId: item.productId,
-              variantId,
-            },
+          const product = await tx.product.update({
+            where: { id: item.productId },
+            data: { stock: { increment: item.quantity } },
           });
-          if (existing) {
-            await tx.shopStock.update({
-              where: { id: existing.id },
-              data: { stock: { increment: item.quantity } },
-            });
-          } else {
-            await tx.shopStock.create({
-              data: {
-                tenantId: user.tenantId,
-                shopId: transfer.fromShopId,
-                productId: item.productId,
-                variantId,
-                stock: item.quantity,
-              },
-            });
-          }
 
           await tx.stockMovement.create({
             data: {
@@ -234,7 +202,7 @@ export class TransfersService {
               productId: item.productId,
               type: 'TRANSFER_IN',
               quantity: item.quantity,
-              balanceAfter: 0,
+              balanceAfter: product.stock,
               reference: transfer.transferNumber,
               note: 'Transfer cancelled - returned to source',
             },
@@ -252,7 +220,8 @@ export class TransfersService {
       orderBy: { createdAt: 'desc' },
       take: 50,
       include: {
-        fromShop: true, toShop: true,
+        fromShop: true,
+        toShop: true,
         createdBy: { select: { id: true, fullName: true } },
         items: { include: { product: true } },
       },

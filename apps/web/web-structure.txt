@@ -1,8 +1,52 @@
 .
-├── .env
-├── .gitignore
+├── dist
+│   ├── assets
+│   │   ├── index-hgz0--LY.css
+│   │   ├── index-ndHOD6OJ.js
+│   │   └── index-ndHOD6OJ.js.map
+│   ├── favicon.ico
+│   ├── favicon.svg
+│   ├── icon-192.png
+│   ├── icon-512.png
+│   ├── icons.svg
+│   ├── index.html
+│   └── logo.svg
 ├── eslint.config.js
 ├── index.html
+├── node_modules
+│   ├── @hookform
+│   │   └── resolvers -> ../../../../node_modules/.pnpm/@hookform+resolvers@5.2.2_react-hook-form@7.75.0_react@19.2.6_/node_modules/@hookform/resolvers
+│   ├── @nafaa
+│   │   └── api-client -> ../../../../packages/api-client
+│   ├── @tanstack
+│   │   └── react-query -> ../../../../node_modules/.pnpm/@tanstack+react-query@5.100.9_react@19.2.6/node_modules/@tanstack/react-query
+│   ├── @types
+│   │   ├── node -> ../../../../node_modules/.pnpm/@types+node@25.6.2/node_modules/@types/node
+│   │   ├── react -> ../../../../node_modules/.pnpm/@types+react@19.2.14/node_modules/@types/react
+│   │   └── react-dom -> ../../../../node_modules/.pnpm/@types+react-dom@19.2.3_@types+react@19.2.14/node_modules/@types/react-dom
+│   ├── @vitejs
+│   │   └── plugin-react -> ../../../../node_modules/.pnpm/@vitejs+plugin-react@4.7.0_vite@6.4.2_@types+node@25.6.2_jiti@2.7.0_lightningcss@1.32.0_87d1249db1bb0da8e5181bd10bff7075/node_modules/@vitejs/plugin-react
+│   ├── @zxing
+│   │   ├── browser -> ../../../../node_modules/.pnpm/@zxing+browser@0.2.0_@zxing+library@0.23.0/node_modules/@zxing/browser
+│   │   └── library -> ../../../../node_modules/.pnpm/@zxing+library@0.23.0/node_modules/@zxing/library
+│   ├── autoprefixer -> ../../../node_modules/.pnpm/autoprefixer@10.5.0_postcss@8.5.14/node_modules/autoprefixer
+│   ├── axios -> ../../../node_modules/.pnpm/axios@1.16.0/node_modules/axios
+│   ├── clsx -> ../../../node_modules/.pnpm/clsx@2.1.1/node_modules/clsx
+│   ├── jsbarcode -> ../../../node_modules/.pnpm/jsbarcode@3.12.3/node_modules/jsbarcode
+│   ├── lucide-react -> ../../../node_modules/.pnpm/lucide-react@1.14.0_react@19.2.6/node_modules/lucide-react
+│   ├── postcss -> ../../../node_modules/.pnpm/postcss@8.5.14/node_modules/postcss
+│   ├── react -> ../../../node_modules/.pnpm/react@19.2.6/node_modules/react
+│   ├── react-dom -> ../../../node_modules/.pnpm/react-dom@19.2.6_react@19.2.6/node_modules/react-dom
+│   ├── react-hook-form -> ../../../node_modules/.pnpm/react-hook-form@7.75.0_react@19.2.6/node_modules/react-hook-form
+│   ├── react-router-dom -> ../../../node_modules/.pnpm/react-router-dom@7.15.0_react-dom@19.2.6_react@19.2.6__react@19.2.6/node_modules/react-router-dom
+│   ├── recharts -> ../../../node_modules/.pnpm/recharts@3.8.1_@types+react@19.2.14_react-dom@19.2.6_react@19.2.6__react-is@19.2.6_react@19.2.6_redux@5.0.1/node_modules/recharts
+│   ├── sonner -> ../../../node_modules/.pnpm/sonner@2.0.7_react-dom@19.2.6_react@19.2.6__react@19.2.6/node_modules/sonner
+│   ├── tailwind-merge -> ../../../node_modules/.pnpm/tailwind-merge@3.6.0/node_modules/tailwind-merge
+│   ├── tailwindcss -> ../../../node_modules/.pnpm/tailwindcss@3.4.17_ts-node@10.9.2_@types+node@25.6.2_typescript@5.9.3_/node_modules/tailwindcss
+│   ├── typescript -> ../../../node_modules/.pnpm/typescript@5.9.3/node_modules/typescript
+│   ├── vite -> ../../../node_modules/.pnpm/vite@6.4.2_@types+node@25.6.2_jiti@2.7.0_lightningcss@1.32.0_terser@5.47.1_tsx@4.21.0_yaml@2.9.0/node_modules/vite
+│   ├── zod -> ../../../node_modules/.pnpm/zod@4.4.3/node_modules/zod
+│   └── zustand -> ../../../node_modules/.pnpm/zustand@5.0.13_@types+react@19.2.14_immer@11.1.8_react@19.2.6_use-sync-external-store@1.6.0_react@19.2.6_/node_modules/zustand
 ├── package.json
 ├── postcss.config.js
 ├── public
@@ -20,6 +64,7 @@
 │   │   ├── backup.api.ts
 │   │   ├── billing.api.ts
 │   │   ├── brands.api.ts
+│   │   ├── business-config.api.ts
 │   │   ├── cash-register.api.ts
 │   │   ├── categories.api.ts
 │   │   ├── client.ts
@@ -46,6 +91,7 @@
 │   │   ├── search.api.ts
 │   │   ├── settings.api.ts
 │   │   ├── shops.api.ts
+│   │   ├── staff.api.ts
 │   │   ├── stock-adjustments.api.ts
 │   │   ├── stock-movements.api.ts
 │   │   ├── stripe.api.ts
@@ -114,6 +160,9 @@
 │   │   ├── cash-register
 │   │   │   └── pages
 │   │   │       └── CashRegisterPage.tsx
+│   │   ├── catalog
+│   │   │   └── pages
+│   │   │       └── CatalogPage.tsx
 │   │   ├── categories
 │   │   │   └── pages
 │   │   │       └── CategoriesPage.tsx
@@ -138,6 +187,39 @@
 │   │   ├── help
 │   │   │   └── pages
 │   │   │       └── HelpPage.tsx
+│   │   ├── industries
+│   │   │   ├── clothing
+│   │   │   │   └── components
+│   │   │   │       └── SizeColorMatrix.tsx
+│   │   │   ├── mobile
+│   │   │   │   ├── api
+│   │   │   │   │   └── imei.api.ts
+│   │   │   │   ├── components
+│   │   │   │   │   ├── BulkImeiAddModal.tsx
+│   │   │   │   │   └── ImeiPickerModal.tsx
+│   │   │   │   ├── pages
+│   │   │   │   │   └── ImeiInventoryPage.tsx
+│   │   │   │   └── utils
+│   │   │   │       └── imei-rules.ts
+│   │   │   ├── pharmacy
+│   │   │   │   ├── api
+│   │   │   │   │   └── batches.api.ts
+│   │   │   │   ├── components
+│   │   │   │   │   ├── AddBatchModal.tsx
+│   │   │   │   │   └── BatchPickerModal.tsx
+│   │   │   │   └── pages
+│   │   │   │       └── ExpiryDashboardPage.tsx
+│   │   │   ├── restaurant
+│   │   │   │   ├── api
+│   │   │   │   │   └── tables.api.ts
+│   │   │   │   ├── components
+│   │   │   │   └── pages
+│   │   │   │       └── TablesPage.tsx
+│   │   │   └── salon
+│   │   │       ├── api
+│   │   │       │   └── appointments.api.ts
+│   │   │       └── pages
+│   │   │           └── AppointmentsPage.tsx
 │   │   ├── khata
 │   │   │   └── pages
 │   │   │       └── KhataPage.tsx
@@ -154,19 +236,27 @@
 │   │   │   └── NotificationsPage.tsx
 │   │   ├── onboarding
 │   │   │   ├── components
+│   │   │   │   └── BusinessTypeSelector.tsx
 │   │   │   └── pages
 │   │   │       └── OnboardingPage.tsx
 │   │   ├── plan-usage
 │   │   │   └── pages
 │   │   │       └── PlanUsagePage.tsx
 │   │   ├── pos
+│   │   │   ├── components
+│   │   │   │   ├── LengthWidthCalculator.tsx
+│   │   │   │   └── VariantPicker.tsx
 │   │   │   └── pages
 │   │   │       └── PosPage.tsx
 │   │   ├── products
 │   │   │   ├── components
-│   │   │   │   └── VariantBuilder.tsx
+│   │   │   │   ├── UnitSelect.tsx
+│   │   │   │   ├── VariantBuilder.tsx
+│   │   │   │   └── VariantCard.tsx
 │   │   │   └── pages
 │   │   │       ├── ProductFormPage.tsx
+│   │   │       ├── ProductFormPage.tsx.bak
+│   │   │       ├── ProductFormPage.tsx.bak2
 │   │   │       └── ProductsListPage.tsx
 │   │   ├── profile
 │   │   │   ├── components
@@ -198,6 +288,7 @@
 │   │   │   └── sections
 │   │   │       ├── _shared.tsx
 │   │   │       ├── AppearanceSection.tsx
+│   │   │       ├── BusinessConfigSection.tsx
 │   │   │       ├── BusinessProfileSection.tsx
 │   │   │       ├── CustomerSection.tsx
 │   │   │       ├── InventorySection.tsx
@@ -211,6 +302,14 @@
 │   │   ├── shops
 │   │   │   └── pages
 │   │   │       └── ShopsPage.tsx
+│   │   ├── staff
+│   │   │   ├── components
+│   │   │   └── pages
+│   │   │       ├── AttendancePage.tsx
+│   │   │       ├── SalaryProcessPage.tsx
+│   │   │       ├── StaffDetailPage.tsx
+│   │   │       ├── StaffFormPage.tsx
+│   │   │       └── StaffListPage.tsx
 │   │   ├── stock-adjustments
 │   │   │   └── pages
 │   │   │       └── StockAdjustmentsPage.tsx
@@ -221,8 +320,7 @@
 │   │   │   └── pages
 │   │   │       ├── SupplierDetailPage.tsx
 │   │   │       ├── SupplierFormPage.tsx
-│   │   │       ├── SuppliersListPage.tsx
-│   │   │       └── SuppliersPage.tsx
+│   │   │       └── SuppliersListPage.tsx
 │   │   ├── tags
 │   │   │   └── pages
 │   │   │       └── TagsPage.tsx
@@ -233,6 +331,7 @@
 │   │       └── pages
 │   │           └── TransfersPage.tsx
 │   ├── hooks
+│   │   ├── useBusinessFeatures.ts
 │   │   ├── useImageUpload.ts
 │   │   ├── useNotificationSound.ts
 │   │   ├── usePermission.ts
@@ -246,7 +345,8 @@
 │   ├── lib
 │   │   ├── cn.ts
 │   │   ├── format.ts
-│   │   └── permissions.ts
+│   │   ├── permissions.ts
+│   │   └── permissions.ts.bak
 │   ├── main.tsx
 │   ├── routes
 │   │   ├── OnboardingGate.tsx
@@ -257,13 +357,13 @@
 │   │   ├── locale.store.ts
 │   │   └── theme.store.ts
 │   └── vite-env.d.ts
-├── structure.txt
 ├── tailwind.config.js
 ├── tsconfig.app.json
 ├── tsconfig.json
 ├── tsconfig.node.json
 ├── tsconfig.tsbuildinfo
 ├── vercel.json
-└── vite.config.ts
+├── vite.config.ts
+└── web-structure.txt
 
-101 directories, 166 files
+162 directories, 205 files

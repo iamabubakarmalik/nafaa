@@ -1,0 +1,1791 @@
+.
+├── api-structure.txt
+├── dist
+│   ├── app.controller.d.ts
+│   ├── app.controller.js
+│   ├── app.controller.js.map
+│   ├── app.module.d.ts
+│   ├── app.module.js
+│   ├── app.module.js.map
+│   ├── app.service.d.ts
+│   ├── app.service.js
+│   ├── app.service.js.map
+│   ├── common
+│   │   ├── constants
+│   │   │   ├── permissions.constants.d.ts
+│   │   │   ├── permissions.constants.js
+│   │   │   └── permissions.constants.js.map
+│   │   ├── decorators
+│   │   │   ├── permissions.decorator.d.ts
+│   │   │   ├── permissions.decorator.js
+│   │   │   └── permissions.decorator.js.map
+│   │   ├── filters
+│   │   │   ├── global-exception.filter.d.ts
+│   │   │   ├── global-exception.filter.js
+│   │   │   └── global-exception.filter.js.map
+│   │   ├── guards
+│   │   │   ├── permissions.guard.d.ts
+│   │   │   ├── permissions.guard.js
+│   │   │   └── permissions.guard.js.map
+│   │   ├── interceptors
+│   │   │   ├── response.interceptor.d.ts
+│   │   │   ├── response.interceptor.js
+│   │   │   └── response.interceptor.js.map
+│   │   └── utils
+│   │       ├── password.util.d.ts
+│   │       ├── password.util.js
+│   │       ├── password.util.js.map
+│   │       ├── slug.util.d.ts
+│   │       ├── slug.util.js
+│   │       └── slug.util.js.map
+│   ├── config
+│   │   ├── env.validation.d.ts
+│   │   ├── env.validation.js
+│   │   └── env.validation.js.map
+│   ├── health
+│   │   ├── health.controller.d.ts
+│   │   ├── health.controller.js
+│   │   └── health.controller.js.map
+│   ├── main.d.ts
+│   ├── main.js
+│   ├── main.js.map
+│   ├── modules
+│   │   ├── activity-log
+│   │   │   ├── activity-log.controller.d.ts
+│   │   │   ├── activity-log.controller.js
+│   │   │   ├── activity-log.controller.js.map
+│   │   │   ├── activity-log.module.d.ts
+│   │   │   ├── activity-log.module.js
+│   │   │   ├── activity-log.module.js.map
+│   │   │   ├── activity-log.service.d.ts
+│   │   │   ├── activity-log.service.js
+│   │   │   └── activity-log.service.js.map
+│   │   ├── admin
+│   │   │   ├── activity
+│   │   │   │   ├── admin-activity.controller.d.ts
+│   │   │   │   ├── admin-activity.controller.js
+│   │   │   │   ├── admin-activity.controller.js.map
+│   │   │   │   ├── admin-activity.module.d.ts
+│   │   │   │   ├── admin-activity.module.js
+│   │   │   │   ├── admin-activity.module.js.map
+│   │   │   │   ├── admin-activity.service.d.ts
+│   │   │   │   ├── admin-activity.service.js
+│   │   │   │   └── admin-activity.service.js.map
+│   │   │   ├── admin.module.d.ts
+│   │   │   ├── admin.module.js
+│   │   │   ├── admin.module.js.map
+│   │   │   ├── analytics
+│   │   │   │   ├── admin-analytics.controller.d.ts
+│   │   │   │   ├── admin-analytics.controller.js
+│   │   │   │   ├── admin-analytics.controller.js.map
+│   │   │   │   ├── admin-analytics.module.d.ts
+│   │   │   │   ├── admin-analytics.module.js
+│   │   │   │   ├── admin-analytics.module.js.map
+│   │   │   │   ├── admin-analytics.service.d.ts
+│   │   │   │   ├── admin-analytics.service.js
+│   │   │   │   └── admin-analytics.service.js.map
+│   │   │   ├── auth
+│   │   │   │   ├── admin-auth.controller.d.ts
+│   │   │   │   ├── admin-auth.controller.js
+│   │   │   │   ├── admin-auth.controller.js.map
+│   │   │   │   ├── admin-auth.module.d.ts
+│   │   │   │   ├── admin-auth.module.js
+│   │   │   │   ├── admin-auth.module.js.map
+│   │   │   │   ├── admin-auth.service.d.ts
+│   │   │   │   ├── admin-auth.service.js
+│   │   │   │   ├── admin-auth.service.js.map
+│   │   │   │   └── dto
+│   │   │   │       ├── admin-login.dto.d.ts
+│   │   │   │       ├── admin-login.dto.js
+│   │   │   │       └── admin-login.dto.js.map
+│   │   │   ├── billing
+│   │   │   │   ├── admin-billing.controller.d.ts
+│   │   │   │   ├── admin-billing.controller.js
+│   │   │   │   ├── admin-billing.controller.js.map
+│   │   │   │   ├── admin-billing.module.d.ts
+│   │   │   │   ├── admin-billing.module.js
+│   │   │   │   ├── admin-billing.module.js.map
+│   │   │   │   ├── admin-billing.service.d.ts
+│   │   │   │   ├── admin-billing.service.js
+│   │   │   │   ├── admin-billing.service.js.map
+│   │   │   │   └── dto
+│   │   │   │       ├── approve-payment.dto.d.ts
+│   │   │   │       ├── approve-payment.dto.js
+│   │   │   │       └── approve-payment.dto.js.map
+│   │   │   ├── broadcast
+│   │   │   │   ├── admin-broadcast.controller.d.ts
+│   │   │   │   ├── admin-broadcast.controller.js
+│   │   │   │   ├── admin-broadcast.controller.js.map
+│   │   │   │   ├── admin-broadcast.module.d.ts
+│   │   │   │   ├── admin-broadcast.module.js
+│   │   │   │   ├── admin-broadcast.module.js.map
+│   │   │   │   ├── admin-broadcast.service.d.ts
+│   │   │   │   ├── admin-broadcast.service.js
+│   │   │   │   ├── admin-broadcast.service.js.map
+│   │   │   │   └── dto
+│   │   │   │       ├── create-broadcast.dto.d.ts
+│   │   │   │       ├── create-broadcast.dto.js
+│   │   │   │       └── create-broadcast.dto.js.map
+│   │   │   ├── bulk
+│   │   │   │   ├── admin-bulk.controller.d.ts
+│   │   │   │   ├── admin-bulk.controller.js
+│   │   │   │   ├── admin-bulk.controller.js.map
+│   │   │   │   ├── admin-bulk.module.d.ts
+│   │   │   │   ├── admin-bulk.module.js
+│   │   │   │   ├── admin-bulk.module.js.map
+│   │   │   │   ├── admin-bulk.service.d.ts
+│   │   │   │   ├── admin-bulk.service.js
+│   │   │   │   ├── admin-bulk.service.js.map
+│   │   │   │   └── dto
+│   │   │   │       ├── bulk-action.dto.d.ts
+│   │   │   │       ├── bulk-action.dto.js
+│   │   │   │       └── bulk-action.dto.js.map
+│   │   │   ├── common
+│   │   │   │   ├── super-admin.guard.d.ts
+│   │   │   │   ├── super-admin.guard.js
+│   │   │   │   └── super-admin.guard.js.map
+│   │   │   ├── communications
+│   │   │   │   ├── admin-communications.controller.d.ts
+│   │   │   │   ├── admin-communications.controller.js
+│   │   │   │   ├── admin-communications.controller.js.map
+│   │   │   │   ├── admin-communications.module.d.ts
+│   │   │   │   ├── admin-communications.module.js
+│   │   │   │   ├── admin-communications.module.js.map
+│   │   │   │   ├── admin-communications.service.d.ts
+│   │   │   │   ├── admin-communications.service.js
+│   │   │   │   ├── admin-communications.service.js.map
+│   │   │   │   └── dto
+│   │   │   │       ├── bulk-send.dto.d.ts
+│   │   │   │       ├── bulk-send.dto.js
+│   │   │   │       └── bulk-send.dto.js.map
+│   │   │   ├── customers
+│   │   │   │   ├── admin-customers.controller.d.ts
+│   │   │   │   ├── admin-customers.controller.js
+│   │   │   │   ├── admin-customers.controller.js.map
+│   │   │   │   ├── admin-customers.module.d.ts
+│   │   │   │   ├── admin-customers.module.js
+│   │   │   │   ├── admin-customers.module.js.map
+│   │   │   │   ├── admin-customers.service.d.ts
+│   │   │   │   ├── admin-customers.service.js
+│   │   │   │   └── admin-customers.service.js.map
+│   │   │   ├── email-templates
+│   │   │   │   ├── admin-email-templates.controller.d.ts
+│   │   │   │   ├── admin-email-templates.controller.js
+│   │   │   │   ├── admin-email-templates.controller.js.map
+│   │   │   │   ├── admin-email-templates.module.d.ts
+│   │   │   │   ├── admin-email-templates.module.js
+│   │   │   │   ├── admin-email-templates.module.js.map
+│   │   │   │   ├── admin-email-templates.service.d.ts
+│   │   │   │   ├── admin-email-templates.service.js
+│   │   │   │   ├── admin-email-templates.service.js.map
+│   │   │   │   └── dto
+│   │   │   │       ├── upsert-template.dto.d.ts
+│   │   │   │       ├── upsert-template.dto.js
+│   │   │   │       └── upsert-template.dto.js.map
+│   │   │   ├── exports
+│   │   │   │   ├── admin-exports.controller.d.ts
+│   │   │   │   ├── admin-exports.controller.js
+│   │   │   │   ├── admin-exports.controller.js.map
+│   │   │   │   ├── admin-exports.module.d.ts
+│   │   │   │   ├── admin-exports.module.js
+│   │   │   │   ├── admin-exports.module.js.map
+│   │   │   │   ├── admin-exports.service.d.ts
+│   │   │   │   ├── admin-exports.service.js
+│   │   │   │   └── admin-exports.service.js.map
+│   │   │   ├── health
+│   │   │   │   ├── admin-health.controller.d.ts
+│   │   │   │   ├── admin-health.controller.js
+│   │   │   │   ├── admin-health.controller.js.map
+│   │   │   │   ├── admin-health.module.d.ts
+│   │   │   │   ├── admin-health.module.js
+│   │   │   │   ├── admin-health.module.js.map
+│   │   │   │   ├── admin-health.service.d.ts
+│   │   │   │   ├── admin-health.service.js
+│   │   │   │   └── admin-health.service.js.map
+│   │   │   ├── impersonate
+│   │   │   │   ├── admin-impersonate.controller.d.ts
+│   │   │   │   ├── admin-impersonate.controller.js
+│   │   │   │   ├── admin-impersonate.controller.js.map
+│   │   │   │   ├── admin-impersonate.module.d.ts
+│   │   │   │   ├── admin-impersonate.module.js
+│   │   │   │   ├── admin-impersonate.module.js.map
+│   │   │   │   ├── admin-impersonate.service.d.ts
+│   │   │   │   ├── admin-impersonate.service.js
+│   │   │   │   └── admin-impersonate.service.js.map
+│   │   │   ├── invoices
+│   │   │   │   ├── admin-invoices.controller.d.ts
+│   │   │   │   ├── admin-invoices.controller.js
+│   │   │   │   ├── admin-invoices.controller.js.map
+│   │   │   │   ├── admin-invoices.module.d.ts
+│   │   │   │   ├── admin-invoices.module.js
+│   │   │   │   ├── admin-invoices.module.js.map
+│   │   │   │   ├── admin-invoices.service.d.ts
+│   │   │   │   ├── admin-invoices.service.js
+│   │   │   │   ├── admin-invoices.service.js.map
+│   │   │   │   └── dto
+│   │   │   │       ├── create-invoice.dto.d.ts
+│   │   │   │       ├── create-invoice.dto.js
+│   │   │   │       └── create-invoice.dto.js.map
+│   │   │   ├── notes
+│   │   │   │   ├── admin-notes.controller.d.ts
+│   │   │   │   ├── admin-notes.controller.js
+│   │   │   │   ├── admin-notes.controller.js.map
+│   │   │   │   ├── admin-notes.module.d.ts
+│   │   │   │   ├── admin-notes.module.js
+│   │   │   │   ├── admin-notes.module.js.map
+│   │   │   │   ├── admin-notes.service.d.ts
+│   │   │   │   ├── admin-notes.service.js
+│   │   │   │   ├── admin-notes.service.js.map
+│   │   │   │   └── dto
+│   │   │   │       ├── upsert-note.dto.d.ts
+│   │   │   │       ├── upsert-note.dto.js
+│   │   │   │       └── upsert-note.dto.js.map
+│   │   │   ├── notifications
+│   │   │   │   ├── admin-notifications.controller.d.ts
+│   │   │   │   ├── admin-notifications.controller.js
+│   │   │   │   ├── admin-notifications.controller.js.map
+│   │   │   │   ├── admin-notifications.module.d.ts
+│   │   │   │   ├── admin-notifications.module.js
+│   │   │   │   ├── admin-notifications.module.js.map
+│   │   │   │   ├── admin-notifications.service.d.ts
+│   │   │   │   ├── admin-notifications.service.js
+│   │   │   │   ├── admin-notifications.service.js.map
+│   │   │   │   └── dto
+│   │   │   │       ├── create-notification.dto.d.ts
+│   │   │   │       ├── create-notification.dto.js
+│   │   │   │       └── create-notification.dto.js.map
+│   │   │   ├── plans
+│   │   │   │   ├── admin-plans.controller.d.ts
+│   │   │   │   ├── admin-plans.controller.js
+│   │   │   │   ├── admin-plans.controller.js.map
+│   │   │   │   ├── admin-plans.module.d.ts
+│   │   │   │   ├── admin-plans.module.js
+│   │   │   │   ├── admin-plans.module.js.map
+│   │   │   │   ├── admin-plans.service.d.ts
+│   │   │   │   ├── admin-plans.service.js
+│   │   │   │   ├── admin-plans.service.js.map
+│   │   │   │   └── dto
+│   │   │   │       ├── upsert-plan.dto.d.ts
+│   │   │   │       ├── upsert-plan.dto.js
+│   │   │   │       └── upsert-plan.dto.js.map
+│   │   │   ├── platform-discounts
+│   │   │   │   ├── admin-platform-discounts.controller.d.ts
+│   │   │   │   ├── admin-platform-discounts.controller.js
+│   │   │   │   ├── admin-platform-discounts.controller.js.map
+│   │   │   │   ├── admin-platform-discounts.module.d.ts
+│   │   │   │   ├── admin-platform-discounts.module.js
+│   │   │   │   ├── admin-platform-discounts.module.js.map
+│   │   │   │   ├── admin-platform-discounts.service.d.ts
+│   │   │   │   ├── admin-platform-discounts.service.js
+│   │   │   │   ├── admin-platform-discounts.service.js.map
+│   │   │   │   └── dto
+│   │   │   │       ├── upsert-discount.dto.d.ts
+│   │   │   │       ├── upsert-discount.dto.js
+│   │   │   │       └── upsert-discount.dto.js.map
+│   │   │   ├── products
+│   │   │   │   ├── admin-products.controller.d.ts
+│   │   │   │   ├── admin-products.controller.js
+│   │   │   │   ├── admin-products.controller.js.map
+│   │   │   │   ├── admin-products.module.d.ts
+│   │   │   │   ├── admin-products.module.js
+│   │   │   │   ├── admin-products.module.js.map
+│   │   │   │   ├── admin-products.service.d.ts
+│   │   │   │   ├── admin-products.service.js
+│   │   │   │   └── admin-products.service.js.map
+│   │   │   ├── referrals
+│   │   │   │   ├── admin-referrals.controller.d.ts
+│   │   │   │   ├── admin-referrals.controller.js
+│   │   │   │   ├── admin-referrals.controller.js.map
+│   │   │   │   ├── admin-referrals.module.d.ts
+│   │   │   │   ├── admin-referrals.module.js
+│   │   │   │   ├── admin-referrals.module.js.map
+│   │   │   │   ├── admin-referrals.service.d.ts
+│   │   │   │   ├── admin-referrals.service.js
+│   │   │   │   └── admin-referrals.service.js.map
+│   │   │   ├── sales
+│   │   │   │   ├── admin-sales.controller.d.ts
+│   │   │   │   ├── admin-sales.controller.js
+│   │   │   │   ├── admin-sales.controller.js.map
+│   │   │   │   ├── admin-sales.module.d.ts
+│   │   │   │   ├── admin-sales.module.js
+│   │   │   │   ├── admin-sales.module.js.map
+│   │   │   │   ├── admin-sales.service.d.ts
+│   │   │   │   ├── admin-sales.service.js
+│   │   │   │   └── admin-sales.service.js.map
+│   │   │   ├── settings
+│   │   │   │   ├── admin-settings.controller.d.ts
+│   │   │   │   ├── admin-settings.controller.js
+│   │   │   │   ├── admin-settings.controller.js.map
+│   │   │   │   ├── admin-settings.module.d.ts
+│   │   │   │   ├── admin-settings.module.js
+│   │   │   │   ├── admin-settings.module.js.map
+│   │   │   │   ├── admin-settings.service.d.ts
+│   │   │   │   ├── admin-settings.service.js
+│   │   │   │   ├── admin-settings.service.js.map
+│   │   │   │   └── dto
+│   │   │   │       ├── upsert-setting.dto.d.ts
+│   │   │   │       ├── upsert-setting.dto.js
+│   │   │   │       └── upsert-setting.dto.js.map
+│   │   │   ├── subscriptions
+│   │   │   │   ├── admin-subscriptions.controller.d.ts
+│   │   │   │   ├── admin-subscriptions.controller.js
+│   │   │   │   ├── admin-subscriptions.controller.js.map
+│   │   │   │   ├── admin-subscriptions.module.d.ts
+│   │   │   │   ├── admin-subscriptions.module.js
+│   │   │   │   ├── admin-subscriptions.module.js.map
+│   │   │   │   ├── admin-subscriptions.service.d.ts
+│   │   │   │   ├── admin-subscriptions.service.js
+│   │   │   │   ├── admin-subscriptions.service.js.map
+│   │   │   │   └── dto
+│   │   │   │       ├── assign-plan.dto.d.ts
+│   │   │   │       ├── assign-plan.dto.js
+│   │   │   │       └── assign-plan.dto.js.map
+│   │   │   ├── system
+│   │   │   │   ├── admin-system.controller.d.ts
+│   │   │   │   ├── admin-system.controller.js
+│   │   │   │   ├── admin-system.controller.js.map
+│   │   │   │   ├── admin-system.module.d.ts
+│   │   │   │   ├── admin-system.module.js
+│   │   │   │   ├── admin-system.module.js.map
+│   │   │   │   ├── admin-system.service.d.ts
+│   │   │   │   ├── admin-system.service.js
+│   │   │   │   └── admin-system.service.js.map
+│   │   │   ├── tenants
+│   │   │   │   ├── admin-tenants.controller.d.ts
+│   │   │   │   ├── admin-tenants.controller.js
+│   │   │   │   ├── admin-tenants.controller.js.map
+│   │   │   │   ├── admin-tenants.module.d.ts
+│   │   │   │   ├── admin-tenants.module.js
+│   │   │   │   ├── admin-tenants.module.js.map
+│   │   │   │   ├── admin-tenants.service.d.ts
+│   │   │   │   ├── admin-tenants.service.js
+│   │   │   │   ├── admin-tenants.service.js.map
+│   │   │   │   └── dto
+│   │   │   │       ├── update-tenant-status.dto.d.ts
+│   │   │   │       ├── update-tenant-status.dto.js
+│   │   │   │       └── update-tenant-status.dto.js.map
+│   │   │   └── users
+│   │   │       ├── admin-users.controller.d.ts
+│   │   │       ├── admin-users.controller.js
+│   │   │       ├── admin-users.controller.js.map
+│   │   │       ├── admin-users.module.d.ts
+│   │   │       ├── admin-users.module.js
+│   │   │       ├── admin-users.module.js.map
+│   │   │       ├── admin-users.service.d.ts
+│   │   │       ├── admin-users.service.js
+│   │   │       └── admin-users.service.js.map
+│   │   ├── auth
+│   │   │   ├── auth.controller.d.ts
+│   │   │   ├── auth.controller.js
+│   │   │   ├── auth.controller.js.map
+│   │   │   ├── auth.module.d.ts
+│   │   │   ├── auth.module.js
+│   │   │   ├── auth.module.js.map
+│   │   │   ├── auth.service.d.ts
+│   │   │   ├── auth.service.js
+│   │   │   ├── auth.service.js.map
+│   │   │   ├── decorators
+│   │   │   │   ├── get-user.decorator.d.ts
+│   │   │   │   ├── get-user.decorator.js
+│   │   │   │   ├── get-user.decorator.js.map
+│   │   │   │   ├── public.decorator.d.ts
+│   │   │   │   ├── public.decorator.js
+│   │   │   │   └── public.decorator.js.map
+│   │   │   ├── dto
+│   │   │   │   ├── change-password.dto.d.ts
+│   │   │   │   ├── change-password.dto.js
+│   │   │   │   ├── change-password.dto.js.map
+│   │   │   │   ├── complete-google-signup.dto.d.ts
+│   │   │   │   ├── complete-google-signup.dto.js
+│   │   │   │   ├── complete-google-signup.dto.js.map
+│   │   │   │   ├── forgot-password.dto.d.ts
+│   │   │   │   ├── forgot-password.dto.js
+│   │   │   │   ├── forgot-password.dto.js.map
+│   │   │   │   ├── google-auth.dto.d.ts
+│   │   │   │   ├── google-auth.dto.js
+│   │   │   │   ├── google-auth.dto.js.map
+│   │   │   │   ├── google-mobile.dto.d.ts
+│   │   │   │   ├── google-mobile.dto.js
+│   │   │   │   ├── google-mobile.dto.js.map
+│   │   │   │   ├── login.dto.d.ts
+│   │   │   │   ├── login.dto.js
+│   │   │   │   ├── login.dto.js.map
+│   │   │   │   ├── refresh.dto.d.ts
+│   │   │   │   ├── refresh.dto.js
+│   │   │   │   ├── refresh.dto.js.map
+│   │   │   │   ├── register.dto.d.ts
+│   │   │   │   ├── register.dto.js
+│   │   │   │   ├── register.dto.js.map
+│   │   │   │   ├── reset-password.dto.d.ts
+│   │   │   │   ├── reset-password.dto.js
+│   │   │   │   ├── reset-password.dto.js.map
+│   │   │   │   ├── send-otp.dto.d.ts
+│   │   │   │   ├── send-otp.dto.js
+│   │   │   │   ├── send-otp.dto.js.map
+│   │   │   │   ├── set-password.dto.d.ts
+│   │   │   │   ├── set-password.dto.js
+│   │   │   │   ├── set-password.dto.js.map
+│   │   │   │   ├── verify-email.dto.d.ts
+│   │   │   │   ├── verify-email.dto.js
+│   │   │   │   ├── verify-email.dto.js.map
+│   │   │   │   ├── verify-otp.dto.d.ts
+│   │   │   │   ├── verify-otp.dto.js
+│   │   │   │   └── verify-otp.dto.js.map
+│   │   │   ├── guards
+│   │   │   │   ├── jwt-auth.guard.d.ts
+│   │   │   │   ├── jwt-auth.guard.js
+│   │   │   │   └── jwt-auth.guard.js.map
+│   │   │   ├── interfaces
+│   │   │   │   ├── jwt-payload.interface.d.ts
+│   │   │   │   ├── jwt-payload.interface.js
+│   │   │   │   └── jwt-payload.interface.js.map
+│   │   │   └── strategies
+│   │   │       ├── google.strategy.d.ts
+│   │   │       ├── google.strategy.js
+│   │   │       ├── google.strategy.js.map
+│   │   │       ├── jwt.strategy.d.ts
+│   │   │       ├── jwt.strategy.js
+│   │   │       └── jwt.strategy.js.map
+│   │   ├── backup
+│   │   │   ├── backup.controller.d.ts
+│   │   │   ├── backup.controller.js
+│   │   │   ├── backup.controller.js.map
+│   │   │   ├── backup.module.d.ts
+│   │   │   ├── backup.module.js
+│   │   │   ├── backup.module.js.map
+│   │   │   ├── backup.service.d.ts
+│   │   │   ├── backup.service.js
+│   │   │   └── backup.service.js.map
+│   │   ├── billing
+│   │   │   ├── billing.controller.d.ts
+│   │   │   ├── billing.controller.js
+│   │   │   ├── billing.controller.js.map
+│   │   │   ├── billing.module.d.ts
+│   │   │   ├── billing.module.js
+│   │   │   ├── billing.module.js.map
+│   │   │   ├── billing.service.d.ts
+│   │   │   ├── billing.service.js
+│   │   │   ├── billing.service.js.map
+│   │   │   └── dto
+│   │   │       ├── submit-payment.dto.d.ts
+│   │   │       ├── submit-payment.dto.js
+│   │   │       └── submit-payment.dto.js.map
+│   │   ├── brands
+│   │   │   ├── brands.controller.d.ts
+│   │   │   ├── brands.controller.js
+│   │   │   ├── brands.controller.js.map
+│   │   │   ├── brands.module.d.ts
+│   │   │   ├── brands.module.js
+│   │   │   ├── brands.module.js.map
+│   │   │   ├── brands.service.d.ts
+│   │   │   ├── brands.service.js
+│   │   │   ├── brands.service.js.map
+│   │   │   └── dto
+│   │   │       ├── upsert-brand.dto.d.ts
+│   │   │       ├── upsert-brand.dto.js
+│   │   │       └── upsert-brand.dto.js.map
+│   │   ├── cash-register
+│   │   │   ├── cash-register.controller.d.ts
+│   │   │   ├── cash-register.controller.js
+│   │   │   ├── cash-register.controller.js.map
+│   │   │   ├── cash-register.module.d.ts
+│   │   │   ├── cash-register.module.js
+│   │   │   ├── cash-register.module.js.map
+│   │   │   ├── cash-register.service.d.ts
+│   │   │   ├── cash-register.service.js
+│   │   │   ├── cash-register.service.js.map
+│   │   │   └── dto
+│   │   │       ├── cash-transaction.dto.d.ts
+│   │   │       ├── cash-transaction.dto.js
+│   │   │       ├── cash-transaction.dto.js.map
+│   │   │       ├── close-register.dto.d.ts
+│   │   │       ├── close-register.dto.js
+│   │   │       ├── close-register.dto.js.map
+│   │   │       ├── open-register.dto.d.ts
+│   │   │       ├── open-register.dto.js
+│   │   │       └── open-register.dto.js.map
+│   │   ├── categories
+│   │   │   ├── categories.controller.d.ts
+│   │   │   ├── categories.controller.js
+│   │   │   ├── categories.controller.js.map
+│   │   │   ├── categories.module.d.ts
+│   │   │   ├── categories.module.js
+│   │   │   ├── categories.module.js.map
+│   │   │   ├── categories.service.d.ts
+│   │   │   ├── categories.service.js
+│   │   │   ├── categories.service.js.map
+│   │   │   └── dto
+│   │   │       ├── create-category.dto.d.ts
+│   │   │       ├── create-category.dto.js
+│   │   │       └── create-category.dto.js.map
+│   │   ├── customer-ledger
+│   │   │   ├── customer-ledger.controller.d.ts
+│   │   │   ├── customer-ledger.controller.js
+│   │   │   ├── customer-ledger.controller.js.map
+│   │   │   ├── customer-ledger.module.d.ts
+│   │   │   ├── customer-ledger.module.js
+│   │   │   ├── customer-ledger.module.js.map
+│   │   │   ├── customer-ledger.service.d.ts
+│   │   │   ├── customer-ledger.service.js
+│   │   │   ├── customer-ledger.service.js.map
+│   │   │   └── dto
+│   │   │       ├── create-payment.dto.d.ts
+│   │   │       ├── create-payment.dto.js
+│   │   │       └── create-payment.dto.js.map
+│   │   ├── customers
+│   │   │   ├── customers.controller.d.ts
+│   │   │   ├── customers.controller.js
+│   │   │   ├── customers.controller.js.map
+│   │   │   ├── customers.module.d.ts
+│   │   │   ├── customers.module.js
+│   │   │   ├── customers.module.js.map
+│   │   │   ├── customers.service.d.ts
+│   │   │   ├── customers.service.js
+│   │   │   ├── customers.service.js.map
+│   │   │   └── dto
+│   │   │       ├── create-customer.dto.d.ts
+│   │   │       ├── create-customer.dto.js
+│   │   │       ├── create-customer.dto.js.map
+│   │   │       ├── query-customers.dto.d.ts
+│   │   │       ├── query-customers.dto.js
+│   │   │       ├── query-customers.dto.js.map
+│   │   │       ├── update-customer.dto.d.ts
+│   │   │       ├── update-customer.dto.js
+│   │   │       └── update-customer.dto.js.map
+│   │   ├── dashboard
+│   │   │   ├── dashboard.controller.d.ts
+│   │   │   ├── dashboard.controller.js
+│   │   │   ├── dashboard.controller.js.map
+│   │   │   ├── dashboard.module.d.ts
+│   │   │   ├── dashboard.module.js
+│   │   │   ├── dashboard.module.js.map
+│   │   │   ├── dashboard.service.d.ts
+│   │   │   ├── dashboard.service.js
+│   │   │   └── dashboard.service.js.map
+│   │   ├── discounts
+│   │   │   ├── discounts.controller.d.ts
+│   │   │   ├── discounts.controller.js
+│   │   │   ├── discounts.controller.js.map
+│   │   │   ├── discounts.module.d.ts
+│   │   │   ├── discounts.module.js
+│   │   │   ├── discounts.module.js.map
+│   │   │   ├── discounts.service.d.ts
+│   │   │   ├── discounts.service.js
+│   │   │   ├── discounts.service.js.map
+│   │   │   └── dto
+│   │   │       ├── create-discount.dto.d.ts
+│   │   │       ├── create-discount.dto.js
+│   │   │       └── create-discount.dto.js.map
+│   │   ├── email
+│   │   │   ├── dto
+│   │   │   │   ├── send-email.dto.d.ts
+│   │   │   │   ├── send-email.dto.js
+│   │   │   │   └── send-email.dto.js.map
+│   │   │   ├── email.module.d.ts
+│   │   │   ├── email.module.js
+│   │   │   ├── email.module.js.map
+│   │   │   ├── email.service.d.ts
+│   │   │   ├── email.service.js
+│   │   │   └── email.service.js.map
+│   │   ├── expense-categories
+│   │   │   ├── dto
+│   │   │   │   ├── create-expense-category.dto.d.ts
+│   │   │   │   ├── create-expense-category.dto.js
+│   │   │   │   └── create-expense-category.dto.js.map
+│   │   │   ├── expense-categories.controller.d.ts
+│   │   │   ├── expense-categories.controller.js
+│   │   │   ├── expense-categories.controller.js.map
+│   │   │   ├── expense-categories.module.d.ts
+│   │   │   ├── expense-categories.module.js
+│   │   │   ├── expense-categories.module.js.map
+│   │   │   ├── expense-categories.service.d.ts
+│   │   │   ├── expense-categories.service.js
+│   │   │   └── expense-categories.service.js.map
+│   │   ├── expenses
+│   │   │   ├── dto
+│   │   │   │   ├── create-expense.dto.d.ts
+│   │   │   │   ├── create-expense.dto.js
+│   │   │   │   └── create-expense.dto.js.map
+│   │   │   ├── expenses.controller.d.ts
+│   │   │   ├── expenses.controller.js
+│   │   │   ├── expenses.controller.js.map
+│   │   │   ├── expenses.module.d.ts
+│   │   │   ├── expenses.module.js
+│   │   │   ├── expenses.module.js.map
+│   │   │   ├── expenses.service.d.ts
+│   │   │   ├── expenses.service.js
+│   │   │   └── expenses.service.js.map
+│   │   ├── exports
+│   │   │   ├── exports.controller.d.ts
+│   │   │   ├── exports.controller.js
+│   │   │   ├── exports.controller.js.map
+│   │   │   ├── exports.module.d.ts
+│   │   │   ├── exports.module.js
+│   │   │   ├── exports.module.js.map
+│   │   │   ├── exports.service.d.ts
+│   │   │   ├── exports.service.js
+│   │   │   └── exports.service.js.map
+│   │   ├── feature-gating
+│   │   │   ├── feature-gating.controller.d.ts
+│   │   │   ├── feature-gating.controller.js
+│   │   │   ├── feature-gating.controller.js.map
+│   │   │   ├── feature-gating.module.d.ts
+│   │   │   ├── feature-gating.module.js
+│   │   │   ├── feature-gating.module.js.map
+│   │   │   ├── feature-gating.service.d.ts
+│   │   │   ├── feature-gating.service.js
+│   │   │   └── feature-gating.service.js.map
+│   │   ├── industries
+│   │   │   ├── industries.module.d.ts
+│   │   │   ├── industries.module.js
+│   │   │   ├── industries.module.js.map
+│   │   │   ├── mobile
+│   │   │   │   ├── emi
+│   │   │   │   │   ├── dto
+│   │   │   │   │   │   ├── create-emi.dto.d.ts
+│   │   │   │   │   │   ├── create-emi.dto.js
+│   │   │   │   │   │   └── create-emi.dto.js.map
+│   │   │   │   │   ├── emi.controller.d.ts
+│   │   │   │   │   ├── emi.controller.js
+│   │   │   │   │   ├── emi.controller.js.map
+│   │   │   │   │   ├── emi.module.d.ts
+│   │   │   │   │   ├── emi.module.js
+│   │   │   │   │   ├── emi.module.js.map
+│   │   │   │   │   ├── emi.service.d.ts
+│   │   │   │   │   ├── emi.service.js
+│   │   │   │   │   └── emi.service.js.map
+│   │   │   │   └── imei
+│   │   │   │       ├── dto
+│   │   │   │       │   ├── bulk-create-imei.dto.d.ts
+│   │   │   │       │   ├── bulk-create-imei.dto.js
+│   │   │   │       │   ├── bulk-create-imei.dto.js.map
+│   │   │   │       │   ├── create-imei.dto.d.ts
+│   │   │   │       │   ├── create-imei.dto.js
+│   │   │   │       │   └── create-imei.dto.js.map
+│   │   │   │       ├── imei.controller.d.ts
+│   │   │   │       ├── imei.controller.js
+│   │   │   │       ├── imei.controller.js.map
+│   │   │   │       ├── imei.module.d.ts
+│   │   │   │       ├── imei.module.js
+│   │   │   │       ├── imei.module.js.map
+│   │   │   │       ├── imei.service.d.ts
+│   │   │   │       ├── imei.service.js
+│   │   │   │       └── imei.service.js.map
+│   │   │   ├── pharmacy
+│   │   │   │   └── batches
+│   │   │   │       ├── batches.controller.d.ts
+│   │   │   │       ├── batches.controller.js
+│   │   │   │       ├── batches.controller.js.map
+│   │   │   │       ├── batches.module.d.ts
+│   │   │   │       ├── batches.module.js
+│   │   │   │       ├── batches.module.js.map
+│   │   │   │       ├── batches.service.d.ts
+│   │   │   │       ├── batches.service.js
+│   │   │   │       ├── batches.service.js.map
+│   │   │   │       └── dto
+│   │   │   │           ├── create-batch.dto.d.ts
+│   │   │   │           ├── create-batch.dto.js
+│   │   │   │           └── create-batch.dto.js.map
+│   │   │   ├── restaurant
+│   │   │   │   └── tables
+│   │   │   │       ├── dto
+│   │   │   │       │   ├── create-table.dto.d.ts
+│   │   │   │       │   ├── create-table.dto.js
+│   │   │   │       │   └── create-table.dto.js.map
+│   │   │   │       ├── tables.controller.d.ts
+│   │   │   │       ├── tables.controller.js
+│   │   │   │       ├── tables.controller.js.map
+│   │   │   │       ├── tables.module.d.ts
+│   │   │   │       ├── tables.module.js
+│   │   │   │       ├── tables.module.js.map
+│   │   │   │       ├── tables.service.d.ts
+│   │   │   │       ├── tables.service.js
+│   │   │   │       └── tables.service.js.map
+│   │   │   └── salon
+│   │   │       └── appointments
+│   │   │           ├── appointments.controller.d.ts
+│   │   │           ├── appointments.controller.js
+│   │   │           ├── appointments.controller.js.map
+│   │   │           ├── appointments.module.d.ts
+│   │   │           ├── appointments.module.js
+│   │   │           ├── appointments.module.js.map
+│   │   │           ├── appointments.service.d.ts
+│   │   │           ├── appointments.service.js
+│   │   │           ├── appointments.service.js.map
+│   │   │           └── dto
+│   │   │               ├── create-appointment.dto.d.ts
+│   │   │               ├── create-appointment.dto.js
+│   │   │               └── create-appointment.dto.js.map
+│   │   ├── inventory
+│   │   │   └── products
+│   │   │       ├── dto
+│   │   │       │   ├── create-product.dto.d.ts
+│   │   │       │   ├── create-product.dto.js
+│   │   │       │   ├── create-product.dto.js.map
+│   │   │       │   ├── query-products.dto.d.ts
+│   │   │       │   ├── query-products.dto.js
+│   │   │       │   ├── query-products.dto.js.map
+│   │   │       │   ├── update-product.dto.d.ts
+│   │   │       │   ├── update-product.dto.js
+│   │   │       │   └── update-product.dto.js.map
+│   │   │       ├── products.controller.d.ts
+│   │   │       ├── products.controller.js
+│   │   │       ├── products.controller.js.map
+│   │   │       ├── products.module.d.ts
+│   │   │       ├── products.module.js
+│   │   │       ├── products.module.js.map
+│   │   │       ├── products.service.d.ts
+│   │   │       ├── products.service.js
+│   │   │       └── products.service.js.map
+│   │   ├── loyalty
+│   │   │   ├── loyalty.controller.d.ts
+│   │   │   ├── loyalty.controller.js
+│   │   │   ├── loyalty.controller.js.map
+│   │   │   ├── loyalty.module.d.ts
+│   │   │   ├── loyalty.module.js
+│   │   │   ├── loyalty.module.js.map
+│   │   │   ├── loyalty.service.d.ts
+│   │   │   ├── loyalty.service.js
+│   │   │   └── loyalty.service.js.map
+│   │   ├── notification-prefs
+│   │   │   ├── notification-prefs.controller.d.ts
+│   │   │   ├── notification-prefs.controller.js
+│   │   │   ├── notification-prefs.controller.js.map
+│   │   │   ├── notification-prefs.module.d.ts
+│   │   │   ├── notification-prefs.module.js
+│   │   │   ├── notification-prefs.module.js.map
+│   │   │   ├── notification-prefs.service.d.ts
+│   │   │   ├── notification-prefs.service.js
+│   │   │   └── notification-prefs.service.js.map
+│   │   ├── notifications
+│   │   │   ├── notifications.controller.d.ts
+│   │   │   ├── notifications.controller.js
+│   │   │   ├── notifications.controller.js.map
+│   │   │   ├── notifications.module.d.ts
+│   │   │   ├── notifications.module.js
+│   │   │   ├── notifications.module.js.map
+│   │   │   ├── notifications.service.d.ts
+│   │   │   ├── notifications.service.js
+│   │   │   └── notifications.service.js.map
+│   │   ├── onboarding
+│   │   │   ├── constants
+│   │   │   │   ├── onboarding.constants.d.ts
+│   │   │   │   ├── onboarding.constants.js
+│   │   │   │   └── onboarding.constants.js.map
+│   │   │   ├── dto
+│   │   │   │   ├── skip-step.dto.d.ts
+│   │   │   │   ├── skip-step.dto.js
+│   │   │   │   ├── skip-step.dto.js.map
+│   │   │   │   ├── update-step1.dto.d.ts
+│   │   │   │   ├── update-step1.dto.js
+│   │   │   │   ├── update-step1.dto.js.map
+│   │   │   │   ├── update-step2.dto.d.ts
+│   │   │   │   ├── update-step2.dto.js
+│   │   │   │   ├── update-step2.dto.js.map
+│   │   │   │   ├── update-step3.dto.d.ts
+│   │   │   │   ├── update-step3.dto.js
+│   │   │   │   ├── update-step3.dto.js.map
+│   │   │   │   ├── update-step4.dto.d.ts
+│   │   │   │   ├── update-step4.dto.js
+│   │   │   │   ├── update-step4.dto.js.map
+│   │   │   │   ├── update-step5.dto.d.ts
+│   │   │   │   ├── update-step5.dto.js
+│   │   │   │   ├── update-step5.dto.js.map
+│   │   │   │   ├── update-step6.dto.d.ts
+│   │   │   │   ├── update-step6.dto.js
+│   │   │   │   └── update-step6.dto.js.map
+│   │   │   ├── onboarding.controller.d.ts
+│   │   │   ├── onboarding.controller.js
+│   │   │   ├── onboarding.controller.js.map
+│   │   │   ├── onboarding.module.d.ts
+│   │   │   ├── onboarding.module.js
+│   │   │   ├── onboarding.module.js.map
+│   │   │   ├── onboarding.service.d.ts
+│   │   │   ├── onboarding.service.js
+│   │   │   ├── onboarding.service.js.map
+│   │   │   └── templates
+│   │   │       ├── business-templates.d.ts
+│   │   │       ├── business-templates.js
+│   │   │       └── business-templates.js.map
+│   │   ├── plans
+│   │   │   ├── plans.controller.d.ts
+│   │   │   ├── plans.controller.js
+│   │   │   ├── plans.controller.js.map
+│   │   │   ├── plans.module.d.ts
+│   │   │   ├── plans.module.js
+│   │   │   ├── plans.module.js.map
+│   │   │   ├── plans.service.d.ts
+│   │   │   ├── plans.service.js
+│   │   │   └── plans.service.js.map
+│   │   ├── product-batches
+│   │   │   ├── dto
+│   │   │   │   ├── upsert-batch.dto.d.ts
+│   │   │   │   ├── upsert-batch.dto.js
+│   │   │   │   └── upsert-batch.dto.js.map
+│   │   │   ├── product-batches.controller.d.ts
+│   │   │   ├── product-batches.controller.js
+│   │   │   ├── product-batches.controller.js.map
+│   │   │   ├── product-batches.module.d.ts
+│   │   │   ├── product-batches.module.js
+│   │   │   ├── product-batches.module.js.map
+│   │   │   ├── product-batches.service.d.ts
+│   │   │   ├── product-batches.service.js
+│   │   │   └── product-batches.service.js.map
+│   │   ├── product-images
+│   │   │   ├── dto
+│   │   │   │   ├── add-image.dto.d.ts
+│   │   │   │   ├── add-image.dto.js
+│   │   │   │   └── add-image.dto.js.map
+│   │   │   ├── product-images.controller.d.ts
+│   │   │   ├── product-images.controller.js
+│   │   │   ├── product-images.controller.js.map
+│   │   │   ├── product-images.module.d.ts
+│   │   │   ├── product-images.module.js
+│   │   │   ├── product-images.module.js.map
+│   │   │   ├── product-images.service.d.ts
+│   │   │   ├── product-images.service.js
+│   │   │   └── product-images.service.js.map
+│   │   ├── product-variants
+│   │   │   ├── dto
+│   │   │   │   ├── upsert-variant.dto.d.ts
+│   │   │   │   ├── upsert-variant.dto.js
+│   │   │   │   └── upsert-variant.dto.js.map
+│   │   │   ├── product-variants.controller.d.ts
+│   │   │   ├── product-variants.controller.js
+│   │   │   ├── product-variants.controller.js.map
+│   │   │   ├── product-variants.module.d.ts
+│   │   │   ├── product-variants.module.js
+│   │   │   ├── product-variants.module.js.map
+│   │   │   ├── product-variants.service.d.ts
+│   │   │   ├── product-variants.service.js
+│   │   │   └── product-variants.service.js.map
+│   │   ├── profit-report
+│   │   │   ├── profit-report.controller.d.ts
+│   │   │   ├── profit-report.controller.js
+│   │   │   ├── profit-report.controller.js.map
+│   │   │   ├── profit-report.module.d.ts
+│   │   │   ├── profit-report.module.js
+│   │   │   ├── profit-report.module.js.map
+│   │   │   ├── profit-report.service.d.ts
+│   │   │   ├── profit-report.service.js
+│   │   │   └── profit-report.service.js.map
+│   │   ├── purchases
+│   │   │   ├── dto
+│   │   │   │   ├── create-purchase.dto.d.ts
+│   │   │   │   ├── create-purchase.dto.js
+│   │   │   │   └── create-purchase.dto.js.map
+│   │   │   ├── purchases.controller.d.ts
+│   │   │   ├── purchases.controller.js
+│   │   │   ├── purchases.controller.js.map
+│   │   │   ├── purchases.module.d.ts
+│   │   │   ├── purchases.module.js
+│   │   │   ├── purchases.module.js.map
+│   │   │   ├── purchases.service.d.ts
+│   │   │   ├── purchases.service.js
+│   │   │   └── purchases.service.js.map
+│   │   ├── referrals
+│   │   │   ├── referrals.controller.d.ts
+│   │   │   ├── referrals.controller.js
+│   │   │   ├── referrals.controller.js.map
+│   │   │   ├── referrals.module.d.ts
+│   │   │   ├── referrals.module.js
+│   │   │   ├── referrals.module.js.map
+│   │   │   ├── referrals.service.d.ts
+│   │   │   ├── referrals.service.js
+│   │   │   └── referrals.service.js.map
+│   │   ├── reports
+│   │   │   ├── reports.controller.d.ts
+│   │   │   ├── reports.controller.js
+│   │   │   ├── reports.controller.js.map
+│   │   │   ├── reports.module.d.ts
+│   │   │   ├── reports.module.js
+│   │   │   ├── reports.module.js.map
+│   │   │   ├── reports.service.d.ts
+│   │   │   ├── reports.service.js
+│   │   │   └── reports.service.js.map
+│   │   ├── returns
+│   │   │   ├── dto
+│   │   │   │   ├── create-return.dto.d.ts
+│   │   │   │   ├── create-return.dto.js
+│   │   │   │   └── create-return.dto.js.map
+│   │   │   ├── returns.controller.d.ts
+│   │   │   ├── returns.controller.js
+│   │   │   ├── returns.controller.js.map
+│   │   │   ├── returns.module.d.ts
+│   │   │   ├── returns.module.js
+│   │   │   ├── returns.module.js.map
+│   │   │   ├── returns.service.d.ts
+│   │   │   ├── returns.service.js
+│   │   │   └── returns.service.js.map
+│   │   ├── sales
+│   │   │   ├── dto
+│   │   │   │   ├── create-sale.dto.d.ts
+│   │   │   │   ├── create-sale.dto.js
+│   │   │   │   └── create-sale.dto.js.map
+│   │   │   ├── sales.controller.d.ts
+│   │   │   ├── sales.controller.js
+│   │   │   ├── sales.controller.js.map
+│   │   │   ├── sales.module.d.ts
+│   │   │   ├── sales.module.js
+│   │   │   ├── sales.module.js.map
+│   │   │   ├── sales.service.d.ts
+│   │   │   ├── sales.service.js
+│   │   │   └── sales.service.js.map
+│   │   ├── search
+│   │   │   ├── search.controller.d.ts
+│   │   │   ├── search.controller.js
+│   │   │   ├── search.controller.js.map
+│   │   │   ├── search.module.d.ts
+│   │   │   ├── search.module.js
+│   │   │   ├── search.module.js.map
+│   │   │   ├── search.service.d.ts
+│   │   │   ├── search.service.js
+│   │   │   └── search.service.js.map
+│   │   ├── settings
+│   │   │   ├── dto
+│   │   │   │   ├── update-settings.dto.d.ts
+│   │   │   │   ├── update-settings.dto.js
+│   │   │   │   └── update-settings.dto.js.map
+│   │   │   ├── settings.controller.d.ts
+│   │   │   ├── settings.controller.js
+│   │   │   ├── settings.controller.js.map
+│   │   │   ├── settings.module.d.ts
+│   │   │   ├── settings.module.js
+│   │   │   ├── settings.module.js.map
+│   │   │   ├── settings.service.d.ts
+│   │   │   ├── settings.service.js
+│   │   │   └── settings.service.js.map
+│   │   ├── shops
+│   │   │   ├── dto
+│   │   │   │   ├── create-shop.dto.d.ts
+│   │   │   │   ├── create-shop.dto.js
+│   │   │   │   └── create-shop.dto.js.map
+│   │   │   ├── shops.controller.d.ts
+│   │   │   ├── shops.controller.js
+│   │   │   ├── shops.controller.js.map
+│   │   │   ├── shops.module.d.ts
+│   │   │   ├── shops.module.js
+│   │   │   ├── shops.module.js.map
+│   │   │   ├── shops.service.d.ts
+│   │   │   ├── shops.service.js
+│   │   │   └── shops.service.js.map
+│   │   ├── sms
+│   │   │   ├── dto
+│   │   │   │   ├── send-sms.dto.d.ts
+│   │   │   │   ├── send-sms.dto.js
+│   │   │   │   └── send-sms.dto.js.map
+│   │   │   ├── sms.module.d.ts
+│   │   │   ├── sms.module.js
+│   │   │   ├── sms.module.js.map
+│   │   │   ├── sms.service.d.ts
+│   │   │   ├── sms.service.js
+│   │   │   └── sms.service.js.map
+│   │   ├── staff
+│   │   │   ├── dto
+│   │   │   │   ├── create-leave.dto.d.ts
+│   │   │   │   ├── create-leave.dto.js
+│   │   │   │   ├── create-leave.dto.js.map
+│   │   │   │   ├── create-staff.dto.d.ts
+│   │   │   │   ├── create-staff.dto.js
+│   │   │   │   ├── create-staff.dto.js.map
+│   │   │   │   ├── mark-attendance.dto.d.ts
+│   │   │   │   ├── mark-attendance.dto.js
+│   │   │   │   ├── mark-attendance.dto.js.map
+│   │   │   │   ├── process-salary.dto.d.ts
+│   │   │   │   ├── process-salary.dto.js
+│   │   │   │   ├── process-salary.dto.js.map
+│   │   │   │   ├── update-staff.dto.d.ts
+│   │   │   │   ├── update-staff.dto.js
+│   │   │   │   └── update-staff.dto.js.map
+│   │   │   ├── staff.controller.d.ts
+│   │   │   ├── staff.controller.js
+│   │   │   ├── staff.controller.js.map
+│   │   │   ├── staff.module.d.ts
+│   │   │   ├── staff.module.js
+│   │   │   ├── staff.module.js.map
+│   │   │   ├── staff.service.d.ts
+│   │   │   ├── staff.service.js
+│   │   │   └── staff.service.js.map
+│   │   ├── stock-adjustments
+│   │   │   ├── dto
+│   │   │   │   ├── create-adjustment.dto.d.ts
+│   │   │   │   ├── create-adjustment.dto.js
+│   │   │   │   └── create-adjustment.dto.js.map
+│   │   │   ├── stock-adjustments.controller.d.ts
+│   │   │   ├── stock-adjustments.controller.js
+│   │   │   ├── stock-adjustments.controller.js.map
+│   │   │   ├── stock-adjustments.module.d.ts
+│   │   │   ├── stock-adjustments.module.js
+│   │   │   ├── stock-adjustments.module.js.map
+│   │   │   ├── stock-adjustments.service.d.ts
+│   │   │   ├── stock-adjustments.service.js
+│   │   │   └── stock-adjustments.service.js.map
+│   │   ├── stock-movements
+│   │   │   ├── stock-movements.controller.d.ts
+│   │   │   ├── stock-movements.controller.js
+│   │   │   ├── stock-movements.controller.js.map
+│   │   │   ├── stock-movements.module.d.ts
+│   │   │   ├── stock-movements.module.js
+│   │   │   ├── stock-movements.module.js.map
+│   │   │   ├── stock-movements.service.d.ts
+│   │   │   ├── stock-movements.service.js
+│   │   │   └── stock-movements.service.js.map
+│   │   ├── stripe
+│   │   │   ├── stripe.controller.d.ts
+│   │   │   ├── stripe.controller.js
+│   │   │   ├── stripe.controller.js.map
+│   │   │   ├── stripe.module.d.ts
+│   │   │   ├── stripe.module.js
+│   │   │   ├── stripe.module.js.map
+│   │   │   ├── stripe.service.d.ts
+│   │   │   ├── stripe.service.js
+│   │   │   └── stripe.service.js.map
+│   │   ├── subscriptions
+│   │   │   ├── guards
+│   │   │   │   ├── subscription.guard.d.ts
+│   │   │   │   ├── subscription.guard.js
+│   │   │   │   └── subscription.guard.js.map
+│   │   │   ├── subscription-cron.service.d.ts
+│   │   │   ├── subscription-cron.service.js
+│   │   │   ├── subscription-cron.service.js.map
+│   │   │   ├── subscriptions.controller.d.ts
+│   │   │   ├── subscriptions.controller.js
+│   │   │   ├── subscriptions.controller.js.map
+│   │   │   ├── subscriptions.module.d.ts
+│   │   │   ├── subscriptions.module.js
+│   │   │   ├── subscriptions.module.js.map
+│   │   │   ├── subscriptions.service.d.ts
+│   │   │   ├── subscriptions.service.js
+│   │   │   └── subscriptions.service.js.map
+│   │   ├── suppliers
+│   │   │   ├── dto
+│   │   │   │   ├── create-supplier.dto.d.ts
+│   │   │   │   ├── create-supplier.dto.js
+│   │   │   │   ├── create-supplier.dto.js.map
+│   │   │   │   ├── query-suppliers.dto.d.ts
+│   │   │   │   ├── query-suppliers.dto.js
+│   │   │   │   ├── query-suppliers.dto.js.map
+│   │   │   │   ├── update-supplier.dto.d.ts
+│   │   │   │   ├── update-supplier.dto.js
+│   │   │   │   └── update-supplier.dto.js.map
+│   │   │   ├── suppliers.controller.d.ts
+│   │   │   ├── suppliers.controller.js
+│   │   │   ├── suppliers.controller.js.map
+│   │   │   ├── suppliers.module.d.ts
+│   │   │   ├── suppliers.module.js
+│   │   │   ├── suppliers.module.js.map
+│   │   │   ├── suppliers.service.d.ts
+│   │   │   ├── suppliers.service.js
+│   │   │   └── suppliers.service.js.map
+│   │   ├── tags
+│   │   │   ├── dto
+│   │   │   │   ├── upsert-tag.dto.d.ts
+│   │   │   │   ├── upsert-tag.dto.js
+│   │   │   │   └── upsert-tag.dto.js.map
+│   │   │   ├── tags.controller.d.ts
+│   │   │   ├── tags.controller.js
+│   │   │   ├── tags.controller.js.map
+│   │   │   ├── tags.module.d.ts
+│   │   │   ├── tags.module.js
+│   │   │   ├── tags.module.js.map
+│   │   │   ├── tags.service.d.ts
+│   │   │   ├── tags.service.js
+│   │   │   └── tags.service.js.map
+│   │   ├── team
+│   │   │   ├── dto
+│   │   │   │   ├── create-team-member.dto.d.ts
+│   │   │   │   ├── create-team-member.dto.js
+│   │   │   │   ├── create-team-member.dto.js.map
+│   │   │   │   ├── update-permissions.dto.d.ts
+│   │   │   │   ├── update-permissions.dto.js
+│   │   │   │   └── update-permissions.dto.js.map
+│   │   │   ├── team.controller.d.ts
+│   │   │   ├── team.controller.js
+│   │   │   ├── team.controller.js.map
+│   │   │   ├── team.module.d.ts
+│   │   │   ├── team.module.js
+│   │   │   ├── team.module.js.map
+│   │   │   ├── team.service.d.ts
+│   │   │   ├── team.service.js
+│   │   │   └── team.service.js.map
+│   │   ├── transfers
+│   │   │   ├── dto
+│   │   │   │   ├── create-transfer.dto.d.ts
+│   │   │   │   ├── create-transfer.dto.js
+│   │   │   │   └── create-transfer.dto.js.map
+│   │   │   ├── transfers.controller.d.ts
+│   │   │   ├── transfers.controller.js
+│   │   │   ├── transfers.controller.js.map
+│   │   │   ├── transfers.module.d.ts
+│   │   │   ├── transfers.module.js
+│   │   │   ├── transfers.module.js.map
+│   │   │   ├── transfers.service.d.ts
+│   │   │   ├── transfers.service.js
+│   │   │   └── transfers.service.js.map
+│   │   └── uploads
+│   │       ├── cloudinary.service.d.ts
+│   │       ├── cloudinary.service.js
+│   │       ├── cloudinary.service.js.map
+│   │       ├── uploads.controller.d.ts
+│   │       ├── uploads.controller.js
+│   │       ├── uploads.controller.js.map
+│   │       ├── uploads.module.d.ts
+│   │       ├── uploads.module.js
+│   │       ├── uploads.module.js.map
+│   │       ├── uploads.service.d.ts
+│   │       ├── uploads.service.js
+│   │       └── uploads.service.js.map
+│   ├── prisma
+│   │   ├── prisma.module.d.ts
+│   │   ├── prisma.module.js
+│   │   ├── prisma.module.js.map
+│   │   ├── prisma.service.d.ts
+│   │   ├── prisma.service.js
+│   │   └── prisma.service.js.map
+│   └── scripts
+│       ├── create-super-admin.d.ts
+│       ├── create-super-admin.js
+│       └── create-super-admin.js.map
+├── dist-script
+│   └── create-super-admin.js
+├── eslint.config.mjs
+├── nest-cli.json
+├── node_modules
+│   ├── @nestjs
+│   │   ├── cli -> ../../../../node_modules/.pnpm/@nestjs+cli@11.0.21_@types+node@25.6.2_prettier@3.8.3/node_modules/@nestjs/cli
+│   │   ├── common -> ../../../../node_modules/.pnpm/@nestjs+common@11.1.19_class-transformer@0.5.1_class-validator@0.15.1_reflect-metadata@0.2.2_rxjs@7.8.2/node_modules/@nestjs/common
+│   │   ├── config -> ../../../../node_modules/.pnpm/@nestjs+config@4.0.4_@nestjs+common@11.1.19_class-transformer@0.5.1_class-validator@0.1_f3914493ec0ea81c5bc4ec5ae1df7722/node_modules/@nestjs/config
+│   │   ├── core -> ../../../../node_modules/.pnpm/@nestjs+core@11.1.19_@nestjs+common@11.1.19_class-transformer@0.5.1_class-validator@0.1_e42b3ed2ec324bf7e08ad05584bb1044/node_modules/@nestjs/core
+│   │   ├── jwt -> ../../../../node_modules/.pnpm/@nestjs+jwt@11.0.2_@nestjs+common@11.1.19_class-transformer@0.5.1_class-validator@0.15._fa3ff84a161736877c842705229dc4d9/node_modules/@nestjs/jwt
+│   │   ├── passport -> ../../../../node_modules/.pnpm/@nestjs+passport@11.0.5_@nestjs+common@11.1.19_class-transformer@0.5.1_class-validator@_8d72f143a22e5355299340db73379345/node_modules/@nestjs/passport
+│   │   ├── platform-express -> ../../../../node_modules/.pnpm/@nestjs+platform-express@11.1.19_@nestjs+common@11.1.19_class-transformer@0.5.1_class-v_c79250c9d143d584a143acc8bd4336bd/node_modules/@nestjs/platform-express
+│   │   ├── schedule -> ../../../../node_modules/.pnpm/@nestjs+schedule@6.1.3_@nestjs+common@11.1.19_class-transformer@0.5.1_class-validator@0_3281b372b872a1544d1438fa86b76670/node_modules/@nestjs/schedule
+│   │   ├── schematics -> ../../../../node_modules/.pnpm/@nestjs+schematics@11.1.0_chokidar@4.0.3_prettier@3.8.3_typescript@5.9.3/node_modules/@nestjs/schematics
+│   │   ├── swagger -> ../../../../node_modules/.pnpm/@nestjs+swagger@11.4.2_@nestjs+common@11.1.19_class-transformer@0.5.1_class-validator@0_fd61a3a6d523b5d6da3e7f568ebfe04c/node_modules/@nestjs/swagger
+│   │   ├── testing -> ../../../../node_modules/.pnpm/@nestjs+testing@11.1.19_@nestjs+common@11.1.19_class-transformer@0.5.1_class-validator@_b6b4bb7b531c6089c12b39b601a66f31/node_modules/@nestjs/testing
+│   │   └── throttler -> ../../../../node_modules/.pnpm/@nestjs+throttler@6.5.0_@nestjs+common@11.1.19_class-transformer@0.5.1_class-validator@_b95d2f40e94961f3a2b130d3185f2324/node_modules/@nestjs/throttler
+│   ├── @prisma
+│   │   └── client -> ../../../../node_modules/.pnpm/@prisma+client@6.19.0_prisma@6.19.0_typescript@5.9.3__typescript@5.9.3/node_modules/@prisma/client
+│   ├── @types
+│   │   ├── bcrypt -> ../../../../node_modules/.pnpm/@types+bcrypt@6.0.0/node_modules/@types/bcrypt
+│   │   ├── body-parser -> ../../../../node_modules/.pnpm/@types+body-parser@1.19.6/node_modules/@types/body-parser
+│   │   ├── cookie-parser -> ../../../../node_modules/.pnpm/@types+cookie-parser@1.4.10_@types+express@5.0.6/node_modules/@types/cookie-parser
+│   │   ├── express -> ../../../../node_modules/.pnpm/@types+express@5.0.6/node_modules/@types/express
+│   │   ├── handlebars -> ../../../../node_modules/.pnpm/@types+handlebars@4.1.0/node_modules/@types/handlebars
+│   │   ├── multer -> ../../../../node_modules/.pnpm/@types+multer@2.1.0/node_modules/@types/multer
+│   │   ├── node -> ../../../../node_modules/.pnpm/@types+node@25.6.2/node_modules/@types/node
+│   │   ├── passport-google-oauth20 -> ../../../../node_modules/.pnpm/@types+passport-google-oauth20@2.0.17/node_modules/@types/passport-google-oauth20
+│   │   ├── passport-jwt -> ../../../../node_modules/.pnpm/@types+passport-jwt@4.0.1/node_modules/@types/passport-jwt
+│   │   ├── pdfkit -> ../../../../node_modules/.pnpm/@types+pdfkit@0.17.6/node_modules/@types/pdfkit
+│   │   ├── supertest -> ../../../../node_modules/.pnpm/@types+supertest@7.2.0/node_modules/@types/supertest
+│   │   └── uuid -> ../../../../node_modules/.pnpm/@types+uuid@11.0.0/node_modules/@types/uuid
+│   ├── bcrypt -> ../../../node_modules/.pnpm/bcrypt@6.0.0/node_modules/bcrypt
+│   ├── body-parser -> ../../../node_modules/.pnpm/body-parser@2.2.2/node_modules/body-parser
+│   ├── bullmq -> ../../../node_modules/.pnpm/bullmq@5.76.7/node_modules/bullmq
+│   ├── class-transformer -> ../../../node_modules/.pnpm/class-transformer@0.5.1/node_modules/class-transformer
+│   ├── class-validator -> ../../../node_modules/.pnpm/class-validator@0.15.1/node_modules/class-validator
+│   ├── cloudinary -> ../../../node_modules/.pnpm/cloudinary@2.10.0/node_modules/cloudinary
+│   ├── cookie-parser -> ../../../node_modules/.pnpm/cookie-parser@1.4.7/node_modules/cookie-parser
+│   ├── date-fns -> ../../../node_modules/.pnpm/date-fns@4.1.0/node_modules/date-fns
+│   ├── exceljs -> ../../../node_modules/.pnpm/exceljs@4.4.0/node_modules/exceljs
+│   ├── handlebars -> ../../../node_modules/.pnpm/handlebars@4.7.9/node_modules/handlebars
+│   ├── helmet -> ../../../node_modules/.pnpm/helmet@8.1.0/node_modules/helmet
+│   ├── ioredis -> ../../../node_modules/.pnpm/ioredis@5.10.1/node_modules/ioredis
+│   ├── jest -> ../../../node_modules/.pnpm/jest@30.4.2_@types+node@25.6.2_ts-node@10.9.2_@types+node@25.6.2_typescript@5.9.3_/node_modules/jest
+│   ├── joi -> ../../../node_modules/.pnpm/joi@18.2.1/node_modules/joi
+│   ├── multer -> ../../../node_modules/.pnpm/multer@2.1.1/node_modules/multer
+│   ├── multer-storage-cloudinary -> ../../../node_modules/.pnpm/multer-storage-cloudinary@4.0.0_cloudinary@2.10.0/node_modules/multer-storage-cloudinary
+│   ├── nanoid -> ../../../node_modules/.pnpm/nanoid@5.1.11/node_modules/nanoid
+│   ├── passport -> ../../../node_modules/.pnpm/passport@0.7.0/node_modules/passport
+│   ├── passport-google-oauth20 -> ../../../node_modules/.pnpm/passport-google-oauth20@2.0.0/node_modules/passport-google-oauth20
+│   ├── passport-jwt -> ../../../node_modules/.pnpm/passport-jwt@4.0.1/node_modules/passport-jwt
+│   ├── pdfkit -> ../../../node_modules/.pnpm/pdfkit@0.18.0/node_modules/pdfkit
+│   ├── prisma -> ../../../node_modules/.pnpm/prisma@6.19.0_typescript@5.9.3/node_modules/prisma
+│   ├── reflect-metadata -> ../../../node_modules/.pnpm/reflect-metadata@0.2.2/node_modules/reflect-metadata
+│   ├── resend -> ../../../node_modules/.pnpm/resend@6.12.3/node_modules/resend
+│   ├── rxjs -> ../../../node_modules/.pnpm/rxjs@7.8.2/node_modules/rxjs
+│   ├── source-map-support -> ../../../node_modules/.pnpm/source-map-support@0.5.21/node_modules/source-map-support
+│   ├── stripe -> ../../../node_modules/.pnpm/stripe@22.1.1_@types+node@25.6.2/node_modules/stripe
+│   ├── supertest -> ../../../node_modules/.pnpm/supertest@7.2.2/node_modules/supertest
+│   ├── swagger-ui-express -> ../../../node_modules/.pnpm/swagger-ui-express@5.0.1_express@5.2.1/node_modules/swagger-ui-express
+│   ├── ts-jest -> ../../../node_modules/.pnpm/ts-jest@29.4.9_@babel+core@7.29.0_@jest+transform@30.4.1_@jest+types@30.4.1_babel-jest@_cbc14e304853048f4d4bcb70a336aabd/node_modules/ts-jest
+│   ├── ts-loader -> ../../../node_modules/.pnpm/ts-loader@9.5.7_typescript@5.9.3_webpack@5.106.0/node_modules/ts-loader
+│   ├── ts-node -> ../../../node_modules/.pnpm/ts-node@10.9.2_@types+node@25.6.2_typescript@5.9.3/node_modules/ts-node
+│   ├── tsconfig-paths -> ../../../node_modules/.pnpm/tsconfig-paths@4.2.0/node_modules/tsconfig-paths
+│   ├── typescript -> ../../../node_modules/.pnpm/typescript@5.9.3/node_modules/typescript
+│   └── uuid -> ../../../node_modules/.pnpm/uuid@14.0.0/node_modules/uuid
+├── package.json
+├── prisma
+│   ├── migrations
+│   │   ├── 20260507201325_init_auth_foundation
+│   │   │   └── migration.sql
+│   │   ├── 20260507212633_add_products_module
+│   │   │   └── migration.sql
+│   │   ├── 20260507213831_add_customers_and_sales_pos
+│   │   │   └── migration.sql
+│   │   ├── 20260507220635_add_suppliers_purchases_stock_movements
+│   │   │   └── migration.sql
+│   │   ├── 20260507221635_add_categories_expenses
+│   │   │   └── migration.sql
+│   │   ├── 20260507223623_add_settings_and_barcode_index
+│   │   │   └── migration.sql
+│   │   ├── 20260507225156_add_team_khata_adjustments
+│   │   │   └── migration.sql
+│   │   ├── 20260507231237_add_cash_register_shops_activity
+│   │   │   └── migration.sql
+│   │   ├── 20260507233616_add_returns_discounts_loyalty
+│   │   │   └── migration.sql
+│   │   ├── 20260508094940_add_billing_subscriptions
+│   │   │   └── migration.sql
+│   │   ├── 20260508100539_add_referrals_credits_stripe
+│   │   │   └── migration.sql
+│   │   ├── 20260508132522_admin_full_control_modules
+│   │   │   └── migration.sql
+│   │   ├── 20260508142628_add_email_sms_integration
+│   │   │   └── migration.sql
+│   │   ├── 20260508145051_add_admin_notifications
+│   │   │   └── migration.sql
+│   │   ├── 20260510092535_add_product_system_enhanced
+│   │   │   └── migration.sql
+│   │   ├── 20260510155051_customers_suppliers_pakistan_grade
+│   │   │   └── migration.sql
+│   │   ├── 20260510222521_add_push_tokens
+│   │   │   └── migration.sql
+│   │   ├── 20260510225855_add_cloudinary_fields
+│   │   │   └── migration.sql
+│   │   ├── 20260511001127_auth_enhancements
+│   │   │   └── migration.sql
+│   │   ├── 20260511011049_add_onboarding_module
+│   │   │   └── migration.sql
+│   │   ├── 20260511012142_add_onboarding_module
+│   │   │   └── migration.sql
+│   │   ├── 20260511101430_auth_flow_upgrade
+│   │   │   └── migration.sql
+│   │   ├── 20260511111542_comprehensive_settings
+│   │   │   └── migration.sql
+│   │   ├── 20260526112638_add_user_permissions
+│   │   │   └── migration.sql
+│   │   ├── 20260611090923_convert_quantities_to_float
+│   │   │   └── migration.sql
+│   │   ├── 20260614090404_add_staff_management
+│   │   │   └── migration.sql
+│   │   ├── 20260614144504_add_business_config_to_tenant
+│   │   │   └── migration.sql
+│   │   ├── 20260614160757_add_imei_tracking
+│   │   │   └── migration.sql
+│   │   ├── 20260615090857_add_restaurant_tables
+│   │   │   └── migration.sql
+│   │   ├── 20260615104156_add_salon_appointments
+│   │   │   └── migration.sql
+│   │   ├── 20260615104239_add_emi_plans
+│   │   │   └── migration.sql
+│   │   └── migration_lock.toml
+│   ├── schema.prisma
+│   └── seed-email-templates.ts
+├── README.md
+├── scripts
+│   ├── backfill-permissions.ts
+│   ├── normalize-permissions-v2.ts
+│   └── upgrade-permissions-v2.ts
+├── src
+│   ├── app.controller.spec.ts
+│   ├── app.controller.ts
+│   ├── app.module.ts
+│   ├── app.service.ts
+│   ├── common
+│   │   ├── constants
+│   │   │   └── permissions.constants.ts
+│   │   ├── decorators
+│   │   │   └── permissions.decorator.ts
+│   │   ├── filters
+│   │   │   └── global-exception.filter.ts
+│   │   ├── guards
+│   │   │   └── permissions.guard.ts
+│   │   ├── interceptors
+│   │   │   └── response.interceptor.ts
+│   │   ├── types
+│   │   └── utils
+│   │       ├── password.util.ts
+│   │       └── slug.util.ts
+│   ├── config
+│   │   └── env.validation.ts
+│   ├── health
+│   │   └── health.controller.ts
+│   ├── main.ts
+│   ├── modules
+│   │   ├── activity-log
+│   │   │   ├── activity-log.controller.ts
+│   │   │   ├── activity-log.module.ts
+│   │   │   └── activity-log.service.ts
+│   │   ├── admin
+│   │   │   ├── activity
+│   │   │   │   ├── admin-activity.controller.ts
+│   │   │   │   ├── admin-activity.module.ts
+│   │   │   │   └── admin-activity.service.ts
+│   │   │   ├── admin.module.ts
+│   │   │   ├── analytics
+│   │   │   │   ├── admin-analytics.controller.ts
+│   │   │   │   ├── admin-analytics.module.ts
+│   │   │   │   └── admin-analytics.service.ts
+│   │   │   ├── auth
+│   │   │   │   ├── admin-auth.controller.ts
+│   │   │   │   ├── admin-auth.module.ts
+│   │   │   │   ├── admin-auth.service.ts
+│   │   │   │   └── dto
+│   │   │   │       └── admin-login.dto.ts
+│   │   │   ├── billing
+│   │   │   │   ├── admin-billing.controller.ts
+│   │   │   │   ├── admin-billing.module.ts
+│   │   │   │   ├── admin-billing.service.ts
+│   │   │   │   └── dto
+│   │   │   │       └── approve-payment.dto.ts
+│   │   │   ├── broadcast
+│   │   │   │   ├── admin-broadcast.controller.ts
+│   │   │   │   ├── admin-broadcast.module.ts
+│   │   │   │   ├── admin-broadcast.service.ts
+│   │   │   │   └── dto
+│   │   │   │       └── create-broadcast.dto.ts
+│   │   │   ├── bulk
+│   │   │   │   ├── admin-bulk.controller.ts
+│   │   │   │   ├── admin-bulk.module.ts
+│   │   │   │   ├── admin-bulk.service.ts
+│   │   │   │   └── dto
+│   │   │   │       └── bulk-action.dto.ts
+│   │   │   ├── common
+│   │   │   │   └── super-admin.guard.ts
+│   │   │   ├── communications
+│   │   │   │   ├── admin-communications.controller.ts
+│   │   │   │   ├── admin-communications.module.ts
+│   │   │   │   ├── admin-communications.service.ts
+│   │   │   │   └── dto
+│   │   │   │       └── bulk-send.dto.ts
+│   │   │   ├── customers
+│   │   │   │   ├── admin-customers.controller.ts
+│   │   │   │   ├── admin-customers.module.ts
+│   │   │   │   └── admin-customers.service.ts
+│   │   │   ├── discounts
+│   │   │   ├── email-templates
+│   │   │   │   ├── admin-email-templates.controller.ts
+│   │   │   │   ├── admin-email-templates.module.ts
+│   │   │   │   ├── admin-email-templates.service.ts
+│   │   │   │   └── dto
+│   │   │   │       └── upsert-template.dto.ts
+│   │   │   ├── exports
+│   │   │   │   ├── admin-exports.controller.ts
+│   │   │   │   ├── admin-exports.module.ts
+│   │   │   │   ├── admin-exports.service.ts
+│   │   │   │   └── admin-exports.service.ts.bak
+│   │   │   ├── health
+│   │   │   │   ├── admin-health.controller.ts
+│   │   │   │   ├── admin-health.module.ts
+│   │   │   │   └── admin-health.service.ts
+│   │   │   ├── impersonate
+│   │   │   │   ├── admin-impersonate.controller.ts
+│   │   │   │   ├── admin-impersonate.module.ts
+│   │   │   │   └── admin-impersonate.service.ts
+│   │   │   ├── invoices
+│   │   │   │   ├── admin-invoices.controller.ts
+│   │   │   │   ├── admin-invoices.module.ts
+│   │   │   │   ├── admin-invoices.service.ts
+│   │   │   │   └── dto
+│   │   │   │       └── create-invoice.dto.ts
+│   │   │   ├── notes
+│   │   │   │   ├── admin-notes.controller.ts
+│   │   │   │   ├── admin-notes.module.ts
+│   │   │   │   ├── admin-notes.service.ts
+│   │   │   │   └── dto
+│   │   │   │       └── upsert-note.dto.ts
+│   │   │   ├── notifications
+│   │   │   │   ├── admin-notifications.controller.ts
+│   │   │   │   ├── admin-notifications.module.ts
+│   │   │   │   ├── admin-notifications.service.ts
+│   │   │   │   └── dto
+│   │   │   │       └── create-notification.dto.ts
+│   │   │   ├── plans
+│   │   │   │   ├── admin-plans.controller.ts
+│   │   │   │   ├── admin-plans.module.ts
+│   │   │   │   ├── admin-plans.service.ts
+│   │   │   │   └── dto
+│   │   │   │       └── upsert-plan.dto.ts
+│   │   │   ├── platform-discounts
+│   │   │   │   ├── admin-platform-discounts.controller.ts
+│   │   │   │   ├── admin-platform-discounts.module.ts
+│   │   │   │   ├── admin-platform-discounts.service.ts
+│   │   │   │   └── dto
+│   │   │   │       └── upsert-discount.dto.ts
+│   │   │   ├── products
+│   │   │   │   ├── admin-products.controller.ts
+│   │   │   │   ├── admin-products.module.ts
+│   │   │   │   └── admin-products.service.ts
+│   │   │   ├── referrals
+│   │   │   │   ├── admin-referrals.controller.ts
+│   │   │   │   ├── admin-referrals.module.ts
+│   │   │   │   └── admin-referrals.service.ts
+│   │   │   ├── sales
+│   │   │   │   ├── admin-sales.controller.ts
+│   │   │   │   ├── admin-sales.module.ts
+│   │   │   │   └── admin-sales.service.ts
+│   │   │   ├── settings
+│   │   │   │   ├── admin-settings.controller.ts
+│   │   │   │   ├── admin-settings.module.ts
+│   │   │   │   ├── admin-settings.service.ts
+│   │   │   │   └── dto
+│   │   │   │       └── upsert-setting.dto.ts
+│   │   │   ├── subscriptions
+│   │   │   │   ├── admin-subscriptions.controller.ts
+│   │   │   │   ├── admin-subscriptions.module.ts
+│   │   │   │   ├── admin-subscriptions.service.ts
+│   │   │   │   └── dto
+│   │   │   │       └── assign-plan.dto.ts
+│   │   │   ├── system
+│   │   │   │   ├── admin-system.controller.ts
+│   │   │   │   ├── admin-system.module.ts
+│   │   │   │   └── admin-system.service.ts
+│   │   │   ├── tenants
+│   │   │   │   ├── admin-tenants.controller.ts
+│   │   │   │   ├── admin-tenants.module.ts
+│   │   │   │   ├── admin-tenants.service.ts
+│   │   │   │   └── dto
+│   │   │   │       └── update-tenant-status.dto.ts
+│   │   │   └── users
+│   │   │       ├── admin-users.controller.ts
+│   │   │       ├── admin-users.module.ts
+│   │   │       └── admin-users.service.ts
+│   │   ├── auth
+│   │   │   ├── auth.controller.ts
+│   │   │   ├── auth.module.ts
+│   │   │   ├── auth.service.ts
+│   │   │   ├── decorators
+│   │   │   │   ├── get-user.decorator.ts
+│   │   │   │   └── public.decorator.ts
+│   │   │   ├── dto
+│   │   │   │   ├── change-password.dto.ts
+│   │   │   │   ├── complete-google-signup.dto.ts
+│   │   │   │   ├── forgot-password.dto.ts
+│   │   │   │   ├── google-auth.dto.ts
+│   │   │   │   ├── google-mobile.dto.ts
+│   │   │   │   ├── login.dto.ts
+│   │   │   │   ├── refresh.dto.ts
+│   │   │   │   ├── register.dto.ts
+│   │   │   │   ├── reset-password.dto.ts
+│   │   │   │   ├── send-otp.dto.ts
+│   │   │   │   ├── set-password.dto.ts
+│   │   │   │   ├── verify-email.dto.ts
+│   │   │   │   └── verify-otp.dto.ts
+│   │   │   ├── guards
+│   │   │   │   └── jwt-auth.guard.ts
+│   │   │   ├── interfaces
+│   │   │   │   └── jwt-payload.interface.ts
+│   │   │   └── strategies
+│   │   │       ├── google.strategy.ts
+│   │   │       └── jwt.strategy.ts
+│   │   ├── backup
+│   │   │   ├── backup.controller.ts
+│   │   │   ├── backup.module.ts
+│   │   │   └── backup.service.ts
+│   │   ├── billing
+│   │   │   ├── billing.controller.ts
+│   │   │   ├── billing.module.ts
+│   │   │   ├── billing.service.ts
+│   │   │   └── dto
+│   │   │       └── submit-payment.dto.ts
+│   │   ├── brands
+│   │   │   ├── brands.controller.ts
+│   │   │   ├── brands.module.ts
+│   │   │   ├── brands.service.ts
+│   │   │   └── dto
+│   │   │       └── upsert-brand.dto.ts
+│   │   ├── cash-register
+│   │   │   ├── cash-register.controller.ts
+│   │   │   ├── cash-register.module.ts
+│   │   │   ├── cash-register.service.ts
+│   │   │   └── dto
+│   │   │       ├── cash-transaction.dto.ts
+│   │   │       ├── close-register.dto.ts
+│   │   │       └── open-register.dto.ts
+│   │   ├── categories
+│   │   │   ├── categories.controller.ts
+│   │   │   ├── categories.module.ts
+│   │   │   ├── categories.service.ts
+│   │   │   └── dto
+│   │   │       └── create-category.dto.ts
+│   │   ├── customer-ledger
+│   │   │   ├── customer-ledger.controller.ts
+│   │   │   ├── customer-ledger.module.ts
+│   │   │   ├── customer-ledger.service.ts
+│   │   │   └── dto
+│   │   │       └── create-payment.dto.ts
+│   │   ├── customers
+│   │   │   ├── customers.controller.ts
+│   │   │   ├── customers.module.ts
+│   │   │   ├── customers.service.ts
+│   │   │   └── dto
+│   │   │       ├── create-customer.dto.ts
+│   │   │       ├── query-customers.dto.ts
+│   │   │       └── update-customer.dto.ts
+│   │   ├── dashboard
+│   │   │   ├── dashboard.controller.ts
+│   │   │   ├── dashboard.module.ts
+│   │   │   └── dashboard.service.ts
+│   │   ├── discounts
+│   │   │   ├── discounts.controller.ts
+│   │   │   ├── discounts.module.ts
+│   │   │   ├── discounts.service.ts
+│   │   │   └── dto
+│   │   │       └── create-discount.dto.ts
+│   │   ├── email
+│   │   │   ├── dto
+│   │   │   │   └── send-email.dto.ts
+│   │   │   ├── email.module.ts
+│   │   │   └── email.service.ts
+│   │   ├── expense-categories
+│   │   │   ├── dto
+│   │   │   │   └── create-expense-category.dto.ts
+│   │   │   ├── expense-categories.controller.ts
+│   │   │   ├── expense-categories.module.ts
+│   │   │   └── expense-categories.service.ts
+│   │   ├── expenses
+│   │   │   ├── dto
+│   │   │   │   └── create-expense.dto.ts
+│   │   │   ├── expenses.controller.ts
+│   │   │   ├── expenses.module.ts
+│   │   │   └── expenses.service.ts
+│   │   ├── exports
+│   │   │   ├── exports.controller.ts
+│   │   │   ├── exports.module.ts
+│   │   │   └── exports.service.ts
+│   │   ├── feature-gating
+│   │   │   ├── feature-gating.controller.ts
+│   │   │   ├── feature-gating.module.ts
+│   │   │   └── feature-gating.service.ts
+│   │   ├── industries
+│   │   │   ├── industries.module.ts
+│   │   │   ├── mobile
+│   │   │   │   ├── emi
+│   │   │   │   │   ├── dto
+│   │   │   │   │   │   └── create-emi.dto.ts
+│   │   │   │   │   ├── emi.controller.ts
+│   │   │   │   │   ├── emi.module.ts
+│   │   │   │   │   └── emi.service.ts
+│   │   │   │   └── imei
+│   │   │   │       ├── dto
+│   │   │   │       │   ├── bulk-create-imei.dto.ts
+│   │   │   │       │   └── create-imei.dto.ts
+│   │   │   │       ├── imei.controller.ts
+│   │   │   │       ├── imei.module.ts
+│   │   │   │       └── imei.service.ts
+│   │   │   ├── pharmacy
+│   │   │   │   └── batches
+│   │   │   │       ├── batches.controller.ts
+│   │   │   │       ├── batches.module.ts
+│   │   │   │       ├── batches.service.ts
+│   │   │   │       └── dto
+│   │   │   │           └── create-batch.dto.ts
+│   │   │   ├── restaurant
+│   │   │   │   └── tables
+│   │   │   │       ├── dto
+│   │   │   │       │   └── create-table.dto.ts
+│   │   │   │       ├── tables.controller.ts
+│   │   │   │       ├── tables.module.ts
+│   │   │   │       └── tables.service.ts
+│   │   │   └── salon
+│   │   │       └── appointments
+│   │   │           ├── appointments.controller.ts
+│   │   │           ├── appointments.module.ts
+│   │   │           ├── appointments.service.ts
+│   │   │           └── dto
+│   │   │               └── create-appointment.dto.ts
+│   │   ├── inventory
+│   │   │   └── products
+│   │   │       ├── dto
+│   │   │       │   ├── create-product.dto.ts
+│   │   │       │   ├── query-products.dto.ts
+│   │   │       │   └── update-product.dto.ts
+│   │   │       ├── products.controller.ts
+│   │   │       ├── products.module.ts
+│   │   │       └── products.service.ts
+│   │   ├── loyalty
+│   │   │   ├── loyalty.controller.ts
+│   │   │   ├── loyalty.module.ts
+│   │   │   └── loyalty.service.ts
+│   │   ├── notification-prefs
+│   │   │   ├── notification-prefs.controller.ts
+│   │   │   ├── notification-prefs.module.ts
+│   │   │   └── notification-prefs.service.ts
+│   │   ├── notifications
+│   │   │   ├── dto
+│   │   │   ├── notifications.controller.ts
+│   │   │   ├── notifications.module.ts
+│   │   │   └── notifications.service.ts
+│   │   ├── onboarding
+│   │   │   ├── constants
+│   │   │   │   └── onboarding.constants.ts
+│   │   │   ├── dto
+│   │   │   │   ├── skip-step.dto.ts
+│   │   │   │   ├── update-step1.dto.ts
+│   │   │   │   ├── update-step2.dto.ts
+│   │   │   │   ├── update-step3.dto.ts
+│   │   │   │   ├── update-step4.dto.ts
+│   │   │   │   ├── update-step5.dto.ts
+│   │   │   │   └── update-step6.dto.ts
+│   │   │   ├── onboarding.controller.ts
+│   │   │   ├── onboarding.module.ts
+│   │   │   ├── onboarding.service.ts
+│   │   │   └── templates
+│   │   │       └── business-templates.ts
+│   │   ├── plans
+│   │   │   ├── dto
+│   │   │   ├── plans.controller.ts
+│   │   │   ├── plans.module.ts
+│   │   │   └── plans.service.ts
+│   │   ├── product-batches
+│   │   │   ├── dto
+│   │   │   │   └── upsert-batch.dto.ts
+│   │   │   ├── product-batches.controller.ts
+│   │   │   ├── product-batches.module.ts
+│   │   │   └── product-batches.service.ts
+│   │   ├── product-images
+│   │   │   ├── dto
+│   │   │   │   └── add-image.dto.ts
+│   │   │   ├── product-images.controller.ts
+│   │   │   ├── product-images.module.ts
+│   │   │   └── product-images.service.ts
+│   │   ├── product-variants
+│   │   │   ├── dto
+│   │   │   │   └── upsert-variant.dto.ts
+│   │   │   ├── product-variants.controller.ts
+│   │   │   ├── product-variants.module.ts
+│   │   │   └── product-variants.service.ts
+│   │   ├── profit-report
+│   │   │   ├── profit-report.controller.ts
+│   │   │   ├── profit-report.module.ts
+│   │   │   └── profit-report.service.ts
+│   │   ├── purchases
+│   │   │   ├── dto
+│   │   │   │   └── create-purchase.dto.ts
+│   │   │   ├── purchases.controller.ts
+│   │   │   ├── purchases.module.ts
+│   │   │   └── purchases.service.ts
+│   │   ├── referrals
+│   │   │   ├── dto
+│   │   │   ├── referrals.controller.ts
+│   │   │   ├── referrals.module.ts
+│   │   │   └── referrals.service.ts
+│   │   ├── reports
+│   │   │   ├── reports.controller.ts
+│   │   │   ├── reports.module.ts
+│   │   │   └── reports.service.ts
+│   │   ├── returns
+│   │   │   ├── dto
+│   │   │   │   └── create-return.dto.ts
+│   │   │   ├── returns.controller.ts
+│   │   │   ├── returns.module.ts
+│   │   │   └── returns.service.ts
+│   │   ├── sales
+│   │   │   ├── dto
+│   │   │   │   └── create-sale.dto.ts
+│   │   │   ├── sales.controller.ts
+│   │   │   ├── sales.module.ts
+│   │   │   └── sales.service.ts
+│   │   ├── search
+│   │   │   ├── search.controller.ts
+│   │   │   ├── search.module.ts
+│   │   │   └── search.service.ts
+│   │   ├── settings
+│   │   │   ├── dto
+│   │   │   │   └── update-settings.dto.ts
+│   │   │   ├── settings.controller.ts
+│   │   │   ├── settings.module.ts
+│   │   │   └── settings.service.ts
+│   │   ├── shops
+│   │   │   ├── dto
+│   │   │   │   └── create-shop.dto.ts
+│   │   │   ├── shops.controller.ts
+│   │   │   ├── shops.module.ts
+│   │   │   └── shops.service.ts
+│   │   ├── sms
+│   │   │   ├── dto
+│   │   │   │   └── send-sms.dto.ts
+│   │   │   ├── sms.module.ts
+│   │   │   └── sms.service.ts
+│   │   ├── staff
+│   │   │   ├── dto
+│   │   │   │   ├── create-leave.dto.ts
+│   │   │   │   ├── create-staff.dto.ts
+│   │   │   │   ├── mark-attendance.dto.ts
+│   │   │   │   ├── process-salary.dto.ts
+│   │   │   │   └── update-staff.dto.ts
+│   │   │   ├── staff.controller.ts
+│   │   │   ├── staff.module.ts
+│   │   │   └── staff.service.ts
+│   │   ├── stock-adjustments
+│   │   │   ├── dto
+│   │   │   │   └── create-adjustment.dto.ts
+│   │   │   ├── stock-adjustments.controller.ts
+│   │   │   ├── stock-adjustments.module.ts
+│   │   │   └── stock-adjustments.service.ts
+│   │   ├── stock-movements
+│   │   │   ├── stock-movements.controller.ts
+│   │   │   ├── stock-movements.module.ts
+│   │   │   └── stock-movements.service.ts
+│   │   ├── stripe
+│   │   │   ├── stripe.controller.ts
+│   │   │   ├── stripe.module.ts
+│   │   │   └── stripe.service.ts
+│   │   ├── subscriptions
+│   │   │   ├── dto
+│   │   │   ├── guards
+│   │   │   │   └── subscription.guard.ts
+│   │   │   ├── subscription-cron.service.ts
+│   │   │   ├── subscriptions.controller.ts
+│   │   │   ├── subscriptions.module.ts
+│   │   │   └── subscriptions.service.ts
+│   │   ├── suppliers
+│   │   │   ├── dto
+│   │   │   │   ├── create-supplier.dto.ts
+│   │   │   │   ├── query-suppliers.dto.ts
+│   │   │   │   └── update-supplier.dto.ts
+│   │   │   ├── suppliers.controller.ts
+│   │   │   ├── suppliers.module.ts
+│   │   │   └── suppliers.service.ts
+│   │   ├── tags
+│   │   │   ├── dto
+│   │   │   │   └── upsert-tag.dto.ts
+│   │   │   ├── tags.controller.ts
+│   │   │   ├── tags.module.ts
+│   │   │   └── tags.service.ts
+│   │   ├── team
+│   │   │   ├── dto
+│   │   │   │   ├── create-team-member.dto.ts
+│   │   │   │   └── update-permissions.dto.ts
+│   │   │   ├── team.controller.ts
+│   │   │   ├── team.module.ts
+│   │   │   └── team.service.ts
+│   │   ├── transfers
+│   │   │   ├── dto
+│   │   │   │   └── create-transfer.dto.ts
+│   │   │   ├── transfers.controller.ts
+│   │   │   ├── transfers.module.ts
+│   │   │   └── transfers.service.ts
+│   │   └── uploads
+│   │       ├── cloudinary.service.ts
+│   │       ├── uploads.controller.ts
+│   │       ├── uploads.module.ts
+│   │       └── uploads.service.ts
+│   ├── prisma
+│   │   ├── prisma.module.ts
+│   │   └── prisma.service.ts
+│   └── scripts
+│       ├── create-super-admin.js
+│       └── create-super-admin.ts
+├── test
+│   ├── app.e2e-spec.ts
+│   └── jest-e2e.json
+├── tsconfig.build.json
+├── tsconfig.build.tsbuildinfo
+├── tsconfig.json
+├── tsconfig.json.backup
+├── tsconfig.tsbuildinfo
+└── uploads
+
+408 directories, 1381 files

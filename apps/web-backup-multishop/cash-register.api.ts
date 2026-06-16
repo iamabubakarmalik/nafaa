@@ -36,7 +36,7 @@ export interface CashRegister {
 
 export interface OpenRegisterPayload {
   openingBalance: number;
-  shopId: string;
+  shopId?: string;
   notes?: string;
 }
 
@@ -55,22 +55,14 @@ export interface CashTransactionPayload {
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
 
 export const cashRegisterApi = {
-  current: (shopId?: string) =>
-    apiClient.get<{ data: CashRegister | null }>('/cash-register/current', {
-      params: shopId ? { shopId } : {},
-    }).then(unwrap),
+  current: () =>
+    apiClient.get<{ data: CashRegister | null }>('/cash-register/current').then(unwrap),
   open: (payload: OpenRegisterPayload) =>
     apiClient.post<{ data: CashRegister }>('/cash-register/open', payload).then(unwrap),
-  transaction: (payload: CashTransactionPayload, shopId?: string) =>
-    apiClient.post<{ data: CashTransaction }>('/cash-register/transaction', payload, {
-      params: shopId ? { shopId } : {},
-    }).then(unwrap),
-  close: (payload: CloseRegisterPayload, shopId?: string) =>
-    apiClient.post<{ data: CashRegister }>('/cash-register/close', payload, {
-      params: shopId ? { shopId } : {},
-    }).then(unwrap),
-  history: (shopId?: string) =>
-    apiClient.get<{ data: CashRegister[] }>('/cash-register/history', {
-      params: shopId ? { shopId } : {},
-    }).then(unwrap),
+  transaction: (payload: CashTransactionPayload) =>
+    apiClient.post<{ data: CashTransaction }>('/cash-register/transaction', payload).then(unwrap),
+  close: (payload: CloseRegisterPayload) =>
+    apiClient.post<{ data: CashRegister }>('/cash-register/close', payload).then(unwrap),
+  history: () =>
+    apiClient.get<{ data: CashRegister[] }>('/cash-register/history').then(unwrap),
 };

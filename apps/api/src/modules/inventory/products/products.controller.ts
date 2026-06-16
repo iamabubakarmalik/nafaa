@@ -45,6 +45,28 @@ export class ProductsController {
     `;
   }
 
+  @Get('shop-stock')
+  async shopStock(
+    @GetUser() user: AuthenticatedUser,
+    @Query('shopId') shopId: string,
+  ) {
+    if (!shopId) throw new NotFoundException('shopId required');
+    return this.prisma.shopStock.findMany({
+      where: { tenantId: user.tenantId, shopId, isActive: true },
+      include: {
+        product: {
+          include: {
+            category: true,
+            brand: true,
+            images: { orderBy: [{ isPrimary: 'desc' }], take: 1 },
+          },
+        },
+        variant: true,
+      },
+      orderBy: { product: { name: 'asc' } },
+    });
+  }
+
   @Get('barcode/:code')
   async findByBarcode(
     @GetUser() user: AuthenticatedUser,

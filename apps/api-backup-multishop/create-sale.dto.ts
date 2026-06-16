@@ -53,10 +53,6 @@ class CreateSaleItemDto {
 }
 
 export class CreateSaleDto {
-  @ApiProperty({ description: 'Shop ID where sale happened' })
-  @IsString()
-  shopId!: string;
-
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()

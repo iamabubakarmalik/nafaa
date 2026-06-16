@@ -52,7 +52,7 @@ export default function ReturnsPage() {
 
   const { data: sales = [] } = useQuery({
     queryKey: ['sales-for-return'],
-    queryFn: salesApi.list,
+    queryFn: () => salesApi.list(),
   });
 
   const { data: returns = [], isLoading: returnsLoading } = useQuery({

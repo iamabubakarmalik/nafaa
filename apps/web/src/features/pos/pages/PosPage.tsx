@@ -21,6 +21,7 @@ import BarcodeScanner from '@/components/barcode/BarcodeScanner';
 import { LengthWidthCalculator } from '../components/LengthWidthCalculator';
 import { VariantPicker } from '../components/VariantPicker';
 import { useBusinessFeatures } from '@/hooks/useBusinessFeatures';
+import { useAuthStore } from '@/store/auth.store';
 import { ImeiPickerModal } from '@/features/industries/mobile/components/ImeiPickerModal';
 import type { ProductImei } from '@/features/industries/mobile/api/imei.api';
 
@@ -91,6 +92,7 @@ const cartLineId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)
 export default function PosPage() {
   const queryClient = useQueryClient();
   const { features: businessFeatures } = useBusinessFeatures();
+  const currentShopId = useAuthStore((s) => s.currentShopId);
 
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -530,7 +532,13 @@ export default function PosPage() {
       return;
     }
 
+    if (!currentShopId) {
+      toast.error('Pehle top-bar se shop select karein');
+      return;
+    }
+
     checkoutMutation.mutate({
+      shopId: currentShopId,
       customerId: customerId || undefined,
       paymentMethod,
       paidAmount: effectivePaid,

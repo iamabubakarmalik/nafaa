@@ -8,8 +8,9 @@ export class OpenRegisterDto {
   openingBalance!: number;
 
   @ApiPropertyOptional()
+  @IsOptional()
   @IsString()
-  shopId!: string;
+  shopId?: string;
 
   @ApiPropertyOptional()
   @IsOptional()

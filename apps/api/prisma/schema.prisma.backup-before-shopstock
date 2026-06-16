@@ -285,12 +285,12 @@ model Tenant {
   accountCredit Float        @default(0)
 
   // ─── Business Configuration ──────────────────────────────────
-  businessType     String?  // CARPET, MOBILE, GROCERY, PHARMACY, etc.
-  businessFeatures Json?    // { lengthWidthCalc: true, imei: false, ... }
-  defaultUnit      String?  // sqft, kg, pcs, etc.
+  businessType     String? // CARPET, MOBILE, GROCERY, PHARMACY, etc.
+  businessFeatures Json? // { lengthWidthCalc: true, imei: false, ... }
+  defaultUnit      String? // sqft, kg, pcs, etc.
 
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
   onboardingProgress OnboardingProgress[]
 
   users               User[]
@@ -326,13 +326,17 @@ model Tenant {
   tags                Tag[]
   productBatches      ProductBatch[]
   staff               Staff[]
+  productImeis        ProductImei[]
+  restaurantTables    RestaurantTable[]
+  salonAppointments   SalonAppointment[]
+  emiPlans            EmiPlan[]
 
   notificationPreference NotificationPreference?
-  referredBy          Tenant?              @relation("TenantReferrals", fields: [referredById], references: [id], onDelete: SetNull)
-  referredTenants     Tenant[]             @relation("TenantReferrals")
-  referralsGiven      Referral[]           @relation("ReferralReferrer")
-  referralsReceived   Referral[]           @relation("ReferralReferee")
-  creditTransactions  CreditTransaction[]
+  referredBy             Tenant?                 @relation("TenantReferrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referredTenants        Tenant[]                @relation("TenantReferrals")
+  referralsGiven         Referral[]              @relation("ReferralReferrer")
+  referralsReceived      Referral[]              @relation("ReferralReferee")
+  creditTransactions     CreditTransaction[]
 }
 
 model Referral {
@@ -482,7 +486,7 @@ model Upload {
   url          String
   purpose      String?
   metadata     Json?
-  storage      String    @default("local")
+  storage      String   @default("local")
   createdAt    DateTime @default(now())
 
   tenant   Tenant?   @relation(fields: [tenantId], references: [id], onDelete: SetNull)
@@ -491,8 +495,6 @@ model Upload {
   @@index([tenantId])
   @@index([purpose])
 }
-
-
 
 model Shop {
   id        String   @id @default(uuid())
@@ -517,27 +519,27 @@ model Shop {
 }
 
 model User {
-  id                   String    @id @default(uuid())
+  id                   String               @id @default(uuid())
   tenantId             String
   fullName             String
-  email                String    @unique
-  phone                String?   @unique
-  passwordHash      String?
-  role                 UserRole  @default(OWNER)
-  isActive             Boolean   @default(true)
-  emailVerified        Boolean   @default(false)
+  email                String               @unique
+  phone                String?              @unique
+  passwordHash         String?
+  role                 UserRole             @default(OWNER)
+  isActive             Boolean              @default(true)
+  emailVerified        Boolean              @default(false)
   emailVerifiedAt      DateTime?
-  phoneVerified        Boolean   @default(false)
-  googleId             String?   @unique
-  authProvider       AuthProvider @default(EMAIL)
+  phoneVerified        Boolean              @default(false)
+  googleId             String?              @unique
+  authProvider         AuthProvider         @default(EMAIL)
   avatarUrl            String?
-  passwordResetToken   String?   @unique
+  passwordResetToken   String?              @unique
   passwordResetExpires DateTime?
-  pushTokens           String[]  @default([])
-  permissions          String[]  @default([])
+  pushTokens           String[]             @default([])
+  permissions          String[]             @default([])
   lastLoginAt          DateTime?
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
   onboardingProgress   OnboardingProgress[]
 
   adminNotificationsRead AdminNotification[] @relation("AdminNotifReadBy")
@@ -569,41 +571,41 @@ model User {
 }
 
 model OnboardingProgress {
-  id              String    @id @default(uuid())
-  tenantId        String    @unique
-  userId          String
+  id       String @id @default(uuid())
+  tenantId String @unique
+  userId   String
 
   // Progress tracking
-  currentStep     Int       @default(1)
-  completedSteps  Int[]     @default([])
-  isCompleted     Boolean   @default(false)
-  isSkipped       Boolean   @default(false)
-  startedAt       DateTime  @default(now())
-  completedAt     DateTime?
+  currentStep    Int       @default(1)
+  completedSteps Int[]     @default([])
+  isCompleted    Boolean   @default(false)
+  isSkipped      Boolean   @default(false)
+  startedAt      DateTime  @default(now())
+  completedAt    DateTime?
 
   // Step 1: Business Info
-  businessType    String?   // KIRYANA, BAKERY, PHARMACY, MOBILE_SHOP, RESTAURANT, COSMETICS, CLOTHING, HARDWARE, STATIONERY, OTHER
-  businessSize    String?   // SMALL, MEDIUM, LARGE
-  city            String?
-  province        String?
+  businessType String? // KIRYANA, BAKERY, PHARMACY, MOBILE_SHOP, RESTAURANT, COSMETICS, CLOTHING, HARDWARE, STATIONERY, OTHER
+  businessSize String? // SMALL, MEDIUM, LARGE
+  city         String?
+  province     String?
 
   // Step 2: Owner Profile
   avatarUrl         String?
   whatsappNumber    String?
-  cnic              String?  // Pakistan CNIC: 13 digits (XXXXX-XXXXXXX-X), masked
-  preferredLanguage String?  // ur, en, roman_ur
+  cnic              String? // Pakistan CNIC: 13 digits (XXXXX-XXXXXXX-X), masked
+  preferredLanguage String? // ur, en, roman_ur
 
   // Step 3: Shop Details
-  shopAddress     String?
-  openTime        String?   // "09:00"
-  closeTime       String?   // "22:00"
-  workingDays     String[]  @default([])  // ["mon","tue","wed","thu","fri","sat","sun"]
-  taxNumber       String?   // GST/NTN (optional)
+  shopAddress String?
+  openTime    String? // "09:00"
+  closeTime   String? // "22:00"
+  workingDays String[] @default([]) // ["mon","tue","wed","thu","fri","sat","sun"]
+  taxNumber   String? // GST/NTN (optional)
 
   // Step 4: Setup Preferences
   enabledCategories String[] @default([])
   paymentMethods    String[] @default(["CASH"])
-  receiptTemplate   String?  // BASIC, DETAILED, THERMAL_80MM, THERMAL_58MM
+  receiptTemplate   String? // BASIC, DETAILED, THERMAL_80MM, THERMAL_58MM
   lowStockThreshold Int      @default(10)
 
   // Step 5: First products & data
@@ -674,34 +676,34 @@ model Category {
 }
 
 model Product {
-  id              String   @id @default(uuid())
-  tenantId        String
-  categoryId      String?
-  brandId         String?
-  name            String
-  slug            String?
-  description     String?  @db.Text
+  id               String   @id @default(uuid())
+  tenantId         String
+  categoryId       String?
+  brandId          String?
+  name             String
+  slug             String?
+  description      String?  @db.Text
   shortDescription String?
-  sku             String?
-  barcode         String?
-  unit            String   @default("pcs")
-  price           Float    @default(0)
-  costPrice       Float    @default(0)
-  wholesalePrice  Float?
-  taxRate         Float    @default(0)
-  stock           Float    @default(0)
-  lowStockAlert   Float    @default(5)
-  weight          Float?
-  weightUnit      String?
-  dimensions      String?
-  hasVariants     Boolean  @default(false)
-  expiryTracked   Boolean  @default(false)
-  isActive        Boolean  @default(true)
-  isFeatured      Boolean  @default(false)
-  metaTitle       String?
-  metaDescription String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  sku              String?
+  barcode          String?
+  unit             String   @default("pcs")
+  price            Float    @default(0)
+  costPrice        Float    @default(0)
+  wholesalePrice   Float?
+  taxRate          Float    @default(0)
+  stock            Float    @default(0)
+  lowStockAlert    Float    @default(5)
+  weight           Float?
+  weightUnit       String?
+  dimensions       String?
+  hasVariants      Boolean  @default(false)
+  expiryTracked    Boolean  @default(false)
+  isActive         Boolean  @default(true)
+  isFeatured       Boolean  @default(false)
+  metaTitle        String?
+  metaDescription  String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   tenant         Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   category       Category?           @relation(fields: [categoryId], references: [id], onDelete: SetNull)
@@ -716,6 +718,7 @@ model Product {
   variants       ProductVariant[]
   tags           ProductTag[]
   batches        ProductBatch[]
+  productImeis   ProductImei[]
 
   @@index([tenantId])
   @@index([tenantId, name])
@@ -790,30 +793,31 @@ model ProductImage {
 }
 
 model ProductVariant {
-  id            String   @id @default(uuid())
-  productId     String
-  name          String
-  sku           String?
-  barcode       String?
-  color         String?
-  colorHex      String?
-  size          String?
-  weight        Float?
-  unit          String?
-  price         Float
-  costPrice     Float    @default(0)
+  id             String   @id @default(uuid())
+  productId      String
+  name           String
+  sku            String?
+  barcode        String?
+  color          String?
+  colorHex       String?
+  size           String?
+  weight         Float?
+  unit           String?
+  price          Float
+  costPrice      Float    @default(0)
   wholesalePrice Float?
-  stock         Float    @default(0)
-  lowStockAlert Float    @default(5)
-  imageUrl      String?
-  isActive      Boolean  @default(true)
-  sortOrder     Int      @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  stock          Float    @default(0)
+  lowStockAlert  Float    @default(5)
+  imageUrl       String?
+  isActive       Boolean  @default(true)
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  product       Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
-  batches       ProductBatch[]
-  saleItems     SaleItemVariant[]
+  product   Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  batches   ProductBatch[]
+  imeis     ProductImei[]
+  saleItems SaleItemVariant[]
 
   @@index([productId])
   @@index([productId, isActive])
@@ -833,21 +837,20 @@ model SaleItemVariant {
   @@index([variantId])
 }
 
-
 model ProductBatch {
-  id           String    @id @default(uuid())
-  tenantId     String
-  productId    String
-  variantId    String?
-  batchNumber  String
+  id              String    @id @default(uuid())
+  tenantId        String
+  productId       String
+  variantId       String?
+  batchNumber     String
   manufactureDate DateTime?
-  expiryDate   DateTime?
-  quantity     Float     @default(0)
-  costPrice    Float     @default(0)
-  notes        String?
-  isActive     Boolean   @default(true)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  expiryDate      DateTime?
+  quantity        Float     @default(0)
+  costPrice       Float     @default(0)
+  notes           String?
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   tenant  Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   product Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -860,7 +863,7 @@ model ProductBatch {
 }
 
 model Customer {
-  id            String   @id @default(uuid())
+  id            String          @id @default(uuid())
   tenantId      String
   name          String
   phone         String?
@@ -873,14 +876,14 @@ model Customer {
   dateOfBirth   DateTime?
   avatarUrl     String?
   notes         String?
-  creditLimit   Float    @default(0)
-  balance       Float    @default(0)
-  loyaltyPoints Int      @default(0)
-  totalSpent    Float    @default(0)
-  isActive      Boolean  @default(true)
-  isVip         Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  creditLimit   Float           @default(0)
+  balance       Float           @default(0)
+  loyaltyPoints Int             @default(0)
+  totalSpent    Float           @default(0)
+  isActive      Boolean         @default(true)
+  isVip         Boolean         @default(false)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
 
   tenant              Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   sales               Sale[]
@@ -1004,17 +1007,16 @@ model Sale {
 }
 
 model SaleItem {
-  id          String   @id @default(uuid())
+  id          String           @id @default(uuid())
   saleId      String
   productId   String
   quantity    Float
-  returnedQty Float    @default(0)
+  returnedQty Float            @default(0)
   price       Float
-  costPrice   Float    @default(0)
+  costPrice   Float            @default(0)
   total       Float
   variantLink SaleItemVariant?
-  createdAt   DateTime @default(now())
-  
+  createdAt   DateTime         @default(now())
 
   sale        Sale             @relation(fields: [saleId], references: [id], onDelete: Cascade)
   product     Product          @relation(fields: [productId], references: [id], onDelete: Restrict)
@@ -1067,29 +1069,29 @@ model SaleReturnItem {
 }
 
 model Supplier {
-  id              String   @id @default(uuid())
-  tenantId        String
-  name            String
-  contactPerson   String?
-  phone           String?
-  altPhone        String?
-  email           String?
-  cnic            String?
-  ntn             String?
-  address         String?
-  city            String?
-  area            String?
-  logoUrl         String?
-  bankName        String?
-  accountNumber   String?
-  iban            String?
-  paymentTerms    String?
-  notes           String?
-  totalPurchased  Float    @default(0)
-  outstandingDue  Float    @default(0)
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id             String   @id @default(uuid())
+  tenantId       String
+  name           String
+  contactPerson  String?
+  phone          String?
+  altPhone       String?
+  email          String?
+  cnic           String?
+  ntn            String?
+  address        String?
+  city           String?
+  area           String?
+  logoUrl        String?
+  bankName       String?
+  accountNumber  String?
+  iban           String?
+  paymentTerms   String?
+  notes          String?
+  totalPurchased Float    @default(0)
+  outstandingDue Float    @default(0)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   purchases Purchase[]
@@ -1456,25 +1458,25 @@ model PlatformDiscount {
 }
 
 model EmailLog {
-  id            String         @id @default(uuid())
-  tenantId      String?
-  templateSlug  String?
-  toEmail       String
-  toName        String?
-  subject       String
-  bodyHtml      String         @db.Text
-  bodyText      String?        @db.Text
-  variables     Json?
-  status        DeliveryStatus @default(QUEUED)
-  providerId    String?
-  errorMessage  String?
-  retryCount    Int            @default(0)
-  sentAt        DateTime?
-  deliveredAt   DateTime?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id           String         @id @default(uuid())
+  tenantId     String?
+  templateSlug String?
+  toEmail      String
+  toName       String?
+  subject      String
+  bodyHtml     String         @db.Text
+  bodyText     String?        @db.Text
+  variables    Json?
+  status       DeliveryStatus @default(QUEUED)
+  providerId   String?
+  errorMessage String?
+  retryCount   Int            @default(0)
+  sentAt       DateTime?
+  deliveredAt  DateTime?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
 
-  tenant        Tenant?        @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
 
   @@index([tenantId])
   @@index([status])
@@ -1483,23 +1485,23 @@ model EmailLog {
 }
 
 model SmsLog {
-  id            String         @id @default(uuid())
-  tenantId      String?
-  templateSlug  String?
-  toPhone       String
-  message       String         @db.Text
-  variables     Json?
-  status        DeliveryStatus @default(QUEUED)
-  providerId    String?
-  cost          Float          @default(0)
-  errorMessage  String?
-  retryCount    Int            @default(0)
-  sentAt        DateTime?
-  deliveredAt   DateTime?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id           String         @id @default(uuid())
+  tenantId     String?
+  templateSlug String?
+  toPhone      String
+  message      String         @db.Text
+  variables    Json?
+  status       DeliveryStatus @default(QUEUED)
+  providerId   String?
+  cost         Float          @default(0)
+  errorMessage String?
+  retryCount   Int            @default(0)
+  sentAt       DateTime?
+  deliveredAt  DateTime?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
 
-  tenant        Tenant?        @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
 
   @@index([tenantId])
   @@index([status])
@@ -1508,56 +1510,56 @@ model SmsLog {
 }
 
 model SmsTemplate {
-  id          String   @id @default(uuid())
-  slug        String   @unique
-  name        String
-  message     String   @db.Text
-  variables   Json?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  slug      String   @unique
+  name      String
+  message   String   @db.Text
+  variables Json?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([slug])
 }
 
 model NotificationPreference {
-  id              String   @id @default(uuid())
-  tenantId        String   @unique
-  emailEnabled    Boolean  @default(true)
-  smsEnabled      Boolean  @default(true)
-  emailWelcome    Boolean  @default(true)
-  emailPayment    Boolean  @default(true)
-  emailExpiry     Boolean  @default(true)
-  emailLowStock   Boolean  @default(true)
-  emailMarketing  Boolean  @default(false)
-  smsPayment      Boolean  @default(true)
-  smsExpiry       Boolean  @default(true)
-  smsCritical     Boolean  @default(true)
-  smsMarketing    Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id             String   @id @default(uuid())
+  tenantId       String   @unique
+  emailEnabled   Boolean  @default(true)
+  smsEnabled     Boolean  @default(true)
+  emailWelcome   Boolean  @default(true)
+  emailPayment   Boolean  @default(true)
+  emailExpiry    Boolean  @default(true)
+  emailLowStock  Boolean  @default(true)
+  emailMarketing Boolean  @default(false)
+  smsPayment     Boolean  @default(true)
+  smsExpiry      Boolean  @default(true)
+  smsCritical    Boolean  @default(true)
+  smsMarketing   Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 }
 
 model AdminNotification {
-  id          String                    @id @default(uuid())
-  type        AdminNotificationType     @default(INFO)
-  priority    AdminNotificationPriority @default(NORMAL)
-  title       String
-  message     String                    @db.Text
-  link        String?
-  metadata    Json?
-  isRead      Boolean                   @default(false)
-  readAt      DateTime?
-  readById    String?
-  tenantId    String?
-  entityType  String?
-  entityId    String?
-  createdAt   DateTime                  @default(now())
-  updatedAt   DateTime                  @updatedAt
+  id         String                    @id @default(uuid())
+  type       AdminNotificationType     @default(INFO)
+  priority   AdminNotificationPriority @default(NORMAL)
+  title      String
+  message    String                    @db.Text
+  link       String?
+  metadata   Json?
+  isRead     Boolean                   @default(false)
+  readAt     DateTime?
+  readById   String?
+  tenantId   String?
+  entityType String?
+  entityId   String?
+  createdAt  DateTime                  @default(now())
+  updatedAt  DateTime                  @updatedAt
 
-  readBy      User?                     @relation("AdminNotifReadBy", fields: [readById], references: [id], onDelete: SetNull)
+  readBy User? @relation("AdminNotifReadBy", fields: [readById], references: [id], onDelete: SetNull)
 
   @@index([isRead])
   @@index([type])
@@ -1566,13 +1568,11 @@ model AdminNotification {
   @@index([tenantId])
 }
 
-
 enum AuthProvider {
   EMAIL
   GOOGLE
   HYBRID
 }
-
 
 // ===================================================================
 // TENANT SETTINGS — Complete configuration per shop
@@ -1582,40 +1582,40 @@ model TenantSettings {
   tenantId String @unique
 
   // ===== 1. BUSINESS PROFILE =====
-  shopName       String?
-  legalName      String?
-  shopAddress    String?
-  shopCity       String?
-  shopProvince   String?
-  shopPostalCode String?
-  shopPhone      String?
-  shopWhatsapp   String?
-  shopEmail      String?
-  shopWebsite    String?
-  logoUrl        String?
-  bannerUrl      String?
-  businessType   String?
+  shopName        String?
+  legalName       String?
+  shopAddress     String?
+  shopCity        String?
+  shopProvince    String?
+  shopPostalCode  String?
+  shopPhone       String?
+  shopWhatsapp    String?
+  shopEmail       String?
+  shopWebsite     String?
+  logoUrl         String?
+  bannerUrl       String?
+  businessType    String?
   establishedDate DateTime?
 
   // ===== 2. LOCALIZATION =====
-  language         String  @default("roman_ur") // ur, en, roman_ur
-  currency         String  @default("PKR")
-  currencySymbol   String  @default("Rs")
-  timezone         String  @default("Asia/Karachi")
-  dateFormat       String  @default("DD/MM/YYYY")
-  firstDayOfWeek   String  @default("monday")
-  openTime         String? // "09:00"
-  closeTime        String? // "22:00"
-  workingDays      String[] @default(["mon","tue","wed","thu","fri","sat"])
+  language       String   @default("roman_ur") // ur, en, roman_ur
+  currency       String   @default("PKR")
+  currencySymbol String   @default("Rs")
+  timezone       String   @default("Asia/Karachi")
+  dateFormat     String   @default("DD/MM/YYYY")
+  firstDayOfWeek String   @default("monday")
+  openTime       String? // "09:00"
+  closeTime      String? // "22:00"
+  workingDays    String[] @default(["mon", "tue", "wed", "thu", "fri", "sat"])
 
   // ===== 3. TAX & PRICING =====
-  enableTax        Boolean @default(false)
-  taxRate          Float   @default(0)
-  taxInclusive     Boolean @default(false)
-  taxNumber        String?
-  taxLabel         String  @default("GST")
-  defaultMarkup    Float   @default(0)
-  roundPriceTo     Int     @default(1) // round to nearest 1, 5, 10
+  enableTax     Boolean @default(false)
+  taxRate       Float   @default(0)
+  taxInclusive  Boolean @default(false)
+  taxNumber     String?
+  taxLabel      String  @default("GST")
+  defaultMarkup Float   @default(0)
+  roundPriceTo  Int     @default(1) // round to nearest 1, 5, 10
 
   // ===== 4. RECEIPT & INVOICE =====
   receiptSize         String  @default("THERMAL_58MM") // THERMAL_58MM, THERMAL_80MM, A4_BASIC, A4_DETAILED
@@ -1632,16 +1632,16 @@ model TenantSettings {
   printCopiesCount    Int     @default(1)
 
   // ===== 5. POS SETTINGS =====
-  defaultPaymentMethod String  @default("CASH")
-  allowNegativeStock   Boolean @default(false)
-  confirmBeforeCheckout Boolean @default(true)
+  defaultPaymentMethod   String  @default("CASH")
+  allowNegativeStock     Boolean @default(false)
+  confirmBeforeCheckout  Boolean @default(true)
   requireCustomerForSale Boolean @default(false)
-  allowDiscount        Boolean @default(true)
-  maxDiscountPercent   Float   @default(50)
-  roundTotal           Boolean @default(true)
-  showProductImages    Boolean @default(true)
-  enableBarcodeScanner Boolean @default(true)
-  enableQuickKeys      Boolean @default(true)
+  allowDiscount          Boolean @default(true)
+  maxDiscountPercent     Float   @default(50)
+  roundTotal             Boolean @default(true)
+  showProductImages      Boolean @default(true)
+  enableBarcodeScanner   Boolean @default(true)
+  enableQuickKeys        Boolean @default(true)
 
   // ===== 6. INVENTORY =====
   defaultLowStockAlert Int     @default(10)
@@ -1652,25 +1652,25 @@ model TenantSettings {
   reorderPoint         Int     @default(5)
 
   // ===== 7. CUSTOMER & UDHAAR =====
-  allowCredit          Boolean @default(true)
-  defaultCreditLimit   Float   @default(0)
-  creditOverdueDays    Int     @default(30)
-  enableLoyalty        Boolean @default(false)
-  loyaltyPointsPerRupee Float  @default(0.01) // 1 point per Rs 100
-  loyaltyRedemptionRate Float  @default(1)    // 1 point = Rs 1
-  autoCreateCustomer   Boolean @default(false)
+  allowCredit           Boolean @default(true)
+  defaultCreditLimit    Float   @default(0)
+  creditOverdueDays     Int     @default(30)
+  enableLoyalty         Boolean @default(false)
+  loyaltyPointsPerRupee Float   @default(0.01) // 1 point per Rs 100
+  loyaltyRedemptionRate Float   @default(1) // 1 point = Rs 1
+  autoCreateCustomer    Boolean @default(false)
 
   // ===== 8. NOTIFICATIONS =====
-  emailNotifications     Boolean @default(true)
-  smsNotifications       Boolean @default(false)
-  whatsappNotifications  Boolean @default(false)
-  pushNotifications      Boolean @default(true)
-  notifyLowStock         Boolean @default(true)
-  notifyOutOfStock       Boolean @default(true)
-  notifyNewSale          Boolean @default(false)
-  notifyDailySummary     Boolean @default(true)
-  dailySummaryTime       String  @default("21:00")
-  notifyNewCustomer      Boolean @default(false)
+  emailNotifications    Boolean @default(true)
+  smsNotifications      Boolean @default(false)
+  whatsappNotifications Boolean @default(false)
+  pushNotifications     Boolean @default(true)
+  notifyLowStock        Boolean @default(true)
+  notifyOutOfStock      Boolean @default(true)
+  notifyNewSale         Boolean @default(false)
+  notifyDailySummary    Boolean @default(true)
+  dailySummaryTime      String  @default("21:00")
+  notifyNewCustomer     Boolean @default(false)
 
   // ===== 9. SECURITY =====
   requirePinForVoid     Boolean @default(false)
@@ -1682,9 +1682,9 @@ model TenantSettings {
   maxLoginAttempts      Int     @default(5)
 
   // ===== 10. APPEARANCE =====
-  theme        String  @default("light") // light, dark, auto
-  brandColor   String  @default("#16a34a")
-  compactMode  Boolean @default(false)
+  theme       String  @default("light") // light, dark, auto
+  brandColor  String  @default("#16a34a")
+  compactMode Boolean @default(false)
 
   // ===== METADATA =====
   createdAt DateTime @default(now())
@@ -1754,72 +1754,72 @@ enum StaffGender {
 }
 
 model Staff {
-  id              String      @id @default(uuid())
-  tenantId        String
-  shopId          String?
-  userId          String?     @unique  // Optional link to User account (for app login)
-  staffNumber     String      // EMP-001
-  
+  id          String  @id @default(uuid())
+  tenantId    String
+  shopId      String?
+  userId      String? @unique // Optional link to User account (for app login)
+  staffNumber String // EMP-001
+
   // Personal Info
-  fullName        String
-  fatherName      String?
-  gender          StaffGender?
-  dateOfBirth     DateTime?
-  cnic            String?     // 13 digits
-  phone           String
-  altPhone        String?
-  email           String?
-  address         String?
-  city            String?
-  
+  fullName    String
+  fatherName  String?
+  gender      StaffGender?
+  dateOfBirth DateTime?
+  cnic        String? // 13 digits
+  phone       String
+  altPhone    String?
+  email       String?
+  address     String?
+  city        String?
+
   // Emergency Contact
-  emergencyName   String?
-  emergencyPhone  String?
+  emergencyName     String?
+  emergencyPhone    String?
   emergencyRelation String?
-  
+
   // Job Info
-  designation     String      // Cashier, Manager, Helper, Driver, etc.
-  department      String?     // Sales, Inventory, Accounts, etc.
-  joinDate        DateTime
-  endDate         DateTime?
-  status          StaffStatus @default(ACTIVE)
-  
+  designation String // Cashier, Manager, Helper, Driver, etc.
+  department  String? // Sales, Inventory, Accounts, etc.
+  joinDate    DateTime
+  endDate     DateTime?
+  status      StaffStatus @default(ACTIVE)
+
   // Salary
-  salaryType      SalaryType  @default(MONTHLY)
-  baseSalary      Float       @default(0)
+  salaryType SalaryType @default(MONTHLY)
+  baseSalary Float      @default(0)
   // For MONTHLY: monthly amount
   // For DAILY: per day rate
   // For HOURLY: per hour rate
   // For PER_TASK: per task rate
   // For COMMISSION: percentage (stored as decimal e.g. 0.05 = 5%)
-  
-  workingHoursPerDay Float    @default(8)
-  workingDaysPerMonth Int     @default(26)
-  
+
+  workingHoursPerDay  Float @default(8)
+  workingDaysPerMonth Int   @default(26)
+
   // Bank
-  bankName        String?
-  accountNumber   String?
-  iban            String?
-  
+  bankName      String?
+  accountNumber String?
+  iban          String?
+
   // Media
-  avatarUrl       String?
-  cnicFrontUrl    String?
-  cnicBackUrl     String?
-  
+  avatarUrl    String?
+  cnicFrontUrl String?
+  cnicBackUrl  String?
+
   // Misc
-  notes           String?     @db.Text
-  
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  
-  tenant          Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  shop            Shop?       @relation(fields: [shopId], references: [id], onDelete: SetNull)
-  user            User?       @relation("StaffUser", fields: [userId], references: [id], onDelete: SetNull)
-  attendances     Attendance[]
-  leaves          StaffLeave[]
-  salaryPayments  SalaryPayment[]
-  documents       StaffDocument[]
-  
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant         Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  shop           Shop?           @relation(fields: [shopId], references: [id], onDelete: SetNull)
+  user           User?           @relation("StaffUser", fields: [userId], references: [id], onDelete: SetNull)
+  attendances    Attendance[]
+  leaves         StaffLeave[]
+  salaryPayments SalaryPayment[]
+  documents      StaffDocument[]
+
   @@unique([tenantId, staffNumber])
   @@index([tenantId])
   @@index([tenantId, status])
@@ -1828,47 +1828,47 @@ model Staff {
 }
 
 model StaffDocument {
-  id          String   @id @default(uuid())
-  staffId     String
-  type        String   // CNIC, CONTRACT, CERTIFICATE, OTHER
-  title       String
-  fileUrl     String
-  fileName    String?
-  notes       String?
-  uploadedAt  DateTime @default(now())
-  
-  staff       Staff    @relation(fields: [staffId], references: [id], onDelete: Cascade)
-  
+  id         String   @id @default(uuid())
+  staffId    String
+  type       String // CNIC, CONTRACT, CERTIFICATE, OTHER
+  title      String
+  fileUrl    String
+  fileName   String?
+  notes      String?
+  uploadedAt DateTime @default(now())
+
+  staff Staff @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
   @@index([staffId])
 }
 
 model Attendance {
-  id          String           @id @default(uuid())
-  tenantId    String
-  staffId     String
-  date        DateTime         @db.Date
-  
-  checkIn     DateTime?
-  checkOut    DateTime?
-  checkInPhotoUrl   String?
-  checkOutPhotoUrl  String?
-  checkInLocation   String?    // GPS coords or address
-  checkOutLocation  String?
-  
-  status      AttendanceStatus @default(PRESENT)
-  workedHours Float            @default(0)
-  overtimeHours Float          @default(0)
-  
-  isLate      Boolean          @default(false)
-  lateMinutes Int              @default(0)
+  id       String   @id @default(uuid())
+  tenantId String
+  staffId  String
+  date     DateTime @db.Date
+
+  checkIn          DateTime?
+  checkOut         DateTime?
+  checkInPhotoUrl  String?
+  checkOutPhotoUrl String?
+  checkInLocation  String? // GPS coords or address
+  checkOutLocation String?
+
+  status        AttendanceStatus @default(PRESENT)
+  workedHours   Float            @default(0)
+  overtimeHours Float            @default(0)
+
+  isLate      Boolean @default(false)
+  lateMinutes Int     @default(0)
   notes       String?
-  
-  markedById  String?          // Admin who marked manually
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  
-  staff       Staff            @relation(fields: [staffId], references: [id], onDelete: Cascade)
-  
+
+  markedById String? // Admin who marked manually
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  staff Staff @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
   @@unique([staffId, date])
   @@index([tenantId])
   @@index([tenantId, date])
@@ -1876,71 +1876,71 @@ model Attendance {
 }
 
 model StaffLeave {
-  id          String      @id @default(uuid())
-  tenantId    String
-  staffId     String
-  type        LeaveType   @default(CASUAL)
-  startDate   DateTime    @db.Date
-  endDate     DateTime    @db.Date
-  days        Float
-  reason      String?     @db.Text
-  status      LeaveStatus @default(PENDING)
-  approvedById String?
-  approvedAt  DateTime?
+  id             String      @id @default(uuid())
+  tenantId       String
+  staffId        String
+  type           LeaveType   @default(CASUAL)
+  startDate      DateTime    @db.Date
+  endDate        DateTime    @db.Date
+  days           Float
+  reason         String?     @db.Text
+  status         LeaveStatus @default(PENDING)
+  approvedById   String?
+  approvedAt     DateTime?
   rejectedReason String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  
-  staff       Staff       @relation(fields: [staffId], references: [id], onDelete: Cascade)
-  
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  staff Staff @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
   @@index([tenantId])
   @@index([staffId])
   @@index([status])
 }
 
 model SalaryPayment {
-  id              String              @id @default(uuid())
-  tenantId        String
-  staffId         String
-  paymentNumber   String              // PAY-001
-  
+  id            String @id @default(uuid())
+  tenantId      String
+  staffId       String
+  paymentNumber String // PAY-001
+
   // Period
-  periodStart     DateTime            @db.Date
-  periodEnd       DateTime            @db.Date
-  
+  periodStart DateTime @db.Date
+  periodEnd   DateTime @db.Date
+
   // Breakdown
-  baseSalary      Float               @default(0)
-  daysWorked      Float               @default(0)
-  hoursWorked     Float               @default(0)
-  overtimePay     Float               @default(0)
-  commissionEarned Float              @default(0)
-  bonuses         Float               @default(0)
-  
+  baseSalary       Float @default(0)
+  daysWorked       Float @default(0)
+  hoursWorked      Float @default(0)
+  overtimePay      Float @default(0)
+  commissionEarned Float @default(0)
+  bonuses          Float @default(0)
+
   // Deductions
-  advances        Float               @default(0)
-  leaveDeduction  Float               @default(0)
-  lateDeduction   Float               @default(0)
-  otherDeductions Float               @default(0)
-  
+  advances        Float @default(0)
+  leaveDeduction  Float @default(0)
+  lateDeduction   Float @default(0)
+  otherDeductions Float @default(0)
+
   // Totals
-  grossAmount     Float               @default(0)
-  totalDeductions Float               @default(0)
-  netAmount       Float               @default(0)
-  paidAmount      Float               @default(0)
-  balanceAmount   Float               @default(0)
-  
-  paymentMethod   PaymentMethod       @default(CASH)
-  status          SalaryPaymentStatus @default(PENDING)
-  paidAt          DateTime?
-  paidById        String?
-  
-  notes           String?             @db.Text
-  
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
-  
-  staff           Staff               @relation(fields: [staffId], references: [id], onDelete: Cascade)
-  
+  grossAmount     Float @default(0)
+  totalDeductions Float @default(0)
+  netAmount       Float @default(0)
+  paidAmount      Float @default(0)
+  balanceAmount   Float @default(0)
+
+  paymentMethod PaymentMethod       @default(CASH)
+  status        SalaryPaymentStatus @default(PENDING)
+  paidAt        DateTime?
+  paidById      String?
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  staff Staff @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
   @@unique([tenantId, paymentNumber])
   @@index([tenantId])
   @@index([staffId])
@@ -1948,3 +1948,218 @@ model SalaryPayment {
   @@index([periodStart, periodEnd])
 }
 
+// ═══════════════════════════════════════════════════════════════
+// INDUSTRY: MOBILE — IMEI Tracking
+// ═══════════════════════════════════════════════════════════════
+
+enum ImeiStatus {
+  IN_STOCK
+  SOLD
+  RETURNED
+  DAMAGED
+  RESERVED
+  LOST
+}
+
+model ProductImei {
+  id           String  @id @default(uuid())
+  tenantId     String
+  productId    String
+  variantId    String?
+  imei1        String // Primary IMEI (15 digits)
+  imei2        String? // Dual SIM second IMEI
+  serialNumber String? // For non-IMEI electronics
+
+  // Stock info
+  status    ImeiStatus @default(IN_STOCK)
+  costPrice Float      @default(0)
+
+  // Sale tracking
+  saleItemId String?   @unique
+  soldAt     DateTime?
+  soldPrice  Float?
+
+  // Warranty
+  warrantyMonths Int?      @default(12)
+  warrantyExpiry DateTime?
+
+  // Purchase tracking
+  purchaseItemId String?
+  purchasedAt    DateTime?
+
+  // Misc
+  color String?
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant  Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  product Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+
+  @@unique([tenantId, imei1])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([productId])
+  @@index([variantId])
+  @@index([imei1])
+  @@index([saleItemId])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INDUSTRY: RESTAURANT — Table Management
+// ═══════════════════════════════════════════════════════════════
+
+enum TableStatus {
+  AVAILABLE
+  OCCUPIED
+  RESERVED
+  CLEANING
+  OUT_OF_SERVICE
+}
+
+model RestaurantTable {
+  id          String      @id @default(uuid())
+  tenantId    String
+  shopId      String?
+  tableNumber String      // T-1, T-2, VIP-1
+  name        String?     // "Window seat", "Family booth"
+  capacity    Int         @default(4)
+  status      TableStatus @default(AVAILABLE)
+  floor       String?     // Ground, First, Rooftop
+  zone        String?     // Indoor, Outdoor, AC, Non-AC
+  notes       String?
+  currentSaleId String?   // Active order on this table
+  occupiedAt  DateTime?
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  @@unique([tenantId, tableNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([shopId])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INDUSTRY: SALON — Appointments
+// ═══════════════════════════════════════════════════════════════
+
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+model SalonAppointment {
+  id              String            @id @default(uuid())
+  tenantId        String
+  shopId          String?
+  customerId      String?
+  staffId         String?
+  serviceProductId String?
+  
+  appointmentNumber String          // APT-001
+  customerName    String
+  customerPhone   String?
+  serviceName     String
+  duration        Int               @default(30) // minutes
+  price           Float             @default(0)
+  
+  startTime       DateTime
+  endTime         DateTime
+  
+  status          AppointmentStatus @default(SCHEDULED)
+  notes           String?           @db.Text
+  
+  completedSaleId String?           @unique
+  
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  
+  tenant          Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  @@unique([tenantId, appointmentNumber])
+  @@index([tenantId])
+  @@index([tenantId, startTime])
+  @@index([tenantId, status])
+  @@index([staffId])
+  @@index([customerId])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INDUSTRY: MOBILE — EMI / Installments
+// ═══════════════════════════════════════════════════════════════
+
+enum EmiPlanStatus {
+  ACTIVE
+  COMPLETED
+  DEFAULTED
+  CANCELLED
+}
+
+enum EmiInstallmentStatus {
+  PENDING
+  PAID
+  OVERDUE
+  WAIVED
+}
+
+model EmiPlan {
+  id              String          @id @default(uuid())
+  tenantId        String
+  saleId          String?         @unique
+  customerId      String
+  customerName    String
+  customerPhone   String?
+  
+  planNumber      String          // EMI-001
+  totalAmount     Float
+  downPayment     Float           @default(0)
+  financedAmount  Float           // total - downPayment
+  installmentCount Int            // 3, 6, 12 months
+  installmentAmount Float
+  startDate       DateTime
+  
+  paidAmount      Float           @default(0)
+  remainingAmount Float
+  
+  status          EmiPlanStatus   @default(ACTIVE)
+  notes           String?         @db.Text
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  tenant          Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  installments    EmiInstallment[]
+  
+  @@unique([tenantId, planNumber])
+  @@index([tenantId])
+  @@index([customerId])
+  @@index([status])
+}
+
+model EmiInstallment {
+  id              String                @id @default(uuid())
+  planId          String
+  installmentNumber Int                 // 1, 2, 3...
+  amount          Float
+  dueDate         DateTime
+  paidDate        DateTime?
+  paidAmount      Float                 @default(0)
+  status          EmiInstallmentStatus  @default(PENDING)
+  notes           String?
+  createdAt       DateTime              @default(now())
+  
+  plan            EmiPlan               @relation(fields: [planId], references: [id], onDelete: Cascade)
+  
+  @@index([planId])
+  @@index([status])
+  @@index([dueDate])
+}

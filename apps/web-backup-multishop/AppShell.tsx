@@ -17,7 +17,6 @@ import { authApi } from '@/api/auth.api';
 import { toast } from 'sonner';
 import GlobalSearch from '@/components/search/GlobalSearch';
 import NotificationBell from '@/components/notifications/NotificationBell';
-import ShopSelector from '@/components/shops/ShopSelector';
 import { Logo } from '@/components/brand/Logo';
 import { hasPermission, PERMISSIONS, type PermissionKey } from '@/lib/permissions';
 
@@ -596,9 +595,6 @@ export default function AppShell() {
                 >
                   <Search className="h-4 w-4 text-slate-600" />
                 </button>
-
-                {/* Shop Selector — Multi-shop switcher */}
-                <ShopSelector />
 
                 {/* Quick Actions */}
                 <QuickActionsDropdown role={user?.role} permissions={user?.permissions} />

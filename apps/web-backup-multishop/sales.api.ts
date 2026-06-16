@@ -18,7 +18,6 @@ export interface CreateSaleItem {
 }
 
 export interface CreateSalePayload {
-  shopId: string;
   customerId?: string;
   paymentMethod: PaymentMethod;
   paidAmount: number;
@@ -112,11 +111,11 @@ export const salesApi = {
   create: (payload: CreateSalePayload) =>
     apiClient.post<{ data: Sale }>('/sales', payload).then(unwrap),
 
-  list: (shopId?: string) =>
-    apiClient.get<{ data: Sale[] }>('/sales', { params: shopId ? { shopId } : {} }).then(unwrap),
+  list: () =>
+    apiClient.get<{ data: Sale[] }>('/sales').then(unwrap),
 
-  summary: (shopId?: string) =>
-    apiClient.get<{ data: SalesSummary }>('/sales/summary', { params: shopId ? { shopId } : {} }).then(unwrap),
+  summary: () =>
+    apiClient.get<{ data: SalesSummary }>('/sales/summary').then(unwrap),
 
   getOne: (id: string) =>
     apiClient.get<{ data: Sale }>(`/sales/${id}`).then(unwrap),

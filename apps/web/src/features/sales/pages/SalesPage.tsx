@@ -47,12 +47,12 @@ export default function SalesPage() {
 
   const { data: sales = [], isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['sales-list'],
-    queryFn: salesApi.list,
+    queryFn: () => salesApi.list(),
   });
 
   const { data: summary } = useQuery({
     queryKey: ['sales-summary'],
-    queryFn: salesApi.summary,
+    queryFn: () => salesApi.summary(),
   });
 
   // Filtered sales

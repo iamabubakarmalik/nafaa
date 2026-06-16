@@ -1,6 +1,9 @@
 import {
-  BadRequestException, Injectable, NotFoundException,
+  BadRequestException,
+  Injectable,
+  NotFoundException,
 } from '@nestjs/common';
+import { startOfDay } from 'date-fns';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
 import { OpenRegisterDto } from './dto/open-register.dto';
@@ -11,38 +14,33 @@ import { CashTransactionDto } from './dto/cash-transaction.dto';
 export class CashRegisterService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getCurrent(user: AuthenticatedUser, shopId?: string) {
-    return this.prisma.cashRegister.findFirst({
+  async getCurrent(user: AuthenticatedUser) {
+    const open = await this.prisma.cashRegister.findFirst({
       where: {
         tenantId: user.tenantId,
         status: 'OPEN',
-        ...(shopId && { shopId }),
       },
       include: {
         openedBy: { select: { id: true, fullName: true } },
         shop: true,
-        transactions: { orderBy: { createdAt: 'desc' }, take: 50 },
+        transactions: {
+          orderBy: { createdAt: 'desc' },
+          take: 50,
+        },
       },
     });
+    return open;
   }
 
   async open(user: AuthenticatedUser, dto: OpenRegisterDto) {
-    const shop = await this.prisma.shop.findFirst({
-      where: { id: dto.shopId, tenantId: user.tenantId, isActive: true },
-    });
-    if (!shop) throw new NotFoundException('Shop not found or inactive');
-
-    // Check if this shop already has an open register
     const existing = await this.prisma.cashRegister.findFirst({
-      where: { tenantId: user.tenantId, shopId: dto.shopId, status: 'OPEN' },
+      where: { tenantId: user.tenantId, status: 'OPEN' },
     });
     if (existing) {
-      throw new BadRequestException(
-        `${shop.name} ka register pehle se open hai. Pehle close karein.`,
-      );
+      throw new BadRequestException('Pehle se ek register open hai. Pehle close karein.');
     }
 
-    const registerNumber = `CR-${shop.name.slice(0, 3).toUpperCase()}-${Date.now().toString().slice(-6)}`;
+    const registerNumber = `CR-${Date.now().toString().slice(-8)}`;
 
     return this.prisma.$transaction(async (tx) => {
       const register = await tx.cashRegister.create({
@@ -65,7 +63,7 @@ export class CashRegisterService {
           createdById: user.id,
           type: 'OPENING',
           amount: dto.openingBalance,
-          reason: `${shop.name} register opened`,
+          reason: 'Register opened',
           note: dto.notes,
         },
       });
@@ -74,13 +72,9 @@ export class CashRegisterService {
     });
   }
 
-  async addTransaction(user: AuthenticatedUser, dto: CashTransactionDto, shopId?: string) {
+  async addTransaction(user: AuthenticatedUser, dto: CashTransactionDto) {
     const register = await this.prisma.cashRegister.findFirst({
-      where: {
-        tenantId: user.tenantId,
-        status: 'OPEN',
-        ...(shopId && { shopId }),
-      },
+      where: { tenantId: user.tenantId, status: 'OPEN' },
     });
     if (!register) throw new BadRequestException('Koi register open nahi hai');
 
@@ -97,7 +91,7 @@ export class CashRegisterService {
         },
       });
 
-      return tx.cashTransaction.create({
+      const txn = await tx.cashTransaction.create({
         data: {
           tenantId: user.tenantId,
           cashRegisterId: register.id,
@@ -108,32 +102,31 @@ export class CashRegisterService {
           note: dto.note,
         },
       });
+
+      return txn;
     });
   }
 
-  async close(user: AuthenticatedUser, dto: CloseRegisterDto, shopId?: string) {
+  async close(user: AuthenticatedUser, dto: CloseRegisterDto) {
     const register = await this.prisma.cashRegister.findFirst({
-      where: {
-        tenantId: user.tenantId,
-        status: 'OPEN',
-        ...(shopId && { shopId }),
-      },
+      where: { tenantId: user.tenantId, status: 'OPEN' },
     });
     if (!register) throw new BadRequestException('Koi register open nahi hai');
 
-    // Cash sales for THIS shop during this register session
+    // Calculate sales during this register session (cash sales only)
     const cashSales = await this.prisma.sale.aggregate({
       where: {
         tenantId: user.tenantId,
-        shopId: register.shopId,
         status: 'COMPLETED',
         paymentMethod: 'CASH',
         soldAt: { gte: register.openedAt },
       },
       _sum: { paidAmount: true },
     });
+
     const totalCashSales = cashSales._sum.paidAmount ?? 0;
 
+    // Calculate cash expenses during this session
     const cashExpenses = await this.prisma.expense.aggregate({
       where: {
         tenantId: user.tenantId,
@@ -143,11 +136,15 @@ export class CashRegisterService {
       },
       _sum: { amount: true },
     });
+
     const totalCashExpenses = cashExpenses._sum.amount ?? 0;
 
     const expectedFinal =
-      register.openingBalance + totalCashSales + register.totalCashIn -
-      register.totalCashOut - totalCashExpenses;
+      register.openingBalance +
+      totalCashSales +
+      register.totalCashIn -
+      register.totalCashOut -
+      totalCashExpenses;
 
     const difference = dto.closingBalance - expectedFinal;
 
@@ -183,9 +180,9 @@ export class CashRegisterService {
     });
   }
 
-  async history(user: AuthenticatedUser, shopId?: string) {
+  async history(user: AuthenticatedUser) {
     return this.prisma.cashRegister.findMany({
-      where: { tenantId: user.tenantId, ...(shopId && { shopId }) },
+      where: { tenantId: user.tenantId },
       orderBy: { openedAt: 'desc' },
       take: 30,
       include: {

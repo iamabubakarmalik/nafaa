@@ -30,7 +30,6 @@ interface AuthState {
   user: AuthUser | null;
   tenant: AuthTenant | null;
   isAuthenticated: boolean;
-  currentShopId: string | null;
   setSession: (data: {
     accessToken: string;
     refreshToken: string;
@@ -40,7 +39,6 @@ interface AuthState {
   setTokens: (accessToken: string, refreshToken: string) => void;
   setUser: (user: AuthUser, tenant: AuthTenant) => void;
   updateTenant: (patch: Partial<AuthTenant>) => void;
-  setCurrentShop: (shopId: string | null) => void;
   logout: () => void;
 }
 
@@ -52,7 +50,6 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       tenant: null,
       isAuthenticated: false,
-      currentShopId: null,
       setSession: ({ accessToken, refreshToken, user, tenant }) =>
         set({ accessToken, refreshToken, user, tenant, isAuthenticated: true }),
       setTokens: (accessToken, refreshToken) =>
@@ -62,7 +59,6 @@ export const useAuthStore = create<AuthState>()(
         set((state) => ({
           tenant: state.tenant ? { ...state.tenant, ...patch } : null,
         })),
-      setCurrentShop: (shopId) => set({ currentShopId: shopId }),
       logout: () =>
         set({
           accessToken: null,
@@ -70,7 +66,6 @@ export const useAuthStore = create<AuthState>()(
           user: null,
           tenant: null,
           isAuthenticated: false,
-          currentShopId: null,
         }),
     }),
     { name: 'nafaa-auth' },
