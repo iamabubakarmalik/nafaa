@@ -1,14 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import {
-  IsArray,
-  IsEmail,
-  IsEnum,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  MaxLength,
-  MinLength,
+  IsArray, IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString,
+  MaxLength, MinLength,
 } from 'class-validator';
 
 export class CreateTeamMemberDto {
@@ -39,9 +33,16 @@ export class CreateTeamMemberDto {
   role!: UserRole;
 
   @ApiPropertyOptional({
+    description: 'Assign user to specific shop (required for MANAGER/CASHIER)',
+    example: 'shop-uuid-here',
+  })
+  @IsOptional()
+  @IsString()
+  shopId?: string;
+
+  @ApiPropertyOptional({
     type: [String],
     example: ['pos.use', 'products.view'],
-    description: 'Granular permission keys. If empty, role defaults applied.',
   })
   @IsOptional()
   @IsArray()

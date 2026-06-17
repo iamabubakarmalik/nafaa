@@ -53,16 +53,32 @@ export class SalesService {
     const productMap = new Map(products.map((p) => [p.id, p]));
     const variantMap = new Map(variants.map((v) => [v.id, v]));
 
-    // ─── Fetch shop stock for all items ───────────────────────
-    const shopStocks = await this.prisma.shopStock.findMany({
-      where: {
-        shopId: dto.shopId,
-        OR: dto.items.map((i) => ({
-          productId: i.productId,
-          variantId: i.variantId ?? null,
-        })),
-      },
+    // ─── Detect carpet items (have note prefix "Cut from" or "Cut piece") ───
+    const carpetUnits = new Set(['sqft', 'sqm', 'sqyd']);
+    const carpetItemIndices = new Set<number>();
+    dto.items.forEach((item, idx) => {
+      const product = productMap.get(item.productId);
+      const note = item.note || '';
+      const isCarpetSale =
+        note.startsWith('Cut from ') ||
+        note.startsWith('Cut piece ') ||
+        (product && carpetUnits.has(product.unit));
+      if (isCarpetSale) carpetItemIndices.add(idx);
     });
+
+    // ─── Fetch shop stock for NON-CARPET items only ──────────
+    const nonCarpetItems = dto.items.filter((_, idx) => !carpetItemIndices.has(idx));
+    const shopStocks = nonCarpetItems.length > 0
+      ? await this.prisma.shopStock.findMany({
+          where: {
+            shopId: dto.shopId,
+            OR: nonCarpetItems.map((i) => ({
+              productId: i.productId,
+              variantId: i.variantId ?? null,
+            })),
+          },
+        })
+      : [];
     const stockMap = new Map(
       shopStocks.map((s) => [`${s.productId}:${s.variantId ?? 'null'}`, s]),
     );
@@ -89,20 +105,25 @@ export class SalesService {
       const unitCost = variant?.costPrice ?? product.costPrice ?? 0;
       const quantity = Number(item.quantity);
 
-      // ─── SHOP STOCK CHECK ──────────────────────────────────
-      const stockKey = `${item.productId}:${item.variantId ?? 'null'}`;
-      const shopStock = stockMap.get(stockKey);
+      // ─── SHOP STOCK CHECK (skip for carpet items) ─────────
+      const isCarpetItem = carpetItemIndices.has(dto.items.indexOf(item));
+      let shopStock = null;
 
-      if (!shopStock) {
-        throw new BadRequestException(
-          `${itemName} is not available in ${shop.name}. Transfer karein ya purchase entry karein.`,
-        );
-      }
+      if (!isCarpetItem) {
+        const stockKey = `${item.productId}:${item.variantId ?? 'null'}`;
+        shopStock = stockMap.get(stockKey);
 
-      if (shopStock.stock < quantity) {
-        throw new BadRequestException(
-          `${itemName} insufficient in ${shop.name}. Available: ${shopStock.stock}`,
-        );
+        if (!shopStock) {
+          throw new BadRequestException(
+            `${itemName} is not available in ${shop.name}. Transfer karein ya purchase entry karein.`,
+          );
+        }
+
+        if (shopStock.stock < quantity) {
+          throw new BadRequestException(
+            `${itemName} insufficient in ${shop.name}. Available: ${shopStock.stock}`,
+          );
+        }
       }
 
       const lineGross = unitPrice * quantity;
@@ -121,7 +142,8 @@ export class SalesService {
       return {
         productId: product.id,
         variantId: variant?.id,
-        shopStockId: shopStock.id,
+        shopStockId: shopStock?.id ?? null,
+        isCarpetItem,
         quantity,
         price: unitPrice,
         costPrice: unitCost,
@@ -238,14 +260,30 @@ export class SalesService {
         },
       });
 
-      // ─── Decrement SHOP STOCK + global stock + log movement ──
+      // ─── Decrement stock + log movement (skip carpet — already deducted by roll cut) ──
       for (const item of normalizedItems) {
+        if (item.isCarpetItem) {
+          // Carpet items: roll already cut. Just log movement for audit trail.
+          await tx.stockMovement.create({
+            data: {
+              tenantId: user.tenantId,
+              productId: item.productId,
+              type: 'SALE_OUT',
+              quantity: -item.quantity,
+              balanceAfter: 0, // carpet stock tracked at roll level
+              reference: sale.saleNumber,
+              note: `Carpet sale at ${shop.name}${item.note ? ` • ${item.note}` : ''}`,
+            },
+          });
+          continue;
+        }
+
+        // Standard items: decrement ShopStock + global stock
         const updatedShopStock = await tx.shopStock.update({
-          where: { id: item.shopStockId },
+          where: { id: item.shopStockId! },
           data: { stock: { decrement: item.quantity } },
         });
 
-        // Keep global stock in sync (for legacy queries)
         if (item.variantId) {
           await tx.productVariant.update({
             where: { id: item.variantId },
@@ -424,6 +462,26 @@ export class SalesService {
 
     return this.prisma.$transaction(async (tx) => {
       for (const item of sale.items) {
+        // ─── Detect carpet item by note (legacy data check) ───
+        const itemNote = (item as any).note || '';
+        const isCarpetItem = itemNote.startsWith('Cut from ') || itemNote.startsWith('Cut piece ');
+
+        if (isCarpetItem) {
+          // Carpet void: just log restoration movement (manual roll adjustment required)
+          await tx.stockMovement.create({
+            data: {
+              tenantId: user.tenantId,
+              productId: item.productId,
+              type: 'RETURN_IN',
+              quantity: item.quantity,
+              balanceAfter: 0,
+              reference: sale.saleNumber,
+              note: `Voided carpet sale — manual roll adjustment needed: ${reason || 'No reason'}`,
+            },
+          });
+          continue;
+        }
+
         // ─── Restore to SHOP STOCK ──────────────────────────────
         const variantId = item.variantLink?.variantId ?? null;
         const shopStock = await tx.shopStock.findFirst({

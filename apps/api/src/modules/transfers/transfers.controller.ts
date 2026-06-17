@@ -16,6 +16,11 @@ export class TransfersController {
     return this.service.list(user);
   }
 
+  @Get(':id')
+  findOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.service.findOne(user, id);
+  }
+
   @Post()
   create(@GetUser() user: AuthenticatedUser, @Body() dto: CreateTransferDto) {
     return this.service.create(user, dto);

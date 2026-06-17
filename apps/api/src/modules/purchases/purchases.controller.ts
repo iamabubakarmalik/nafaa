@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../auth/decorators/get-user.decorator';
 import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
@@ -27,5 +27,13 @@ export class PurchasesController {
   @Get('summary')
   summary(@GetUser() user: AuthenticatedUser) {
     return this.purchasesService.summary(user);
+  }
+
+  @Get(':id')
+  findOne(
+    @GetUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+  ) {
+    return this.purchasesService.findOne(user, id);
   }
 }

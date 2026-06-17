@@ -5,10 +5,12 @@ export interface JwtPayload {
   tenantId: string;
   email: string;
   role: UserRole;
+  shopId?: string | null;
   permissions?: string[];
 }
 
 export interface AuthenticatedUser extends JwtPayload {
   id: string;
+  shopId: string | null;
   permissions: string[];
 }

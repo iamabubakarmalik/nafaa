@@ -6,6 +6,8 @@ import {
   CheckCircle2, UserCheck, UserX, Activity, Sparkles, Filter,
 } from 'lucide-react';
 import { teamApi, type UserRole, type TeamMember } from '@/api/team.api';
+import { shopsApi } from '@/api/shops.api';
+import { Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useAuthStore } from '@/store/auth.store';
@@ -58,9 +60,10 @@ export default function TeamPage() {
     phone: string;
     password: string;
     role: Exclude<UserRole, 'OWNER' | 'SUPER_ADMIN'>;
+    shopId: string;
     permissions: string[];
   }>({
-    fullName: '', email: '', phone: '', password: '',
+    fullName: '', email: '', phone: '', password: '', shopId: '',
     role: 'CASHIER',
     permissions: [...DEFAULT_ROLE_PERMISSIONS.CASHIER],
   });
@@ -71,6 +74,12 @@ export default function TeamPage() {
   const { data: members = [], isLoading } = useQuery({
     queryKey: ['team'],
     queryFn: teamApi.list,
+  });
+
+  const { data: shops = [] } = useQuery({
+    queryKey: ['shops-for-team'],
+    queryFn: shopsApi.list,
+    enabled: isOwner,
   });
 
   const { data: catalog } = useQuery({
@@ -121,7 +130,7 @@ export default function TeamPage() {
     onSuccess: () => {
       toast.success('Team member added successfully');
       setForm({
-        fullName: '', email: '', phone: '', password: '',
+        fullName: '', email: '', phone: '', password: '', shopId: '',
         role: 'CASHIER',
         permissions: [...(effectiveDefaults.CASHIER ?? [])],
       });
@@ -288,6 +297,33 @@ export default function TeamPage() {
                 </div>
               </div>
 
+              {/* Shop Assignment */}
+              {shops.length > 0 && (
+                <div>
+                  <label className="text-sm font-bold text-slate-700 mb-2 inline-flex items-center gap-1.5">
+                    <Building2 className="h-4 w-4 text-indigo-600" />
+                    Assign to Shop / Branch
+                  </label>
+                  <select
+                    value={form.shopId}
+                    onChange={(e) => setForm({ ...form, shopId: e.target.value })}
+                    className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-medium focus:outline-none focus:border-indigo-500"
+                  >
+                    <option value="">— No specific shop (flexible) —</option>
+                    {shops.filter((s) => s.isActive).map((shop) => (
+                      <option key={shop.id} value={shop.id}>
+                        {shop.name}{shop.isMain ? ' ⭐ Main' : ''} ({shop.type})
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-slate-500 mt-1.5">
+                    {form.shopId
+                      ? '🔒 User sirf is shop ka data dekh sakega'
+                      : 'ℹ️ Manager/Cashier ko specific shop assign karna recommended hai'}
+                  </p>
+                </div>
+              )}
+
               <div className="rounded-2xl border-2 border-slate-200 bg-slate-50 p-4">
                 <div className="flex items-center justify-between gap-3 mb-3">
                   <div>
@@ -365,6 +401,7 @@ export default function TeamPage() {
                     phone: form.phone.trim() || undefined,
                     password: form.password,
                     role: form.role,
+                    shopId: form.shopId || undefined,
                     permissions: form.permissions,
                   });
                 }}
@@ -589,13 +626,24 @@ export default function TeamPage() {
                             )}
                           </div>
                           <div className="flex items-center gap-3 mt-1 text-[10px] text-slate-400 flex-wrap font-bold">
+                            {m.assignedShop ? (
+                              <span className="inline-flex items-center gap-1 text-indigo-700">
+                                <Building2 className="h-2.5 w-2.5" />
+                                {m.assignedShop.name}{m.assignedShop.isMain ? ' ⭐' : ''}
+                              </span>
+                            ) : (m.role !== 'OWNER' && m.role !== 'SUPER_ADMIN') && (
+                              <span className="inline-flex items-center gap-1 text-amber-600">
+                                <Building2 className="h-2.5 w-2.5" />
+                                No shop assigned
+                              </span>
+                            )}
                             <span className="inline-flex items-center gap-1">
                               <KeyRound className="h-2.5 w-2.5" />
                               {(m.permissions ?? []).length} permissions
                             </span>
                             <span className="inline-flex items-center gap-1">
                               <Activity className="h-2.5 w-2.5" />
-                              Last login: {formatRelative(m.lastLoginAt)}
+                              {formatRelative(m.lastLoginAt)}
                             </span>
                           </div>
                         </div>

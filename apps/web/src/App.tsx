@@ -32,6 +32,7 @@ import SuppliersListPage from '@/features/suppliers/pages/SuppliersListPage';
 import SupplierFormPage from '@/features/suppliers/pages/SupplierFormPage';
 import SupplierDetailPage from '@/features/suppliers/pages/SupplierDetailPage';
 import PurchasesPage from '@/features/purchases/pages/PurchasesPage';
+import PurchaseDetailPage from '@/features/purchases/pages/PurchaseDetailPage';
 import CategoriesPage from '@/features/categories/pages/CategoriesPage';
 import ExpensesPage from '@/features/expenses/pages/ExpensesPage';
 import StockMovementsPage from '@/features/stock-movements/pages/StockMovementsPage';
@@ -67,6 +68,11 @@ import StaffListPage from '@/features/staff/pages/StaffListPage';
 import ExpiryDashboardPage from '@/features/industries/pharmacy/pages/ExpiryDashboardPage';
 import TablesPage from '@/features/industries/restaurant/pages/TablesPage';
 import AppointmentsPage from '@/features/industries/salon/pages/AppointmentsPage';
+import CarpetRollsPage from '@/features/industries/carpet/pages/CarpetRollsPage';
+import CarpetCutPiecesPage from '@/features/industries/carpet/pages/CarpetCutPiecesPage';
+import CarpetRollDetailPage from '@/features/industries/carpet/pages/CarpetRollDetailPage';
+import CarpetReportsPage from '@/features/industries/carpet/pages/CarpetReportsPage';
+import CarpetBulkImportPage from '@/features/industries/carpet/pages/CarpetBulkImportPage';
 import StaffFormPage from '@/features/staff/pages/StaffFormPage';
 import StaffDetailPage from '@/features/staff/pages/StaffDetailPage';
 import AttendancePage from '@/features/staff/pages/AttendancePage';
@@ -149,6 +155,7 @@ export default function App() {
                 <Route path="/suppliers/:id" element={secure(PERMISSIONS.SUPPLIERS_VIEW, <SupplierDetailPage />)} />
                 <Route path="/suppliers" element={secure(PERMISSIONS.SUPPLIERS_VIEW, <SuppliersListPage />)} />
 
+                <Route path="/purchases/:id" element={secure(PERMISSIONS.PURCHASES_VIEW, <PurchaseDetailPage />)} />
                 <Route path="/purchases" element={secure(PERMISSIONS.PURCHASES_VIEW, <PurchasesPage />)} />
                 <Route path="/expenses" element={secure(PERMISSIONS.EXPENSES_VIEW, <ExpensesPage />)} />
                 <Route path="/stock-movements" element={secure(PERMISSIONS.STOCK_MOVEMENTS_VIEW, <StockMovementsPage />)} />
@@ -168,6 +175,13 @@ export default function App() {
                 <Route path="/expiry-dashboard" element={<ExpiryDashboardPage />} />
                 <Route path="/tables" element={<TablesPage />} />
                 <Route path="/appointments" element={<AppointmentsPage />} />
+
+                {/* Carpet Industry */}
+                <Route path="/carpet-rolls" element={<CarpetRollsPage />} />
+                <Route path="/carpet-rolls/:id" element={<CarpetRollDetailPage />} />
+                <Route path="/carpet-reports" element={<CarpetReportsPage />} />
+                <Route path="/carpet-bulk-import" element={<CarpetBulkImportPage />} />
+                <Route path="/carpet-cut-pieces" element={<CarpetCutPiecesPage />} />
                 <Route path="/staff/:id/edit" element={secure(PERMISSIONS.STAFF_MANAGE, <StaffFormPage />)} />
 
                 <Route path="/shops" element={secure(PERMISSIONS.SHOPS_VIEW, <ShopsPage />)} />

@@ -143,7 +143,12 @@ export class AuthService {
   async login(dto: LoginDto, meta?: { userAgent?: string; ip?: string }) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email.toLowerCase() },
-      include: { tenant: true },
+      include: {
+        tenant: true,
+        assignedShop: {
+          select: { id: true, name: true, isMain: true, isActive: true, type: true },
+        },
+      },
     });
 
     if (!user || !user.isActive) {
@@ -592,7 +597,12 @@ export class AuthService {
   async me(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      include: { tenant: true },
+      include: {
+        tenant: true,
+        assignedShop: {
+          select: { id: true, name: true, isMain: true, isActive: true, type: true },
+        },
+      },
     });
     if (!user) throw new UnauthorizedException();
     return {

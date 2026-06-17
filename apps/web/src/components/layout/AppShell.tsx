@@ -8,7 +8,7 @@ import {
   ArrowRightLeft, Download, Database, RotateCcw, Award, Percent,
   TrendingUp, CreditCard, Gift, Gauge, Hash, UserCircle, LifeBuoy,
   ScrollText, Eye, UserCog, CheckCircle2, Wallet2, Plus, ChevronDown,
-  User, KeyRound, HelpCircle, Search, Bell,
+  User, KeyRound, HelpCircle, Search, Bell, Scissors, FileSpreadsheet,Layers,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/Button';
@@ -71,6 +71,15 @@ const navGroups: { label: string; items: NavItem[] }[] = [
     ],
   },
   {
+    label: 'Carpet Industry',
+    items: [
+      { to: '/carpet-rolls', label: 'Carpet Rolls', icon: Layers, badge: 'NEW' },
+      { to: '/carpet-cut-pieces', label: 'Cut Pieces', icon: Scissors },
+      { to: '/carpet-reports', label: 'Carpet Reports', icon: BarChart3 },
+      { to: '/carpet-bulk-import', label: 'Bulk Import', icon: FileSpreadsheet },
+    ],
+  },
+  {
     label: 'Staff Management',
     items: [
       { to: '/staff', label: 'All Staff', icon: UserCog, permission: PERMISSIONS.STAFF_VIEW },
@@ -130,7 +139,15 @@ const SidebarContent = memo(function SidebarContent({
   const navRef = useRef<HTMLElement | null>(null);
 
   const filteredGroups = useMemo(() => {
+    const isCarpet = (businessType ?? '').toUpperCase().includes('CARPET') ||
+                     (businessType ?? '').toUpperCase().includes('FLOORING');
+
     return navGroups
+      .filter((group) => {
+        // Carpet Industry sirf carpet business type ko dikhe
+        if (group.label === 'Carpet Industry' && !isCarpet) return false;
+        return true;
+      })
       .map((group) => ({
         ...group,
         items: group.items.filter((item) =>
@@ -140,7 +157,7 @@ const SidebarContent = memo(function SidebarContent({
         ),
       }))
       .filter((group) => group.items.length > 0);
-  }, [role, permissions]);
+  }, [role, permissions, businessType]);
 
   useEffect(() => {
     const nav = navRef.current;

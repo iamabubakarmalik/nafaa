@@ -11,8 +11,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@nafaa/api-client": "workspace:*",
     "@hookform/resolvers": "^5.2.2",
+    "@nafaa/api-client": "workspace:*",
     "@tanstack/react-query": "^5.100.9",
     "@zxing/browser": "^0.2.0",
     "@zxing/library": "^0.23.0",
@@ -27,6 +27,7 @@
     "recharts": "^3.8.1",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.5.0",
+    "xlsx": "^0.18.5",
     "zod": "^4.4.3",
     "zustand": "^5.0.13"
   },

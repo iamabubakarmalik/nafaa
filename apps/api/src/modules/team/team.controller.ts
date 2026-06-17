@@ -47,7 +47,16 @@ export class TeamController {
     return this.teamService.updatePermissions(user, id, dto);
   }
 
-  @Patch(':id/toggle')
+  @Patch(':id/shop')
+  updateShop(
+    @GetUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+    @Body() body: { shopId: string | null },
+  ) {
+    return this.teamService.updateShop(user, id, body.shopId);
+  }
+
+    @Patch(':id/toggle')
   toggleActive(
     @GetUser() user: AuthenticatedUser,
     @Param('id') id: string,

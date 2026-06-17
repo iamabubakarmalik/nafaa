@@ -10,6 +10,8 @@ export interface TeamMember {
   role: UserRole;
   isActive: boolean;
   permissions?: string[];
+  shopId?: string | null;
+  assignedShop?: { id: string; name: string; isMain: boolean } | null;
   lastLoginAt?: string | null;
   createdAt: string;
 }
@@ -20,6 +22,7 @@ export interface CreateTeamMemberPayload {
   phone?: string;
   password: string;
   role: Exclude<UserRole, 'OWNER' | 'SUPER_ADMIN'>;
+  shopId?: string;
   permissions?: string[];
 }
 
@@ -32,23 +35,16 @@ const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
 
 export const teamApi = {
   list: () => apiClient.get<{ data: TeamMember[] }>('/team').then(unwrap),
-
   catalog: () =>
-    apiClient
-      .get<{ data: TeamPermissionCatalog }>('/team/permissions/catalog')
-      .then(unwrap),
-
+    apiClient.get<{ data: TeamPermissionCatalog }>('/team/permissions/catalog').then(unwrap),
   create: (payload: CreateTeamMemberPayload) =>
     apiClient.post<{ data: TeamMember }>('/team', payload).then(unwrap),
-
   updatePermissions: (id: string, permissions: string[]) =>
-    apiClient
-      .patch<{ data: TeamMember }>(`/team/${id}/permissions`, { permissions })
-      .then(unwrap),
-
+    apiClient.patch<{ data: TeamMember }>(`/team/${id}/permissions`, { permissions }).then(unwrap),
+  updateShop: (id: string, shopId: string | null) =>
+    apiClient.patch<{ data: TeamMember }>(`/team/${id}/shop`, { shopId }).then(unwrap),
   toggle: (id: string) =>
     apiClient.patch<{ data: TeamMember }>(`/team/${id}/toggle`).then(unwrap),
-
   remove: (id: string) =>
     apiClient.delete<{ data: { message: string } }>(`/team/${id}`).then(unwrap),
 };

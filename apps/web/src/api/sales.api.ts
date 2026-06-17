@@ -67,6 +67,7 @@ export interface Sale {
     price: number;
     costPrice: number;
     total: number;
+    note?: string | null;
     product: {
       id: string;
       name: string;

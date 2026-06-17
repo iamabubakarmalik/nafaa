@@ -52,6 +52,10 @@ export class TeamService {
         role: true,
         isActive: true,
         permissions: true,
+        shopId: true,
+        assignedShop: {
+          select: { id: true, name: true, isMain: true },
+        },
         lastLoginAt: true,
         createdAt: true,
       },
@@ -93,9 +97,18 @@ export class TeamService {
 
     const passwordHash = await hashPassword(dto.password);
 
+    // Validate shopId if provided
+    if ((dto as any).shopId) {
+      const shop = await this.prisma.shop.findFirst({
+        where: { id: (dto as any).shopId, tenantId: user.tenantId },
+      });
+      if (!shop) throw new NotFoundException('Shop not found');
+    }
+
     const created = await this.prisma.user.create({
       data: {
         tenantId: user.tenantId,
+        shopId: (dto as any).shopId || null,
         fullName: dto.fullName,
         email: dto.email.toLowerCase(),
         phone: dto.phone,
@@ -111,6 +124,7 @@ export class TeamService {
         phone: true,
         role: true,
         permissions: true,
+        shopId: true,
         isActive: true,
         createdAt: true,
       },
@@ -179,7 +193,52 @@ export class TeamService {
     return updated;
   }
 
-  async toggleActive(user: AuthenticatedUser, id: string) {
+  /**
+   * Assign team member to a specific shop
+   */
+  async updateShop(user: AuthenticatedUser, id: string, shopId: string | null) {
+    this.requireOwner(user);
+
+    const member = await this.prisma.user.findFirst({
+      where: { id, tenantId: user.tenantId },
+    });
+    if (!member) throw new NotFoundException('Team member not found');
+    if (member.role === UserRole.OWNER) {
+      throw new BadRequestException('Owner ko kisi shop se tie nahi kar sakte');
+    }
+
+    if (shopId) {
+      const shop = await this.prisma.shop.findFirst({
+        where: { id: shopId, tenantId: user.tenantId },
+      });
+      if (!shop) throw new NotFoundException('Shop not found');
+    }
+
+    const updated = await this.prisma.user.update({
+      where: { id },
+      data: { shopId },
+      select: {
+        id: true, fullName: true, role: true, shopId: true,
+        assignedShop: { select: { id: true, name: true, isMain: true } },
+      },
+    });
+
+    await this.prisma.activityLog.create({
+      data: {
+        tenantId: user.tenantId,
+        userId: user.id,
+        action: 'UPDATE',
+        entityType: 'TeamMember',
+        entityId: id,
+        description: `${user.email} ${shopId ? 'assigned' : 'unassigned'} ${member.fullName} ${shopId ? 'to shop' : 'from shop'}`,
+        metadata: { shopId },
+      },
+    });
+
+    return updated;
+  }
+
+    async toggleActive(user: AuthenticatedUser, id: string) {
     this.requireOwner(user);
 
     const member = await this.prisma.user.findFirst({

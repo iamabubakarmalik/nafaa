@@ -13,6 +13,23 @@ export interface PurchaseItem {
   };
 }
 
+export interface PurchaseCarpetRoll {
+  id: string;
+  rollNumber: string;
+  designCode?: string | null;
+  widthFt: number;
+  widthInch: number;
+  originalLengthFt: number;
+  remainingLengthFt: number;
+  originalSqft: number;
+  remainingSqft: number;
+  costPerSqft: number;
+  salePricePerSqft: number;
+  status: string;
+  product: { id: string; name: string };
+  variant?: { id: string; name: string; color?: string | null } | null;
+}
+
 export interface Purchase {
   id: string;
   purchaseNumber: string;
@@ -29,6 +46,27 @@ export interface Purchase {
     name: string;
   };
   items: PurchaseItem[];
+  carpetRolls?: PurchaseCarpetRoll[];
+  createdRollsByItem?: Record<string, string[]>;
+}
+
+/**
+ * Carpet roll details that can be attached to a purchase item.
+ * If provided, system auto-creates CarpetRoll entries on purchase receive.
+ */
+export interface PurchaseRollPayload {
+  rollNumber?: string;
+  designCode?: string;
+  widthFt: number;
+  widthInch?: number;
+  lengthFt: number;
+  costPerSqft?: number;
+  salePricePerSqft?: number;
+  variantId?: string;
+  rackNumber?: string;
+  notes?: string;
+  quality?: string;
+  pile?: string;
 }
 
 export interface CreatePurchasePayload {
@@ -37,10 +75,12 @@ export interface CreatePurchasePayload {
   discount?: number;
   paidAmount?: number;
   notes?: string;
+  shopId?: string;
   items: Array<{
     productId: string;
     quantity: number;
     costPrice: number;
+    rolls?: PurchaseRollPayload[];
   }>;
 }
 
@@ -57,6 +97,9 @@ const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
 export const purchasesApi = {
   list: () =>
     apiClient.get<{ data: Purchase[] }>('/purchases').then(unwrap),
+
+  getOne: (id: string) =>
+    apiClient.get<{ data: Purchase }>(`/purchases/${id}`).then(unwrap),
 
   create: (payload: CreatePurchasePayload) =>
     apiClient.post<{ data: Purchase }>('/purchases', payload).then(unwrap),

@@ -9,6 +9,7 @@ import {
   endOfDay,
 } from 'date-fns';
 import { PrismaService } from '../../prisma/prisma.service';
+import { resolveShopScope } from '../../common/helpers/shop-scope.helper';
 
 @Injectable()
 export class DashboardService {

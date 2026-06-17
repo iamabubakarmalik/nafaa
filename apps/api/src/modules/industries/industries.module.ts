@@ -4,6 +4,7 @@ import { EmiModule } from './mobile/emi/emi.module';
 import { BatchesModule } from './pharmacy/batches/batches.module';
 import { TablesModule } from './restaurant/tables/tables.module';
 import { AppointmentsModule } from './salon/appointments/appointments.module';
+import { CarpetModule } from './carpet/carpet.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { AppointmentsModule } from './salon/appointments/appointments.module';
     BatchesModule,
     TablesModule,
     AppointmentsModule,
+    CarpetModule,
   ],
   exports: [
     ImeiModule,
@@ -19,6 +21,7 @@ import { AppointmentsModule } from './salon/appointments/appointments.module';
     BatchesModule,
     TablesModule,
     AppointmentsModule,
+    CarpetModule,
   ],
 })
 export class IndustriesModule {}

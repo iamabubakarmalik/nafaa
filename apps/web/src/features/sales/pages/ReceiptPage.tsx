@@ -5,10 +5,46 @@ import {
   User, Phone, Calendar, CreditCard, Receipt as ReceiptIcon,
   BookOpen, Tag, Ruler, Copy, Download, ShieldAlert,
   Banknote, Smartphone, Building2, Zap, CheckCircle2, AlertTriangle,
+  Layers, Scissors,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { salesApi } from '@/api/sales.api';
 import { formatPKR } from '@/lib/format';
+
+
+type CarpetNoteInfo = {
+  type: 'roll' | 'cut-piece' | null;
+  reference: string;
+  dimensions?: string;
+  area?: string;
+};
+
+const parseCarpetNote = (note?: string | null): CarpetNoteInfo => {
+  if (!note) return { type: null, reference: '' };
+
+  // "Cut from CR-2026-0001: 12ft x 10ft = 120 sqft"
+  const rollMatch = note.match(/Cut from ([\w-]+):\s*([\d.]+\s*ft\s*[xX×]\s*[\d.]+\s*ft)(?:\s*=\s*([\d.]+\s*\w+))?/);
+  if (rollMatch) {
+    return {
+      type: 'roll',
+      reference: rollMatch[1],
+      dimensions: rollMatch[2],
+      area: rollMatch[3],
+    };
+  }
+
+  // "Cut piece CP-2026-0001 ..."
+  const cutMatch = note.match(/Cut piece ([\w-]+)(?:\s*[•·]\s*([\d.]+\s*ft\s*[xX×]\s*[\d.]+\s*ft))?/);
+  if (cutMatch) {
+    return {
+      type: 'cut-piece',
+      reference: cutMatch[1],
+      dimensions: cutMatch[2],
+    };
+  }
+
+  return { type: null, reference: '' };
+};
 
 const formatDate = (value: string) =>
   new Intl.DateTimeFormat('en-PK', {
@@ -70,7 +106,13 @@ export default function ReceiptPage() {
     const lines = data.items.map((it) => {
       const variant = it.variantLink?.variant;
       const itemName = variant ? `${it.product.name} (${variant.name})` : it.product.name;
-      return `• ${itemName}\n   ${formatQty(it.quantity)} ${it.product.unit} × ${formatPKR(it.price)} = ${formatPKR(it.total)}`;
+      const carpet = parseCarpetNote(it.note);
+      const carpetLine = carpet.type === 'roll'
+        ? `\n   📏 Cut from ${carpet.reference}${carpet.dimensions ? ` • ${carpet.dimensions}` : ''}`
+        : carpet.type === 'cut-piece'
+          ? `\n   ✂️ Piece ${carpet.reference}${carpet.dimensions ? ` • ${carpet.dimensions}` : ''}`
+          : '';
+      return `• ${itemName}${carpetLine}\n   ${formatQty(it.quantity)} ${it.product.unit} × ${formatPKR(it.price)} = ${formatPKR(it.total)}`;
     }).join('\n');
 
     const lines2 = [];
@@ -353,6 +395,35 @@ export default function ReceiptPage() {
                                 {item.product.sku || item.product.barcode || item.product.unit}
                                 {variant?.sku && ` • ${variant.sku}`}
                               </div>
+                              {(() => {
+                                const carpet = parseCarpetNote(item.note);
+                                if (carpet.type === 'roll') {
+                                  return (
+                                    <div className="mt-1.5 inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-[10px] font-bold text-emerald-800">
+                                      <Layers className="h-2.5 w-2.5" />
+                                      Cut from <span className="font-mono">{carpet.reference}</span>
+                                      {carpet.dimensions && <span className="text-emerald-700">• {carpet.dimensions}</span>}
+                                    </div>
+                                  );
+                                }
+                                if (carpet.type === 'cut-piece') {
+                                  return (
+                                    <div className="mt-1.5 inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-violet-50 border border-violet-200 text-[10px] font-bold text-violet-800">
+                                      <Scissors className="h-2.5 w-2.5" />
+                                      Piece <span className="font-mono">{carpet.reference}</span>
+                                      {carpet.dimensions && <span className="text-violet-700">• {carpet.dimensions}</span>}
+                                    </div>
+                                  );
+                                }
+                                if (item.note && !carpet.type) {
+                                  return (
+                                    <div className="text-[10px] text-slate-500 mt-0.5 italic">
+                                      {item.note}
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              })()}
                             </div>
                           </div>
                         </td>

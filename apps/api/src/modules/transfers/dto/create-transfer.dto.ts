@@ -1,37 +1,44 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
-  ArrayMinSize,
-  IsArray,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-  Min,
-  ValidateNested,
+  ArrayMinSize, IsArray, IsNumber, IsOptional, IsString, Min, ValidateNested,
 } from 'class-validator';
 
-class TransferItemDto {
+export class CreateTransferItemDto {
   @ApiProperty()
   @IsString()
-  @IsNotEmpty()
   productId!: string;
 
-  @ApiProperty({ example: 5 })
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  variantId?: string;
+
+  @ApiPropertyOptional({
+    description: 'For carpet transfers: specific roll ID being transferred',
+  })
+  @IsOptional()
+  @IsString()
+  carpetRollId?: string;
+
+  @ApiProperty({ example: 10 })
   @IsNumber()
-  @Min(1)
+  @Min(0.01)
   quantity!: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  notes?: string;
 }
 
 export class CreateTransferDto {
   @ApiProperty()
   @IsString()
-  @IsNotEmpty()
   fromShopId!: string;
 
   @ApiProperty()
   @IsString()
-  @IsNotEmpty()
   toShopId!: string;
 
   @ApiPropertyOptional()
@@ -39,10 +46,17 @@ export class CreateTransferDto {
   @IsString()
   notes?: string;
 
-  @ApiProperty({ type: [TransferItemDto] })
+  @ApiProperty({ type: [CreateTransferItemDto] })
   @IsArray()
   @ArrayMinSize(1)
   @ValidateNested({ each: true })
-  @Type(() => TransferItemDto)
-  items!: TransferItemDto[];
+  @Type(() => CreateTransferItemDto)
+  items!: CreateTransferItemDto[];
+}
+
+export class ReceiveTransferDto {
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  notes?: string;
 }

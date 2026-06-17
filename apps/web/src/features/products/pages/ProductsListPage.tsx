@@ -1,20 +1,30 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  Search, Plus, Package, Star, Filter, AlertTriangle,
-  Edit3, Trash2, X, Sliders, Image as ImageIcon,
+  Search, Plus, Package, Star, AlertTriangle,
+  Trash2, Sliders, Image as ImageIcon, Layers, Scissors,
+  ArrowRight,
 } from 'lucide-react';
-import { productsApi, type ProductsListParams } from '@/api/products.api';
+import { productsApi, type ProductsListParams, type Product } from '@/api/products.api';
 import { brandsApi } from '@/api/brands.api';
 import { categoriesApi } from '@/api/categories.api';
 import { tagsApi } from '@/api/tags.api';
 import { Button } from '@/components/ui/Button';
-import { formatPKR } from '@/lib/format';
+import { formatPKR, formatPKRFull } from '@/lib/format';
 import { toast } from 'sonner';
+import { useBusinessFeatures } from '@/hooks/useBusinessFeatures';
+import { carpetRollsApi, type CarpetProductSummary } from '@/features/industries/carpet/api/carpet-rolls.api';
 
 export default function ProductsListPage() {
   const queryClient = useQueryClient();
+  const { businessType, features } = useBusinessFeatures();
+
+  // Carpet business detection — type OR length×width calc feature enabled
+  const isCarpetBusiness = useMemo(() => {
+    const type = (businessType ?? '').toUpperCase();
+    return type === 'CARPET' || type === 'FLOORING' || features?.lengthWidthCalc === true;
+  }, [businessType, features]);
 
   const [params, setParams] = useState<ProductsListParams>({
     search: '',
@@ -45,6 +55,32 @@ export default function ProductsListPage() {
     queryFn: tagsApi.list,
   });
 
+  // ─── Carpet roll summary ─────────────────────────────────
+  const productIds = useMemo(
+    () => (data?.items ?? []).map((p) => p.id),
+    [data?.items],
+  );
+
+  const { data: carpetSummary = [] } = useQuery({
+    queryKey: ['carpet-product-summary', productIds],
+    queryFn: () => carpetRollsApi.productSummary(productIds),
+    enabled: isCarpetBusiness && productIds.length > 0,
+  });
+
+  const carpetSummaryMap = useMemo(() => {
+    const map = new Map<string, CarpetProductSummary>();
+    for (const s of carpetSummary) {
+      map.set(s.productId, s);
+    }
+    return map;
+  }, [carpetSummary]);
+
+  // Helper: check if a specific product is carpet-style (sqft unit)
+  const isCarpetProduct = (p: Product) => {
+    if (!isCarpetBusiness) return false;
+    return p.unit === 'sqft' || p.unit === 'sqm' || p.unit === 'sqyd';
+  };
+
   const bulkMutation = useMutation({
     mutationFn: (action: 'activate' | 'deactivate' | 'delete' | 'feature' | 'unfeature') =>
       productsApi.bulkAction(Array.from(selected), action),
@@ -52,6 +88,7 @@ export default function ProductsListPage() {
       toast.success(`${action} done for ${selected.size} products`);
       setSelected(new Set());
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['carpet-product-summary'] });
     },
   });
 
@@ -66,6 +103,16 @@ export default function ProductsListPage() {
 
   const items = data?.items ?? [];
 
+  // ─── Carpet stats summary (top banner) ───────────────────
+  const carpetStats = useMemo(() => {
+    if (!isCarpetBusiness) return null;
+    const totalSqft = carpetSummary.reduce((acc, s) => acc + s.totalSqft, 0);
+    const totalRolls = carpetSummary.reduce((acc, s) => acc + s.rollCount, 0);
+    const totalCutPieces = carpetSummary.reduce((acc, s) => acc + s.cutPiecesCount, 0);
+    const productsWithStock = carpetSummary.length;
+    return { totalSqft, totalRolls, totalCutPieces, productsWithStock };
+  }, [carpetSummary, isCarpetBusiness]);
+
   return (
     <div className="space-y-6">
       <section className="rounded-3xl bg-gradient-to-br from-brand-900 to-emerald-700 text-white p-6">
@@ -79,7 +126,14 @@ export default function ProductsListPage() {
               {data?.meta.total ?? 0} total products
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            {isCarpetBusiness && (
+              <Link to="/carpet-rolls">
+                <Button variant="secondary" className="bg-white/15 text-white hover:bg-white/25 border-white/20">
+                  <Layers className="h-4 w-4" /> Carpet Rolls
+                </Button>
+              </Link>
+            )}
             <Link to="/brands">
               <Button variant="secondary">Brands</Button>
             </Link>
@@ -93,6 +147,41 @@ export default function ProductsListPage() {
             </Link>
           </div>
         </div>
+
+        {/* Carpet stats banner */}
+        {carpetStats && carpetStats.totalRolls > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5">
+            <div className="rounded-xl bg-white/10 backdrop-blur p-3">
+              <div className="text-[10px] uppercase tracking-wider text-white/70 font-bold">
+                Carpet Stock
+              </div>
+              <div className="text-2xl font-extrabold mt-1">
+                {carpetStats.totalSqft.toFixed(0)}
+              </div>
+              <div className="text-[10px] text-white/70 font-bold">sqft total</div>
+            </div>
+            <div className="rounded-xl bg-white/10 backdrop-blur p-3">
+              <div className="text-[10px] uppercase tracking-wider text-white/70 font-bold">
+                Active Rolls
+              </div>
+              <div className="text-2xl font-extrabold mt-1">{carpetStats.totalRolls}</div>
+            </div>
+            <div className="rounded-xl bg-white/10 backdrop-blur p-3">
+              <div className="text-[10px] uppercase tracking-wider text-white/70 font-bold">
+                Cut Pieces
+              </div>
+              <div className="text-2xl font-extrabold mt-1">{carpetStats.totalCutPieces}</div>
+            </div>
+            <div className="rounded-xl bg-white/10 backdrop-blur p-3">
+              <div className="text-[10px] uppercase tracking-wider text-white/70 font-bold">
+                Products w/ Stock
+              </div>
+              <div className="text-2xl font-extrabold mt-1">
+                {carpetStats.productsWithStock}
+              </div>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* Search + filter toggle */}
@@ -202,7 +291,7 @@ export default function ProductsListPage() {
           <div className="font-bold text-amber-900">
             {selected.size} selected
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <button
               onClick={() => bulkMutation.mutate('activate')}
               className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700"
@@ -256,8 +345,26 @@ export default function ProductsListPage() {
         <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {items.map((p) => {
             const primaryImage = p.images?.[0]?.url;
-            const isLow = p.stock > 0 && p.stock <= p.lowStockAlert;
-            const isOut = p.stock === 0;
+            const carpetData = carpetSummaryMap.get(p.id);
+            const isCarpet = isCarpetProduct(p);
+
+            // Carpet stock logic
+            const carpetTotalSqft = carpetData?.totalSqft ?? 0;
+            const carpetRollCount = carpetData?.rollCount ?? 0;
+            const carpetCutPieces = carpetData?.cutPiecesCount ?? 0;
+            const hasCarpetStock = isCarpet && (carpetRollCount > 0 || carpetCutPieces > 0);
+
+            // Standard stock logic
+            const isLow = !isCarpet && p.stock > 0 && p.stock <= p.lowStockAlert;
+            const isOut = !isCarpet && p.stock === 0;
+
+            // Price display for carpet (range from rolls)
+            const carpetPriceDisplay = carpetData && carpetData.rollCount > 0
+              ? carpetData.minSalePrice === carpetData.maxSalePrice
+                ? formatPKR(carpetData.avgSalePrice)
+                : `${formatPKR(carpetData.minSalePrice)}–${formatPKR(carpetData.maxSalePrice)}`
+              : formatPKR(p.price);
+
             return (
               <div
                 key={p.id}
@@ -265,14 +372,21 @@ export default function ProductsListPage() {
                   selected.has(p.id) ? 'border-brand-500 ring-2 ring-brand-200' : 'border-slate-200'
                 }`}
               >
+                {/* Carpet ribbon */}
+                {isCarpet && (
+                  <div className="absolute top-0 left-0 z-10 px-2 py-0.5 rounded-br-lg bg-gradient-to-r from-emerald-600 to-emerald-700 text-white text-[9px] font-extrabold uppercase tracking-wider shadow">
+                    Carpet
+                  </div>
+                )}
+
                 {/* Select checkbox */}
                 <button
                   onClick={() => toggleSelect(p.id)}
-                  className={`absolute top-2 left-2 z-10 h-6 w-6 rounded-md border-2 flex items-center justify-center transition ${
+                  className={`absolute top-2 left-2 z-20 h-6 w-6 rounded-md border-2 flex items-center justify-center transition ${
                     selected.has(p.id)
                       ? 'bg-brand-600 border-brand-600'
                       : 'bg-white border-slate-300 opacity-0 group-hover:opacity-100'
-                  }`}
+                  } ${isCarpet ? 'translate-y-5' : ''}`}
                 >
                   {selected.has(p.id) && (
                     <svg className="h-3.5 w-3.5 text-white" viewBox="0 0 20 20" fill="currentColor">
@@ -318,44 +432,98 @@ export default function ProductsListPage() {
                     </h3>
                   </Link>
 
-                  <div className="flex items-center justify-between pt-1">
-                    <div className="font-bold text-emerald-700">
-                      {formatPKR(p.price)}
-                    </div>
-                    {isOut ? (
-                      <span className="text-[10px] font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full">
-                        OUT
-                      </span>
-                    ) : isLow ? (
-                      <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
-                        <AlertTriangle className="h-2.5 w-2.5" />
-                        {p.stock} {p.unit}
-                      </span>
-                    ) : (
-                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
-                        {p.stock} {p.unit}
-                      </span>
-                    )}
-                  </div>
+                  {/* Price + Stock — CARPET branch */}
+                  {isCarpet ? (
+                    <>
+                      <div className="flex items-center justify-between pt-1">
+                        <div className="font-bold text-emerald-700 text-sm">
+                          {carpetPriceDisplay}
+                          <span className="text-[10px] font-bold text-slate-500 ml-0.5">/{p.unit}</span>
+                        </div>
+                        {hasCarpetStock ? (
+                          <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                            {carpetTotalSqft.toFixed(0)} {p.unit}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-extrabold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full">
+                            NO ROLLS
+                          </span>
+                        )}
+                      </div>
 
-                  <div className="flex flex-wrap gap-1 pt-1">
-                    {p._count && p._count.variants! > 0 && (
-                      <span className="text-[10px] font-bold text-violet-700 bg-violet-50 px-2 py-0.5 rounded-full">
-                        {p._count.variants} variants
-                      </span>
-                    )}
-                    {p._count && p._count.images! > 0 && (
-                      <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">
-                        <ImageIcon className="h-2.5 w-2.5" />
-                        {p._count.images}
-                      </span>
-                    )}
-                    {!p.isActive && (
-                      <span className="text-[10px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full">
-                        INACTIVE
-                      </span>
-                    )}
-                  </div>
+                      {/* Carpet roll badges */}
+                      <div className="flex flex-wrap gap-1 pt-1">
+                        {carpetRollCount > 0 && (
+                          <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                            <Layers className="h-2.5 w-2.5" />
+                            {carpetRollCount} roll{carpetRollCount !== 1 ? 's' : ''}
+                          </span>
+                        )}
+                        {carpetCutPieces > 0 && (
+                          <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-violet-700 bg-violet-50 border border-violet-200 px-2 py-0.5 rounded-full">
+                            <Scissors className="h-2.5 w-2.5" />
+                            {carpetCutPieces} cut piece{carpetCutPieces !== 1 ? 's' : ''}
+                          </span>
+                        )}
+                        {!p.isActive && (
+                          <span className="text-[10px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full">
+                            INACTIVE
+                          </span>
+                        )}
+                      </div>
+
+                      {/* View Rolls action */}
+                      <Link
+                        to={`/carpet-rolls?productId=${p.id}`}
+                        className="mt-2 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white text-[11px] font-extrabold transition"
+                      >
+                        {carpetRollCount > 0 ? 'View Rolls' : 'Add First Roll'}
+                        <ArrowRight className="h-3 w-3" />
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      {/* Standard product price + stock */}
+                      <div className="flex items-center justify-between pt-1">
+                        <div className="font-bold text-emerald-700">
+                          {formatPKR(p.price)}
+                        </div>
+                        {isOut ? (
+                          <span className="text-[10px] font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full">
+                            OUT
+                          </span>
+                        ) : isLow ? (
+                          <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                            <AlertTriangle className="h-2.5 w-2.5" />
+                            {p.stock} {p.unit}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                            {p.stock} {p.unit}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex flex-wrap gap-1 pt-1">
+                        {p._count && p._count.variants! > 0 && (
+                          <span className="text-[10px] font-bold text-violet-700 bg-violet-50 px-2 py-0.5 rounded-full">
+                            {p._count.variants} variants
+                          </span>
+                        )}
+                        {p._count && p._count.images! > 0 && (
+                          <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">
+                            <ImageIcon className="h-2.5 w-2.5" />
+                            {p._count.images}
+                          </span>
+                        )}
+                        {!p.isActive && (
+                          <span className="text-[10px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full">
+                            INACTIVE
+                          </span>
+                        )}
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             );

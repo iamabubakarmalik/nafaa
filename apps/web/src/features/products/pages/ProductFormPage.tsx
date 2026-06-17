@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft, Save, Trash2, Star, Eye, Package, DollarSign,
   Boxes, Image as ImageIcon, Layers, Hash, Plus, X, ExternalLink,
-  Smartphone,
+  Smartphone, ArrowRight,
 } from 'lucide-react';
 import { productsApi, type CreateProductPayload } from '@/api/products.api';
 import { brandsApi } from '@/api/brands.api';
@@ -27,6 +27,11 @@ import { toast } from 'sonner';
 import { useBusinessFeatures } from '@/hooks/useBusinessFeatures';
 import { BulkImeiAddModal } from '@/features/industries/mobile/components/BulkImeiAddModal';
 import { imeiApi } from '@/features/industries/mobile/api/imei.api';
+import {
+  IndustrySection,
+  IndustryVariantExtra,
+  useActiveIndustryPlugin,
+} from '@/features/industries/_shared/components/IndustrySection';
 
 type Tab = 'basic' | 'pricing' | 'inventory' | 'images' | 'variants' | 'tags' | 'imei';
 
@@ -40,28 +45,11 @@ const baseTabs: { id: Tab; label: string; icon: any }[] = [
 ];
 
 const emptyForm: CreateProductPayload = {
-  name: '',
-  description: '',
-  shortDescription: '',
-  categoryId: '',
-  brandId: '',
-  sku: '',
-  barcode: '',
-  unit: 'pcs',
-  price: 0,
-  costPrice: 0,
-  wholesalePrice: undefined,
-  taxRate: 0,
-  stock: 0,
-  lowStockAlert: 5,
-  weight: undefined,
-  weightUnit: 'g',
-  dimensions: '',
-  expiryTracked: false,
-  isActive: true,
-  isFeatured: false,
-  tagIds: [],
-  imageUrls: [],
+  name: '', description: '', shortDescription: '', categoryId: '', brandId: '',
+  sku: '', barcode: '', unit: 'pcs', price: 0, costPrice: 0,
+  wholesalePrice: undefined, taxRate: 0, stock: 0, lowStockAlert: 5,
+  weight: undefined, weightUnit: 'g', dimensions: '', expiryTracked: false,
+  isActive: true, isFeatured: false, tagIds: [], imageUrls: [],
 };
 
 type VariantDraftMap = Record<string, UpsertVariantPayload>;
@@ -126,7 +114,11 @@ export default function ProductFormPage() {
   const [showImeiAdd, setShowImeiAdd] = useState(false);
   const [imeiVariantContext, setImeiVariantContext] = useState<{ id?: string; name?: string }>({});
 
-  // Build tabs based on business features
+  // Active industry plugin (for display purposes)
+  const activePlugin = useActiveIndustryPlugin(form.unit ?? 'pcs');
+  const isIndustrySpecific = activePlugin.key !== 'STANDARD';
+
+  // Tabs
   const tabs = [...baseTabs];
   if (isEdit && businessFeatures.imei) {
     tabs.push({ id: 'imei', label: 'IMEI Tracking', icon: Smartphone });
@@ -138,20 +130,9 @@ export default function ProductFormPage() {
     enabled: isEdit,
   });
 
-  const { data: categories = [] } = useQuery({
-    queryKey: ['categories'],
-    queryFn: categoriesApi.list,
-  });
-
-  const { data: brands = [] } = useQuery({
-    queryKey: ['brands'],
-    queryFn: () => brandsApi.list(),
-  });
-
-  const { data: allTags = [] } = useQuery({
-    queryKey: ['tags'],
-    queryFn: tagsApi.list,
-  });
+  const { data: categories = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list });
+  const { data: brands = [] } = useQuery({ queryKey: ['brands'], queryFn: () => brandsApi.list() });
+  const { data: allTags = [] } = useQuery({ queryKey: ['tags'], queryFn: tagsApi.list });
 
   const { data: images = [], refetch: refetchImages } = useQuery({
     queryKey: ['product-images', id],
@@ -211,51 +192,36 @@ export default function ProductFormPage() {
   const updateVariantDraft = (variantId: string, patch: Partial<UpsertVariantPayload>) => {
     setVariantDrafts((prev) => ({
       ...prev,
-      [variantId]: {
-        ...(prev[variantId] ?? {}),
-        ...patch,
-      },
+      [variantId]: { ...(prev[variantId] ?? {}), ...patch },
     }));
   };
 
+  // ─── Mutations ─────────────────────────────────────────────
   const saveMutation = useMutation({
-    mutationFn: async () => {
-      if (isEdit) return productsApi.update(id!, form);
-      return productsApi.create(form);
-    },
+    mutationFn: async () => (isEdit ? productsApi.update(id!, form) : productsApi.create(form)),
   });
 
   const removeMutation = useMutation({
     mutationFn: () => productsApi.remove(id!),
     onSuccess: (data: any) => {
-      if (data?.softDeleted) {
-        toast.success('Product deactivated (sales history preserved)');
-      } else {
-        toast.success('Product deleted permanently');
-      }
+      toast.success(data?.softDeleted ? 'Product deactivated (sales history preserved)' : 'Product deleted permanently');
       navigate('/products');
     },
-    onError: (e: any) => {
-      toast.error(e?.response?.data?.message || 'Failed to delete product');
-    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed to delete product'),
   });
 
   const addImageMutation = useMutation({
-    mutationFn: (url: string) =>
-      productImagesApi.add(id!, { url, isPrimary: images.length === 0 }),
+    mutationFn: (url: string) => productImagesApi.add(id!, { url, isPrimary: images.length === 0 }),
     onSuccess: () => refetchImages(),
   });
-
   const setPrimaryMutation = useMutation({
     mutationFn: (imageId: string) => productImagesApi.setPrimary(id!, imageId),
     onSuccess: () => refetchImages(),
   });
-
   const removeImageMutation = useMutation({
     mutationFn: (imageId: string) => productImagesApi.remove(id!, imageId),
     onSuccess: () => refetchImages(),
   });
-
   const reorderImagesMutation = useMutation({
     mutationFn: (ids: string[]) => productImagesApi.reorder(id!, ids),
     onSuccess: () => refetchImages(),
@@ -263,34 +229,22 @@ export default function ProductFormPage() {
 
   const bulkVariantsMutation = useMutation({
     mutationFn: (vs: UpsertVariantPayload[]) =>
-      productVariantsApi.bulkCreate(
-        id!,
-        vs.map((v) => sanitizeVariantPayload(v)),
-      ),
+      productVariantsApi.bulkCreate(id!, vs.map((v) => sanitizeVariantPayload(v))),
     onSuccess: () => {
       refetchVariants();
       toast.success('Variants generated');
     },
-    onError: (e: any) => {
-      toast.error(e?.response?.data?.message || 'Failed to generate variants');
-    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed to generate variants'),
   });
 
   const saveVariantMutation = useMutation({
-    mutationFn: ({
-      variantId,
-      payload,
-    }: {
-      variantId: string;
-      payload: UpsertVariantPayload;
-    }) => productVariantsApi.update(id!, variantId, payload),
+    mutationFn: ({ variantId, payload }: { variantId: string; payload: UpsertVariantPayload }) =>
+      productVariantsApi.update(id!, variantId, payload),
     onSuccess: () => {
       refetchVariants();
       toast.success('Variant updated');
     },
-    onError: (e: any) => {
-      toast.error(e?.response?.data?.message || 'Failed to update variant');
-    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed to update variant'),
   });
 
   const removeVariantMutation = useMutation({
@@ -299,9 +253,7 @@ export default function ProductFormPage() {
       refetchVariants();
       toast.success('Variant deleted');
     },
-    onError: (e: any) => {
-      toast.error(e?.response?.data?.message || 'Failed to delete variant');
-    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed to delete variant'),
   });
 
   const removeImeiMutation = useMutation({
@@ -312,34 +264,26 @@ export default function ProductFormPage() {
     },
   });
 
+  // ─── Handlers ──────────────────────────────────────────────
   const handleSaveProduct = async () => {
     if (submitLockRef.current || saveMutation.isPending) return;
-
     if (!form.name.trim()) {
       toast.error('Product name required');
       setTab('basic');
       return;
     }
-
     submitLockRef.current = true;
-
     try {
       const saved = await saveMutation.mutateAsync();
       queryClient.setQueryData(['product', saved.id], saved);
       await queryClient.invalidateQueries({ queryKey: ['products'] });
       await queryClient.invalidateQueries({ queryKey: ['product', saved.id] });
-
       toast.success(isEdit ? 'Product updated' : 'Product created successfully');
-
-      if (!isEdit) {
-        navigate(`/products/${saved.id}/edit`, { replace: true });
-      }
+      if (!isEdit) navigate(`/products/${saved.id}/edit`, { replace: true });
     } catch (e: any) {
       toast.error(e?.response?.data?.message || 'Failed');
     } finally {
-      setTimeout(() => {
-        submitLockRef.current = false;
-      }, 700);
+      setTimeout(() => { submitLockRef.current = false; }, 700);
     }
   };
 
@@ -358,40 +302,35 @@ export default function ProductFormPage() {
       toast.error('Variant name required');
       return;
     }
-    saveVariantMutation.mutate({
-      variantId,
-      payload: sanitizeVariantPayload(draft),
-    });
+    saveVariantMutation.mutate({ variantId, payload: sanitizeVariantPayload(draft) });
   };
 
   const handleVariantImageChange = (variantId: string, url: string | null) => {
     const current = variantDrafts[variantId];
     if (!current) return;
-
-    const nextDraft: UpsertVariantPayload = {
-      ...current,
-      imageUrl: url ?? undefined,
-    };
-
-    setVariantDrafts((prev) => ({
-      ...prev,
-      [variantId]: nextDraft,
-    }));
-
-    saveVariantMutation.mutate({
-      variantId,
-      payload: sanitizeVariantPayload(nextDraft),
-    });
+    const nextDraft: UpsertVariantPayload = { ...current, imageUrl: url ?? undefined };
+    setVariantDrafts((prev) => ({ ...prev, [variantId]: nextDraft }));
+    saveVariantMutation.mutate({ variantId, payload: sanitizeVariantPayload(nextDraft) });
   };
 
+  // ─── Derived ───────────────────────────────────────────────
   const profitPerUnit = (form.price ?? 0) - (form.costPrice ?? 0);
-  const profitMargin =
-    form.price > 0 ? (((form.price - (form.costPrice ?? 0)) / form.price) * 100) : 0;
+  const profitMargin = form.price > 0 ? (((form.price - (form.costPrice ?? 0)) / form.price) * 100) : 0;
 
   const imeiStats = {
     total: imeis.length,
     inStock: imeis.filter((i) => i.status === 'IN_STOCK').length,
     sold: imeis.filter((i) => i.status === 'SOLD').length,
+  };
+
+  // Shared props for industry sections
+  const industryProps = {
+    productId: id,
+    form,
+    setForm,
+    isEdit,
+    variants,
+    unit: form.unit ?? 'pcs',
   };
 
   return (
@@ -404,27 +343,16 @@ export default function ProductFormPage() {
           variantName={imeiVariantContext.name}
           defaultCostPrice={form.costPrice ?? 0}
           onSuccess={() => refetchImeis()}
-          onClose={() => {
-            setShowImeiAdd(false);
-            setImeiVariantContext({});
-          }}
+          onClose={() => { setShowImeiAdd(false); setImeiVariantContext({}); }}
         />
       )}
 
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <Link
-          to="/products"
-          className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-brand-600"
-        >
+        <Link to="/products" className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-brand-600">
           <ArrowLeft className="h-4 w-4" /> Back to Products
         </Link>
-
         {isEdit && (
-          <Link
-            to="/catalog"
-            target="_blank"
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm font-bold hover:bg-emerald-100"
-          >
+          <Link to="/catalog" target="_blank" className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm font-bold hover:bg-emerald-100">
             <ExternalLink className="h-3.5 w-3.5" /> View in Catalog
           </Link>
         )}
@@ -436,6 +364,11 @@ export default function ProductFormPage() {
             <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium">
               <Package className="h-3.5 w-3.5" />
               {isEdit ? 'Editing Product' : 'New Product'}
+              {isIndustrySpecific && (
+                <span className="ml-1 px-1.5 py-0.5 rounded bg-emerald-400/30 text-[10px] font-extrabold uppercase">
+                  {activePlugin.label}
+                </span>
+              )}
             </div>
             <h1 className="mt-3 text-3xl font-bold">{form.name || 'Untitled product'}</h1>
             {form.sku && <p className="mt-1 text-sm text-white/80 font-mono">{form.sku}</p>}
@@ -443,25 +376,19 @@ export default function ProductFormPage() {
 
           <div className="flex gap-2 flex-wrap">
             {isEdit && (
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  if (confirm(`Delete "${form.name}"?`)) removeMutation.mutate();
-                }}
-              >
+              <Button variant="secondary" onClick={() => { if (confirm(`Delete "${form.name}"?`)) removeMutation.mutate(); }}>
                 <Trash2 className="h-4 w-4" /> Delete
               </Button>
             )}
-            <Button
-              onClick={handleSaveProduct}
-              loading={saveMutation.isPending}
-              className="bg-white text-slate-900 hover:bg-slate-100"
-            >
+            <Button onClick={handleSaveProduct} loading={saveMutation.isPending} className="bg-white text-slate-900 hover:bg-slate-100">
               <Save className="h-4 w-4" />
               {isEdit ? 'Save Changes' : 'Create Product'}
             </Button>
           </div>
         </div>
+
+        {/* 🎨 Industry-specific header action bar (auto-renders from plugin) */}
+        <IndustrySection slot="HeaderActionBar" {...industryProps} />
       </section>
 
       <div className="flex gap-2 overflow-x-auto pb-2">
@@ -502,31 +429,27 @@ export default function ProductFormPage() {
               <Input
                 label="Product Name *"
                 value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                placeholder="e.g. Flora-17 Economy"
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                placeholder="e.g. Sun Flower, Flora-17 Economy"
               />
 
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                  Short Description
-                </label>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Short Description</label>
                 <input
                   className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm"
                   value={form.shortDescription ?? ''}
-                  onChange={(e) => setForm({ ...form, shortDescription: e.target.value })}
+                  onChange={(e) => setForm((f) => ({ ...f, shortDescription: e.target.value }))}
                   placeholder="One-liner that appears on cards"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                  Full Description
-                </label>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Full Description</label>
                 <textarea
                   rows={5}
                   className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
                   value={form.description ?? ''}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                   placeholder="Detailed description, features..."
                 />
               </div>
@@ -537,53 +460,43 @@ export default function ProductFormPage() {
                   <select
                     className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm"
                     value={form.categoryId ?? ''}
-                    onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
+                    onChange={(e) => setForm((f) => ({ ...f, categoryId: e.target.value }))}
                   >
                     <option value="">No category</option>
-                    {categories.map((c: any) => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
+                    {categories.map((c: any) => (<option key={c.id} value={c.id}>{c.name}</option>))}
                   </select>
                 </div>
-
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">Brand</label>
                   <select
                     className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm"
                     value={form.brandId ?? ''}
-                    onChange={(e) => setForm({ ...form, brandId: e.target.value })}
+                    onChange={(e) => setForm((f) => ({ ...f, brandId: e.target.value }))}
                   >
                     <option value="">No brand</option>
-                    {brands.map((b) => (
-                      <option key={b.id} value={b.id}>{b.name}</option>
-                    ))}
+                    {brands.map((b) => (<option key={b.id} value={b.id}>{b.name}</option>))}
                   </select>
                 </div>
               </div>
 
               <div className="grid sm:grid-cols-3 gap-4">
-                <Input label="SKU" value={form.sku ?? ''} onChange={(e) => setForm({ ...form, sku: e.target.value })} placeholder="FL17-ECO" />
-                <Input label="Barcode" value={form.barcode ?? ''} onChange={(e) => setForm({ ...form, barcode: e.target.value })} placeholder="1234567890123" />
-                <UnitSelect
-                  value={form.unit ?? 'pcs'}
-                  onChange={(unit) => setForm({ ...form, unit })}
-                  label="Unit"
-                  hint="sqft for carpets, kg for grocery, pcs for mobile, etc."
-                />
+                <Input label="SKU" value={form.sku ?? ''} onChange={(e) => setForm((f) => ({ ...f, sku: e.target.value }))} placeholder="FL17-ECO" />
+                <Input label="Barcode" value={form.barcode ?? ''} onChange={(e) => setForm((f) => ({ ...f, barcode: e.target.value }))} placeholder="1234567890123" />
+                <UnitSelect value={form.unit ?? 'pcs'} onChange={(unit) => setForm((f) => ({ ...f, unit }))} label="Unit" hint="sqft for carpets, kg for grocery, pcs for mobile" />
               </div>
 
               <div className="flex flex-wrap gap-4 pt-2">
                 <label className="inline-flex items-center gap-2 text-sm">
-                  <input type="checkbox" checked={form.isActive ?? true} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} className="h-4 w-4 rounded" />
+                  <input type="checkbox" checked={form.isActive ?? true} onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.checked }))} className="h-4 w-4 rounded" />
                   <Eye className="h-4 w-4 text-slate-600" /> Active
                 </label>
                 <label className="inline-flex items-center gap-2 text-sm">
-                  <input type="checkbox" checked={form.isFeatured ?? false} onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })} className="h-4 w-4 rounded" />
+                  <input type="checkbox" checked={form.isFeatured ?? false} onChange={(e) => setForm((f) => ({ ...f, isFeatured: e.target.checked }))} className="h-4 w-4 rounded" />
                   <Star className="h-4 w-4 text-amber-500" /> Featured
                 </label>
-                {businessFeatures.expiry && (
+                {businessFeatures.expiry && !isIndustrySpecific && (
                   <label className="inline-flex items-center gap-2 text-sm">
-                    <input type="checkbox" checked={form.expiryTracked ?? false} onChange={(e) => setForm({ ...form, expiryTracked: e.target.checked })} className="h-4 w-4 rounded" />
+                    <input type="checkbox" checked={form.expiryTracked ?? false} onChange={(e) => setForm((f) => ({ ...f, expiryTracked: e.target.checked }))} className="h-4 w-4 rounded" />
                     Track Expiry / Batches
                   </label>
                 )}
@@ -594,60 +507,24 @@ export default function ProductFormPage() {
           {tab === 'pricing' && (
             <div className="space-y-5 max-w-4xl">
               <div className="grid sm:grid-cols-3 gap-4">
-                <Input label="Sell Price (PKR) *" type="number" value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} />
-                <Input label="Cost Price (PKR)" type="number" value={form.costPrice ?? 0} onChange={(e) => setForm({ ...form, costPrice: Number(e.target.value) })} />
-                <Input label="Wholesale Price (PKR)" type="number" value={form.wholesalePrice ?? ''} onChange={(e) => setForm({ ...form, wholesalePrice: e.target.value ? Number(e.target.value) : undefined })} hint="For B2B / bulk customers" />
+                <Input label="Sell Price (PKR) *" type="number" value={form.price} onChange={(e) => setForm((f) => ({ ...f, price: Number(e.target.value) }))} />
+                <Input label="Cost Price (PKR)" type="number" value={form.costPrice ?? 0} onChange={(e) => setForm((f) => ({ ...f, costPrice: Number(e.target.value) }))} />
+                <Input label="Wholesale Price (PKR)" type="number" value={form.wholesalePrice ?? ''} onChange={(e) => setForm((f) => ({ ...f, wholesalePrice: e.target.value ? Number(e.target.value) : undefined }))} hint="For B2B / bulk customers" />
               </div>
-
               <div className="grid sm:grid-cols-2 gap-4">
-                <Input label="Tax Rate (%)" type="number" value={form.taxRate ?? 0} onChange={(e) => setForm({ ...form, taxRate: Number(e.target.value) })} hint="GST or sales tax percentage" />
+                <Input label="Tax Rate (%)" type="number" value={form.taxRate ?? 0} onChange={(e) => setForm((f) => ({ ...f, taxRate: Number(e.target.value) }))} hint="GST or sales tax percentage" />
               </div>
-
               <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-5">
                 <div className="text-xs font-bold uppercase tracking-wider text-emerald-700">Profit Margin</div>
-                <div className="mt-2 text-3xl font-bold text-emerald-900">
-                  {form.price > 0 ? `${profitMargin.toFixed(2)}%` : '—'}
-                </div>
-                <div className="text-sm text-emerald-700 mt-1">
-                  Profit per unit: {formatPKRFull(profitPerUnit)}
-                </div>
+                <div className="mt-2 text-3xl font-bold text-emerald-900">{form.price > 0 ? `${profitMargin.toFixed(2)}%` : '—'}</div>
+                <div className="text-sm text-emerald-700 mt-1">Profit per {form.unit}: {formatPKRFull(profitPerUnit)}</div>
               </div>
             </div>
           )}
 
+          {/* 🎨 INVENTORY — plugin handles everything */}
           {tab === 'inventory' && (
-            <div className="space-y-5 max-w-4xl">
-              <div className="grid sm:grid-cols-2 gap-4">
-                <Input label="Current Stock" type="number" value={form.stock ?? 0} onChange={(e) => setForm({ ...form, stock: Number(e.target.value) })} />
-                <Input label="Low Stock Alert" type="number" value={form.lowStockAlert ?? 5} onChange={(e) => setForm({ ...form, lowStockAlert: Number(e.target.value) })} hint="Alert when stock falls below this" />
-              </div>
-
-              <div className="grid sm:grid-cols-3 gap-4">
-                <Input label="Weight" type="number" value={form.weight ?? ''} onChange={(e) => setForm({ ...form, weight: e.target.value ? Number(e.target.value) : undefined })} />
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Weight Unit</label>
-                  <select className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm" value={form.weightUnit ?? 'g'} onChange={(e) => setForm({ ...form, weightUnit: e.target.value })}>
-                    <optgroup label="⚖️ Weight">
-                      <option value="g">Grams (g)</option>
-                      <option value="kg">Kilograms (kg)</option>
-                      <option value="mg">Milligrams (mg)</option>
-                      <option value="ton">Tons (ton)</option>
-                      <option value="lb">Pounds (lb)</option>
-                      <option value="oz">Ounces (oz)</option>
-                      <option value="pao">Pao (pao)</option>
-                      <option value="seer">Seer (seer)</option>
-                      <option value="maund">Maund (maund)</option>
-                    </optgroup>
-                    <optgroup label="💧 Volume">
-                      <option value="ml">Milliliters (ml)</option>
-                      <option value="l">Liters (l)</option>
-                      <option value="gallon">Gallons (gallon)</option>
-                    </optgroup>
-                  </select>
-                </div>
-                <Input label="Dimensions (L×W×H)" value={form.dimensions ?? ''} onChange={(e) => setForm({ ...form, dimensions: e.target.value })} placeholder="20×10×5 cm" />
-              </div>
-            </div>
+            <IndustrySection slot="InventorySection" {...industryProps} />
           )}
 
           {tab === 'images' && isEdit && (
@@ -655,9 +532,7 @@ export default function ProductFormPage() {
               <UploadDropzone
                 purpose="product-image"
                 maxFiles={20}
-                onUploaded={(records) => {
-                  records.forEach((r) => addImageMutation.mutate(r.url));
-                }}
+                onUploaded={(records) => { records.forEach((r) => addImageMutation.mutate(r.url)); }}
                 hint="Drop product images here — first becomes primary"
               />
               <div>
@@ -674,6 +549,9 @@ export default function ProductFormPage() {
 
           {tab === 'variants' && isEdit && (
             <div className="space-y-6">
+              {/* 🎨 Industry variants banner */}
+              <IndustrySection slot="VariantsBanner" {...industryProps} />
+
               <VariantBuilder
                 basePrice={form.price ?? 0}
                 baseCostPrice={form.costPrice ?? 0}
@@ -682,9 +560,7 @@ export default function ProductFormPage() {
 
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold text-slate-900">
-                    Existing Variants ({variants.length})
-                  </h3>
+                  <h3 className="text-lg font-bold text-slate-900">Existing Variants ({variants.length})</h3>
                   {variants.length > 0 && (
                     <div className="text-xs text-slate-500">
                       Image change = auto save • Other fields = press <strong>Save Variant</strong>
@@ -702,30 +578,28 @@ export default function ProductFormPage() {
                   <div className="space-y-5">
                     {variants.map((variant) => {
                       const draft = variantDrafts[variant.id] ?? variantToDraft(variant);
-                      const rowLoading =
-                        saveVariantMutation.isPending &&
-                        saveVariantMutation.variables?.variantId === variant.id;
-                      const deleteLoading =
-                        removeVariantMutation.isPending &&
-                        removeVariantMutation.variables === variant.id;
-
+                      const rowLoading = saveVariantMutation.isPending && saveVariantMutation.variables?.variantId === variant.id;
+                      const deleteLoading = removeVariantMutation.isPending && removeVariantMutation.variables === variant.id;
                       return (
-                        <VariantCard
-                          key={variant.id}
-                          variant={variant}
-                          draft={draft}
-                          parentUnit={form.unit ?? "pcs"}
-                          onUpdate={(patch) => updateVariantDraft(variant.id, patch)}
-                          onImageChange={(url) => handleVariantImageChange(variant.id, url)}
-                          onSave={() => handleVariantSave(variant.id)}
-                          onDelete={() => {
-                            if (confirm("Delete variant " + variant.name + "?")) {
-                              removeVariantMutation.mutate(variant.id);
-                            }
-                          }}
-                          saving={rowLoading}
-                          deleting={deleteLoading}
-                        />
+                        <div key={variant.id}>
+                          <VariantCard
+                            variant={variant}
+                            draft={draft}
+                            parentUnit={form.unit ?? 'pcs'}
+                            onUpdate={(patch) => updateVariantDraft(variant.id, patch)}
+                            onImageChange={(url) => handleVariantImageChange(variant.id, url)}
+                            onSave={() => handleVariantSave(variant.id)}
+                            onDelete={() => {
+                              if (confirm('Delete variant ' + variant.name + '?')) {
+                                removeVariantMutation.mutate(variant.id);
+                              }
+                            }}
+                            saving={rowLoading}
+                            deleting={deleteLoading}
+                          />
+                          {/* 🎨 Industry-specific variant extra panel */}
+                          <IndustryVariantExtra {...industryProps} variant={variant} />
+                        </div>
                       );
                     })}
                   </div>
@@ -771,7 +645,6 @@ export default function ProductFormPage() {
 
           {tab === 'imei' && isEdit && businessFeatures.imei && (
             <div className="space-y-5">
-              {/* Stats */}
               <div className="grid grid-cols-3 gap-3">
                 <div className="rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 p-4 text-center">
                   <div className="text-[10px] uppercase tracking-wider text-blue-700 font-bold">Total IMEIs</div>
@@ -787,41 +660,30 @@ export default function ProductFormPage() {
                 </div>
               </div>
 
-              {/* Add buttons */}
               <div className="flex gap-2 flex-wrap">
                 <Button
-                  onClick={() => {
-                    setImeiVariantContext({});
-                    setShowImeiAdd(true);
-                  }}
+                  onClick={() => { setImeiVariantContext({}); setShowImeiAdd(true); }}
                   className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                 >
                   <Plus className="h-4 w-4" /> Add IMEIs (Product Level)
                 </Button>
-
                 {variants.length > 0 && (
                   <select
                     onChange={(e) => {
                       if (!e.target.value) return;
                       const v = variants.find((vr) => vr.id === e.target.value);
-                      if (v) {
-                        setImeiVariantContext({ id: v.id, name: v.name });
-                        setShowImeiAdd(true);
-                      }
+                      if (v) { setImeiVariantContext({ id: v.id, name: v.name }); setShowImeiAdd(true); }
                       e.target.value = '';
                     }}
                     className="h-10 rounded-xl border-2 border-blue-300 bg-blue-50 px-3 text-sm font-bold text-blue-700"
                     defaultValue=""
                   >
                     <option value="">+ Add IMEIs for Variant...</option>
-                    {variants.map((v) => (
-                      <option key={v.id} value={v.id}>{v.name}</option>
-                    ))}
+                    {variants.map((v) => (<option key={v.id} value={v.id}>{v.name}</option>))}
                   </select>
                 )}
               </div>
 
-              {/* IMEI list */}
               {imeis.length === 0 ? (
                 <div className="rounded-2xl border-2 border-dashed border-blue-200 bg-blue-50/30 p-12 text-center">
                   <Smartphone className="h-12 w-12 text-blue-300 mx-auto mb-3" />
@@ -845,15 +707,11 @@ export default function ProductFormPage() {
                         <tr key={imei.id} className="hover:bg-slate-50">
                           <td className="px-3 py-2">
                             <div className="font-mono font-bold text-slate-900 text-xs">{imei.imei1}</div>
-                            {imei.imei2 && (
-                              <div className="font-mono text-[10px] text-slate-500">2: {imei.imei2}</div>
-                            )}
+                            {imei.imei2 && (<div className="font-mono text-[10px] text-slate-500">2: {imei.imei2}</div>)}
                           </td>
                           <td className="px-3 py-2 text-xs">
                             {imei.variant?.name || <span className="text-slate-400">—</span>}
-                            {imei.color && (
-                              <span className="ml-1 text-[10px] text-violet-700 font-bold">{imei.color}</span>
-                            )}
+                            {imei.color && (<span className="ml-1 text-[10px] text-violet-700 font-bold">{imei.color}</span>)}
                           </td>
                           <td className="px-3 py-2">
                             <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
@@ -865,17 +723,11 @@ export default function ProductFormPage() {
                               {imei.status}
                             </span>
                           </td>
-                          <td className="px-3 py-2 text-xs font-bold">
-                            {formatPKRFull(imei.costPrice)}
-                          </td>
+                          <td className="px-3 py-2 text-xs font-bold">{formatPKRFull(imei.costPrice)}</td>
                           <td className="px-3 py-2 text-right">
                             {imei.status === 'IN_STOCK' && (
                               <button
-                                onClick={() => {
-                                  if (confirm(`Remove IMEI ${imei.imei1}?`)) {
-                                    removeImeiMutation.mutate(imei.id);
-                                  }
-                                }}
+                                onClick={() => { if (confirm(`Remove IMEI ${imei.imei1}?`)) removeImeiMutation.mutate(imei.id); }}
                                 className="h-7 w-7 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 inline-flex items-center justify-center"
                               >
                                 <Trash2 className="h-3 w-3" />
@@ -898,20 +750,14 @@ export default function ProductFormPage() {
             <div className="px-4 py-2.5 bg-gradient-to-r from-slate-900 to-slate-800 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <div className="text-[10px] uppercase tracking-widest font-bold text-white/90">
-                  Customer Preview
-                </div>
+                <div className="text-[10px] uppercase tracking-widest font-bold text-white/90">Customer Preview</div>
               </div>
               <div className="text-[10px] text-white/60 font-medium">Live</div>
             </div>
 
             <div className="relative aspect-square bg-gradient-to-br from-slate-50 to-slate-100 overflow-hidden group">
               {images && images[0]?.url ? (
-                <img
-                  src={images[0].url}
-                  alt={form.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
+                <img src={images[0].url} alt={form.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center text-slate-300">
                   <div className="h-20 w-20 rounded-2xl bg-white shadow-inner flex items-center justify-center mb-2">
@@ -921,10 +767,15 @@ export default function ProductFormPage() {
                 </div>
               )}
 
+              {isIndustrySpecific && (
+                <div className="absolute top-3 left-3 px-2 py-1 rounded-md bg-emerald-600 text-white text-[10px] font-extrabold uppercase tracking-wider shadow-lg">
+                  {activePlugin.label}
+                </div>
+              )}
+
               {form.isFeatured && (
                 <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-amber-500 text-white text-[10px] font-bold shadow-lg flex items-center gap-1">
-                  <Star className="h-3 w-3 fill-white" />
-                  FEATURED
+                  <Star className="h-3 w-3 fill-white" /> FEATURED
                 </div>
               )}
 
@@ -946,23 +797,13 @@ export default function ProductFormPage() {
               )}
 
               <div>
-                <h3 className="font-extrabold text-slate-900 text-lg leading-snug line-clamp-2">
-                  {form.name || 'Product name'}
-                </h3>
-                {form.shortDescription && (
-                  <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">
-                    {form.shortDescription}
-                  </p>
-                )}
+                <h3 className="font-extrabold text-slate-900 text-lg leading-snug line-clamp-2">{form.name || 'Product name'}</h3>
+                {form.shortDescription && (<p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">{form.shortDescription}</p>)}
               </div>
 
               <div className="flex items-baseline gap-2 pt-1">
-                <div className="text-3xl font-extrabold text-emerald-600 leading-none tracking-tight">
-                  {formatPKRFull(form.price ?? 0)}
-                </div>
-                <div className="text-xs font-semibold text-slate-400">
-                  / {form.unit}
-                </div>
+                <div className="text-3xl font-extrabold text-emerald-600 leading-none tracking-tight">{formatPKRFull(form.price ?? 0)}</div>
+                <div className="text-xs font-semibold text-slate-400">/ {form.unit}</div>
               </div>
 
               {form.wholesalePrice && (
@@ -971,24 +812,20 @@ export default function ProductFormPage() {
                 </div>
               )}
 
+              {/* 🎨 Industry-specific customer stock block (e.g. carpet sqft) */}
+              <IndustrySection slot="CustomerStockBlock" {...industryProps} />
+
               {variants.length > 0 && (
                 <div className="pt-3 border-t border-slate-100">
                   <div className="flex items-center justify-between mb-2">
                     <div className="text-[11px] uppercase tracking-wider text-slate-700 font-bold">
-                      Available Variants
+                      {isIndustrySpecific ? 'Colors / Options' : 'Available Variants'}
                     </div>
-                    <div className="text-[10px] text-slate-500 font-semibold">
-                      {variants.length} options
-                    </div>
+                    <div className="text-[10px] text-slate-500 font-semibold">{variants.length} options</div>
                   </div>
-
                   <div className="grid grid-cols-4 gap-1.5">
                     {variants.slice(0, 8).map((v) => (
-                      <div
-                        key={v.id}
-                        className="group/v relative aspect-square rounded-lg border border-slate-200 bg-slate-50 overflow-hidden cursor-pointer hover:border-emerald-400 hover:shadow-md transition-all"
-                        title={`${v.name}${v.price ? ` — ${formatPKRFull(v.price)}` : ''}`}
-                      >
+                      <div key={v.id} className="group/v relative aspect-square rounded-lg border border-slate-200 bg-slate-50 overflow-hidden cursor-pointer hover:border-emerald-400 hover:shadow-md transition-all" title={`${v.name}${v.price ? ` — ${formatPKRFull(v.price)}` : ''}`}>
                         {v.imageUrl ? (
                           <img src={v.imageUrl} alt={v.name} className="w-full h-full object-cover" />
                         ) : v.colorHex ? (
@@ -1003,7 +840,6 @@ export default function ProductFormPage() {
                         </div>
                       </div>
                     ))}
-
                     {variants.length > 8 && (
                       <div className="aspect-square rounded-lg border border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-[10px] font-extrabold text-slate-500">
                         +{variants.length - 8}
@@ -1020,23 +856,13 @@ export default function ProductFormPage() {
                       const tag = allTags.find((t) => t.id === tagId);
                       if (!tag) return null;
                       return (
-                        <span
-                          key={tag.id}
-                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
-                          style={{
-                            backgroundColor: `${tag.color}15`,
-                            color: tag.color,
-                            border: `1px solid ${tag.color}40`,
-                          }}
-                        >
+                        <span key={tag.id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ backgroundColor: `${tag.color}15`, color: tag.color, border: `1px solid ${tag.color}40` }}>
                           {tag.name}
                         </span>
                       );
                     })}
                     {form.tagIds.length > 4 && (
-                      <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold">
-                        +{form.tagIds.length - 4}
-                      </span>
+                      <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold">+{form.tagIds.length - 4}</span>
                     )}
                   </div>
                 </div>
@@ -1055,19 +881,25 @@ export default function ProductFormPage() {
               <Eye className="h-3 w-3" />
               Admin Info (you only)
             </div>
-            <div className="grid grid-cols-2 gap-2 text-center">
-              <div className="rounded-lg bg-white border border-slate-200 p-2">
-                <div className="text-[9px] text-slate-500 font-bold uppercase">Stock</div>
-                <div className="text-sm font-extrabold text-slate-900">
-                  {form.stock ?? 0}
-                  <span className="text-[10px] text-slate-500 font-bold ml-1">{form.unit}</span>
+
+            {/* 🎨 Industry-specific admin stock block (e.g. carpet rolls) */}
+            {isIndustrySpecific ? (
+              <IndustrySection slot="AdminStockBlock" {...industryProps} />
+            ) : (
+              <div className="grid grid-cols-2 gap-2 text-center">
+                <div className="rounded-lg bg-white border border-slate-200 p-2">
+                  <div className="text-[9px] text-slate-500 font-bold uppercase">Stock</div>
+                  <div className="text-sm font-extrabold text-slate-900">
+                    {form.stock ?? 0}
+                    <span className="text-[10px] text-slate-500 font-bold ml-1">{form.unit}</span>
+                  </div>
+                </div>
+                <div className="rounded-lg bg-white border border-slate-200 p-2">
+                  <div className="text-[9px] text-slate-500 font-bold uppercase">Variants</div>
+                  <div className="text-sm font-extrabold text-slate-900">{variants.length}</div>
                 </div>
               </div>
-              <div className="rounded-lg bg-white border border-slate-200 p-2">
-                <div className="text-[9px] text-slate-500 font-bold uppercase">Variants</div>
-                <div className="text-sm font-extrabold text-slate-900">{variants.length}</div>
-              </div>
-            </div>
+            )}
 
             {businessFeatures.imei && isEdit && (
               <div className="mt-2 rounded-lg bg-blue-50 border border-blue-200 p-2">
@@ -1084,35 +916,15 @@ export default function ProductFormPage() {
 
             {form.costPrice !== undefined && form.price > 0 && (
               <div className="mt-2 pt-2 border-t border-slate-200 space-y-1 text-[11px]">
-                <div className="flex justify-between">
-                  <span className="text-slate-600">Cost:</span>
-                  <span className="font-bold text-slate-900">{formatPKRFull(form.costPrice ?? 0)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-600">Profit:</span>
-                  <span className="font-extrabold text-emerald-700">
-                    {formatPKRFull((form.price ?? 0) - (form.costPrice ?? 0))}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-600">Margin:</span>
-                  <span className="font-bold text-emerald-700">
-                    {form.price > 0
-                      ? `${(((form.price - (form.costPrice ?? 0)) / form.price) * 100).toFixed(1)}%`
-                      : '—'}
-                  </span>
-                </div>
+                <div className="flex justify-between"><span className="text-slate-600">Cost:</span><span className="font-bold text-slate-900">{formatPKRFull(form.costPrice ?? 0)}</span></div>
+                <div className="flex justify-between"><span className="text-slate-600">Profit:</span><span className="font-extrabold text-emerald-700">{formatPKRFull((form.price ?? 0) - (form.costPrice ?? 0))}</span></div>
+                <div className="flex justify-between"><span className="text-slate-600">Margin:</span><span className="font-bold text-emerald-700">{form.price > 0 ? `${(((form.price - (form.costPrice ?? 0)) / form.price) * 100).toFixed(1)}%` : '—'}</span></div>
               </div>
             )}
 
             {isEdit && (
-              <Link
-                to="/catalog"
-                target="_blank"
-                className="mt-3 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-bold transition-colors"
-              >
-                Open in Catalog
-                <span>→</span>
+              <Link to="/catalog" target="_blank" className="mt-3 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-bold transition-colors">
+                Open in Catalog <ArrowRight className="h-3 w-3" />
               </Link>
             )}
           </div>

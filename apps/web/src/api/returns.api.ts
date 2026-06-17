@@ -28,6 +28,19 @@ export interface SaleReturn {
   };
   createdBy?: { id: string; fullName: string } | null;
   items: SaleReturnItem[];
+  createdCutPieces?: string[];
+}
+
+export interface CreateReturnItemPayload {
+  saleItemId: string;
+  quantity: number;
+  // Carpet-specific (optional)
+  createCutPiece?: boolean;
+  cutPieceCondition?: string;
+  isDamaged?: boolean;
+  cutPieceWidthFt?: number;
+  cutPieceLengthFt?: number;
+  cutPieceNotes?: string;
 }
 
 export interface CreateReturnPayload {
@@ -35,10 +48,7 @@ export interface CreateReturnPayload {
   reason?: string;
   refundMethod: PaymentMethod;
   notes?: string;
-  items: Array<{
-    saleItemId: string;
-    quantity: number;
-  }>;
+  items: CreateReturnItemPayload[];
 }
 
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;

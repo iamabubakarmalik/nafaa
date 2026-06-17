@@ -10,9 +10,11 @@ interface Props {
   variants: ProductVariant[];
   onSelect: (variant: ProductVariant) => void;
   onClose: () => void;
+  /** For carpet products — skip stock check (stock lives in rolls) */
+  ignoreStock?: boolean;
 }
 
-export function VariantPicker({ product, variants, onSelect, onClose }: Props) {
+export function VariantPicker({ product, variants, onSelect, onClose, ignoreStock = false }: Props) {
   const [search, setSearch] = useState('');
 
   const filtered = useMemo(() => {
@@ -93,8 +95,8 @@ export function VariantPicker({ product, variants, onSelect, onClose }: Props) {
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
               {filtered.map((v) => {
-                const outOfStock = v.stock <= 0;
-                const lowStock = v.stock > 0 && v.stock <= (v.lowStockAlert || 5);
+                const outOfStock = ignoreStock ? false : v.stock <= 0;
+                const lowStock = ignoreStock ? false : (v.stock > 0 && v.stock <= (v.lowStockAlert || 5));
 
                 return (
                   <button
@@ -164,7 +166,11 @@ export function VariantPicker({ product, variants, onSelect, onClose }: Props) {
                           {formatPKR(v.price)}
                         </div>
                         <div className="text-[10px] font-bold text-slate-500">
-                          {v.stock.toFixed(v.stock % 1 === 0 ? 0 : 2)} {v.unit || product.unit}
+                          {ignoreStock ? (
+                            <span className="text-emerald-700">Rolls →</span>
+                          ) : (
+                            `${v.stock.toFixed(v.stock % 1 === 0 ? 0 : 2)} ${v.unit || product.unit}`
+                          )}
                         </div>
                       </div>
                     </div>

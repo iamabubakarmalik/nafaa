@@ -102,6 +102,30 @@ export class PurchasesService {
     });
   }
 
+
+  async findOne(user: AuthenticatedUser, id: string) {
+    const purchase = await this.prisma.purchase.findFirst({
+      where: { id, tenantId: user.tenantId },
+      include: {
+        supplier: true,
+        items: { include: { product: true } },
+        createdBy: { select: { id: true, fullName: true, email: true } },
+      },
+    });
+    if (!purchase) throw new NotFoundException('Purchase not found');
+
+    // Load carpet rolls created from this purchase
+    const rolls = await this.prisma.carpetRoll.findMany({
+      where: { tenantId: user.tenantId, purchaseId: id },
+      include: {
+        product: { select: { id: true, name: true } },
+        variant: { select: { id: true, name: true, color: true } },
+      },
+    });
+
+    return { ...purchase, carpetRolls: rolls };
+  }
+
   findAll(user: AuthenticatedUser) {
     return this.prisma.purchase.findMany({
       where: {

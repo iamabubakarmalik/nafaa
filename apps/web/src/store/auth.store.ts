@@ -10,6 +10,8 @@ export interface AuthUser {
   permissions?: string[];
   emailVerified: boolean;
   avatarUrl?: string;
+  shopId?: string | null;
+  assignedShop?: { id: string; name: string; isMain: boolean } | null;
 }
 
 export interface AuthTenant {

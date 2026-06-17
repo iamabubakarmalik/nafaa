@@ -15,6 +15,12 @@ enum TenantStatus {
   EXPIRED
 }
 
+enum ShopType {
+  SHOP // Regular retail shop with POS
+  WAREHOUSE // Storage only, no POS, only transfers
+  GODOWN // Backup storage
+}
+
 enum UserRole {
   OWNER
   MANAGER
@@ -330,6 +336,8 @@ model Tenant {
   restaurantTables    RestaurantTable[]
   salonAppointments   SalonAppointment[]
   emiPlans            EmiPlan[]
+  carpetRolls         CarpetRoll[]
+  carpetCutPieces     CarpetCutPiece[]
 
   notificationPreference NotificationPreference?
   referredBy             Tenant?                 @relation("TenantReferrals", fields: [referredById], references: [id], onDelete: SetNull)
@@ -504,16 +512,20 @@ model Shop {
   phone     String?
   isMain    Boolean  @default(false)
   isActive  Boolean  @default(true)
+  type      ShopType @default(SHOP)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  tenant        Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  cashRegisters CashRegister[]
-  sales         Sale[]
-  transfersFrom StockTransfer[] @relation("TransfersFrom")
-  transfersTo   StockTransfer[] @relation("TransfersTo")
-  staff         Staff[]
-  shopStocks    ShopStock[]
+  tenant          Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  cashRegisters   CashRegister[]
+  sales           Sale[]
+  transfersFrom   StockTransfer[]  @relation("TransfersFrom")
+  transfersTo     StockTransfer[]  @relation("TransfersTo")
+  staff           Staff[]
+  shopStocks      ShopStock[]
+  users           User[]           @relation("ShopUsers")
+  carpetRolls     CarpetRoll[]
+  carpetCutPieces CarpetCutPiece[]
 
   @@unique([tenantId, name])
   @@index([tenantId])
@@ -522,6 +534,7 @@ model Shop {
 model User {
   id                   String               @id @default(uuid())
   tenantId             String
+  shopId               String?
   fullName             String
   email                String               @unique
   phone                String?              @unique
@@ -546,6 +559,7 @@ model User {
   adminNotificationsRead AdminNotification[] @relation("AdminNotifReadBy")
 
   tenant              Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  assignedShop        Shop?                   @relation("ShopUsers", fields: [shopId], references: [id], onDelete: SetNull)
   sessions            Session[]
   otps                OtpCode[]
   salesCreated        Sale[]                  @relation("UserSales")
@@ -569,6 +583,7 @@ model User {
 
   @@index([tenantId])
   @@index([tenantId, role])
+  @@index([shopId])
 }
 
 model OnboardingProgress {
@@ -706,21 +721,23 @@ model Product {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  tenant         Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  category       Category?           @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  brand          Brand?              @relation(fields: [brandId], references: [id], onDelete: SetNull)
-  saleItems      SaleItem[]
-  purchaseItems  PurchaseItem[]
-  stockMovements StockMovement[]
-  adjustments    StockAdjustment[]
-  transferItems  StockTransferItem[]
-  returnItems    SaleReturnItem[]
-  images         ProductImage[]
-  variants       ProductVariant[]
-  tags           ProductTag[]
-  batches        ProductBatch[]
-  productImeis   ProductImei[]
-  shopStocks     ShopStock[]
+  tenant          Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  category        Category?           @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  brand           Brand?              @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  saleItems       SaleItem[]
+  purchaseItems   PurchaseItem[]
+  stockMovements  StockMovement[]
+  adjustments     StockAdjustment[]
+  transferItems   StockTransferItem[]
+  returnItems     SaleReturnItem[]
+  images          ProductImage[]
+  variants        ProductVariant[]
+  tags            ProductTag[]
+  batches         ProductBatch[]
+  productImeis    ProductImei[]
+  shopStocks      ShopStock[]
+  carpetRolls     CarpetRoll[]
+  carpetCutPieces CarpetCutPiece[]
 
   @@index([tenantId])
   @@index([tenantId, name])
@@ -816,11 +833,13 @@ model ProductVariant {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  product    Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
-  batches    ProductBatch[]
-  imeis      ProductImei[]
-  saleItems  SaleItemVariant[]
-  shopStocks ShopStock[]
+  product         Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  batches         ProductBatch[]
+  imeis           ProductImei[]
+  saleItems       SaleItemVariant[]
+  shopStocks      ShopStock[]
+  carpetRolls     CarpetRoll[]
+  carpetCutPieces CarpetCutPiece[]
 
   @@index([productId])
   @@index([productId, isActive])
@@ -1018,6 +1037,7 @@ model SaleItem {
   price       Float
   costPrice   Float            @default(0)
   total       Float
+  note        String?          @db.Text
   variantLink SaleItemVariant?
   createdAt   DateTime         @default(now())
 
@@ -1214,17 +1234,22 @@ model StockTransfer {
 }
 
 model StockTransferItem {
-  id         String   @id @default(uuid())
-  transferId String
-  productId  String
-  quantity   Float
-  createdAt  DateTime @default(now())
+  id           String   @id @default(uuid())
+  transferId   String
+  productId    String
+  variantId    String?
+  carpetRollId String?
+  quantity     Float
+  notes        String?
+  createdAt    DateTime @default(now())
 
-  transfer StockTransfer @relation(fields: [transferId], references: [id], onDelete: Cascade)
-  product  Product       @relation(fields: [productId], references: [id], onDelete: Restrict)
+  transfer   StockTransfer @relation(fields: [transferId], references: [id], onDelete: Cascade)
+  product    Product       @relation(fields: [productId], references: [id], onDelete: Restrict)
+  carpetRoll CarpetRoll?   @relation(fields: [carpetRollId], references: [id], onDelete: SetNull)
 
   @@index([transferId])
   @@index([productId])
+  @@index([carpetRollId])
 }
 
 model ExpenseCategory {
@@ -2201,4 +2226,191 @@ model ShopStock {
   @@index([variantId])
   @@index([shopId, productId])
   @@index([shopId, stock])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INDUSTRY: CARPET / FLOORING — Roll-based Inventory
+// ═══════════════════════════════════════════════════════════════
+
+enum CarpetRollStatus {
+  ACTIVE // Stock mein available, bik sakti hai
+  FINISHED // Pura roll khatam ho gaya
+  DAMAGED // Damage, sale nahi ho sakti
+  RESERVED // Kisi customer ke liye reserve
+  TRANSFERRED // Doosre shop mein bhej diya
+}
+
+enum CarpetCutPieceStatus {
+  AVAILABLE // Bechne ke liye taiyar
+  SOLD // Bik gaya
+  DAMAGED // Kharab
+  RESERVED // Reserve kisi customer ke liye
+}
+
+enum CarpetRollSource {
+  OPENING_STOCK // Shop pehle se chal rahi, opening entry
+  PURCHASE // Supplier se kharida
+  TRANSFER_IN // Doosre shop se aaya
+  RETURN // Customer ne wapas kiya (kabhi kabhi)
+  ADJUSTMENT // Manual adjustment
+}
+
+enum CarpetCutPieceSource {
+  LEFTOVER // Sale ke baad bacha tukra
+  CUSTOMER_RETURN // Customer ne return kiya
+  DAMAGED_ROLL // Damaged roll se nikla
+  OPENING_STOCK // Opening entry
+  MANUAL // Manually added
+}
+
+model CarpetRoll {
+  id        String  @id @default(uuid())
+  tenantId  String
+  shopId    String?
+  productId String
+  variantId String?
+
+  // ─── Roll Identity ───────────────────────────────────────
+  rollNumber String // R-001, SF-CR-2026-001, supplier ka roll # — kuch bhi
+  designCode String? // Supplier ka design code (e.g. "SF-2024-A")
+
+  // ─── Dimensions ──────────────────────────────────────────
+  widthFt           Float @default(12) // 12.0, 13.17 (= 13ft 2in), 6.0, 15.0
+  widthInch         Float @default(0) // Display ke liye: 13ft 2inch
+  originalLengthFt  Float // Jab roll aayi thi tab kitni thi
+  remainingLengthFt Float // Ab kitni bachi hai
+
+  // ─── Auto-calculated Sqft (cache for fast queries) ──────
+  originalSqft  Float @default(0) // widthFt × originalLengthFt
+  remainingSqft Float @default(0) // widthFt × remainingLengthFt
+
+  // ─── Pricing ─────────────────────────────────────────────
+  costPerSqft           Float  @default(0)
+  salePricePerSqft      Float  @default(0)
+  wholesalePricePerSqft Float?
+
+  // ─── Status & Source ─────────────────────────────────────
+  status     CarpetRollStatus @default(ACTIVE)
+  sourceType CarpetRollSource @default(OPENING_STOCK)
+
+  // ─── Reference Links ─────────────────────────────────────
+  purchaseId     String? // Agar purchase se aaya
+  purchaseItemId String?
+  supplierId     String? // Direct supplier link (optional)
+
+  // ─── Location ────────────────────────────────────────────
+  rackNumber String? // R-1, Wall-2, Godown-A
+  notes      String? @db.Text
+
+  // ─── Quality / Grade (optional) ──────────────────────────
+  quality String? // "Premium", "Standard", "Economy"
+  pile    String? // "Wool", "Synthetic", "Mixed"
+
+  // ─── Lifecycle ───────────────────────────────────────────
+  receivedAt  DateTime  @default(now())
+  finishedAt  DateTime?
+  createdById String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // ─── Relations ───────────────────────────────────────────
+  tenant        Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  shop          Shop?                @relation(fields: [shopId], references: [id], onDelete: SetNull)
+  product       Product              @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant       ProductVariant?      @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  cutPieces     CarpetCutPiece[]     @relation("RollToCutPieces")
+  movements     CarpetRollMovement[]
+  transferItems StockTransferItem[]
+
+  @@unique([tenantId, rollNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([shopId])
+  @@index([productId])
+  @@index([variantId])
+  @@index([tenantId, shopId, status])
+  @@index([rollNumber])
+}
+
+model CarpetCutPiece {
+  id        String  @id @default(uuid())
+  tenantId  String
+  shopId    String?
+  productId String
+  variantId String?
+
+  // ─── Source ──────────────────────────────────────────────
+  sourceRollId String? // Kis roll se nikla (null = customer return / opening)
+  sourceType   CarpetCutPieceSource @default(LEFTOVER)
+
+  // ─── Identity ────────────────────────────────────────────
+  pieceCode String // CP-001, CP-2026-001
+
+  // ─── Dimensions ──────────────────────────────────────────
+  widthFt    Float @default(0)
+  widthInch  Float @default(0)
+  lengthFt   Float @default(0)
+  lengthInch Float @default(0)
+  totalSqft  Float @default(0) // Auto calculated
+
+  // ─── Pricing ─────────────────────────────────────────────
+  costAmount   Float  @default(0) // Total cost (lump sum)
+  salePrice    Float  @default(0) // Flat price (cut pieces usually discount pe)
+  pricePerSqft Float? // Optional: agar sqft basis pe bechna ho
+
+  // ─── Status ──────────────────────────────────────────────
+  status    CarpetCutPieceStatus @default(AVAILABLE)
+  condition String? // "Good", "Slight damage", "Edge worn"
+
+  // ─── Location & Notes ────────────────────────────────────
+  rackNumber String?
+  notes      String? @db.Text
+
+  // ─── Sale Tracking ───────────────────────────────────────
+  saleItemId String?   @unique
+  soldAt     DateTime?
+
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // ─── Relations ───────────────────────────────────────────
+  tenant     Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  shop       Shop?           @relation(fields: [shopId], references: [id], onDelete: SetNull)
+  product    Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant    ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  sourceRoll CarpetRoll?     @relation("RollToCutPieces", fields: [sourceRollId], references: [id], onDelete: SetNull)
+
+  @@unique([tenantId, pieceCode])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([shopId])
+  @@index([productId])
+  @@index([sourceRollId])
+}
+
+model CarpetRollMovement {
+  id       String @id @default(uuid())
+  rollId   String
+  tenantId String
+
+  type               String // CUT_FOR_SALE, ADJUSTMENT, TRANSFER, RETURN, DAMAGE, OPENING
+  lengthFt           Float // Kitni length affect hui (+/-)
+  sqft               Float // Auto calculated
+  balanceLengthAfter Float // Movement ke baad kitna bacha
+  balanceSqftAfter   Float
+
+  reference   String? // saleId, transferId, etc.
+  saleId      String?
+  saleItemId  String?
+  note        String?
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  roll CarpetRoll @relation(fields: [rollId], references: [id], onDelete: Cascade)
+
+  @@index([rollId])
+  @@index([tenantId])
+  @@index([tenantId, createdAt])
+  @@index([saleId])
 }

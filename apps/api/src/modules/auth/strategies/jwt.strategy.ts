@@ -28,6 +28,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         email: true,
         role: true,
         permissions: true,
+        shopId: true,
       },
     });
 
@@ -41,6 +42,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       tenantId: user.tenantId,
       email: user.email,
       role: user.role,
+      shopId: user.shopId,
       permissions: user.permissions ?? [],
     };
   }
