@@ -401,12 +401,20 @@ export default function PosPage() {
     pricePerSqft: number;
     totalPrice: number;
     createLeftover: boolean;
+    isCustomRate?: boolean;
+    originalRate?: number;
   }) => {
     if (!carpetPickerData) return;
     const { product, variant } = carpetPickerData;
     const { roll } = data;
 
     const rollFullWidth = Number(roll.widthFt) + Number(roll.widthInch || 0) / 12;
+
+    // Build note — include rate info if custom
+    let note = `Cut from ${roll.rollNumber}: ${data.customerWidthFt}ft × ${data.lengthFt}ft = ${data.cutSqft.toFixed(2)} sqft`;
+    if (data.isCustomRate && data.originalRate && data.originalRate !== data.pricePerSqft) {
+      note += ` @ Rs ${data.pricePerSqft.toFixed(2)}/sqft (Custom)`;
+    }
 
     setCart((prev) => [
       ...prev,
@@ -436,11 +444,14 @@ export default function PosPage() {
         useWholesale: false,
         priceOverride: data.pricePerSqft,
         lineDiscount: 0,
-        note: `Cut from ${roll.rollNumber}: ${data.customerWidthFt}ft × ${data.lengthFt}ft = ${data.cutSqft.toFixed(2)} sqft`,
+        note,
       },
     ]);
 
-    toast.success(`${roll.rollNumber} se ${data.cutSqft.toFixed(2)} sqft cut added`);
+    const rateText = data.isCustomRate
+      ? ` @ Rs ${data.pricePerSqft.toFixed(2)}/sqft`
+      : '';
+    toast.success(`${roll.rollNumber} se ${data.cutSqft.toFixed(2)} sqft cut added${rateText}`);
     setCarpetPickerData(null);
   };
 

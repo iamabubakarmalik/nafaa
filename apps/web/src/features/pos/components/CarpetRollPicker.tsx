@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   X, Layers, Scissors, Search, AlertCircle, Ruler, Check,
-  ArrowRight, Info, MapPin,
+  ArrowRight, Info, MapPin, DollarSign, Percent, RotateCcw, Tag,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { formatPKR, formatPKRFull } from '@/lib/format';
@@ -21,6 +21,8 @@ interface Props {
     pricePerSqft: number;
     totalPrice: number;
     createLeftover: boolean;
+    isCustomRate: boolean;
+    originalRate: number;
   }) => void;
   onClose: () => void;
 }
@@ -31,6 +33,10 @@ export function CarpetRollPicker({ product, variant, onConfirm, onClose }: Props
   const [customerWidth, setCustomerWidth] = useState('');
   const [lengthFt, setLengthFt] = useState('');
   const [createLeftover, setCreateLeftover] = useState(true);
+
+  // ─── NEW: Custom rate state ──────────────────────────────
+  const [customRate, setCustomRate] = useState('');
+  const [useWholesale, setUseWholesale] = useState(false);
 
   const { data: rollsData, isLoading } = useQuery({
     queryKey: ['carpet-rolls-pos', product.id, variant?.id],
@@ -56,16 +62,19 @@ export function CarpetRollPicker({ product, variant, onConfirm, onClose }: Props
     );
   }, [rolls, search]);
 
-  // When a roll is selected, default the customer width to roll's full width
+  // When roll selected — reset rate state
   useEffect(() => {
     if (selectedRoll) {
       const fullWidth =
         Number(selectedRoll.widthFt) + Number(selectedRoll.widthInch || 0) / 12;
       setCustomerWidth(fullWidth.toFixed(2));
       setLengthFt('');
+      setCustomRate('');
+      setUseWholesale(false);
     }
   }, [selectedRoll]);
 
+  // ─── Calculations ─────────────────────────────────────────
   const calc = useMemo(() => {
     if (!selectedRoll) return null;
     const fullWidth =
@@ -76,14 +85,39 @@ export function CarpetRollPicker({ product, variant, onConfirm, onClose }: Props
     const cutSqft = cWidth * len;
     const widthDiff = fullWidth - cWidth;
     const leftoverSqft = widthDiff * len;
-    const totalPrice = cutSqft * Number(selectedRoll.salePricePerSqft);
+
+    // ─── Determine effective rate ──────────────────────────
+    const defaultRate = Number(selectedRoll.salePricePerSqft);
+    const wholesaleRate = selectedRoll.wholesalePricePerSqft
+      ? Number(selectedRoll.wholesalePricePerSqft)
+      : null;
+
+    let effectiveRate = defaultRate;
+    let rateSource: 'default' | 'wholesale' | 'custom' = 'default';
+
+    if (customRate && Number(customRate) > 0) {
+      effectiveRate = Number(customRate);
+      rateSource = 'custom';
+    } else if (useWholesale && wholesaleRate) {
+      effectiveRate = wholesaleRate;
+      rateSource = 'wholesale';
+    }
+
+    const totalPrice = cutSqft * effectiveRate;
+    const defaultTotalPrice = cutSqft * defaultRate;
+    const discount = defaultTotalPrice - totalPrice;
+    const discountPercent = defaultTotalPrice > 0 ? (discount / defaultTotalPrice) * 100 : 0;
 
     const widthError =
-      cWidth > fullWidth ? `Customer width ${fullWidth.toFixed(2)}ft se zyada nahi ho sakti` : null;
+      cWidth > fullWidth
+        ? `Customer width ${fullWidth.toFixed(2)}ft se zyada nahi ho sakti`
+        : null;
     const lengthError =
       len > Number(selectedRoll.remainingLengthFt)
         ? `Length ${Number(selectedRoll.remainingLengthFt).toFixed(2)}ft se zyada nahi`
         : null;
+    const rateError =
+      customRate && Number(customRate) < 0 ? 'Rate negative nahi ho sakti' : null;
 
     return {
       fullWidth,
@@ -92,12 +126,35 @@ export function CarpetRollPicker({ product, variant, onConfirm, onClose }: Props
       cutSqft,
       widthDiff,
       leftoverSqft,
+      defaultRate,
+      wholesaleRate,
+      effectiveRate,
+      rateSource,
       totalPrice,
+      defaultTotalPrice,
+      discount,
+      discountPercent,
       widthError,
       lengthError,
-      isValid: !widthError && !lengthError && cWidth > 0 && len > 0,
+      rateError,
+      isValid:
+        !widthError && !lengthError && !rateError && cWidth > 0 && len > 0 && effectiveRate > 0,
     };
-  }, [selectedRoll, customerWidth, lengthFt]);
+  }, [selectedRoll, customerWidth, lengthFt, customRate, useWholesale]);
+
+  // ─── Quick discount buttons ──────────────────────────────
+  const applyDiscount = (percent: number) => {
+    if (!selectedRoll) return;
+    const defaultRate = Number(selectedRoll.salePricePerSqft);
+    const discountedRate = defaultRate * (1 - percent / 100);
+    setCustomRate(discountedRate.toFixed(2));
+    setUseWholesale(false);
+  };
+
+  const resetRate = () => {
+    setCustomRate('');
+    setUseWholesale(false);
+  };
 
   const handleConfirm = () => {
     if (!selectedRoll || !calc || !calc.isValid) return;
@@ -106,9 +163,11 @@ export function CarpetRollPicker({ product, variant, onConfirm, onClose }: Props
       customerWidthFt: calc.cWidth,
       lengthFt: calc.len,
       cutSqft: calc.cutSqft,
-      pricePerSqft: Number(selectedRoll.salePricePerSqft),
+      pricePerSqft: calc.effectiveRate,
       totalPrice: calc.totalPrice,
       createLeftover: calc.widthDiff > 0.1 ? createLeftover : false,
+      isCustomRate: calc.rateSource !== 'default',
+      originalRate: calc.defaultRate,
     });
   };
 
@@ -145,8 +204,7 @@ export function CarpetRollPicker({ product, variant, onConfirm, onClose }: Props
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          {/* Body — two-column layout: rolls list + cut form */}
-          <div className="grid lg:grid-cols-[1fr_380px] gap-0">
+          <div className="grid lg:grid-cols-[1fr_420px] gap-0">
             {/* LEFT — Rolls list */}
             <div className="p-4 border-r border-slate-100">
               <div className="relative mb-3">
@@ -276,7 +334,7 @@ export function CarpetRollPicker({ product, variant, onConfirm, onClose }: Props
                   <Scissors className="h-12 w-12 text-slate-300 mb-3" />
                   <div className="font-bold text-slate-700">Pehle roll select karein</div>
                   <p className="text-xs text-slate-500 mt-1 max-w-[200px]">
-                    Left list se ek roll choose karein, phir cut details daalein
+                    Left list se ek roll choose karein, phir cut details aur customer rate daalein
                   </p>
                 </div>
               ) : (
@@ -294,83 +352,206 @@ export function CarpetRollPicker({ product, variant, onConfirm, onClose }: Props
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-700 mb-1 uppercase tracking-wider">
-                      Customer Width (ft)
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      autoFocus
-                      value={customerWidth}
-                      onChange={(e) => setCustomerWidth(e.target.value)}
-                      className={`h-11 w-full rounded-xl border-2 px-3 text-lg font-bold focus:outline-none focus:ring-2 ${
-                        calc?.widthError
-                          ? 'border-rose-300 bg-rose-50 focus:border-rose-500 focus:ring-rose-200'
-                          : 'border-slate-200 bg-white focus:border-emerald-500 focus:ring-emerald-200'
-                      }`}
-                    />
-                    {calc?.widthError && (
-                      <div className="text-[11px] text-rose-700 font-bold mt-1">
-                        {calc.widthError}
-                      </div>
-                    )}
-                    <div className="text-[10px] text-slate-500 mt-1">
-                      Default = roll ki full width ({calc?.fullWidth.toFixed(2)}ft)
+                  {/* Dimensions */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-700 mb-1 uppercase tracking-wider">
+                        Customer Width (ft)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        autoFocus
+                        value={customerWidth}
+                        onChange={(e) => setCustomerWidth(e.target.value)}
+                        className={`h-11 w-full rounded-xl border-2 px-3 text-lg font-bold focus:outline-none focus:ring-2 ${
+                          calc?.widthError
+                            ? 'border-rose-300 bg-rose-50 focus:border-rose-500 focus:ring-rose-200'
+                            : 'border-slate-200 bg-white focus:border-emerald-500 focus:ring-emerald-200'
+                        }`}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-700 mb-1 uppercase tracking-wider">
+                        Length (ft)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={lengthFt}
+                        onChange={(e) => setLengthFt(e.target.value)}
+                        placeholder="e.g. 10"
+                        className={`h-11 w-full rounded-xl border-2 px-3 text-lg font-bold focus:outline-none focus:ring-2 ${
+                          calc?.lengthError
+                            ? 'border-rose-300 bg-rose-50 focus:border-rose-500 focus:ring-rose-200'
+                            : 'border-slate-200 bg-white focus:border-emerald-500 focus:ring-emerald-200'
+                        }`}
+                      />
                     </div>
                   </div>
+                  {(calc?.widthError || calc?.lengthError) && (
+                    <div className="text-[11px] text-rose-700 font-bold">
+                      {calc?.widthError || calc?.lengthError}
+                    </div>
+                  )}
 
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-700 mb-1 uppercase tracking-wider">
-                      Length to Cut (ft)
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={lengthFt}
-                      onChange={(e) => setLengthFt(e.target.value)}
-                      placeholder="e.g. 10"
-                      className={`h-11 w-full rounded-xl border-2 px-3 text-lg font-bold focus:outline-none focus:ring-2 ${
-                        calc?.lengthError
-                          ? 'border-rose-300 bg-rose-50 focus:border-rose-500 focus:ring-rose-200'
-                          : 'border-slate-200 bg-white focus:border-emerald-500 focus:ring-emerald-200'
-                      }`}
-                    />
-                    {calc?.lengthError && (
-                      <div className="text-[11px] text-rose-700 font-bold mt-1">
-                        {calc.lengthError}
+                  {/* ═══════════════════════════════════════════ */}
+                  {/* CUSTOMER RATE SECTION (NEW!)              */}
+                  {/* ═══════════════════════════════════════════ */}
+                  <div className="rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <DollarSign className="h-3.5 w-3.5 text-amber-700" />
+                        <span className="text-[10px] uppercase font-bold tracking-wider text-amber-900">
+                          Customer Rate / sqft
+                        </span>
+                      </div>
+                      {calc?.rateSource !== 'default' && (
+                        <button
+                          onClick={resetRate}
+                          className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 hover:text-amber-900 hover:underline"
+                        >
+                          <RotateCcw className="h-2.5 w-2.5" />
+                          Reset
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="relative">
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={
+                          customRate ||
+                          (useWholesale && calc?.wholesaleRate
+                            ? calc.wholesaleRate.toFixed(2)
+                            : '')
+                        }
+                        onChange={(e) => {
+                          setCustomRate(e.target.value);
+                          setUseWholesale(false);
+                        }}
+                        placeholder={`Default: ${calc?.defaultRate.toFixed(2) ?? 0}`}
+                        className="h-12 w-full rounded-xl border-2 border-amber-300 bg-white pl-3 pr-20 text-xl font-extrabold text-amber-900 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+                      />
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-amber-700">
+                        Rs / sqft
+                      </div>
+                    </div>
+
+                    {/* Rate source badge */}
+                    {calc && calc.rateSource !== 'default' && (
+                      <div
+                        className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-extrabold ${
+                          calc.rateSource === 'custom'
+                            ? 'bg-blue-100 text-blue-700'
+                            : 'bg-violet-100 text-violet-700'
+                        }`}
+                      >
+                        <Tag className="h-2.5 w-2.5" />
+                        {calc.rateSource === 'custom' ? 'CUSTOM RATE' : 'WHOLESALE RATE'}
+                        {calc.discount > 0 && (
+                          <span className="ml-1">
+                            (–{calc.discountPercent.toFixed(1)}%)
+                          </span>
+                        )}
                       </div>
                     )}
+
+                    {/* Quick presets */}
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {calc?.wholesaleRate && (
+                        <button
+                          onClick={() => {
+                            setUseWholesale(true);
+                            setCustomRate('');
+                          }}
+                          className={`py-1.5 rounded-lg border-2 text-[10px] font-extrabold transition ${
+                            useWholesale
+                              ? 'border-violet-500 bg-violet-100 text-violet-900'
+                              : 'border-violet-200 bg-white text-violet-700 hover:border-violet-400'
+                          }`}
+                          title={`Wholesale: ${formatPKR(calc.wholesaleRate)}/sqft`}
+                        >
+                          W/S
+                        </button>
+                      )}
+                      {[5, 10, 15].map((p) => (
+                        <button
+                          key={p}
+                          onClick={() => applyDiscount(p)}
+                          className="py-1.5 rounded-lg border-2 border-amber-200 bg-white text-amber-700 hover:border-amber-400 hover:bg-amber-50 text-[10px] font-extrabold inline-flex items-center justify-center gap-0.5"
+                        >
+                          <Percent className="h-2.5 w-2.5" />
+                          {p}%
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="text-[10px] text-amber-800 leading-relaxed">
+                      💡 Default rate: <strong>Rs {calc?.defaultRate.toFixed(2)}/sqft</strong>
+                      {calc?.wholesaleRate && (
+                        <>
+                          {' '}
+                          • Wholesale: <strong>Rs {calc.wholesaleRate.toFixed(2)}/sqft</strong>
+                        </>
+                      )}
+                    </div>
                   </div>
 
                   {/* Calculation preview */}
                   {calc && calc.cutSqft > 0 && !calc.widthError && !calc.lengthError && (
-                    <div className="rounded-xl bg-gradient-to-br from-emerald-50 to-green-50 border-2 border-emerald-300 p-3 space-y-2">
+                    <div
+                      className={`rounded-xl border-2 p-3 space-y-2 ${
+                        calc.rateSource === 'custom'
+                          ? 'bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-300'
+                          : calc.rateSource === 'wholesale'
+                            ? 'bg-gradient-to-br from-violet-50 to-purple-50 border-violet-300'
+                            : 'bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-300'
+                      }`}
+                    >
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <div className="text-[9px] uppercase font-bold text-emerald-700">
+                          <div className="text-[9px] uppercase font-bold text-slate-600">
                             Cut Area
                           </div>
-                          <div className="text-2xl font-extrabold text-emerald-900">
+                          <div className="text-2xl font-extrabold text-slate-900">
                             {calc.cutSqft.toFixed(2)}
                           </div>
-                          <div className="text-[10px] font-bold text-emerald-700">sqft</div>
+                          <div className="text-[10px] font-bold text-slate-600">sqft</div>
                         </div>
-                        <div>
-                          <div className="text-[9px] uppercase font-bold text-emerald-700">
-                            Sale Price
+                        <div className="text-right">
+                          <div className="text-[9px] uppercase font-bold text-slate-600">
+                            Total Price
                           </div>
-                          <div className="text-2xl font-extrabold text-emerald-900">
+                          <div className="text-2xl font-extrabold text-slate-900">
                             {formatPKRFull(calc.totalPrice)}
                           </div>
-                          <div className="text-[10px] font-bold text-emerald-700">
-                            @ {formatPKR(selectedRoll.salePricePerSqft)}/sqft
+                          <div className="text-[10px] font-bold text-slate-600">
+                            @ {formatPKR(calc.effectiveRate)}/sqft
                           </div>
                         </div>
                       </div>
 
+                      {/* Discount info if any */}
+                      {calc.discount > 0 && (
+                        <div className="pt-2 border-t border-slate-300 flex items-center justify-between text-[11px]">
+                          <span className="font-bold text-slate-700">
+                            Default ({formatPKR(calc.defaultRate)}/sqft):
+                          </span>
+                          <div className="text-right">
+                            <span className="text-slate-500 line-through">
+                              {formatPKRFull(calc.defaultTotalPrice)}
+                            </span>
+                            <span className="ml-2 font-extrabold text-emerald-700">
+                              –{formatPKRFull(calc.discount)}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
                       {calc.widthDiff > 0.1 && (
-                        <div className="pt-2 border-t border-emerald-200">
+                        <div className="pt-2 border-t border-slate-300">
                           <label className="flex items-start gap-2 cursor-pointer">
                             <input
                               type="checkbox"
@@ -393,12 +574,11 @@ export function CarpetRollPicker({ product, variant, onConfirm, onClose }: Props
                     </div>
                   )}
 
-                  {/* Helper hint */}
                   <div className="rounded-lg bg-blue-50 border border-blue-200 p-2.5 flex items-start gap-2">
                     <Info className="h-3.5 w-3.5 text-blue-700 shrink-0 mt-0.5" />
                     <div className="text-[10px] text-blue-900">
-                      <strong>Tip:</strong> Customer width chhoti hai to bachay tukre ka cut piece
-                      automatically ban jayega
+                      <strong>Tip:</strong> Rate edit kar ke customer ko special price de
+                      saktay ho. Receipt par actual rate print ho ga.
                     </div>
                   </div>
                 </div>
