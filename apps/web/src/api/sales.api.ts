@@ -47,11 +47,20 @@ export interface Sale {
     name: string;
     phone?: string | null;
     balance?: number;
+    address?: string | null;
+    email?: string | null;
   } | null;
   createdBy?: {
     id: string;
     fullName: string;
     email: string;
+  } | null;
+  shop?: {
+    id: string;
+    name: string;
+    address?: string | null;
+    phone?: string | null;
+    isMain?: boolean;
   } | null;
   tenant?: {
     id: string;
@@ -60,6 +69,31 @@ export interface Sale {
     phone?: string | null;
     country: string;
     currency: string;
+    settings?: {
+      shopName?: string | null;
+      legalName?: string | null;
+      shopAddress?: string | null;
+      shopCity?: string | null;
+      shopProvince?: string | null;
+      shopPhone?: string | null;
+      shopWhatsapp?: string | null;
+      shopEmail?: string | null;
+      shopWebsite?: string | null;
+      logoUrl?: string | null;
+      taxNumber?: string | null;
+      taxLabel?: string | null;
+      enableTax?: boolean;
+      receiptSize?: string;
+      receiptHeader?: string | null;
+      receiptFooter?: string | null;
+      receiptShowLogo?: boolean;
+      receiptShowTax?: boolean;
+      receiptShowCustomer?: boolean;
+      receiptShowBarcode?: boolean;
+      receiptShowQrCode?: boolean;
+      currencySymbol?: string;
+      currency?: string;
+    } | null;
   };
   items: Array<{
     id: string;
