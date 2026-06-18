@@ -715,11 +715,11 @@ export default function ReceiptPage() {
 
                       return (
                         <tr key={item.id} className="border-b border-slate-100 align-top">
-                          <td className="py-3 px-2 text-slate-500 font-mono text-xs">
+                          <td className="py-4 px-2 text-slate-500 font-mono text-xs">
                             {idx + 1}
                           </td>
-                          <td className="py-3 px-2">
-                            <div className="font-bold text-slate-900">
+                          <td className="py-4 px-2">
+                            <div className="font-bold text-slate-900 text-base">
                               {item.product.name}
                             </div>
                             {variant && (
@@ -760,20 +760,41 @@ export default function ReceiptPage() {
                                 {item.note}
                               </div>
                             )}
-                          </td>
-                          <td className="py-3 px-2 text-center">
-                            <div className="font-bold text-slate-900">
-                              {formatQty(item.quantity)}
+
+                            {/* Multiplication formula — visible on screen + print */}
+                            <div className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-mono font-semibold text-slate-600 bg-slate-50 border border-slate-200 rounded-md px-2 py-1 print:bg-white">
+                              <span className="font-bold text-slate-900">{formatQty(item.quantity)}</span>
+                              <span className="text-slate-500">{item.product.unit}</span>
+                              <span className="text-slate-400 mx-1">×</span>
+                              <span className="font-bold text-slate-900">{formatPKR(item.price)}</span>
+                              <span className="text-slate-400 mx-1">=</span>
+                              <span className="font-extrabold text-emerald-700">{formatPKR(item.total)}</span>
                             </div>
-                            <div className="text-[10px] text-slate-500">
+                          </td>
+                          <td className="py-4 px-2 text-center">
+                            <div className="inline-flex items-baseline gap-0.5">
+                              <span className="text-xl font-extrabold text-slate-900 tabular-nums">
+                                {formatQty(item.quantity)}
+                              </span>
+                            </div>
+                            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
                               {item.product.unit}
                             </div>
                           </td>
-                          <td className="py-3 px-2 text-right text-slate-700 font-semibold tabular-nums">
-                            {formatPKR(item.price)}
+                          <td className="py-4 px-2 text-right">
+                            <div className="inline-flex items-center gap-1 text-slate-700 font-bold tabular-nums">
+                              <span className="text-slate-400 text-xs">×</span>
+                              <span>{formatPKR(item.price)}</span>
+                            </div>
+                            <div className="text-[9px] text-slate-500 font-semibold">
+                              per {item.product.unit}
+                            </div>
                           </td>
-                          <td className="py-3 px-2 text-right font-extrabold text-slate-900 tabular-nums">
-                            {formatPKR(item.total)}
+                          <td className="py-4 px-2 text-right">
+                            <div className="inline-flex items-center gap-1 font-extrabold text-emerald-700 tabular-nums text-base">
+                              <span className="text-slate-400 text-xs font-normal">=</span>
+                              <span>{formatPKR(item.total)}</span>
+                            </div>
                           </td>
                         </tr>
                       );
