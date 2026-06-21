@@ -10,6 +10,7 @@ export type PaymentMethod =
 export interface CreateSaleItem {
   productId: string;
   variantId?: string;
+  imeiId?: string;
   quantity: number;
   priceOverride?: number;
   lineDiscount?: number;

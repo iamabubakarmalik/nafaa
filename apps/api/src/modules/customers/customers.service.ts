@@ -217,4 +217,113 @@ export class CustomersService {
       topSpenders,
     };
   }
+
+  /**
+   * Get all mobile-related history for a customer:
+   * - IMEIs purchased (with PTA + warranty info)
+   * - Repair tickets
+   * - Used phone trade-ins
+   * - EMI plans
+   */
+  async getMobileHistory(user: AuthenticatedUser, customerId: string) {
+    const customer = await this.prisma.customer.findFirst({
+      where: { id: customerId, tenantId: user.tenantId },
+    });
+    if (!customer) throw new NotFoundException('Customer not found');
+
+    // 1. IMEIs sold to this customer (via sale items)
+    const customerSales = await this.prisma.sale.findMany({
+      where: {
+        tenantId: user.tenantId,
+        customerId,
+        status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
+      },
+      select: {
+        id: true,
+        saleNumber: true,
+        soldAt: true,
+        total: true,
+        items: { select: { id: true } },
+      },
+      orderBy: { soldAt: 'desc' },
+    });
+    const saleItemIds = customerSales.flatMap((s) => s.items.map((i) => i.id));
+
+    const imeisPurchased = saleItemIds.length > 0
+      ? await this.prisma.productImei.findMany({
+          where: {
+            tenantId: user.tenantId,
+            saleItemId: { in: saleItemIds },
+          },
+          include: {
+            product: { select: { id: true, name: true, brand: { select: { name: true } } } },
+            variant: { select: { id: true, name: true, color: true } },
+          },
+          orderBy: { soldAt: 'desc' },
+        })
+      : [];
+
+    // Map IMEIs back to their sale
+    const saleMap = new Map<string, any>();
+    customerSales.forEach((s) => {
+      s.items.forEach((i) => saleMap.set(i.id, s));
+    });
+    const enrichedImeis = imeisPurchased.map((imei) => {
+      const sale = imei.saleItemId ? saleMap.get(imei.saleItemId) : null;
+      const isUnderWarranty = imei.warrantyExpiry
+        ? new Date(imei.warrantyExpiry) > new Date()
+        : false;
+      return {
+        ...imei,
+        sale: sale ? {
+          id: sale.id,
+          saleNumber: sale.saleNumber,
+          soldAt: sale.soldAt,
+        } : null,
+        isUnderWarranty,
+      };
+    });
+
+    // 2. Repair tickets
+    const repairs = await this.prisma.repairTicket.findMany({
+      where: { tenantId: user.tenantId, customerId },
+      include: {
+        _count: { select: { parts: true, payments: true } },
+      },
+      orderBy: { receivedAt: 'desc' },
+    });
+
+    // 3. Used phones sold by this customer (trade-in)
+    const usedPhonesSold = await this.prisma.usedPhone.findMany({
+      where: { tenantId: user.tenantId, fromCustomerId: customerId },
+      orderBy: { receivedAt: 'desc' },
+    });
+
+    // 4. EMI plans
+    const emiPlans = await this.prisma.emiPlan.findMany({
+      where: { tenantId: user.tenantId, customerId },
+      include: {
+        installments: {
+          select: { id: true, status: true, amount: true, paidAmount: true, dueDate: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return {
+      customer,
+      summary: {
+        totalPhonesPurchased: imeisPurchased.length,
+        underWarrantyCount: enrichedImeis.filter((i) => i.isUnderWarranty).length,
+        repairTicketsCount: repairs.length,
+        usedPhonesSoldCount: usedPhonesSold.length,
+        activeEmiPlansCount: emiPlans.filter((p) => p.status === 'ACTIVE').length,
+      },
+      imeisPurchased: enrichedImeis,
+      repairs,
+      usedPhonesSold,
+      emiPlans,
+    };
+  }
+
 }

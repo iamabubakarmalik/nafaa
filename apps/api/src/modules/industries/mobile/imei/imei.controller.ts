@@ -2,29 +2,56 @@ import {
   Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { ImeiStatus } from '@prisma/client';
+import { ImeiStatus, PtaStatus } from '@prisma/client';
 import { GetUser } from '../../../auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../auth/interfaces/jwt-payload.interface';
-import { ImeiService } from './imei.service';
 import { CreateImeiDto } from './dto/create-imei.dto';
 import { BulkCreateImeiDto } from './dto/bulk-create-imei.dto';
+import { ImeiService } from './imei.service';
 
-@ApiTags('Industry: Mobile - IMEI')
+@ApiTags('IMEI Tracking')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('industries/mobile/imei')
 export class ImeiController {
   constructor(private readonly service: ImeiService) {}
 
+  @Get()
+  listAll(
+    @GetUser() user: AuthenticatedUser,
+    @Query('search') search?: string,
+    @Query('status') status?: ImeiStatus,
+    @Query('ptaStatus') ptaStatus?: PtaStatus,
+    @Query('productId') productId?: string,
+    @Query('variantId') variantId?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.service.listAll(user, {
+      search,
+      status,
+      ptaStatus,
+      productId,
+      variantId,
+      page: page ? Number(page) : 1,
+      limit: limit ? Number(limit) : 100,
+    });
+  }
+
   @Get('stats')
   stats(@GetUser() user: AuthenticatedUser) {
     return this.service.stats(user);
   }
 
+  @Post('recalc-stocks')
+  recalcStocks(@GetUser() user: AuthenticatedUser) {
+    return this.service.recalcAllStocks(user);
+  }
+
   @Get('search')
   search(@GetUser() user: AuthenticatedUser, @Query('q') q: string) {
-    return this.service.search(user, q || '');
+    return this.service.search(user, q ?? '');
   }
 
   @Get('product/:productId')
@@ -73,9 +100,9 @@ export class ImeiController {
   update(
     @GetUser() user: AuthenticatedUser,
     @Param('id') id: string,
-    @Body() dto: Partial<CreateImeiDto>,
+    @Body() body: Partial<CreateImeiDto>,
   ) {
-    return this.service.update(user, id, dto);
+    return this.service.update(user, id, body);
   }
 
   @Delete(':id')

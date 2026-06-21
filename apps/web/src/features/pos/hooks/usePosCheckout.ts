@@ -15,11 +15,18 @@ interface CheckoutPayload {
   cart: CartItem[];
 }
 
-interface CheckoutResult {
+type CheckoutResult = {
+  saleId: string;
   saleNumber: string;
   total: number;
+  paidAmount: number;
   credit: number;
-}
+  change: number;
+  customerId: string | null;
+  customerName: string | null;
+  customerPhone: string | null;
+};
+
 
 /**
  * Carpet POS checkout flow:
@@ -118,6 +125,7 @@ export function usePosCheckout(onSuccess?: (result: CheckoutResult) => void) {
         return {
           productId: item.productId,
           variantId: item.variantId,
+          imeiId: item.imeiId,
           quantity: item.quantity,
           priceOverride: baseUnitPrice,
           lineDiscount: item.lineDiscount || undefined,
@@ -176,9 +184,15 @@ export function usePosCheckout(onSuccess?: (result: CheckoutResult) => void) {
       ]);
 
       return {
+        saleId: sale.id,
         saleNumber: sale.saleNumber,
         total: sale.total,
+        paidAmount: sale.paidAmount,
         credit: sale.creditAmount,
+        change: sale.changeAmount ?? 0,
+        customerId: sale.customer?.id ?? null,
+        customerName: sale.customer?.name ?? null,
+        customerPhone: sale.customer?.phone ?? null,
       };
     },
     onSuccess: (result) => {

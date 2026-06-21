@@ -1,7 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import * as XLSX from 'xlsx';
+import { productsApi } from '@/api/products.api';
 import {
   Upload, FileSpreadsheet, Download, ArrowLeft, CheckCircle2,
   AlertTriangle, X, Sparkles, Layers, FileWarning, RefreshCw,
@@ -76,13 +77,250 @@ export default function CarpetBulkImportPage() {
   const [result, setResult] = useState<BulkImportApplyResponse | null>(null);
   const [fileName, setFileName] = useState('');
 
-  // ─── Sample template download ──────────────────────────────
+  // ─── Fetch user's products with variants (for smart template) ───
+  const { data: productsData } = useQuery({
+    queryKey: ['products-for-bulk-import'],
+    queryFn: () => productsApi.list({ limit: 500 }),
+  });
+
+  // Filter only carpet-unit products (sqft/sqm/sqyd)
+  const carpetProducts = useMemo(() => {
+    const items = productsData?.items ?? [];
+    return items.filter((p: any) =>
+      ['sqft', 'sqm', 'sqyd'].includes((p.unit || '').toLowerCase()),
+    );
+  }, [productsData]);
+
+  // Build flat list of product + variant combinations
+  const productVariantRows = useMemo(() => {
+    const rows: Array<{
+      productName: string;
+      variantName: string;
+      productSku?: string;
+      variantSku?: string;
+      defaultCost?: number;
+      defaultPrice?: number;
+    }> = [];
+    for (const p of carpetProducts as any[]) {
+      if (p.variants && p.variants.length > 0) {
+        for (const v of p.variants as any[]) {
+          rows.push({
+            productName: p.name,
+            variantName: v.name,
+            productSku: p.sku ?? undefined,
+            variantSku: v.sku ?? undefined,
+            defaultCost: Number(v.costPrice ?? p.costPrice ?? 0),
+            defaultPrice: Number(v.price ?? v.salePrice ?? p.price ?? p.salePrice ?? 0),
+          });
+        }
+      } else {
+        rows.push({
+          productName: p.name,
+          variantName: '',
+          productSku: p.sku ?? undefined,
+          defaultCost: Number(p.costPrice ?? 0),
+          defaultPrice: Number(p.price ?? p.salePrice ?? 0),
+        });
+      }
+    }
+    return rows;
+  }, [carpetProducts]);
+
+  // ─── Smart pre-filled template download ────────────────────
   const downloadTemplate = () => {
+    if (carpetProducts.length === 0) {
+      // Fallback to blank template if no carpet products yet
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(SAMPLE_DATA, { header: SAMPLE_HEADERS });
+      XLSX.utils.book_append_sheet(wb, ws, 'Carpet Rolls');
+      XLSX.writeFile(wb, 'carpet_rolls_template.xlsx');
+      toast.success('Blank template downloaded — pehle carpet products add karein for smart template');
+      return;
+    }
+
     const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(SAMPLE_DATA, { header: SAMPLE_HEADERS });
+
+    // ═══════════════════════════════════════════════════════════
+    // SHEET 1: Main "Carpet Rolls" sheet with pre-filled products
+    // ═══════════════════════════════════════════════════════════
+    const mainHeaders = [
+      'productName',
+      'variantName',
+      'rollNumber',
+      'designCode',
+      'widthFt',
+      'widthInch',
+      'lengthFt',
+      'costPerSqft',
+      'salePricePerSqft',
+      'rackNumber',
+      'quality',
+      'pile',
+      'notes',
+    ];
+
+    // Pre-fill rows with user's products (1 row per product+variant combo)
+    const prefilledRows = productVariantRows.map((pv) => ({
+      productName: pv.productName,
+      variantName: pv.variantName || '',
+      rollNumber: '', // user will fill
+      designCode: '',
+      widthFt: '', // user will fill
+      widthInch: 0,
+      lengthFt: '', // user will fill
+      costPerSqft: pv.defaultCost || '',
+      salePricePerSqft: pv.defaultPrice || '',
+      rackNumber: '',
+      quality: '',
+      pile: '',
+      notes: '',
+    }));
+
+    // Add 20 extra blank rows for new entries
+    for (let i = 0; i < 20; i++) {
+      prefilledRows.push({
+        productName: '',
+        variantName: '',
+        rollNumber: '',
+        designCode: '',
+        widthFt: '',
+        widthInch: 0,
+        lengthFt: '',
+        costPerSqft: '',
+        salePricePerSqft: '',
+        rackNumber: '',
+        quality: '',
+        pile: '',
+        notes: '',
+      } as any);
+    }
+
+    const ws = XLSX.utils.json_to_sheet(prefilledRows, { header: mainHeaders });
+
+    // Set column widths
+    ws['!cols'] = [
+      { wch: 22 }, // productName
+      { wch: 16 }, // variantName
+      { wch: 14 }, // rollNumber
+      { wch: 14 }, // designCode
+      { wch: 10 }, // widthFt
+      { wch: 10 }, // widthInch
+      { wch: 10 }, // lengthFt
+      { wch: 14 }, // costPerSqft
+      { wch: 16 }, // salePricePerSqft
+      { wch: 14 }, // rackNumber
+      { wch: 12 }, // quality
+      { wch: 12 }, // pile
+      { wch: 30 }, // notes
+    ];
+
+    // Style header row (cell formatting via XLSX is limited but we can set comments)
+    const headerComments: Record<string, string> = {
+      A1: 'REQUIRED — Use exact product name from your inventory (dropdown in this column)',
+      B1: 'Variant name if product has variants (Cream, Red, etc)',
+      C1: 'Leave EMPTY for auto-generation, or set your own (e.g. R-001)',
+      D1: 'Supplier design code (optional)',
+      E1: 'REQUIRED — Width in feet (e.g. 12)',
+      F1: 'Extra inches 0-11 (e.g. 6 for 12ft 6in)',
+      G1: 'REQUIRED — Length in feet (e.g. 100)',
+      H1: 'Cost price per sqft in Rs',
+      I1: 'Sale price per sqft in Rs',
+      J1: 'Storage location (e.g. Wall-1, Rack-A)',
+      K1: 'Premium / Standard / Economy',
+      L1: 'Wool / Synthetic / Mixed',
+      M1: 'Any additional notes',
+    };
+
+    for (const [cell, comment] of Object.entries(headerComments)) {
+      if (ws[cell]) {
+        ws[cell].c = [{ a: 'Nafaa POS', t: comment, T: true }];
+      }
+    }
+
     XLSX.utils.book_append_sheet(wb, ws, 'Carpet Rolls');
-    XLSX.writeFile(wb, 'carpet_rolls_template.xlsx');
-    toast.success('Template downloaded');
+
+    // ═══════════════════════════════════════════════════════════
+    // SHEET 2: Products Reference (dropdown source)
+    // ═══════════════════════════════════════════════════════════
+    const productsList = productVariantRows.map((pv, idx) => ({
+      '#': idx + 1,
+      'Product Name': pv.productName,
+      'Variant Name': pv.variantName || '(no variants)',
+      'Product SKU': pv.productSku || '',
+      'Default Cost/sqft': pv.defaultCost || '',
+      'Default Price/sqft': pv.defaultPrice || '',
+    }));
+
+    const wsRef = XLSX.utils.json_to_sheet(productsList);
+    wsRef['!cols'] = [
+      { wch: 5 },
+      { wch: 25 },
+      { wch: 18 },
+      { wch: 14 },
+      { wch: 16 },
+      { wch: 18 },
+    ];
+    XLSX.utils.book_append_sheet(wb, wsRef, 'Products Reference');
+
+    // ═══════════════════════════════════════════════════════════
+    // SHEET 3: Instructions
+    // ═══════════════════════════════════════════════════════════
+    const instructions = [
+      ['CARPET ROLLS BULK IMPORT — INSTRUCTIONS'],
+      [''],
+      ['📋 HOW TO USE THIS TEMPLATE'],
+      [''],
+      ['1.', 'Go to "Carpet Rolls" sheet (first tab)'],
+      ['2.', `Aap ke ${productVariantRows.length} product+variant combos already pre-filled hain`],
+      ['3.', 'Sirf khali columns fill karein: rollNumber (optional), widthFt, lengthFt, etc.'],
+      ['4.', 'Niche 20 extra blank rows hain — naye products bhi add kar saktay ho'],
+      ['5.', 'Save file aur is page par drag/drop karein'],
+      [''],
+      ['📊 COLUMN GUIDE'],
+      [''],
+      ['Column', 'Required?', 'Description', 'Example'],
+      ['productName', 'YES', 'Aap ke inventory ka exact product name', 'Sun Flower'],
+      ['variantName', 'No', 'Variant name agar product mein variants hain', 'Cream'],
+      ['rollNumber', 'No', 'Khali chhorein → auto-generate hoga', 'R-001'],
+      ['designCode', 'No', 'Supplier ka design code', 'SF-001'],
+      ['widthFt', 'YES', 'Roll ki width feet mein', '12'],
+      ['widthInch', 'No', 'Extra inches (0-11)', '6'],
+      ['lengthFt', 'YES', 'Roll ki length feet mein', '100'],
+      ['costPerSqft', 'No', 'Cost price per square foot', '72'],
+      ['salePricePerSqft', 'No', 'Sale price per square foot', '90'],
+      ['rackNumber', 'No', 'Storage location', 'Wall-1'],
+      ['quality', 'No', 'Premium / Standard / Economy', 'Premium'],
+      ['pile', 'No', 'Wool / Synthetic / Mixed', 'Wool'],
+      ['notes', 'No', 'Koi additional notes', 'New stock'],
+      [''],
+      ['💡 TIPS'],
+      [''],
+      ['• "Products Reference" tab dekh kar exact product names use karein'],
+      ['• Roll number khali chhor dein agar aap chahtay ho system khud generate kare'],
+      ['• Width = full roll width (e.g. 12ft), length = how much remaining stock hai'],
+      ['• Cost aur sale price already pre-filled hain product defaults se — change kar sakte hain'],
+      ['• 1 row = 1 physical roll (na ke 1 product type)'],
+      [''],
+      ['⚠️ COMMON MISTAKES'],
+      [''],
+      ['❌ Product name spelling galat — use copy-paste from Products Reference'],
+      ['❌ Variant name miss kar dena agar product mein variants hain'],
+      ['❌ Width ya length 0 ya negative — kabhi nahi'],
+      ['❌ Same roll number 2 rows mein — duplicates fail honge'],
+      [''],
+      ['✅ Sab kuch fill karne ke baad upload karein aur preview check karein'],
+    ];
+
+    const wsInstr = XLSX.utils.aoa_to_sheet(instructions);
+    wsInstr['!cols'] = [{ wch: 22 }, { wch: 12 }, { wch: 40 }, { wch: 20 }];
+    XLSX.utils.book_append_sheet(wb, wsInstr, 'Instructions');
+
+    // Save with timestamp
+    const timestamp = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(wb, `carpet_rolls_template_${timestamp}.xlsx`);
+    toast.success(`Smart template downloaded — ${productVariantRows.length} products pre-filled`, {
+      description: '3 sheets: Carpet Rolls (data), Products Reference, Instructions',
+    });
   };
 
   // ─── File parsing ──────────────────────────────────────────
@@ -303,8 +541,25 @@ export default function CarpetBulkImportPage() {
                 </div>
               ))}
             </div>
-            <div className="mt-3 text-xs text-blue-700">
-              💡 <strong>Tip:</strong> "Download Template" button click karein — sample Excel mil jayegi
+            <div className="mt-3 rounded-xl bg-gradient-to-br from-emerald-50 to-green-50 border-2 border-emerald-200 p-3">
+              <div className="flex items-start gap-2">
+                <Sparkles className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                <div className="text-xs text-emerald-900">
+                  <div className="font-extrabold mb-1">✨ Smart Template Available!</div>
+                  {carpetProducts.length > 0 ? (
+                    <>
+                      Aap ke <strong>{carpetProducts.length} carpet products</strong>{' '}
+                      ({productVariantRows.length} product+variant combos) already pre-filled hain template mein.
+                      Sirf <strong>width, length aur roll number</strong> fill karein!
+                    </>
+                  ) : (
+                    <>
+                      Pehle <Link to="/products/new" className="font-bold underline">carpet products add karein</Link>{' '}
+                      (with sqft/sqm/sqyd unit) — phir smart template auto-fill ho jayega
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>

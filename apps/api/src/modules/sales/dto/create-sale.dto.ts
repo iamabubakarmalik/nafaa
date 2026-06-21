@@ -16,6 +16,13 @@ class CreateSaleItemDto {
   @IsString()
   variantId?: string;
 
+  @ApiPropertyOptional({
+    description: 'For mobile industry: specific IMEI being sold',
+  })
+  @IsOptional()
+  @IsString()
+  imeiId?: string;
+
   @ApiProperty({ example: 1.5, description: 'Decimal quantity (e.g. 12.5 sqft)' })
   @IsNumber()
   @Min(0.01)
@@ -45,7 +52,7 @@ class CreateSaleItemDto {
   useWholesale?: boolean;
 
   @ApiPropertyOptional({
-    description: 'Optional note for this line (e.g. "12ft × 12ft = 144 sqft")',
+    description: 'Optional note for this line (e.g. "12ft × 12ft = 144 sqft" or "IMEI: 354895...")',
   })
   @IsOptional()
   @IsString()

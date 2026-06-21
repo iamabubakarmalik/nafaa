@@ -8,8 +8,7 @@ import {
   ArrowRightLeft, Download, Database, RotateCcw, Award, Percent,
   TrendingUp, CreditCard, Gift, Gauge, Hash, UserCircle, LifeBuoy,
   ScrollText, Eye, UserCog, CheckCircle2, Wallet2, Plus, ChevronDown,
-  User, KeyRound, HelpCircle, Search, Bell, Scissors, FileSpreadsheet,Layers,
-} from 'lucide-react';
+  User, KeyRound, HelpCircle, Search, Bell, Scissors, FileSpreadsheet,Layers, RefreshCw, Wrench, Smartphone} from 'lucide-react';
 
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/store/auth.store';
@@ -80,6 +79,16 @@ const navGroups: { label: string; items: NavItem[] }[] = [
     ],
   },
   {
+    label: 'Mobile Industry',
+    items: [
+      { to: '/imei-inventory', label: 'IMEI Inventory', icon: Smartphone },
+      { to: '/used-phones', label: 'Used Phones (Trade-In)', icon: RefreshCw },
+      { to: '/repair-tickets', label: 'Repair Service', icon: Wrench },
+      { to: '/emi-plans', label: 'EMI / Installments', icon: CreditCard },
+      { to: '/mobile-reports', label: 'Mobile Reports', icon: BarChart3 },
+    ],
+  },
+  {
     label: 'Staff Management',
     items: [
       { to: '/staff', label: 'All Staff', icon: UserCog, permission: PERMISSIONS.STAFF_VIEW },
@@ -142,10 +151,16 @@ const SidebarContent = memo(function SidebarContent({
     const isCarpet = (businessType ?? '').toUpperCase().includes('CARPET') ||
                      (businessType ?? '').toUpperCase().includes('FLOORING');
 
+    const isMobile = (businessType ?? '').toUpperCase().includes('MOBILE') ||
+                     (businessType ?? '').toUpperCase().includes('PHONE') ||
+                     (businessType ?? '').toUpperCase().includes('ELECTRONICS');
+
     return navGroups
       .filter((group) => {
         // Carpet Industry sirf carpet business type ko dikhe
         if (group.label === 'Carpet Industry' && !isCarpet) return false;
+        // Mobile Industry sirf mobile business type ko dikhe
+        if (group.label === 'Mobile Industry' && !isMobile) return false;
         return true;
       })
       .map((group) => ({

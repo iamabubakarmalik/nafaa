@@ -1,5 +1,6 @@
 import type { IndustryPlugin } from '@/features/industries/_shared/types/section.types';
 import { carpetPlugin } from '@/features/industries/carpet';
+import { mobilePlugin } from '@/features/industries/mobile';
 import { standardPlugin } from '@/features/industries/standard';
 
 /**
@@ -16,7 +17,7 @@ import { standardPlugin } from '@/features/industries/standard';
  */
 export const INDUSTRY_PLUGINS: IndustryPlugin[] = [
   carpetPlugin,
-  // mobilePlugin,    // ← future
+  mobilePlugin,
   // pharmacyPlugin,  // ← future
   // clothingPlugin,  // ← future
   // restaurantPlugin,// ← future

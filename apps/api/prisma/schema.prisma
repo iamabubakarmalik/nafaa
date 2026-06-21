@@ -338,6 +338,8 @@ model Tenant {
   emiPlans            EmiPlan[]
   carpetRolls         CarpetRoll[]
   carpetCutPieces     CarpetCutPiece[]
+  usedPhones          UsedPhone[]
+  repairTickets       RepairTicket[]
 
   notificationPreference NotificationPreference?
   referredBy             Tenant?                 @relation("TenantReferrals", fields: [referredById], references: [id], onDelete: SetNull)
@@ -526,6 +528,8 @@ model Shop {
   users           User[]           @relation("ShopUsers")
   carpetRolls     CarpetRoll[]
   carpetCutPieces CarpetCutPiece[]
+  usedPhones      UsedPhone[]
+  repairTickets   RepairTicket[]
 
   @@unique([tenantId, name])
   @@index([tenantId])
@@ -738,6 +742,7 @@ model Product {
   shopStocks      ShopStock[]
   carpetRolls     CarpetRoll[]
   carpetCutPieces CarpetCutPiece[]
+  repairParts     RepairPart[]        @relation("RepairPartProduct")
 
   @@index([tenantId])
   @@index([tenantId, name])
@@ -911,6 +916,8 @@ model Customer {
   sales               Sale[]
   ledgers             CustomerLedger[]
   loyaltyTransactions LoyaltyTransaction[]
+  usedPhonesSold      UsedPhone[]          @relation("UsedPhoneFromCustomer")
+  repairTickets       RepairTicket[]       @relation("RepairTicketCustomer")
 
   @@index([tenantId])
   @@index([tenantId, name])
@@ -1980,6 +1987,61 @@ model SalaryPayment {
 // INDUSTRY: MOBILE — IMEI Tracking
 // ═══════════════════════════════════════════════════════════════
 
+enum RepairStatus {
+  RECEIVED // Customer ne diya, pending diagnosis
+  DIAGNOSED // Issue identified, estimate ready
+  AWAITING_APPROVAL // Customer ko estimate diya, approval pending
+  AWAITING_PARTS // Parts order kiye hain
+  IN_PROGRESS // Repair ho rahi hai
+  READY // Repair done, customer ko inform
+  DELIVERED // Customer le gaya
+  CANCELLED // Cancel
+  UNREPAIRABLE // Repair possible nahi
+}
+
+enum RepairPriority {
+  NORMAL
+  URGENT
+  EMERGENCY
+}
+
+enum RepairPaymentStatus {
+  PENDING
+  ADVANCE_PAID
+  FULLY_PAID
+}
+
+enum UsedPhoneCondition {
+  EXCELLENT // 10/10 — like new
+  VERY_GOOD // 9/10 — minor wear
+  GOOD // 8/10 — visible scratches
+  FAIR // 6-7/10 — heavy use, works fine
+  POOR // <6/10 — needs repair
+}
+
+enum UsedPhoneStatus {
+  PENDING_INSPECTION // Just received, not yet inspected
+  IN_STOCK // Inspected & ready for resale
+  REPAIRING // Sent for repair before resale
+  SOLD // Resold to customer
+  RETURNED // Customer returned (warranty/issue)
+  DISCARDED // Beyond repair / scrapped
+}
+
+enum TradeInSource {
+  CASH_BUYBACK // Pure buyback, customer got cash
+  EXCHANGE // Traded for a new phone purchase
+  CONSIGNMENT // Shop selling on behalf of customer
+}
+
+enum PtaStatus {
+  APPROVED // PTA approved, no tax due
+  NON_PTA // Imported, tax not paid
+  PATCH // Patched / non-genuine PTA
+  PENDING // Registration in progress
+  EXEMPT // Local manufactured / exempt
+}
+
 enum ImeiStatus {
   IN_STOCK
   SOLD
@@ -1997,6 +2059,12 @@ model ProductImei {
   imei1        String // Primary IMEI (15 digits)
   imei2        String? // Dual SIM second IMEI
   serialNumber String? // For non-IMEI electronics
+
+  // ─── PTA Compliance (Pakistan-specific) ──────────────
+  ptaStatus     PtaStatus @default(PENDING)
+  ptaTaxPaid    Float     @default(0)
+  ptaTaxDueAt   DateTime?
+  ptaVerifiedAt DateTime?
 
   // Stock info
   status    ImeiStatus @default(IN_STOCK)
@@ -2029,6 +2097,7 @@ model ProductImei {
   @@unique([tenantId, imei1])
   @@index([tenantId])
   @@index([tenantId, status])
+  @@index([tenantId, ptaStatus])
   @@index([productId])
   @@index([variantId])
   @@index([imei1])
@@ -2413,4 +2482,280 @@ model CarpetRollMovement {
   @@index([tenantId])
   @@index([tenantId, createdAt])
   @@index([saleId])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INDUSTRY: MOBILE — Used Phone Trade-In System
+// ═══════════════════════════════════════════════════════════════
+
+model UsedPhone {
+  id       String  @id @default(uuid())
+  tenantId String
+  shopId   String?
+
+  // ─── Identification ────────────────────────────────────
+  usedPhoneCode String // UP-2026-0001 — auto-generated
+  imei1         String // Primary IMEI
+  imei2         String? // Dual SIM
+  serialNumber  String?
+
+  // ─── Device info ───────────────────────────────────────
+  brand     String // Apple, Samsung, etc.
+  model     String // iPhone 13 Pro, Galaxy S22, etc.
+  storage   String? // 128GB, 256GB
+  ram       String? // 6GB, 8GB
+  color     String?
+  modelYear Int? // 2021, 2022, etc.
+
+  // ─── PTA Status ────────────────────────────────────────
+  ptaStatus  PtaStatus @default(PENDING)
+  ptaTaxPaid Float     @default(0)
+
+  // ─── Condition & Inspection ────────────────────────────
+  condition      UsedPhoneCondition @default(GOOD)
+  conditionNotes String?            @db.Text
+
+  // Accessories checklist
+  hasOriginalBox       Boolean   @default(false)
+  hasOriginalCharger   Boolean   @default(false)
+  hasOriginalCable     Boolean   @default(false)
+  hasOriginalEarphones Boolean   @default(false)
+  hasOriginalReceipt   Boolean   @default(false)
+  hasWarrantyLeft      Boolean   @default(false)
+  warrantyExpiryDate   DateTime?
+
+  // ─── Trade-In Pricing ──────────────────────────────────
+  source         TradeInSource @default(CASH_BUYBACK)
+  buybackPrice   Float         @default(0) // What we paid customer
+  estimatedValue Float         @default(0) // System suggested value
+  refurbishCost  Float         @default(0) // Repair/cleaning cost
+  totalCost      Float         @default(0) // buybackPrice + refurbishCost
+  resalePrice    Float         @default(0) // Listed sale price
+  finalSoldPrice Float? // Actual sold price
+
+  // ─── Customer Info (trade-in source) ───────────────────
+  fromCustomerId    String?
+  fromCustomerName  String?
+  fromCustomerPhone String?
+  fromCustomerCnic  String? // 13-digit CNIC
+  cnicPhotoUrl      String?
+
+  // ─── Status & Sale Tracking ────────────────────────────
+  status           UsedPhoneStatus @default(PENDING_INSPECTION)
+  soldToCustomerId String?
+  soldSaleId       String?         @unique
+  soldAt           DateTime?
+
+  // ─── Photos & Documents ────────────────────────────────
+  imeiPhotoUrl String?
+  devicePhotos String[]  @default([])
+  receivedAt   DateTime  @default(now())
+  inspectedAt  DateTime?
+  notes        String?   @db.Text
+
+  createdById   String?
+  inspectedById String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // ─── Relations ─────────────────────────────────────────
+  tenant       Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  shop         Shop?                 @relation(fields: [shopId], references: [id], onDelete: SetNull)
+  fromCustomer Customer?             @relation("UsedPhoneFromCustomer", fields: [fromCustomerId], references: [id], onDelete: SetNull)
+  inspections  UsedPhoneInspection[]
+
+  @@unique([tenantId, usedPhoneCode])
+  @@unique([tenantId, imei1])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([tenantId, condition])
+  @@index([shopId])
+  @@index([fromCustomerId])
+  @@index([imei1])
+}
+
+model UsedPhoneInspection {
+  id          String @id @default(uuid())
+  usedPhoneId String
+  tenantId    String
+
+  // Inspection checks
+  screenCondition        String? // No scratch / Minor / Heavy / Cracked
+  bodyCondition          String?
+  cameraWorks            Boolean? @default(true)
+  speakerWorks           Boolean? @default(true)
+  microphoneWorks        Boolean? @default(true)
+  chargingPortWorks      Boolean? @default(true)
+  buttonsWork            Boolean? @default(true)
+  faceIdFingerprintWorks Boolean? @default(true)
+  batteryHealth          Int? // 0-100%
+  imeiUnlocked           Boolean? @default(true)
+  icloudUnlocked         Boolean? @default(true)
+  softwareIssues         String?  @db.Text
+
+  // Repair recommendation
+  needsRepair         Boolean @default(false)
+  estimatedRepairCost Float   @default(0)
+  recommendedActions  String? @db.Text
+
+  inspectedById String?
+  inspectedAt   DateTime @default(now())
+  createdAt     DateTime @default(now())
+
+  usedPhone UsedPhone @relation(fields: [usedPhoneId], references: [id], onDelete: Cascade)
+
+  @@index([usedPhoneId])
+  @@index([tenantId])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INDUSTRY: MOBILE — Repair Service Tickets
+// ═══════════════════════════════════════════════════════════════
+
+model RepairTicket {
+  id       String  @id @default(uuid())
+  tenantId String
+  shopId   String?
+
+  // ─── Identification ────────────────────────────────────
+  ticketNumber String // RT-2026-0001
+  imei1        String?
+  imei2        String?
+  serialNumber String?
+
+  // ─── Device Info ───────────────────────────────────────
+  deviceBrand   String // Apple, Samsung
+  deviceModel   String // iPhone 12, Galaxy S20
+  deviceColor   String?
+  passcode      String? // Customer's screen lock (with consent)
+  hasSimCard    Boolean @default(false)
+  hasMemoryCard Boolean @default(false)
+
+  // ─── Customer Info ─────────────────────────────────────
+  customerId      String?
+  customerName    String
+  customerPhone   String
+  customerCnic    String?
+  customerAddress String?
+
+  // ─── Issue & Diagnosis ─────────────────────────────────
+  reportedIssue      String  @db.Text // What customer says
+  diagnosedIssue     String? @db.Text // Technician's finding
+  diagnosisNotes     String? @db.Text
+  recommendedActions String? @db.Text
+
+  // ─── Status & Priority ─────────────────────────────────
+  status        RepairStatus        @default(RECEIVED)
+  priority      RepairPriority      @default(NORMAL)
+  paymentStatus RepairPaymentStatus @default(PENDING)
+
+  // ─── Pricing ───────────────────────────────────────────
+  estimatedCost Float @default(0)
+  partsCost     Float @default(0)
+  laborCost     Float @default(0)
+  totalCost     Float @default(0)
+  advancePaid   Float @default(0)
+  paidAmount    Float @default(0)
+  balanceDue    Float @default(0)
+  discount      Float @default(0)
+
+  // ─── Timeline ──────────────────────────────────────────
+  receivedAt       DateTime  @default(now())
+  diagnosedAt      DateTime?
+  approvedAt       DateTime?
+  startedAt        DateTime?
+  readyAt          DateTime?
+  deliveredAt      DateTime?
+  estimatedReadyAt DateTime?
+
+  // ─── Assignment ────────────────────────────────────────
+  technicianId   String?
+  technicianName String?
+
+  // ─── Photos ────────────────────────────────────────────
+  beforePhotos String[] @default([])
+  afterPhotos  String[] @default([])
+  signatureUrl String? // Customer signature on receipt
+
+  // ─── Notifications ─────────────────────────────────────
+  smsNotificationsSent Int       @default(0)
+  lastSmsSentAt        DateTime?
+
+  // ─── Misc ──────────────────────────────────────────────
+  notes        String?   @db.Text
+  warrantyDays Int       @default(7) // Repair warranty
+  warrantyEnds DateTime?
+
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // ─── Relations ─────────────────────────────────────────
+  tenant    Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  shop      Shop?             @relation(fields: [shopId], references: [id], onDelete: SetNull)
+  customer  Customer?         @relation("RepairTicketCustomer", fields: [customerId], references: [id], onDelete: SetNull)
+  parts     RepairPart[]
+  statusLog RepairStatusLog[]
+  payments  RepairPayment[]
+
+  @@unique([tenantId, ticketNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([tenantId, priority])
+  @@index([customerId])
+  @@index([shopId])
+  @@index([imei1])
+}
+
+model RepairPart {
+  id        String  @id @default(uuid())
+  ticketId  String
+  productId String? // Link to inventory product if available
+
+  partName   String
+  partNumber String?
+  quantity   Float   @default(1)
+  unitCost   Float   @default(0)
+  unitPrice  Float   @default(0)
+  totalPrice Float   @default(0)
+  source     String? // 'OWN_STOCK' / 'PURCHASED_FOR_REPAIR' / 'CUSTOMER_PROVIDED'
+
+  notes     String?
+  createdAt DateTime @default(now())
+
+  ticket  RepairTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  product Product?     @relation("RepairPartProduct", fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([ticketId])
+  @@index([productId])
+}
+
+model RepairStatusLog {
+  id          String        @id @default(uuid())
+  ticketId    String
+  fromStatus  RepairStatus?
+  toStatus    RepairStatus
+  note        String?       @db.Text
+  changedById String?
+  changedAt   DateTime      @default(now())
+
+  ticket RepairTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@index([changedAt])
+}
+
+model RepairPayment {
+  id            String        @id @default(uuid())
+  ticketId      String
+  amount        Float
+  paymentMethod PaymentMethod @default(CASH)
+  reference     String?
+  notes         String?
+  paidAt        DateTime      @default(now())
+  createdById   String?
+
+  ticket RepairTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
 }

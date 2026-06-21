@@ -25,6 +25,9 @@ export class SalesService {
     const variantIds = [
       ...new Set(dto.items.map((i) => i.variantId).filter(Boolean) as string[]),
     ];
+    const imeiIds = [
+      ...new Set(dto.items.map((i) => i.imeiId).filter(Boolean) as string[]),
+    ];
 
     const products = await this.prisma.product.findMany({
       where: {
@@ -50,10 +53,39 @@ export class SalesService {
       throw new NotFoundException('One or more variants not found');
     }
 
+    // ─── Validate IMEIs ─────────────────────────────────────────
+    const imeis = imeiIds.length
+      ? await this.prisma.productImei.findMany({
+          where: {
+            id: { in: imeiIds },
+            tenantId: user.tenantId,
+          },
+        })
+      : [];
+    if (imeis.length !== imeiIds.length) {
+      throw new NotFoundException('One or more IMEIs not found');
+    }
+    // Ensure all IMEIs are IN_STOCK
+    const unavailableImei = imeis.find((i) => i.status !== 'IN_STOCK');
+    if (unavailableImei) {
+      throw new BadRequestException(
+        `IMEI ${unavailableImei.imei1} is ${unavailableImei.status} — cannot sell`,
+      );
+    }
+    // Check for duplicates in current cart
+    const dupCheck = new Set<string>();
+    for (const id of imeiIds) {
+      if (dupCheck.has(id)) {
+        throw new BadRequestException('Duplicate IMEI in cart');
+      }
+      dupCheck.add(id);
+    }
+
     const productMap = new Map(products.map((p) => [p.id, p]));
     const variantMap = new Map(variants.map((v) => [v.id, v]));
+    const imeiMap = new Map(imeis.map((i) => [i.id, i]));
 
-    // ─── Detect carpet items (have note prefix "Cut from" or "Cut piece") ───
+    // ─── Detect carpet items ─────────────────────────────────
     const carpetUnits = new Set(['sqft', 'sqm', 'sqyd']);
     const carpetItemIndices = new Set<number>();
     dto.items.forEach((item, idx) => {
@@ -66,13 +98,21 @@ export class SalesService {
       if (isCarpetSale) carpetItemIndices.add(idx);
     });
 
-    // ─── Fetch shop stock for NON-CARPET items only ──────────
-    const nonCarpetItems = dto.items.filter((_, idx) => !carpetItemIndices.has(idx));
-    const shopStocks = nonCarpetItems.length > 0
+    // ─── IMEI items: also skip ShopStock check (stock managed by IMEI count) ──
+    const imeiItemIndices = new Set<number>();
+    dto.items.forEach((item, idx) => {
+      if (item.imeiId) imeiItemIndices.add(idx);
+    });
+
+    // ─── Fetch shop stock for standard items only ────────────
+    const standardItems = dto.items.filter(
+      (_, idx) => !carpetItemIndices.has(idx) && !imeiItemIndices.has(idx),
+    );
+    const shopStocks = standardItems.length > 0
       ? await this.prisma.shopStock.findMany({
           where: {
             shopId: dto.shopId,
-            OR: nonCarpetItems.map((i) => ({
+            OR: standardItems.map((i) => ({
               productId: i.productId,
               variantId: i.variantId ?? null,
             })),
@@ -87,9 +127,10 @@ export class SalesService {
     let costOfGoods = 0;
     let totalLineDiscount = 0;
 
-    const normalizedItems = dto.items.map((item) => {
+    const normalizedItems = dto.items.map((item, idx) => {
       const product = productMap.get(item.productId)!;
       const variant = item.variantId ? variantMap.get(item.variantId) : null;
+      const imei = item.imeiId ? imeiMap.get(item.imeiId) : null;
       const itemName = variant ? `${product.name} (${variant.name})` : product.name;
 
       // ─── Resolve unit price ─────────────────────────────────
@@ -102,14 +143,23 @@ export class SalesService {
         unitPrice = variant?.price ?? product.price;
       }
 
-      const unitCost = variant?.costPrice ?? product.costPrice ?? 0;
+      // IMEI cost takes precedence (per-unit cost on IMEI)
+      const unitCost = imei?.costPrice ?? variant?.costPrice ?? product.costPrice ?? 0;
       const quantity = Number(item.quantity);
 
-      // ─── SHOP STOCK CHECK (skip for carpet items) ─────────
-      const isCarpetItem = carpetItemIndices.has(dto.items.indexOf(item));
+      // ─── IMEI sale: enforce quantity = 1 ───────────────────
+      if (item.imeiId && quantity !== 1) {
+        throw new BadRequestException(
+          `${itemName}: IMEI sale must have quantity = 1`,
+        );
+      }
+
+      // ─── Stock check (skip for carpet + IMEI) ──────────────
+      const isCarpetItem = carpetItemIndices.has(idx);
+      const isImeiItem = imeiItemIndices.has(idx);
       let shopStock = null;
 
-      if (!isCarpetItem) {
+      if (!isCarpetItem && !isImeiItem) {
         const stockKey = `${item.productId}:${item.variantId ?? 'null'}`;
         shopStock = stockMap.get(stockKey);
 
@@ -142,8 +192,11 @@ export class SalesService {
       return {
         productId: product.id,
         variantId: variant?.id,
+        imeiId: imei?.id,
+        imeiNumber: imei?.imei1,
         shopStockId: shopStock?.id ?? null,
         isCarpetItem,
+        isImeiItem,
         quantity,
         price: unitPrice,
         costPrice: unitCost,
@@ -204,7 +257,6 @@ export class SalesService {
 
     const saleNumber = `NF-${Date.now().toString().slice(-8)}`;
 
-    // ─── Find active cash register for this shop ──────────────
     const cashRegister = await this.prisma.cashRegister.findFirst({
       where: { tenantId: user.tenantId, shopId: dto.shopId, status: 'OPEN' },
     });
@@ -246,6 +298,7 @@ export class SalesService {
               price: item.price,
               costPrice: item.costPrice,
               total: item.total,
+              note: item.note,
               ...(item.variantId && {
                 variantLink: { create: { variantId: item.variantId } },
               }),
@@ -253,24 +306,102 @@ export class SalesService {
           },
         },
         include: {
-          items: { include: { product: true, variantLink: { include: { variant: true } } } },
+          items: {
+            include: {
+              product: true,
+              variantLink: { include: { variant: true } },
+            },
+          },
           customer: true,
           shop: true,
           createdBy: { select: { id: true, fullName: true, email: true } },
         },
       });
 
-      // ─── Decrement stock + log movement (skip carpet — already deducted by roll cut) ──
-      for (const item of normalizedItems) {
-        if (item.isCarpetItem) {
-          // Carpet items: roll already cut. Just log movement for audit trail.
+      // ─── Process each item ──────────────────────────────────
+      for (let idx = 0; idx < normalizedItems.length; idx++) {
+        const item = normalizedItems[idx];
+        const saleItem = sale.items[idx];
+
+        // ─── IMEI items: mark SOLD + sync stock ───────────────
+        if (item.isImeiItem && item.imeiId) {
+          const updatedImei = await tx.productImei.update({
+            where: { id: item.imeiId },
+            data: {
+              status: 'SOLD',
+              saleItemId: saleItem.id,
+              soldPrice: item.price,
+              soldAt: new Date(),
+            },
+          });
+
+          // Recalc product/variant stock from remaining IN_STOCK IMEIs
+          const productStock = await tx.productImei.count({
+            where: {
+              tenantId: user.tenantId,
+              productId: item.productId,
+              status: 'IN_STOCK',
+            },
+          });
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { stock: productStock },
+          });
+
+          if (item.variantId) {
+            const variantStock = await tx.productImei.count({
+              where: {
+                tenantId: user.tenantId,
+                productId: item.productId,
+                variantId: item.variantId,
+                status: 'IN_STOCK',
+              },
+            });
+            await tx.productVariant.update({
+              where: { id: item.variantId },
+              data: { stock: variantStock },
+            });
+          }
+
+          // Sync ShopStock for this shop
+          const existingShopStock = await tx.shopStock.findFirst({
+            where: {
+              shopId: dto.shopId,
+              productId: item.productId,
+              variantId: item.variantId ?? null,
+            },
+          });
+          if (existingShopStock) {
+            const newShopStock = Math.max(Number(existingShopStock.stock) - 1, 0);
+            await tx.shopStock.update({
+              where: { id: existingShopStock.id },
+              data: { stock: newShopStock },
+            });
+          }
+
           await tx.stockMovement.create({
             data: {
               tenantId: user.tenantId,
               productId: item.productId,
               type: 'SALE_OUT',
               quantity: -item.quantity,
-              balanceAfter: 0, // carpet stock tracked at roll level
+              balanceAfter: productStock,
+              reference: sale.saleNumber,
+              note: `IMEI ${updatedImei.imei1} sold at ${shop.name}`,
+            },
+          });
+          continue;
+        }
+
+        // ─── Carpet items: audit log only ─────────────────────
+        if (item.isCarpetItem) {
+          await tx.stockMovement.create({
+            data: {
+              tenantId: user.tenantId,
+              productId: item.productId,
+              type: 'SALE_OUT',
+              quantity: -item.quantity,
+              balanceAfter: 0,
               reference: sale.saleNumber,
               note: `Carpet sale at ${shop.name}${item.note ? ` • ${item.note}` : ''}`,
             },
@@ -278,7 +409,7 @@ export class SalesService {
           continue;
         }
 
-        // Standard items: decrement ShopStock + global stock
+        // ─── Standard items: decrement ShopStock + global stock ──
         const updatedShopStock = await tx.shopStock.update({
           where: { id: item.shopStockId! },
           data: { stock: { decrement: item.quantity } },
@@ -377,7 +508,12 @@ export class SalesService {
         customer: true,
         shop: true,
         createdBy: { select: { id: true, fullName: true, email: true } },
-        items: { include: { product: true, variantLink: { include: { variant: true } } } },
+        items: {
+          include: {
+            product: true,
+            variantLink: { include: { variant: true } },
+          },
+        },
       },
       orderBy: { soldAt: 'desc' },
       take: 50,
@@ -391,12 +527,50 @@ export class SalesService {
         customer: true,
         shop: true,
         createdBy: { select: { id: true, fullName: true, email: true } },
-        items: { include: { product: true, variantLink: { include: { variant: true } } } },
+        items: {
+          include: {
+            product: { include: { brand: true } },
+            variantLink: { include: { variant: true } },
+          },
+        },
         tenant: true,
       },
     });
     if (!sale) throw new NotFoundException('Sale not found');
-    return sale;
+
+    // Enrich with IMEIs sold under this sale
+    const saleItemIds = sale.items.map((i) => i.id);
+    const imeis = saleItemIds.length > 0
+      ? await this.prisma.productImei.findMany({
+          where: {
+            tenantId: user.tenantId,
+            saleItemId: { in: saleItemIds },
+          },
+          select: {
+            id: true,
+            imei1: true,
+            imei2: true,
+            serialNumber: true,
+            ptaStatus: true,
+            ptaTaxPaid: true,
+            warrantyMonths: true,
+            warrantyExpiry: true,
+            color: true,
+            costPrice: true,
+            soldPrice: true,
+            saleItemId: true,
+            productId: true,
+          },
+        })
+      : [];
+
+    // Attach IMEIs to corresponding sale items
+    const enrichedItems = sale.items.map((item) => ({
+      ...item,
+      imeis: imeis.filter((i) => i.saleItemId === item.id),
+    }));
+
+    return { ...sale, items: enrichedItems };
   }
 
   async summary(user: AuthenticatedUser, shopId?: string) {
@@ -461,13 +635,34 @@ export class SalesService {
     if (!sale.shopId) throw new BadRequestException('Sale has no shop linked — cannot void safely');
 
     return this.prisma.$transaction(async (tx) => {
+      // ─── Restore IMEIs (mark IN_STOCK again) ──────────────────
+      const saleItemIds = sale.items.map((i) => i.id);
+      if (saleItemIds.length > 0) {
+        const imeis = await tx.productImei.findMany({
+          where: {
+            tenantId: user.tenantId,
+            saleItemId: { in: saleItemIds },
+          },
+        });
+        for (const imei of imeis) {
+          await tx.productImei.update({
+            where: { id: imei.id },
+            data: {
+              status: 'IN_STOCK',
+              saleItemId: null,
+              soldPrice: null,
+              soldAt: null,
+            },
+          });
+        }
+      }
+
       for (const item of sale.items) {
-        // ─── Detect carpet item by note (legacy data check) ───
         const itemNote = (item as any).note || '';
         const isCarpetItem = itemNote.startsWith('Cut from ') || itemNote.startsWith('Cut piece ');
+        const isImeiItem = itemNote.startsWith('IMEI:');
 
         if (isCarpetItem) {
-          // Carpet void: just log restoration movement (manual roll adjustment required)
           await tx.stockMovement.create({
             data: {
               tenantId: user.tenantId,
@@ -482,14 +677,63 @@ export class SalesService {
           continue;
         }
 
-        // ─── Restore to SHOP STOCK ──────────────────────────────
         const variantId = item.variantLink?.variantId ?? null;
+
+        if (isImeiItem) {
+          // IMEI restoration: recalc stock from IMEI count
+          const productStock = await tx.productImei.count({
+            where: {
+              tenantId: user.tenantId,
+              productId: item.productId,
+              status: 'IN_STOCK',
+            },
+          });
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { stock: productStock },
+          });
+          if (variantId) {
+            const variantStock = await tx.productImei.count({
+              where: {
+                tenantId: user.tenantId,
+                productId: item.productId,
+                variantId,
+                status: 'IN_STOCK',
+              },
+            });
+            await tx.productVariant.update({
+              where: { id: variantId },
+              data: { stock: variantStock },
+            });
+          }
+          // ShopStock restore
+          const existing = await tx.shopStock.findFirst({
+            where: { shopId: sale.shopId!, productId: item.productId, variantId },
+          });
+          if (existing) {
+            await tx.shopStock.update({
+              where: { id: existing.id },
+              data: { stock: { increment: item.quantity } },
+            });
+          }
+
+          await tx.stockMovement.create({
+            data: {
+              tenantId: user.tenantId,
+              productId: item.productId,
+              type: 'RETURN_IN',
+              quantity: item.quantity,
+              balanceAfter: productStock,
+              reference: sale.saleNumber,
+              note: `Voided IMEI sale: ${reason || 'No reason'}`,
+            },
+          });
+          continue;
+        }
+
+        // Standard items
         const shopStock = await tx.shopStock.findFirst({
-          where: {
-            shopId: sale.shopId!,
-            productId: item.productId,
-            variantId,
-          },
+          where: { shopId: sale.shopId!, productId: item.productId, variantId },
         });
 
         if (shopStock) {
@@ -498,7 +742,6 @@ export class SalesService {
             data: { stock: { increment: item.quantity } },
           });
         } else {
-          // Create ShopStock if missing
           await tx.shopStock.create({
             data: {
               tenantId: user.tenantId,
@@ -510,7 +753,6 @@ export class SalesService {
           });
         }
 
-        // Sync global stock
         if (variantId) {
           await tx.productVariant.update({
             where: { id: variantId },

@@ -21,6 +21,13 @@ import TagsPage from '@/features/tags/pages/TagsPage';
 import ProductsListPage from '@/features/products/pages/ProductsListPage';
 import ProductFormPage from '@/features/products/pages/ProductFormPage';
 import ImeiInventoryPage from '@/features/industries/mobile/pages/ImeiInventoryPage';
+import MobileReportsPage from '@/features/industries/mobile/reports/pages/MobileReportsPage';
+import EmiPlansPage from '@/features/industries/mobile/emi/pages/EmiPlansPage';
+import EmiPlanDetailPage from '@/features/industries/mobile/emi/pages/EmiPlanDetailPage';
+import RepairTicketsPage from '@/features/industries/mobile/repairs/pages/RepairTicketsPage';
+import RepairTicketDetailPage from '@/features/industries/mobile/repairs/pages/RepairTicketDetailPage';
+import GlobalImeiInventoryPage from '@/features/industries/mobile/pages/GlobalImeiInventoryPage';
+import UsedPhonesPage from '@/features/industries/mobile/pages/UsedPhonesPage';
 import CatalogPage from '@/features/catalog/pages/CatalogPage';
 import CustomersListPage from '@/features/customers/pages/CustomersListPage';
 import CustomerFormPage from '@/features/customers/pages/CustomerFormPage';
@@ -127,6 +134,13 @@ export default function App() {
 
                 <Route path="/products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <ProductFormPage />)} />
                 <Route path="/products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <ProductFormPage />)} />
+                <Route path="/mobile-reports" element={<MobileReportsPage />} />
+                <Route path="/emi-plans/:id" element={<EmiPlanDetailPage />} />
+                <Route path="/emi-plans" element={<EmiPlansPage />} />
+                <Route path="/repair-tickets/:id" element={<RepairTicketDetailPage />} />
+                <Route path="/repair-tickets" element={<RepairTicketsPage />} />
+                <Route path="/imei-inventory" element={<GlobalImeiInventoryPage />} />
+                <Route path="/used-phones" element={<UsedPhonesPage />} />
                 <Route path="/products/:id/imei" element={secure(PERMISSIONS.PRODUCTS_EDIT, <ImeiInventoryPage />)} />
                 <Route path="/products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ProductsListPage />)} />
 

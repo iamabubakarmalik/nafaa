@@ -4,7 +4,8 @@ import {
   X, Search, ScanLine, Check, Package, AlertCircle,
   Smartphone, ShieldCheck, Sparkles,
 } from 'lucide-react';
-import { imeiApi, type ProductImei } from '../api/imei.api';
+import { imeiApi, type ProductImei, type PtaStatus } from '../api/imei.api';
+import { PtaStatusBadge } from './PtaStatusBadge';
 import { Button } from '@/components/ui/Button';
 import { formatPKR } from '@/lib/format';
 
@@ -161,6 +162,11 @@ export function ImeiPickerModal({
                               {imei.color}
                             </span>
                           )}
+                          <PtaStatusBadge
+                            status={(imei.ptaStatus || 'PENDING') as PtaStatus}
+                            size="sm"
+                            taxPaid={imei.ptaTaxPaid}
+                          />
                         </div>
 
                         {imei.imei2 && (

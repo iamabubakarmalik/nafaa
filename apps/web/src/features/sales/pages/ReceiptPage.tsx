@@ -6,7 +6,7 @@ import {
   User, Phone, Calendar, CreditCard, Receipt as ReceiptIcon,
   BookOpen, Tag, Copy, ShieldAlert, MapPin, Mail, Globe,
   Banknote, Smartphone, Building2, Zap, CheckCircle2, AlertTriangle,
-  Layers, Scissors, FileText, Hash, Award, Building,
+  Layers, Scissors, FileText, Hash, Award, Building, ShieldCheck,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { salesApi } from '@/api/sales.api';
@@ -50,6 +50,24 @@ const parseCarpetNote = (note?: string | null): CarpetNoteInfo => {
   }
 
   return { type: null, reference: '' };
+};
+
+
+// ─── PTA Status helpers (for receipt display) ──────────────
+const PTA_LABELS: Record<string, string> = {
+  APPROVED: 'PTA Approved',
+  NON_PTA: 'Non-PTA',
+  PATCH: 'PTA Patched',
+  PENDING: 'PTA Pending',
+  EXEMPT: 'PTA Exempt',
+};
+
+const PTA_BADGE_COLORS: Record<string, string> = {
+  APPROVED: 'bg-emerald-50 border-emerald-300 text-emerald-800',
+  NON_PTA: 'bg-rose-50 border-rose-300 text-rose-800',
+  PATCH: 'bg-amber-50 border-amber-300 text-amber-800',
+  PENDING: 'bg-blue-50 border-blue-300 text-blue-800',
+  EXEMPT: 'bg-slate-50 border-slate-300 text-slate-800',
 };
 
 const formatDate = (value: string) =>
@@ -156,6 +174,18 @@ export default function ReceiptPage() {
       } else if (carpet.type === 'cut-piece') {
         lines.push(`   ✂️ Piece ${carpet.reference}${carpet.dimensions ? ` • ${carpet.dimensions}` : ''}`);
       }
+
+      // IMEI in WhatsApp message
+      const itemImeis = (it as any).imeis || [];
+      itemImeis.forEach((imei: any) => {
+        lines.push(`   📱 IMEI: ${imei.imei1}`);
+        if (imei.ptaStatus) {
+          lines.push(`   🛡️ ${PTA_LABELS[imei.ptaStatus] || imei.ptaStatus}`);
+        }
+        if (imei.warrantyMonths > 0) {
+          lines.push(`   ⏱️ Warranty: ${imei.warrantyMonths} months`);
+        }
+      });
       lines.push(
         `   ${formatQty(it.quantity)} ${it.product.unit} × ${formatPKR(it.price)} = *${formatPKR(it.total)}*`,
       );
@@ -450,6 +480,29 @@ export default function ReceiptPage() {
                         <div className="text-[9px] pl-2">
                           Piece {carpet.reference}
                           {carpet.dimensions && ` ${carpet.dimensions}`}
+                        </div>
+                      )}
+
+                      {/* IMEI info — thermal */}
+                      {(item as any).imeis && (item as any).imeis.length > 0 && (
+                        <div className="pl-2 space-y-0.5">
+                          {(item as any).imeis.map((imei: any) => (
+                            <div key={imei.id} className="text-[9px] border-l-2 border-slate-400 pl-1">
+                              <div className="font-bold">IMEI: {imei.imei1}</div>
+                              {imei.imei2 && <div>IMEI 2: {imei.imei2}</div>}
+                              {imei.ptaStatus && (
+                                <div className="font-bold">
+                                  {PTA_LABELS[imei.ptaStatus] || imei.ptaStatus}
+                                </div>
+                              )}
+                              {imei.warrantyMonths > 0 && (
+                                <div>Warranty: {imei.warrantyMonths} months</div>
+                              )}
+                              {imei.warrantyExpiry && (
+                                <div>Till: {new Date(imei.warrantyExpiry).toLocaleDateString('en-PK')}</div>
+                              )}
+                            </div>
+                          ))}
                         </div>
                       )}
 
@@ -755,9 +808,75 @@ export default function ReceiptPage() {
                                 {carpet.dimensions && <span>• {carpet.dimensions}</span>}
                               </div>
                             )}
-                            {item.note && !carpet.type && (
+                            {item.note && !carpet.type && !((item as any).imeis?.length) && (
                               <div className="text-[10px] text-slate-500 mt-0.5 italic">
                                 {item.note}
+                              </div>
+                            )}
+
+                            {/* IMEI block — shown when item has IMEIs */}
+                            {(item as any).imeis && (item as any).imeis.length > 0 && (
+                              <div className="mt-2 space-y-1">
+                                {(item as any).imeis.map((imei: any) => (
+                                  <div
+                                    key={imei.id}
+                                    className="rounded-lg border-2 border-blue-200 bg-blue-50 p-2 print:bg-white print:border-slate-400"
+                                  >
+                                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                                      <div className="flex items-center gap-1.5">
+                                        <Smartphone className="h-3 w-3 text-blue-700" />
+                                        <span className="text-[10px] uppercase tracking-wider font-bold text-blue-700">
+                                          IMEI
+                                        </span>
+                                        <span className="font-mono font-extrabold text-slate-900 text-sm">
+                                          {imei.imei1}
+                                        </span>
+                                      </div>
+                                      {imei.ptaStatus && (
+                                        <span
+                                          className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full border text-[9px] font-extrabold uppercase ${
+                                            PTA_BADGE_COLORS[imei.ptaStatus] || PTA_BADGE_COLORS.PENDING
+                                          }`}
+                                        >
+                                          <ShieldCheck className="h-2.5 w-2.5" />
+                                          {PTA_LABELS[imei.ptaStatus] || imei.ptaStatus}
+                                        </span>
+                                      )}
+                                    </div>
+                                    {imei.imei2 && (
+                                      <div className="text-[10px] font-mono text-slate-600 mt-0.5">
+                                        IMEI 2: <span className="font-bold">{imei.imei2}</span>
+                                      </div>
+                                    )}
+                                    {imei.serialNumber && (
+                                      <div className="text-[10px] font-mono text-slate-600">
+                                        S/N: <span className="font-bold">{imei.serialNumber}</span>
+                                      </div>
+                                    )}
+                                    <div className="flex flex-wrap gap-2 mt-1 text-[10px]">
+                                      {imei.color && (
+                                        <span className="font-bold text-violet-700">
+                                          🎨 {imei.color}
+                                        </span>
+                                      )}
+                                      {imei.warrantyMonths > 0 && (
+                                        <span className="font-bold text-teal-700">
+                                          🛡️ {imei.warrantyMonths}m warranty
+                                        </span>
+                                      )}
+                                      {imei.warrantyExpiry && (
+                                        <span className="font-bold text-slate-700">
+                                          Expires: {new Date(imei.warrantyExpiry).toLocaleDateString('en-PK')}
+                                        </span>
+                                      )}
+                                      {imei.ptaTaxPaid > 0 && (
+                                        <span className="font-bold text-emerald-700">
+                                          💰 Tax: {formatPKR(imei.ptaTaxPaid)}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
                               </div>
                             )}
 

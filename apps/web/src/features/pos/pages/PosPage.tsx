@@ -24,6 +24,7 @@ import { PosCheckoutPanel } from '../components/PosCheckoutPanel';
 import { useBusinessFeatures } from '@/hooks/useBusinessFeatures';
 import { useAuthStore } from '@/store/auth.store';
 import { ImeiPickerModal } from '@/features/industries/mobile/components/ImeiPickerModal';
+import { QuickEmiFromSaleModal } from '@/features/industries/mobile/emi/components/QuickEmiFromSaleModal';
 import type { ProductImei } from '@/features/industries/mobile/api/imei.api';
 import { usePosCheckout } from '../hooks/usePosCheckout';
 import { carpetRollsApi } from '@/features/industries/carpet/api/carpet-rolls.api';
@@ -69,6 +70,15 @@ export default function PosPage() {
   const [newCustomer, setNewCustomer] = useState({ name: '', phone: '' });
   const [hidePrices, setHidePrices] = useState(false);
   const [imeiPickerData, setImeiPickerData] = useState<{ product: Product; variant?: ProductVariant } | null>(null);
+  const [emiPromptData, setEmiPromptData] = useState<{
+    saleId: string;
+    saleNumber: string;
+    total: number;
+    paidAmount: number;
+    customerId: string;
+    customerName: string;
+    customerPhone?: string;
+  } | null>(null);
   const barcodeRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -190,7 +200,31 @@ export default function PosPage() {
   }, [customerDetail]);
 
   // ─── Mutations ─────────────────────────────────────────────
-  const checkoutMutation = usePosCheckout(() => {
+  const checkoutMutation = usePosCheckout((result) => {
+    // Detect if this was a mobile (IMEI) sale with credit + customer
+    const hasImeiItem = cart.some((c) => c.imeiId);
+    const shouldOfferEmi =
+      hasImeiItem &&
+      result.customerId &&
+      result.customerName &&
+      result.credit > 0 &&
+      result.total > 0;
+
+    if (shouldOfferEmi) {
+      // Show EMI conversion prompt before resetting
+      setEmiPromptData({
+        saleId: result.saleId,
+        saleNumber: result.saleNumber,
+        total: result.total,
+        paidAmount: result.paidAmount,
+        customerId: result.customerId!,
+        customerName: result.customerName!,
+        customerPhone: result.customerPhone ?? undefined,
+      });
+      // Don't reset cart yet — user might cancel
+      // But cart is locked because sale is already saved
+    }
+
     resetCart();
     barcodeRef.current?.focus();
   });
@@ -729,6 +763,20 @@ export default function PosPage() {
           excludeIds={excludedImeis}
           onSelect={handleImeiSelect}
           onClose={() => setImeiPickerData(null)}
+        />
+      )}
+
+      {emiPromptData && (
+        <QuickEmiFromSaleModal
+          saleId={emiPromptData.saleId}
+          saleNumber={emiPromptData.saleNumber}
+          saleTotal={emiPromptData.total}
+          paidAmount={emiPromptData.paidAmount}
+          customerId={emiPromptData.customerId}
+          customerName={emiPromptData.customerName}
+          customerPhone={emiPromptData.customerPhone}
+          onSuccess={() => setEmiPromptData(null)}
+          onClose={() => setEmiPromptData(null)}
         />
       )}
 

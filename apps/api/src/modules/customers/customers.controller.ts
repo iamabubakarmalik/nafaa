@@ -55,4 +55,13 @@ export class CustomersController {
   remove(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {
     return this.customersService.remove(user, id);
   }
+
+  @Get(':id/mobile-history')
+  getMobileHistory(
+    @GetUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+  ) {
+    return this.customersService.getMobileHistory(user, id);
+  }
+
 }
