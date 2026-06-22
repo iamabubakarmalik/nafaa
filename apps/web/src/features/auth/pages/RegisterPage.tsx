@@ -64,7 +64,8 @@ export default function RegisterPage() {
     onSuccess: (data) => {
       setSession(data);
       toast.success('Mubarak ho! Aap ka account ban gaya 🎉');
-      navigate('/dashboard');
+      // New users always go to onboarding (not dashboard)
+      navigate('/onboarding', { replace: true });
     },
     onError: (err: any) => {
       toast.error(err?.response?.data?.message || 'Kuch ghalat ho gaya');

@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Search, Plus, Package, Star, AlertTriangle,
   Trash2, Sliders, Image as ImageIcon, Layers, Scissors,
-  ArrowRight,
+  ArrowRight, FileSpreadsheet,
 } from 'lucide-react';
 import { productsApi, type ProductsListParams, type Product } from '@/api/products.api';
 import { brandsApi } from '@/api/brands.api';
@@ -139,6 +139,11 @@ export default function ProductsListPage() {
             </Link>
             <Link to="/tags">
               <Button variant="secondary">Tags</Button>
+            </Link>
+            <Link to="/products/bulk-import">
+              <Button variant="secondary" className="bg-white/15 text-white hover:bg-white/25 border-white/20">
+                <FileSpreadsheet className="h-4 w-4" /> Bulk Import
+              </Button>
             </Link>
             <Link to="/products/new">
               <Button className="bg-white text-slate-900 hover:bg-slate-100">

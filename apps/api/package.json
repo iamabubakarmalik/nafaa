@@ -15,7 +15,8 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
-    "create:super-admin": "ts-node src/scripts/create-super-admin.ts"
+    "create:super-admin": "ts-node src/scripts/create-super-admin.ts",
+    "seed:emails": "ts-node --project prisma/tsconfig.seed.json prisma/seed-email-templates.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.19",

@@ -1,5 +1,5 @@
 import {
-  Body, Controller, Get, HttpCode, HttpStatus, Patch, Post, Req, Res, UseGuards,
+  Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Post, Req, Res, UseGuards,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
@@ -78,6 +78,47 @@ export class AuthController {
     @Body() body: { fullName?: string; phone?: string; avatarUrl?: string },
   ) {
     return this.authService.updateProfile(user.id, body);
+  }
+
+  // ===== ACTIVE SESSIONS / DEVICES =====
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Get('sessions')
+  @ApiOperation({ summary: 'List all active devices/sessions' })
+  listSessions(@GetUser() user: AuthenticatedUser) {
+    return this.authService.listActiveSessions(user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Get('login-history')
+  @ApiOperation({ summary: 'Get login history (last 30 entries)' })
+  loginHistory(@GetUser() user: AuthenticatedUser) {
+    return this.authService.getLoginHistory(user.id, 30);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Post('sessions/:sessionId/revoke')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Revoke a specific device/session' })
+  revokeSession(
+    @GetUser() user: AuthenticatedUser,
+    @Param('sessionId') sessionId: string,
+  ) {
+    return this.authService.revokeSession(user.id, sessionId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Post('sessions/revoke-others')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Revoke all sessions except current' })
+  revokeOtherSessions(
+    @GetUser() user: AuthenticatedUser,
+    @Body() body: { refreshToken: string },
+  ) {
+    return this.authService.revokeAllExceptCurrent(user.id, body.refreshToken);
   }
 
   // ===== PASSWORD MANAGEMENT =====

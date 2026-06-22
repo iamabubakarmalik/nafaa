@@ -21,6 +21,18 @@ interface AuthResponse {
   accessToken: string;
   refreshToken: string;
   isNewUser?: boolean;
+  isNewDevice?: boolean;
+  requiresEmailVerification?: boolean;
+}
+
+export interface ActiveSession {
+  id: string;
+  deviceName: string;
+  location: string;
+  ipAddress?: string | null;
+  lastActive: string;
+  createdAt: string;
+  expiresAt: string;
 }
 
 const unwrap = <T>(res: any): T =>
@@ -73,4 +85,16 @@ export const authApi = {
     const baseUrl = (apiClient.defaults.baseURL || '').replace(/\/$/, '');
     return `${baseUrl}/auth/google`;
   },
+
+  // ─── Session Management ───
+  listSessions: () =>
+    apiClient.get('/auth/sessions').then((r) => unwrapPlain<ActiveSession[]>(r)),
+
+  revokeSession: (sessionId: string) =>
+    apiClient.post(`/auth/sessions/${sessionId}/revoke`).then(unwrapPlain),
+
+  revokeOtherSessions: (refreshToken: string) =>
+    apiClient
+      .post('/auth/sessions/revoke-others', { refreshToken })
+      .then(unwrapPlain),
 };

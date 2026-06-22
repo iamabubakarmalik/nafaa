@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -12,34 +13,52 @@ export class SubscriptionCronService {
     private readonly prisma: PrismaService,
     private readonly email: EmailService,
     private readonly notifications: NotificationsService,
+    private readonly config: ConfigService,
   ) {}
 
+  private get appUrl() {
+    return this.config.get<string>('APP_URL') || 'http://localhost:5173';
+  }
+
+  private formatAmount(amount: number): string {
+    return new Intl.NumberFormat('en-PK').format(amount);
+  }
+
+  private formatDate(date: Date | string): string {
+    return new Intl.DateTimeFormat('en-PK', {
+      dateStyle: 'long',
+      timeZone: 'Asia/Karachi',
+    }).format(new Date(date));
+  }
+
   /**
-   * Runs every day at 12:00 AM (server time).
+   * Runs every day at 12:00 AM Pakistan time.
    * - Mark expired trials → EXPIRED
    * - Mark expired ACTIVE subs → PAST_DUE
    * - Mark long-overdue PAST_DUE → EXPIRED (after 3-day grace)
    * - Send expiry warning emails (3 days, 1 day before)
-   * - Send expired notification
+   * - Send subscription expiring (7 days for active subs)
    */
   @Cron('0 0 * * *', { name: 'subscription-daily-check', timeZone: 'Asia/Karachi' })
   async dailyExpiryCheck() {
     this.logger.log('🕛 Running daily subscription expiry check...');
 
     const now = new Date();
-    const in3Days = new Date(now.getTime() + 3 * 24 * 60 * 60 * 24 * 1000);
+    const in7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const in3Days = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
     const in1Day = new Date(now.getTime() + 24 * 60 * 60 * 1000);
 
-    try {
-      const stats = {
-        trialsExpired: 0,
-        subsPastDue: 0,
-        subsExpired: 0,
-        warningsSent: 0,
-        errors: 0,
-      };
+    const stats = {
+      trialsExpired: 0,
+      subsPastDue: 0,
+      subsExpired: 0,
+      trialWarnings: 0,
+      subWarnings: 0,
+      errors: 0,
+    };
 
-      // 1. Mark expired trials → EXPIRED
+    try {
+      // ─── 1. Trials that expired (status → EXPIRED) ───
       const expiredTrials = await this.prisma.subscription.findMany({
         where: {
           status: 'TRIAL',
@@ -62,7 +81,7 @@ export class SubscriptionCronService {
         }
       }
 
-      // 2. Mark expired ACTIVE → PAST_DUE
+      // ─── 2. Active subs that expired (status → PAST_DUE) ───
       const overdueActive = await this.prisma.subscription.findMany({
         where: {
           status: 'ACTIVE',
@@ -84,7 +103,7 @@ export class SubscriptionCronService {
         }
       }
 
-      // 3. Mark long-overdue PAST_DUE → EXPIRED (3+ days)
+      // ─── 3. PAST_DUE longer than 3 days → EXPIRED ───
       const graceLimit = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
       const longOverdue = await this.prisma.subscription.findMany({
         where: {
@@ -107,7 +126,7 @@ export class SubscriptionCronService {
         }
       }
 
-      // 4. Send warning emails (3 days before)
+      // ─── 4. Trial ending in 3 days — warning ───
       const trial3Day = await this.prisma.subscription.findMany({
         where: {
           status: 'TRIAL',
@@ -122,13 +141,13 @@ export class SubscriptionCronService {
       for (const sub of trial3Day) {
         try {
           await this.sendTrialEndingSoonEmail(sub, 3);
-          stats.warningsSent++;
+          stats.trialWarnings++;
         } catch (e) {
           stats.errors++;
         }
       }
 
-      // 5. Send warning emails (1 day before)
+      // ─── 5. Trial ending in 1 day — final warning ───
       const trial1Day = await this.prisma.subscription.findMany({
         where: {
           status: 'TRIAL',
@@ -143,50 +162,74 @@ export class SubscriptionCronService {
       for (const sub of trial1Day) {
         try {
           await this.sendTrialEndingSoonEmail(sub, 1);
-          stats.warningsSent++;
+          stats.trialWarnings++;
         } catch (e) {
           stats.errors++;
         }
       }
 
-      this.logger.log(
-        `✅ Daily check complete: ${JSON.stringify(stats)}`,
-      );
+      // ─── 6. Active sub expiring in 7 days — reminder ───
+      const sub7Day = await this.prisma.subscription.findMany({
+        where: {
+          status: 'ACTIVE',
+          currentPeriodEnd: {
+            gte: new Date(in7Days.getTime() - 12 * 60 * 60 * 1000),
+            lte: new Date(in7Days.getTime() + 12 * 60 * 60 * 1000),
+          },
+        },
+        include: { tenant: true, plan: true },
+      });
+
+      for (const sub of sub7Day) {
+        try {
+          await this.sendSubscriptionExpiringEmail(sub, 7);
+          stats.subWarnings++;
+        } catch (e) {
+          stats.errors++;
+        }
+      }
+
+      this.logger.log(`✅ Daily check complete: ${JSON.stringify(stats)}`);
     } catch (e) {
       this.logger.error('Daily expiry check failed:', e);
     }
+
+    return stats;
   }
 
   /**
-   * Manual trigger (for testing or admin button)
+   * Manual trigger (for admin testing)
    */
   async runNow() {
-    await this.dailyExpiryCheck();
-    return { success: true, message: 'Expiry check completed' };
+    const stats = await this.dailyExpiryCheck();
+    return { success: true, message: 'Expiry check completed', stats };
   }
 
-  // ===== Email Helpers =====
+  // ═══════════════════════════════════════════════════════════════
+  // EMAIL HELPERS — Use SEEDED TEMPLATES (not inline HTML)
+  // ═══════════════════════════════════════════════════════════════
 
+  /**
+   * Trial ending in N days — uses 'trial-expiring-soon' template
+   */
   private async sendTrialEndingSoonEmail(sub: any, daysLeft: number) {
     const owner = await this.prisma.user.findFirst({
       where: { tenantId: sub.tenantId, role: 'OWNER' },
     });
     if (!owner) return;
 
-    const upgradeUrl = `${process.env.APP_URL || 'https://app.nafaa.pk'}/plan`;
-
     await this.email.send({
       tenantId: sub.tenantId,
+      templateSlug: 'trial-expiring-soon',
       toEmail: owner.email,
       toName: owner.fullName,
-      subject: `⏰ Aap ka Nafaa trial ${daysLeft} ${daysLeft === 1 ? 'din' : 'din'} mein khatam ho raha hai`,
-      bodyHtml: this.trialWarningTemplate({
+      variables: {
         name: owner.fullName,
         shopName: sub.tenant.name,
         daysLeft,
-        upgradeUrl,
-      }),
-      bodyText: `Assalam-o-Alaikum ${owner.fullName}, aap ka Nafaa free trial ${daysLeft} din mein expire ho jaayega. Upgrade karein: ${upgradeUrl}`,
+        trialEndDate: this.formatDate(sub.trialEndsAt),
+        appUrl: this.appUrl,
+      },
     });
 
     await this.notifications.create({
@@ -194,29 +237,29 @@ export class SubscriptionCronService {
       type: 'WARNING',
       title: `Trial ${daysLeft} din mein khatam ho raha hai ⏰`,
       message: `Plan upgrade karein takay service jaari rahe.`,
-      link: '/plan',
+      link: '/plans',
     });
   }
 
+  /**
+   * Trial expired — uses 'trial-expired' template
+   */
   private async sendTrialExpiredEmail(sub: any) {
     const owner = await this.prisma.user.findFirst({
       where: { tenantId: sub.tenantId, role: 'OWNER' },
     });
     if (!owner) return;
 
-    const upgradeUrl = `${process.env.APP_URL || 'https://app.nafaa.pk'}/plan`;
-
     await this.email.send({
       tenantId: sub.tenantId,
+      templateSlug: 'trial-expired',
       toEmail: owner.email,
       toName: owner.fullName,
-      subject: `❌ Aap ka Nafaa trial khatam ho gaya — upgrade zaroori`,
-      bodyHtml: this.trialExpiredTemplate({
+      variables: {
         name: owner.fullName,
         shopName: sub.tenant.name,
-        upgradeUrl,
-      }),
-      bodyText: `Aap ka trial khatam ho gaya. Upgrade: ${upgradeUrl}`,
+        appUrl: this.appUrl,
+      },
     });
 
     await this.notifications.create({
@@ -224,25 +267,34 @@ export class SubscriptionCronService {
       type: 'ERROR',
       title: 'Trial Khatam Ho Gaya ❌',
       message: 'Service jaari rakhne ke liye plan upgrade karein.',
-      link: '/plan',
+      link: '/plans',
     });
   }
 
+  /**
+   * Active subscription past due (within grace period)
+   * Uses 'subscription-expiring' template with daysLeft=0 indicating "due now"
+   */
   private async sendPastDueEmail(sub: any) {
     const owner = await this.prisma.user.findFirst({
       where: { tenantId: sub.tenantId, role: 'OWNER' },
     });
     if (!owner) return;
 
-    const billingUrl = `${process.env.APP_URL || 'https://app.nafaa.pk'}/billing`;
-
+    // Use subscription-expiring template (it handles grace messaging well)
     await this.email.send({
       tenantId: sub.tenantId,
+      templateSlug: 'subscription-expiring',
       toEmail: owner.email,
       toName: owner.fullName,
-      subject: `⚠️ Payment due — 3 din ka grace period chal raha hai`,
-      bodyHtml: `<p>${owner.fullName}, aap ki subscription expire ho gayi hai. 3 din grace period mein renew kar dein.</p><a href="${billingUrl}">Renew Now</a>`,
-      bodyText: `Renew: ${billingUrl}`,
+      variables: {
+        name: owner.fullName,
+        planName: sub.plan.name,
+        daysLeft: 0,
+        renewalDate: this.formatDate(sub.currentPeriodEnd),
+        amount: this.formatAmount(sub.amount),
+        appUrl: this.appUrl,
+      },
     });
 
     await this.notifications.create({
@@ -254,21 +306,26 @@ export class SubscriptionCronService {
     });
   }
 
+  /**
+   * Fully expired (grace period over) — uses 'trial-expired' template
+   * (Same template works — generic "service suspended" message)
+   */
   private async sendFullExpiredEmail(sub: any) {
     const owner = await this.prisma.user.findFirst({
       where: { tenantId: sub.tenantId, role: 'OWNER' },
     });
     if (!owner) return;
 
-    const upgradeUrl = `${process.env.APP_URL || 'https://app.nafaa.pk'}/plan`;
-
     await this.email.send({
       tenantId: sub.tenantId,
+      templateSlug: 'trial-expired',
       toEmail: owner.email,
       toName: owner.fullName,
-      subject: `🚫 Service Suspended — Grace period khatam`,
-      bodyHtml: `<p>${owner.fullName}, aap ki subscription ka grace period bhi khatam ho gaya. Service suspended hai jab tak renew nahi karte.</p><a href="${upgradeUrl}">Reactivate</a>`,
-      bodyText: `Reactivate: ${upgradeUrl}`,
+      variables: {
+        name: owner.fullName,
+        shopName: sub.tenant.name,
+        appUrl: this.appUrl,
+      },
     });
 
     await this.notifications.create({
@@ -276,52 +333,40 @@ export class SubscriptionCronService {
       type: 'ERROR',
       title: 'Service Suspended 🚫',
       message: 'Grace period khatam. Reactivate karein.',
-      link: '/plan',
+      link: '/plans',
     });
   }
 
-  private trialWarningTemplate(args: { name: string; shopName: string; daysLeft: number; upgradeUrl: string }) {
-    return `
-<!DOCTYPE html>
-<html><body style="margin:0;background:#f3f4f6;font-family:-apple-system,Arial,sans-serif">
-<table width="100%" style="padding:40px 20px"><tr><td align="center">
-<table width="600" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.06)">
-<tr><td style="background:linear-gradient(135deg,#f59e0b,#d97706);padding:32px;text-align:center">
-  <div style="font-size:48px">⏰</div>
-  <h1 style="color:#fff;margin:8px 0 0;font-size:24px">${args.daysLeft} ${args.daysLeft === 1 ? 'Din' : 'Din'} Left!</h1>
-  <p style="color:#fde68a;margin:6px 0 0">${args.shopName}</p>
-</td></tr>
-<tr><td style="padding:32px;text-align:center">
-  <p style="font-size:16px;color:#475569">Assalam-o-Alaikum <strong>${args.name}</strong>,</p>
-  <p style="font-size:15px;color:#475569;line-height:1.6">
-    Aap ka Nafaa free trial <strong style="color:#d97706">${args.daysLeft} din</strong> mein khatam ho jayega.
-    Service jaari rakhne ke liye plan upgrade karein.
-  </p>
-  <a href="${args.upgradeUrl}" style="display:inline-block;background:#16a34a;color:#fff;padding:14px 32px;border-radius:12px;text-decoration:none;font-weight:bold;margin:24px 0">Upgrade Now →</a>
-  <p style="font-size:13px;color:#94a3b8;margin-top:24px">Sirf Rs 1,500/mo se shuru — Pakistan-first POS</p>
-</td></tr>
-</table></td></tr></table></body></html>`;
-  }
+  /**
+   * Active subscription expiring in N days — uses 'subscription-expiring' template
+   */
+  private async sendSubscriptionExpiringEmail(sub: any, daysLeft: number) {
+    const owner = await this.prisma.user.findFirst({
+      where: { tenantId: sub.tenantId, role: 'OWNER' },
+    });
+    if (!owner) return;
 
-  private trialExpiredTemplate(args: { name: string; shopName: string; upgradeUrl: string }) {
-    return `
-<!DOCTYPE html>
-<html><body style="margin:0;background:#f3f4f6;font-family:-apple-system,Arial,sans-serif">
-<table width="100%" style="padding:40px 20px"><tr><td align="center">
-<table width="600" style="background:#fff;border-radius:16px;overflow:hidden">
-<tr><td style="background:linear-gradient(135deg,#ef4444,#dc2626);padding:32px;text-align:center">
-  <div style="font-size:48px">❌</div>
-  <h1 style="color:#fff;margin:8px 0 0">Trial Expired</h1>
-  <p style="color:#fecaca;margin:6px 0 0">${args.shopName}</p>
-</td></tr>
-<tr><td style="padding:32px;text-align:center">
-  <p>Assalam-o-Alaikum <strong>${args.name}</strong>,</p>
-  <p style="color:#475569;line-height:1.6">
-    Aap ka Nafaa free trial expire ho gaya. Apni dukan ka data safe hai —
-    plan upgrade karein aur turant access wapas hasil karein.
-  </p>
-  <a href="${args.upgradeUrl}" style="display:inline-block;background:#16a34a;color:#fff;padding:14px 32px;border-radius:12px;text-decoration:none;font-weight:bold;margin:24px 0">Choose Plan →</a>
-</td></tr>
-</table></td></tr></table></body></html>`;
+    await this.email.send({
+      tenantId: sub.tenantId,
+      templateSlug: 'subscription-expiring',
+      toEmail: owner.email,
+      toName: owner.fullName,
+      variables: {
+        name: owner.fullName,
+        planName: sub.plan.name,
+        daysLeft,
+        renewalDate: this.formatDate(sub.currentPeriodEnd),
+        amount: this.formatAmount(sub.amount),
+        appUrl: this.appUrl,
+      },
+    });
+
+    await this.notifications.create({
+      tenantId: sub.tenantId,
+      type: 'INFO',
+      title: `Subscription ${daysLeft} din mein renew ho gi ⏰`,
+      message: `Rs ${this.formatAmount(sub.amount)} ka payment ready rakhein.`,
+      link: '/billing',
+    });
   }
 }

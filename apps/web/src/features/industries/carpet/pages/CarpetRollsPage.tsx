@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Search, Plus, Layers, AlertTriangle, Sliders, Trash2,
   Ruler, Package, MapPin, Eye, Scissors, MoreVertical, X,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/Button';
@@ -97,6 +98,11 @@ export default function CarpetRollsPage() {
             <Link to="/carpet-cut-pieces">
               <Button variant="secondary">
                 <Scissors className="h-4 w-4" /> Cut Pieces
+              </Button>
+            </Link>
+            <Link to="/carpet-bulk-import">
+              <Button variant="secondary" className="bg-white/15 text-white hover:bg-white/25 border-white/20">
+                <FileSpreadsheet className="h-4 w-4" /> Bulk Import
               </Button>
             </Link>
             <Button

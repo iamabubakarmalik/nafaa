@@ -369,4 +369,388 @@ export class ProductsService {
 
   return { count: productIds.length, action };
 }
+
+  // ═══════════════════════════════════════════════════════════
+  // BULK IMPORT — Preview (validate + match references)
+  // ═══════════════════════════════════════════════════════════
+
+  async bulkImportPreview(user: AuthenticatedUser, rows: any[]) {
+    // Fetch all existing data for matching
+    const [allCategories, allBrands, allTags, allProducts] = await Promise.all([
+      this.prisma.category.findMany({
+        where: { tenantId: user.tenantId },
+        select: { id: true, name: true },
+      }),
+      this.prisma.brand.findMany({
+        where: { tenantId: user.tenantId },
+        select: { id: true, name: true },
+      }),
+      this.prisma.tag.findMany({
+        where: { tenantId: user.tenantId },
+        select: { id: true, name: true },
+      }),
+      this.prisma.product.findMany({
+        where: { tenantId: user.tenantId },
+        select: { id: true, name: true, sku: true, barcode: true },
+      }),
+    ]);
+
+    const catMap = new Map<string, string>();
+    allCategories.forEach((c) => catMap.set(c.name.toLowerCase().trim(), c.id));
+
+    const brandMap = new Map<string, string>();
+    allBrands.forEach((b) => brandMap.set(b.name.toLowerCase().trim(), b.id));
+
+    const tagMap = new Map<string, string>();
+    allTags.forEach((t) => tagMap.set(t.name.toLowerCase().trim(), t.id));
+
+    const skuSet = new Set(allProducts.filter((p) => p.sku).map((p) => p.sku!.toLowerCase()));
+    const barcodeSet = new Set(allProducts.filter((p) => p.barcode).map((p) => p.barcode!.toLowerCase()));
+    const nameSet = new Set(allProducts.map((p) => p.name.toLowerCase().trim()));
+
+    const newCategoriesToCreate = new Set<string>();
+    const newBrandsToCreate = new Set<string>();
+    const newTagsToCreate = new Set<string>();
+
+    const previewRows = rows.map((row, idx) => {
+      const errors: string[] = [];
+      const warnings: string[] = [];
+
+      const name = (row.name || '').trim();
+      if (!name) errors.push('Product name required');
+      else if (nameSet.has(name.toLowerCase())) warnings.push('Product name already exists');
+
+      const price = Number(row.price ?? 0);
+      if (price < 0) errors.push('Price cannot be negative');
+
+      const costPrice = Number(row.costPrice ?? 0);
+      const stock = Number(row.stock ?? 0);
+      const lowStockAlert = Number(row.lowStockAlert ?? 5);
+
+      // SKU duplicate check
+      if (row.sku && skuSet.has(String(row.sku).toLowerCase())) {
+        warnings.push(`SKU "${row.sku}" already exists`);
+      }
+      // Barcode duplicate check
+      if (row.barcode && barcodeSet.has(String(row.barcode).toLowerCase())) {
+        warnings.push(`Barcode "${row.barcode}" already exists`);
+      }
+
+      // Category matching
+      let categoryId: string | undefined;
+      let willCreateCategory = false;
+      if (row.categoryName) {
+        const key = String(row.categoryName).toLowerCase().trim();
+        categoryId = catMap.get(key);
+        if (!categoryId) {
+          willCreateCategory = true;
+          newCategoriesToCreate.add(String(row.categoryName).trim());
+        }
+      }
+
+      // Brand matching
+      let brandId: string | undefined;
+      let willCreateBrand = false;
+      if (row.brandName) {
+        const key = String(row.brandName).toLowerCase().trim();
+        brandId = brandMap.get(key);
+        if (!brandId) {
+          willCreateBrand = true;
+          newBrandsToCreate.add(String(row.brandName).trim());
+        }
+      }
+
+      // Tags matching
+      const tagNames = String(row.tagNames || '')
+        .split(',')
+        .map((t: string) => t.trim())
+        .filter(Boolean);
+      const tagIds: string[] = [];
+      const willCreateTags: string[] = [];
+      for (const tn of tagNames) {
+        const key = tn.toLowerCase();
+        const existingId = tagMap.get(key);
+        if (existingId) tagIds.push(existingId);
+        else {
+          willCreateTags.push(tn);
+          newTagsToCreate.add(tn);
+        }
+      }
+
+      // Variants parsing
+      const variantNames = String(row.variantNames || '')
+        .split(',')
+        .map((v: string) => v.trim())
+        .filter(Boolean);
+
+      // Images parsing
+      const imageUrls = String(row.imageUrls || '')
+        .split(',')
+        .map((u: string) => u.trim())
+        .filter(Boolean);
+
+      return {
+        index: idx + 1,
+        name,
+        description: row.description,
+        shortDescription: row.shortDescription,
+        sku: row.sku,
+        barcode: row.barcode,
+        unit: row.unit || 'pcs',
+        price,
+        costPrice,
+        wholesalePrice: row.wholesalePrice ? Number(row.wholesalePrice) : undefined,
+        taxRate: Number(row.taxRate ?? 0),
+        stock,
+        lowStockAlert,
+        weight: row.weight ? Number(row.weight) : undefined,
+        weightUnit: row.weightUnit,
+        dimensions: row.dimensions,
+        expiryTracked: row.expiryTracked === true || row.expiryTracked === 'true',
+        isActive: row.isActive !== false && row.isActive !== 'false',
+        isFeatured: row.isFeatured === true || row.isFeatured === 'true',
+        categoryName: row.categoryName,
+        categoryId,
+        brandName: row.brandName,
+        brandId,
+        tagNames,
+        tagIds,
+        variantNames,
+        imageUrls,
+        valid: errors.length === 0,
+        errors,
+        warnings,
+        willCreateCategory,
+        willCreateBrand,
+        willCreateTags,
+      };
+    });
+
+    const validRows = previewRows.filter((r) => r.valid);
+    const totalStockValue = validRows.reduce((sum, r) => sum + r.stock * r.price, 0);
+    const totalCostValue = validRows.reduce((sum, r) => sum + r.stock * r.costPrice, 0);
+    const totalVariants = validRows.reduce((sum, r) => sum + r.variantNames.length, 0);
+
+    return {
+      totalRows: rows.length,
+      validCount: validRows.length,
+      invalidCount: rows.length - validRows.length,
+      rows: previewRows,
+      totalProductsToCreate: validRows.length,
+      totalVariantsToCreate: totalVariants,
+      totalCategoriesToCreate: newCategoriesToCreate.size,
+      totalBrandsToCreate: newBrandsToCreate.size,
+      totalTagsToCreate: newTagsToCreate.size,
+      totalStockValue,
+      totalCostValue,
+    };
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // BULK IMPORT — Apply (create products + variants + refs)
+  // ═══════════════════════════════════════════════════════════
+
+  async bulkImportApply(user: AuthenticatedUser, rows: any[]) {
+    const results: any[] = [];
+    let newCategoriesCreated = 0;
+    let newBrandsCreated = 0;
+    let newTagsCreated = 0;
+    let newVariantsCreated = 0;
+
+    // Pre-fetch existing refs for cache
+    const [existingCats, existingBrands, existingTags] = await Promise.all([
+      this.prisma.category.findMany({ where: { tenantId: user.tenantId } }),
+      this.prisma.brand.findMany({ where: { tenantId: user.tenantId } }),
+      this.prisma.tag.findMany({ where: { tenantId: user.tenantId } }),
+    ]);
+
+    const catCache = new Map<string, string>();
+    existingCats.forEach((c) => catCache.set(c.name.toLowerCase().trim(), c.id));
+
+    const brandCache = new Map<string, string>();
+    existingBrands.forEach((b) => brandCache.set(b.name.toLowerCase().trim(), b.id));
+
+    const tagCache = new Map<string, string>();
+    existingTags.forEach((t) => tagCache.set(t.name.toLowerCase().trim(), t.id));
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      try {
+        // Resolve or create category
+        let categoryId: string | undefined = row.categoryId;
+        if (!categoryId && row.newCategoryName) {
+          const key = row.newCategoryName.toLowerCase().trim();
+          categoryId = catCache.get(key);
+          if (!categoryId) {
+            const newCat = await this.prisma.category.create({
+              data: {
+                tenantId: user.tenantId,
+                name: row.newCategoryName.trim(),
+                color: '#2c9466',
+              },
+            });
+            categoryId = newCat.id;
+            catCache.set(key, newCat.id);
+            newCategoriesCreated++;
+          }
+        }
+
+        // Resolve or create brand
+        let brandId: string | undefined = row.brandId;
+        if (!brandId && row.newBrandName) {
+          const key = row.newBrandName.toLowerCase().trim();
+          brandId = brandCache.get(key);
+          if (!brandId) {
+            const slug = row.newBrandName
+              .toLowerCase()
+              .trim()
+              .replace(/[^a-z0-9]+/g, '-')
+              .replace(/^-|-$/g, '');
+            const newBrand = await this.prisma.brand.create({
+              data: {
+                tenantId: user.tenantId,
+                name: row.newBrandName.trim(),
+                slug: `${slug}-${Math.random().toString(36).slice(2, 5)}`,
+              },
+            });
+            brandId = newBrand.id;
+            brandCache.set(key, newBrand.id);
+            newBrandsCreated++;
+          }
+        }
+
+        // Resolve or create tags
+        const tagIds: string[] = [...(row.tagIds || [])];
+        for (const newTagName of row.newTagNames || []) {
+          const key = newTagName.toLowerCase().trim();
+          let tagId = tagCache.get(key);
+          if (!tagId) {
+            const newTag = await this.prisma.tag.create({
+              data: {
+                tenantId: user.tenantId,
+                name: newTagName.trim(),
+                color: '#16a34a',
+              },
+            });
+            tagId = newTag.id;
+            tagCache.set(key, newTag.id);
+            newTagsCreated++;
+          }
+          if (!tagIds.includes(tagId)) tagIds.push(tagId);
+        }
+
+        // Generate slug
+        const slug =
+          row.name
+            .toLowerCase()
+            .trim()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-|-$/g, '')
+            .slice(0, 100) +
+          '-' +
+          Math.random().toString(36).slice(2, 6);
+
+        // Create product
+        const product = await this.prisma.product.create({
+          data: {
+            tenantId: user.tenantId,
+            categoryId,
+            brandId,
+            name: row.name,
+            slug,
+            description: row.description,
+            shortDescription: row.shortDescription,
+            sku: row.sku || null,
+            barcode: row.barcode || null,
+            unit: row.unit || 'pcs',
+            price: Number(row.price ?? 0),
+            costPrice: Number(row.costPrice ?? 0),
+            wholesalePrice: row.wholesalePrice ? Number(row.wholesalePrice) : null,
+            taxRate: Number(row.taxRate ?? 0),
+            stock: Number(row.stock ?? 0),
+            lowStockAlert: Number(row.lowStockAlert ?? 5),
+            weight: row.weight ? Number(row.weight) : null,
+            weightUnit: row.weightUnit || null,
+            dimensions: row.dimensions || null,
+            expiryTracked: row.expiryTracked ?? false,
+            isActive: row.isActive ?? true,
+            isFeatured: row.isFeatured ?? false,
+            hasVariants: (row.variantNames?.length || 0) > 0,
+          },
+        });
+
+        // Create tag links
+        if (tagIds.length > 0) {
+          await this.prisma.productTag.createMany({
+            data: tagIds.map((tagId: string) => ({
+              productId: product.id,
+              tagId,
+            })),
+            skipDuplicates: true,
+          });
+        }
+
+        // Create variants
+        let variantCount = 0;
+        if (row.variantNames && row.variantNames.length > 0) {
+          await this.prisma.productVariant.createMany({
+            data: row.variantNames.map((vName: string, vIdx: number) => ({
+              productId: product.id,
+              name: vName.trim(),
+              price: Number(row.price ?? 0),
+              costPrice: Number(row.costPrice ?? 0),
+              stock: 0,
+              lowStockAlert: Number(row.lowStockAlert ?? 5),
+              isActive: true,
+              sortOrder: vIdx,
+            })),
+          });
+          variantCount = row.variantNames.length;
+          newVariantsCreated += variantCount;
+        }
+
+        // Create images
+        if (row.imageUrls && row.imageUrls.length > 0) {
+          await this.prisma.productImage.createMany({
+            data: row.imageUrls.map((url: string, idx: number) => ({
+              productId: product.id,
+              url: url.trim(),
+              isPrimary: idx === 0,
+              sortOrder: idx,
+            })),
+          });
+        }
+
+        results.push({
+          index: i + 1,
+          productName: row.name,
+          success: true,
+          productId: product.id,
+          variantsCreated: variantCount,
+        });
+      } catch (e: any) {
+        results.push({
+          index: i + 1,
+          productName: row.name || `Row ${i + 1}`,
+          success: false,
+          error: e?.message || 'Unknown error',
+        });
+      }
+    }
+
+    const successCount = results.filter((r) => r.success).length;
+    const failureCount = results.length - successCount;
+
+    return {
+      totalSubmitted: rows.length,
+      successCount,
+      failureCount,
+      results,
+      newCategoriesCreated,
+      newBrandsCreated,
+      newTagsCreated,
+      newVariantsCreated,
+    };
+  }
+
 }

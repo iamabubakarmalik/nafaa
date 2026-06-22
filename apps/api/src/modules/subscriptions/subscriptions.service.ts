@@ -1,42 +1,52 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { BillingInterval } from '@prisma/client';
 import { addDays, addMonths } from 'date-fns';
 import { PrismaService } from '../../prisma/prisma.service';
+import { EmailService } from '../email/email.service';
 import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
 
 @Injectable()
 export class SubscriptionsService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger('SubscriptionsService');
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly email: EmailService,
+    private readonly config: ConfigService,
+  ) {}
+
+  private formatAmount(amount: number): string {
+    return new Intl.NumberFormat('en-PK').format(amount);
+  }
+
+  private get appUrl() {
+    return this.config.get<string>('APP_URL') || 'http://localhost:5173';
+  }
 
   /**
-   * Get current active subscription for tenant
-   * Returns active/trial sub OR auto-creates a trial if none exists
+   * Get current LIVE subscription for tenant.
+   * Priority: ACTIVE > TRIAL (not expired) > PAST_DUE
+   * PENDING_PAYMENT is shown SEPARATELY via getPendingUpgrade().
+   * If nothing — auto-create a trial.
    */
   async getCurrent(user: AuthenticatedUser) {
-    // Look for ACTIVE or TRIAL subscription first (the "live" one)
+    const now = new Date();
+
+    // 1. Try ACTIVE first
     let sub = await this.prisma.subscription.findFirst({
-      where: {
-        tenantId: user.tenantId,
-        status: { in: ['ACTIVE', 'TRIAL', 'PAST_DUE'] },
-      },
+      where: { tenantId: user.tenantId, status: 'ACTIVE' },
       orderBy: { createdAt: 'desc' },
       include: { plan: true },
     });
 
     if (sub) {
-      // Check if expired and auto-update status
-      if (sub.status === 'TRIAL' && sub.trialEndsAt && sub.trialEndsAt < new Date()) {
-        sub = await this.prisma.subscription.update({
-          where: { id: sub.id },
-          data: { status: 'EXPIRED' },
-          include: { plan: true },
-        });
-      }
-      if (sub.status === 'ACTIVE' && sub.currentPeriodEnd < new Date()) {
+      if (sub.currentPeriodEnd < now) {
         sub = await this.prisma.subscription.update({
           where: { id: sub.id },
           data: { status: 'PAST_DUE' },
@@ -46,18 +56,45 @@ export class SubscriptionsService {
       return sub;
     }
 
-    // No active subscription — check if there's a pending upgrade
-    const pending = await this.prisma.subscription.findFirst({
+    // 2. Try TRIAL (not expired)
+    sub = await this.prisma.subscription.findFirst({
       where: {
         tenantId: user.tenantId,
-        status: 'PENDING_PAYMENT',
+        status: 'TRIAL',
+        trialEndsAt: { gt: now },
       },
       orderBy: { createdAt: 'desc' },
       include: { plan: true },
     });
-    if (pending) return pending;
+    if (sub) return sub;
 
-    // First time user — create trial
+    // 3. Mark any expired trials as EXPIRED
+    await this.prisma.subscription.updateMany({
+      where: {
+        tenantId: user.tenantId,
+        status: 'TRIAL',
+        trialEndsAt: { lte: now },
+      },
+      data: { status: 'EXPIRED' },
+    });
+
+    // 4. Try PAST_DUE
+    sub = await this.prisma.subscription.findFirst({
+      where: { tenantId: user.tenantId, status: 'PAST_DUE' },
+      orderBy: { createdAt: 'desc' },
+      include: { plan: true },
+    });
+    if (sub) return sub;
+
+    // 5. Check EXPIRED — return latest expired so frontend can show "Expired" state
+    sub = await this.prisma.subscription.findFirst({
+      where: { tenantId: user.tenantId, status: 'EXPIRED' },
+      orderBy: { updatedAt: 'desc' },
+      include: { plan: true },
+    });
+    if (sub) return sub;
+
+    // 6. No subscription history at all — first-time user → create trial
     const trialPlan = await this.prisma.plan.findUnique({
       where: { slug: 'free-trial' },
     });
@@ -79,8 +116,8 @@ export class SubscriptionsService {
   }
 
   /**
-   * Get any pending upgrade (PENDING_PAYMENT subscription with unpaid invoice)
-   * Used by mobile/web to show "Pending Upgrade" banner
+   * Get pending upgrade (PENDING_PAYMENT subscription + its unpaid invoice).
+   * Returns ONLY the latest one — older pending are cancelled when new one is started.
    */
   async getPendingUpgrade(user: AuthenticatedUser) {
     const pending = await this.prisma.subscription.findFirst({
@@ -114,9 +151,9 @@ export class SubscriptionsService {
   }
 
   /**
-   * Start subscription upgrade — DOES NOT cancel current subscription
-   * Creates PENDING_PAYMENT subscription + invoice
-   * Current TRIAL/ACTIVE sub stays UNTOUCHED until payment is approved
+   * Start subscription upgrade — keeps current TRIAL/ACTIVE intact.
+   * Cancels any OTHER pending upgrades (different plan) + their invoices.
+   * Returns existing pending if exact same plan/interval was already pending.
    */
   async startSubscription(
     user: AuthenticatedUser,
@@ -130,7 +167,7 @@ export class SubscriptionsService {
       throw new BadRequestException('Free trial khud activate nahi kar sakte');
     }
 
-    // Calculate amount + period based on interval
+    // Calculate price + period
     let amount = plan.priceMonthly;
     let periodEnd = addMonths(new Date(), 1);
 
@@ -146,7 +183,7 @@ export class SubscriptionsService {
       throw new BadRequestException('Is plan ki price set nahi hai');
     }
 
-    // Check for existing pending upgrade — return that instead of creating duplicate
+    // 1. Check exact match pending — reuse it
     const existingPending = await this.prisma.subscription.findFirst({
       where: {
         tenantId: user.tenantId,
@@ -165,7 +202,6 @@ export class SubscriptionsService {
     });
 
     if (existingPending && existingPending.invoices.length > 0) {
-      // Reuse existing pending — don't duplicate
       return {
         subscription: existingPending,
         invoice: existingPending.invoices[0],
@@ -173,27 +209,39 @@ export class SubscriptionsService {
       };
     }
 
-    // Cancel ONLY other pending upgrades (different plan/interval)
-    // DO NOT touch active TRIAL / ACTIVE subscription
-    await this.prisma.subscription.updateMany({
-      where: {
-        tenantId: user.tenantId,
-        status: 'PENDING_PAYMENT',
-      },
-      data: { status: 'CANCELLED', cancelledAt: new Date() },
+    // 2. Cancel ALL other pending upgrades (different plan/interval) + their invoices
+    //    Use transaction to make sure both are cancelled together
+    await this.prisma.$transaction(async (tx) => {
+      // Get IDs of all pending subs (so we can cancel their invoices reliably)
+      const oldPending = await tx.subscription.findMany({
+        where: {
+          tenantId: user.tenantId,
+          status: 'PENDING_PAYMENT',
+        },
+        select: { id: true },
+      });
+
+      const oldIds = oldPending.map((s) => s.id);
+
+      if (oldIds.length > 0) {
+        // Cancel old pending subscriptions
+        await tx.subscription.updateMany({
+          where: { id: { in: oldIds } },
+          data: { status: 'CANCELLED', cancelledAt: new Date() },
+        });
+
+        // Cancel their unpaid invoices
+        await tx.invoice.updateMany({
+          where: {
+            subscriptionId: { in: oldIds },
+            status: { in: ['PENDING', 'OVERDUE'] },
+          },
+          data: { status: 'CANCELLED' },
+        });
+      }
     });
 
-    // Also cancel any prior unpaid invoices for those pending
-    await this.prisma.invoice.updateMany({
-      where: {
-        tenantId: user.tenantId,
-        status: 'PENDING',
-        subscription: { status: 'CANCELLED' },
-      },
-      data: { status: 'CANCELLED' },
-    });
-
-    // Create new PENDING subscription + invoice in single transaction
+    // 3. Create new PENDING subscription + invoice
     return this.prisma.$transaction(async (tx) => {
       const sub = await tx.subscription.create({
         data: {
@@ -229,8 +277,7 @@ export class SubscriptionsService {
   }
 
   /**
-   * Cancel a pending upgrade (before payment)
-   * Does NOT affect active subscription
+   * Cancel a specific pending upgrade
    */
   async cancelPendingUpgrade(user: AuthenticatedUser, subscriptionId: string) {
     const sub = await this.prisma.subscription.findFirst({
@@ -259,8 +306,7 @@ export class SubscriptionsService {
   }
 
   /**
-   * Cancel current ACTIVE subscription (sets cancelAtPeriodEnd = true)
-   * User retains access until current period ends
+   * Cancel current ACTIVE subscription (at period end)
    */
   async cancel(user: AuthenticatedUser) {
     const sub = await this.prisma.subscription.findFirst({
@@ -278,7 +324,7 @@ export class SubscriptionsService {
   }
 
   /**
-   * Re-activate cancelled subscription (only works during current period)
+   * Re-activate cancelled subscription
    */
   async reactivate(user: AuthenticatedUser) {
     const sub = await this.prisma.subscription.findFirst({
@@ -293,6 +339,234 @@ export class SubscriptionsService {
     return this.prisma.subscription.update({
       where: { id: sub.id },
       data: { cancelAtPeriodEnd: false },
+    });
+  }
+
+  // ───────────────────────────────────────────────────────────
+  // PAYMENT FLOW NOTIFICATIONS (called by admin billing service)
+  // ───────────────────────────────────────────────────────────
+
+  async notifyPaymentSubmitted(params: {
+    tenantId: string;
+    subscriptionId: string;
+    invoiceId: string;
+    paymentMethod: string;
+    reference: string;
+  }) {
+    try {
+      const [sub, invoice, owner] = await Promise.all([
+        this.prisma.subscription.findUnique({
+          where: { id: params.subscriptionId },
+          include: { plan: true },
+        }),
+        this.prisma.invoice.findUnique({ where: { id: params.invoiceId } }),
+        this.prisma.user.findFirst({
+          where: { tenantId: params.tenantId, role: 'OWNER' },
+          select: { email: true, fullName: true },
+        }),
+      ]);
+
+      if (!sub || !invoice || !owner) return;
+
+      await this.email.send({
+        tenantId: params.tenantId,
+        templateSlug: 'payment-submitted',
+        toEmail: owner.email,
+        toName: owner.fullName,
+        variables: {
+          name: owner.fullName,
+          planName: sub.plan.name,
+          amount: this.formatAmount(sub.amount),
+          paymentMethod: params.paymentMethod,
+          reference: params.reference,
+          invoiceNumber: invoice.invoiceNumber,
+          appUrl: this.appUrl,
+        },
+      });
+    } catch (e: any) {
+      this.logger.error(`Payment submitted email failed: ${e.message}`);
+    }
+  }
+
+  /**
+   * Approve payment → Cancel ALL other subs/invoices → Activate this one
+   * This is the KEY method that finally activates the upgrade.
+   */
+  async notifyPaymentApprovedAndActivate(subscriptionId: string) {
+    try {
+      const sub = await this.prisma.subscription.findUnique({
+        where: { id: subscriptionId },
+        include: { plan: true, tenant: { select: { id: true, name: true } } },
+      });
+      if (!sub) return;
+
+      await this.prisma.$transaction(async (tx) => {
+        // Cancel ALL other subs (TRIAL, ACTIVE, PAST_DUE, other PENDING_PAYMENT)
+        const otherSubs = await tx.subscription.findMany({
+          where: {
+            tenantId: sub.tenantId,
+            id: { not: sub.id },
+            status: { in: ['ACTIVE', 'TRIAL', 'PAST_DUE', 'PENDING_PAYMENT'] },
+          },
+          select: { id: true },
+        });
+        const otherIds = otherSubs.map((s) => s.id);
+
+        if (otherIds.length > 0) {
+          await tx.subscription.updateMany({
+            where: { id: { in: otherIds } },
+            data: { status: 'CANCELLED', cancelledAt: new Date() },
+          });
+          // Cancel their pending invoices too
+          await tx.invoice.updateMany({
+            where: {
+              subscriptionId: { in: otherIds },
+              status: { in: ['PENDING', 'OVERDUE'] },
+            },
+            data: { status: 'CANCELLED' },
+          });
+        }
+
+        // Activate this subscription
+        await tx.subscription.update({
+          where: { id: sub.id },
+          data: {
+            status: 'ACTIVE',
+            currentPeriodStart: new Date(),
+          },
+        });
+
+        // Mark this invoice as paid
+        await tx.invoice.updateMany({
+          where: {
+            subscriptionId: sub.id,
+            status: { in: ['PENDING', 'OVERDUE'] },
+          },
+          data: {
+            status: 'PAID',
+            paidAt: new Date(),
+            amountPaid: sub.amount,
+            amountDue: 0,
+          },
+        });
+
+        // Tenant status → ACTIVE
+        await tx.tenant.update({
+          where: { id: sub.tenantId },
+          data: { status: 'ACTIVE' },
+        });
+      });
+
+      // Send approval email
+      const owner = await this.prisma.user.findFirst({
+        where: { tenantId: sub.tenantId, role: 'OWNER' },
+        select: { email: true, fullName: true },
+      });
+      if (!owner) return;
+
+      await this.email.send({
+        tenantId: sub.tenantId,
+        templateSlug: 'payment-approved',
+        toEmail: owner.email,
+        toName: owner.fullName,
+        variables: {
+          name: owner.fullName,
+          shopName: sub.tenant.name,
+          planName: sub.plan.name,
+          amount: this.formatAmount(sub.amount),
+          interval: sub.interval,
+          periodEnd: new Intl.DateTimeFormat('en-PK', {
+            dateStyle: 'long',
+            timeZone: 'Asia/Karachi',
+          }).format(sub.currentPeriodEnd),
+          appUrl: this.appUrl,
+        },
+      });
+
+      this.logger.log(`✅ Payment approved & subscription activated: ${sub.id}`);
+    } catch (e: any) {
+      this.logger.error(`Payment approval email failed: ${e.message}`);
+    }
+  }
+
+  async notifyPaymentRejected(params: { subscriptionId: string; reason?: string }) {
+    try {
+      const sub = await this.prisma.subscription.findUnique({
+        where: { id: params.subscriptionId },
+        include: { tenant: { select: { id: true, name: true } } },
+      });
+      if (!sub) return;
+
+      await this.prisma.$transaction(async (tx) => {
+        await tx.subscription.update({
+          where: { id: sub.id },
+          data: { status: 'CANCELLED', cancelledAt: new Date() },
+        });
+        await tx.invoice.updateMany({
+          where: {
+            subscriptionId: sub.id,
+            status: { in: ['PENDING', 'OVERDUE'] },
+          },
+          data: { status: 'CANCELLED' },
+        });
+      });
+
+      const owner = await this.prisma.user.findFirst({
+        where: { tenantId: sub.tenantId, role: 'OWNER' },
+        select: { email: true, fullName: true },
+      });
+      if (!owner) return;
+
+      await this.email.send({
+        tenantId: sub.tenantId,
+        templateSlug: 'payment-rejected',
+        toEmail: owner.email,
+        toName: owner.fullName,
+        variables: {
+          name: owner.fullName,
+          shopName: sub.tenant.name,
+          reason: params.reason || 'Payment details verify nahi ho sake.',
+          appUrl: this.appUrl,
+        },
+      });
+    } catch (e: any) {
+      this.logger.error(`Payment rejected email failed: ${e.message}`);
+    }
+  }
+
+  /**
+   * Admin tool — cleanup duplicate/orphan pending subscriptions for a tenant
+   * Useful for fixing bad data
+   */
+  async cleanupPendingSubscriptions(tenantId: string) {
+    return this.prisma.$transaction(async (tx) => {
+      // Find latest pending
+      const pending = await tx.subscription.findMany({
+        where: { tenantId, status: 'PENDING_PAYMENT' },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (pending.length <= 1) {
+        return { kept: pending.length, cancelled: 0 };
+      }
+
+      const keep = pending[0];
+      const cancelIds = pending.slice(1).map((p) => p.id);
+
+      await tx.subscription.updateMany({
+        where: { id: { in: cancelIds } },
+        data: { status: 'CANCELLED', cancelledAt: new Date() },
+      });
+
+      await tx.invoice.updateMany({
+        where: {
+          subscriptionId: { in: cancelIds },
+          status: { in: ['PENDING', 'OVERDUE'] },
+        },
+        data: { status: 'CANCELLED' },
+      });
+
+      return { kept: 1, cancelled: cancelIds.length, keptId: keep.id };
     });
   }
 }

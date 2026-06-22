@@ -3,16 +3,18 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   User, Mail, Phone, Edit3, X, Crown, Shield,
   Calendar, LogOut, Building2, Save, Sparkles, Camera,
-  CheckCircle2, AlertCircle, KeyRound,
+  CheckCircle2, AlertCircle, KeyRound, Smartphone,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useAuthStore } from '@/store/auth.store';
 import { authApi } from '@/api/auth.api';
+import { isValidPakistanPhone, normalizePakistanPhone } from '@/lib/phone';
 import { apiClient } from '@/api/client';
 import { AvatarUpload } from '@/components/uploads';
 import AccountSecurity from '../components/AccountSecurity';
+import { ActiveSessions } from '../components/ActiveSessions';
 import { toast } from 'sonner';
 
 const formatDate = (v?: string) => {
@@ -28,7 +30,7 @@ const roleConfig: Record<string, { color: string; bg: string; label: string; rin
   SUPER_ADMIN: { color: '#dc2626', bg: '#fee2e2', label: 'Super Admin', ring: 'ring-rose-200' },
 };
 
-type Tab = 'overview' | 'security';
+type Tab = 'overview' | 'security' | 'devices';
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -185,6 +187,7 @@ export default function ProfilePage() {
         {[
           { id: 'overview' as Tab, label: 'Overview', icon: User },
           { id: 'security' as Tab, label: 'Security', icon: Shield },
+          { id: 'devices' as Tab, label: 'Devices', icon: Smartphone },
         ].map((t) => {
           const Icon = t.icon;
           const active = tab === t.id;
@@ -332,6 +335,12 @@ export default function ProfilePage() {
         </div>
       )}
 
+      {tab === 'devices' && (
+        <div className="rounded-3xl bg-white border border-slate-200 shadow-sm p-6">
+          <ActiveSessions />
+        </div>
+      )}
+
       {/* EDIT MODAL */}
       {editOpen && (
         <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
@@ -393,6 +402,16 @@ export default function ProfilePage() {
                   if (!fullName.trim()) {
                     toast.error('Name required');
                     return;
+                  }
+                  if (phone && !isValidPakistanPhone(phone)) {
+                    toast.error('Pakistan ka sahi mobile number likhein', {
+                      description: 'Example: 03001234567',
+                    });
+                    return;
+                  }
+                  // Normalize phone to +92 format before saving
+                  if (phone) {
+                    setPhone(normalizePakistanPhone(phone));
                   }
                   updateProfileMutation.mutate();
                 }}

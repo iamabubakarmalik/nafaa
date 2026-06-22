@@ -14,11 +14,13 @@ import ResetPasswordPage from '@/features/auth/pages/ResetPasswordPage';
 import GoogleSuccessPage from '@/features/auth/pages/GoogleSuccessPage';
 import GoogleCompleteSignupPage from '@/features/auth/pages/GoogleCompleteSignupPage';
 import GoogleErrorPage from '@/features/auth/pages/GoogleErrorPage';
+import EmailVerifyPage from '@/features/auth/pages/EmailVerifyPage';
 
 import DashboardPage from '@/features/dashboard/pages/DashboardPage';
 import BrandsPage from '@/features/brands/pages/BrandsPage';
 import TagsPage from '@/features/tags/pages/TagsPage';
 import ProductsListPage from '@/features/products/pages/ProductsListPage';
+import ProductBulkImportPage from '@/features/products/pages/ProductBulkImportPage';
 import ProductFormPage from '@/features/products/pages/ProductFormPage';
 import ImeiInventoryPage from '@/features/industries/mobile/pages/ImeiInventoryPage';
 import MobileReportsPage from '@/features/industries/mobile/reports/pages/MobileReportsPage';
@@ -44,6 +46,7 @@ import CategoriesPage from '@/features/categories/pages/CategoriesPage';
 import ExpensesPage from '@/features/expenses/pages/ExpensesPage';
 import StockMovementsPage from '@/features/stock-movements/pages/StockMovementsPage';
 import ReportsPage from '@/features/reports/pages/ReportsPage';
+import StockReportPage from '@/features/stock-report/pages/StockReportPage';
 import SettingsPage from '@/features/settings/pages/SettingsPage';
 import BarcodeLabelsPage from '@/features/barcodes/pages/BarcodeLabelsPage';
 import TeamPage from '@/features/team/pages/TeamPage';
@@ -142,6 +145,7 @@ export default function App() {
                 <Route path="/imei-inventory" element={<GlobalImeiInventoryPage />} />
                 <Route path="/used-phones" element={<UsedPhonesPage />} />
                 <Route path="/products/:id/imei" element={secure(PERMISSIONS.PRODUCTS_EDIT, <ImeiInventoryPage />)} />
+                <Route path="/products/bulk-import" element={secure(PERMISSIONS.PRODUCTS_CREATE, <ProductBulkImportPage />)} />
                 <Route path="/products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ProductsListPage />)} />
 
                 <Route path="/catalog" element={secure(PERMISSIONS.PRODUCTS_VIEW, <CatalogPage />)} />
@@ -175,6 +179,8 @@ export default function App() {
                 <Route path="/stock-movements" element={secure(PERMISSIONS.STOCK_MOVEMENTS_VIEW, <StockMovementsPage />)} />
                 <Route path="/stock-adjustments" element={secure(PERMISSIONS.STOCK_ADJUSTMENTS_MANAGE, <StockAdjustmentsPage />)} />
                 <Route path="/low-stock" element={secure(PERMISSIONS.LOW_STOCK_VIEW, <LowStockPage />)} />
+                <Route path="/reports" element={secure(PERMISSIONS.REPORTS_VIEW, <ReportsPage />)} />
+                <Route path="/stock-report" element={secure(PERMISSIONS.REPORTS_VIEW, <StockReportPage />)} />
                 <Route path="/reports" element={secure(PERMISSIONS.REPORTS_VIEW, <ReportsPage />)} />
                 <Route path="/settings" element={secure(PERMISSIONS.SETTINGS_VIEW, <SettingsPage />)} />
                 <Route path="/barcode-labels" element={secure(PERMISSIONS.BARCODE_LABELS_VIEW, <BarcodeLabelsPage />)} />
@@ -218,6 +224,7 @@ export default function App() {
             {/* Standalone routes (no shell) */}
             <Route path="/sales/:id/receipt" element={<ReceiptPage />} />
             <Route path="/onboarding" element={<OnboardingPage />} />
+            <Route path="/verify-email" element={<EmailVerifyPage />} />
           </Route>
 
           <Route path="/" element={<Navigate to="/dashboard" replace />} />

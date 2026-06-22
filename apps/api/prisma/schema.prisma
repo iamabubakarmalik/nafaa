@@ -565,6 +565,7 @@ model User {
   tenant              Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   assignedShop        Shop?                   @relation("ShopUsers", fields: [shopId], references: [id], onDelete: SetNull)
   sessions            Session[]
+  loginHistory        LoginHistory[]
   otps                OtpCode[]
   salesCreated        Sale[]                  @relation("UserSales")
   purchasesMade       Purchase[]              @relation("UserPurchases")
@@ -647,18 +648,47 @@ model OnboardingProgress {
 }
 
 model Session {
-  id               String   @id @default(uuid())
-  userId           String
-  refreshTokenHash String
-  userAgent        String?
-  ipAddress        String?
-  expiresAt        DateTime
-  createdAt        DateTime @default(now())
+  id                String   @id @default(uuid())
+  userId            String
+  refreshTokenHash  String
+  userAgent         String?
+  ipAddress         String?
+  deviceFingerprint String?  // Hash of browser+os+device for matching
+  deviceName        String?  // Human-readable: "iPhone 15 - Safari"
+  location          String?  // City/country from IP
+  lastUsedAt        DateTime @default(now())
+  expiresAt         DateTime
+  createdAt         DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([deviceFingerprint])
+  @@index([userId, deviceFingerprint])
 }
+model LoginHistory {
+  id                String   @id @default(uuid())
+  userId            String
+  tenantId          String
+  email             String
+  success           Boolean  @default(true)
+  failureReason     String?
+  ipAddress         String?
+  userAgent         String?
+  deviceFingerprint String?
+  deviceName        String?
+  location          String?
+  isNewDevice       Boolean  @default(false)
+  createdAt         DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, createdAt])
+  @@index([tenantId])
+  @@index([createdAt])
+}
+
 
 model OtpCode {
   id         String    @id @default(uuid())

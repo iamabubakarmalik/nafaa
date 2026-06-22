@@ -3,9 +3,10 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "target": "ES2022",
-    "lib": ["ES2022"],
+    "lib": [
+      "ES2022"
+    ],
     "outDir": "./dist",
-    "rootDir": "./src",
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
@@ -23,15 +24,40 @@
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "@/*": ["./src/*"],
-      "@nafaa/shared-types": ["../../packages/shared-types/src/index.ts"],
-      "@nafaa/shared-types/*": ["../../packages/shared-types/src/*"],
-      "@nafaa/shared-utils": ["../../packages/shared-utils/src/index.ts"],
-      "@nafaa/shared-utils/*": ["../../packages/shared-utils/src/*"],
-      "@nafaa/api-client": ["../../packages/api-client/src/index.ts"],
-      "@nafaa/api-client/*": ["../../packages/api-client/src/*"]
-    }
+      "@/*": [
+        "./src/*"
+      ],
+      "@nafaa/shared-types": [
+        "../../packages/shared-types/src/index.ts"
+      ],
+      "@nafaa/shared-types/*": [
+        "../../packages/shared-types/src/*"
+      ],
+      "@nafaa/shared-utils": [
+        "../../packages/shared-utils/src/index.ts"
+      ],
+      "@nafaa/shared-utils/*": [
+        "../../packages/shared-utils/src/*"
+      ],
+      "@nafaa/api-client": [
+        "../../packages/api-client/src/index.ts"
+      ],
+      "@nafaa/api-client/*": [
+        "../../packages/api-client/src/*"
+      ]
+    },
+    "types": [
+      "node"
+    ]
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "test", "**/*spec.ts"]
+  "include": [
+    "src/**/*",
+    "prisma/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "test",
+    "**/*spec.ts"
+  ]
 }

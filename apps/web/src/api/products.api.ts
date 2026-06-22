@@ -145,4 +145,151 @@ export const productsApi = {
 
   remove: (id: string) =>
     apiClient.delete<{ data: { message: string } }>(`/products/${id}`).then(unwrap),
+
+  // ─── Bulk Import ────────────────────────────────────
+  bulkImportPreview: (rows: BulkImportProductRow[]) =>
+    apiClient
+      .post<{ data: BulkImportPreviewResponse }>('/products/bulk-import/preview', { rows })
+      .then(unwrap),
+
+  bulkImportApply: (rows: BulkImportApplyRow[]) =>
+    apiClient
+      .post<{ data: BulkImportApplyResponse }>('/products/bulk-import/apply', { rows })
+      .then(unwrap),
+
+  bulkImportReferenceData: () =>
+    apiClient
+      .get<{ data: BulkImportReferenceData }>('/products/bulk-import/reference-data')
+      .then(unwrap),
 };
+
+// ─── Bulk Import Types ────────────────────────────────────
+
+export interface BulkImportProductRow {
+  name: string;
+  description?: string;
+  shortDescription?: string;
+  categoryName?: string;
+  brandName?: string;
+  tagNames?: string;
+  sku?: string;
+  barcode?: string;
+  unit?: string;
+  price?: number;
+  costPrice?: number;
+  wholesalePrice?: number;
+  taxRate?: number;
+  stock?: number;
+  lowStockAlert?: number;
+  weight?: number;
+  weightUnit?: string;
+  dimensions?: string;
+  expiryTracked?: boolean;
+  isActive?: boolean;
+  isFeatured?: boolean;
+  variantNames?: string;
+  imageUrls?: string;
+}
+
+export interface BulkImportPreviewRow {
+  index: number;
+  name: string;
+  description?: string;
+  shortDescription?: string;
+  sku?: string;
+  barcode?: string;
+  unit: string;
+  price: number;
+  costPrice: number;
+  wholesalePrice?: number;
+  taxRate: number;
+  stock: number;
+  lowStockAlert: number;
+  weight?: number;
+  weightUnit?: string;
+  dimensions?: string;
+  expiryTracked: boolean;
+  isActive: boolean;
+  isFeatured: boolean;
+  categoryName?: string;
+  categoryId?: string;
+  brandName?: string;
+  brandId?: string;
+  tagNames: string[];
+  tagIds: string[];
+  variantNames: string[];
+  imageUrls: string[];
+  valid: boolean;
+  errors: string[];
+  warnings: string[];
+  willCreateCategory: boolean;
+  willCreateBrand: boolean;
+  willCreateTags: string[];
+}
+
+export interface BulkImportPreviewResponse {
+  totalRows: number;
+  validCount: number;
+  invalidCount: number;
+  rows: BulkImportPreviewRow[];
+  totalProductsToCreate: number;
+  totalVariantsToCreate: number;
+  totalCategoriesToCreate: number;
+  totalBrandsToCreate: number;
+  totalTagsToCreate: number;
+  totalStockValue: number;
+  totalCostValue: number;
+}
+
+export interface BulkImportApplyRow {
+  name: string;
+  description?: string;
+  shortDescription?: string;
+  categoryId?: string;
+  newCategoryName?: string;
+  brandId?: string;
+  newBrandName?: string;
+  tagIds?: string[];
+  newTagNames?: string[];
+  sku?: string;
+  barcode?: string;
+  unit?: string;
+  price: number;
+  costPrice?: number;
+  wholesalePrice?: number;
+  taxRate?: number;
+  stock?: number;
+  lowStockAlert?: number;
+  weight?: number;
+  weightUnit?: string;
+  dimensions?: string;
+  expiryTracked?: boolean;
+  isActive?: boolean;
+  isFeatured?: boolean;
+  variantNames?: string[];
+  imageUrls?: string[];
+}
+
+export interface BulkImportApplyResponse {
+  totalSubmitted: number;
+  successCount: number;
+  failureCount: number;
+  results: Array<{
+    index: number;
+    productName: string;
+    success: boolean;
+    productId?: string;
+    variantsCreated?: number;
+    error?: string;
+  }>;
+  newCategoriesCreated: number;
+  newBrandsCreated: number;
+  newTagsCreated: number;
+  newVariantsCreated: number;
+}
+
+export interface BulkImportReferenceData {
+  categories: Array<{ id: string; name: string; color: string }>;
+  brands: Array<{ id: string; name: string }>;
+  tags: Array<{ id: string; name: string; color: string }>;
+}

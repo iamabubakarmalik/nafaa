@@ -20,6 +20,7 @@ import NotificationsSection from '../sections/NotificationsSection';
 import SecuritySection from '../sections/SecuritySection';
 import AppearanceSection from '../sections/AppearanceSection';
 import BusinessConfigSection from '../sections/BusinessConfigSection';
+import { OnboardingSyncBanner } from '../components/OnboardingSyncBanner';
 
 type SectionId =
   | 'business' | 'businessConfig' | 'localization' | 'tax' | 'receipt' | 'pos'
@@ -138,6 +139,9 @@ export default function SettingsPage() {
           )}
         </div>
       </section>
+
+      {/* Onboarding sync banner — shows once onboarding is complete */}
+      <OnboardingSyncBanner />
 
       {/* Layout: sidebar + content */}
       <div className="grid lg:grid-cols-[280px_1fr] gap-6">

@@ -131,6 +131,44 @@ export class ProductsController {
     return this.productsService.toggleActive(user, id);
   }
 
+  @Post('bulk-import/preview')
+  bulkImportPreview(
+    @GetUser() user: AuthenticatedUser,
+    @Body() body: { rows: any[] },
+  ) {
+    return this.productsService.bulkImportPreview(user, body.rows || []);
+  }
+
+  @Post('bulk-import/apply')
+  bulkImportApply(
+    @GetUser() user: AuthenticatedUser,
+    @Body() body: { rows: any[] },
+  ) {
+    return this.productsService.bulkImportApply(user, body.rows || []);
+  }
+
+  @Get('bulk-import/reference-data')
+  async bulkImportReferenceData(@GetUser() user: AuthenticatedUser) {
+    const [categories, brands, tags] = await Promise.all([
+      this.prisma.category.findMany({
+        where: { tenantId: user.tenantId },
+        orderBy: { name: 'asc' },
+        select: { id: true, name: true, color: true },
+      }),
+      this.prisma.brand.findMany({
+        where: { tenantId: user.tenantId, isActive: true },
+        orderBy: { name: 'asc' },
+        select: { id: true, name: true },
+      }),
+      this.prisma.tag.findMany({
+        where: { tenantId: user.tenantId },
+        orderBy: { name: 'asc' },
+        select: { id: true, name: true, color: true },
+      }),
+    ]);
+    return { categories, brands, tags };
+  }
+
   @Post('bulk-action')
   bulkAction(
     @GetUser() user: AuthenticatedUser,

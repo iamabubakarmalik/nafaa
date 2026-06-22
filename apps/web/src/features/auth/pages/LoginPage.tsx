@@ -75,8 +75,20 @@ export default function LoginPage() {
     mutationFn: authApi.login,
     onSuccess: (data) => {
       setSession(data);
-      toast.success(`Khush amdeed, ${data.user.fullName.split(' ')[0]}! 🎉`);
-      navigate('/dashboard');
+      const firstName = data.user.fullName.split(' ')[0];
+
+      // New device login? Show special toast
+      if ((data as any).isNewDevice) {
+        toast.success(`Khush amdeed, ${firstName}! 🎉`, {
+          description: 'New device detected — security email bhej diya gaya hai',
+          duration: 6000,
+        });
+      } else {
+        toast.success(`Khush amdeed, ${firstName}! 🎉`);
+      }
+
+      // Navigate to dashboard — OnboardingGate will redirect to /onboarding if needed
+      navigate('/dashboard', { replace: true });
     },
     onError: (err: any) => {
       toast.error(err?.response?.data?.message || 'Login fail ho gaya');

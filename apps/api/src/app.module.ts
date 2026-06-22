@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
+import { TenantDigestsModule } from './modules/tenant-digests/tenant-digests.module';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
@@ -37,6 +38,7 @@ import { ProfitReportModule } from './modules/profit-report/profit-report.module
 import { PurchasesModule } from './modules/purchases/purchases.module';
 import { ReferralsModule } from './modules/referrals/referrals.module';
 import { ReportsModule } from './modules/reports/reports.module';
+import { StockReportModule } from './modules/reports/stock-report/stock-report.module';
 import { ReturnsModule } from './modules/returns/returns.module';
 import { SalesModule } from './modules/sales/sales.module';
 import { SearchModule } from './modules/search/search.module';
@@ -63,6 +65,7 @@ import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
   imports: [
+    TenantDigestsModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
@@ -96,6 +99,7 @@ import { PrismaModule } from './prisma/prisma.module';
     ExpenseCategoriesModule,
     SettingsModule,
     ReportsModule,
+    StockReportModule,
     ProfitReportModule,
     TeamModule,
     StaffModule,

@@ -9,9 +9,15 @@ export interface AuthUser {
   role: 'SUPER_ADMIN' | 'OWNER' | 'MANAGER' | 'CASHIER' | 'STAFF';
   permissions?: string[];
   emailVerified: boolean;
+  emailVerifiedAt?: string | null;
   avatarUrl?: string;
   shopId?: string | null;
   assignedShop?: { id: string; name: string; isMain: boolean } | null;
+  hasPassword?: boolean;
+  googleId?: string | null;
+  authProvider?: 'EMAIL' | 'GOOGLE' | 'HYBRID';
+  createdAt?: string;
+  lastLoginAt?: string | null;
 }
 
 export interface AuthTenant {
@@ -42,6 +48,7 @@ interface AuthState {
   setTokens: (accessToken: string, refreshToken: string) => void;
   setUser: (user: AuthUser, tenant: AuthTenant) => void;
   updateTenant: (patch: Partial<AuthTenant>) => void;
+  updateUser: (patch: Partial<AuthUser>) => void;
   setCurrentShop: (shopId: string | null) => void;
   logout: () => void;
 }
@@ -63,6 +70,10 @@ export const useAuthStore = create<AuthState>()(
       updateTenant: (patch) =>
         set((state) => ({
           tenant: state.tenant ? { ...state.tenant, ...patch } : null,
+        })),
+      updateUser: (patch) =>
+        set((state) => ({
+          user: state.user ? { ...state.user, ...patch } : null,
         })),
       setCurrentShop: (shopId) => set({ currentShopId: shopId }),
       logout: () =>

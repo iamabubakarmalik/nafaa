@@ -1,15 +1,19 @@
 import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { BillingInterval } from '@prisma/client';
 import { GetUser } from '../auth/decorators/get-user.decorator';
 import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
 import { SubscriptionsService } from './subscriptions.service';
+import { SubscriptionCronService } from './subscription-cron.service';
 
 @ApiTags('Subscriptions')
 @ApiBearerAuth()
 @Controller('subscriptions')
 export class SubscriptionsController {
-  constructor(private readonly service: SubscriptionsService) {}
+  constructor(
+    private readonly service: SubscriptionsService,
+    private readonly cron: SubscriptionCronService,
+  ) {}
 
   @Get('current')
   current(@GetUser() user: AuthenticatedUser) {
@@ -29,6 +33,12 @@ export class SubscriptionsController {
     return this.service.startSubscription(user, body.planId, body.interval);
   }
 
+  @Post('cleanup-pending')
+  @ApiOperation({ summary: 'Cleanup duplicate pending subscriptions (keeps latest)' })
+  cleanupPending(@GetUser() user: AuthenticatedUser) {
+    return this.service.cleanupPendingSubscriptions(user.tenantId);
+  }
+
   @Delete('pending/:id')
   cancelPending(
     @GetUser() user: AuthenticatedUser,
@@ -45,5 +55,14 @@ export class SubscriptionsController {
   @Post('reactivate')
   reactivate(@GetUser() user: AuthenticatedUser) {
     return this.service.reactivate(user);
+  }
+
+  @Post('admin/run-cron')
+  @ApiOperation({ summary: 'Manually trigger daily expiry check (admin)' })
+  runCron(@GetUser() user: AuthenticatedUser) {
+    if (user.role !== 'SUPER_ADMIN' && user.role !== 'OWNER') {
+      throw new Error('Forbidden');
+    }
+    return this.cron.runNow();
   }
 }

@@ -78,4 +78,6 @@ export const onboardingApi = {
     apiClient.post<{ data: OnboardingProgress }>('/onboarding/skip', { step }).then(unwrap) as Promise<OnboardingProgress>,
   complete: () =>
     apiClient.post<{ data: OnboardingProgress }>('/onboarding/complete').then(unwrap) as Promise<OnboardingProgress>,
+  reset: () =>
+    apiClient.post<{ data: OnboardingProgress }>('/onboarding/reset').then(unwrap) as Promise<OnboardingProgress>,
 };

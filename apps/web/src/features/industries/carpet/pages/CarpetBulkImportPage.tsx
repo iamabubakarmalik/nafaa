@@ -3,11 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import * as XLSX from 'xlsx';
 import { productsApi } from '@/api/products.api';
+import { productVariantsApi } from '@/api/product-variants.api';
 import {
   Upload, FileSpreadsheet, Download, ArrowLeft, CheckCircle2,
   AlertTriangle, X, Sparkles, Layers, FileWarning, RefreshCw,
-  ArrowRight, Trash2,
+  ArrowRight, Trash2, Edit3, MousePointerClick,
 } from 'lucide-react';
+import { ManualEntryTable, type ManualRow } from '../components/ManualEntryTable';
 import { Button } from '@/components/ui/Button';
 import { formatPKRFull } from '@/lib/format';
 import { toast } from 'sonner';
@@ -19,6 +21,7 @@ import {
 import { useAuthStore } from '@/store/auth.store';
 
 type ImportStep = 'upload' | 'preview' | 'result';
+type InputMode = 'excel' | 'manual';
 
 // Expected column headers in Excel/CSV
 const SAMPLE_HEADERS = [
@@ -72,6 +75,8 @@ export default function CarpetBulkImportPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [step, setStep] = useState<ImportStep>('upload');
+  const [inputMode, setInputMode] = useState<InputMode>('excel');
+  const [manualRows, setManualRows] = useState<ManualRow[]>([]);
   const [parsedRows, setParsedRows] = useState<any[]>([]);
   const [preview, setPreview] = useState<BulkImportPreviewResponse | null>(null);
   const [result, setResult] = useState<BulkImportApplyResponse | null>(null);
@@ -91,6 +96,34 @@ export default function CarpetBulkImportPage() {
     );
   }, [productsData]);
 
+  // Fetch variants for each carpet product (same API as product edit page)
+  const carpetProductIds = useMemo(
+    () => carpetProducts.map((p: any) => p.id),
+    [carpetProducts],
+  );
+
+  const { data: allVariantsData } = useQuery({
+    queryKey: ['carpet-products-variants', carpetProductIds],
+    queryFn: async () => {
+      const results = await Promise.all(
+        carpetProductIds.map(async (pid) => {
+          try {
+            const variants = await productVariantsApi.list(pid);
+            return { productId: pid, variants };
+          } catch {
+            return { productId: pid, variants: [] };
+          }
+        }),
+      );
+      const map = new Map<string, any[]>();
+      for (const r of results) {
+        map.set(r.productId, r.variants);
+      }
+      return map;
+    },
+    enabled: carpetProductIds.length > 0,
+  });
+
   // Build flat list of product + variant combinations
   const productVariantRows = useMemo(() => {
     const rows: Array<{
@@ -101,16 +134,19 @@ export default function CarpetBulkImportPage() {
       defaultCost?: number;
       defaultPrice?: number;
     }> = [];
+
     for (const p of carpetProducts as any[]) {
-      if (p.variants && p.variants.length > 0) {
-        for (const v of p.variants as any[]) {
+      const variants = allVariantsData?.get(p.id) ?? [];
+
+      if (variants.length > 0) {
+        for (const v of variants) {
           rows.push({
             productName: p.name,
             variantName: v.name,
             productSku: p.sku ?? undefined,
             variantSku: v.sku ?? undefined,
             defaultCost: Number(v.costPrice ?? p.costPrice ?? 0),
-            defaultPrice: Number(v.price ?? v.salePrice ?? p.price ?? p.salePrice ?? 0),
+            defaultPrice: Number(v.price ?? p.price ?? 0),
           });
         }
       } else {
@@ -119,12 +155,12 @@ export default function CarpetBulkImportPage() {
           variantName: '',
           productSku: p.sku ?? undefined,
           defaultCost: Number(p.costPrice ?? 0),
-          defaultPrice: Number(p.price ?? p.salePrice ?? 0),
+          defaultPrice: Number(p.price ?? 0),
         });
       }
     }
     return rows;
-  }, [carpetProducts]);
+  }, [carpetProducts, allVariantsData]);
 
   // ─── Smart pre-filled template download ────────────────────
   const downloadTemplate = () => {
@@ -416,9 +452,63 @@ export default function CarpetBulkImportPage() {
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Import failed'),
   });
 
+  // ─── Manual entry: convert rows to parser format and validate ───
+  const handleManualSubmit = () => {
+    // Filter only non-empty rows
+    const nonEmpty = manualRows.filter(
+      (r) => r.productName || r.widthFt || r.lengthFt || r.rollNumber,
+    );
+
+    if (nonEmpty.length === 0) {
+      toast.error('Koi row fill nahi ki — pehle rows add karein');
+      return;
+    }
+
+    // Validate locally before sending
+    const invalid = nonEmpty.filter(
+      (r) =>
+        !r.productName ||
+        !r.widthFt ||
+        Number(r.widthFt) <= 0 ||
+        !r.lengthFt ||
+        Number(r.lengthFt) <= 0,
+    );
+
+    if (invalid.length > 0) {
+      toast.error(`${invalid.length} rows mein issues hain — product, width, length zaroori hain`);
+      return;
+    }
+
+    // Convert to API format
+    const apiRows = nonEmpty.map((r) => ({
+      productName: r.productName.trim(),
+      variantName: r.variantName?.trim() || undefined,
+      rollNumber: r.rollNumber?.trim() || undefined,
+      designCode: r.designCode?.trim() || undefined,
+      widthFt: Number(r.widthFt),
+      widthInch: Number(r.widthInch || 0),
+      lengthFt: Number(r.lengthFt),
+      costPerSqft: r.costPerSqft !== '' ? Number(r.costPerSqft) : undefined,
+      salePricePerSqft: r.salePricePerSqft !== '' ? Number(r.salePricePerSqft) : undefined,
+      rackNumber: r.rackNumber?.trim() || undefined,
+      quality: r.quality?.trim() || undefined,
+      pile: r.pile?.trim() || undefined,
+      notes: r.notes?.trim() || undefined,
+    }));
+
+    setParsedRows(apiRows);
+    toast.success(`${apiRows.length} rows ready — validating...`);
+
+    // Trigger preview
+    setTimeout(() => {
+      previewMutation.mutate();
+    }, 100);
+  };
+
   const resetFlow = () => {
     setStep('upload');
     setParsedRows([]);
+    setManualRows([]);
     setPreview(null);
     setResult(null);
     setFileName('');
@@ -457,38 +547,121 @@ export default function CarpetBulkImportPage() {
         <StepIndicator num={3} label="Result" active={step === 'result'} />
       </div>
 
-      {/* ════════════ STEP 1: UPLOAD ════════════ */}
+      {/* ════════════ STEP 1: UPLOAD or MANUAL ENTRY ════════════ */}
       {step === 'upload' && (
         <div className="space-y-4">
-          <div
-            onDrop={handleDrop}
-            onDragOver={(e) => e.preventDefault()}
-            onClick={() => fileInputRef.current?.click()}
-            className="rounded-3xl border-2 border-dashed border-emerald-300 bg-emerald-50/30 hover:bg-emerald-50/60 hover:border-emerald-400 transition cursor-pointer p-12 text-center"
-          >
-            <Upload className="h-16 w-16 text-emerald-500 mx-auto mb-4" />
-            <h3 className="text-xl font-extrabold text-slate-900">
-              {fileName ? `📄 ${fileName}` : 'Drop Excel/CSV file here'}
-            </h3>
-            <p className="text-sm text-slate-600 mt-2">
-              Click karein ya file drag karein
-            </p>
-            <p className="text-xs text-slate-500 mt-3">
-              Supported: .xlsx, .xls, .csv
-            </p>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".xlsx,.xls,.csv"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) handleFileSelect(file);
-              }}
-            />
+          {/* MODE SWITCHER */}
+          <div className="rounded-3xl bg-white border-2 border-slate-200 p-2 inline-flex w-full max-w-md mx-auto shadow-sm">
+            <button
+              onClick={() => setInputMode('excel')}
+              className={`flex-1 px-4 py-3 rounded-2xl text-sm font-extrabold transition inline-flex items-center justify-center gap-2 ${
+                inputMode === 'excel'
+                  ? 'bg-gradient-to-br from-emerald-600 to-emerald-700 text-white shadow-lg'
+                  : 'text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              <FileSpreadsheet className="h-4 w-4" />
+              Excel Upload
+            </button>
+            <button
+              onClick={() => setInputMode('manual')}
+              className={`flex-1 px-4 py-3 rounded-2xl text-sm font-extrabold transition inline-flex items-center justify-center gap-2 ${
+                inputMode === 'manual'
+                  ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white shadow-lg'
+                  : 'text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              <Edit3 className="h-4 w-4" />
+              Manual Entry
+            </button>
           </div>
 
-          {parsedRows.length > 0 && (
+          {/* ═══════════ MANUAL ENTRY MODE ═══════════ */}
+          {inputMode === 'manual' ? (
+            <div className="space-y-4">
+              <div className="rounded-2xl bg-gradient-to-br from-blue-50 to-cyan-50 border-2 border-blue-200 p-4">
+                <div className="flex items-start gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0">
+                    <MousePointerClick className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-extrabold text-blue-900">Manual Entry Mode</h3>
+                    <p className="text-sm text-blue-800 mt-1">
+                      Excel ki zaroorat nahi — yahin table mein product dropdown se select karein
+                      aur rows add karein. Cost/sale price auto-fill ho jate hain product defaults se.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <ManualEntryTable
+                rows={manualRows}
+                onChange={setManualRows}
+                productOptions={productVariantRows}
+              />
+
+              {manualRows.length > 0 && (
+                <div className="rounded-2xl bg-white border-2 border-emerald-200 p-4 flex items-center justify-between gap-3 flex-wrap">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle2 className="h-6 w-6 text-emerald-600" />
+                    <div>
+                      <div className="font-bold text-slate-900">
+                        {manualRows.length} row{manualRows.length !== 1 ? 's' : ''} prepared
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        Click "Validate & Preview" to proceed
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setManualRows([])}
+                      className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold inline-flex items-center gap-1 transition"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" /> Clear All
+                    </button>
+                    <Button
+                      onClick={handleManualSubmit}
+                      loading={previewMutation.isPending}
+                      className="bg-gradient-to-r from-blue-700 to-blue-600"
+                    >
+                      Validate & Preview <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div
+              onDrop={handleDrop}
+              onDragOver={(e) => e.preventDefault()}
+              onClick={() => fileInputRef.current?.click()}
+              className="rounded-3xl border-2 border-dashed border-emerald-300 bg-emerald-50/30 hover:bg-emerald-50/60 hover:border-emerald-400 transition cursor-pointer p-12 text-center"
+            >
+              <Upload className="h-16 w-16 text-emerald-500 mx-auto mb-4" />
+              <h3 className="text-xl font-extrabold text-slate-900">
+                {fileName ? `📄 ${fileName}` : 'Drop Excel/CSV file here'}
+              </h3>
+              <p className="text-sm text-slate-600 mt-2">
+                Click karein ya file drag karein
+              </p>
+              <p className="text-xs text-slate-500 mt-3">
+                Supported: .xlsx, .xls, .csv
+              </p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleFileSelect(file);
+                }}
+              />
+            </div>
+          )}
+
+          {inputMode === 'excel' && parsedRows.length > 0 && (
             <div className="rounded-2xl bg-white border-2 border-emerald-200 p-4 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <CheckCircle2 className="h-6 w-6 text-emerald-600" />
@@ -507,7 +680,8 @@ export default function CarpetBulkImportPage() {
             </div>
           )}
 
-          {/* Help section */}
+          {/* Help section — Excel mode only */}
+          {inputMode === 'excel' && (
           <div className="rounded-2xl bg-blue-50 border-2 border-blue-200 p-5">
             <h3 className="font-bold text-blue-900 flex items-center gap-2">
               <Sparkles className="h-4 w-4" /> Excel Format Guide
@@ -562,6 +736,8 @@ export default function CarpetBulkImportPage() {
               </div>
             </div>
           </div>
+          )}
+
         </div>
       )}
 

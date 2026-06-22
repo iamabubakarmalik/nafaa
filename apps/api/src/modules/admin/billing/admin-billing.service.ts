@@ -165,6 +165,21 @@ export class AdminBillingService {
 
     const owner = tenant?.users[0];
     if (owner) {
+      // Fetch subscription + plan details for richer email
+      const subDetails = await this.prisma.subscription.findFirst({
+        where: { tenantId: payment.tenantId, status: 'ACTIVE' },
+        orderBy: { updatedAt: 'desc' },
+        include: { plan: { select: { name: true } } },
+      });
+
+      const appUrl = process.env.APP_URL || 'http://localhost:5173';
+      const formatAmount = (n: number) =>
+        new Intl.NumberFormat('en-PK').format(n);
+      const formatDate = (d: Date) =>
+        new Intl.DateTimeFormat('en-PK', {
+          dateStyle: 'long', timeZone: 'Asia/Karachi',
+        }).format(d);
+
       this.emailService
         .send({
           tenantId: payment.tenantId,
@@ -173,7 +188,14 @@ export class AdminBillingService {
           toName: owner.fullName,
           variables: {
             name: owner.fullName,
-            amount: payment.amount.toString(),
+            shopName: tenant?.name || 'Aap ki dukan',
+            planName: subDetails?.plan?.name || 'Premium Plan',
+            amount: formatAmount(payment.amount),
+            interval: subDetails?.interval || 'MONTHLY',
+            periodEnd: subDetails?.currentPeriodEnd
+              ? formatDate(subDetails.currentPeriodEnd)
+              : '—',
+            appUrl,
           },
         })
         .catch((e) => console.error('Payment approved email failed:', e.message));
@@ -235,6 +257,7 @@ export class AdminBillingService {
 
     const owner = tenant?.users[0];
     if (owner) {
+      const appUrlRej = process.env.APP_URL || 'http://localhost:5173';
       this.emailService
         .send({
           tenantId: payment.tenantId,
@@ -243,8 +266,9 @@ export class AdminBillingService {
           toName: owner.fullName,
           variables: {
             name: owner.fullName,
-            amount: payment.amount.toString(),
-            reason: reason || 'Not specified',
+            shopName: tenant?.name || 'Aap ki dukan',
+            reason: reason || 'Payment details verify nahi ho sake.',
+            appUrl: appUrlRej,
           },
         })
         .catch((e) => console.error('Payment rejected email failed:', e.message));

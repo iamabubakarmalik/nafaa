@@ -7,6 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AdminNotificationsService } from '../admin/notifications/admin-notifications.service';
 import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
+import { EmailService } from '../email/email.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { SubmitPaymentDto } from './dto/submit-payment.dto';
 
@@ -17,7 +18,16 @@ export class BillingService {
     private readonly configService: ConfigService,
     private readonly notifications: NotificationsService,
     private readonly adminNotifications: AdminNotificationsService,
+    private readonly emailService: EmailService,
   ) {}
+
+  private formatAmount(n: number): string {
+    return new Intl.NumberFormat('en-PK').format(n);
+  }
+
+  private get appUrl() {
+    return this.configService.get<string>('APP_URL') || 'http://localhost:5173';
+  }
 
   bankInfo() {
     return {
@@ -150,6 +160,70 @@ export class BillingService {
       })
       .catch((e) => console.error('Admin notification failed:', e.message));
 
+    // Send confirmation email to tenant owner
+    this.sendPaymentSubmittedEmail(user.tenantId, payment.id, invoice.id, dto).catch(
+      (e) => console.error('Payment submitted email failed:', e.message),
+    );
+
     return payment;
+  }
+
+  /**
+   * Send "payment submitted, pending approval" email to tenant owner
+   */
+  private async sendPaymentSubmittedEmail(
+    tenantId: string,
+    paymentId: string,
+    invoiceId: string,
+    dto: SubmitPaymentDto,
+  ) {
+    try {
+      const [owner, invoice, subscription] = await Promise.all([
+        this.prisma.user.findFirst({
+          where: { tenantId, role: 'OWNER' },
+          select: { email: true, fullName: true },
+        }),
+        this.prisma.invoice.findUnique({
+          where: { id: invoiceId },
+          select: { invoiceNumber: true },
+        }),
+        this.prisma.subscription.findFirst({
+          where: { tenantId, status: { in: ['PENDING_PAYMENT', 'ACTIVE', 'TRIAL'] } },
+          orderBy: { createdAt: 'desc' },
+          include: { plan: { select: { name: true } } },
+        }),
+      ]);
+
+      if (!owner || !invoice) return;
+
+      // Map payment method to readable label
+      const methodLabels: Record<string, string> = {
+        MANUAL_BANK: 'Bank Transfer',
+        JAZZCASH: 'JazzCash',
+        EASYPAISA: 'EasyPaisa',
+        STRIPE: 'Stripe',
+        CASH: 'Cash',
+      };
+
+      await this.emailService.send({
+        tenantId,
+        templateSlug: 'payment-submitted',
+        toEmail: owner.email,
+        toName: owner.fullName,
+        variables: {
+          name: owner.fullName,
+          planName: subscription?.plan?.name || 'Subscription Plan',
+          amount: this.formatAmount(dto.amount),
+          paymentMethod: methodLabels[dto.provider] || dto.provider,
+          reference: dto.transactionId || paymentId.slice(0, 12).toUpperCase(),
+          invoiceNumber: invoice.invoiceNumber,
+          appUrl: this.appUrl,
+        },
+      });
+
+      console.log(`📧 Payment submitted email sent to ${owner.email}`);
+    } catch (e: any) {
+      console.error('Payment submitted email failed:', e.message);
+    }
   }
 }

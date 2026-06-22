@@ -1,7 +1,8 @@
 import {
-  BadRequestException, ForbiddenException, Injectable,
-  NotFoundException,
+  BadRequestException, ForbiddenException, Inject, Injectable,
+  NotFoundException, forwardRef,
 } from '@nestjs/common';
+import { AuthService } from '../auth/auth.service';
 import { UserRole } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { hashPassword } from '../../common/utils/password.util';
@@ -23,7 +24,11 @@ import {
 
 @Injectable()
 export class OnboardingService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(forwardRef(() => AuthService))
+    private readonly authService: AuthService,
+  ) {}
 
   /** Get static options + business templates */
   getOptions() {
@@ -94,29 +99,25 @@ export class OnboardingService {
       },
     });
 
-    // Also create/update tenant settings with sensible defaults
-    const existingSettings = await this.prisma.tenantSettings.findUnique({
-      where: { tenantId: user.tenantId },
-    });
-
+    // Sync to TenantSettings (so user can see/edit in settings page later)
     const settingsData: any = {
+      // Business profile
+      businessType: normalizedType,
+      shopCity: dto.city,
+      shopProvince: dto.province || null,
+      // Industry-aware feature defaults
       trackExpiry: template.features.expiry,
       enableTax: false,
+      // Smart defaults per industry
+      receiptSize: this.getDefaultReceiptSize(normalizedType),
+      defaultLowStockAlert: this.getDefaultLowStock(normalizedType),
     };
 
-    if (!existingSettings) {
-      await this.prisma.tenantSettings.create({
-        data: {
-          tenantId: user.tenantId,
-          ...settingsData,
-        },
-      });
-    } else {
-      await this.prisma.tenantSettings.update({
-        where: { tenantId: user.tenantId },
-        data: settingsData,
-      });
-    }
+    await this.prisma.tenantSettings.upsert({
+      where: { tenantId: user.tenantId },
+      create: { tenantId: user.tenantId, ...settingsData },
+      update: settingsData,
+    });
 
     return this.updateAndAdvance(user.tenantId, 1, {
       businessType: dto.businessType,
@@ -136,6 +137,19 @@ export class OnboardingService {
       await this.prisma.user.update({ where: { id: user.id }, data: updates });
     }
 
+    // Sync to TenantSettings — language + whatsapp
+    const settingsData: any = {};
+    if (dto.preferredLanguage) settingsData.language = dto.preferredLanguage;
+    if (dto.whatsappNumber) settingsData.shopWhatsapp = dto.whatsappNumber;
+
+    if (Object.keys(settingsData).length > 0) {
+      await this.prisma.tenantSettings.upsert({
+        where: { tenantId: user.tenantId },
+        create: { tenantId: user.tenantId, ...settingsData },
+        update: settingsData,
+      });
+    }
+
     return this.updateAndAdvance(user.tenantId, 2, dto);
   }
 
@@ -149,11 +163,48 @@ export class OnboardingService {
       });
     }
 
+    // Sync to TenantSettings — address, hours, working days, tax number
+    const settingsData: any = {};
+    if (dto.shopAddress !== undefined) settingsData.shopAddress = dto.shopAddress;
+    if (dto.openTime) settingsData.openTime = dto.openTime;
+    if (dto.closeTime) settingsData.closeTime = dto.closeTime;
+    if (dto.workingDays && dto.workingDays.length > 0) {
+      settingsData.workingDays = dto.workingDays;
+    }
+    if (dto.taxNumber !== undefined) settingsData.taxNumber = dto.taxNumber;
+
+    if (Object.keys(settingsData).length > 0) {
+      await this.prisma.tenantSettings.upsert({
+        where: { tenantId: user.tenantId },
+        create: { tenantId: user.tenantId, ...settingsData },
+        update: settingsData,
+      });
+    }
+
     return this.updateAndAdvance(user.tenantId, 3, dto);
   }
 
   async updateStep4(user: AuthenticatedUser, dto: UpdateStep4Dto) {
     await this.ensureNotCompleted(user.tenantId);
+
+    // Sync to TenantSettings — receipt template, low stock alert, default payment
+    const settingsData: any = {};
+    if (dto.receiptTemplate) settingsData.receiptSize = dto.receiptTemplate;
+    if (dto.lowStockThreshold !== undefined) {
+      settingsData.defaultLowStockAlert = dto.lowStockThreshold;
+    }
+    if (dto.paymentMethods && dto.paymentMethods.length > 0) {
+      // Set default payment method to first one (usually CASH)
+      settingsData.defaultPaymentMethod = dto.paymentMethods[0];
+    }
+
+    if (Object.keys(settingsData).length > 0) {
+      await this.prisma.tenantSettings.upsert({
+        where: { tenantId: user.tenantId },
+        create: { tenantId: user.tenantId, ...settingsData },
+        update: settingsData,
+      });
+    }
 
     if (dto.enabledCategories && dto.enabledCategories.length > 0) {
       const existing = await this.prisma.category.findMany({
@@ -302,17 +353,80 @@ export class OnboardingService {
       return this.enrich(progress);
     }
 
-    return this.enrich(
-      await this.prisma.onboardingProgress.update({
-        where: { tenantId: user.tenantId },
-        data: {
-          isCompleted: true,
-          completedAt: new Date(),
-          completedSteps: [1, 2, 3, 4, 5, 6],
-          currentStep: TOTAL_STEPS,
-        },
-      }),
-    );
+    const updated = await this.prisma.onboardingProgress.update({
+      where: { tenantId: user.tenantId },
+      data: {
+        isCompleted: true,
+        completedAt: new Date(),
+        completedSteps: [1, 2, 3, 4, 5, 6],
+        currentStep: TOTAL_STEPS,
+      },
+    });
+
+    // Send celebration email (fire-and-forget)
+    this.sendCompletionEmail(user, updated).catch(() => {});
+
+    return this.enrich(updated);
+  }
+
+  /**
+   * Send onboarding complete celebration email
+   */
+  private async sendCompletionEmail(user: AuthenticatedUser, progress: any) {
+    try {
+      const [tenant, userRecord] = await Promise.all([
+        this.prisma.tenant.findUnique({
+          where: { id: user.tenantId },
+          select: { name: true, businessType: true },
+        }),
+        this.prisma.user.findUnique({
+          where: { id: user.id },
+          select: { fullName: true, email: true },
+        }),
+      ]);
+
+      if (!tenant || !userRecord) return;
+
+      await this.authService.sendOnboardingCompleteEmail({
+        tenantId: user.tenantId,
+        tenantName: tenant.name,
+        user: { fullName: userRecord.fullName, email: userRecord.email },
+        businessType: tenant.businessType || 'GENERAL',
+        categoriesCount: progress.enabledCategories?.length || 0,
+        paymentMethodsCount: progress.paymentMethods?.length || 0,
+        productsCount: progress.productsAddedCount || 0,
+        teamCount: progress.teamMembersAdded || 0,
+      });
+    } catch (e: any) {
+      console.error('Onboarding completion email failed:', e.message);
+    }
+  }
+
+  /**
+   * Get default receipt size based on business type
+   */
+  private getDefaultReceiptSize(businessType: string): string {
+    const thermalTypes = ['GROCERY', 'PHARMACY', 'BAKERY', 'RESTAURANT', 'COSMETICS'];
+    if (thermalTypes.includes(businessType)) return 'THERMAL_58MM';
+    return 'A4_BASIC';
+  }
+
+  /**
+   * Get default low stock threshold based on business type
+   */
+  private getDefaultLowStock(businessType: string): number {
+    const defaults: Record<string, number> = {
+      CARPET: 2,       // Rolls are bulky
+      MOBILE: 5,       // High-value items
+      PHARMACY: 20,    // Strips
+      GROCERY: 10,
+      RESTAURANT: 20,
+      CLOTHING: 5,
+      HARDWARE: 10,
+      BAKERY: 15,
+      GENERAL: 10,
+    };
+    return defaults[businessType] ?? 10;
   }
 
   async reset(user: AuthenticatedUser) {
@@ -457,18 +571,40 @@ export class OnboardingService {
     const nextStep = step + 1 > TOTAL_STEPS ? TOTAL_STEPS : step + 1;
     const willComplete = step === TOTAL_STEPS;
 
-    return this.enrich(
-      await this.prisma.onboardingProgress.update({
-        where: { tenantId },
-        data: {
-          ...data,
-          completedSteps,
-          currentStep: willComplete ? TOTAL_STEPS : nextStep,
-          isCompleted: willComplete ? true : false,
-          completedAt: willComplete ? new Date() : null,
-        },
-      }),
-    );
+    const updated = await this.prisma.onboardingProgress.update({
+      where: { tenantId },
+      data: {
+        ...data,
+        completedSteps,
+        currentStep: willComplete ? TOTAL_STEPS : nextStep,
+        isCompleted: willComplete ? true : false,
+        completedAt: willComplete ? new Date() : null,
+      },
+    });
+
+    // If this was step 6 (final step), send celebration email
+    if (willComplete) {
+      const owner = await this.prisma.user.findFirst({
+        where: { tenantId, role: 'OWNER' },
+        select: { id: true, tenantId: true, email: true, role: true, shopId: true, permissions: true },
+      });
+      if (owner) {
+        this.sendCompletionEmail(
+          {
+            id: owner.id,
+            sub: owner.id,
+            tenantId: owner.tenantId,
+            email: owner.email,
+            role: owner.role,
+            shopId: owner.shopId,
+            permissions: owner.permissions ?? [],
+          },
+          updated,
+        ).catch(() => {});
+      }
+    }
+
+    return this.enrich(updated);
   }
 
   private enrich(progress: any) {

@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { EmailModule } from '../email/email.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { SubscriptionsController } from './subscriptions.controller';
@@ -7,7 +9,12 @@ import { SubscriptionCronService } from './subscription-cron.service';
 import { SubscriptionGuard } from './guards/subscription.guard';
 
 @Module({
-  imports: [EmailModule, NotificationsModule],
+  imports: [
+    ConfigModule,
+    ScheduleModule.forRoot(),
+    EmailModule,
+    NotificationsModule,
+  ],
   controllers: [SubscriptionsController],
   providers: [SubscriptionsService, SubscriptionCronService, SubscriptionGuard],
   exports: [SubscriptionsService, SubscriptionGuard],
