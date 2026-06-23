@@ -16,6 +16,7 @@ import { useAuthStore } from '@/store/auth.store';
 import { useThemeStore } from '@/store/theme.store';
 import { dashboardApi } from '@/api/dashboard.api';
 import { BillingBanners } from '@/components/billing/BillingBanners';
+import { EmailVerifyBanner } from '@/components/auth/EmailVerifyBanner';
 import { formatPKR, formatPKRFull, formatRelative } from '@/lib/format';
 import { MiniLineChart } from '@/components/charts/MiniLineChart';
 import { BarChart } from '@/components/charts/BarChart';
@@ -85,6 +86,7 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
       >
         <BillingBanners />
+        <EmailVerifyBanner />
         {/* ===== Hero Header ===== */}
         <View className="px-5 pt-4 pb-4">
           <View className="flex-row items-center justify-between">

@@ -63,4 +63,7 @@ export const subscriptionsApi = {
 
   reactivate: () =>
     apiClient.post('/subscriptions/reactivate').then((r) => unwrap<any>(r)),
+
+  cleanupPending: () =>
+    apiClient.post('/subscriptions/cleanup-pending').then((r) => unwrap<{ kept: number; cancelled: number; keptId?: string }>(r)),
 };

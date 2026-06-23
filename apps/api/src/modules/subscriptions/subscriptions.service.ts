@@ -117,7 +117,7 @@ export class SubscriptionsService {
 
   /**
    * Get pending upgrade (PENDING_PAYMENT subscription + its unpaid invoice).
-   * Returns ONLY the latest one — older pending are cancelled when new one is started.
+   * Returns ONLY the latest one — older pending are cancelled automatically.
    */
   async getPendingUpgrade(user: AuthenticatedUser) {
     const pending = await this.prisma.subscription.findFirst({
@@ -151,9 +151,15 @@ export class SubscriptionsService {
   }
 
   /**
-   * Start subscription upgrade — keeps current TRIAL/ACTIVE intact.
-   * Cancels any OTHER pending upgrades (different plan) + their invoices.
-   * Returns existing pending if exact same plan/interval was already pending.
+   * Start subscription upgrade — ATOMIC operation.
+   *
+   * Logic:
+   *  1. Validate plan + price
+   *  2. ✅ If exact same plan+interval already pending → REUSE it (no duplicate!)
+   *  3. ⚠️ If different pending exists → cancel it + its invoice
+   *  4. Create new pending subscription + invoice
+   *
+   * Everything inside ONE transaction → no race conditions, no orphan invoices.
    */
   async startSubscription(
     user: AuthenticatedUser,
@@ -183,66 +189,84 @@ export class SubscriptionsService {
       throw new BadRequestException('Is plan ki price set nahi hai');
     }
 
-    // 1. Check exact match pending — reuse it
-    const existingPending = await this.prisma.subscription.findFirst({
-      where: {
-        tenantId: user.tenantId,
-        status: 'PENDING_PAYMENT',
-        planId: plan.id,
-        interval,
-      },
-      orderBy: { createdAt: 'desc' },
-      include: {
-        invoices: {
-          where: { status: { in: ['PENDING', 'OVERDUE'] } },
-          orderBy: { createdAt: 'desc' },
-          take: 1,
-        },
-      },
-    });
-
-    if (existingPending && existingPending.invoices.length > 0) {
-      return {
-        subscription: existingPending,
-        invoice: existingPending.invoices[0],
-        reused: true,
-      };
-    }
-
-    // 2. Cancel ALL other pending upgrades (different plan/interval) + their invoices
-    //    Use transaction to make sure both are cancelled together
-    await this.prisma.$transaction(async (tx) => {
-      // Get IDs of all pending subs (so we can cancel their invoices reliably)
-      const oldPending = await tx.subscription.findMany({
+    // ═══════════════════════════════════════════════════════════
+    // SINGLE ATOMIC TRANSACTION — handles everything safely
+    // ═══════════════════════════════════════════════════════════
+    return this.prisma.$transaction(async (tx) => {
+      // ─── STEP 1: Check for existing EXACT MATCH (same plan + interval) ───
+      const exactMatch = await tx.subscription.findFirst({
         where: {
           tenantId: user.tenantId,
           status: 'PENDING_PAYMENT',
+          planId: plan.id,
+          interval,
+        },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          plan: true,
+          invoices: {
+            where: { status: { in: ['PENDING', 'OVERDUE'] } },
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+          },
+        },
+      });
+
+      if (exactMatch && exactMatch.invoices.length > 0) {
+        this.logger.log(`♻️  Reusing existing pending: ${exactMatch.id}`);
+        return {
+          subscription: exactMatch,
+          invoice: exactMatch.invoices[0],
+          reused: true,
+          cancelledCount: 0,
+        };
+      }
+
+      // ─── STEP 2: Cancel ALL other pending subs + their invoices ───
+      const otherPending = await tx.subscription.findMany({
+        where: {
+          tenantId: user.tenantId,
+          status: 'PENDING_PAYMENT',
+          // If exact match exists but has no invoice, we still want to cancel it
+          // (clean orphan)
+          NOT: exactMatch ? { id: exactMatch.id } : undefined,
         },
         select: { id: true },
       });
 
-      const oldIds = oldPending.map((s) => s.id);
+      const cancelIds = otherPending.map((s) => s.id);
+      let cancelledCount = 0;
 
-      if (oldIds.length > 0) {
+      if (cancelIds.length > 0) {
         // Cancel old pending subscriptions
-        await tx.subscription.updateMany({
-          where: { id: { in: oldIds } },
+        const cancelledSubs = await tx.subscription.updateMany({
+          where: { id: { in: cancelIds } },
           data: { status: 'CANCELLED', cancelledAt: new Date() },
         });
+        cancelledCount = cancelledSubs.count;
 
         // Cancel their unpaid invoices
         await tx.invoice.updateMany({
           where: {
-            subscriptionId: { in: oldIds },
+            subscriptionId: { in: cancelIds },
             status: { in: ['PENDING', 'OVERDUE'] },
           },
           data: { status: 'CANCELLED' },
         });
-      }
-    });
 
-    // 3. Create new PENDING subscription + invoice
-    return this.prisma.$transaction(async (tx) => {
+        this.logger.log(`🗑️  Cancelled ${cancelledCount} old pending subscriptions`);
+      }
+
+      // ─── STEP 3: If exactMatch existed but had no invoice (orphan) — cancel & recreate ───
+      if (exactMatch && exactMatch.invoices.length === 0) {
+        await tx.subscription.update({
+          where: { id: exactMatch.id },
+          data: { status: 'CANCELLED', cancelledAt: new Date() },
+        });
+        cancelledCount++;
+      }
+
+      // ─── STEP 4: Create fresh pending subscription + invoice ───
       const sub = await tx.subscription.create({
         data: {
           tenantId: user.tenantId,
@@ -253,6 +277,7 @@ export class SubscriptionsService {
           currentPeriodStart: new Date(),
           currentPeriodEnd: periodEnd,
         },
+        include: { plan: true },
       });
 
       const invoiceNumber = `INV-${Date.now().toString().slice(-8)}`;
@@ -272,7 +297,14 @@ export class SubscriptionsService {
         },
       });
 
-      return { subscription: sub, invoice, reused: false };
+      this.logger.log(`✨ Created new pending: ${sub.id} → invoice: ${invoice.invoiceNumber}`);
+
+      return {
+        subscription: sub,
+        invoice,
+        reused: false,
+        cancelledCount,
+      };
     });
   }
 
@@ -343,7 +375,7 @@ export class SubscriptionsService {
   }
 
   // ───────────────────────────────────────────────────────────
-  // PAYMENT FLOW NOTIFICATIONS (called by admin billing service)
+  // PAYMENT FLOW NOTIFICATIONS
   // ───────────────────────────────────────────────────────────
 
   async notifyPaymentSubmitted(params: {
@@ -390,7 +422,6 @@ export class SubscriptionsService {
 
   /**
    * Approve payment → Cancel ALL other subs/invoices → Activate this one
-   * This is the KEY method that finally activates the upgrade.
    */
   async notifyPaymentApprovedAndActivate(subscriptionId: string) {
     try {
@@ -401,7 +432,6 @@ export class SubscriptionsService {
       if (!sub) return;
 
       await this.prisma.$transaction(async (tx) => {
-        // Cancel ALL other subs (TRIAL, ACTIVE, PAST_DUE, other PENDING_PAYMENT)
         const otherSubs = await tx.subscription.findMany({
           where: {
             tenantId: sub.tenantId,
@@ -417,7 +447,6 @@ export class SubscriptionsService {
             where: { id: { in: otherIds } },
             data: { status: 'CANCELLED', cancelledAt: new Date() },
           });
-          // Cancel their pending invoices too
           await tx.invoice.updateMany({
             where: {
               subscriptionId: { in: otherIds },
@@ -427,7 +456,6 @@ export class SubscriptionsService {
           });
         }
 
-        // Activate this subscription
         await tx.subscription.update({
           where: { id: sub.id },
           data: {
@@ -436,7 +464,6 @@ export class SubscriptionsService {
           },
         });
 
-        // Mark this invoice as paid
         await tx.invoice.updateMany({
           where: {
             subscriptionId: sub.id,
@@ -450,14 +477,12 @@ export class SubscriptionsService {
           },
         });
 
-        // Tenant status → ACTIVE
         await tx.tenant.update({
           where: { id: sub.tenantId },
           data: { status: 'ACTIVE' },
         });
       });
 
-      // Send approval email
       const owner = await this.prisma.user.findFirst({
         where: { tenantId: sub.tenantId, role: 'OWNER' },
         select: { email: true, fullName: true },
@@ -535,38 +560,59 @@ export class SubscriptionsService {
   }
 
   /**
-   * Admin tool — cleanup duplicate/orphan pending subscriptions for a tenant
-   * Useful for fixing bad data
+   * Admin tool — cleanup ALL duplicate pending subscriptions for a tenant.
+   * Keeps the LATEST one with a valid invoice, cancels all others.
    */
   async cleanupPendingSubscriptions(tenantId: string) {
     return this.prisma.$transaction(async (tx) => {
-      // Find latest pending
+      // Find ALL pending with their invoices
       const pending = await tx.subscription.findMany({
         where: { tenantId, status: 'PENDING_PAYMENT' },
         orderBy: { createdAt: 'desc' },
+        include: {
+          invoices: {
+            where: { status: { in: ['PENDING', 'OVERDUE'] } },
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+          },
+        },
       });
 
-      if (pending.length <= 1) {
-        return { kept: pending.length, cancelled: 0 };
+      if (pending.length === 0) {
+        return { kept: 0, cancelled: 0, message: 'No pending found' };
       }
 
-      const keep = pending[0];
-      const cancelIds = pending.slice(1).map((p) => p.id);
+      // Prefer one that HAS an invoice as the "keeper"
+      const withInvoice = pending.find((p) => p.invoices.length > 0);
+      const keep = withInvoice || pending[0];
 
-      await tx.subscription.updateMany({
-        where: { id: { in: cancelIds } },
-        data: { status: 'CANCELLED', cancelledAt: new Date() },
-      });
+      const cancelIds = pending.filter((p) => p.id !== keep.id).map((p) => p.id);
 
-      await tx.invoice.updateMany({
-        where: {
-          subscriptionId: { in: cancelIds },
-          status: { in: ['PENDING', 'OVERDUE'] },
-        },
-        data: { status: 'CANCELLED' },
-      });
+      if (cancelIds.length > 0) {
+        await tx.subscription.updateMany({
+          where: { id: { in: cancelIds } },
+          data: { status: 'CANCELLED', cancelledAt: new Date() },
+        });
 
-      return { kept: 1, cancelled: cancelIds.length, keptId: keep.id };
+        await tx.invoice.updateMany({
+          where: {
+            subscriptionId: { in: cancelIds },
+            status: { in: ['PENDING', 'OVERDUE'] },
+          },
+          data: { status: 'CANCELLED' },
+        });
+      }
+
+      this.logger.log(`🧹 Cleanup for tenant ${tenantId}: kept ${keep.id}, cancelled ${cancelIds.length}`);
+
+      return {
+        kept: 1,
+        cancelled: cancelIds.length,
+        keptId: keep.id,
+        message: cancelIds.length > 0
+          ? `${cancelIds.length} duplicate cancel ho gaye`
+          : 'Sirf 1 pending hai — sab theek hai',
+      };
     });
   }
 }

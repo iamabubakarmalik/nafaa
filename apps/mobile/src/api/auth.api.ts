@@ -21,6 +21,8 @@ interface AuthResponse {
   accessToken: string;
   refreshToken: string;
   isNewUser?: boolean;
+  isNewDevice?: boolean;
+  requiresEmailVerification?: boolean;
 }
 
 interface GoogleNeedsShopNameResponse {
@@ -32,6 +34,27 @@ interface GoogleNeedsShopNameResponse {
 }
 
 type GoogleResponse = AuthResponse | GoogleNeedsShopNameResponse;
+
+export interface ActiveSession {
+  id: string;
+  deviceName: string;
+  location: string;
+  ipAddress?: string | null;
+  lastActive: string;
+  createdAt: string;
+  expiresAt: string;
+}
+
+export interface LoginHistoryEntry {
+  id: string;
+  success: boolean;
+  failureReason?: string | null;
+  ipAddress?: string | null;
+  deviceName?: string | null;
+  location?: string | null;
+  isNewDevice: boolean;
+  createdAt: string;
+}
 
 function unwrap<T>(res: any): T {
   const body = res?.data;
@@ -77,7 +100,6 @@ export const authApi = {
   confirmVerifyEmail: (code: string) =>
     apiClient.post('/auth/verify-email/confirm', { code }).then((r) => unwrapPlain<any>(r)),
 
-
   sendOtp: (email: string, purpose: 'VERIFY_EMAIL' | 'PASSWORD_RESET' | 'LOGIN' = 'VERIFY_EMAIL') =>
     apiClient.post('/auth/otp/send', { email, purpose }).then((r) => unwrapPlain<any>(r)),
 
@@ -87,7 +109,6 @@ export const authApi = {
   googleMobile: (idToken: string, shopName?: string): Promise<GoogleResponse> =>
     apiClient.post('/auth/google/mobile', { idToken, shopName }).then((r) => {
       const body = r?.data;
-      // Backend wraps in {data: ...} or returns raw
       const result = body?.data !== undefined ? body.data : body;
       return result as GoogleResponse;
     }),
@@ -99,6 +120,21 @@ export const authApi = {
 
   disconnectGoogle: () =>
     apiClient.post('/auth/google/disconnect').then((r) => unwrapPlain<any>(r)),
+
+  // ─── Session Management ───
+  listSessions: () =>
+    apiClient.get('/auth/sessions').then((r) => unwrapPlain<ActiveSession[]>(r)),
+
+  revokeSession: (sessionId: string) =>
+    apiClient.post(`/auth/sessions/${sessionId}/revoke`).then((r) => unwrapPlain<any>(r)),
+
+  revokeOtherSessions: (refreshToken: string) =>
+    apiClient
+      .post('/auth/sessions/revoke-others', { refreshToken })
+      .then((r) => unwrapPlain<any>(r)),
+
+  loginHistory: () =>
+    apiClient.get('/auth/login-history').then((r) => unwrapPlain<LoginHistoryEntry[]>(r)),
 };
 
 export function isGoogleAuthResponse(r: GoogleResponse): r is AuthResponse {

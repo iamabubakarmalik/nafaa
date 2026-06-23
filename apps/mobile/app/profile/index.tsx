@@ -10,7 +10,7 @@ import * as Haptics from 'expo-haptics';
 import {
   ArrowLeft, User, Sparkles, Mail, Phone, Lock, Edit3, X, Check,
   Crown, Shield, Calendar, LogOut, ChevronRight, Building2,
-  Eye, EyeOff, Save, Briefcase,
+  Eye, EyeOff, Save, Briefcase, Smartphone, CheckCircle2, AlertCircle, Clock,
 } from 'lucide-react-native';
 import { useAuthStore } from '@/store/auth.store';
 import { authApi } from '@/api/auth.api';
@@ -18,6 +18,7 @@ import { apiClient } from '@/api/client';
 import Toast from 'react-native-toast-message';
 
 import { useTranslation } from '@/i18n/useTranslation';
+
 const formatDate = (v?: string) => {
   if (!v) return '—';
   return new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium' }).format(new Date(v));
@@ -61,17 +62,10 @@ export default function ProfileScreen() {
   const { user, tenant, refreshToken, logout, setUser } = useAuthStore();
   const [refreshing, setRefreshing] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
-  const [passwordOpen, setPasswordOpen] = useState(false);
 
   const [fullName, setFullName] = useState(user?.fullName || '');
   const [email, setEmail] = useState(user?.email || '');
   const [phone, setPhone] = useState(user?.phone || '');
-
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [showCurrent, setShowCurrent] = useState(false);
-  const [showNew, setShowNew] = useState(false);
 
   const { data: me, refetch } = useQuery({
     queryKey: ['me'],
@@ -122,30 +116,6 @@ export default function ProfileScreen() {
     },
   });
 
-  const changePasswordMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiClient.post('/auth/change-password', {
-        currentPassword,
-        newPassword,
-      });
-      return res.data;
-    },
-    onSuccess: () => {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Toast.show({ type: 'success', text1: '✅ Password changed!' });
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-      setPasswordOpen(false);
-    },
-    onError: (e: any) => {
-      Toast.show({
-        type: 'error',
-        text1: e?.response?.data?.message || 'Wrong current password',
-      });
-    },
-  });
-
   const handleLogout = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     Alert.alert('Logout', 'Are you sure you want to logout?', [
@@ -167,6 +137,14 @@ export default function ProfileScreen() {
 
   const role = user?.role || 'STAFF';
   const rc = roleConfig[role] || roleConfig.STAFF;
+  const u = me?.user || user;
+  const emailVerified = !!(u as any)?.emailVerified;
+  const hasPassword = (u as any)?.hasPassword !== false;
+  const hasGoogle = !!(u as any)?.googleId;
+
+  // Security score
+  const securityChecks = [emailVerified, hasPassword, hasGoogle].filter(Boolean).length;
+  const securityScore = Math.round((securityChecks / 3) * 100);
 
   return (
     <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-950" edges={['top']}>
@@ -181,7 +159,9 @@ export default function ProfileScreen() {
           <ArrowLeft size={20} color="#16a34a" />
         </Pressable>
         <View className="flex-1">
-          <Text className="text-2xl font-extrabold text-neutral-900 dark:text-white">{t('auto.index.my_profile')}</Text>
+          <Text className="text-2xl font-extrabold text-neutral-900 dark:text-white">
+            {t('auto.index.my_profile')}
+          </Text>
           <View className="flex-row items-center gap-1.5 mt-0.5">
             <Sparkles size={11} color="#16a34a" />
             <Text className="text-xs text-neutral-500">{t('auto.index.manage_account_settings')}</Text>
@@ -239,6 +219,9 @@ export default function ProfileScreen() {
                   <Text className="text-xs text-white/80" numberOfLines={1}>
                     {user?.email}
                   </Text>
+                  {emailVerified && (
+                    <CheckCircle2 size={11} color="#fde68a" />
+                  )}
                 </View>
                 {user?.phone && (
                   <View className="flex-row items-center gap-1 mt-0.5">
@@ -272,9 +255,38 @@ export default function ProfileScreen() {
           </View>
         </View>
 
+        {/* Email Verify Warning (if not verified) */}
+        {!emailVerified && (
+          <View className="px-5 mb-3">
+            <Pressable
+              onPress={() => {
+                Haptics.selectionAsync();
+                router.push('/auth/verify-email' as any);
+              }}
+              className="rounded-2xl border-2 border-amber-300 p-3 flex-row items-center gap-3 active:opacity-70"
+              style={{ backgroundColor: '#fef3c7' }}
+            >
+              <View className="h-10 w-10 rounded-xl bg-amber-500 items-center justify-center">
+                <Mail size={18} color="#ffffff" />
+              </View>
+              <View className="flex-1">
+                <Text className="font-extrabold text-amber-900 text-sm">
+                  Email Verify Karein
+                </Text>
+                <Text className="text-xs text-amber-700 mt-0.5">
+                  Tap karke 6-digit code enter karein
+                </Text>
+              </View>
+              <ChevronRight size={18} color="#92400e" />
+            </Pressable>
+          </View>
+        )}
+
         {/* Account Info */}
         <View className="px-5 mb-4">
-          <Text className="text-xs font-bold uppercase text-neutral-500 mb-2 tracking-wider">{t('auto.index.account_information')}</Text>
+          <Text className="text-xs font-bold uppercase text-neutral-500 mb-2 tracking-wider">
+            {t('auto.index.account_information')}
+          </Text>
           <View className="rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 overflow-hidden">
             <View className="px-4 py-3 flex-row items-center gap-3 border-b border-neutral-100 dark:border-neutral-800">
               <View className="h-9 w-9 rounded-xl bg-blue-100 items-center justify-center">
@@ -282,9 +294,16 @@ export default function ProfileScreen() {
               </View>
               <View className="flex-1">
                 <Text className="text-[10px] text-neutral-500 font-bold uppercase">{t('auto.section.email')}</Text>
-                <Text className="text-sm font-bold text-neutral-900 dark:text-white" numberOfLines={1}>
-                  {user?.email}
-                </Text>
+                <View className="flex-row items-center gap-1.5">
+                  <Text className="text-sm font-bold text-neutral-900 dark:text-white" numberOfLines={1}>
+                    {user?.email}
+                  </Text>
+                  {emailVerified && (
+                    <View className="px-1.5 py-0.5 rounded-full bg-emerald-100">
+                      <Text className="text-[9px] font-extrabold text-emerald-700">VERIFIED</Text>
+                    </View>
+                  )}
+                </View>
               </View>
             </View>
 
@@ -332,7 +351,9 @@ export default function ProfileScreen() {
         {/* Business Info */}
         {tenant && (
           <View className="px-5 mb-4">
-            <Text className="text-xs font-bold uppercase text-neutral-500 mb-2 tracking-wider">{t('auto.index.business')}</Text>
+            <Text className="text-xs font-bold uppercase text-neutral-500 mb-2 tracking-wider">
+              {t('auto.index.business')}
+            </Text>
             <View className="rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 p-4 flex-row items-center gap-3">
               <View className="h-12 w-12 rounded-2xl bg-amber-100 items-center justify-center">
                 <Briefcase size={20} color="#b45309" />
@@ -349,23 +370,95 @@ export default function ProfileScreen() {
           </View>
         )}
 
-        {/* Security */}
+        {/* Security Section */}
         <View className="px-5 mb-4">
-          <Text className="text-xs font-bold uppercase text-neutral-500 mb-2 tracking-wider">{t('auto.index.security')}</Text>
+          <Text className="text-xs font-bold uppercase text-neutral-500 mb-2 tracking-wider">
+            {t('auto.index.security')}
+          </Text>
           <View className="rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 overflow-hidden">
+            {/* Account Security */}
             <Pressable
               onPress={() => {
                 Haptics.selectionAsync();
-                setPasswordOpen(true);
+                router.push('/account/security' as any);
+              }}
+              className="px-4 py-3 flex-row items-center gap-3 active:bg-neutral-50 border-b border-neutral-100 dark:border-neutral-800"
+            >
+              <View className="h-10 w-10 rounded-xl bg-emerald-100 items-center justify-center">
+                <Shield size={18} color="#16a34a" />
+              </View>
+              <View className="flex-1">
+                <View className="flex-row items-center gap-1.5">
+                  <Text className="text-sm font-bold text-neutral-900 dark:text-white">
+                    Account Security
+                  </Text>
+                  <View
+                    className="px-1.5 py-0.5 rounded-full"
+                    style={{
+                      backgroundColor:
+                        securityScore >= 75 ? '#dcfce7' :
+                        securityScore >= 50 ? '#fef3c7' : '#fee2e2',
+                    }}
+                  >
+                    <Text
+                      className="text-[9px] font-extrabold"
+                      style={{
+                        color:
+                          securityScore >= 75 ? '#16a34a' :
+                          securityScore >= 50 ? '#d97706' : '#dc2626',
+                      }}
+                    >
+                      {securityScore}%
+                    </Text>
+                  </View>
+                </View>
+                <Text className="text-xs text-neutral-500 mt-0.5">
+                  Login methods, password, Google
+                </Text>
+              </View>
+              <ChevronRight size={18} color="#9ca3af" />
+            </Pressable>
+
+            {/* Active Devices */}
+            <Pressable
+              onPress={() => {
+                Haptics.selectionAsync();
+                router.push('/account/devices' as any);
+              }}
+              className="px-4 py-3 flex-row items-center gap-3 active:bg-neutral-50 border-b border-neutral-100 dark:border-neutral-800"
+            >
+              <View className="h-10 w-10 rounded-xl bg-violet-100 items-center justify-center">
+                <Smartphone size={18} color="#7c3aed" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-sm font-bold text-neutral-900 dark:text-white">
+                  Active Devices
+                </Text>
+                <Text className="text-xs text-neutral-500 mt-0.5">
+                  Apne logged-in devices manage karein
+                </Text>
+              </View>
+              <ChevronRight size={18} color="#9ca3af" />
+            </Pressable>
+
+            {/* Login History */}
+            <Pressable
+              onPress={() => {
+                Haptics.selectionAsync();
+                router.push('/account/login-history' as any);
               }}
               className="px-4 py-3 flex-row items-center gap-3 active:bg-neutral-50"
             >
-              <View className="h-10 w-10 rounded-xl bg-rose-100 items-center justify-center">
-                <Lock size={18} color="#dc2626" />
+              <View className="h-10 w-10 rounded-xl bg-blue-100 items-center justify-center">
+                <Clock size={18} color="#2563eb" />
               </View>
               <View className="flex-1">
-                <Text className="text-sm font-bold text-neutral-900 dark:text-white">{t('auto.index.change_password')}</Text>
-                <Text className="text-xs text-neutral-500 mt-0.5">{t('auto.index.update_your_account_password')}</Text>
+                <Text className="text-sm font-bold text-neutral-900 dark:text-white">
+                  Login History
+                </Text>
+                <Text className="text-xs text-neutral-500 mt-0.5">
+                  Last 30 login attempts dekhain
+                </Text>
               </View>
               <ChevronRight size={18} color="#9ca3af" />
             </Pressable>
@@ -383,7 +476,9 @@ export default function ProfileScreen() {
             }}
           >
             <LogOut size={18} color="#dc2626" />
-            <Text className="text-rose-700 font-extrabold text-base">{t('auto.index.logout')}</Text>
+            <Text className="text-rose-700 font-extrabold text-base">
+              {t('auto.index.logout')}
+            </Text>
           </Pressable>
         </View>
       </ScrollView>
@@ -400,7 +495,9 @@ export default function ProfileScreen() {
                 <View className="h-10 w-10 rounded-2xl items-center justify-center" style={{ backgroundColor: '#16a34a' }}>
                   <Edit3 size={18} color="#ffffff" />
                 </View>
-                <Text className="text-xl font-extrabold text-neutral-900 dark:text-white">{t('auto.index.edit_profile')}</Text>
+                <Text className="text-xl font-extrabold text-neutral-900 dark:text-white">
+                  {t('auto.index.edit_profile')}
+                </Text>
               </View>
               <Pressable
                 onPress={() => setEditOpen(false)}
@@ -461,130 +558,6 @@ export default function ProfileScreen() {
                 <Save size={20} color="#ffffff" />
                 <Text className="text-white font-extrabold text-base">
                   {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}
-                </Text>
-              </Pressable>
-            </View>
-          </KeyboardAvoidingView>
-        </SafeAreaView>
-      </Modal>
-
-      {/* Change Password Modal */}
-      <Modal visible={passwordOpen} animationType="slide" presentationStyle="pageSheet">
-        <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-950">
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            className="flex-1"
-          >
-            <View className="flex-row items-center justify-between px-5 py-4 border-b border-neutral-200 dark:border-neutral-800">
-              <View className="flex-row items-center gap-3">
-                <View className="h-10 w-10 rounded-2xl items-center justify-center" style={{ backgroundColor: '#dc2626' }}>
-                  <Lock size={18} color="#ffffff" />
-                </View>
-                <Text className="text-xl font-extrabold text-neutral-900 dark:text-white">{t('auto.index.change_password')}</Text>
-              </View>
-              <Pressable
-                onPress={() => setPasswordOpen(false)}
-                hitSlop={12}
-                className="h-10 w-10 rounded-2xl bg-neutral-100 dark:bg-neutral-800 items-center justify-center"
-              >
-                <X size={20} color="#6b7280" />
-              </Pressable>
-            </View>
-
-            <ScrollView contentContainerStyle={{ padding: 20 }} keyboardShouldPersistTaps="handled">
-              <View className="gap-4">
-                <ThemedInput
-                  label="Current Password"
-                  required
-                  leftIcon={<Lock size={18} color="#9ca3af" />}
-                  rightIcon={
-                    <Pressable onPress={() => setShowCurrent(!showCurrent)} hitSlop={8}>
-                      {showCurrent ? <EyeOff size={18} color="#9ca3af" /> : <Eye size={18} color="#9ca3af" />}
-                    </Pressable>
-                  }
-                  value={currentPassword}
-                  onChangeText={setCurrentPassword}
-                  secureTextEntry={!showCurrent}
-                  placeholder="Enter current password"
-                />
-                <ThemedInput
-                  label="New Password"
-                  required
-                  leftIcon={<Lock size={18} color="#9ca3af" />}
-                  rightIcon={
-                    <Pressable onPress={() => setShowNew(!showNew)} hitSlop={8}>
-                      {showNew ? <EyeOff size={18} color="#9ca3af" /> : <Eye size={18} color="#9ca3af" />}
-                    </Pressable>
-                  }
-                  value={newPassword}
-                  onChangeText={setNewPassword}
-                  secureTextEntry={!showNew}
-                  placeholder="Min 8 characters"
-                  hint="Strong password use karein"
-                />
-                <ThemedInput
-                  label="Confirm New Password"
-                  required
-                  leftIcon={<Lock size={18} color="#9ca3af" />}
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  secureTextEntry={!showNew}
-                  placeholder="Re-enter new password"
-                />
-
-                {newPassword.length > 0 && confirmPassword.length > 0 && (
-                  <View
-                    className="rounded-2xl p-3 flex-row items-center gap-2"
-                    style={{
-                      backgroundColor: newPassword === confirmPassword ? '#dcfce7' : '#fee2e2',
-                    }}
-                  >
-                    {newPassword === confirmPassword ? (
-                      <>
-                        <Check size={16} color="#16a34a" />
-                        <Text className="text-xs font-bold text-emerald-700">{t('auto.index.passwords_match')}</Text>
-                      </>
-                    ) : (
-                      <>
-                        <X size={16} color="#dc2626" />
-                        <Text className="text-xs font-bold text-rose-700">{t('auto.index.passwords_don_t_match')}</Text>
-                      </>
-                    )}
-                  </View>
-                )}
-              </View>
-            </ScrollView>
-
-            <View className="px-5 py-4 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
-              <Pressable
-                onPress={() => {
-                  if (!currentPassword) {
-                    Toast.show({ type: 'error', text1: 'Current password required' });
-                    return;
-                  }
-                  if (newPassword.length < 8) {
-                    Toast.show({ type: 'error', text1: 'Password min 8 characters' });
-                    return;
-                  }
-                  if (newPassword !== confirmPassword) {
-                    Toast.show({ type: 'error', text1: 'Passwords don\'t match' });
-                    return;
-                  }
-                  changePasswordMutation.mutate();
-                }}
-                disabled={changePasswordMutation.isPending}
-                className="h-14 rounded-2xl items-center justify-center flex-row gap-2 active:opacity-80"
-                style={{
-                  backgroundColor: changePasswordMutation.isPending ? '#9ca3af' : '#dc2626',
-                  shadowColor: '#dc2626',
-                  shadowOpacity: 0.4,
-                  shadowRadius: 12,
-                  elevation: 6,
-                }}
-              >
-                <Lock size={20} color="#ffffff" />
-                <Text className="text-white font-extrabold text-base">
-                  {changePasswordMutation.isPending ? 'Updating...' : 'Change Password'}
                 </Text>
               </Pressable>
             </View>

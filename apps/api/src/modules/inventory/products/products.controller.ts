@@ -169,6 +169,56 @@ export class ProductsController {
     return { categories, brands, tags };
   }
 
+  
+  @Post(':id/generate-barcode')
+  async generateBarcode(
+    @GetUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+  ) {
+    // EAN-13 style barcode (200 prefix for internal use)
+    const timestamp = Date.now().toString().slice(-10);
+    const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+    const barcode = `200${timestamp}${random}`.slice(0, 13);
+
+    const product = await this.prisma.product.findFirst({
+      where: { id, tenantId: user.tenantId },
+    });
+    if (!product) throw new NotFoundException('Product not found');
+
+    return this.prisma.product.update({
+      where: { id },
+      data: { barcode },
+    });
+  }
+
+  @Post('bulk-generate-barcodes')
+  async bulkGenerateBarcodes(
+    @GetUser() user: AuthenticatedUser,
+    @Body() body: { productIds: string[] },
+  ) {
+    const products = await this.prisma.product.findMany({
+      where: {
+        id: { in: body.productIds },
+        tenantId: user.tenantId,
+        OR: [{ barcode: null }, { barcode: '' }],
+      },
+    });
+
+    const updates = await Promise.all(
+      products.map((p, idx) => {
+        const timestamp = Date.now().toString().slice(-10);
+        const random = (idx + Math.floor(Math.random() * 100)).toString().padStart(2, '0');
+        const barcode = `200${timestamp}${random}`.slice(0, 13);
+        return this.prisma.product.update({
+          where: { id: p.id },
+          data: { barcode },
+        });
+      }),
+    );
+
+    return { count: updates.length, products: updates };
+  }
+
   @Post('bulk-action')
   bulkAction(
     @GetUser() user: AuthenticatedUser,

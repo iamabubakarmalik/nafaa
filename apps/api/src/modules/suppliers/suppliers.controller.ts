@@ -22,6 +22,11 @@ export class SuppliersController {
     return this.suppliersService.create(user, dto);
   }
 
+  @Get('summary')
+  summary(@GetUser() user: AuthenticatedUser) {
+    return this.suppliersService.summary(user);
+  }
+
   @Get()
   findAll(@GetUser() user: AuthenticatedUser, @Query() query: QuerySuppliersDto) {
     return this.suppliersService.findAll(user, query);

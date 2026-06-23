@@ -10,6 +10,8 @@ export interface PurchaseItem {
     id: string;
     name: string;
     unit: string;
+    sku?: string | null;
+    images?: Array<{ url: string }>;
   };
 }
 
@@ -27,7 +29,12 @@ export interface PurchaseCarpetRoll {
   salePricePerSqft: number;
   status: string;
   product: { id: string; name: string };
-  variant?: { id: string; name: string; color?: string | null } | null;
+  variant?: {
+    id: string;
+    name: string;
+    color?: string | null;
+    colorHex?: string | null;
+  } | null;
 }
 
 export interface Purchase {
@@ -44,7 +51,16 @@ export interface Purchase {
   supplier: {
     id: string;
     name: string;
+    phone?: string | null;
+    email?: string | null;
+    address?: string | null;
+    contactPerson?: string | null;
   };
+  createdBy?: {
+    id: string;
+    fullName: string;
+    email: string;
+  } | null;
   items: PurchaseItem[];
   carpetRolls?: PurchaseCarpetRoll[];
   createdRollsByItem?: Record<string, string[]>;
@@ -62,6 +78,7 @@ export interface PurchaseRollPayload {
   lengthFt: number;
   costPerSqft?: number;
   salePricePerSqft?: number;
+  wholesalePricePerSqft?: number;
   variantId?: string;
   rackNumber?: string;
   notes?: string;
@@ -87,9 +104,54 @@ export interface CreatePurchasePayload {
 export interface PurchaseSummary {
   todayPurchases: number;
   todayCount: number;
+  todayPaid: number;
+  yesterdayPurchases: number;
+  growthVsYesterday: number;
   monthPurchases: number;
+  monthCount: number;
+  monthPaid: number;
+  lastMonthPurchases: number;
+  growthVsLastMonth: number;
   totalPurchases: number;
+  totalPaid: number;
   totalCount: number;
+  outstandingDue: number;
+  suppliersWithDue: number;
+  salesTrend7Days: Array<{ date: string; total: number; orders: number }>;
+  paymentBreakdown: Array<{ paymentMethod: string; total: number; count: number }>;
+  topSuppliers: Array<{
+    supplierId: string;
+    supplier?: {
+      id: string;
+      name: string;
+      phone?: string | null;
+      totalPurchased: number;
+      outstandingDue: number;
+    };
+    totalSpent: number;
+    orderCount: number;
+  }>;
+  topProducts: Array<{
+    productId: string;
+    product?: {
+      id: string;
+      name: string;
+      sku?: string | null;
+      unit: string;
+      costPrice: number;
+      images?: Array<{ url: string }>;
+    };
+    quantityPurchased: number;
+    totalSpent: number;
+    orderCount: number;
+  }>;
+  recentPurchases: Array<{
+    id: string;
+    purchaseNumber: string;
+    total: number;
+    supplierName?: string;
+    purchasedAt: string;
+  }>;
 }
 
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;

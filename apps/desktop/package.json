@@ -1,0 +1,95 @@
+{
+  "name": "@nafaa/desktop",
+  "version": "1.0.0",
+  "description": "Nafaa Desktop App — Offline-first POS for Pakistan",
+  "main": "dist/main/index.js",
+  "author": {
+    "name": "Nafaa",
+    "email": "support@nafaa.pk"
+  },
+  "homepage": "https://nafaa.pk",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"pnpm:dev:tsc\" \"pnpm:dev:electron\"",
+    "dev:tsc": "tsc --watch --preserveWatchOutput",
+    "dev:electron": "wait-on dist/main/index.js && cross-env NODE_ENV=development electron .",
+    "build": "tsc && electron-builder",
+    "build:mac": "tsc && electron-builder --mac",
+    "build:win": "tsc && electron-builder --win",
+    "build:linux": "tsc && electron-builder --linux",
+    "build:all": "tsc && electron-builder -mwl",
+    "pack": "tsc && electron-builder --dir",
+    "clean": "rm -rf dist out release"
+  },
+  "dependencies": {
+    "electron-log": "^5.1.5",
+    "electron-store": "^10.0.0",
+    "electron-updater": "^6.3.9"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8",
+    "typescript": "^5.7.2",
+    "wait-on": "^8.0.1"
+  },
+  "build": {
+    "appId": "pk.nafaa.desktop",
+    "productName": "Nafaa",
+    "copyright": "Copyright © 2025 Nafaa",
+    "asar": true,
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../web/dist",
+        "to": "web",
+        "filter": ["**/*"]
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.business",
+      "target": [
+        { "target": "dmg", "arch": ["x64", "arm64"] }
+      ],
+      "icon": "build/icon.icns",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false
+    },
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Nafaa"
+    },
+    "linux": {
+      "target": [
+        { "target": "AppImage", "arch": ["x64"] },
+        { "target": "deb", "arch": ["x64"] }
+      ],
+      "icon": "build/icon.png",
+      "category": "Office"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "your-github-username",
+      "repo": "nafaa"
+    }
+  }
+}

@@ -65,7 +65,8 @@ export default function EmailVerifyPage() {
     onSuccess: () => {
       toast.success('Email verify ho gaya! 🎉');
       updateUser({ emailVerified: true });
-      setTimeout(() => navigate('/dashboard', { replace: true }), 1000);
+      // Navigate to dashboard — OnboardingGate will redirect to /onboarding if incomplete
+      setTimeout(() => navigate('/dashboard', { replace: true }), 800);
     },
     onError: (err: any) => {
       toast.error(err?.response?.data?.message || 'Invalid code');

@@ -7,12 +7,12 @@ import {
   BookOpen, Tag, Copy, ShieldAlert, MapPin, Mail, Globe,
   Banknote, Smartphone, Building2, Zap, CheckCircle2, AlertTriangle,
   Layers, Scissors, FileText, Hash, Award, Building, ShieldCheck,
+  Share2, Download, QrCode, Star, Sparkles,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { salesApi } from '@/api/sales.api';
 import { formatPKR, formatPKRFull } from '@/lib/format';
 
-// ─── Carpet note parser ─────────────────────────────────────
 type CarpetNoteInfo = {
   type: 'roll' | 'cut-piece' | null;
   reference: string;
@@ -23,8 +23,6 @@ type CarpetNoteInfo = {
 
 const parseCarpetNote = (note?: string | null): CarpetNoteInfo => {
   if (!note) return { type: null, reference: '' };
-
-  // "Cut from R-001: 12ft × 5ft = 60 sqft @ Rs 40.00/sqft (Custom)"
   const rollMatch = note.match(
     /Cut from ([\w-]+):\s*([\d.]+\s*ft\s*[xX×]\s*[\d.]+\s*ft)(?:\s*=\s*([\d.]+\s*\w+))?(?:\s*@\s*(Rs\s*[\d.]+\/sqft.*))?/
   );
@@ -37,23 +35,13 @@ const parseCarpetNote = (note?: string | null): CarpetNoteInfo => {
       customRate: rollMatch[4],
     };
   }
-
-  const cutMatch = note.match(
-    /Cut piece ([\w-]+)(?:\s*[•·]\s*([\d.]+\s*ft\s*[xX×]\s*[\d.]+\s*ft))?/
-  );
+  const cutMatch = note.match(/Cut piece ([\w-]+)(?:\s*[•·]\s*([\d.]+\s*ft\s*[xX×]\s*[\d.]+\s*ft))?/);
   if (cutMatch) {
-    return {
-      type: 'cut-piece',
-      reference: cutMatch[1],
-      dimensions: cutMatch[2],
-    };
+    return { type: 'cut-piece', reference: cutMatch[1], dimensions: cutMatch[2] };
   }
-
   return { type: null, reference: '' };
 };
 
-
-// ─── PTA Status helpers (for receipt display) ──────────────
 const PTA_LABELS: Record<string, string> = {
   APPROVED: 'PTA Approved',
   NON_PTA: 'Non-PTA',
@@ -71,36 +59,21 @@ const PTA_BADGE_COLORS: Record<string, string> = {
 };
 
 const formatDate = (value: string) =>
-  new Intl.DateTimeFormat('en-PK', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(new Date(value));
+  new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
 
 const formatDateShort = (value: string) =>
   new Intl.DateTimeFormat('en-PK', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
+    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit',
   }).format(new Date(value));
 
 const formatQty = (qty: number) => qty.toFixed(qty % 1 === 0 ? 0 : 2);
 
 const paymentIcons: Record<string, any> = {
-  CASH: Banknote,
-  CARD: CreditCard,
-  JAZZCASH: Smartphone,
-  EASYPAISA: Zap,
-  BANK_TRANSFER: Building2,
+  CASH: Banknote, CARD: CreditCard, JAZZCASH: Smartphone, EASYPAISA: Zap, BANK_TRANSFER: Building2,
 };
 
 const paymentLabels: Record<string, string> = {
-  CASH: 'Cash',
-  CARD: 'Card',
-  JAZZCASH: 'JazzCash',
-  EASYPAISA: 'EasyPaisa',
-  BANK_TRANSFER: 'Bank Transfer',
+  CASH: 'Cash', CARD: 'Card', JAZZCASH: 'JazzCash', EASYPAISA: 'EasyPaisa', BANK_TRANSFER: 'Bank Transfer',
 };
 
 type ReceiptFormat = 'a4' | 'thermal80' | 'thermal58';
@@ -116,7 +89,6 @@ export default function ReceiptPage() {
     enabled: !!id,
   });
 
-  // Auto-detect format from tenant settings
   useMemo(() => {
     const size = data?.tenant?.settings?.receiptSize;
     if (size === 'THERMAL_58MM') setFormat('thermal58');
@@ -136,79 +108,135 @@ export default function ReceiptPage() {
     onError: (err: any) => toast.error(err?.response?.data?.message || 'Failed to void sale'),
   });
 
+  // ═══ BEAUTIFUL WHATSAPP MESSAGE ═══
   const handleWhatsAppShare = () => {
     if (!data?.customer?.phone) {
       toast.error('Customer phone not available');
       return;
     }
     const phone = data.customer.phone.replace(/[^0-9]/g, '');
-    const cleanPhone = phone.startsWith('92')
-      ? phone
-      : phone.startsWith('0')
-        ? '92' + phone.slice(1)
-        : '92' + phone;
+    const cleanPhone = phone.startsWith('92') ? phone : phone.startsWith('0') ? '92' + phone.slice(1) : '92' + phone;
 
-    const shopName = data.tenant?.settings?.shopName || data.tenant?.name || 'Receipt';
+    const shopName = data.tenant?.settings?.shopName || data.tenant?.name || 'Our Shop';
     const shopPhone = data.tenant?.settings?.shopPhone || data.tenant?.phone || '';
+    const shopWhatsapp = data.tenant?.settings?.shopWhatsapp;
     const shopAddress = data.tenant?.settings?.shopAddress || '';
+    const shopWebsite = data.tenant?.settings?.shopWebsite;
+    const customerName = data.customer.name || 'Valued Customer';
 
     const lines: string[] = [];
-    lines.push(`*${shopName}*`);
-    if (shopPhone) lines.push(`📞 ${shopPhone}`);
-    if (shopAddress) lines.push(`📍 ${shopAddress}`);
+
+    // ─── BEAUTIFUL HEADER ───
+    lines.push('╔═══════════════════════╗');
+    lines.push(`║   *${shopName.toUpperCase()}*   ║`);
+    lines.push('╚═══════════════════════╝');
     lines.push('');
-    lines.push(`🧾 *${data.saleNumber}*`);
-    lines.push(`📅 ${formatDate(data.soldAt)}`);
-    if (data.customer?.name) lines.push(`👤 ${data.customer.name}`);
+    lines.push(`Assalam-o-Alaikum, *${customerName}* 🌟`);
     lines.push('');
-    lines.push('━━━━━━━━━━━━━━━━━━━');
+    lines.push('Shukriya hamare saath shopping karne ka! Aap ki kharidari ki tafseel:');
+    lines.push('');
+
+    // ─── RECEIPT DETAILS BOX ───
+    lines.push('━━━━━━━━━━━━━━━━━━━━━━━');
+    lines.push(`🧾 *Receipt:* ${data.saleNumber}`);
+    lines.push(`📅 *Date:* ${formatDate(data.soldAt)}`);
+    if (data.shop) lines.push(`🏪 *Branch:* ${data.shop.name}`);
+    if (data.createdBy) lines.push(`👤 *Cashier:* ${data.createdBy.fullName}`);
+    lines.push('━━━━━━━━━━━━━━━━━━━━━━━');
+    lines.push('');
+
+    // ─── ITEMS ───
+    lines.push('🛍️ *Aap ki Kharidari:*');
+    lines.push('');
 
     data.items.forEach((it, idx) => {
       const variant = it.variantLink?.variant;
       const itemName = variant ? `${it.product.name} (${variant.name})` : it.product.name;
       const carpet = parseCarpetNote(it.note);
 
-      lines.push(`${idx + 1}. ${itemName}`);
+      lines.push(`*${idx + 1}.* ${itemName}`);
+
+      // Carpet info
       if (carpet.type === 'roll') {
-        lines.push(`   📏 Cut from ${carpet.reference}${carpet.dimensions ? ` • ${carpet.dimensions}` : ''}`);
+        lines.push(`   🧶 Cut from Roll: \`${carpet.reference}\``);
+        if (carpet.dimensions) lines.push(`   📐 Size: ${carpet.dimensions}`);
+        if (carpet.customRate) lines.push(`   💰 ${carpet.customRate}`);
       } else if (carpet.type === 'cut-piece') {
-        lines.push(`   ✂️ Piece ${carpet.reference}${carpet.dimensions ? ` • ${carpet.dimensions}` : ''}`);
+        lines.push(`   ✂️ Cut Piece: \`${carpet.reference}\``);
+        if (carpet.dimensions) lines.push(`   📐 Size: ${carpet.dimensions}`);
       }
 
-      // IMEI in WhatsApp message
+      // IMEI for mobiles
       const itemImeis = (it as any).imeis || [];
       itemImeis.forEach((imei: any) => {
-        lines.push(`   📱 IMEI: ${imei.imei1}`);
+        lines.push(`   📱 *IMEI:* \`${imei.imei1}\``);
         if (imei.ptaStatus) {
-          lines.push(`   🛡️ ${PTA_LABELS[imei.ptaStatus] || imei.ptaStatus}`);
+          const ptaEmoji = imei.ptaStatus === 'APPROVED' ? '✅' : imei.ptaStatus === 'NON_PTA' ? '⚠️' : '🛡️';
+          lines.push(`   ${ptaEmoji} ${PTA_LABELS[imei.ptaStatus] || imei.ptaStatus}`);
         }
         if (imei.warrantyMonths > 0) {
           lines.push(`   ⏱️ Warranty: ${imei.warrantyMonths} months`);
         }
+        if (imei.color) {
+          lines.push(`   🎨 Color: ${imei.color}`);
+        }
       });
-      lines.push(
-        `   ${formatQty(it.quantity)} ${it.product.unit} × ${formatPKR(it.price)} = *${formatPKR(it.total)}*`,
-      );
+
+      lines.push(`   ${formatQty(it.quantity)} ${it.product.unit} × ${formatPKR(it.price)} = *${formatPKR(it.total)}*`);
+      lines.push('');
     });
 
-    lines.push('━━━━━━━━━━━━━━━━━━━');
+    // ─── PAYMENT SUMMARY ───
+    lines.push('━━━━━━━━━━━━━━━━━━━━━━━');
+    lines.push('💵 *Payment Summary:*');
+    lines.push('━━━━━━━━━━━━━━━━━━━━━━━');
+    lines.push(`Subtotal:        ${formatPKR(data.subtotal)}`);
+    if (data.discount > 0) {
+      lines.push(`Discount:        -${formatPKR(data.discount)} 🎉`);
+    }
     lines.push('');
-    lines.push(`Subtotal: ${formatPKR(data.subtotal)}`);
-    if (data.discount > 0) lines.push(`Discount: -${formatPKR(data.discount)}`);
-    lines.push(`*TOTAL: ${formatPKR(data.total)}*`);
+    lines.push(`💰 *GRAND TOTAL:* *${formatPKR(data.total)}*`);
+    lines.push('');
     lines.push(`Paid (${paymentLabels[data.paymentMethod]}): ${formatPKR(data.paidAmount)}`);
-    if (data.changeAmount > 0) lines.push(`Change: ${formatPKR(data.changeAmount)}`);
-    if (data.creditAmount > 0) lines.push(`💼 *Udhaar: ${formatPKR(data.creditAmount)}*`);
+    if (data.changeAmount > 0) {
+      lines.push(`✅ Change Returned: ${formatPKR(data.changeAmount)}`);
+    }
+    if (data.creditAmount > 0) {
+      lines.push('');
+      lines.push(`📒 *Udhaar (Khata):* *${formatPKR(data.creditAmount)}*`);
+      lines.push('   _Please pay at your earliest convenience_');
+    }
     lines.push('');
-    lines.push('Shukriya! 🙏');
+
+    // ─── THANK YOU MESSAGE ───
+    lines.push('━━━━━━━━━━━━━━━━━━━━━━━');
+    lines.push('🙏 *Shukriya for your business!*');
+    lines.push('');
+    lines.push('Hamain umeed hai aap hamari service se khush hain. Phir tashreef laiye ga! 😊');
+    lines.push('');
+
+    // ─── CONTACT INFO ───
+    lines.push('━━━━━━━━━━━━━━━━━━━━━━━');
+    lines.push('📍 *Visit Us:*');
+    lines.push('━━━━━━━━━━━━━━━━━━━━━━━');
+    if (shopAddress) lines.push(`📌 ${shopAddress}`);
+    if (shopPhone) lines.push(`☎️ ${shopPhone}`);
+    if (shopWhatsapp && shopWhatsapp !== shopPhone) {
+      lines.push(`💬 WhatsApp: ${shopWhatsapp}`);
+    }
+    if (shopWebsite) lines.push(`🌐 ${shopWebsite}`);
+    lines.push('');
+    lines.push('━━━━━━━━━━━━━━━━━━━━━━━');
+    lines.push('_Powered by Nafaa POS_ ✨');
 
     const message = lines.join('\n');
     window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
+    toast.success('WhatsApp opened with receipt');
   };
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href);
-    toast.success('Receipt link copied');
+    toast.success('Receipt link copied to clipboard');
   };
 
   if (isLoading) {
@@ -226,7 +254,7 @@ export default function ReceiptPage() {
           <AlertTriangle className="h-7 w-7" />
         </div>
         <p className="font-bold text-slate-900">Receipt not found</p>
-        <Link to="/sales" className="mt-4 text-sm font-bold text-brand-600 hover:underline">
+        <Link to="/sales" className="mt-4 text-sm font-bold text-emerald-600 hover:underline">
           ← Back to Sales
         </Link>
       </div>
@@ -234,15 +262,9 @@ export default function ReceiptPage() {
   }
 
   const settings = data.tenant?.settings;
-  const shopName = settings?.shopName || data.tenant?.name || 'Nafaa Shop';
+  const shopName = settings?.shopName || data.tenant?.name || 'My Shop';
   const legalName = settings?.legalName;
-  const shopAddress = [
-    settings?.shopAddress,
-    settings?.shopCity,
-    settings?.shopProvince,
-  ]
-    .filter(Boolean)
-    .join(', ');
+  const shopAddress = [settings?.shopAddress, settings?.shopCity, settings?.shopProvince].filter(Boolean).join(', ');
   const shopPhone = settings?.shopPhone || data.tenant?.phone || '';
   const shopWhatsapp = settings?.shopWhatsapp;
   const shopEmail = settings?.shopEmail;
@@ -254,7 +276,6 @@ export default function ReceiptPage() {
   const showCustomer = settings?.receiptShowCustomer ?? true;
   const receiptHeader = settings?.receiptHeader;
   const receiptFooter = settings?.receiptFooter;
-  const currency = settings?.currency || 'PKR';
 
   const PayIcon = paymentIcons[data.paymentMethod] || CreditCard;
   const totalItems = data.items.reduce((sum, it) => sum + it.quantity, 0);
@@ -263,45 +284,38 @@ export default function ReceiptPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-6 px-4 print:bg-white print:py-0 print:px-0">
       <div className={`mx-auto space-y-4 ${format === 'a4' ? 'max-w-4xl' : 'max-w-md'}`}>
-        {/* ───── ACTION BAR ───── */}
+        {/* ═══ ACTION BAR ═══ */}
         <div className="flex items-center justify-between gap-2 flex-wrap print:hidden">
           <button
             onClick={() => history.back()}
-            className="inline-flex items-center gap-2 rounded-xl bg-white border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 shadow-sm transition"
+            className="inline-flex items-center gap-2 rounded-xl bg-white border-2 border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 shadow-sm transition"
           >
             <ArrowLeft className="h-4 w-4" />
             Back
           </button>
 
           <div className="flex items-center gap-2 flex-wrap">
-            {/* Format switcher */}
-            <div className="inline-flex rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+            <div className="inline-flex rounded-xl border-2 border-slate-200 bg-white shadow-sm overflow-hidden">
               <button
                 onClick={() => setFormat('a4')}
                 className={`px-3 py-2.5 text-xs font-bold transition ${
-                  format === 'a4'
-                    ? 'bg-brand-600 text-white'
-                    : 'text-slate-700 hover:bg-slate-50'
+                  format === 'a4' ? 'bg-emerald-600 text-white' : 'text-slate-700 hover:bg-slate-50'
                 }`}
               >
                 A4
               </button>
               <button
                 onClick={() => setFormat('thermal80')}
-                className={`px-3 py-2.5 text-xs font-bold transition border-l border-slate-200 ${
-                  format === 'thermal80'
-                    ? 'bg-brand-600 text-white'
-                    : 'text-slate-700 hover:bg-slate-50'
+                className={`px-3 py-2.5 text-xs font-bold transition border-l-2 border-slate-200 ${
+                  format === 'thermal80' ? 'bg-emerald-600 text-white' : 'text-slate-700 hover:bg-slate-50'
                 }`}
               >
                 80mm
               </button>
               <button
                 onClick={() => setFormat('thermal58')}
-                className={`px-3 py-2.5 text-xs font-bold transition border-l border-slate-200 ${
-                  format === 'thermal58'
-                    ? 'bg-brand-600 text-white'
-                    : 'text-slate-700 hover:bg-slate-50'
+                className={`px-3 py-2.5 text-xs font-bold transition border-l-2 border-slate-200 ${
+                  format === 'thermal58' ? 'bg-emerald-600 text-white' : 'text-slate-700 hover:bg-slate-50'
                 }`}
               >
                 58mm
@@ -310,20 +324,19 @@ export default function ReceiptPage() {
 
             <button
               onClick={handleCopyLink}
-              className="inline-flex items-center gap-2 rounded-xl bg-white border border-slate-200 px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 shadow-sm transition"
-              title="Copy link"
+              className="inline-flex items-center gap-2 rounded-xl bg-white border-2 border-slate-200 px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 shadow-sm transition"
             >
               <Copy className="h-4 w-4" />
-              <span className="hidden sm:inline">Copy</span>
+              <span className="hidden sm:inline">Copy Link</span>
             </button>
 
             <button
               onClick={handleWhatsAppShare}
               disabled={!data.customer?.phone}
-              className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-green-700 disabled:opacity-50 shadow-sm transition"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 px-4 py-2.5 text-sm font-bold text-white shadow-md shadow-green-500/30 transition disabled:opacity-50"
             >
               <MessageCircle className="h-4 w-4" />
-              WhatsApp
+              Send WhatsApp
             </button>
 
             {!isVoided && (
@@ -333,7 +346,7 @@ export default function ReceiptPage() {
                   if (reason !== null) voidMutation.mutate(reason);
                 }}
                 disabled={voidMutation.isPending}
-                className="inline-flex items-center gap-2 rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-rose-700 disabled:opacity-50 shadow-sm transition"
+                className="inline-flex items-center gap-2 rounded-xl bg-rose-600 hover:bg-rose-700 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition disabled:opacity-50"
               >
                 <XIcon className="h-4 w-4" />
                 Void
@@ -342,7 +355,7 @@ export default function ReceiptPage() {
 
             <button
               onClick={() => window.print()}
-              className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-brand-700 shadow-sm transition"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 px-4 py-2.5 text-sm font-bold text-white shadow-md shadow-emerald-500/30 transition"
             >
               <Printer className="h-4 w-4" />
               Print
@@ -350,7 +363,7 @@ export default function ReceiptPage() {
           </div>
         </div>
 
-        {/* ───── VOIDED BANNER ───── */}
+        {/* ═══ VOIDED BANNER ═══ */}
         {isVoided && (
           <div className="rounded-2xl border-2 border-rose-300 bg-gradient-to-br from-rose-50 to-rose-100 px-5 py-4 flex items-center gap-3 print:rounded-none print:border print:bg-white">
             <div className="h-10 w-10 rounded-full bg-rose-600 text-white flex items-center justify-center shrink-0">
@@ -358,16 +371,12 @@ export default function ReceiptPage() {
             </div>
             <div>
               <div className="font-extrabold text-rose-900">SALE VOIDED</div>
-              <div className="text-xs text-rose-700 mt-0.5">
-                Stock aur customer credit wapis reverse ho gaye hain
-              </div>
+              <div className="text-xs text-rose-700 mt-0.5">Stock aur customer credit wapis reverse ho gaye hain</div>
             </div>
           </div>
         )}
 
-        {/* ═══════════════════════════════════════════════ */}
-        {/*           THERMAL RECEIPT (58mm / 80mm)        */}
-        {/* ═══════════════════════════════════════════════ */}
+        {/* ═══ THERMAL RECEIPT ═══ */}
         {(format === 'thermal58' || format === 'thermal80') && (
           <div
             className={`receipt-thermal bg-white shadow-2xl print:shadow-none mx-auto ${
@@ -376,26 +385,19 @@ export default function ReceiptPage() {
             style={{ fontFamily: 'Consolas, "Courier New", monospace' }}
           >
             <div className={`${format === 'thermal58' ? 'p-2 text-[10px]' : 'p-3 text-[11px]'} leading-tight`}>
-              {/* Logo + Shop Header */}
               <div className="text-center mb-2">
                 {showLogo && logoUrl && (
                   <img
                     src={logoUrl}
                     alt={shopName}
-                    className={`mx-auto mb-2 object-contain ${
-                      format === 'thermal58' ? 'h-12 w-12' : 'h-14 w-14'
-                    }`}
+                    className={`mx-auto mb-2 object-contain ${format === 'thermal58' ? 'h-12 w-12' : 'h-14 w-14'}`}
                   />
                 )}
                 <div className={`font-extrabold ${format === 'thermal58' ? 'text-sm' : 'text-base'}`}>
                   {shopName.toUpperCase()}
                 </div>
-                {legalName && (
-                  <div className="text-[9px] text-slate-600">{legalName}</div>
-                )}
-                {shopAddress && (
-                  <div className="text-[9px] mt-0.5">{shopAddress}</div>
-                )}
+                {legalName && <div className="text-[9px] text-slate-600">{legalName}</div>}
+                {shopAddress && <div className="text-[9px] mt-0.5">{shopAddress}</div>}
                 {(shopPhone || shopWhatsapp) && (
                   <div className="text-[9px] mt-0.5">
                     {shopPhone && `📞 ${shopPhone}`}
@@ -403,9 +405,7 @@ export default function ReceiptPage() {
                   </div>
                 )}
                 {taxNumber && (
-                  <div className="text-[9px] mt-0.5 font-bold">
-                    {taxLabel} #: {taxNumber}
-                  </div>
+                  <div className="text-[9px] mt-0.5 font-bold">{taxLabel} #: {taxNumber}</div>
                 )}
               </div>
 
@@ -415,7 +415,6 @@ export default function ReceiptPage() {
                 </div>
               )}
 
-              {/* Receipt Info */}
               <div className="border-t border-dashed border-slate-400 pt-1 mb-1">
                 <div className="flex justify-between">
                   <span className="font-bold">Receipt #</span>
@@ -433,13 +432,12 @@ export default function ReceiptPage() {
                 )}
                 {data.shop && (
                   <div className="flex justify-between">
-                    <span>Shop:</span>
+                    <span>Branch:</span>
                     <span>{data.shop.name}</span>
                   </div>
                 )}
               </div>
 
-              {/* Customer */}
               {showCustomer && data.customer && (
                 <div className="border-t border-dashed border-slate-400 pt-1 mb-1">
                   <div className="flex justify-between">
@@ -455,21 +453,17 @@ export default function ReceiptPage() {
                 </div>
               )}
 
-              {/* Items */}
               <div className="border-t border-dashed border-slate-400 pt-1 mb-1">
                 <div className="font-bold text-center mb-1">ITEMS</div>
                 {data.items.map((item, idx) => {
                   const variant = item.variantLink?.variant;
-                  const itemName = variant
-                    ? `${item.product.name} (${variant.name})`
-                    : item.product.name;
+                  const itemName = variant ? `${item.product.name} (${variant.name})` : item.product.name;
                   const carpet = parseCarpetNote(item.note);
 
                   return (
                     <div key={item.id} className="mb-1.5">
                       <div className="font-bold">{idx + 1}. {itemName}</div>
 
-                      {/* Carpet info */}
                       {carpet.type === 'roll' && (
                         <div className="text-[9px] pl-2">
                           Cut from {carpet.reference}
@@ -483,7 +477,6 @@ export default function ReceiptPage() {
                         </div>
                       )}
 
-                      {/* IMEI info — thermal */}
                       {(item as any).imeis && (item as any).imeis.length > 0 && (
                         <div className="pl-2 space-y-0.5">
                           {(item as any).imeis.map((imei: any) => (
@@ -491,25 +484,16 @@ export default function ReceiptPage() {
                               <div className="font-bold">IMEI: {imei.imei1}</div>
                               {imei.imei2 && <div>IMEI 2: {imei.imei2}</div>}
                               {imei.ptaStatus && (
-                                <div className="font-bold">
-                                  {PTA_LABELS[imei.ptaStatus] || imei.ptaStatus}
-                                </div>
+                                <div className="font-bold">{PTA_LABELS[imei.ptaStatus] || imei.ptaStatus}</div>
                               )}
-                              {imei.warrantyMonths > 0 && (
-                                <div>Warranty: {imei.warrantyMonths} months</div>
-                              )}
-                              {imei.warrantyExpiry && (
-                                <div>Till: {new Date(imei.warrantyExpiry).toLocaleDateString('en-PK')}</div>
-                              )}
+                              {imei.warrantyMonths > 0 && <div>Warranty: {imei.warrantyMonths} months</div>}
                             </div>
                           ))}
                         </div>
                       )}
 
                       <div className="flex justify-between pl-2">
-                        <span>
-                          {formatQty(item.quantity)} {item.product.unit} × {formatPKR(item.price)}
-                        </span>
+                        <span>{formatQty(item.quantity)} {item.product.unit} × {formatPKR(item.price)}</span>
                         <span className="font-bold">{formatPKR(item.total)}</span>
                       </div>
                     </div>
@@ -517,7 +501,6 @@ export default function ReceiptPage() {
                 })}
               </div>
 
-              {/* Totals */}
               <div className="border-t border-dashed border-slate-400 pt-1 mb-1">
                 <div className="flex justify-between">
                   <span>Subtotal:</span>
@@ -535,7 +518,6 @@ export default function ReceiptPage() {
                 </div>
               </div>
 
-              {/* Payment */}
               <div className="border-t border-dashed border-slate-400 pt-1 mb-1">
                 <div className="flex justify-between">
                   <span>Payment ({paymentLabels[data.paymentMethod]}):</span>
@@ -555,24 +537,18 @@ export default function ReceiptPage() {
                 )}
               </div>
 
-              {/* Item count */}
               <div className="border-t border-dashed border-slate-400 pt-1 mb-2 text-center text-[9px]">
                 {data.items.length} item{data.items.length !== 1 ? 's' : ''} • {formatQty(totalItems)} total qty
               </div>
 
-              {/* Footer */}
               {receiptFooter && (
                 <div className="text-center text-[9px] italic border-t border-dashed border-slate-400 pt-1 mb-1">
                   {receiptFooter}
                 </div>
               )}
 
-              <div className="text-center font-bold mt-2">
-                Shukriya! 🙏
-              </div>
-              <div className="text-center text-[8px] mt-1 text-slate-600">
-                Powered by Nafaa POS
-              </div>
+              <div className="text-center font-bold mt-2">Shukriya! 🙏</div>
+              <div className="text-center text-[8px] mt-1 text-slate-600">Powered by Nafaa POS</div>
 
               {isVoided && (
                 <div className="mt-2 border-2 border-rose-600 text-rose-600 font-extrabold text-center py-1">
@@ -583,38 +559,33 @@ export default function ReceiptPage() {
           </div>
         )}
 
-        {/* ═══════════════════════════════════════════════ */}
-        {/*                  A4 RECEIPT                    */}
-        {/* ═══════════════════════════════════════════════ */}
+        {/* ═══ A4 BEAUTIFUL RECEIPT ═══ */}
         {format === 'a4' && (
           <div className="receipt-a4 bg-white shadow-2xl rounded-3xl border border-slate-200 overflow-hidden print:shadow-none print:border-none print:rounded-none">
             {/* HEADER */}
-            <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-brand-800 px-8 py-6 text-white print:bg-white print:text-slate-900 print:border-b-4 print:border-double print:border-slate-700">
-              <div className="flex items-start justify-between gap-6 flex-wrap">
+            <div className="relative bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 px-8 py-7 text-white print:bg-white print:text-slate-900 print:border-b-4 print:border-double print:border-slate-700 overflow-hidden">
+              <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full bg-emerald-400/20 blur-2xl print:hidden" />
+              <div className="absolute -bottom-12 -left-12 h-32 w-32 rounded-full bg-amber-400/15 blur-2xl print:hidden" />
+
+              <div className="relative flex items-start justify-between gap-6 flex-wrap">
                 <div className="flex items-start gap-4 min-w-0 flex-1">
                   {showLogo && logoUrl && (
                     <img
                       src={logoUrl}
                       alt={shopName}
-                      className="h-16 w-16 rounded-2xl object-cover bg-white p-1 shrink-0 print:rounded-lg"
+                      className="h-20 w-20 rounded-2xl object-cover bg-white p-1.5 shrink-0 shadow-lg print:rounded-lg"
                     />
                   )}
                   <div className="min-w-0">
-                    <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur print:hidden">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold print:hidden">
                       <ReceiptIcon className="h-3 w-3" />
-                      Sale Receipt
+                      Sales Receipt
                     </div>
-                    <h1 className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight">
-                      {shopName}
-                    </h1>
-                    {legalName && (
-                      <p className="text-xs text-white/70 print:text-slate-600 italic">
-                        {legalName}
-                      </p>
-                    )}
-                    <div className="mt-2 space-y-0.5 text-xs text-white/75 print:text-slate-600">
+                    <h1 className="mt-2 text-3xl sm:text-4xl font-extrabold tracking-tight">{shopName}</h1>
+                    {legalName && <p className="text-sm text-white/70 print:text-slate-600 italic mt-0.5">{legalName}</p>}
+                    <div className="mt-3 space-y-1 text-xs text-white/85 print:text-slate-600">
                       {shopAddress && (
-                        <div className="flex items-start gap-1">
+                        <div className="flex items-start gap-1.5">
                           <MapPin className="h-3 w-3 mt-0.5 shrink-0" />
                           <span>{shopAddress}</span>
                         </div>
@@ -646,7 +617,7 @@ export default function ReceiptPage() {
                         )}
                       </div>
                       {taxNumber && (
-                        <div className="flex items-center gap-1 font-bold">
+                        <div className="flex items-center gap-1.5 font-bold">
                           <FileText className="h-3 w-3" />
                           {taxLabel} #: {taxNumber}
                         </div>
@@ -656,18 +627,14 @@ export default function ReceiptPage() {
                 </div>
 
                 <div className="text-right shrink-0">
-                  <div className="text-[10px] uppercase tracking-[0.2em] text-white/60 print:text-slate-500">
-                    Receipt #
-                  </div>
-                  <div className="text-2xl font-extrabold mt-1 font-mono">
-                    {data.saleNumber}
-                  </div>
-                  <div className="text-xs text-white/75 mt-1 print:text-slate-500 flex items-center justify-end gap-1">
+                  <div className="text-[10px] uppercase tracking-[0.2em] text-white/60 print:text-slate-500">Receipt #</div>
+                  <div className="text-3xl font-extrabold mt-1 font-mono">{data.saleNumber}</div>
+                  <div className="text-xs text-white/85 mt-1 print:text-slate-500 flex items-center justify-end gap-1">
                     <Calendar className="h-3 w-3" />
                     {formatDate(data.soldAt)}
                   </div>
                   {data.shop && (
-                    <div className="text-[10px] text-white/60 mt-0.5 print:text-slate-500 flex items-center justify-end gap-1">
+                    <div className="text-[10px] text-white/70 mt-0.5 print:text-slate-500 flex items-center justify-end gap-1">
                       <Building className="h-2.5 w-2.5" />
                       {data.shop.name}
                     </div>
@@ -683,19 +650,15 @@ export default function ReceiptPage() {
             </div>
 
             {/* INFO ROW */}
-            <div className="px-8 py-5 grid sm:grid-cols-3 gap-4 border-b border-slate-100 bg-slate-50/50 print:bg-white">
+            <div className="px-8 py-5 grid sm:grid-cols-3 gap-4 border-b-2 border-slate-100 bg-slate-50/50 print:bg-white">
               {showCustomer && (
                 <div className="flex items-start gap-3">
-                  <div className="h-10 w-10 rounded-xl bg-violet-100 text-violet-700 flex items-center justify-center shrink-0 print:bg-slate-100 print:text-slate-700">
+                  <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center shrink-0 shadow-md print:bg-slate-100 print:text-slate-700 print:shadow-none">
                     <User className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
-                    <div className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">
-                      Bill To
-                    </div>
-                    <div className="font-bold text-slate-900 truncate">
-                      {data.customer?.name || 'Walk-in Customer'}
-                    </div>
+                    <div className="text-[10px] uppercase tracking-wider text-slate-500 font-extrabold">Bill To</div>
+                    <div className="font-extrabold text-slate-900 truncate">{data.customer?.name || 'Walk-in Customer'}</div>
                     {data.customer?.phone && (
                       <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
                         <Phone className="h-2.5 w-2.5" />
@@ -703,47 +666,35 @@ export default function ReceiptPage() {
                       </div>
                     )}
                     {data.customer?.address && (
-                      <div className="text-xs text-slate-500 mt-0.5 line-clamp-2">
-                        {data.customer.address}
-                      </div>
+                      <div className="text-xs text-slate-500 mt-0.5 line-clamp-2">{data.customer.address}</div>
                     )}
                   </div>
                 </div>
               )}
 
               <div className="flex items-start gap-3">
-                <div className="h-10 w-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0 print:bg-slate-100 print:text-slate-700">
+                <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 text-white flex items-center justify-center shrink-0 shadow-md print:bg-slate-100 print:text-slate-700 print:shadow-none">
                   <Hash className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">
-                    Sale Details
-                  </div>
-                  <div className="font-bold text-slate-900 truncate">
+                  <div className="text-[10px] uppercase tracking-wider text-slate-500 font-extrabold">Sale Details</div>
+                  <div className="font-extrabold text-slate-900 truncate">
                     {data.items.length} item{data.items.length !== 1 ? 's' : ''} • {formatQty(totalItems)} qty
                   </div>
                   {data.createdBy && (
-                    <div className="text-xs text-slate-500 mt-0.5">
-                      Cashier: {data.createdBy.fullName}
-                    </div>
+                    <div className="text-xs text-slate-500 mt-0.5">Cashier: {data.createdBy.fullName}</div>
                   )}
                 </div>
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="h-10 w-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 print:bg-slate-100 print:text-slate-700">
+                <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white flex items-center justify-center shrink-0 shadow-md print:bg-slate-100 print:text-slate-700 print:shadow-none">
                   <PayIcon className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">
-                    Payment
-                  </div>
-                  <div className="font-bold text-slate-900 truncate">
-                    {paymentLabels[data.paymentMethod] || data.paymentMethod}
-                  </div>
-                  <div className="text-xs text-slate-500 mt-0.5 font-bold">
-                    Paid: {formatPKR(data.paidAmount)}
-                  </div>
+                  <div className="text-[10px] uppercase tracking-wider text-slate-500 font-extrabold">Payment</div>
+                  <div className="font-extrabold text-slate-900 truncate">{paymentLabels[data.paymentMethod] || data.paymentMethod}</div>
+                  <div className="text-xs text-slate-500 mt-0.5 font-bold">Paid: {formatPKR(data.paidAmount)}</div>
                 </div>
               </div>
             </div>
@@ -753,12 +704,12 @@ export default function ReceiptPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="text-left text-slate-600 border-b-2 border-slate-300 bg-slate-50 print:bg-white">
-                      <th className="py-3 px-2 font-bold text-xs uppercase tracking-wider w-8">#</th>
-                      <th className="py-3 px-2 font-bold text-xs uppercase tracking-wider">Description</th>
-                      <th className="py-3 px-2 font-bold text-xs uppercase tracking-wider text-center w-24">Qty</th>
-                      <th className="py-3 px-2 font-bold text-xs uppercase tracking-wider text-right w-28">Rate</th>
-                      <th className="py-3 px-2 font-bold text-xs uppercase tracking-wider text-right w-32">Amount</th>
+                    <tr className="text-left text-slate-700 border-b-2 border-slate-300 bg-gradient-to-r from-slate-100 to-slate-50 print:bg-white">
+                      <th className="py-3 px-2 font-extrabold text-[10px] uppercase tracking-wider w-8">#</th>
+                      <th className="py-3 px-2 font-extrabold text-[10px] uppercase tracking-wider">Description</th>
+                      <th className="py-3 px-2 font-extrabold text-[10px] uppercase tracking-wider text-center w-24">Qty</th>
+                      <th className="py-3 px-2 font-extrabold text-[10px] uppercase tracking-wider text-right w-28">Rate</th>
+                      <th className="py-3 px-2 font-extrabold text-[10px] uppercase tracking-wider text-right w-32">Amount</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -767,14 +718,10 @@ export default function ReceiptPage() {
                       const carpet = parseCarpetNote(item.note);
 
                       return (
-                        <tr key={item.id} className="border-b border-slate-100 align-top">
-                          <td className="py-4 px-2 text-slate-500 font-mono text-xs">
-                            {idx + 1}
-                          </td>
+                        <tr key={item.id} className="border-b border-slate-100 align-top hover:bg-slate-50/50 transition">
+                          <td className="py-4 px-2 text-slate-500 font-mono text-xs">{idx + 1}</td>
                           <td className="py-4 px-2">
-                            <div className="font-bold text-slate-900 text-base">
-                              {item.product.name}
-                            </div>
+                            <div className="font-extrabold text-slate-900 text-base">{item.product.name}</div>
                             {variant && (
                               <div className="text-xs font-semibold text-violet-700 mt-0.5 inline-flex items-center gap-1.5">
                                 {variant.colorHex && (
@@ -792,7 +739,6 @@ export default function ReceiptPage() {
                               </div>
                             )}
 
-                            {/* Carpet info */}
                             {carpet.type === 'roll' && (
                               <div className="mt-1.5 inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-[10px] font-bold text-emerald-800 print:bg-white print:border-slate-400">
                                 <Layers className="h-2.5 w-2.5" />
@@ -809,12 +755,9 @@ export default function ReceiptPage() {
                               </div>
                             )}
                             {item.note && !carpet.type && !((item as any).imeis?.length) && (
-                              <div className="text-[10px] text-slate-500 mt-0.5 italic">
-                                {item.note}
-                              </div>
+                              <div className="text-[10px] text-slate-500 mt-0.5 italic">{item.note}</div>
                             )}
 
-                            {/* IMEI block — shown when item has IMEIs */}
                             {(item as any).imeis && (item as any).imeis.length > 0 && (
                               <div className="mt-2 space-y-1">
                                 {(item as any).imeis.map((imei: any) => (
@@ -825,12 +768,8 @@ export default function ReceiptPage() {
                                     <div className="flex items-center justify-between gap-2 flex-wrap">
                                       <div className="flex items-center gap-1.5">
                                         <Smartphone className="h-3 w-3 text-blue-700" />
-                                        <span className="text-[10px] uppercase tracking-wider font-bold text-blue-700">
-                                          IMEI
-                                        </span>
-                                        <span className="font-mono font-extrabold text-slate-900 text-sm">
-                                          {imei.imei1}
-                                        </span>
+                                        <span className="text-[10px] uppercase tracking-wider font-bold text-blue-700">IMEI</span>
+                                        <span className="font-mono font-extrabold text-slate-900 text-sm">{imei.imei1}</span>
                                       </div>
                                       {imei.ptaStatus && (
                                         <span
@@ -854,15 +793,9 @@ export default function ReceiptPage() {
                                       </div>
                                     )}
                                     <div className="flex flex-wrap gap-2 mt-1 text-[10px]">
-                                      {imei.color && (
-                                        <span className="font-bold text-violet-700">
-                                          🎨 {imei.color}
-                                        </span>
-                                      )}
+                                      {imei.color && <span className="font-bold text-violet-700">🎨 {imei.color}</span>}
                                       {imei.warrantyMonths > 0 && (
-                                        <span className="font-bold text-teal-700">
-                                          🛡️ {imei.warrantyMonths}m warranty
-                                        </span>
+                                        <span className="font-bold text-teal-700">🛡️ {imei.warrantyMonths}m warranty</span>
                                       )}
                                       {imei.warrantyExpiry && (
                                         <span className="font-bold text-slate-700">
@@ -870,9 +803,7 @@ export default function ReceiptPage() {
                                         </span>
                                       )}
                                       {imei.ptaTaxPaid > 0 && (
-                                        <span className="font-bold text-emerald-700">
-                                          💰 Tax: {formatPKR(imei.ptaTaxPaid)}
-                                        </span>
+                                        <span className="font-bold text-emerald-700">💰 Tax: {formatPKR(imei.ptaTaxPaid)}</span>
                                       )}
                                     </div>
                                   </div>
@@ -880,7 +811,6 @@ export default function ReceiptPage() {
                               </div>
                             )}
 
-                            {/* Multiplication formula — visible on screen + print */}
                             <div className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-mono font-semibold text-slate-600 bg-slate-50 border border-slate-200 rounded-md px-2 py-1 print:bg-white">
                               <span className="font-bold text-slate-900">{formatQty(item.quantity)}</span>
                               <span className="text-slate-500">{item.product.unit}</span>
@@ -892,22 +822,16 @@ export default function ReceiptPage() {
                           </td>
                           <td className="py-4 px-2 text-center">
                             <div className="inline-flex items-baseline gap-0.5">
-                              <span className="text-xl font-extrabold text-slate-900 tabular-nums">
-                                {formatQty(item.quantity)}
-                              </span>
+                              <span className="text-xl font-extrabold text-slate-900 tabular-nums">{formatQty(item.quantity)}</span>
                             </div>
-                            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                              {item.product.unit}
-                            </div>
+                            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{item.product.unit}</div>
                           </td>
                           <td className="py-4 px-2 text-right">
                             <div className="inline-flex items-center gap-1 text-slate-700 font-bold tabular-nums">
                               <span className="text-slate-400 text-xs">×</span>
                               <span>{formatPKR(item.price)}</span>
                             </div>
-                            <div className="text-[9px] text-slate-500 font-semibold">
-                              per {item.product.unit}
-                            </div>
+                            <div className="text-[9px] text-slate-500 font-semibold">per {item.product.unit}</div>
                           </td>
                           <td className="py-4 px-2 text-right">
                             <div className="inline-flex items-center gap-1 font-extrabold text-emerald-700 tabular-nums text-base">
@@ -928,9 +852,7 @@ export default function ReceiptPage() {
               <div className="ml-auto max-w-md space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-slate-600">Subtotal</span>
-                  <span className="font-semibold text-slate-900 tabular-nums">
-                    {formatPKR(data.subtotal)}
-                  </span>
+                  <span className="font-semibold text-slate-900 tabular-nums">{formatPKR(data.subtotal)}</span>
                 </div>
 
                 {data.discount > 0 && (
@@ -938,17 +860,13 @@ export default function ReceiptPage() {
                     <span className="text-amber-700 font-semibold inline-flex items-center gap-1">
                       <Tag className="h-3 w-3" /> Discount
                     </span>
-                    <span className="font-bold text-amber-700 tabular-nums">
-                      -{formatPKR(data.discount)}
-                    </span>
+                    <span className="font-bold text-amber-700 tabular-nums">-{formatPKR(data.discount)}</span>
                   </div>
                 )}
 
                 <div className="flex items-center justify-between text-lg pt-3 border-t-2 border-slate-300">
                   <span className="font-extrabold text-slate-900">GRAND TOTAL</span>
-                  <span className="font-extrabold text-emerald-700 text-2xl tabular-nums">
-                    {formatPKR(data.total)}
-                  </span>
+                  <span className="font-extrabold text-emerald-700 text-3xl tabular-nums">{formatPKR(data.total)}</span>
                 </div>
 
                 <div className="pt-3 border-t border-slate-200 space-y-1.5">
@@ -956,19 +874,13 @@ export default function ReceiptPage() {
                     <span className="text-slate-600 inline-flex items-center gap-1">
                       <Banknote className="h-3 w-3" /> Paid ({paymentLabels[data.paymentMethod]})
                     </span>
-                    <span className="font-bold text-slate-900 tabular-nums">
-                      {formatPKR(data.paidAmount)}
-                    </span>
+                    <span className="font-bold text-slate-900 tabular-nums">{formatPKR(data.paidAmount)}</span>
                   </div>
 
                   {data.changeAmount > 0 && (
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-emerald-700 font-semibold">
-                        Change Returned
-                      </span>
-                      <span className="font-bold text-emerald-700 tabular-nums">
-                        {formatPKR(data.changeAmount)}
-                      </span>
+                      <span className="text-emerald-700 font-semibold">Change Returned</span>
+                      <span className="font-bold text-emerald-700 tabular-nums">{formatPKR(data.changeAmount)}</span>
                     </div>
                   )}
 
@@ -977,21 +889,17 @@ export default function ReceiptPage() {
                       <span className="text-amber-800 font-bold inline-flex items-center gap-1">
                         <BookOpen className="h-3.5 w-3.5" /> Udhaar (Khata)
                       </span>
-                      <span className="font-extrabold text-amber-700 text-base tabular-nums">
-                        {formatPKR(data.creditAmount)}
-                      </span>
+                      <span className="font-extrabold text-amber-700 text-base tabular-nums">{formatPKR(data.creditAmount)}</span>
                     </div>
                   )}
                 </div>
 
-                {/* In-words (optional fancy touch) */}
                 <div className="pt-3 border-t border-dashed border-slate-300 text-xs italic text-slate-600">
                   <strong>In Words:</strong> Rupees {numberToWords(data.total)} Only
                 </div>
               </div>
             </div>
 
-            {/* Customer balance footer */}
             {data.customer && data.creditAmount > 0 && (
               <div className="px-8 py-4 bg-amber-50 border-t-2 border-amber-300 flex items-center justify-between gap-3 print:hidden">
                 <div className="flex items-center gap-2">
@@ -1011,29 +919,26 @@ export default function ReceiptPage() {
             )}
 
             {/* FOOTER */}
-            <div className="px-8 py-5 text-center border-t-2 border-double border-slate-300 bg-white">
-              {receiptFooter && (
-                <div className="text-sm italic text-slate-700 mb-2">
-                  {receiptFooter}
-                </div>
-              )}
-              <div className="text-sm font-extrabold text-slate-900 inline-flex items-center gap-1">
-                <Award className="h-4 w-4 text-amber-500" />
+            <div className="px-8 py-6 text-center border-t-2 border-double border-slate-300 bg-gradient-to-br from-emerald-50 to-green-50 print:bg-white">
+              {receiptFooter && <div className="text-sm italic text-slate-700 mb-3">{receiptFooter}</div>}
+              <div className="text-lg font-extrabold text-slate-900 inline-flex items-center gap-2">
+                <Award className="h-5 w-5 text-amber-500" />
                 Shukriya! Visit Again 🙏
-                <Award className="h-4 w-4 text-amber-500" />
+                <Award className="h-5 w-5 text-amber-500" />
               </div>
-              <div className="text-[10px] text-slate-400 mt-2">
+              <div className="text-xs text-slate-600 mt-2 font-bold">Hamain umeed hai aap hamari service se khush hain</div>
+              <div className="text-[10px] text-slate-400 mt-3 inline-flex items-center gap-1">
+                <Sparkles className="h-2.5 w-2.5" />
                 Powered by Nafaa POS • Generated {formatDate(new Date().toISOString())}
               </div>
             </div>
           </div>
         )}
 
-        {/* Action hint */}
         <div className="text-center text-xs text-slate-500 print:hidden">
           <span className="inline-flex items-center gap-1">
             <CheckCircle2 className="h-3 w-3 text-emerald-600" />
-            Format auto-detected from settings. Switch above to override.
+            Format auto-detected. Switch above to override.
           </span>
         </div>
       </div>
@@ -1065,13 +970,10 @@ export default function ReceiptPage() {
   );
 }
 
-// ─── Number to words (simple PKR version) ──────────────────
 function numberToWords(num: number): string {
   if (num === 0) return 'Zero';
-
   const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine',
-    'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen',
-    'Eighteen', 'Nineteen'];
+    'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
   const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
 
   const toWords = (n: number): string => {
@@ -1085,10 +987,7 @@ function numberToWords(num: number): string {
 
   const rupees = Math.floor(num);
   const paisa = Math.round((num - rupees) * 100);
-
   let result = toWords(rupees);
-  if (paisa > 0) {
-    result += ' and ' + toWords(paisa) + ' Paisa';
-  }
+  if (paisa > 0) result += ' and ' + toWords(paisa) + ' Paisa';
   return result.trim();
 }

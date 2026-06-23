@@ -1,100 +1,118 @@
+import { useState } from 'react';
 import { View, Text, Pressable, Modal } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Lock, Sparkles, ArrowRight, LogOut } from 'lucide-react-native';
-import * as Haptics from 'expo-haptics';
-import { useAuthStore } from '@/store/auth.store';
+import { Lock, Sparkles, ArrowRight, X, AlertCircle, Eye } from 'lucide-react-native';
 import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 
+const DISMISS_KEY_PREFIX = '@nafaa-subscription-banner-dismissed';
+
 /**
- * Full-screen blocker shown when subscription expired.
- * Single CTA: Upgrade. Logout option as escape hatch.
+ * Soft Banner — replaces old hard-block modal.
+ * Shows on dashboard top when trial expired / past-due.
+ * User can dismiss for current session OR upgrade.
+ * Dashboard access stays (read-only feel) — full block happens at API level via SubscriptionGuard.
  */
 export function TrialExpiredModal() {
   const router = useRouter();
   const { needsUpgrade, subscription } = useSubscriptionStatus();
-  const logout = useAuthStore((s) => s.logout);
+  const [dismissed, setDismissed] = useState(false);
 
-  if (!needsUpgrade) return null;
+  if (!needsUpgrade || dismissed) return null;
 
   const isPastDue = subscription?.status === 'PAST_DUE';
+  const accentBg = isPastDue ? '#f59e0b' : '#dc2626';
+  const accentLight = isPastDue ? '#fef3c7' : '#fee2e2';
+  const accentDark = isPastDue ? '#92400e' : '#991b1b';
 
   return (
-    <Modal visible={true} transparent animationType="fade" statusBarTranslucent>
-      <View className="flex-1 bg-black/90 items-center justify-center">
-        <SafeAreaView className="flex-1 w-full items-center justify-center px-6">
-          <View className="w-full max-w-sm">
-            {/* Icon */}
-            <View className="items-center mb-6">
-              <View
-                className="h-24 w-24 rounded-3xl items-center justify-center mb-4"
+    <View className="px-4 mt-2 mb-1">
+      <View
+        className="rounded-3xl p-4 overflow-hidden"
+        style={{
+          backgroundColor: accentLight,
+          borderWidth: 2,
+          borderColor: accentBg,
+        }}
+      >
+        <View className="flex-row items-start gap-3">
+          <View
+            className="h-12 w-12 rounded-2xl items-center justify-center"
+            style={{ backgroundColor: accentBg }}
+          >
+            <Lock size={22} color="#ffffff" />
+          </View>
+
+          <View className="flex-1">
+            <View className="flex-row items-center justify-between gap-2 mb-1">
+              <View className="flex-row items-center gap-1.5">
+                <AlertCircle size={12} color={accentDark} />
+                <Text
+                  className="text-[10px] font-extrabold uppercase tracking-wider"
+                  style={{ color: accentDark }}
+                >
+                  {isPastDue ? 'Payment Past Due' : 'Subscription Expired'}
+                </Text>
+              </View>
+              <Pressable
+                onPress={() => setDismissed(true)}
+                hitSlop={8}
+                className="h-6 w-6 rounded-full items-center justify-center"
+                style={{ backgroundColor: 'rgba(0,0,0,0.08)' }}
+              >
+                <X size={12} color={accentDark} />
+              </Pressable>
+            </View>
+
+            <Text
+              className="text-base font-extrabold leading-5"
+              style={{ color: accentDark }}
+            >
+              {isPastDue
+                ? 'Aap ka payment due hai'
+                : 'Aap ka trial khatam ho gaya'}
+            </Text>
+
+            <Text
+              className="text-xs leading-5 mt-1"
+              style={{ color: accentDark, opacity: 0.8 }}
+            >
+              {isPastDue
+                ? '3 din grace period chal raha hai — renew karein.'
+                : 'Apni dukan continue rakhne ke liye plan select karein.'}
+            </Text>
+
+            <View className="flex-row items-center gap-2 mt-3">
+              <Pressable
+                onPress={() => router.push('/plan')}
+                className="flex-1 h-11 rounded-xl items-center justify-center flex-row gap-1.5"
                 style={{
-                  backgroundColor: isPastDue ? '#f59e0b' : '#dc2626',
-                  shadowColor: isPastDue ? '#f59e0b' : '#dc2626',
-                  shadowOpacity: 0.6,
-                  shadowRadius: 20,
-                  elevation: 10,
+                  backgroundColor: accentBg,
+                  shadowColor: accentBg,
+                  shadowOpacity: 0.3,
+                  shadowRadius: 8,
+                  elevation: 4,
                 }}
               >
-                <Lock size={48} color="#ffffff" />
-              </View>
+                <Sparkles size={14} color="#ffffff" />
+                <Text className="text-white font-extrabold text-sm">
+                  Plan Choose Karein
+                </Text>
+                <ArrowRight size={14} color="#ffffff" />
+              </Pressable>
             </View>
 
-            {/* Title */}
-            <Text className="text-3xl font-extrabold text-white text-center mb-3">
-              {isPastDue ? 'Subscription Expired' : 'Trial Khatam Ho Gaya'}
-            </Text>
-            <Text className="text-base text-neutral-300 text-center leading-6 mb-8">
-              {isPastDue
-                ? 'Aap ki subscription expire ho chuki hai. Service jaari rakhne ke liye renew karein.'
-                : 'Aap ka 7-day free trial khatam ho gaya. Apni dukan ka data safe hai — abhi plan choose karein.'}
-            </Text>
-
-            {/* Trust line */}
-            <View className="bg-white/10 rounded-2xl p-3 mb-6">
-              <Text className="text-xs text-emerald-300 text-center">
-                ✓ Aap ka data, customers, products — sab safe hain
-              </Text>
-              <Text className="text-xs text-emerald-300 text-center mt-1">
-                ✓ Plan choose karte hi turant access wapas
+            <View className="flex-row items-center gap-1 mt-2 pt-2 border-t" style={{ borderColor: 'rgba(0,0,0,0.08)' }}>
+              <Eye size={10} color={accentDark} />
+              <Text
+                className="text-[10px] font-semibold"
+                style={{ color: accentDark, opacity: 0.7 }}
+              >
+                Read-only mode — sales/products view kar sakte hain
               </Text>
             </View>
-
-            {/* CTA */}
-            <Pressable
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                router.push('/plan');
-              }}
-              className="h-14 rounded-2xl items-center justify-center flex-row gap-2 mb-3 active:opacity-80"
-              style={{
-                backgroundColor: '#16a34a',
-                shadowColor: '#16a34a',
-                shadowOpacity: 0.5,
-                shadowRadius: 16,
-                elevation: 10,
-              }}
-            >
-              <Sparkles size={18} color="#ffffff" />
-              <Text className="text-white font-extrabold text-base">Plan Choose Karein</Text>
-              <ArrowRight size={18} color="#ffffff" />
-            </Pressable>
-
-            {/* Logout escape */}
-            <Pressable
-              onPress={() => {
-                Haptics.selectionAsync();
-                logout();
-                router.replace('/auth/login');
-              }}
-              className="h-12 rounded-2xl items-center justify-center flex-row gap-2 active:opacity-70"
-            >
-              <LogOut size={14} color="#94a3b8" />
-              <Text className="text-sm text-neutral-400 font-bold">Logout</Text>
-            </Pressable>
           </View>
-        </SafeAreaView>
+        </View>
       </View>
-    </Modal>
+    </View>
   );
 }

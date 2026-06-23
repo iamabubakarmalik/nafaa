@@ -143,6 +143,14 @@ export const productsApi = {
       .post<{ data: any }>('/products/bulk-action', { productIds, action })
       .then(unwrap),
 
+  generateBarcode: (id: string) =>
+    apiClient.post<{ data: Product }>(`/products/${id}/generate-barcode`).then(unwrap),
+
+  bulkGenerateBarcodes: (productIds: string[]) =>
+    apiClient
+      .post<{ data: { count: number; products: Product[] } }>('/products/bulk-generate-barcodes', { productIds })
+      .then(unwrap),
+
   remove: (id: string) =>
     apiClient.delete<{ data: { message: string } }>(`/products/${id}`).then(unwrap),
 

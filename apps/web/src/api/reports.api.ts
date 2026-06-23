@@ -4,6 +4,7 @@ export interface SalesTrendPoint {
   date: string;
   sales: number;
   profit: number;
+  cost: number;
   orders: number;
   paid: number;
   credit: number;
@@ -19,6 +20,7 @@ export interface TopProduct {
     price: number;
     costPrice: number;
     stock: number;
+    images?: Array<{ url: string }>;
   };
   quantitySold: number;
   revenue: number;
@@ -34,6 +36,9 @@ export interface CategoryBreakdown {
   revenue: number;
   quantity: number;
   orderCount: number;
+  cost: number;
+  profit: number;
+  margin: number;
 }
 
 export interface PaymentMethodBreakdown {
@@ -52,7 +57,7 @@ export interface HourlySales {
 
 export interface CashierPerformance {
   userId: string | null;
-  user?: { id: string; fullName: string; email: string; role: string } | null;
+  user?: { id: string; fullName: string; email: string; role: string; avatarUrl?: string | null } | null;
   totalSales: number;
   orderCount: number;
   avgOrderValue: number;
@@ -67,6 +72,7 @@ export interface TopCustomer {
     balance: number;
     loyaltyPoints: number;
     isVip: boolean;
+    avatarUrl?: string | null;
   } | null;
   totalSpent: number;
   orderCount: number;
@@ -108,6 +114,9 @@ export interface ProfitLossReport {
   returnCount: number;
   paid: number;
   credit: number;
+  discount: number;
+  purchases: number;
+  purchaseCount: number;
 }
 
 export interface ExpenseBreakdownReport {
@@ -121,6 +130,34 @@ export interface ExpenseBreakdownReport {
     count: number;
     percent: number;
   }>;
+}
+
+export interface WeekdayPattern {
+  day: string;
+  dayIndex: number;
+  sales: number;
+  orders: number;
+  avg: number;
+}
+
+export interface MonthlyComparison {
+  month: string;
+  sales: number;
+  profit: number;
+  expenses: number;
+  orders: number;
+}
+
+export interface SalesVsExpensesPoint {
+  date: string;
+  sales: number;
+  expenses: number;
+  profit: number;
+}
+
+export interface CustomerAcquisitionPoint {
+  date: string;
+  newCustomers: number;
 }
 
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
@@ -146,4 +183,12 @@ export const reportsApi = {
     apiClient.get<{ data: ExpenseBreakdownReport }>('/reports/expense-breakdown', { params: { days } }).then(unwrap),
   profitLoss: (days = 30) =>
     apiClient.get<{ data: ProfitLossReport }>('/reports/profit-loss', { params: { days } }).then(unwrap),
+  weekdayPattern: (days = 90) =>
+    apiClient.get<{ data: WeekdayPattern[] }>('/reports/weekday-pattern', { params: { days } }).then(unwrap),
+  monthlyComparison: () =>
+    apiClient.get<{ data: MonthlyComparison[] }>('/reports/monthly-comparison').then(unwrap),
+  salesVsExpenses: (days = 30) =>
+    apiClient.get<{ data: SalesVsExpensesPoint[] }>('/reports/sales-vs-expenses', { params: { days } }).then(unwrap),
+  customerAcquisition: (days = 30) =>
+    apiClient.get<{ data: CustomerAcquisitionPoint[] }>('/reports/customer-acquisition', { params: { days } }).then(unwrap),
 };

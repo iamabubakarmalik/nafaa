@@ -63,9 +63,11 @@ export default function RegisterPage() {
     mutationFn: authApi.register,
     onSuccess: (data) => {
       setSession(data);
-      toast.success('Mubarak ho! Aap ka account ban gaya 🎉');
-      // New users always go to onboarding (not dashboard)
-      navigate('/onboarding', { replace: true });
+      toast.success('Mubarak ho! Aap ka account ban gaya 🎉', {
+        description: 'Email pe verification code bhej diya gaya hai',
+      });
+      // First — verify email, then onboarding
+      navigate('/verify-email', { replace: true });
     },
     onError: (err: any) => {
       toast.error(err?.response?.data?.message || 'Kuch ghalat ho gaya');

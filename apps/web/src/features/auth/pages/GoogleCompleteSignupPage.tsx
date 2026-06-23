@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Store, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
 import { authApi } from '@/api/auth.api';
+import { onboardingApi } from '@/api/onboarding.api';
 import { useAuthStore } from '@/store/auth.store';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -26,6 +27,7 @@ interface PendingGoogleUser {
 
 export default function GoogleCompleteSignupPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const setSession = useAuthStore((s) => s.setSession);
   const [pending, setPending] = useState<PendingGoogleUser | null>(null);
 
@@ -53,9 +55,26 @@ export default function GoogleCompleteSignupPage() {
   const mutation = useMutation({
     mutationFn: (data: FormData) =>
       authApi.completeGoogleSignup(pending!.tempToken, data.shopName.trim()),
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
+      // Step 1: Set session FIRST
       setSession(data);
+
+      // Step 2: Clear all stale caches (CRITICAL — onboarding cache from previous user)
+      queryClient.clear();
+
+      // Step 3: Pre-fetch fresh onboarding state so OnboardingGate doesn't redirect to dashboard
+      try {
+        await queryClient.fetchQuery({
+          queryKey: ['onboarding'],
+          queryFn: onboardingApi.get,
+        });
+      } catch {
+        // If fails, continue anyway — gate will retry
+      }
+
       toast.success(`Mubarak ho ${data.user.fullName.split(' ')[0]}! 🎉`);
+
+      // Step 4: Now navigate — fresh cache, fresh data
       navigate('/onboarding', { replace: true });
     },
     onError: (e: any) => {
@@ -96,7 +115,6 @@ export default function GoogleCompleteSignupPage() {
           </div>
 
           <div className="p-8 space-y-5">
-            {/* Google account confirmation */}
             <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-3 flex items-center gap-3">
               {pending.avatarUrl ? (
                 <img src={pending.avatarUrl} className="h-10 w-10 rounded-full" alt="" />

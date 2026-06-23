@@ -10,6 +10,10 @@ export interface AuthUser {
   tenantId: string;
   permissions?: string[];
   emailVerified?: boolean;
+  emailVerifiedAt?: string | null;
+  avatarUrl?: string | null;
+  hasPassword?: boolean;
+  googleId?: string | null;
 }
 
 export interface AuthTenant {
@@ -30,14 +34,10 @@ interface AuthState {
   isAuthenticated: boolean;
   isInitialized: boolean;
 
-  setSession: (data: {
-    user: AuthUser;
-    tenant: AuthTenant;
-    accessToken: string;
-    refreshToken: string;
-  }) => Promise<void>;
+  setSession: (data: { user: AuthUser; tenant: AuthTenant; accessToken: string; refreshToken: string }) => Promise<void>;
   updateTokens: (accessToken: string, refreshToken: string) => Promise<void>;
   updateTenant: (patch: Partial<AuthTenant>) => Promise<void>;
+  updateUser: (patch: Partial<AuthUser>) => Promise<void>;
   logout: () => Promise<void>;
   initialize: () => Promise<void>;
 }
@@ -67,7 +67,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         SecureStore.setItemAsync(STORAGE_KEYS.refresh, refreshToken),
       ]);
     } catch (e) {
-      console.error('[auth.store] SecureStore persist failed:', e);
+      console.error('[auth.store] Persist failed:', e);
     }
   },
 
@@ -79,7 +79,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         SecureStore.setItemAsync(STORAGE_KEYS.refresh, refreshToken),
       ]);
     } catch (e) {
-      console.error('[auth.store] Token update persist failed:', e);
+      console.error('[auth.store] Token persist failed:', e);
     }
   },
 
@@ -91,7 +91,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       await SecureStore.setItemAsync(STORAGE_KEYS.tenant, JSON.stringify(updated));
     } catch (e) {
-      console.error('[auth.store] Tenant update persist failed:', e);
+      console.error('[auth.store] Tenant persist failed:', e);
+    }
+  },
+
+  updateUser: async (patch) => {
+    const current = get().user;
+    if (!current) return;
+    const updated = { ...current, ...patch };
+    set({ user: updated });
+    try {
+      await SecureStore.setItemAsync(STORAGE_KEYS.user, JSON.stringify(updated));
+    } catch (e) {
+      console.error('[auth.store] User persist failed:', e);
     }
   },
 
@@ -134,7 +146,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         });
       }
     } catch (e) {
-      console.error('[auth.store] Initialization failed:', e);
+      console.error('[auth.store] Init failed:', e);
     } finally {
       set({ isInitialized: true });
     }

@@ -2,8 +2,7 @@ import { useState, useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeftRight, Plus, Search, X, Building2, Package, Clock, Truck,
-  CheckCircle2, XCircle, Calendar, Download, Eye, Trash2, Layers, AlertCircle,
-} from 'lucide-react';
+  CheckCircle2, XCircle, Calendar, Download, Eye, Trash2, Layers, AlertCircle, FileText} from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { shopsApi } from '@/api/shops.api';
 import { productsApi, type Product } from '@/api/products.api';
@@ -636,20 +635,31 @@ export default function TransfersPage() {
 
       {/* MAIN PAGE */}
       <div className="space-y-6">
-        <section className="rounded-3xl bg-gradient-to-br from-slate-950 via-cyan-900 to-cyan-700 text-white p-6 shadow-2xl">
-          <div className="flex items-center justify-between gap-4 flex-wrap">
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-cyan-900 to-cyan-700 text-white p-6 sm:p-8 shadow-2xl">
+          <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-cyan-400/20 blur-3xl" />
+          <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-blue-400/15 blur-3xl" />
+
+          <div className="relative flex items-center justify-between gap-4 flex-wrap">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur px-3 py-1 text-xs font-extrabold">
                 <ArrowLeftRight className="h-3.5 w-3.5 text-amber-300" /> Multi-Shop Inventory
               </div>
-              <h2 className="mt-3 text-3xl font-extrabold">Stock Transfers</h2>
+              <h2 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">Stock Transfers</h2>
               <p className="mt-2 text-sm text-white/80">
-                Ek shop se doosri shop me stock transfer karein — carpet rolls bhi shop-to-shop move ho sakte hain.
+                Inter-shop inventory management — carpet rolls + standard products, full traceability
               </p>
             </div>
-            <Button onClick={openCreate} className="bg-white text-slate-900 hover:bg-slate-100">
-              <Plus className="h-4 w-4" /> New Transfer
-            </Button>
+            <div className="flex gap-2 flex-wrap">
+              <button
+                onClick={() => window.print()}
+                className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold transition backdrop-blur border border-white/20"
+              >
+                <FileText className="h-4 w-4" /> PDF
+              </button>
+              <Button onClick={openCreate} className="bg-white text-slate-900 hover:bg-slate-100">
+                <Plus className="h-4 w-4" /> New Transfer
+              </Button>
+            </div>
           </div>
         </section>
 
@@ -775,6 +785,13 @@ export default function TransfersPage() {
           )}
         </section>
       </div>
+      <style>{`
+        @media print {
+          @page { size: A4 landscape; margin: 1cm; }
+          body { background: white !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+          .print\\:hidden { display: none !important; }
+        }
+      `}</style>
     </>
   );
 }

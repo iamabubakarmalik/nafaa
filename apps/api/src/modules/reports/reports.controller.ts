@@ -11,18 +11,12 @@ export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
   @Get('sales-trend')
-  salesTrend(
-    @GetUser() user: AuthenticatedUser,
-    @Query('days') days?: string,
-  ) {
+  salesTrend(@GetUser() user: AuthenticatedUser, @Query('days') days?: string) {
     return this.reportsService.salesTrend(user, days ? Number(days) : 14);
   }
 
   @Get('top-products')
-  topProducts(
-    @GetUser() user: AuthenticatedUser,
-    @Query('limit') limit?: string,
-  ) {
+  topProducts(@GetUser() user: AuthenticatedUser, @Query('limit') limit?: string) {
     return this.reportsService.topProducts(user, limit ? Number(limit) : 10);
   }
 
@@ -42,18 +36,12 @@ export class ReportsController {
   }
 
   @Get('cashier-performance')
-  cashierPerformance(
-    @GetUser() user: AuthenticatedUser,
-    @Query('days') days?: string,
-  ) {
+  cashierPerformance(@GetUser() user: AuthenticatedUser, @Query('days') days?: string) {
     return this.reportsService.cashierPerformance(user, days ? Number(days) : 30);
   }
 
   @Get('top-customers')
-  topCustomers(
-    @GetUser() user: AuthenticatedUser,
-    @Query('limit') limit?: string,
-  ) {
+  topCustomers(@GetUser() user: AuthenticatedUser, @Query('limit') limit?: string) {
     return this.reportsService.topCustomers(user, limit ? Number(limit) : 10);
   }
 
@@ -63,18 +51,32 @@ export class ReportsController {
   }
 
   @Get('expense-breakdown')
-  expenseBreakdown(
-    @GetUser() user: AuthenticatedUser,
-    @Query('days') days?: string,
-  ) {
+  expenseBreakdown(@GetUser() user: AuthenticatedUser, @Query('days') days?: string) {
     return this.reportsService.expenseBreakdown(user, days ? Number(days) : 30);
   }
 
   @Get('profit-loss')
-  profitAndLoss(
-    @GetUser() user: AuthenticatedUser,
-    @Query('days') days?: string,
-  ) {
+  profitAndLoss(@GetUser() user: AuthenticatedUser, @Query('days') days?: string) {
     return this.reportsService.profitAndLoss(user, days ? Number(days) : 30);
+  }
+
+  @Get('weekday-pattern')
+  weekdayPattern(@GetUser() user: AuthenticatedUser, @Query('days') days?: string) {
+    return this.reportsService.weekdayPattern(user, days ? Number(days) : 90);
+  }
+
+  @Get('monthly-comparison')
+  monthlyComparison(@GetUser() user: AuthenticatedUser) {
+    return this.reportsService.monthlyComparison(user);
+  }
+
+  @Get('sales-vs-expenses')
+  salesVsExpenses(@GetUser() user: AuthenticatedUser, @Query('days') days?: string) {
+    return this.reportsService.salesVsExpenses(user, days ? Number(days) : 30);
+  }
+
+  @Get('customer-acquisition')
+  customerAcquisition(@GetUser() user: AuthenticatedUser, @Query('days') days?: string) {
+    return this.reportsService.customerAcquisition(user, days ? Number(days) : 30);
   }
 }

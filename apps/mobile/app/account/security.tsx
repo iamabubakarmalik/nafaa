@@ -9,12 +9,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import {
   ArrowLeft, Shield, Mail, Lock, Plus, Unlink, CheckCircle2, AlertCircle,
-  Eye, EyeOff, X,
+  Eye, EyeOff, X, Smartphone, ChevronRight, Clock,
 } from 'lucide-react-native';
 import { authApi } from '@/api/auth.api';
 import Toast from 'react-native-toast-message';
 
 import { useTranslation } from '@/i18n/useTranslation';
+
 export default function AccountSecurityScreen() {
   const { t } = useTranslation();
   const router = useRouter();
@@ -42,6 +43,16 @@ export default function AccountSecurityScreen() {
     onError: (e: any) => Toast.show({ type: 'error', text1: e?.response?.data?.message || 'Disconnect fail' }),
   });
 
+  // Security score
+  const checks = [
+    { label: 'Email verified', done: emailVerified, weight: 35 },
+    { label: 'Password set', done: hasPassword, weight: 35 },
+    { label: 'Google connected', done: hasGoogle, weight: 30 },
+  ];
+  const score = checks.reduce((s, c) => s + (c.done ? c.weight : 0), 0);
+  const scoreColor = score >= 70 ? '#16a34a' : score >= 50 ? '#f59e0b' : '#dc2626';
+  const scoreLight = score >= 70 ? '#dcfce7' : score >= 50 ? '#fef3c7' : '#fee2e2';
+
   return (
     <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-950" edges={['top']}>
       <Stack.Screen options={{ headerShown: false }} />
@@ -54,7 +65,9 @@ export default function AccountSecurityScreen() {
         >
           <ArrowLeft size={20} color="#16a34a" />
         </Pressable>
-        <Text className="text-xl font-extrabold text-neutral-900 dark:text-white">{t('auto.security.account_security')}</Text>
+        <Text className="text-xl font-extrabold text-neutral-900 dark:text-white">
+          {t('auto.security.account_security')}
+        </Text>
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
@@ -76,13 +89,67 @@ export default function AccountSecurityScreen() {
           >
             <Shield size={28} color="#ffffff" />
           </View>
-          <Text className="text-2xl font-extrabold text-white">{t('auto.security.login_methods')}</Text>
-          <Text className="text-xs text-emerald-100 mt-1">{t('auto.security.apne_login_methods_aur_security_manage_k')}</Text>
+          <Text className="text-2xl font-extrabold text-white">
+            {t('auto.security.login_methods')}
+          </Text>
+          <Text className="text-xs text-emerald-100 mt-1">
+            {t('auto.security.apne_login_methods_aur_security_manage_k')}
+          </Text>
+        </View>
+
+        {/* Security Score Card */}
+        <View
+          className="rounded-3xl p-4 mb-4"
+          style={{
+            backgroundColor: scoreLight,
+            borderWidth: 2,
+            borderColor: scoreColor,
+          }}
+        >
+          <View className="flex-row items-center gap-3 mb-3">
+            <View
+              className="h-12 w-12 rounded-2xl items-center justify-center"
+              style={{ backgroundColor: scoreColor }}
+            >
+              <Shield size={22} color="#ffffff" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-[10px] uppercase tracking-wider font-extrabold" style={{ color: scoreColor }}>
+                Security Score
+              </Text>
+              <Text className="text-2xl font-extrabold text-neutral-900 dark:text-white">
+                {score}%
+              </Text>
+            </View>
+          </View>
+          <View className="h-2 bg-white/60 rounded-full overflow-hidden mb-3">
+            <View
+              className="h-full rounded-full"
+              style={{ width: `${score}%`, backgroundColor: scoreColor }}
+            />
+          </View>
+          <View className="gap-1.5">
+            {checks.map((c) => (
+              <View key={c.label} className="flex-row items-center gap-2">
+                {c.done ? (
+                  <CheckCircle2 size={13} color="#16a34a" />
+                ) : (
+                  <AlertCircle size={13} color="#94a3b8" />
+                )}
+                <Text className={`text-xs flex-1 ${c.done ? 'text-neutral-800 font-semibold' : 'text-neutral-500'}`}>
+                  {c.label}
+                </Text>
+                <Text className={`text-[10px] font-extrabold ${c.done ? 'text-emerald-700' : 'text-neutral-400'}`}>
+                  +{c.weight}%
+                </Text>
+              </View>
+            ))}
+          </View>
         </View>
 
         {/* Email verification */}
         <View
-          className="rounded-2xl border-2 p-4 mb-4 flex-row items-center gap-3"
+          className="rounded-2xl border-2 p-4 mb-3 flex-row items-center gap-3"
           style={{
             backgroundColor: emailVerified ? '#dcfce7' : '#fef3c7',
             borderColor: emailVerified ? '#86efac' : '#fcd34d',
@@ -95,7 +162,7 @@ export default function AccountSecurityScreen() {
             {emailVerified ? (
               <CheckCircle2 size={22} color="#ffffff" />
             ) : (
-              <AlertCircle size={22} color="#ffffff" />
+              <Mail size={22} color="#ffffff" />
             )}
           </View>
           <View className="flex-1 min-w-0">
@@ -132,10 +199,19 @@ export default function AccountSecurityScreen() {
             <Mail size={22} color="#2563eb" />
           </View>
           <View className="flex-1">
-            <Text className="font-extrabold text-neutral-900 dark:text-white">{t('auto.security.email_password')}</Text>
+            <View className="flex-row items-center gap-1.5">
+              <Text className="font-extrabold text-neutral-900 dark:text-white">
+                {t('auto.security.email_password')}
+              </Text>
+              {hasPassword && (
+                <View className="px-1.5 py-0.5 rounded-full bg-emerald-100">
+                  <Text className="text-[9px] font-extrabold text-emerald-700">ACTIVE</Text>
+                </View>
+              )}
+            </View>
             <Text className="text-xs text-neutral-500 mt-0.5">
               {hasPassword
-                ? 'Active ✓'
+                ? 'Email/password se login enabled'
                 : 'Set nahi hai — sirf Google se login ho sakta hai'}
             </Text>
           </View>
@@ -148,20 +224,29 @@ export default function AccountSecurityScreen() {
             className="h-9 px-3 rounded-xl bg-emerald-600 items-center justify-center"
           >
             <Text className="text-white font-bold text-xs">
-              {hasPassword ? 'Change' : 'Set Password'}
+              {hasPassword ? 'Change' : 'Set'}
             </Text>
           </Pressable>
         </View>
 
         {/* Google */}
-        <View className="rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 p-4 flex-row items-center gap-3">
-          <View className="h-12 w-12 rounded-2xl bg-rose-100 items-center justify-center">
+        <View className="rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 p-4 mb-3 flex-row items-center gap-3">
+          <View className="h-12 w-12 rounded-2xl bg-rose-50 items-center justify-center">
             <Text style={{ fontSize: 22 }}>🌐</Text>
           </View>
           <View className="flex-1">
-            <Text className="font-extrabold text-neutral-900 dark:text-white">{t('auto.security.google')}</Text>
+            <View className="flex-row items-center gap-1.5">
+              <Text className="font-extrabold text-neutral-900 dark:text-white">
+                {t('auto.security.google')}
+              </Text>
+              {hasGoogle && (
+                <View className="px-1.5 py-0.5 rounded-full bg-emerald-100">
+                  <Text className="text-[9px] font-extrabold text-emerald-700">CONNECTED</Text>
+                </View>
+              )}
+            </View>
             <Text className="text-xs text-neutral-500 mt-0.5">
-              {hasGoogle ? 'Connected ✓' : 'Not connected'}
+              {hasGoogle ? 'One-tap login enabled' : 'Quick login ke liye connect karein'}
             </Text>
           </View>
           {hasGoogle ? (
@@ -189,18 +274,47 @@ export default function AccountSecurityScreen() {
               }}
               className="h-9 px-3 rounded-xl bg-rose-50 border border-rose-200 items-center justify-center"
             >
-              <Text className="text-rose-700 font-bold text-xs">{t('auto.security.disconnect')}</Text>
+              <Text className="text-rose-700 font-bold text-xs">
+                {t('auto.security.disconnect')}
+              </Text>
             </Pressable>
           ) : (
             <View className="h-9 px-3 rounded-xl bg-neutral-100 items-center justify-center">
-              <Text className="text-neutral-500 font-bold text-xs">{t('auto.security.connect_via_app')}</Text>
+              <Text className="text-neutral-500 font-bold text-xs">
+                {t('auto.security.connect_via_app')}
+              </Text>
             </View>
           )}
         </View>
 
-        <View className="rounded-2xl bg-blue-50 border border-blue-200 p-3 mt-5 flex-row items-start gap-2">
+        {/* Active Devices Link */}
+        <Pressable
+          onPress={() => {
+            Haptics.selectionAsync();
+            router.push('/account/devices' as any);
+          }}
+          className="rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 p-4 mb-3 flex-row items-center gap-3 active:opacity-70"
+        >
+          <View className="h-12 w-12 rounded-2xl bg-violet-100 items-center justify-center">
+            <Smartphone size={22} color="#7c3aed" />
+          </View>
+          <View className="flex-1">
+            <Text className="font-extrabold text-neutral-900 dark:text-white">
+              Active Devices
+            </Text>
+            <Text className="text-xs text-neutral-500 mt-0.5">
+              Apne logged-in devices manage karein
+            </Text>
+          </View>
+          <ChevronRight size={18} color="#9ca3af" />
+        </Pressable>
+
+        {/* Security tip */}
+        <View className="rounded-2xl bg-blue-50 border border-blue-200 p-3 mt-2 flex-row items-start gap-2">
           <Shield size={16} color="#2563eb" />
-          <Text className="flex-1 text-xs text-blue-900 leading-5">{t('auto.security.aap_ke_account_mein_at_least_ek_login_me')}</Text>
+          <Text className="flex-1 text-xs text-blue-900 leading-5">
+            {t('auto.security.aap_ke_account_mein_at_least_ek_login_me')}
+          </Text>
         </View>
       </ScrollView>
 
@@ -238,16 +352,22 @@ function SetPasswordModal({ onClose }: { onClose: () => void }) {
       >
         <View className="bg-white dark:bg-neutral-900 rounded-t-3xl p-6">
           <View className="flex-row items-center justify-between mb-5">
-            <Text className="text-xl font-extrabold text-neutral-900 dark:text-white">{t('auto.security.password_set_karein')}</Text>
+            <Text className="text-xl font-extrabold text-neutral-900 dark:text-white">
+              {t('auto.security.password_set_karein')}
+            </Text>
             <Pressable onPress={onClose} className="h-9 w-9 rounded-xl bg-neutral-100 items-center justify-center">
               <X size={18} color="#6b7280" />
             </Pressable>
           </View>
 
-          <Text className="text-sm text-neutral-500 mb-4">{t('auto.security.ab_aap_email_password_se_bhi_login_kar_s')}</Text>
+          <Text className="text-sm text-neutral-500 mb-4">
+            {t('auto.security.ab_aap_email_password_se_bhi_login_kar_s')}
+          </Text>
 
           <View>
-            <Text className="text-sm font-bold text-neutral-700 dark:text-neutral-200 mb-1.5">{t('auto.resetpassword.naya_password')}</Text>
+            <Text className="text-sm font-bold text-neutral-700 dark:text-neutral-200 mb-1.5">
+              {t('auto.resetpassword.naya_password')}
+            </Text>
             <View className="flex-row items-center gap-2 rounded-2xl border-2 border-neutral-200 bg-white dark:bg-neutral-900 px-4 h-12">
               <Lock size={18} color="#9ca3af" />
               <TextInput
@@ -283,17 +403,23 @@ function SetPasswordModal({ onClose }: { onClose: () => void }) {
 
 function ChangePasswordModal({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
+  const [confirm, setConfirm] = useState('');
 
   const mutation = useMutation({
     mutationFn: () => authApi.changePassword(current, next),
     onSuccess: () => {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Toast.show({ type: 'success', text1: 'Password change ho gaya' });
+      queryClient.invalidateQueries({ queryKey: ['auth-me'] });
       onClose();
     },
     onError: (e: any) => Toast.show({ type: 'error', text1: e?.response?.data?.message || 'Change fail' }),
   });
+
+  const canSubmit = current.length >= 6 && next.length >= 8 && next === confirm && next !== current;
 
   return (
     <Modal visible animationType="slide" transparent>
@@ -304,7 +430,9 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
       >
         <View className="bg-white dark:bg-neutral-900 rounded-t-3xl p-6">
           <View className="flex-row items-center justify-between mb-5">
-            <Text className="text-xl font-extrabold text-neutral-900 dark:text-white">{t('auto.index.change_password')}</Text>
+            <Text className="text-xl font-extrabold text-neutral-900 dark:text-white">
+              {t('auto.index.change_password')}
+            </Text>
             <Pressable onPress={onClose} className="h-9 w-9 rounded-xl bg-neutral-100 items-center justify-center">
               <X size={18} color="#6b7280" />
             </Pressable>
@@ -312,7 +440,9 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
 
           <View className="gap-3">
             <View>
-              <Text className="text-sm font-bold text-neutral-700 dark:text-neutral-200 mb-1.5">{t('auto.index.current_password')}</Text>
+              <Text className="text-sm font-bold text-neutral-700 dark:text-neutral-200 mb-1.5">
+                {t('auto.index.current_password')}
+              </Text>
               <TextInput
                 value={current}
                 onChangeText={setCurrent}
@@ -322,7 +452,9 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
               />
             </View>
             <View>
-              <Text className="text-sm font-bold text-neutral-700 dark:text-neutral-200 mb-1.5">{t('auto.resetpassword.naya_password')}</Text>
+              <Text className="text-sm font-bold text-neutral-700 dark:text-neutral-200 mb-1.5">
+                {t('auto.resetpassword.naya_password')}
+              </Text>
               <TextInput
                 value={next}
                 onChangeText={setNext}
@@ -332,13 +464,36 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
                 className="rounded-2xl border-2 border-neutral-200 bg-white px-4 h-12 text-base"
               />
             </View>
+            <View>
+              <Text className="text-sm font-bold text-neutral-700 dark:text-neutral-200 mb-1.5">
+                Confirm New Password
+              </Text>
+              <TextInput
+                value={confirm}
+                onChangeText={setConfirm}
+                placeholder="Same password again"
+                placeholderTextColor="#9ca3af"
+                secureTextEntry
+                className="rounded-2xl border-2 border-neutral-200 bg-white px-4 h-12 text-base"
+              />
+              {confirm && next !== confirm && (
+                <Text className="text-xs text-rose-600 mt-1 font-semibold">
+                  Passwords match nahi karte
+                </Text>
+              )}
+              {next && next === current && (
+                <Text className="text-xs text-amber-600 mt-1 font-semibold">
+                  Naya password current se alag hona chahiye
+                </Text>
+              )}
+            </View>
           </View>
 
           <Pressable
             onPress={() => mutation.mutate()}
-            disabled={!current || next.length < 8 || mutation.isPending}
+            disabled={!canSubmit || mutation.isPending}
             className="h-14 rounded-2xl items-center justify-center mt-5"
-            style={{ backgroundColor: !current || next.length < 8 ? '#9ca3af' : '#16a34a' }}
+            style={{ backgroundColor: !canSubmit ? '#9ca3af' : '#16a34a' }}
           >
             <Text className="text-white font-extrabold text-base">
               {mutation.isPending ? 'Updating...' : 'Update Password'}
@@ -352,84 +507,13 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
 
 function VerifyEmailModal({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
-  const [code, setCode] = useState('');
-  const [sent, setSent] = useState(false);
+  const router = useRouter();
 
-  const sendMutation = useMutation({
-    mutationFn: authApi.sendVerifyEmail,
-    onSuccess: (data: any) => {
-      if (data?.alreadyVerified) {
-        Toast.show({ type: 'success', text1: 'Already verified' });
-        queryClient.invalidateQueries({ queryKey: ['auth-me'] });
-        onClose();
-        return;
-      }
-      setSent(true);
-      Toast.show({ type: 'success', text1: 'Code bhej diya gaya email pe' });
-    },
+  // Redirect to dedicated full-screen verify page
+  useState(() => {
+    onClose();
+    router.push('/auth/verify-email' as any);
   });
 
-  const verifyMutation = useMutation({
-    mutationFn: () => authApi.confirmVerifyEmail(code),
-    onSuccess: () => {
-      Toast.show({ type: 'success', text1: 'Email verified ✅' });
-      queryClient.invalidateQueries({ queryKey: ['auth-me'] });
-      onClose();
-    },
-    onError: (e: any) => Toast.show({ type: 'error', text1: e?.response?.data?.message || 'Invalid OTP' }),
-  });
-
-  return (
-    <Modal visible animationType="slide" transparent>
-      <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-        <View className="bg-white dark:bg-neutral-900 rounded-t-3xl p-6">
-          <View className="flex-row items-center justify-between mb-5">
-            <Text className="text-xl font-extrabold text-neutral-900 dark:text-white">{t('auto.security.verify_email')}</Text>
-            <Pressable onPress={onClose} className="h-9 w-9 rounded-xl bg-neutral-100 items-center justify-center">
-              <X size={18} color="#6b7280" />
-            </Pressable>
-          </View>
-
-          <Text className="text-sm text-neutral-500 mb-5">{t('auto.security.hum_aap_ke_email_pe_6_digit_code_bhejeng')}</Text>
-
-          {!sent ? (
-            <Pressable
-              onPress={() => sendMutation.mutate()}
-              disabled={sendMutation.isPending}
-              className="h-14 rounded-2xl items-center justify-center"
-              style={{ backgroundColor: '#16a34a' }}
-            >
-              <Text className="text-white font-extrabold text-base">
-                {sendMutation.isPending ? 'Sending...' : 'Code Bhejein'}
-              </Text>
-            </Pressable>
-          ) : (
-            <>
-              <TextInput
-                value={code}
-                onChangeText={(t) => setCode(t.replace(/\D/g, '').slice(0, 6))}
-                placeholder="6 digit code"
-                placeholderTextColor="#9ca3af"
-                keyboardType="number-pad"
-                maxLength={6}
-                autoFocus
-                className="rounded-2xl border-2 border-neutral-200 bg-white px-4 h-14 text-center text-2xl font-extrabold tracking-widest"
-              />
-              <Pressable
-                onPress={() => verifyMutation.mutate()}
-                disabled={code.length !== 6 || verifyMutation.isPending}
-                className="h-14 rounded-2xl items-center justify-center mt-4"
-                style={{ backgroundColor: code.length !== 6 ? '#9ca3af' : '#16a34a' }}
-              >
-                <Text className="text-white font-extrabold text-base">
-                  {verifyMutation.isPending ? 'Verifying...' : 'Verify'}
-                </Text>
-              </Pressable>
-            </>
-          )}
-        </View>
-      </View>
-    </Modal>
-  );
+  return null;
 }

@@ -2,8 +2,10 @@ import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import {
   Search, ShoppingCart, Receipt, ScanLine, Camera, Package, User,
-  X, Sparkles, BookOpen, Phone, History, ArrowDownCircle, ArrowUpCircle,
+  X, Sparkles, BookOpen, Phone, ArrowDownCircle, ArrowUpCircle,
   Pause, Layers, UserPlus, Eye, EyeOff, ChevronDown, Smartphone, Scissors,
+  Zap, Store, AlertTriangle, TrendingUp, Star, ArrowRight, Crown,
+  CheckCircle2, Plus, Minus,
 } from 'lucide-react';
 import { productsApi, type Product } from '@/api/products.api';
 import { productVariantsApi, type ProductVariant } from '@/api/product-variants.api';
@@ -38,11 +40,17 @@ export default function PosPage() {
   const queryClient = useQueryClient();
   const { features: businessFeatures, businessType } = useBusinessFeatures();
   const currentShopId = useAuthStore((s) => s.currentShopId);
+  const tenant = useAuthStore((s) => s.tenant);
 
   // ─── Carpet business detection ─────────────────────────────
   const isCarpetBusiness = useMemo(() => {
     const type = (businessType ?? '').toUpperCase();
     return type === 'CARPET' || type === 'FLOORING' || businessFeatures?.lengthWidthCalc === true;
+  }, [businessType, businessFeatures]);
+
+  const isMobileBusiness = useMemo(() => {
+    const type = (businessType ?? '').toUpperCase();
+    return type === 'MOBILE' || type === 'PHONE' || type === 'ELECTRONICS' || businessFeatures?.imei === true;
   }, [businessType, businessFeatures]);
 
   // ─── State ─────────────────────────────────────────────────
@@ -201,7 +209,6 @@ export default function PosPage() {
 
   // ─── Mutations ─────────────────────────────────────────────
   const checkoutMutation = usePosCheckout((result) => {
-    // Detect if this was a mobile (IMEI) sale with credit + customer
     const hasImeiItem = cart.some((c) => c.imeiId);
     const shouldOfferEmi =
       hasImeiItem &&
@@ -211,7 +218,6 @@ export default function PosPage() {
       result.total > 0;
 
     if (shouldOfferEmi) {
-      // Show EMI conversion prompt before resetting
       setEmiPromptData({
         saleId: result.saleId,
         saleNumber: result.saleNumber,
@@ -221,8 +227,6 @@ export default function PosPage() {
         customerName: result.customerName!,
         customerPhone: result.customerPhone ?? undefined,
       });
-      // Don't reset cart yet — user might cancel
-      // But cart is locked because sale is already saved
     }
 
     resetCart();
@@ -254,13 +258,11 @@ export default function PosPage() {
   const addProductToCart = async (product: Product) => {
     const isCarpet = isCarpetProduct(product);
 
-    // Non-carpet: check standard stock
     if (!isCarpet && product.stock <= 0) {
       toast.error(`${product.name} stock mein nahi hai`);
       return;
     }
 
-    // Carpet: check rolls availability
     if (isCarpet) {
       const summary = carpetSummaryMap.get(product.id);
       if (!summary || summary.totalSqft <= 0) {
@@ -288,7 +290,6 @@ export default function PosPage() {
       return;
     }
 
-    // Standard variant routing
     if (product.hasVariants) {
       try {
         const variants = await productVariantsApi.list(product.id);
@@ -306,7 +307,6 @@ export default function PosPage() {
       }
     }
 
-    // IMEI routing
     if (productNeedsImei(product)) {
       setImeiPickerData({ product });
       return;
@@ -404,8 +404,6 @@ export default function PosPage() {
   const handleVariantSelect = (variant: ProductVariant) => {
     if (!variantPickerProduct) return;
 
-    // CARPET path — open roll picker after variant
-    // (Skip variant stock check — carpet stock lives in rolls)
     if (isCarpetProduct(variantPickerProduct)) {
       setCarpetPickerData({ product: variantPickerProduct, variant });
       setVariantPickerProduct(null);
@@ -413,7 +411,6 @@ export default function PosPage() {
       return;
     }
 
-    // IMEI path
     if (productNeedsImei(variantPickerProduct)) {
       setImeiPickerData({ product: variantPickerProduct, variant });
       setVariantPickerProduct(null);
@@ -444,7 +441,6 @@ export default function PosPage() {
 
     const rollFullWidth = Number(roll.widthFt) + Number(roll.widthInch || 0) / 12;
 
-    // Build note — include rate info if custom
     let note = `Cut from ${roll.rollNumber}: ${data.customerWidthFt}ft × ${data.lengthFt}ft = ${data.cutSqft.toFixed(2)} sqft`;
     if (data.isCustomRate && data.originalRate && data.originalRate !== data.pricePerSqft) {
       note += ` @ Rs ${data.pricePerSqft.toFixed(2)}/sqft (Custom)`;
@@ -707,6 +703,18 @@ export default function PosPage() {
 
   const excludedImeis = cart.filter((c) => c.imeiId).map((c) => c.imeiId!);
 
+  // ─── Stats for header ──────────────────────────────────────
+  const outOfStockCount = useMemo(
+    () => products.filter((p) => {
+      if (isCarpetProduct(p)) {
+        const s = carpetSummaryMap.get(p.id);
+        return !s || s.totalSqft <= 0;
+      }
+      return p.stock <= 0;
+    }).length,
+    [products, carpetSummaryMap, isCarpetProduct],
+  );
+
   return (
     <>
       {scannerOpen && <BarcodeScanner onDetected={handleBarcodeScan} onClose={() => setScannerOpen(false)} />}
@@ -783,37 +791,54 @@ export default function PosPage() {
       {showCustomerAdd && (
         <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-slate-200 bg-gradient-to-br from-violet-50 to-pink-50 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <UserPlus className="h-5 w-5 text-violet-600" />
-                <h3 className="font-bold text-slate-900">Quick Add Customer</h3>
+            <div className="px-6 py-5 border-b border-slate-200 bg-gradient-to-br from-violet-600 via-purple-600 to-pink-600 text-white">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-11 w-11 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center shadow-lg">
+                    <UserPlus className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-lg">Quick Add Customer</h3>
+                    <p className="text-xs text-white/80 font-semibold">Naya customer add karein</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowCustomerAdd(false)}
+                  className="h-9 w-9 rounded-xl bg-white/15 hover:bg-white/25 backdrop-blur flex items-center justify-center transition"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               </div>
-              <button onClick={() => setShowCustomerAdd(false)} className="h-8 w-8 rounded-lg hover:bg-white/50 flex items-center justify-center">
-                <X className="h-4 w-4" />
-              </button>
             </div>
-            <div className="p-5 space-y-3">
+            <div className="p-6 space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-600 mb-1">Name *</label>
+                <label className="text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-1.5 inline-flex items-center gap-1.5">
+                  <User className="h-3 w-3 text-violet-600" />
+                  Name *
+                </label>
                 <input
                   autoFocus
                   value={newCustomer.name}
                   onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
                   placeholder="Customer name"
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm focus:outline-none focus:border-violet-500"
+                  className="h-12 w-full rounded-xl border-2 border-slate-200 px-4 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500 transition"
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-600 mb-1">Phone</label>
+                <label className="text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-1.5 inline-flex items-center gap-1.5">
+                  <Phone className="h-3 w-3 text-violet-600" />
+                  Phone
+                </label>
                 <input
                   value={newCustomer.phone}
                   onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })}
                   placeholder="03XXXXXXXXX"
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm focus:outline-none focus:border-violet-500"
+                  className="h-12 w-full rounded-xl border-2 border-slate-200 px-4 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500 transition"
                 />
               </div>
               <Button
-                className="w-full"
+                size="lg"
+                className="w-full bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-700 hover:to-purple-800 shadow-lg shadow-violet-500/30"
                 onClick={() => {
                   if (!newCustomer.name.trim()) { toast.error('Name zaroori hai'); return; }
                   addCustomerMutation.mutate({
@@ -840,93 +865,139 @@ export default function PosPage() {
       )}
 
       <div className="grid xl:grid-cols-[1.5fr_460px] gap-4 h-[calc(100vh-7rem)]">
-        {/* ============== PRODUCTS SIDE ============== */}
+        {/* ═══════════════ PRODUCTS SIDE ═══════════════ */}
         <section className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-          <div className="shrink-0 px-5 py-3 border-b border-slate-100 bg-white space-y-3">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center shadow-sm">
-                  <ShoppingCart className="h-4 w-4 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-base font-extrabold text-slate-900 leading-none">
-                    POS Counter
-                    {isCarpetBusiness && (
-                      <span className="ml-2 px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-emerald-100 text-emerald-700">
-                        CARPET
+          {/* ───── PREMIUM HEADER ───── */}
+          <div className="shrink-0 relative overflow-hidden bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 text-white">
+            <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-emerald-400/20 blur-2xl" />
+            <div className="absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-amber-400/15 blur-2xl" />
+
+            <div className="relative px-5 py-4 space-y-3">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="h-11 w-11 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center shadow-lg ring-2 ring-white/20 shrink-0">
+                    <ShoppingCart className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h2 className="text-lg font-extrabold leading-none">POS Counter</h2>
+                      {isCarpetBusiness && (
+                        <span className="px-2 py-0.5 rounded-md bg-emerald-500/30 backdrop-blur text-[9px] font-extrabold uppercase tracking-wider border border-emerald-300/40">
+                          🧶 Carpet
+                        </span>
+                      )}
+                      {isMobileBusiness && (
+                        <span className="px-2 py-0.5 rounded-md bg-blue-500/30 backdrop-blur text-[9px] font-extrabold uppercase tracking-wider border border-blue-300/40">
+                          📱 Mobile
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-white/80 flex items-center gap-1.5 mt-1 font-semibold">
+                      <Sparkles className="h-2.5 w-2.5 text-amber-300" />
+                      {tenant?.name || 'My Shop'}
+                      <span className="text-white/40">•</span>
+                      <span className="inline-flex items-center gap-0.5">
+                        <Package className="h-2.5 w-2.5" />
+                        {filteredProducts.length} products
                       </span>
-                    )}
-                  </h2>
-                  <p className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
-                    <Sparkles className="h-2.5 w-2.5 text-amber-500" />
-                    {filteredProducts.length} products
-                    {hasMore && ` (showing ${visibleProducts.length})`}
-                  </p>
+                      {hasMore && <span className="text-amber-300">(showing {visibleProducts.length})</span>}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {isCarpetBusiness && (
+                    <button
+                      onClick={() => {
+                        const carpetProduct = products.find(isCarpetProduct);
+                        if (carpetProduct) setCutPiecePickerData({ product: carpetProduct });
+                        else toast.error('Pehle koi carpet product banayein');
+                      }}
+                      className="h-9 px-3 rounded-xl bg-violet-500/30 hover:bg-violet-500/50 backdrop-blur text-white text-xs font-extrabold inline-flex items-center gap-1.5 transition border border-violet-300/40 shadow-md"
+                      title="Quick cut pieces"
+                    >
+                      <Scissors className="h-3.5 w-3.5" />
+                      Cut Pieces
+                    </button>
+                  )}
+
+                  {heldCarts.length > 0 && (
+                    <button
+                      onClick={() => setShowHeldCarts(true)}
+                      className="h-9 px-3 rounded-xl bg-amber-500/30 hover:bg-amber-500/50 backdrop-blur text-white text-xs font-extrabold inline-flex items-center gap-1.5 transition border border-amber-300/40 shadow-md relative"
+                    >
+                      <Pause className="h-3.5 w-3.5" />
+                      Held Carts
+                      <span className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-amber-500 text-white text-[10px] font-extrabold flex items-center justify-center shadow-lg ring-2 ring-emerald-900">
+                        {heldCarts.length}
+                      </span>
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => setHidePrices((v) => !v)}
+                    className="h-9 w-9 rounded-xl bg-white/15 hover:bg-white/25 backdrop-blur text-white flex items-center justify-center transition border border-white/20"
+                    title={hidePrices ? 'Show prices' : 'Hide prices (customer view)'}
+                  >
+                    {hidePrices ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                  </button>
                 </div>
               </div>
 
-              <div className="flex items-center gap-1.5">
-                {isCarpetBusiness && (
-                  <button
-                    onClick={() => {
-                      const carpetProduct = products.find(isCarpetProduct);
-                      if (carpetProduct) {
-                        setCutPiecePickerData({ product: carpetProduct });
-                      } else {
-                        toast.error('Pehle koi carpet product banayein');
-                      }
-                    }}
-                    className="h-9 px-2.5 rounded-lg bg-violet-100 hover:bg-violet-200 text-violet-800 text-xs font-bold inline-flex items-center gap-1"
-                    title="Quick access to cut pieces"
-                  >
-                    <Scissors className="h-3.5 w-3.5" /> Cut Pieces
-                  </button>
-                )}
-
-                {heldCarts.length > 0 && (
-                  <button
-                    onClick={() => setShowHeldCarts(true)}
-                    className="h-9 px-2.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-bold inline-flex items-center gap-1 relative"
-                  >
-                    <Pause className="h-3.5 w-3.5" /> Held
-                    <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-amber-600 text-white text-[9px] font-bold flex items-center justify-center">
-                      {heldCarts.length}
+              {/* Quick stats strip */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/10 backdrop-blur border border-white/15">
+                  <Store className="h-3 w-3 text-emerald-300" />
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider">
+                    {currentShopId ? 'Shop Active' : 'Select Shop'}
+                  </span>
+                </div>
+                {outOfStockCount > 0 && (
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-500/30 backdrop-blur border border-rose-300/40">
+                    <AlertTriangle className="h-3 w-3 text-rose-200" />
+                    <span className="text-[10px] font-extrabold text-white">
+                      {outOfStockCount} out of stock
                     </span>
-                  </button>
+                  </div>
                 )}
-
-                <button
-                  onClick={() => setHidePrices((v) => !v)}
-                  className="h-9 w-9 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center"
-                >
-                  {hidePrices ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-                </button>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/10 backdrop-blur border border-white/15">
+                  <ScanLine className="h-3 w-3 text-blue-300" />
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider">
+                    Barcode Ready
+                  </span>
+                </div>
               </div>
             </div>
+          </div>
 
+          {/* ───── SEARCH BAR ───── */}
+          <div className="shrink-0 px-5 py-3 bg-gradient-to-b from-slate-50/80 to-white border-b border-slate-100 space-y-2.5">
             <div className="flex gap-2">
               <div className="relative flex-1">
-                <Search className="h-3.5 w-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-9 text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
-                  placeholder="Search products..."
+                  className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white pl-10 pr-10 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition shadow-sm"
+                  placeholder="Search products by name, SKU, barcode..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
                 {search && (
-                  <button onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full hover:bg-slate-200 flex items-center justify-center">
-                    <X className="h-3 w-3 text-slate-500" />
+                  <button
+                    onClick={() => setSearch('')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 flex items-center justify-center transition"
+                  >
+                    <X className="h-3.5 w-3.5 text-slate-500" />
                   </button>
                 )}
               </div>
 
               <form onSubmit={handleBarcodeSubmit} className="flex gap-1.5">
                 <div className="relative">
-                  <ScanLine className="h-3.5 w-3.5 text-brand-600 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <ScanLine className="h-4 w-4 text-emerald-600 absolute left-3 top-1/2 -translate-y-1/2 z-10" />
                   <input
                     ref={barcodeRef}
-                    className="h-10 w-44 rounded-xl border-2 border-brand-300 bg-brand-50/40 pl-9 pr-3 text-xs font-mono font-bold focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500"
-                    placeholder="Barcode..."
+                    className="h-11 w-48 rounded-xl border-2 border-emerald-400 bg-gradient-to-br from-emerald-50 to-green-50 pl-10 pr-3 text-xs font-mono font-extrabold focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-600 transition shadow-sm placeholder:text-emerald-600/50"
+                    placeholder="Scan or type..."
                     value={barcodeInput}
                     onChange={(e) => setBarcodeInput(e.target.value)}
                   />
@@ -934,22 +1005,30 @@ export default function PosPage() {
                 <button
                   type="button"
                   onClick={() => setScannerOpen(true)}
-                  className="h-10 w-10 rounded-xl bg-slate-900 hover:bg-slate-800 text-white flex items-center justify-center"
+                  className="h-11 w-11 rounded-xl bg-gradient-to-br from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 text-white flex items-center justify-center transition shadow-lg"
+                  title="Open camera scanner"
                 >
-                  <Camera className="h-3.5 w-3.5" />
+                  <Camera className="h-4 w-4" />
                 </button>
               </form>
             </div>
 
+            {/* Categories */}
             {categories.length > 0 && (
-              <div className="flex gap-1.5 overflow-x-auto pb-1">
+              <div className="flex gap-1.5 overflow-x-auto pb-1 -mb-1">
                 <button
                   onClick={() => setSelectedCategoryId('')}
-                  className={`shrink-0 px-3 h-7 rounded-lg text-xs font-bold transition ${
-                    !selectedCategoryId ? 'bg-brand-600 text-white shadow' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  className={`shrink-0 px-3 h-8 rounded-xl text-xs font-extrabold transition inline-flex items-center gap-1.5 ${
+                    !selectedCategoryId
+                      ? 'bg-gradient-to-br from-emerald-600 to-emerald-700 text-white shadow-md shadow-emerald-500/30'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
                   }`}
                 >
-                  All ({products.length})
+                  <Sparkles className="h-3 w-3" />
+                  All
+                  <span className={`px-1 py-0 rounded text-[10px] ${!selectedCategoryId ? 'bg-white/20' : 'bg-slate-200'}`}>
+                    {products.length}
+                  </span>
                 </button>
                 {categories.map((cat: any) => {
                   const count = categoryCounts[cat.id] || 0;
@@ -959,17 +1038,29 @@ export default function PosPage() {
                     <button
                       key={cat.id}
                       onClick={() => setSelectedCategoryId(active ? '' : cat.id)}
-                      className={`shrink-0 px-3 h-7 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 transition border-2 ${
-                        active ? 'shadow' : 'opacity-70 hover:opacity-100'
+                      className={`shrink-0 px-3 h-8 rounded-xl text-xs font-extrabold inline-flex items-center gap-1.5 transition border-2 ${
+                        active ? 'shadow-md' : 'opacity-75 hover:opacity-100 hover:shadow'
                       }`}
                       style={{
                         backgroundColor: active ? cat.color : '#fff',
                         borderColor: active ? cat.color : '#e2e8f0',
                         color: active ? '#fff' : '#475569',
+                        boxShadow: active ? `0 4px 12px ${cat.color}40` : undefined,
                       }}
                     >
-                      <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: active ? '#fff' : cat.color }} />
-                      {cat.name} ({count})
+                      <span
+                        className="h-2 w-2 rounded-full ring-2"
+                        style={{
+                          backgroundColor: active ? '#fff' : cat.color,
+                          boxShadow: `0 0 0 2px ${active ? 'transparent' : 'rgba(255,255,255,0.5)'}`,
+                        }}
+                      />
+                      {cat.name}
+                      <span className={`px-1 py-0 rounded text-[10px] font-extrabold ${
+                        active ? 'bg-white/20' : 'bg-slate-100 text-slate-600'
+                      }`}>
+                        {count}
+                      </span>
                     </button>
                   );
                 })}
@@ -977,7 +1068,8 @@ export default function PosPage() {
             )}
           </div>
 
-          <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-3">
+          {/* ───── PRODUCTS GRID ───── */}
+          <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-3 bg-gradient-to-b from-slate-50/30 to-white">
             {productsLoading ? (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-2.5">
                 {Array.from({ length: 12 }).map((_, i) => (
@@ -986,17 +1078,21 @@ export default function PosPage() {
               </div>
             ) : filteredProducts.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 px-6">
-                <div className="h-16 w-16 rounded-2xl bg-slate-100 flex items-center justify-center">
-                  <Package className="h-8 w-8 text-slate-400" />
+                <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center shadow-inner">
+                  <Package className="h-10 w-10 text-slate-400" />
                 </div>
-                <h3 className="mt-3 font-bold text-slate-900">No products found</h3>
-                <p className="mt-1 text-xs text-slate-500 text-center max-w-xs">
-                  {search ? `No match for "${search}"` : selectedCategoryId ? 'No products in this category' : 'Add products first'}
+                <h3 className="mt-4 font-extrabold text-slate-900 text-lg">No products found</h3>
+                <p className="mt-1 text-xs text-slate-500 text-center max-w-xs font-semibold">
+                  {search
+                    ? `No match for "${search}"`
+                    : selectedCategoryId
+                    ? 'No products in this category'
+                    : 'Add products first'}
                 </p>
                 {(search || selectedCategoryId) && (
                   <button
                     onClick={() => { setSearch(''); setSelectedCategoryId(''); }}
-                    className="mt-3 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700"
+                    className="mt-4 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold transition shadow-md"
                   >
                     Clear filters
                   </button>
@@ -1010,16 +1106,13 @@ export default function PosPage() {
                       (c) => c.productId === product.id && !c.variantId && !c.imeiId && !c.rollId && !c.cutPieceId,
                     );
                     const isCarpet = isCarpetProduct(product);
-                    // ─── Carpet-aware stock check ─────────────
                     const carpetData = isCarpet ? carpetSummaryMap.get(product.id) : undefined;
                     const carpetSqft = carpetData?.totalSqft ?? 0;
                     const carpetRollCount = carpetData?.rollCount ?? 0;
-                    const outOfStock = isCarpet
-                      ? carpetSqft <= 0
-                      : product.stock <= 0;
+                    const outOfStock = isCarpet ? carpetSqft <= 0 : product.stock <= 0;
                     const lowStock = isCarpet
                       ? false
-                      : (product.stock > 0 && product.stock <= product.lowStockAlert);
+                      : product.stock > 0 && product.stock <= product.lowStockAlert;
                     const primaryImage = product.images?.[0]?.url;
                     const needsImei = productNeedsImei(product);
 
@@ -1028,78 +1121,117 @@ export default function PosPage() {
                         key={product.id}
                         onClick={() => addProductToCart(product)}
                         disabled={outOfStock}
-                        className={`group relative text-left rounded-xl border-2 transition-all overflow-hidden ${
+                        className={`group relative text-left rounded-2xl border-2 transition-all overflow-hidden ${
                           outOfStock
                             ? 'border-slate-200 bg-slate-50 opacity-60 cursor-not-allowed'
                             : inCart
-                            ? 'border-brand-500 bg-gradient-to-br from-brand-50 to-white shadow-md'
-                            : 'border-slate-200 bg-white hover:border-brand-400 hover:shadow-md'
+                            ? 'border-emerald-500 bg-gradient-to-br from-emerald-50 to-white shadow-lg shadow-emerald-500/20 ring-2 ring-emerald-200'
+                            : 'border-slate-200 bg-white hover:border-emerald-400 hover:shadow-lg hover:shadow-emerald-500/10 hover:-translate-y-0.5'
                         }`}
                       >
                         {inCart && (
-                          <div className="absolute -top-1.5 -right-1.5 h-6 w-6 rounded-full bg-brand-600 text-white text-[10px] font-bold flex items-center justify-center shadow-lg ring-2 ring-white z-10">
+                          <div className="absolute -top-2 -right-2 h-7 w-7 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 text-white text-xs font-extrabold flex items-center justify-center shadow-xl ring-2 ring-white z-10 animate-in zoom-in duration-200">
                             {inCart.quantity}
                           </div>
                         )}
 
-                        <div className="aspect-square bg-slate-100 overflow-hidden relative">
+                        <div className="aspect-square bg-gradient-to-br from-slate-50 to-slate-100 overflow-hidden relative">
                           {primaryImage ? (
-                            <img src={primaryImage} alt={product.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                            <img
+                              src={primaryImage}
+                              alt={product.name}
+                              loading="lazy"
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-brand-100 to-brand-200">
-                              <Package className="h-8 w-8 text-brand-400" />
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-100 via-white to-emerald-200">
+                              <Package className="h-10 w-10 text-emerald-400" />
                             </div>
                           )}
 
+                          {/* Stock badges (top-right) */}
                           {outOfStock ? (
-                            <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-rose-600 text-white shadow">OUT</div>
+                            <div className="absolute top-1.5 right-1.5 px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-rose-600 text-white shadow-lg ring-2 ring-white">
+                              OUT
+                            </div>
                           ) : lowStock ? (
-                            <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-500 text-white shadow">LOW</div>
+                            <div className="absolute top-1.5 right-1.5 px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-amber-500 text-white shadow-lg ring-2 ring-white animate-pulse">
+                              LOW
+                            </div>
                           ) : null}
 
-                          <div className="absolute bottom-1 left-1 flex gap-1">
+                          {/* Type badges (bottom-left) */}
+                          <div className="absolute bottom-1 left-1 flex gap-1 flex-wrap">
                             {isCarpet && (
-                              <div className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-emerald-600 text-white shadow inline-flex items-center gap-0.5">
+                              <div className="px-1.5 py-0.5 rounded-md text-[8px] font-extrabold bg-emerald-600 text-white shadow-md inline-flex items-center gap-0.5 ring-1 ring-emerald-300">
                                 <Layers className="h-2 w-2" /> ROLLS
                               </div>
                             )}
                             {product.hasVariants && !isCarpet && (
-                              <div className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-violet-600 text-white shadow inline-flex items-center gap-0.5">
+                              <div className="px-1.5 py-0.5 rounded-md text-[8px] font-extrabold bg-violet-600 text-white shadow-md inline-flex items-center gap-0.5 ring-1 ring-violet-300">
                                 <Layers className="h-2 w-2" /> VAR
                               </div>
                             )}
                             {needsImei && (
-                              <div className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-blue-600 text-white shadow inline-flex items-center gap-0.5">
+                              <div className="px-1.5 py-0.5 rounded-md text-[8px] font-extrabold bg-blue-600 text-white shadow-md inline-flex items-center gap-0.5 ring-1 ring-blue-300">
                                 <Smartphone className="h-2 w-2" /> IMEI
                               </div>
                             )}
+                            {product.isFeatured && (
+                              <div className="px-1.5 py-0.5 rounded-md text-[8px] font-extrabold bg-amber-500 text-white shadow-md inline-flex items-center gap-0.5 ring-1 ring-amber-300">
+                                <Star className="h-2 w-2 fill-white" />
+                              </div>
+                            )}
                           </div>
+
+                          {/* Hover overlay (Add icon) */}
+                          {!outOfStock && !inCart && (
+                            <div className="absolute inset-0 bg-emerald-900/0 group-hover:bg-emerald-900/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                              <div className="h-10 w-10 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-xl scale-90 group-hover:scale-100 transition-transform">
+                                <Plus className="h-5 w-5" />
+                              </div>
+                            </div>
+                          )}
                         </div>
 
                         <div className="p-2">
-                          <div className="font-bold text-slate-900 text-xs line-clamp-2 leading-tight min-h-[2rem]">{product.name}</div>
+                          <div className="font-extrabold text-slate-900 text-xs line-clamp-2 leading-tight min-h-[2rem]">
+                            {product.name}
+                          </div>
                           {product.category && (
-                            <span className="inline-block mt-1 px-1 py-0.5 rounded text-[8px] font-bold text-white" style={{ backgroundColor: product.category.color }}>
+                            <span
+                              className="mt-1 inline-flex px-1.5 py-0.5 rounded text-[8px] font-extrabold text-white tracking-wide"
+                              style={{ backgroundColor: product.category.color }}
+                            >
                               {product.category.name}
                             </span>
                           )}
-                          <div className="mt-1 flex items-end justify-between">
-                            <div className="text-sm font-extrabold text-slate-900 leading-none">
-                              {hidePrices ? '••••' : formatPKR(product.price)}
-                              {isCarpet && <span className="text-[9px] text-slate-500 ml-0.5">/{product.unit}</span>}
+                          <div className="mt-1.5 flex items-end justify-between gap-1">
+                            <div>
+                              <div className="text-sm font-extrabold text-emerald-700 leading-none tabular-nums">
+                                {hidePrices ? '••••' : formatPKR(product.price)}
+                                {isCarpet && <span className="text-[9px] text-slate-500 ml-0.5 font-bold">/{product.unit}</span>}
+                              </div>
+                              {!isCarpet && product.wholesalePrice && product.wholesalePrice < product.price && !hidePrices && (
+                                <div className="text-[9px] text-violet-700 font-bold mt-0.5">
+                                  W: {formatPKR(product.wholesalePrice)}
+                                </div>
+                              )}
                             </div>
-                            <div className="text-[9px] text-slate-500 font-medium text-right">
+                            <div className="text-[9px] text-right shrink-0">
                               {isCarpet ? (
                                 <div>
-                                  <div className="text-emerald-700 font-extrabold">
+                                  <div className="text-emerald-700 font-extrabold tabular-nums">
                                     {carpetSqft.toFixed(0)} {product.unit}
                                   </div>
-                                  <div className="text-[8px]">
+                                  <div className="text-[8px] text-slate-500 font-bold">
                                     {carpetRollCount} roll{carpetRollCount !== 1 ? 's' : ''}
                                   </div>
                                 </div>
                               ) : (
-                                `${product.stock.toFixed(product.stock % 1 === 0 ? 0 : 2)} ${product.unit}`
+                                <div className={`font-extrabold tabular-nums ${outOfStock ? 'text-rose-700' : lowStock ? 'text-amber-700' : 'text-slate-700'}`}>
+                                  {product.stock.toFixed(product.stock % 1 === 0 ? 0 : 2)} {product.unit}
+                                </div>
                               )}
                             </div>
                           </div>
@@ -1113,9 +1245,11 @@ export default function PosPage() {
                   <div className="mt-4 text-center">
                     <button
                       onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
-                      className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold"
+                      className="px-5 py-2.5 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 hover:from-slate-200 hover:to-slate-300 text-slate-700 text-sm font-extrabold transition shadow-sm inline-flex items-center gap-2"
                     >
-                      Load more ({filteredProducts.length - visibleCount} remaining)
+                      <Package className="h-3.5 w-3.5" />
+                      Load {Math.min(PAGE_SIZE, filteredProducts.length - visibleCount)} more
+                      <span className="text-xs text-slate-500">({filteredProducts.length - visibleCount} remaining)</span>
                     </button>
                   </div>
                 )}
@@ -1124,40 +1258,73 @@ export default function PosPage() {
           </div>
         </section>
 
-        {/* ============== CART SIDE ============== */}
+        {/* ═══════════════ CART SIDE ═══════════════ */}
         <aside className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-          <div className="shrink-0 px-5 py-4 border-b border-slate-100 bg-gradient-to-br from-slate-950 to-brand-800 text-white">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-0.5 text-[10px] font-semibold">
-                  <Receipt className="h-2.5 w-2.5" /> Cart
+          {/* ───── CART HEADER ───── */}
+          <div className="shrink-0 relative overflow-hidden bg-gradient-to-br from-slate-950 via-brand-900 to-brand-700 text-white">
+            <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-brand-400/20 blur-2xl" />
+            <div className="absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-emerald-400/15 blur-2xl" />
+
+            <div className="relative px-5 py-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider border border-white/20">
+                    <Receipt className="h-2.5 w-2.5 text-amber-300" />
+                    Cart
+                  </div>
+                  <h3 className="mt-1.5 text-2xl font-extrabold tabular-nums">
+                    {totalItems.toFixed(totalItems % 1 === 0 ? 0 : 2)}
+                    <span className="text-sm font-bold text-white/70 ml-1">items</span>
+                  </h3>
+                  <p className="text-[11px] text-white/70 mt-0.5 font-semibold">
+                    {cart.length} line{cart.length !== 1 ? 's' : ''}
+                    {totalItems > 0 && (
+                      <span className="ml-2 inline-flex items-center gap-1">
+                        <span className="text-white/40">•</span>
+                        <TrendingUp className="h-2.5 w-2.5 text-emerald-300" />
+                        <span className="text-emerald-300 font-extrabold">{formatPKR(total)}</span>
+                      </span>
+                    )}
+                  </p>
                 </div>
-                <h3 className="mt-1.5 text-xl font-bold">{totalItems.toFixed(totalItems % 1 === 0 ? 0 : 2)} items</h3>
-                <p className="text-[11px] text-white/70 mt-0.5">{cart.length} lines</p>
-              </div>
-              <div className="flex gap-1.5">
-                {cart.length > 0 && (
-                  <>
-                    <button onClick={holdCurrentCart} className="px-2.5 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 text-[11px] font-bold inline-flex items-center gap-1">
-                      <Pause className="h-3 w-3" /> Hold
-                    </button>
-                    <button onClick={() => { if (confirm('Clear cart?')) resetCart(); }} className="px-2.5 py-1.5 rounded-lg bg-white/15 hover:bg-white/25 text-[11px] font-bold">
-                      Clear
-                    </button>
-                  </>
-                )}
+                <div className="flex gap-1.5 shrink-0">
+                  {cart.length > 0 && (
+                    <>
+                      <button
+                        onClick={holdCurrentCart}
+                        className="px-3 py-2 rounded-xl bg-amber-500/30 hover:bg-amber-500/50 backdrop-blur text-white text-[11px] font-extrabold inline-flex items-center gap-1.5 transition border border-amber-300/40 shadow-md"
+                      >
+                        <Pause className="h-3 w-3" />
+                        Hold
+                      </button>
+                      <button
+                        onClick={() => { if (confirm('Clear cart?')) resetCart(); }}
+                        className="px-3 py-2 rounded-xl bg-white/15 hover:bg-rose-500/40 backdrop-blur text-white text-[11px] font-extrabold transition border border-white/20"
+                      >
+                        Clear
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto">
-            <div className="p-3 border-b border-slate-100 space-y-2">
+          {/* ───── CART BODY ───── */}
+          <div className="flex-1 overflow-y-auto bg-gradient-to-b from-slate-50/30 to-white">
+            {/* Customer selector */}
+            <div className="p-3 border-b border-slate-100 bg-white space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                  <User className="h-3 w-3" /> Customer / Khata
+                <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+                  <User className="h-3 w-3 text-violet-600" />
+                  Customer / Khata
                 </label>
-                <button onClick={() => setShowCustomerAdd(true)} className="text-[10px] font-bold text-violet-600 hover:text-violet-700 inline-flex items-center gap-1">
-                  <UserPlus className="h-3 w-3" /> Quick Add
+                <button
+                  onClick={() => setShowCustomerAdd(true)}
+                  className="text-[10px] font-extrabold text-violet-600 hover:text-violet-700 inline-flex items-center gap-1 transition"
+                >
+                  <UserPlus className="h-3 w-3" />
+                  Quick Add
                 </button>
               </div>
 
@@ -1166,12 +1333,14 @@ export default function PosPage() {
                 <select
                   value={customerId}
                   onChange={(e) => setCustomerId(e.target.value)}
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-9 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand-500/30 appearance-none"
+                  className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white pl-9 pr-9 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500 appearance-none transition shadow-sm"
                 >
                   <option value="">Walk-in Customer</option>
                   {customers.map((customer) => (
                     <option key={customer.id} value={customer.id}>
-                      {customer.name}{customer.phone ? ` • ${customer.phone}` : ''}{customer.balance > 0 ? ` • Udhaar: ${formatPKR(customer.balance)}` : ''}
+                      {customer.name}
+                      {customer.phone ? ` • ${customer.phone}` : ''}
+                      {customer.balance > 0 ? ` • Udhaar: ${formatPKR(customer.balance)}` : ''}
                     </option>
                   ))}
                 </select>
@@ -1179,58 +1348,91 @@ export default function PosPage() {
               </div>
 
               {selectedCustomer && customerCreditSummary && (
-                <div className="rounded-xl bg-gradient-to-br from-violet-50 via-white to-amber-50 border border-violet-200 overflow-hidden">
-                  <div className="p-2 bg-gradient-to-r from-violet-600 to-violet-700 text-white">
+                <div className="rounded-2xl bg-gradient-to-br from-violet-50 via-white to-amber-50 border-2 border-violet-200 overflow-hidden shadow-sm">
+                  <div className="p-2.5 bg-gradient-to-r from-violet-600 to-purple-700 text-white">
                     <div className="flex items-center gap-2">
-                      <div className="h-7 w-7 rounded-lg bg-white/20 flex items-center justify-center text-xs font-bold">
+                      <div className="h-9 w-9 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center text-sm font-extrabold ring-2 ring-white/30 shrink-0">
                         {selectedCustomer.name.charAt(0).toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-bold truncate text-xs">{selectedCustomer.name}</div>
+                        <div className="font-extrabold truncate text-sm flex items-center gap-1">
+                          {selectedCustomer.name}
+                          {selectedCustomer.isVip && (
+                            <Crown className="h-3 w-3 text-amber-300 fill-amber-300" />
+                          )}
+                        </div>
                         {selectedCustomer.phone && (
-                          <div className="text-[9px] text-white/80 flex items-center gap-1">
-                            <Phone className="h-2 w-2" /> {selectedCustomer.phone}
+                          <div className="text-[10px] text-white/85 flex items-center gap-1 font-semibold">
+                            <Phone className="h-2 w-2" />
+                            {selectedCustomer.phone}
                           </div>
                         )}
                       </div>
                       {customerCreditSummary.currentBalance > 0 && (
-                        <div className="text-right">
-                          <div className="text-[8px] text-white/70 font-semibold uppercase">Udhaar</div>
-                          <div className="text-sm font-extrabold text-amber-300">{formatPKR(customerCreditSummary.currentBalance)}</div>
+                        <div className="text-right shrink-0">
+                          <div className="text-[8px] text-white/70 font-extrabold uppercase tracking-wider">Udhaar</div>
+                          <div className="text-sm font-extrabold text-amber-300 tabular-nums">
+                            {formatPKR(customerCreditSummary.currentBalance)}
+                          </div>
                         </div>
                       )}
                     </div>
                   </div>
                   <div className="grid grid-cols-3 divide-x divide-violet-100">
-                    <div className="p-1.5 text-center">
-                      <div className="text-[8px] text-slate-500 font-bold uppercase">Aaj</div>
-                      <div className="text-xs font-extrabold text-slate-900">{customerCreditSummary.todaySalesCount}</div>
-                    </div>
-                    <div className="p-1.5 text-center bg-emerald-50/40">
-                      <div className="text-[8px] text-emerald-700 font-bold uppercase flex items-center justify-center gap-0.5">
-                        <ArrowDownCircle className="h-2 w-2" /> Paid
+                    <div className="p-2 text-center">
+                      <div className="text-[8px] text-slate-500 font-extrabold uppercase tracking-wider">Aaj</div>
+                      <div className="text-sm font-extrabold text-slate-900 tabular-nums">
+                        {customerCreditSummary.todaySalesCount}
                       </div>
-                      <div className="text-[10px] font-extrabold text-emerald-700">{formatPKR(customerCreditSummary.todayPaid)}</div>
                     </div>
-                    <div className="p-1.5 text-center bg-amber-50/40">
-                      <div className="text-[8px] text-amber-700 font-bold uppercase flex items-center justify-center gap-0.5">
-                        <ArrowUpCircle className="h-2 w-2" /> Udhaar
+                    <div className="p-2 text-center bg-emerald-50/50">
+                      <div className="text-[8px] text-emerald-700 font-extrabold uppercase tracking-wider flex items-center justify-center gap-0.5">
+                        <ArrowDownCircle className="h-2 w-2" />
+                        Paid
                       </div>
-                      <div className="text-[10px] font-extrabold text-amber-700">{formatPKR(customerCreditSummary.todayCredit)}</div>
+                      <div className="text-[11px] font-extrabold text-emerald-700 tabular-nums">
+                        {formatPKR(customerCreditSummary.todayPaid)}
+                      </div>
+                    </div>
+                    <div className="p-2 text-center bg-amber-50/50">
+                      <div className="text-[8px] text-amber-700 font-extrabold uppercase tracking-wider flex items-center justify-center gap-0.5">
+                        <ArrowUpCircle className="h-2 w-2" />
+                        Udhaar
+                      </div>
+                      <div className="text-[11px] font-extrabold text-amber-700 tabular-nums">
+                        {formatPKR(customerCreditSummary.todayCredit)}
+                      </div>
                     </div>
                   </div>
                 </div>
               )}
             </div>
 
+            {/* Cart lines */}
             <div className="p-3 space-y-1.5">
               {cart.length === 0 ? (
-                <div className="rounded-xl bg-slate-50 border-2 border-dashed border-slate-200 p-6 text-center">
-                  <div className="h-12 w-12 rounded-2xl bg-white mx-auto flex items-center justify-center">
-                    <ShoppingCart className="h-6 w-6 text-slate-400" />
+                <div className="rounded-2xl bg-gradient-to-br from-slate-50 to-white border-2 border-dashed border-slate-200 p-8 text-center">
+                  <div className="h-14 w-14 rounded-2xl bg-white mx-auto flex items-center justify-center shadow-inner ring-1 ring-slate-200">
+                    <ShoppingCart className="h-7 w-7 text-slate-400" />
                   </div>
-                  <p className="mt-2 font-bold text-slate-700 text-sm">Cart empty</p>
-                  <p className="text-[10px] text-slate-500 mt-0.5">Click products or scan barcode</p>
+                  <p className="mt-3 font-extrabold text-slate-700 text-sm">Cart empty</p>
+                  <p className="text-[11px] text-slate-500 mt-1 font-semibold">
+                    Click products or scan barcode to add
+                  </p>
+                  <div className="mt-4 flex items-center justify-center gap-2 flex-wrap">
+                    <div className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-[10px] font-extrabold text-emerald-700">
+                      <ScanLine className="h-2.5 w-2.5" />
+                      Scan
+                    </div>
+                    <div className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-50 border border-blue-200 text-[10px] font-extrabold text-blue-700">
+                      <Search className="h-2.5 w-2.5" />
+                      Search
+                    </div>
+                    <div className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-violet-50 border border-violet-200 text-[10px] font-extrabold text-violet-700">
+                      <Sparkles className="h-2.5 w-2.5" />
+                      Click
+                    </div>
+                  </div>
                 </div>
               ) : (
                 cart.map((item) => (
@@ -1250,6 +1452,7 @@ export default function PosPage() {
             </div>
           </div>
 
+          {/* ───── CHECKOUT PANEL ───── */}
           {cart.length > 0 && (
             <PosCheckoutPanel
               cart={cart}
