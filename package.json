@@ -9,7 +9,13 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "desktop:dev": "pnpm --filter @nafaa/desktop dev",
+    "desktop:build": "pnpm --filter @nafaa/web build && pnpm --filter @nafaa/desktop build",
+    "desktop:build:win": "pnpm --filter @nafaa/web build && pnpm --filter @nafaa/desktop build:win",
+    "desktop:build:mac": "pnpm --filter @nafaa/web build && pnpm --filter @nafaa/desktop build:mac",
+    "desktop:build:linux": "pnpm --filter @nafaa/web build && pnpm --filter @nafaa/desktop build:linux",
+    "desktop:clean": "pnpm --filter @nafaa/desktop clean"
   },
   "devDependencies": {
     "prettier": "^3.6.2",
@@ -25,6 +31,7 @@
       "@prisma/engines",
       "@scarf/scarf",
       "bcrypt",
+      "electron",
       "esbuild",
       "msgpackr-extract",
       "prisma",

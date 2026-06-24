@@ -6,6 +6,7 @@ import { authApi } from '@/api/auth.api';
 import { Sidebar } from './parts/Sidebar';
 import { MobileSidebar } from './parts/MobileSidebar';
 import { Topbar } from './parts/Topbar';
+import { DesktopUpdateBanner } from '@/features/desktop/components/DesktopUpdateBanner';
 
 export default function AppShell() {
   const navigate = useNavigate();
@@ -60,7 +61,8 @@ export default function AppShell() {
           />
 
           <main className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 print:p-0 print:overflow-visible">
-            <Outlet />
+            <DesktopUpdateBanner />
+        <Outlet />
           </main>
         </div>
       </div>

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, Sparkles, ChevronDown } from 'lucide-react';
+import { Menu, X, Sparkles, Download } from 'lucide-react';
 import { useLocale } from '@/components/providers/LocaleProvider';
 import { Button } from '@/components/ui/Button';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
@@ -32,6 +32,7 @@ export function Header() {
     { href: '/features', label: t('nav.features') },
     { href: '/pricing', label: t('nav.pricing') },
     { href: '/industries', label: t('nav.industries') },
+    { href: '/download', label: 'Download', highlight: true },
     { href: '/about', label: t('nav.about') },
     { href: '/blog', label: t('nav.blog') },
     { href: '/contact', label: t('nav.contact') },
@@ -42,9 +43,7 @@ export function Header() {
       <header
         className={cn(
           'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
-          scrolled
-            ? 'glass shadow-lg shadow-slate-900/5'
-            : 'bg-transparent',
+          scrolled ? 'glass shadow-lg shadow-slate-900/5' : 'bg-transparent',
         )}
       >
         <div className="container-custom">
@@ -52,7 +51,6 @@ export function Header() {
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2.5 group">
               <Logo size={40} className="drop-shadow-lg" />
-
               <div className="hidden sm:block">
                 <div className={cn('text-xl font-extrabold tracking-tight', locale === 'ur' && 'font-urdu')}>
                   {locale === 'ur' ? 'نفع' : 'Nafaa'}
@@ -72,13 +70,16 @@ export function Header() {
                     key={l.href}
                     href={l.href}
                     className={cn(
-                      'px-4 py-2 rounded-lg text-sm font-semibold transition-colors',
+                      'px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-1.5',
                       active
                         ? 'text-brand-700 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/40'
-                        : 'text-slate-700 dark:text-slate-300 hover:text-brand-700 dark:hover:text-brand-400 hover:bg-slate-50 dark:hover:bg-slate-800',
+                        : l.highlight
+                          ? 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100'
+                          : 'text-slate-700 dark:text-slate-300 hover:text-brand-700 dark:hover:text-brand-400 hover:bg-slate-50 dark:hover:bg-slate-800',
                       locale === 'ur' && 'font-urdu text-base',
                     )}
                   >
+                    {l.highlight && <Download className="h-3.5 w-3.5" />}
                     {l.label}
                   </Link>
                 );
@@ -142,13 +143,16 @@ export function Header() {
                   key={l.href}
                   href={l.href}
                   className={cn(
-                    'block px-5 py-3 text-base font-semibold border-l-4',
+                    'flex items-center gap-2 px-5 py-3 text-base font-semibold border-l-4',
                     pathname === l.href
                       ? 'border-brand-500 text-brand-700 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/30'
-                      : 'border-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900',
+                      : l.highlight
+                        ? 'border-emerald-500 text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30'
+                        : 'border-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900',
                     locale === 'ur' && 'font-urdu text-lg',
                   )}
                 >
+                  {l.highlight && <Download className="h-4 w-4" />}
                   {l.label}
                 </Link>
               ))}
