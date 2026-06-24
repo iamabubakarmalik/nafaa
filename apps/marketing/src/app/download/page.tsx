@@ -6,6 +6,8 @@ import {
 } from 'lucide-react';
 import { Container } from '@/components/ui/Container';
 import { Button } from '@/components/ui/Button';
+import { Header } from '@/components/layout/Header';
+import { Footer } from '@/components/layout/Footer';
 
 export const metadata: Metadata = {
   title: 'Download Nafaa Desktop App — Pakistan ka POS Solution',
@@ -102,6 +104,7 @@ export default function DownloadPage() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-white via-emerald-50/30 to-white">
       {/* Hero */}
+      <Header />
       <section className="pt-20 pb-12">
         <Container>
           <div className="text-center max-w-3xl mx-auto">
@@ -396,6 +399,7 @@ export default function DownloadPage() {
           </div>
         </Container>
       </section>
+      <Footer />
     </main>
   );
 }
