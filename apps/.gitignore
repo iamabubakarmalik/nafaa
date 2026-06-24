@@ -1,0 +1,5 @@
+
+# Electron build outputs (uploaded to GitHub Releases instead)
+apps/desktop/release/
+apps/desktop/dist/
+apps/desktop/out/
