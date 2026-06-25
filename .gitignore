@@ -69,3 +69,8 @@ apps/api/uploads/
 
 # Local development
 *.local
+
+# Electron build outputs
+apps/desktop/release/
+apps/desktop/dist/
+apps/desktop/out/
