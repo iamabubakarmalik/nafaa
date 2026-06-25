@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   },
 };
 
-const APP_VERSION = '1.0.3';
+const APP_VERSION = '1.0.4';
 const GITHUB_REPO = 'iamabubakarmalik/nafaa';
 const RELEASE_BASE = `https://github.com/${GITHUB_REPO}/releases/latest/download`;
 

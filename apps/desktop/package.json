@@ -1,6 +1,6 @@
 {
   "name": "@nafaa/desktop",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Nafaa Desktop App — Offline-first POS for Pakistan",
   "main": "dist/main/index.js",
   "author": {
@@ -118,7 +118,7 @@
     },
     "publish": {
       "provider": "github",
-      "owner": "abubakarmalik",
+      "owner": "iamabubakarmalik",
       "repo": "nafaa",
       "releaseType": "release"
     }
