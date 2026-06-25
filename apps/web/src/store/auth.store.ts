@@ -76,7 +76,13 @@ export const useAuthStore = create<AuthState>()(
           user: state.user ? { ...state.user, ...patch } : null,
         })),
       setCurrentShop: (shopId) => set({ currentShopId: shopId }),
-      logout: () =>
+      logout: async () => {
+        try {
+          const { clearAllOfflineData } = await import('@/lib/offline/db');
+          await clearAllOfflineData();
+        } catch (e) {
+          console.warn('Failed to clear offline data:', e);
+        }
         set({
           accessToken: null,
           refreshToken: null,
@@ -84,7 +90,8 @@ export const useAuthStore = create<AuthState>()(
           tenant: null,
           isAuthenticated: false,
           currentShopId: null,
-        }),
+        });
+      },
     }),
     { name: 'nafaa-auth' },
   ),

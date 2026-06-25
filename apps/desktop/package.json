@@ -1,6 +1,6 @@
 {
   "name": "@nafaa/desktop",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Nafaa Desktop App — Offline-first POS for Pakistan",
   "main": "dist/main/index.js",
   "author": {

@@ -4,6 +4,7 @@ import NotificationBell from '@/components/notifications/NotificationBell';
 import ShopSelector from '@/components/shops/ShopSelector';
 import { ProfileDropdown } from './ProfileDropdown';
 import { QuickActionsDropdown } from './QuickActionsDropdown';
+import { SyncStatusIndicator } from '@/components/offline/SyncStatusIndicator';
 
 interface Props {
   user: any;
@@ -16,11 +17,12 @@ export function Topbar({ user, tenant, onOpenMobileSidebar, onLogout }: Props) {
   return (
     <header className="sticky top-0 z-30 shrink-0 border-b border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 print:hidden">
       <div className="px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-        {/* Left */}
+        {/* ─── LEFT ─── */}
         <div className="flex items-center gap-3 min-w-0 flex-1">
           <button
             onClick={onOpenMobileSidebar}
             className="lg:hidden h-10 w-10 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center shrink-0 transition"
+            aria-label="Open menu"
           >
             <Menu className="h-5 w-5" />
           </button>
@@ -42,32 +44,51 @@ export function Topbar({ user, tenant, onOpenMobileSidebar, onLogout }: Props) {
           </div>
         </div>
 
-        {/* Right */}
-        <div className="flex items-center gap-2 shrink-0">
+        {/* ─── RIGHT ─── */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {/* Global Search (desktop) */}
           <div className="hidden md:block">
             <GlobalSearch />
           </div>
 
+          {/* Search button (mobile) */}
           <button
             className="md:hidden h-10 w-10 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition"
             onClick={() => {
               const evt = new KeyboardEvent('keydown', { key: 'k', metaKey: true });
               document.dispatchEvent(evt);
             }}
-            title="Search"
+            title="Search (⌘K)"
+            aria-label="Search"
           >
             <Search className="h-4 w-4 text-slate-600" />
           </button>
 
-          <ShopSelector />
-          <QuickActionsDropdown role={user?.role} permissions={user?.permissions} />
-
-          <div className="relative">
-            <NotificationBell />
+          {/* Shop selector */}
+          <div className="hidden sm:block">
+            <ShopSelector />
           </div>
 
+          {/* Quick actions */}
+          <QuickActionsDropdown role={user?.role} permissions={user?.permissions} />
+
+          {/* Sync status — separate, NOT wrapped with bell */}
+          <SyncStatusIndicator />
+
+          {/* Notification bell */}
+          <NotificationBell />
+
+          {/* Divider */}
+          <div className="hidden sm:block h-8 w-px bg-slate-200 mx-1" />
+
+          {/* Profile */}
           <ProfileDropdown user={user} tenant={tenant} onLogout={onLogout} />
         </div>
+      </div>
+
+      {/* Mobile shop selector strip */}
+      <div className="sm:hidden border-t border-slate-100 px-4 py-2 bg-slate-50/50">
+        <ShopSelector />
       </div>
     </header>
   );

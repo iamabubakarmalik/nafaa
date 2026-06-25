@@ -1,8 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { salesApi, type CreateSaleItem, type PaymentMethod } from '@/api/sales.api';
+import { type CreateSaleItem, type PaymentMethod } from '@/api/sales.api';
+import { offlineSalesApi } from '@/lib/offline/offlineSales';
 import { carpetRollsApi } from '@/features/industries/carpet/api/carpet-rolls.api';
 import { carpetCutPiecesApi } from '@/features/industries/carpet/api/carpet-cut-pieces.api';
+import { decrementCachedRoll, markCachedCutPieceSold } from '@/lib/offline/offlineCarpet';
 import { formatPKR } from '@/lib/format';
 import type { CartItem } from '../components/pos-types';
 
@@ -25,20 +27,9 @@ type CheckoutResult = {
   customerId: string | null;
   customerName: string | null;
   customerPhone: string | null;
+  isOffline: boolean;
 };
 
-
-/**
- * Carpet POS checkout flow:
- * 1. For each carpet roll line — call `rolls/:id/cut` (creates leftover piece if needed)
- * 2. For each cut piece line — call `cut-pieces/:id/mark-sold` (we don't decrement; sale handles it)
- * 3. Create sale with priceOverride + note for full traceability
- *
- * Atomicity strategy:
- * - We collect roll cuts first. If ANY fails, we abort and inform user.
- * - Backend rolls' `cut` endpoint already wraps roll-update + movement + leftover in a Prisma transaction.
- * - If sale creation fails after cuts succeed, we surface a clear error so admin can void manually.
- */
 export function usePosCheckout(onSuccess?: (result: CheckoutResult) => void) {
   const queryClient = useQueryClient();
 
@@ -46,15 +37,14 @@ export function usePosCheckout(onSuccess?: (result: CheckoutResult) => void) {
     mutationFn: async (payload: CheckoutPayload): Promise<CheckoutResult> => {
       const { shopId, customerId, paymentMethod, paidAmount, discount, cart } = payload;
 
-      // ─── Pre-flight validation ─────────────────────────────
       if (cart.length === 0) throw new Error('Cart khaali hai');
       if (!shopId) throw new Error('Shop ID missing');
 
-      // Separate carpet items from normal items
+      const isOnline = navigator.onLine;
       const rollCutItems = cart.filter((c) => c.rollId);
       const cutPieceItems = cart.filter((c) => c.cutPieceId);
 
-      // ─── PHASE 1: Cut all carpet rolls (sequential, with rollback list) ───
+      // ─── ONLINE: Cut rolls via API ────────────────────
       const successfulCuts: Array<{
         rollId: string;
         rollNumber: string;
@@ -62,62 +52,62 @@ export function usePosCheckout(onSuccess?: (result: CheckoutResult) => void) {
         leftoverPieceId?: string;
       }> = [];
 
-      for (const item of rollCutItems) {
-        try {
-          const cutResult = await carpetRollsApi.cut(item.rollId!, {
-            lengthFt: item.cutLengthFt!,
-            customerWidthFt: item.rollCustomerWidthFt,
-            createLeftoverPiece: item.createLeftover ?? true,
-            note: `POS sale${customerId ? ' (Customer linked)' : ''}`,
-          });
+      if (isOnline && rollCutItems.length > 0) {
+        for (const item of rollCutItems) {
+          try {
+            const cutResult = await carpetRollsApi.cut(item.rollId!, {
+              lengthFt: item.cutLengthFt!,
+              customerWidthFt: item.rollCustomerWidthFt,
+              createLeftoverPiece: item.createLeftover ?? true,
+              note: `POS sale${customerId ? ' (Customer linked)' : ''}`,
+            });
 
-          successfulCuts.push({
-            rollId: item.rollId!,
-            rollNumber: item.rollNumber!,
-            lengthFt: item.cutLengthFt!,
-            leftoverPieceId: cutResult.leftoverPiece?.id,
-          });
-        } catch (err: any) {
-          // Cut failed — try to revert previous cuts
-          const errMsg = err?.response?.data?.message || `${item.rollNumber} se cut nahi ho saka`;
-
-          if (successfulCuts.length > 0) {
-            await revertCuts(successfulCuts);
-            throw new Error(
-              `${errMsg}\n\n${successfulCuts.length} previous cut(s) revert ho gayi hain.`,
-            );
+            successfulCuts.push({
+              rollId: item.rollId!,
+              rollNumber: item.rollNumber!,
+              lengthFt: item.cutLengthFt!,
+              leftoverPieceId: cutResult.leftoverPiece?.id,
+            });
+          } catch (err: any) {
+            const errMsg = err?.response?.data?.message || `${item.rollNumber} se cut nahi ho saka`;
+            if (successfulCuts.length > 0) {
+              await revertCuts(successfulCuts);
+              throw new Error(`${errMsg}\n\n${successfulCuts.length} previous cut(s) revert ho gayi hain.`);
+            }
+            throw new Error(errMsg);
           }
-          throw new Error(errMsg);
         }
       }
 
-      // ─── PHASE 2: Mark cut pieces as reserved (will be sold via sale) ───
-      // We use mark-sold AFTER sale creation. Pre-validate availability here.
-      for (const item of cutPieceItems) {
-        try {
-          const piece = await carpetCutPiecesApi.getOne(item.cutPieceId!);
-          if (piece.status !== 'AVAILABLE') {
+      // Validate cut pieces (online only)
+      if (isOnline && cutPieceItems.length > 0) {
+        for (const item of cutPieceItems) {
+          try {
+            const piece = await carpetCutPiecesApi.getOne(item.cutPieceId!);
+            if (piece.status !== 'AVAILABLE') {
+              if (successfulCuts.length > 0) await revertCuts(successfulCuts);
+              throw new Error(`Cut piece ${piece.pieceCode} pehle hi sold ya reserved hai`);
+            }
+          } catch (err: any) {
             if (successfulCuts.length > 0) await revertCuts(successfulCuts);
-            throw new Error(`Cut piece ${piece.pieceCode} pehle hi sold ya reserved hai`);
+            throw new Error(err?.response?.data?.message || err?.message || 'Cut piece check failed');
           }
-        } catch (err: any) {
-          if (successfulCuts.length > 0) await revertCuts(successfulCuts);
-          throw new Error(err?.response?.data?.message || err?.message || 'Cut piece check failed');
         }
       }
 
-      // ─── PHASE 3: Build sale items + create sale ───────────
+      // ─── Build sale items ───────────────────────────────
       const saleItems: CreateSaleItem[] = cart.map((item) => {
         const baseUnitPrice =
           item.priceOverride ??
           (item.useWholesale ? item.wholesalePrice ?? item.basePrice : item.basePrice);
 
-        // Build descriptive note for traceability
         let note = item.note;
         if (item.rollId && item.rollNumber) {
           note = `Cut from ${item.rollNumber}: ${item.cutWidthFt}ft × ${item.cutLengthFt}ft = ${item.cutSqft?.toFixed(2)} sqft`;
+          if (!isOnline) note += ' [OFFLINE — sync on reconnect]';
         } else if (item.cutPieceId && item.cutPieceCode) {
           note = `Cut piece ${item.cutPieceCode}`;
+          if (!isOnline) note += ' [OFFLINE]';
         } else if (item.imeiNumber) {
           note = `IMEI: ${item.imeiNumber}`;
         }
@@ -134,9 +124,10 @@ export function usePosCheckout(onSuccess?: (result: CheckoutResult) => void) {
         };
       });
 
-      let sale;
+      // ─── Create sale (offline-aware) ────────────────────
+      let saleResult: any;
       try {
-        sale = await salesApi.create({
+        saleResult = await offlineSalesApi.create({
           shopId,
           customerId: customerId || undefined,
           paymentMethod,
@@ -145,29 +136,41 @@ export function usePosCheckout(onSuccess?: (result: CheckoutResult) => void) {
           items: saleItems,
         });
       } catch (err: any) {
-        // Sale failed — try to revert rolls
         if (successfulCuts.length > 0) {
           await revertCuts(successfulCuts);
           throw new Error(
-            `Sale create nahi ho saki: ${err?.response?.data?.message || 'unknown error'}\n\n` +
-              `${successfulCuts.length} roll cut(s) revert ho gayi hain.`,
+            `Sale create nahi ho saki: ${err?.response?.data?.message || err?.message || 'unknown error'}\n\n${successfulCuts.length} roll cut(s) revert ho gayi hain.`,
           );
         }
         throw err;
       }
 
-      // ─── PHASE 4: Mark cut pieces as sold (best-effort) ────
-      // Sale already deducted stock; this just updates piece status.
-      for (const item of cutPieceItems) {
-        try {
-          await carpetCutPiecesApi.markSold(item.cutPieceId!);
-        } catch (err) {
-          // Non-fatal — sale already saved
-          console.warn(`Cut piece ${item.cutPieceCode} mark-sold failed (sale already saved)`, err);
+      // ─── OFFLINE: Update local cached carpet data ───────
+      if (!isOnline) {
+        for (const item of rollCutItems) {
+          if (item.rollId && item.cutLengthFt) {
+            await decrementCachedRoll(item.rollId, item.cutLengthFt);
+          }
+        }
+        for (const item of cutPieceItems) {
+          if (item.cutPieceId) {
+            await markCachedCutPieceSold(item.cutPieceId);
+          }
         }
       }
 
-      // ─── Invalidate caches ─────────────────────────────────
+      // Mark cut pieces as sold (online only, best-effort)
+      if (isOnline) {
+        for (const item of cutPieceItems) {
+          try {
+            await carpetCutPiecesApi.markSold(item.cutPieceId!);
+          } catch (err) {
+            console.warn(`Cut piece ${item.cutPieceCode} mark-sold failed`, err);
+          }
+        }
+      }
+
+      // ─── Invalidate caches ──────────────────────────────
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['products'] }),
         queryClient.invalidateQueries({ queryKey: ['products-for-pos'] }),
@@ -175,31 +178,40 @@ export function usePosCheckout(onSuccess?: (result: CheckoutResult) => void) {
         queryClient.invalidateQueries({ queryKey: ['sales'] }),
         queryClient.invalidateQueries({ queryKey: ['customers'] }),
         queryClient.invalidateQueries({ queryKey: ['customers-for-pos'] }),
-        queryClient.invalidateQueries({ queryKey: ['carpet-rolls'] }),
-        queryClient.invalidateQueries({ queryKey: ['carpet-rolls-pos'] }),
-        queryClient.invalidateQueries({ queryKey: ['carpet-rolls-summary'] }),
-        queryClient.invalidateQueries({ queryKey: ['carpet-product-summary'] }),
-        queryClient.invalidateQueries({ queryKey: ['carpet-cut-pieces'] }),
-        queryClient.invalidateQueries({ queryKey: ['carpet-cut-pieces-pos'] }),
+        queryClient.invalidateQueries({ queryKey: ['pending-sales'] }),
+        queryClient.invalidateQueries({ queryKey: ['carpet-product-summary-pos'] }),
       ]);
 
+      const isOfflineSale = !saleResult.saleNumber;
+      const total = saleResult.total ?? 0;
+      const paid = saleResult.paidAmount ?? paidAmount;
+      const credit = Math.max(total - paid, 0);
+      const change = Math.max(paid - total, 0);
+
       return {
-        saleId: sale.id,
-        saleNumber: sale.saleNumber,
-        total: sale.total,
-        paidAmount: sale.paidAmount,
-        credit: sale.creditAmount,
-        change: sale.changeAmount ?? 0,
-        customerId: sale.customer?.id ?? null,
-        customerName: sale.customer?.name ?? null,
-        customerPhone: sale.customer?.phone ?? null,
+        saleId: saleResult.id,
+        saleNumber: saleResult.saleNumber || `OFFLINE-${saleResult.id.slice(-8).toUpperCase()}`,
+        total,
+        paidAmount: paid,
+        credit,
+        change: saleResult.changeAmount ?? change,
+        customerId: saleResult.customer?.id ?? saleResult.customerId ?? null,
+        customerName: saleResult.customer?.name ?? null,
+        customerPhone: saleResult.customer?.phone ?? null,
+        isOffline: isOfflineSale,
       };
     },
     onSuccess: (result) => {
-      const msg = result.credit > 0
+      const msg = result.isOffline
+        ? `📡 Offline sale saved! Internet aane par sync ho ga`
+        : result.credit > 0
         ? `Sale + ${formatPKR(result.credit)} udhaar khata mein add ho gaya`
         : `Sale complete! ${result.saleNumber}`;
-      toast.success(msg, { description: `Total: ${formatPKR(result.total)}` });
+
+      toast.success(msg, {
+        description: `Total: ${formatPKR(result.total)}`,
+        duration: result.isOffline ? 5000 : 3000,
+      });
       onSuccess?.(result);
     },
     onError: (err: any) => {
@@ -208,10 +220,6 @@ export function usePosCheckout(onSuccess?: (result: CheckoutResult) => void) {
   });
 }
 
-/**
- * Revert successful roll cuts when later step fails.
- * Uses the `adjust` endpoint with positive delta to add length back.
- */
 async function revertCuts(
   cuts: Array<{ rollId: string; rollNumber: string; lengthFt: number; leftoverPieceId?: string }>,
 ) {
@@ -222,13 +230,10 @@ async function revertCuts(
         reason: 'POS checkout failed — auto revert',
         note: 'Cut reverted because sale could not complete',
       });
-      // Delete leftover piece if it was created
       if (c.leftoverPieceId) {
         try {
           await carpetCutPiecesApi.remove(c.leftoverPieceId);
-        } catch {
-          // Ignore — best effort
-        }
+        } catch {}
       }
     } catch (err) {
       console.error(`Failed to revert cut for ${c.rollNumber}`, err);
