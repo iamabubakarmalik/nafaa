@@ -77,6 +77,14 @@ export function setupScanner(mainWindow: BrowserWindow) {
 }
 
 export function cleanupScanner() {
-  globalShortcut.unregisterAll();
+  try {
+    // Only unregister if app is ready (prevents crash on quit)
+    const { app } = require('electron');
+    if (app.isReady()) {
+      globalShortcut.unregisterAll();
+    }
+  } catch (e) {
+    // Ignore cleanup errors during shutdown
+  }
   state.isScanning = false;
 }

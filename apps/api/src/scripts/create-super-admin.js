@@ -5,13 +5,27 @@ const { randomUUID } = require('crypto');
 async function main() {
   const prisma = new PrismaClient();
 
-  const email = process.env.SUPER_ADMIN_EMAIL || 'admin@nafaa.pk';
-  const password = process.env.SUPER_ADMIN_PASSWORD || 'NafaaAdmin@2026';
+  const email = process.env.SUPER_ADMIN_EMAIL;
+  const password = process.env.SUPER_ADMIN_PASSWORD;
   const fullName = process.env.SUPER_ADMIN_NAME || 'Super Admin';
+
+  if (!email || !password) {
+    console.error('\n❌ Error: Missing required environment variables\n');
+    console.error('   Set these in your .env file:');
+    console.error('   - SUPER_ADMIN_EMAIL=your@email.com');
+    console.error('   - SUPER_ADMIN_PASSWORD=YourStrongPassword');
+    console.error('   - SUPER_ADMIN_NAME=Your Name (optional)\n');
+    process.exit(1);
+  }
+
+  if (password.length < 12) {
+    console.error('\n❌ Error: Password must be at least 12 characters long\n');
+    process.exit(1);
+  }
 
   console.log('\n🚀 Creating Super Admin...');
   console.log('   Email:', email);
-  console.log('   Password:', password, '\n');
+  console.log('   Password: [hidden for security]\n');
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
@@ -63,7 +77,7 @@ async function main() {
 
   console.log('\n✅ Super Admin created successfully!');
   console.log('   ID:', admin.id);
-  console.log('\n👉 Login at http://localhost:5174 with above credentials\n');
+  console.log('\n👉 Login at http://localhost:5174 with the credentials from your .env file\n');
 
   await prisma.$disconnect();
 }
