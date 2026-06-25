@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { formatPKR } from '@/lib/format';
 import { toast } from 'sonner';
+import { getKhataCustomers, getKhataLedger } from '@/lib/offline/offlineKhata';
 
 const formatDate = (value: string) =>
   new Intl.DateTimeFormat('en-PK', {
@@ -93,7 +94,7 @@ export default function KhataPage() {
 
   const { data: ledgerData, isLoading: ledgerLoading } = useQuery({
     queryKey: ['khata-ledger', selectedCustomerId],
-    queryFn: () => customerLedgerApi.list(selectedCustomerId!),
+    queryFn: () => getKhataLedger(selectedCustomerId!),
     enabled: !!selectedCustomerId,
   });
 

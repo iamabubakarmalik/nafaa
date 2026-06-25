@@ -7,10 +7,9 @@ import {
   Zap, Store, AlertTriangle, TrendingUp, Star, ArrowRight, Crown,
   CheckCircle2, Plus, Minus,
 } from 'lucide-react';
-import { type Product } from '@/api/products.api';
-import { offlineProductsApi as productsApi } from '@/lib/offline/offlineProducts';
+import { productsApi, type Product } from '@/api/products.api';
 import { productVariantsApi, type ProductVariant } from '@/api/product-variants.api';
-import { offlineCustomersApi as customersApi } from '@/lib/offline/offlineCustomers';
+import { customersApi } from '@/api/customers.api';
 import { categoriesApi } from '@/api/categories.api';
 import type { PaymentMethod } from '@/api/sales.api';
 import { Button } from '@/components/ui/Button';
@@ -26,7 +25,6 @@ import { PosCartLine } from '../components/PosCartLine';
 import { PosCheckoutPanel } from '../components/PosCheckoutPanel';
 import { useBusinessFeatures } from '@/hooks/useBusinessFeatures';
 import { useAuthStore } from '@/store/auth.store';
-import { useOfflineCarpetSummary } from '../hooks/useOfflineCarpetSummary';
 import { ImeiPickerModal } from '@/features/industries/mobile/components/ImeiPickerModal';
 import { QuickEmiFromSaleModal } from '@/features/industries/mobile/emi/components/QuickEmiFromSaleModal';
 import type { ProductImei } from '@/features/industries/mobile/api/imei.api';
@@ -130,10 +128,11 @@ export default function PosPage() {
 
   // ─── Carpet stock summary for POS cards ───────────────────
   const productIds = useMemo(() => products.map((p) => p.id), [products]);
-  const { data: carpetSummary = [], isOffline: carpetOffline } = useOfflineCarpetSummary(
-    productIds,
-    isCarpetBusiness && productIds.length > 0,
-  );
+  const { data: carpetSummary = [] } = useQuery({
+    queryKey: ['carpet-product-summary-pos', productIds],
+    queryFn: () => carpetRollsApi.productSummary(productIds),
+    enabled: isCarpetBusiness && productIds.length > 0,
+  });
   const carpetSummaryMap = useMemo(() => {
     const map = new Map<string, any>();
     for (const s of carpetSummary) map.set(s.productId, s);
