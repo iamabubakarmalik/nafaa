@@ -100,7 +100,7 @@ export function CarpetDetailTable({ rolls, cutPieces }: Props) {
                       </td>
                       <td className="px-3 py-2.5 text-center">
                         <div className="text-[11px] font-bold text-slate-900">
-                          {fullWidth.toFixed(2)}ft × {r.remainingLengthFt.toFixed(1)}ft
+                          {r.widthFt}ft{Number((r as any).widthInch || 0) > 0 ? ` ${(r as any).widthInch}in` : ''} × {r.remainingLengthFt}ft{Number((r as any).remainingLengthInch || 0) > 0 ? ` ${(r as any).remainingLengthInch}in` : ''}
                         </div>
                       </td>
                       <td className="px-3 py-2.5 text-right">
@@ -221,7 +221,7 @@ export function CarpetDetailTable({ rolls, cutPieces }: Props) {
                       )}
                     </td>
                     <td className="px-3 py-2.5 text-center text-[11px] font-bold text-slate-900">
-                      {cp.widthFt.toFixed(2)}ft × {cp.lengthFt.toFixed(2)}ft
+                      {cp.widthFt}ft{Number((cp as any).widthInch || 0) > 0 ? ` ${(cp as any).widthInch}in` : ''} × {cp.lengthFt}ft{Number((cp as any).lengthInch || 0) > 0 ? ` ${(cp as any).lengthInch}in` : ''}
                     </td>
                     <td className="px-3 py-2.5 text-right">
                       <div className="font-extrabold text-violet-700 tabular-nums">

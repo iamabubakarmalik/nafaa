@@ -201,7 +201,7 @@ export function TransferRollPicker({
                         <div className="mt-1.5 flex items-center gap-2 text-[10px] font-bold text-slate-600 flex-wrap">
                           <span className="inline-flex items-center gap-0.5">
                             <Ruler className="h-2.5 w-2.5" />
-                            {fullWidth.toFixed(2)}ft × {Number(roll.remainingLengthFt).toFixed(1)}ft
+                            {Number(roll.widthFt)}ft{Number(roll.widthInch || 0) > 0 ? ` ${roll.widthInch}in` : ''} × {Number(roll.remainingLengthFt)}ft{Number(roll.remainingLengthInch || 0) > 0 ? ` ${roll.remainingLengthInch}in` : ''}
                           </span>
                           {roll.rackNumber && (
                             <span className="inline-flex items-center gap-0.5 text-slate-500">

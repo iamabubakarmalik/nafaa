@@ -150,6 +150,7 @@ export interface CutRollResponse {
 
 export interface AdjustRollPayload {
   lengthDeltaFt: number;
+  lengthDeltaInch?: number;
   reason: string;
   note?: string;
 }

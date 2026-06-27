@@ -88,7 +88,7 @@ export function PosCartLine({
               {item.rollNumber}
               {item.cutWidthFt && item.cutLengthFt && (
                 <span className="font-bold opacity-80">
-                  • {item.cutWidthFt}×{item.cutLengthFt}ft
+                  • {item.cutWidthFt}×{item.cutLengthFt}ft{Number(item.cutLengthInch || 0) > 0 ? ` ${item.cutLengthInch}in` : ''}
                 </span>
               )}
             </div>

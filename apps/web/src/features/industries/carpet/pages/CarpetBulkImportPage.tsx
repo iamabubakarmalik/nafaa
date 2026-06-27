@@ -32,6 +32,7 @@ const SAMPLE_HEADERS = [
   'widthFt',
   'widthInch',
   'lengthFt',
+  'lengthInch',
   'costPerSqft',
   'salePricePerSqft',
   'rackNumber',
@@ -49,6 +50,7 @@ const SAMPLE_DATA = [
     widthFt: 12,
     widthInch: 0,
     lengthFt: 100,
+    lengthInch: 0,
     costPerSqft: 72,
     salePricePerSqft: 90,
     rackNumber: 'Wall-1',
@@ -63,6 +65,7 @@ const SAMPLE_DATA = [
     widthFt: 12,
     widthInch: 0,
     lengthFt: 80,
+    lengthInch: 0,
     costPerSqft: 72,
     salePricePerSqft: 90,
     rackNumber: 'Wall-1',
@@ -187,6 +190,7 @@ export default function CarpetBulkImportPage() {
       'widthFt',
       'widthInch',
       'lengthFt',
+      'lengthInch',
       'costPerSqft',
       'salePricePerSqft',
       'rackNumber',
@@ -204,6 +208,7 @@ export default function CarpetBulkImportPage() {
       widthFt: '', // user will fill
       widthInch: 0,
       lengthFt: '', // user will fill
+      lengthInch: 0,
       costPerSqft: pv.defaultCost || '',
       salePricePerSqft: pv.defaultPrice || '',
       rackNumber: '',
@@ -222,6 +227,7 @@ export default function CarpetBulkImportPage() {
         widthFt: '',
         widthInch: 0,
         lengthFt: '',
+        lengthInch: 0,
         costPerSqft: '',
         salePricePerSqft: '',
         rackNumber: '',
@@ -242,6 +248,7 @@ export default function CarpetBulkImportPage() {
       { wch: 10 }, // widthFt
       { wch: 10 }, // widthInch
       { wch: 10 }, // lengthFt
+      { wch: 10 }, // lengthInch
       { wch: 14 }, // costPerSqft
       { wch: 16 }, // salePricePerSqft
       { wch: 14 }, // rackNumber
@@ -258,13 +265,14 @@ export default function CarpetBulkImportPage() {
       D1: 'Supplier design code (optional)',
       E1: 'REQUIRED — Width in feet (e.g. 12)',
       F1: 'Extra inches 0-11 (e.g. 6 for 12ft 6in)',
-      G1: 'REQUIRED — Length in feet (e.g. 100)',
-      H1: 'Cost price per sqft in Rs',
-      I1: 'Sale price per sqft in Rs',
-      J1: 'Storage location (e.g. Wall-1, Rack-A)',
-      K1: 'Premium / Standard / Economy',
-      L1: 'Wool / Synthetic / Mixed',
-      M1: 'Any additional notes',
+      G1: 'REQUIRED — Length in feet (whole part, e.g. 29)',
+      H1: 'Extra inches 0-11 (Pakistani format: 29.6 = 29ft + 6in)',
+      I1: 'Cost price per sqft in Rs',
+      J1: 'Sale price per sqft in Rs',
+      K1: 'Storage location (e.g. Wall-1, Rack-A)',
+      L1: 'Premium / Standard / Economy',
+      M1: 'Wool / Synthetic / Mixed',
+      N1: 'Any additional notes',
     };
 
     for (const [cell, comment] of Object.entries(headerComments)) {
@@ -321,7 +329,8 @@ export default function CarpetBulkImportPage() {
       ['designCode', 'No', 'Supplier ka design code', 'SF-001'],
       ['widthFt', 'YES', 'Roll ki width feet mein', '12'],
       ['widthInch', 'No', 'Extra inches (0-11)', '6'],
-      ['lengthFt', 'YES', 'Roll ki length feet mein', '100'],
+      ['lengthFt', 'YES', 'Roll ki length feet mein (whole part)', '29'],
+      ['lengthInch', 'No', 'Extra inches 0-11 (Pakistani: 29.6 = 29ft 6in)', '6'],
       ['costPerSqft', 'No', 'Cost price per square foot', '72'],
       ['salePricePerSqft', 'No', 'Sale price per square foot', '90'],
       ['rackNumber', 'No', 'Storage location', 'Wall-1'],
@@ -386,7 +395,7 @@ export default function CarpetBulkImportPage() {
             out[camel] = row[k];
           }
           // Coerce numbers
-          ['widthFt', 'widthInch', 'lengthFt', 'costPerSqft', 'salePricePerSqft'].forEach((field) => {
+          ['widthFt', 'widthInch', 'lengthFt', 'lengthInch', 'costPerSqft', 'salePricePerSqft'].forEach((field) => {
             if (out[field] !== undefined && out[field] !== '') {
               out[field] = Number(out[field]);
             }
@@ -435,6 +444,7 @@ export default function CarpetBulkImportPage() {
           widthFt: r.widthFt,
           widthInch: r.widthInch,
           lengthFt: r.lengthFt,
+          lengthInch: (r as any).lengthInch ?? 0,
           costPerSqft: r.costPerSqft,
           salePricePerSqft: r.salePricePerSqft,
           rackNumber: r.rackNumber,
@@ -488,6 +498,7 @@ export default function CarpetBulkImportPage() {
       widthFt: Number(r.widthFt),
       widthInch: Number(r.widthInch || 0),
       lengthFt: Number(r.lengthFt),
+      lengthInch: Number(r.lengthInch || 0),
       costPerSqft: r.costPerSqft !== '' ? Number(r.costPerSqft) : undefined,
       salePricePerSqft: r.salePricePerSqft !== '' ? Number(r.salePricePerSqft) : undefined,
       rackNumber: r.rackNumber?.trim() || undefined,
@@ -810,7 +821,7 @@ export default function CarpetBulkImportPage() {
                       <td className="px-3 py-2 text-xs font-mono font-bold text-slate-700">{row.rollNumber}</td>
                       <td className="px-3 py-2 text-right text-xs">
                         <div className="font-bold text-slate-900">
-                          {row.widthFt}ft × {row.lengthFt}ft
+                          {row.widthFt}ft{Number(row.widthInch || 0) > 0 ? ` ${row.widthInch}in` : ''} × {row.lengthFt}ft{Number((row as any).lengthInch || 0) > 0 ? ` ${(row as any).lengthInch}in` : ''}
                         </div>
                         <div className="text-[10px] text-emerald-700 font-bold">{row.totalSqft.toFixed(2)} sqft</div>
                       </td>

@@ -34,10 +34,19 @@ export class BulkImportRollRow {
   @IsNumber()
   widthInch?: number;
 
-  @ApiProperty({ example: 100 })
+  @ApiProperty({ example: 100, description: 'Whole feet portion' })
   @IsNumber()
-  @Min(0.1)
+  @Min(0)
   lengthFt!: number;
+
+  @ApiPropertyOptional({
+    example: 6,
+    description: 'Inches portion (0-11). Pakistani format: 29.6 = 29ft + 6in',
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  lengthInch?: number;
 
   @ApiPropertyOptional({ example: 72 })
   @IsOptional()

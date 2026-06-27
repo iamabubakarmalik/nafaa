@@ -249,14 +249,14 @@ export default function CarpetRollDetailPage() {
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard
           label="Remaining"
-          value={`${Number(roll.remainingLengthFt).toFixed(1)} ft`}
+          value={`${Number(roll.remainingLengthFt)}ft${Number(roll.remainingLengthInch || 0) > 0 ? ` ${roll.remainingLengthInch}in` : ''}`}
           subValue={`${Number(roll.remainingSqft).toFixed(1)} sqft`}
           color="emerald"
           icon={Ruler}
         />
         <StatCard
           label="Original"
-          value={`${Number(roll.originalLengthFt).toFixed(1)} ft`}
+          value={`${Number(roll.originalLengthFt)}ft${Number(roll.originalLengthInch || 0) > 0 ? ` ${roll.originalLengthInch}in` : ''}`}
           subValue={`${Number(roll.originalSqft).toFixed(1)} sqft`}
           color="blue"
           icon={Package}
@@ -288,7 +288,7 @@ export default function CarpetRollDetailPage() {
           </div>
           <div className="text-right">
             <div className="text-xs text-slate-500 font-bold">
-              {Number(roll.remainingLengthFt).toFixed(1)}ft / {Number(roll.originalLengthFt).toFixed(1)}ft
+              {Number(roll.remainingLengthFt)}ft {Number(roll.remainingLengthInch || 0) > 0 ? `${roll.remainingLengthInch}in` : ''} / {Number(roll.originalLengthFt)}ft {Number(roll.originalLengthInch || 0) > 0 ? `${roll.originalLengthInch}in` : ''}
             </div>
             <div className="text-xs text-emerald-700 font-bold mt-0.5">
               {fullWidth.toFixed(2)}ft width
@@ -344,7 +344,7 @@ export default function CarpetRollDetailPage() {
 
           {!editMode ? (
             <div className="grid sm:grid-cols-2 gap-3 text-sm">
-              <DetailRow label="Dimensions" value={`${fullWidth.toFixed(2)}ft × ${Number(roll.originalLengthFt).toFixed(1)}ft`} />
+              <DetailRow label="Dimensions" value={`${Number(roll.widthFt)}ft${Number(roll.widthInch || 0) > 0 ? ` ${roll.widthInch}in` : ''} × ${Number(roll.originalLengthFt)}ft${Number(roll.originalLengthInch || 0) > 0 ? ` ${roll.originalLengthInch}in` : ''}`} />
               <DetailRow label="Cost / sqft" value={formatPKRFull(roll.costPerSqft)} />
               <DetailRow label="Sale / sqft" value={formatPKRFull(roll.salePricePerSqft)} />
               <DetailRow label="Wholesale / sqft" value={roll.wholesalePricePerSqft ? formatPKRFull(roll.wholesalePricePerSqft) : '—'} />
@@ -589,6 +589,7 @@ function CutFromRollModal({
   onSuccess: () => void;
 }) {
   const [lengthFt, setLengthFt] = useState(0);
+  const [lengthInch, setLengthInch] = useState(0);
   const [customerWidthFt, setCustomerWidthFt] = useState(rollWidthFt);
   const [createLeftoverPiece, setCreateLeftoverPiece] = useState(true);
   const [note, setNote] = useState('');
@@ -597,6 +598,7 @@ function CutFromRollModal({
     mutationFn: () =>
       carpetRollsApi.cut(rollId, {
         lengthFt,
+        lengthInch,
         customerWidthFt,
         createLeftoverPiece,
         note: note || undefined,
@@ -612,10 +614,11 @@ function CutFromRollModal({
       toast.error(e?.response?.data?.message || 'Cut failed'),
   });
 
-  const cutSqft = customerWidthFt * lengthFt;
+  const realLength = Number(lengthFt) + Number(lengthInch || 0) / 12;
+  const cutSqft = customerWidthFt * realLength;
   const cutPrice = cutSqft * salePricePerSqft;
   const widthDiff = rollWidthFt - customerWidthFt;
-  const leftoverSqft = widthDiff * lengthFt;
+  const leftoverSqft = widthDiff * realLength;
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
@@ -659,11 +662,30 @@ function CutFromRollModal({
             <Input
               label="Length to Cut (ft) *"
               type="number"
-              step="0.01"
+              step="1"
               value={lengthFt}
               onChange={(e) => setLengthFt(Number(e.target.value))}
-              hint={`Max: ${Number(remainingLengthFt).toFixed(2)}ft`}
+              hint="Whole feet portion"
             />
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-3">
+            <Input
+              label="Length Extra (inches, 0-11)"
+              type="number"
+              step="1"
+              min="0"
+              max="11"
+              value={lengthInch}
+              onChange={(e) => setLengthInch(Number(e.target.value))}
+              hint='Stock book "29.6" = 29ft + 6in'
+            />
+            <div className="rounded-xl bg-blue-50 border-2 border-blue-200 p-3 text-xs">
+              <div className="font-extrabold text-blue-900">Available</div>
+              <div className="text-blue-700 font-bold mt-1">
+                {Number(remainingLengthFt)}ft remaining
+              </div>
+            </div>
           </div>
 
           {/* Calculation preview */}
@@ -738,9 +760,10 @@ function CutFromRollModal({
           </button>
           <Button
             onClick={() => {
-              if (lengthFt <= 0) return toast.error('Length zaroori hai');
+              const requestedLen = Number(lengthFt) + Number(lengthInch || 0) / 12;
+              if (requestedLen <= 0) return toast.error('Length zaroori hai');
               if (customerWidthFt <= 0) return toast.error('Width zaroori hai');
-              if (lengthFt > remainingLengthFt)
+              if (requestedLen > Number(remainingLengthFt))
                 return toast.error(`Only ${remainingLengthFt}ft remaining`);
               if (customerWidthFt > rollWidthFt)
                 return toast.error(`Max width ${rollWidthFt}ft`);
@@ -768,6 +791,7 @@ function AdjustRollModal({
   onSuccess: () => void;
 }) {
   const [lengthDeltaFt, setLengthDeltaFt] = useState(0);
+  const [lengthDeltaInch, setLengthDeltaInch] = useState(0);
   const [reason, setReason] = useState('');
   const [note, setNote] = useState('');
 
@@ -775,6 +799,7 @@ function AdjustRollModal({
     mutationFn: () =>
       carpetRollsApi.adjust(rollId, {
         lengthDeltaFt,
+        lengthDeltaInch,
         reason: reason || 'Manual adjustment',
         note: note || undefined,
       }),
@@ -786,7 +811,8 @@ function AdjustRollModal({
       toast.error(e?.response?.data?.message || 'Adjustment failed'),
   });
 
-  const newRemaining = Number(currentRemaining) + Number(lengthDeltaFt);
+  const deltaReal = Number(lengthDeltaFt) + Number(lengthDeltaInch || 0) / 12;
+  const newRemaining = Number(currentRemaining) + deltaReal;
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
@@ -815,10 +841,19 @@ function AdjustRollModal({
           <Input
             label="Length Delta (ft) *"
             type="number"
-            step="0.01"
+            step="1"
             value={lengthDeltaFt}
             onChange={(e) => setLengthDeltaFt(Number(e.target.value))}
-            hint="Positive (+) to add, negative (-) to reduce"
+            hint="Whole feet (+ to add, - to reduce)"
+          />
+
+          <Input
+            label="Length Delta (inches)"
+            type="number"
+            step="1"
+            value={lengthDeltaInch}
+            onChange={(e) => setLengthDeltaInch(Number(e.target.value))}
+            hint="Extra inches portion (0-11)"
           />
 
           {lengthDeltaFt !== 0 && (
@@ -871,7 +906,7 @@ function AdjustRollModal({
           </button>
           <Button
             onClick={() => {
-              if (lengthDeltaFt === 0) return toast.error('Delta cannot be zero');
+              if (lengthDeltaFt === 0 && lengthDeltaInch === 0) return toast.error('Delta cannot be zero');
               if (!reason.trim()) return toast.error('Reason zaroori hai');
               if (newRemaining < 0) return toast.error('Cannot make remaining negative');
               adjustMutation.mutate();

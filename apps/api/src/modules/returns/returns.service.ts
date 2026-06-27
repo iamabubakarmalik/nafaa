@@ -28,12 +28,13 @@ export class ReturnsService {
     pieceCode?: string;
     widthFt?: number;
     lengthFt?: number;
+    lengthInch?: number;
   } {
     if (!note) return { isRollCut: false, isCutPiece: false };
 
-    // "Cut from CR-2026-0001: 12ft x 10ft = 120 sqft"
+    // "Cut from CR-2026-0001: 12ft x 10ft 6in = 120 sqft"
     const rollMatch = note.match(
-      /Cut from ([\w-]+):\s*([\d.]+)\s*ft\s*[xX×]\s*([\d.]+)\s*ft/,
+      /Cut from ([\w-]+):\s*([\d.]+)\s*ft\s*[xX×]\s*([\d.]+)\s*ft(?:\s+([\d.]+)\s*in)?/,
     );
     if (rollMatch) {
       return {
@@ -42,6 +43,7 @@ export class ReturnsService {
         rollNumber: rollMatch[1],
         widthFt: Number(rollMatch[2]),
         lengthFt: Number(rollMatch[3]),
+        lengthInch: rollMatch[4] ? Number(rollMatch[4]) : 0,
       };
     }
 
@@ -311,6 +313,10 @@ export class ReturnsService {
             if (sourceRoll) sourceRollId = sourceRoll.id;
           }
 
+          // Split length into ft + inch for storage
+          const lengthFtFloor = Math.floor(lengthFt);
+          const lengthInchPart = Math.round((lengthFt - lengthFtFloor) * 12 * 100) / 100;
+
           const piece = await tx.carpetCutPiece.create({
             data: {
               tenantId: user.tenantId,
@@ -322,8 +328,8 @@ export class ReturnsService {
               pieceCode,
               widthFt,
               widthInch: 0,
-              lengthFt,
-              lengthInch: 0,
+              lengthFt: lengthFtFloor,
+              lengthInch: lengthInchPart,
               totalSqft,
               costAmount,
               salePrice,

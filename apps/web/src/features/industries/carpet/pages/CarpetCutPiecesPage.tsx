@@ -124,7 +124,7 @@ export default function CarpetCutPiecesPage() {
                   <Ruler className="h-3 w-3" /> Size
                 </div>
                 <div className="font-extrabold text-slate-900">
-                  {piece.widthFt}ft × {piece.lengthFt}ft
+                  {piece.widthFt}ft{Number(piece.widthInch || 0) > 0 ? ` ${piece.widthInch}in` : ''} × {piece.lengthFt}ft{Number(piece.lengthInch || 0) > 0 ? ` ${piece.lengthInch}in` : ''}
                 </div>
                 <div className="text-xs text-violet-700 font-bold">
                   {piece.totalSqft.toFixed(2)} sqft

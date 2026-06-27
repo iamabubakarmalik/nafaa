@@ -220,7 +220,7 @@ export function CarpetCutPiecePicker({ product, variant, onSelect, onClose }: Pr
                         Dimensions
                       </div>
                       <div className="font-extrabold text-slate-900 text-sm tabular-nums mt-0.5">
-                        {piece.widthFt}ft × {piece.lengthFt}ft
+                        {piece.widthFt}ft{Number(piece.widthInch || 0) > 0 ? ` ${piece.widthInch}in` : ''} × {piece.lengthFt}ft{Number(piece.lengthInch || 0) > 0 ? ` ${piece.lengthInch}in` : ''}
                       </div>
                       <div className="text-xs font-extrabold text-violet-700 tabular-nums">
                         = {piece.totalSqft.toFixed(2)} sqft

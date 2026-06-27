@@ -10,6 +10,7 @@ interface CachedRoll {
   widthFt: number;
   widthInch: number;
   lengthFt: number;
+  lengthInch: number;
   totalSqft: number;
   salePricePerSqft: number;
   wholesalePricePerSqft?: number | null;
@@ -50,8 +51,9 @@ export async function downloadCarpetData(): Promise<void> {
       rollNumber: r.rollNumber,
       widthFt: Number(r.widthFt) || 0,
       widthInch: Number(r.widthInch) || 0,
-      lengthFt: Number(r.lengthFt) || 0,
-      totalSqft: Number(r.totalSqft) || 0,
+      lengthFt: Number(r.remainingLengthFt ?? r.lengthFt) || 0,
+      lengthInch: Number(r.remainingLengthInch ?? r.lengthInch) || 0,
+      totalSqft: Number(r.remainingSqft ?? r.totalSqft) || 0,
       salePricePerSqft: Number(r.salePricePerSqft) || 0,
       wholesalePricePerSqft: r.wholesalePricePerSqft ? Number(r.wholesalePricePerSqft) : null,
       status: r.status,
@@ -76,7 +78,9 @@ export async function downloadCarpetData(): Promise<void> {
         productId: p.productId,
         pieceCode: p.pieceCode,
         widthFt: Number(p.widthFt) || 0,
+        widthInch: Number(p.widthInch) || 0,
         lengthFt: Number(p.lengthFt) || 0,
+        lengthInch: Number(p.lengthInch) || 0,
         totalSqft: Number(p.totalSqft) || 0,
         salePrice: Number(p.salePrice) || 0,
         status: p.status,
@@ -139,12 +143,16 @@ export async function decrementCachedRoll(rollId: string, lengthFtUsed: number):
   const all = entry.value as CachedRoll[];
   const updated = all.map((r) => {
     if (r.id !== rollId) return r;
-    const newLength = Math.max(0, r.lengthFt - lengthFtUsed);
+    const currentReal = r.lengthFt + (r.lengthInch || 0) / 12;
+    const newReal = Math.max(0, currentReal - lengthFtUsed);
+    const newLengthFt = Math.floor(newReal);
+    const newLengthInch = Math.round((newReal - newLengthFt) * 12 * 100) / 100;
     const fullWidth = r.widthFt + r.widthInch / 12;
     return {
       ...r,
-      lengthFt: newLength,
-      totalSqft: Math.max(0, newLength * fullWidth),
+      lengthFt: newLengthFt,
+      lengthInch: newLengthInch,
+      totalSqft: Math.max(0, newReal * fullWidth),
     };
   });
 

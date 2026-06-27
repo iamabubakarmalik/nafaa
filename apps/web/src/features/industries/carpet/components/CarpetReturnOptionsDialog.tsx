@@ -157,8 +157,8 @@ export function CarpetReturnOptionsDialog({
                     <div>
                       Sold as:{' '}
                       <strong>
-                        {carpetInfo.widthFt}ft × {carpetInfo.lengthFt}ft (
-                        {(carpetInfo.widthFt * carpetInfo.lengthFt).toFixed(2)} sqft)
+                        {carpetInfo.widthFt}ft × {carpetInfo.lengthFt}ft{(carpetInfo as any).lengthInch ? ` ${(carpetInfo as any).lengthInch}in` : ''} (
+                        {(carpetInfo.widthFt * (carpetInfo.lengthFt + ((carpetInfo as any).lengthInch || 0) / 12)).toFixed(2)} sqft)
                       </strong>
                     </div>
                   )}
@@ -421,11 +421,12 @@ export function parseCarpetNoteClient(note?: string | null): {
   pieceCode?: string;
   widthFt?: number;
   lengthFt?: number;
+  lengthInch?: number;
 } {
   if (!note) return { isRollCut: false, isCutPiece: false };
 
   const rollMatch = note.match(
-    /Cut from ([\w-]+):\s*([\d.]+)\s*ft\s*[xX×]\s*([\d.]+)\s*ft/,
+    /Cut from ([\w-]+):\s*([\d.]+)\s*ft\s*[xX×]\s*([\d.]+)\s*ft(?:\s+([\d.]+)\s*in)?/,
   );
   if (rollMatch) {
     return {
@@ -434,6 +435,7 @@ export function parseCarpetNoteClient(note?: string | null): {
       rollNumber: rollMatch[1],
       widthFt: Number(rollMatch[2]),
       lengthFt: Number(rollMatch[3]),
+      lengthInch: rollMatch[4] ? Number(rollMatch[4]) : 0,
     };
   }
 

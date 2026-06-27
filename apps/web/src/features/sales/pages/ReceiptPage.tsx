@@ -24,7 +24,7 @@ type CarpetNoteInfo = {
 const parseCarpetNote = (note?: string | null): CarpetNoteInfo => {
   if (!note) return { type: null, reference: '' };
   const rollMatch = note.match(
-    /Cut from ([\w-]+):\s*([\d.]+\s*ft\s*[xX×]\s*[\d.]+\s*ft)(?:\s*=\s*([\d.]+\s*\w+))?(?:\s*@\s*(Rs\s*[\d.]+\/sqft.*))?/
+    /Cut from ([\w-]+):\s*([\d.]+\s*ft\s*[xX×]\s*[\d.]+\s*ft(?:\s+[\d.]+\s*in)?)(?:\s*=\s*([\d.]+\s*\w+))?(?:\s*@\s*(Rs\s*[\d.]+\/sqft.*))?/
   );
   if (rollMatch) {
     return {

@@ -13,6 +13,7 @@ export interface PurchaseRoll {
   widthFt: string;
   widthInch: string;
   lengthFt: string;
+  lengthInch: string;
   costPerSqft: string;
   salePricePerSqft: string;
   variantId: string;
@@ -39,6 +40,7 @@ const newRoll = (): PurchaseRoll => ({
   widthFt: '12',
   widthInch: '0',
   lengthFt: '',
+  lengthInch: '0',
   costPerSqft: '',
   salePricePerSqft: '',
   variantId: '',
@@ -109,6 +111,7 @@ export function PurchaseRollsInput({
       const widthFt = Number(r.widthFt) || 0;
       const widthInch = Number(r.widthInch) || 0;
       const lengthFt = Number(r.lengthFt) || 0;
+      const lengthInch = Number(r.lengthInch) || 0;
       const costPerSqft = Number(r.costPerSqft) || 0;
       const salePerSqft = Number(r.salePricePerSqft) || 0;
 
@@ -117,7 +120,8 @@ export function PurchaseRollsInput({
         return;
       }
       const fullWidth = widthFt + widthInch / 12;
-      const sqft = fullWidth * lengthFt;
+      const fullLength = lengthFt + lengthInch / 12;
+      const sqft = fullWidth * fullLength;
       totalSqft += sqft;
       totalCost += sqft * costPerSqft;
       totalSaleValue += sqft * salePerSqft;
@@ -234,8 +238,10 @@ export function PurchaseRollsInput({
             const widthFt = Number(roll.widthFt) || 0;
             const widthInch = Number(roll.widthInch) || 0;
             const lengthFt = Number(roll.lengthFt) || 0;
+            const lengthInch = Number(roll.lengthInch) || 0;
             const fullWidth = widthFt + widthInch / 12;
-            const sqft = fullWidth * lengthFt;
+            const fullLength = lengthFt + lengthInch / 12;
+            const sqft = fullWidth * fullLength;
 
             return (
               <div
@@ -287,12 +293,12 @@ export function PurchaseRollsInput({
                 </div>
 
                 {/* Dimensions row */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                   <div>
                     <label className="block text-[9px] font-bold text-slate-500 uppercase mb-0.5">Width (ft)</label>
                     <input
                       type="number"
-                      step="0.01"
+                      step="1"
                       value={roll.widthFt}
                       onChange={(e) => updateRoll(roll.id, { widthFt: e.target.value })}
                       placeholder="12"
@@ -303,7 +309,9 @@ export function PurchaseRollsInput({
                     <label className="block text-[9px] font-bold text-slate-500 uppercase mb-0.5">Width (in)</label>
                     <input
                       type="number"
-                      step="0.5"
+                      step="1"
+                      min="0"
+                      max="11"
                       value={roll.widthInch}
                       onChange={(e) => updateRoll(roll.id, { widthInch: e.target.value })}
                       placeholder="0"
@@ -314,11 +322,24 @@ export function PurchaseRollsInput({
                     <label className="block text-[9px] font-bold text-slate-500 uppercase mb-0.5">Length (ft)</label>
                     <input
                       type="number"
-                      step="0.01"
+                      step="1"
                       value={roll.lengthFt}
                       onChange={(e) => updateRoll(roll.id, { lengthFt: e.target.value })}
-                      placeholder="100"
+                      placeholder="29"
                       className="h-8 w-full rounded-lg border-2 border-emerald-300 bg-emerald-50 px-2 text-xs font-bold focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-0.5">Length (in)</label>
+                    <input
+                      type="number"
+                      step="1"
+                      min="0"
+                      max="11"
+                      value={roll.lengthInch}
+                      onChange={(e) => updateRoll(roll.id, { lengthInch: e.target.value })}
+                      placeholder="0"
+                      className="h-8 w-full rounded-lg border border-slate-200 px-2 text-xs font-bold focus:outline-none focus:border-emerald-500"
                     />
                   </div>
                   <div>
@@ -436,6 +457,7 @@ export function rollsToPayload(rolls: PurchaseRoll[]): any[] {
       widthFt: Number(r.widthFt),
       widthInch: Number(r.widthInch) || 0,
       lengthFt: Number(r.lengthFt),
+      lengthInch: Number(r.lengthInch) || 0,
       costPerSqft: r.costPerSqft ? Number(r.costPerSqft) : undefined,
       salePricePerSqft: r.salePricePerSqft ? Number(r.salePricePerSqft) : undefined,
       variantId: r.variantId || undefined,
@@ -452,7 +474,7 @@ export function rollsToPayload(rolls: PurchaseRoll[]): any[] {
 export function calculateRollsTotal(rolls: PurchaseRoll[]): number {
   return rolls.reduce((sum, r) => {
     const w = (Number(r.widthFt) || 0) + (Number(r.widthInch) || 0) / 12;
-    const l = Number(r.lengthFt) || 0;
+    const l = (Number(r.lengthFt) || 0) + (Number(r.lengthInch) || 0) / 12;
     return sum + w * l;
   }, 0);
 }

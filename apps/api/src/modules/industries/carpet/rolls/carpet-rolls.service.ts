@@ -637,23 +637,34 @@ export class CarpetRollsService {
 
   async adjust(user: AuthenticatedUser, id: string, dto: AdjustRollDto) {
     const roll = await this.findOne(user, id);
-    const newRemaining = Number(roll.remainingLengthFt) + Number(dto.lengthDeltaFt);
 
-    if (newRemaining < 0) {
+    // Support delta as ft + inch
+    const deltaInch = Number(dto.lengthDeltaInch || 0);
+    const deltaReal = Number(dto.lengthDeltaFt) + deltaInch / 12;
+
+    const currentReal = Number(roll.remainingLengthFt) + Number(roll.remainingLengthInch || 0) / 12;
+    const newReal = currentReal + deltaReal;
+
+    if (newReal < -0.001) {
       throw new BadRequestException('Adjustment would make remaining length negative');
     }
 
-    const newSqft = this.calcSqft(roll.widthFt, roll.widthInch, newRemaining);
-    const deltaSqft = this.calcSqft(roll.widthFt, roll.widthInch, Math.abs(dto.lengthDeltaFt))
-      * (dto.lengthDeltaFt < 0 ? -1 : 1);
+    // Split back into ft + inch for storage
+    const newLengthFt = Math.max(Math.floor(newReal), 0);
+    const newLengthInch = Math.max(Math.round((newReal - newLengthFt) * 12 * 100) / 100, 0);
+
+    const newSqft = this.calcSqft(roll.widthFt, roll.widthInch, newLengthFt, newLengthInch);
+    const oldSqft = Number(roll.remainingSqft);
+    const deltaSqft = Number((newSqft - oldSqft).toFixed(2));
 
     await this.prisma.$transaction(async (tx) => {
       await tx.carpetRoll.update({
         where: { id },
         data: {
-          remainingLengthFt: newRemaining,
+          remainingLengthFt: newLengthFt,
+          remainingLengthInch: newLengthInch,
           remainingSqft: newSqft,
-          ...(newRemaining <= 0
+          ...(newReal <= 0.01
             ? { status: CarpetRollStatus.FINISHED, finishedAt: new Date() }
             : {}),
         },
@@ -664,9 +675,9 @@ export class CarpetRollsService {
           rollId: id,
           tenantId: user.tenantId,
           type: 'ADJUSTMENT',
-          lengthFt: dto.lengthDeltaFt,
+          lengthFt: deltaReal,
           sqft: deltaSqft,
-          balanceLengthAfter: newRemaining,
+          balanceLengthAfter: newReal,
           balanceSqftAfter: newSqft,
           note: `${dto.reason}${dto.note ? ' — ' + dto.note : ''}`,
           createdById: user.id,
@@ -769,6 +780,7 @@ export class CarpetRollsService {
       widthFt: number;
       widthInch?: number;
       lengthFt: number;
+      lengthInch?: number;
       costPerSqft?: number;
       salePricePerSqft?: number;
       rackNumber?: string;
@@ -833,7 +845,8 @@ export class CarpetRollsService {
       }
 
       const fullWidth = Number(row.widthFt) + Number(row.widthInch || 0) / 12;
-      const totalSqft = fullWidth * Number(row.lengthFt || 0);
+      const fullLength = Number(row.lengthFt || 0) + Number(row.lengthInch || 0) / 12;
+      const totalSqft = fullWidth * fullLength;
 
       if (!row.costPerSqft || row.costPerSqft <= 0) {
         warnings.push('Cost per sqft not set — defaults to 0');
@@ -853,6 +866,7 @@ export class CarpetRollsService {
         widthFt: row.widthFt,
         widthInch: row.widthInch ?? 0,
         lengthFt: row.lengthFt,
+        lengthInch: row.lengthInch ?? 0,
         totalSqft: Number(totalSqft.toFixed(2)),
         costPerSqft: row.costPerSqft ?? 0,
         salePricePerSqft: row.salePricePerSqft ?? 0,
@@ -912,6 +926,7 @@ export class CarpetRollsService {
       widthFt: number;
       widthInch?: number;
       lengthFt: number;
+      lengthInch?: number;
       costPerSqft?: number;
       salePricePerSqft?: number;
       rackNumber?: string;
@@ -944,6 +959,7 @@ export class CarpetRollsService {
           widthFt: row.widthFt,
           widthInch: row.widthInch,
           originalLengthFt: row.lengthFt,
+          originalLengthInch: row.lengthInch ?? 0,
           costPerSqft: row.costPerSqft,
           salePricePerSqft: row.salePricePerSqft,
           rackNumber: row.rackNumber,

@@ -14,6 +14,7 @@ export interface ManualRow {
   widthFt: number | '';
   widthInch: number | '';
   lengthFt: number | '';
+  lengthInch: number | '';
   costPerSqft: number | '';
   salePricePerSqft: number | '';
   rackNumber: string;
@@ -66,6 +67,7 @@ export function ManualEntryTable({ rows, onChange, productOptions }: Props) {
     widthFt: '',
     widthInch: '',
     lengthFt: '',
+    lengthInch: '',
     costPerSqft: '',
     salePricePerSqft: '',
     rackNumber: '',
@@ -99,6 +101,7 @@ export function ManualEntryTable({ rows, onChange, productOptions }: Props) {
       variantName: row.variantName,
       widthFt: row.widthFt,
       widthInch: row.widthInch,
+      lengthInch: row.lengthInch,
       costPerSqft: row.costPerSqft,
       salePricePerSqft: row.salePricePerSqft,
       rackNumber: row.rackNumber,
@@ -191,7 +194,7 @@ export function ManualEntryTable({ rows, onChange, productOptions }: Props) {
         valid++;
         const sqft =
           (Number(row.widthFt) + Number(row.widthInch || 0) / 12) *
-          Number(row.lengthFt);
+          (Number(row.lengthFt) + Number(row.lengthInch || 0) / 12);
         totalSqft += sqft;
         totalCost += sqft * Number(row.costPerSqft || 0);
         totalValue += sqft * Number(row.salePricePerSqft || 0);
@@ -262,6 +265,9 @@ export function ManualEntryTable({ rows, onChange, productOptions }: Props) {
                 <th className="px-2 py-3 text-center font-bold uppercase tracking-wider text-slate-700 min-w-[90px]">
                   Length *
                 </th>
+                <th className="px-2 py-3 text-center font-bold uppercase tracking-wider text-slate-700 min-w-[80px]">
+                  Len Inch
+                </th>
                 <th className="px-2 py-3 text-right font-bold uppercase tracking-wider text-slate-700 min-w-[80px]">
                   Sqft
                 </th>
@@ -288,7 +294,7 @@ export function ManualEntryTable({ rows, onChange, productOptions }: Props) {
             <tbody className="divide-y divide-slate-100">
               {rows.length === 0 ? (
                 <tr>
-                  <td colSpan={14} className="px-4 py-12 text-center">
+                  <td colSpan={15} className="px-4 py-12 text-center">
                     <Package className="h-10 w-10 text-slate-300 mx-auto mb-2" />
                     <p className="font-bold text-slate-700">No rows yet</p>
                     <p className="text-xs text-slate-500 mt-1">
@@ -303,7 +309,7 @@ export function ManualEntryTable({ rows, onChange, productOptions }: Props) {
                   const sqft =
                     Number(row.widthFt || 0) > 0 && Number(row.lengthFt || 0) > 0
                       ? (Number(row.widthFt) + Number(row.widthInch || 0) / 12) *
-                        Number(row.lengthFt)
+                        (Number(row.lengthFt) + Number(row.lengthInch || 0) / 12)
                       : 0;
 
                   return (
@@ -434,7 +440,7 @@ export function ManualEntryTable({ rows, onChange, productOptions }: Props) {
                       <td className="px-2 py-2">
                         <input
                           type="number"
-                          step="0.01"
+                          step="1"
                           min="0"
                           value={row.lengthFt}
                           onChange={(e) =>
@@ -442,12 +448,30 @@ export function ManualEntryTable({ rows, onChange, productOptions }: Props) {
                               lengthFt: e.target.value === '' ? '' : Number(e.target.value),
                             })
                           }
-                          placeholder="100"
+                          placeholder="29"
                           className={`w-full px-2 py-1.5 rounded-lg border text-xs font-bold text-center focus:outline-none focus:ring-2 ${
                             row.lengthFt && Number(row.lengthFt) > 0
                               ? 'border-emerald-300 bg-emerald-50/50 focus:ring-emerald-200'
                               : 'border-slate-200 bg-white focus:ring-slate-200'
                           }`}
+                        />
+                      </td>
+
+                      {/* Length Inch */}
+                      <td className="px-2 py-2">
+                        <input
+                          type="number"
+                          step="1"
+                          min="0"
+                          max="11"
+                          value={row.lengthInch}
+                          onChange={(e) =>
+                            updateRow(row.id, {
+                              lengthInch: e.target.value === '' ? '' : Number(e.target.value),
+                            })
+                          }
+                          placeholder="0"
+                          className="w-full px-2 py-1.5 rounded-lg border border-slate-200 text-xs font-bold text-center focus:outline-none focus:border-emerald-500"
                         />
                       </td>
 
