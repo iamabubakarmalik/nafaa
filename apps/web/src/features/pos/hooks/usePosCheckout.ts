@@ -49,6 +49,7 @@ export function usePosCheckout(onSuccess?: (result: CheckoutResult) => void) {
         rollId: string;
         rollNumber: string;
         lengthFt: number;
+        lengthInch?: number;
         leftoverPieceId?: string;
       }> = [];
 
@@ -57,6 +58,7 @@ export function usePosCheckout(onSuccess?: (result: CheckoutResult) => void) {
           try {
             const cutResult = await carpetRollsApi.cut(item.rollId!, {
               lengthFt: item.cutLengthFt!,
+              lengthInch: item.cutLengthInch ?? 0,
               customerWidthFt: item.rollCustomerWidthFt,
               createLeftoverPiece: item.createLeftover ?? true,
               note: `POS sale${customerId ? ' (Customer linked)' : ''}`,
@@ -103,7 +105,8 @@ export function usePosCheckout(onSuccess?: (result: CheckoutResult) => void) {
 
         let note = item.note;
         if (item.rollId && item.rollNumber) {
-          note = `Cut from ${item.rollNumber}: ${item.cutWidthFt}ft × ${item.cutLengthFt}ft = ${item.cutSqft?.toFixed(2)} sqft`;
+          const lenInchPart = (item.cutLengthInch ?? 0) > 0 ? ` ${item.cutLengthInch}in` : '';
+          note = `Cut from ${item.rollNumber}: ${item.cutWidthFt}ft × ${item.cutLengthFt}ft${lenInchPart} = ${item.cutSqft?.toFixed(2)} sqft`;
           if (!isOnline) note += ' [OFFLINE — sync on reconnect]';
         } else if (item.cutPieceId && item.cutPieceCode) {
           note = `Cut piece ${item.cutPieceCode}`;
@@ -149,7 +152,8 @@ export function usePosCheckout(onSuccess?: (result: CheckoutResult) => void) {
       if (!isOnline) {
         for (const item of rollCutItems) {
           if (item.rollId && item.cutLengthFt) {
-            await decrementCachedRoll(item.rollId, item.cutLengthFt);
+            const realLen = item.cutLengthFt + (item.cutLengthInch ?? 0) / 12;
+            await decrementCachedRoll(item.rollId, realLen);
           }
         }
         for (const item of cutPieceItems) {
@@ -221,12 +225,13 @@ export function usePosCheckout(onSuccess?: (result: CheckoutResult) => void) {
 }
 
 async function revertCuts(
-  cuts: Array<{ rollId: string; rollNumber: string; lengthFt: number; leftoverPieceId?: string }>,
+  cuts: Array<{ rollId: string; rollNumber: string; lengthFt: number; lengthInch?: number; leftoverPieceId?: string }>,
 ) {
   for (const c of cuts) {
     try {
+      const realLen = c.lengthFt + (c.lengthInch ?? 0) / 12;
       await carpetRollsApi.adjust(c.rollId, {
-        lengthDeltaFt: c.lengthFt,
+        lengthDeltaFt: realLen,
         reason: 'POS checkout failed — auto revert',
         note: 'Cut reverted because sale could not complete',
       });

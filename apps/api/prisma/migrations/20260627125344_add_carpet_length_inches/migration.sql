@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "CarpetRoll" ADD COLUMN     "originalLengthInch" DOUBLE PRECISION NOT NULL DEFAULT 0,
+ADD COLUMN     "remainingLengthInch" DOUBLE PRECISION NOT NULL DEFAULT 0;

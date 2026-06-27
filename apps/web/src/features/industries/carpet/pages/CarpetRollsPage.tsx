@@ -368,7 +368,7 @@ export default function CarpetRollsPage() {
                         <Ruler className="h-3 w-3" /> Dimensions
                       </div>
                       <div className="font-extrabold text-slate-900">
-                        {fullWidth.toFixed(2)}ft × {Number(roll.remainingLengthFt).toFixed(1)}ft
+                        {Number(roll.widthFt)}ft {Number(roll.widthInch || 0) > 0 ? `${roll.widthInch}in` : ''} × {Number(roll.remainingLengthFt)}ft {Number(roll.remainingLengthInch || 0) > 0 ? `${roll.remainingLengthInch}in` : ''}
                       </div>
                     </div>
                     <div className="mt-1.5 flex items-baseline gap-1">
@@ -391,7 +391,7 @@ export default function CarpetRollsPage() {
                       />
                     </div>
                     <div className="text-[10px] text-slate-500 font-bold mt-1">
-                      Original: {Number(roll.originalLengthFt).toFixed(1)}ft •{' '}
+                      Original: {Number(roll.originalLengthFt)}ft {Number(roll.originalLengthInch || 0) > 0 ? `${roll.originalLengthInch}in` : ''} •{' '}
                       {percentRemaining.toFixed(0)}% bacha
                     </div>
                   </div>

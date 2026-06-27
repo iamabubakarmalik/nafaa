@@ -16,6 +16,8 @@ export type CartItem = {
   cutPieceCode?: string;
   cutWidthFt?: number;
   cutLengthFt?: number;
+  cutLengthInch?: number;
+  cutLengthReal?: number;
   cutSqft?: number;
   createLeftover?: boolean;
   rollCustomerWidthFt?: number;

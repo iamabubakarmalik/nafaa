@@ -19,6 +19,8 @@ interface Props {
     roll: CarpetRoll;
     customerWidthFt: number;
     lengthFt: number;
+    lengthInch: number;
+    lengthReal: number;
     cutSqft: number;
     pricePerSqft: number;
     totalPrice: number;
@@ -37,6 +39,7 @@ export function CarpetRollPicker({ product, variant, onConfirm, onClose }: Props
   const [selectedRoll, setSelectedRoll] = useState<CarpetRoll | null>(null);
   const [customerWidth, setCustomerWidth] = useState('');
   const [lengthFt, setLengthFt] = useState('');
+  const [lengthInch, setLengthInch] = useState('');
   const [createLeftover, setCreateLeftover] = useState(true);
   const [customRate, setCustomRate] = useState('');
   const [useWholesale, setUseWholesale] = useState(false);
@@ -100,6 +103,7 @@ export function CarpetRollPicker({ product, variant, onConfirm, onClose }: Props
         Number(selectedRoll.widthFt) + Number(selectedRoll.widthInch || 0) / 12;
       setCustomerWidth(fullWidth.toFixed(2));
       setLengthFt('');
+      setLengthInch('');
       setCustomRate('');
       setUseWholesale(false);
       setTimeout(() => {
@@ -115,12 +119,18 @@ export function CarpetRollPicker({ product, variant, onConfirm, onClose }: Props
     const fullWidth =
       Number(selectedRoll.widthFt) + Number(selectedRoll.widthInch || 0) / 12;
     const cWidth = Number(customerWidth) || 0;
-    const len = Number(lengthFt) || 0;
+    const lenFt = Number(lengthFt) || 0;
+    const lenInch = Number(lengthInch) || 0;
+    const len = lenFt + lenInch / 12; // Real decimal feet
 
     const cutSqft = cWidth * len;
     const widthDiff = fullWidth - cWidth;
     const leftoverSqft = widthDiff * len;
-    const remainingAfterCut = Number(selectedRoll.remainingLengthFt) - len;
+
+    const availableReal =
+      Number(selectedRoll.remainingLengthFt) +
+      Number(selectedRoll.remainingLengthInch || 0) / 12;
+    const remainingAfterCut = availableReal - len;
 
     const defaultRate = Number(selectedRoll.salePricePerSqft);
     const wholesaleRate = selectedRoll.wholesalePricePerSqft
@@ -150,8 +160,8 @@ export function CarpetRollPicker({ product, variant, onConfirm, onClose }: Props
         ? `Width too small`
         : null;
     const lengthError =
-      len > Number(selectedRoll.remainingLengthFt)
-        ? `Length ${Number(selectedRoll.remainingLengthFt).toFixed(2)}ft se zyada nahi`
+      len > availableReal
+        ? `Length ${Number(selectedRoll.remainingLengthFt)}ft ${Number(selectedRoll.remainingLengthInch || 0)}in se zyada nahi`
         : null;
     const rateError =
       customRate && Number(customRate) < 0 ? 'Rate negative nahi ho sakti' : null;
@@ -178,7 +188,7 @@ export function CarpetRollPicker({ product, variant, onConfirm, onClose }: Props
       isValid:
         !widthError && !lengthError && !rateError && cWidth > 0 && len > 0 && effectiveRate > 0,
     };
-  }, [selectedRoll, customerWidth, lengthFt, customRate, useWholesale]);
+  }, [selectedRoll, customerWidth, lengthFt, lengthInch, customRate, useWholesale]);
 
   const applyDiscount = (percent: number) => {
     if (!selectedRoll) return;
@@ -195,10 +205,14 @@ export function CarpetRollPicker({ product, variant, onConfirm, onClose }: Props
 
   const handleConfirm = () => {
     if (!selectedRoll || !calc || !calc.isValid) return;
+    const lenFt = Math.floor(calc.len);
+    const lenInch = Math.round((calc.len - lenFt) * 12 * 100) / 100;
     onConfirm({
       roll: selectedRoll,
       customerWidthFt: calc.cWidth,
-      lengthFt: calc.len,
+      lengthFt: lenFt,
+      lengthInch: lenInch,
+      lengthReal: calc.len,
       cutSqft: calc.cutSqft,
       pricePerSqft: calc.effectiveRate,
       totalPrice: calc.totalPrice,
@@ -513,7 +527,7 @@ export function CarpetRollPicker({ product, variant, onConfirm, onClose }: Props
                         </label>
                         <input
                           type="number"
-                          step="0.01"
+                          step="1"
                           value={lengthFt}
                           onChange={(e) => setLengthFt(e.target.value)}
                           placeholder="e.g. 10"
@@ -523,6 +537,24 @@ export function CarpetRollPicker({ product, variant, onConfirm, onClose }: Props
                               : 'border-emerald-200 bg-white focus:border-emerald-500 focus:ring-emerald-200'
                           }`}
                         />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-extrabold text-slate-700 mb-1 uppercase tracking-wider">
+                        Length Extra (inches, 0-11)
+                      </label>
+                      <input
+                        type="number"
+                        step="1"
+                        min="0"
+                        max="11"
+                        value={lengthInch}
+                        onChange={(e) => setLengthInch(e.target.value)}
+                        placeholder="0"
+                        className="h-12 w-full rounded-xl border-2 border-emerald-200 bg-white px-3 text-xl font-extrabold focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition"
+                      />
+                      <div className="mt-1 text-[10px] font-bold text-slate-500">
+                        Stock book "29.6"? → Length: <strong>29</strong>, Inches: <strong>6</strong> → Real = 29.5 ft
                       </div>
                     </div>
                     {(calc?.widthError || calc?.lengthError) && (

@@ -18,15 +18,9 @@ export class CarpetRollsService {
   // HELPERS
   // ════════════════════════════════════════════════════════
 
-  private calcSqft(
-    widthFt: number,
-    widthInch: number,
-    lengthFt: number,
-    lengthInch: number = 0,
-  ): number {
+  private calcSqft(widthFt: number, widthInch: number, lengthFt: number): number {
     const totalWidth = Number(widthFt) + Number(widthInch || 0) / 12;
-    const totalLength = Number(lengthFt) + Number(lengthInch || 0) / 12;
-    return Number((totalWidth * totalLength).toFixed(2));
+    return Number((totalWidth * Number(lengthFt)).toFixed(2));
   }
 
   private async generateRollNumber(tenantId: string): Promise<string> {
@@ -204,23 +198,10 @@ export class CarpetRollsService {
       rollNumber = await this.generateRollNumber(user.tenantId);
     }
 
-    // 5) Calculate sqft (with both width and length inches)
+    // 5) Calculate sqft
     const remainingLengthFt = dto.remainingLengthFt ?? dto.originalLengthFt;
-    const originalLengthInch = dto.originalLengthInch ?? 0;
-    const remainingLengthInch = dto.remainingLengthInch ?? originalLengthInch;
-
-    const originalSqft = this.calcSqft(
-      dto.widthFt,
-      dto.widthInch ?? 0,
-      dto.originalLengthFt,
-      originalLengthInch,
-    );
-    const remainingSqft = this.calcSqft(
-      dto.widthFt,
-      dto.widthInch ?? 0,
-      remainingLengthFt,
-      remainingLengthInch,
-    );
+    const originalSqft = this.calcSqft(dto.widthFt, dto.widthInch ?? 0, dto.originalLengthFt);
+    const remainingSqft = this.calcSqft(dto.widthFt, dto.widthInch ?? 0, remainingLengthFt);
 
     // 6) Create roll + opening movement (atomic)
     const roll = await this.prisma.$transaction(async (tx) => {
@@ -235,9 +216,7 @@ export class CarpetRollsService {
           widthFt: dto.widthFt,
           widthInch: dto.widthInch ?? 0,
           originalLengthFt: dto.originalLengthFt,
-          originalLengthInch,
           remainingLengthFt,
-          remainingLengthInch,
           originalSqft,
           remainingSqft,
           costPerSqft: dto.costPerSqft ?? 0,
@@ -256,15 +235,14 @@ export class CarpetRollsService {
         },
       });
 
-      const realRemainingLength = remainingLengthFt + remainingLengthInch / 12;
       await tx.carpetRollMovement.create({
         data: {
           rollId: created.id,
           tenantId: user.tenantId,
           type: 'OPENING',
-          lengthFt: realRemainingLength,
+          lengthFt: remainingLengthFt,
           sqft: remainingSqft,
-          balanceLengthAfter: realRemainingLength,
+          balanceLengthAfter: remainingLengthFt,
           balanceSqftAfter: remainingSqft,
           note: `Opening entry: ${rollNumber}`,
           createdById: user.id,
@@ -471,16 +449,14 @@ export class CarpetRollsService {
       if (exists) throw new ConflictException('Roll number already exists');
     }
 
-    // Recalculate sqft if dimensions changed (with inches support)
+    // Recalculate sqft if dimensions changed
     const widthFt = dto.widthFt ?? existing.widthFt;
     const widthInch = dto.widthInch ?? existing.widthInch;
     const originalLengthFt = dto.originalLengthFt ?? existing.originalLengthFt;
-    const originalLengthInch = dto.originalLengthInch ?? existing.originalLengthInch;
     const remainingLengthFt = dto.remainingLengthFt ?? existing.remainingLengthFt;
-    const remainingLengthInch = dto.remainingLengthInch ?? existing.remainingLengthInch;
 
-    const originalSqft = this.calcSqft(widthFt, widthInch, originalLengthFt, originalLengthInch);
-    const remainingSqft = this.calcSqft(widthFt, widthInch, remainingLengthFt, remainingLengthInch);
+    const originalSqft = this.calcSqft(widthFt, widthInch, originalLengthFt);
+    const remainingSqft = this.calcSqft(widthFt, widthInch, remainingLengthFt);
 
     await this.prisma.carpetRoll.update({
       where: { id },
@@ -508,11 +484,9 @@ export class CarpetRollsService {
       throw new BadRequestException(`Roll is ${roll.status}, cannot cut`);
     }
 
-    const requestedCut = dto.lengthFt + (dto.lengthInch ?? 0) / 12;
-    const availableReal = Number(roll.remainingLengthFt) + Number(roll.remainingLengthInch) / 12;
-    if (requestedCut > availableReal) {
+    if (dto.lengthFt > roll.remainingLengthFt) {
       throw new BadRequestException(
-        `Only ${roll.remainingLengthFt}ft ${roll.remainingLengthInch}in remaining, cannot cut ${dto.lengthFt}ft ${dto.lengthInch ?? 0}in`,
+        `Only ${roll.remainingLengthFt} ft remaining, cannot cut ${dto.lengthFt} ft`,
       );
     }
 
@@ -525,31 +499,18 @@ export class CarpetRollsService {
       );
     }
 
-    // Cut length can include inches too (e.g. 10ft 6in)
-    const cutLengthInch = dto.lengthInch ?? 0;
-    const cutSqft = this.calcSqft(roll.widthFt, roll.widthInch, dto.lengthFt, cutLengthInch);
-
-    // Convert everything to real decimal for arithmetic
-    const cutLengthReal = dto.lengthFt + cutLengthInch / 12;
-    const currentRemainingReal = Number(roll.remainingLengthFt) + Number(roll.remainingLengthInch) / 12;
-    const newRemainingReal = currentRemainingReal - cutLengthReal;
-
-    // Split back into feet + inches for storage
-    const newRemainingFt = Math.floor(newRemainingReal);
-    const newRemainingInch = Math.round((newRemainingReal - newRemainingFt) * 12 * 100) / 100;
-
-    const newRemaining = newRemainingFt; // For compatibility with existing code
-    const newRemainingSqft = this.calcSqft(roll.widthFt, roll.widthInch, newRemainingFt, newRemainingInch);
+    const cutSqft = this.calcSqft(roll.widthFt, roll.widthInch, dto.lengthFt);
+    const newRemaining = Number(roll.remainingLengthFt) - Number(dto.lengthFt);
+    const newRemainingSqft = this.calcSqft(roll.widthFt, roll.widthInch, newRemaining);
 
     const result = await this.prisma.$transaction(async (tx) => {
       // 1) Update roll
       const updatedRoll = await tx.carpetRoll.update({
         where: { id },
         data: {
-          remainingLengthFt: newRemainingFt,
-          remainingLengthInch: newRemainingInch,
+          remainingLengthFt: newRemaining,
           remainingSqft: newRemainingSqft,
-          ...(newRemainingReal <= 0.01
+          ...(newRemaining <= 0
             ? { status: CarpetRollStatus.FINISHED, finishedAt: new Date() }
             : {}),
         },
@@ -561,9 +522,9 @@ export class CarpetRollsService {
           rollId: id,
           tenantId: user.tenantId,
           type: 'CUT_FOR_SALE',
-          lengthFt: -cutLengthReal,
+          lengthFt: -dto.lengthFt,
           sqft: -cutSqft,
-          balanceLengthAfter: newRemainingReal,
+          balanceLengthAfter: newRemaining,
           balanceSqftAfter: newRemainingSqft,
           reference: dto.saleId,
           saleId: dto.saleId,
@@ -620,11 +581,8 @@ export class CarpetRollsService {
     return {
       success: true,
       cutLengthFt: dto.lengthFt,
-      cutLengthInch: cutLengthInch,
-      cutLengthReal,
       cutSqft,
-      remainingLengthFt: newRemainingFt,
-      remainingLengthInch: newRemainingInch,
+      remainingLengthFt: newRemaining,
       remainingSqft: newRemainingSqft,
       rollStatus: result.roll.status,
       leftoverPiece: result.leftoverPiece,

@@ -46,19 +46,37 @@ export class CreateCarpetRollDto {
   @Min(0)
   widthInch?: number;
 
-  @ApiProperty({ example: 100, description: 'Original length in feet' })
+  @ApiProperty({ example: 100, description: 'Original length — whole feet portion' })
   @IsNumber()
-  @Min(0.1)
+  @Min(0)
   originalLengthFt!: number;
 
   @ApiPropertyOptional({
+    example: 6,
+    description: 'Original length — inches portion (0-11). Pakistani shop format: 29.6 = 29ft 6in',
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  originalLengthInch?: number;
+
+  @ApiPropertyOptional({
     example: 100,
-    description: 'Remaining length (defaults to originalLengthFt)',
+    description: 'Remaining length feet (defaults to originalLengthFt)',
   })
   @IsOptional()
   @IsNumber()
   @Min(0)
   remainingLengthFt?: number;
+
+  @ApiPropertyOptional({
+    example: 6,
+    description: 'Remaining length inches (defaults to originalLengthInch)',
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  remainingLengthInch?: number;
 
   @ApiPropertyOptional({ example: 72 })
   @IsOptional()

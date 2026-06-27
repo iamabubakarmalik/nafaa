@@ -24,6 +24,7 @@ const emptyForm: CreateCarpetRollPayload = {
   widthFt: 12,
   widthInch: 0,
   originalLengthFt: 0,
+  originalLengthInch: 0,
   costPerSqft: 0,
   salePricePerSqft: 0,
   wholesalePricePerSqft: undefined,
@@ -72,8 +73,9 @@ export function AddRollModal({
     },
   });
 
-  const totalSqft = (Number(form.widthFt) + Number(form.widthInch || 0) / 12)
-    * Number(form.originalLengthFt || 0);
+  const totalSqft =
+    (Number(form.widthFt) + Number(form.widthInch || 0) / 12) *
+    (Number(form.originalLengthFt || 0) + Number(form.originalLengthInch || 0) / 12);
   const totalCost = totalSqft * Number(form.costPerSqft || 0);
   const totalSaleValue = totalSqft * Number(form.salePricePerSqft || 0);
   const expectedProfit = totalSaleValue - totalCost;
@@ -214,13 +216,37 @@ export function AddRollModal({
               <Input
                 label="Length (feet) *"
                 type="number"
-                step="0.01"
+                step="1"
                 value={form.originalLengthFt}
                 onChange={(e) =>
                   setForm({ ...form, originalLengthFt: Number(e.target.value) })
                 }
-                hint="Total roll length"
+                hint="Whole feet (e.g. 29 for 29ft 6in)"
               />
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-3">
+              <Input
+                label="Length Extra (inches)"
+                type="number"
+                step="1"
+                min="0"
+                max="11"
+                value={form.originalLengthInch ?? 0}
+                onChange={(e) =>
+                  setForm({ ...form, originalLengthInch: Number(e.target.value) })
+                }
+                hint="0-11 inches (Pakistani format: 29.6 = 29ft + 6in)"
+              />
+              <div className="rounded-xl bg-blue-50 border-2 border-blue-200 p-3 text-xs flex items-center">
+                <div>
+                  <div className="font-extrabold text-blue-900 mb-0.5">📏 Calculator Mode</div>
+                  <div className="text-blue-700 font-semibold">
+                    Stock book "29.6" likha hai? <br />
+                    Length: <strong>29</strong> ft, Inches: <strong>6</strong>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {totalSqft > 0 && (
@@ -234,8 +260,8 @@ export function AddRollModal({
                   </div>
                 </div>
                 <div className="text-right text-xs text-emerald-700 font-bold">
-                  {(Number(form.widthFt) + Number(form.widthInch || 0) / 12).toFixed(2)}ft ×{' '}
-                  {Number(form.originalLengthFt).toFixed(2)}ft
+                  {Number(form.widthFt)}ft {Number(form.widthInch || 0) > 0 ? `${form.widthInch}in` : ''} ×{' '}
+                  {Number(form.originalLengthFt)}ft {Number(form.originalLengthInch || 0) > 0 ? `${form.originalLengthInch}in` : ''}
                 </div>
               </div>
             )}

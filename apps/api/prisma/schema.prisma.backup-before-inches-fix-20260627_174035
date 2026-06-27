@@ -2373,18 +2373,15 @@ model CarpetRoll {
   rollNumber String // R-001, SF-CR-2026-001, supplier ka roll # — kuch bhi
   designCode String? // Supplier ka design code (e.g. "SF-2024-A")
 
-  // ─── Dimensions (Pakistani shop format: feet + inches separate) ──
-  widthFt             Float @default(12) // Whole feet portion
-  widthInch           Float @default(0)  // Inches portion (0-11)
-  originalLengthFt    Float              // Whole feet portion
-  originalLengthInch  Float @default(0)  // Inches portion (0-11)
-  remainingLengthFt   Float              // Whole feet remaining
-  remainingLengthInch Float @default(0)  // Inches remaining (0-11)
+  // ─── Dimensions ──────────────────────────────────────────
+  widthFt           Float @default(12) // 12.0, 13.17 (= 13ft 2in), 6.0, 15.0
+  widthInch         Float @default(0) // Display ke liye: 13ft 2inch
+  originalLengthFt  Float // Jab roll aayi thi tab kitni thi
+  remainingLengthFt Float // Ab kitni bachi hai
 
-  // ─── Auto-calculated Sqft (real decimal math) ──────
-  // Formula: (widthFt + widthInch/12) × (lengthFt + lengthInch/12)
-  originalSqft  Float @default(0)
-  remainingSqft Float @default(0)
+  // ─── Auto-calculated Sqft (cache for fast queries) ──────
+  originalSqft  Float @default(0) // widthFt × originalLengthFt
+  remainingSqft Float @default(0) // widthFt × remainingLengthFt
 
   // ─── Pricing ─────────────────────────────────────────────
   costPerSqft           Float  @default(0)

@@ -429,6 +429,8 @@ export default function PosPage() {
     roll: any;
     customerWidthFt: number;
     lengthFt: number;
+    lengthInch?: number;
+    lengthReal?: number;
     cutSqft: number;
     pricePerSqft: number;
     totalPrice: number;
@@ -442,7 +444,8 @@ export default function PosPage() {
 
     const rollFullWidth = Number(roll.widthFt) + Number(roll.widthInch || 0) / 12;
 
-    let note = `Cut from ${roll.rollNumber}: ${data.customerWidthFt}ft × ${data.lengthFt}ft = ${data.cutSqft.toFixed(2)} sqft`;
+    const lenInchPart = (data.lengthInch ?? 0) > 0 ? ` ${data.lengthInch}in` : '';
+    let note = `Cut from ${roll.rollNumber}: ${data.customerWidthFt}ft × ${data.lengthFt}ft${lenInchPart} = ${data.cutSqft.toFixed(2)} sqft`;
     if (data.isCustomRate && data.originalRate && data.originalRate !== data.pricePerSqft) {
       note += ` @ Rs ${data.pricePerSqft.toFixed(2)}/sqft (Custom)`;
     }
@@ -457,6 +460,8 @@ export default function PosPage() {
         rollNumber: roll.rollNumber,
         cutWidthFt: data.customerWidthFt,
         cutLengthFt: data.lengthFt,
+        cutLengthInch: data.lengthInch ?? 0,
+        cutLengthReal: data.lengthReal ?? data.lengthFt,
         cutSqft: data.cutSqft,
         createLeftover: data.createLeftover,
         rollCustomerWidthFt: data.customerWidthFt,

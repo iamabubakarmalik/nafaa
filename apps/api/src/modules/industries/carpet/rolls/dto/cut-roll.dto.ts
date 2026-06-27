@@ -2,10 +2,19 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsBoolean, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class CutRollDto {
-  @ApiProperty({ example: 10, description: 'Length to cut (in feet)' })
+  @ApiProperty({ example: 10, description: 'Length to cut — whole feet portion' })
   @IsNumber()
-  @Min(0.1)
+  @Min(0)
   lengthFt!: number;
+
+  @ApiPropertyOptional({
+    example: 6,
+    description: 'Length to cut — inches portion (0-11). E.g. cut 10ft 6in',
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  lengthInch?: number;
 
   @ApiPropertyOptional({
     example: 12,

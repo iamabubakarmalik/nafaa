@@ -29,7 +29,9 @@ export interface CarpetRoll {
   widthFt: number;
   widthInch: number;
   originalLengthFt: number;
+  originalLengthInch: number;
   remainingLengthFt: number;
+  remainingLengthInch: number;
   originalSqft: number;
   remainingSqft: number;
   costPerSqft: number;
@@ -94,7 +96,9 @@ export interface CreateCarpetRollPayload {
   widthFt: number;
   widthInch?: number;
   originalLengthFt: number;
+  originalLengthInch?: number;
   remainingLengthFt?: number;
+  remainingLengthInch?: number;
   costPerSqft?: number;
   salePricePerSqft?: number;
   wholesalePricePerSqft?: number;
@@ -123,6 +127,7 @@ export interface CarpetRollsListParams {
 
 export interface CutRollPayload {
   lengthFt: number;
+  lengthInch?: number;
   customerWidthFt?: number;
   createLeftoverPiece?: boolean;
   saleId?: string;
@@ -133,8 +138,11 @@ export interface CutRollPayload {
 export interface CutRollResponse {
   success: boolean;
   cutLengthFt: number;
+  cutLengthInch?: number;
+  cutLengthReal?: number;
   cutSqft: number;
   remainingLengthFt: number;
+  remainingLengthInch?: number;
   remainingSqft: number;
   rollStatus: CarpetRollStatus;
   leftoverPiece: any | null;
