@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useLayoutEffect } from 'react';
-import { Check, ChevronDown, Plus, Search, X, Star, Trash2, Edit2 } from 'lucide-react';
+import { Check, ChevronDown, Plus, Search, X, Star, Trash2, Edit2, Sparkles, Clock } from 'lucide-react';
 
 const UNIT_CATEGORIES = [
   {
@@ -172,7 +172,7 @@ function HighlightText({ text, query }: { text: string; query: string }) {
     <>
       {parts.map((part, i) =>
         regex.test(part) ? (
-          <mark key={i} className="bg-amber-200 text-slate-900 rounded px-0.5 font-bold">
+          <mark key={i} className="bg-amber-200 text-slate-900 rounded px-0.5 font-extrabold">
             {part}
           </mark>
         ) : (
@@ -297,7 +297,6 @@ export function UnitSelect({ value, onChange, label = 'Unit', hint }: Props) {
     if (!trimmed) return;
 
     if (editingValue) {
-      // Update existing custom unit
       const next = customUnits.map((u) =>
         u.value === editingValue
           ? { ...u, value: trimmed, label: customValue.trim(), desc: customDesc.trim() || 'Custom unit' }
@@ -307,7 +306,6 @@ export function UnitSelect({ value, onChange, label = 'Unit', hint }: Props) {
       setCustomUnits(next);
       if (value === editingValue) onChange(trimmed);
     } else {
-      // Add new custom unit
       const existing = customUnits.find((u) => u.value === trimmed);
       if (!existing) {
         const next = [
@@ -350,15 +348,16 @@ export function UnitSelect({ value, onChange, label = 'Unit', hint }: Props) {
   const quickUnits = useMemo(() => {
     const combined = [...recent, ...POPULAR_UNITS];
     const seen = new Set<string>();
-    const result: Array<{ value: string; label: string; short: string }> = [];
+    const result: Array<{ value: string; label: string; short: string; isRecent: boolean }> = [];
     for (const v of combined) {
       if (seen.has(v)) continue;
       seen.add(v);
       const found = findUnit(v, customUnits);
+      const isRecent = recent.includes(v);
       if (found) {
-        result.push({ value: found.value, label: found.label, short: found.short });
+        result.push({ value: found.value, label: found.label, short: found.short, isRecent });
       } else {
-        result.push({ value: v, label: v, short: v });
+        result.push({ value: v, label: v, short: v, isRecent });
       }
       if (result.length >= 8) break;
     }
@@ -379,42 +378,42 @@ export function UnitSelect({ value, onChange, label = 'Unit', hint }: Props) {
         onClick={() => setOpen((v) => !v)}
         className={`h-11 w-full rounded-xl border-2 bg-white px-3.5 text-sm text-left flex items-center justify-between transition-all ${
           open
-            ? 'border-brand-500 ring-2 ring-brand-200 shadow-md'
-            : 'border-slate-200 hover:border-brand-300 hover:shadow-sm'
+            ? 'border-emerald-500 ring-2 ring-emerald-200 shadow-md'
+            : 'border-slate-200 hover:border-emerald-300 hover:shadow-sm'
         }`}
       >
         {selectedUnit ? (
           <div className="flex-1 min-w-0">
-            <div className="font-bold text-slate-900 truncate flex items-center gap-1.5">
+            <div className="font-extrabold text-slate-900 truncate flex items-center gap-1.5">
               {selectedUnit.label}
               <span className="text-xs font-mono font-normal text-slate-500">
                 ({selectedUnit.short})
               </span>
               {selectedUnit.isCustom && (
-                <span className="px-1.5 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[9px] font-bold">
+                <span className="px-1.5 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[9px] font-extrabold">
                   CUSTOM
                 </span>
               )}
             </div>
-            <div className="text-[11px] text-slate-500 truncate">
+            <div className="text-[11px] text-slate-500 truncate font-semibold">
               {selectedUnit.desc}
             </div>
           </div>
         ) : (
-          <span className="text-slate-400">Select unit...</span>
+          <span className="text-slate-400 font-semibold">Select unit...</span>
         )}
         <ChevronDown
           className={`h-4 w-4 text-slate-400 shrink-0 ml-2 transition-transform duration-200 ${
-            open ? 'rotate-180 text-brand-600' : ''
+            open ? 'rotate-180 text-emerald-600' : ''
           }`}
         />
       </button>
 
-      {hint && !open && <p className="text-xs text-slate-500 mt-1">{hint}</p>}
+      {hint && !open && <p className="text-xs text-slate-500 mt-1 font-semibold">{hint}</p>}
 
       {open && (
         <div
-          className={`absolute z-50 left-0 right-0 rounded-2xl bg-white border border-slate-200 shadow-2xl max-h-[480px] flex flex-col overflow-hidden ${
+          className={`absolute z-50 left-0 right-0 rounded-2xl bg-white border-2 border-slate-200 shadow-2xl max-h-[480px] flex flex-col overflow-hidden ${
             dropUp ? 'bottom-full mb-2' : 'top-full mt-2'
           }`}
           style={{
@@ -423,7 +422,7 @@ export function UnitSelect({ value, onChange, label = 'Unit', hint }: Props) {
           }}
         >
           {/* Search header */}
-          <div className="p-3 border-b border-slate-100 bg-gradient-to-br from-slate-50 to-white">
+          <div className="p-3 border-b-2 border-slate-100 bg-gradient-to-br from-slate-50 to-white">
             <div className="relative">
               <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
@@ -431,7 +430,7 @@ export function UnitSelect({ value, onChange, label = 'Unit', hint }: Props) {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search unit (e.g. kg, sqft, dozen)..."
-                className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-9 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200"
+                className="h-10 w-full rounded-lg border-2 border-slate-200 bg-white pl-9 pr-9 text-sm font-semibold focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
               />
               {search && (
                 <button
@@ -446,7 +445,7 @@ export function UnitSelect({ value, onChange, label = 'Unit', hint }: Props) {
 
             {!search && quickUnits.length > 0 && (
               <div className="mt-3">
-                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                <div className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1">
                   <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
                   Quick Access
                 </div>
@@ -458,12 +457,13 @@ export function UnitSelect({ value, onChange, label = 'Unit', hint }: Props) {
                         key={u.value}
                         type="button"
                         onClick={() => handleSelect(u.value)}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                        className={`px-2.5 py-1 rounded-lg text-xs font-extrabold transition-all inline-flex items-center gap-1 ${
                           isSelected
-                            ? 'bg-brand-600 text-white shadow-sm'
-                            : 'bg-white border border-slate-200 text-slate-700 hover:border-brand-400 hover:text-brand-700'
+                            ? 'bg-emerald-600 text-white shadow-sm'
+                            : 'bg-white border-2 border-slate-200 text-slate-700 hover:border-emerald-400 hover:text-emerald-700'
                         }`}
                       >
+                        {u.isRecent && !isSelected && <Clock className="h-2.5 w-2.5 opacity-70" />}
                         {u.short}
                       </button>
                     );
@@ -473,7 +473,7 @@ export function UnitSelect({ value, onChange, label = 'Unit', hint }: Props) {
             )}
 
             {search && (
-              <div className="mt-2 text-[11px] text-slate-500">
+              <div className="mt-2 text-[11px] text-slate-500 font-bold">
                 {totalResults === 0
                   ? 'No matches'
                   : `${totalResults} unit${totalResults > 1 ? 's' : ''} found`}
@@ -483,15 +483,14 @@ export function UnitSelect({ value, onChange, label = 'Unit', hint }: Props) {
 
           {/* Units list */}
           <div className="flex-1 overflow-auto">
-            {/* Custom units section */}
             {filteredCustom.length > 0 && (
               <div>
                 <div className="sticky top-0 z-10 bg-gradient-to-r from-violet-50 to-white px-3 py-2 border-b border-slate-100">
-                  <div className="text-[11px] font-bold text-violet-700 uppercase tracking-wider flex items-center gap-1.5">
-                    <span className="text-base leading-none">⭐</span>
+                  <div className="text-[11px] font-extrabold text-violet-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <Sparkles className="h-3 w-3" />
                     Your Custom Units
                   </div>
-                  <div className="text-[10px] text-slate-500 mt-0.5">
+                  <div className="text-[10px] text-slate-500 mt-0.5 font-semibold">
                     Click edit/delete on hover
                   </div>
                 </div>
@@ -510,7 +509,7 @@ export function UnitSelect({ value, onChange, label = 'Unit', hint }: Props) {
                           onClick={() => handleSelect(unit.value)}
                           className="flex-1 px-3 py-2.5 text-left flex items-center gap-3 min-w-0"
                         >
-                          <div className={`h-9 w-12 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${
+                          <div className={`h-9 w-12 rounded-lg flex items-center justify-center font-extrabold text-xs shrink-0 ${
                             isSelected
                               ? 'bg-violet-600 text-white'
                               : 'bg-violet-100 text-violet-700'
@@ -518,12 +517,12 @@ export function UnitSelect({ value, onChange, label = 'Unit', hint }: Props) {
                             {unit.value}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className={`text-sm font-semibold truncate ${
+                            <div className={`text-sm font-extrabold truncate ${
                               isSelected ? 'text-violet-700' : 'text-slate-900'
                             }`}>
                               <HighlightText text={unit.label} query={search} />
                             </div>
-                            <div className="text-[11px] text-slate-500 truncate">
+                            <div className="text-[11px] text-slate-500 truncate font-semibold">
                               <HighlightText text={unit.desc} query={search} />
                             </div>
                           </div>
@@ -566,13 +565,13 @@ export function UnitSelect({ value, onChange, label = 'Unit', hint }: Props) {
 
             {filteredCategories.length === 0 && filteredCustom.length === 0 ? (
               <div className="p-8 text-center">
-                <div className="inline-flex h-12 w-12 rounded-full bg-slate-100 items-center justify-center mb-3">
-                  <Search className="h-5 w-5 text-slate-400" />
+                <div className="inline-flex h-14 w-14 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 items-center justify-center mb-3 shadow-inner">
+                  <Search className="h-6 w-6 text-slate-400" />
                 </div>
-                <div className="text-sm font-bold text-slate-700">
+                <div className="text-sm font-extrabold text-slate-700">
                   No units found for "{search}"
                 </div>
-                <div className="text-xs text-slate-500 mt-1">
+                <div className="text-xs text-slate-500 mt-1 font-semibold">
                   Try custom unit below ↓
                 </div>
               </div>
@@ -580,12 +579,12 @@ export function UnitSelect({ value, onChange, label = 'Unit', hint }: Props) {
               filteredCategories.map((cat) => (
                 <div key={cat.label}>
                   <div className="sticky top-0 z-10 bg-gradient-to-r from-slate-50 to-white px-3 py-2 border-b border-slate-100">
-                    <div className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <div className="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
                       <span className="text-base leading-none">{cat.icon}</span>
                       {cat.label}
                     </div>
                     {cat.desc && (
-                      <div className="text-[10px] text-slate-500 mt-0.5">{cat.desc}</div>
+                      <div className="text-[10px] text-slate-500 mt-0.5 font-semibold">{cat.desc}</div>
                     )}
                   </div>
                   <div>
@@ -596,31 +595,31 @@ export function UnitSelect({ value, onChange, label = 'Unit', hint }: Props) {
                           key={unit.value}
                           type="button"
                           onClick={() => handleSelect(unit.value)}
-                          className={`w-full px-3 py-2.5 text-left flex items-center justify-between hover:bg-brand-50 transition-colors group ${
-                            isSelected ? 'bg-brand-50' : ''
+                          className={`w-full px-3 py-2.5 text-left flex items-center justify-between hover:bg-emerald-50 transition-colors group ${
+                            isSelected ? 'bg-emerald-50' : ''
                           }`}
                         >
                           <div className="flex-1 min-w-0 flex items-center gap-3">
-                            <div className={`h-9 w-12 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 transition-colors ${
+                            <div className={`h-9 w-12 rounded-lg flex items-center justify-center font-extrabold text-xs shrink-0 transition-colors ${
                               isSelected
-                                ? 'bg-brand-600 text-white'
-                                : 'bg-slate-100 text-slate-700 group-hover:bg-brand-100 group-hover:text-brand-700'
+                                ? 'bg-emerald-600 text-white shadow-md'
+                                : 'bg-slate-100 text-slate-700 group-hover:bg-emerald-100 group-hover:text-emerald-700'
                             }`}>
                               {unit.short}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className={`text-sm font-semibold truncate ${
-                                isSelected ? 'text-brand-700' : 'text-slate-900'
+                              <div className={`text-sm font-extrabold truncate ${
+                                isSelected ? 'text-emerald-700' : 'text-slate-900'
                               }`}>
                                 <HighlightText text={unit.label} query={search} />
                               </div>
-                              <div className="text-[11px] text-slate-500 truncate">
+                              <div className="text-[11px] text-slate-500 truncate font-semibold">
                                 <HighlightText text={unit.desc} query={search} />
                               </div>
                             </div>
                           </div>
                           {isSelected && (
-                            <div className="h-6 w-6 rounded-full bg-brand-600 text-white flex items-center justify-center shrink-0 ml-2 shadow-sm">
+                            <div className="h-6 w-6 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 ml-2 shadow-sm">
                               <Check className="h-3.5 w-3.5" />
                             </div>
                           )}
@@ -634,19 +633,20 @@ export function UnitSelect({ value, onChange, label = 'Unit', hint }: Props) {
           </div>
 
           {/* Custom unit footer */}
-          <div className="border-t border-slate-100 bg-gradient-to-br from-slate-50 to-white p-3">
+          <div className="border-t-2 border-slate-100 bg-gradient-to-br from-slate-50 to-white p-3">
             {!showCustomInput ? (
               <button
                 type="button"
                 onClick={() => setShowCustomInput(true)}
-                className="w-full inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-white border-2 border-dashed border-slate-300 hover:border-brand-400 hover:bg-brand-50 text-sm font-bold text-slate-700 hover:text-brand-700 transition-all"
+                className="w-full inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-white border-2 border-dashed border-slate-300 hover:border-emerald-400 hover:bg-emerald-50 text-sm font-extrabold text-slate-700 hover:text-emerald-700 transition-all"
               >
                 <Plus className="h-4 w-4" />
                 Add Custom Unit
               </button>
             ) : (
               <div className="space-y-2">
-                <div className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                <div className="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1">
+                  <Sparkles className="h-3 w-3 text-emerald-600" />
                   {editingValue ? 'Edit Custom Unit' : 'New Custom Unit'}
                 </div>
                 <input
@@ -654,20 +654,20 @@ export function UnitSelect({ value, onChange, label = 'Unit', hint }: Props) {
                   value={customValue}
                   onChange={(e) => setCustomValue(e.target.value)}
                   placeholder="Unit name (e.g. bundle, drum)"
-                  className="h-10 w-full rounded-lg border-2 border-slate-200 px-3 text-sm focus:outline-none focus:border-brand-500"
+                  className="h-10 w-full rounded-lg border-2 border-slate-200 px-3 text-sm font-semibold focus:outline-none focus:border-emerald-500"
                 />
                 <input
                   value={customDesc}
                   onChange={(e) => setCustomDesc(e.target.value)}
                   placeholder="Description (optional)"
-                  className="h-10 w-full rounded-lg border-2 border-slate-200 px-3 text-sm focus:outline-none focus:border-brand-500"
+                  className="h-10 w-full rounded-lg border-2 border-slate-200 px-3 text-sm font-semibold focus:outline-none focus:border-emerald-500"
                 />
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={handleCustomSave}
                     disabled={!customValue.trim()}
-                    className="flex-1 h-10 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold disabled:opacity-50"
+                    className="flex-1 h-10 rounded-lg bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white text-sm font-extrabold disabled:opacity-50 shadow-md"
                   >
                     {editingValue ? 'Update' : 'Add'}
                   </button>
@@ -679,7 +679,7 @@ export function UnitSelect({ value, onChange, label = 'Unit', hint }: Props) {
                       setCustomDesc('');
                       setEditingValue(null);
                     }}
-                    className="h-10 px-3 rounded-lg bg-slate-200 hover:bg-slate-300 text-sm font-bold text-slate-700"
+                    className="h-10 px-3 rounded-lg bg-slate-200 hover:bg-slate-300 text-sm font-extrabold text-slate-700"
                   >
                     Cancel
                   </button>
