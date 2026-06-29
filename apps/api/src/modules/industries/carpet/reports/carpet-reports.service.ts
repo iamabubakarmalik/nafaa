@@ -115,11 +115,18 @@ export class CarpetReportsService {
         shop: { select: { id: true, name: true } },
         movements: {
           where: { type: 'CUT_FOR_SALE' },
-          select: { lengthFt: true, sqft: true, createdAt: true },
+          include: {
+            saleItem: {
+              select: { price: true, total: true, quantity: true, costPrice: true },
+            },
+          },
         },
       },
       orderBy: { createdAt: 'desc' },
     });
+
+    const computeRealFt = (ft: any, inch: any) =>
+      Number(ft) + Number(inch || 0) / 12;
 
     return rolls.map((roll) => {
       const soldLengthFt = roll.movements.reduce(
@@ -130,13 +137,31 @@ export class CarpetReportsService {
         (s, m) => s + Math.abs(Number(m.sqft)),
         0,
       );
-      const revenue = soldSqft * Number(roll.salePricePerSqft);
-      const cost = soldSqft * Number(roll.costPerSqft);
+
+      let revenue = 0;
+      let cost = 0;
+      for (const m of roll.movements) {
+        const si = (m as any).saleItem;
+        const sqftAbs = Math.abs(Number(m.sqft));
+        if (si) {
+          revenue += Number(si.total) || (sqftAbs * Number(si.price || 0));
+          cost += sqftAbs * Number(si.costPrice ?? roll.costPerSqft);
+        } else {
+          revenue += sqftAbs * Number(roll.salePricePerSqft);
+          cost += sqftAbs * Number(roll.costPerSqft);
+        }
+      }
+
       const profit = revenue - cost;
       const profitMargin = revenue > 0 ? (profit / revenue) * 100 : 0;
+
+      const originalRealFt = computeRealFt(
+        roll.originalLengthFt,
+        (roll as any).originalLengthInch,
+      );
       const usagePercent =
-        roll.originalLengthFt > 0
-          ? (soldLengthFt / Number(roll.originalLengthFt)) * 100
+        originalRealFt > 0
+          ? Math.min(100, (soldLengthFt / originalRealFt) * 100)
           : 0;
 
       const lastSaleDate =
@@ -174,6 +199,7 @@ export class CarpetReportsService {
     });
   }
 
+  
   // ════════════════════════════════════════════════════════
   // SLOW-MOVING ROLLS
   // ════════════════════════════════════════════════════════
@@ -320,6 +346,10 @@ export class CarpetReportsService {
             variant: { select: { id: true, name: true, color: true } },
           },
         },
+        // ✅ Join saleItem for actual price
+        saleItem: {
+          select: { price: true, total: true, quantity: true },
+        },
       },
     });
 
@@ -361,7 +391,13 @@ export class CarpetReportsService {
       grouped[key].totalSqft += sqftSold;
       grouped[key].totalLengthFt += Math.abs(Number(m.lengthFt));
       grouped[key].salesCount += 1;
-      grouped[key].revenue += sqftSold * Number(m.roll.salePricePerSqft);
+      // ✅ FIX: Use actual sale price from saleItem (custom price respect)
+      const si = (m as any).saleItem;
+      if (si) {
+        grouped[key].revenue += Number(si.total) || (sqftSold * Number(si.price || 0));
+      } else {
+        grouped[key].revenue += sqftSold * Number(m.roll.salePricePerSqft);
+      }
     }
 
     return Object.values(grouped)

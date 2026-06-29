@@ -1078,9 +1078,10 @@ model SaleItem {
   variantLink SaleItemVariant?
   createdAt   DateTime         @default(now())
 
-  sale        Sale             @relation(fields: [saleId], references: [id], onDelete: Cascade)
-  product     Product          @relation(fields: [productId], references: [id], onDelete: Restrict)
-  returnItems SaleReturnItem[]
+  sale            Sale                 @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product         Product              @relation(fields: [productId], references: [id], onDelete: Restrict)
+  returnItems     SaleReturnItem[]
+  carpetMovements CarpetRollMovement[]
 
   @@index([saleId])
   @@index([productId])
@@ -2509,12 +2510,14 @@ model CarpetRollMovement {
   createdById String?
   createdAt   DateTime @default(now())
 
-  roll CarpetRoll @relation(fields: [rollId], references: [id], onDelete: Cascade)
+  roll      CarpetRoll @relation(fields: [rollId], references: [id], onDelete: Cascade)
+  saleItem  SaleItem?  @relation(fields: [saleItemId], references: [id], onDelete: SetNull)
 
   @@index([rollId])
   @@index([tenantId])
   @@index([tenantId, createdAt])
   @@index([saleId])
+  @@index([saleItemId])
 }
 
 // ═══════════════════════════════════════════════════════════════
