@@ -115,15 +115,34 @@ export class CarpetReportsService {
         shop: { select: { id: true, name: true } },
         movements: {
           where: { type: 'CUT_FOR_SALE' },
-          include: {
-            saleItem: {
-              select: { price: true, total: true, quantity: true, costPrice: true },
-            },
-          },
+          orderBy: { createdAt: 'desc' },
         },
       },
       orderBy: { createdAt: 'desc' },
     });
+
+    // ─── Fetch sale items separately for accurate pricing ──
+    const allSaleItemIds = rolls
+      .flatMap((r) => r.movements.map((m) => m.saleItemId))
+      .filter((id): id is string => !!id);
+
+    const saleItemsMap = new Map<string, any>();
+    if (allSaleItemIds.length > 0) {
+      const saleItems = await this.prisma.saleItem.findMany({
+        where: { id: { in: allSaleItemIds } },
+        select: {
+          id: true,
+          price: true,
+          total: true,
+          quantity: true,
+          costPrice: true,
+          note: true,
+        },
+      });
+      for (const si of saleItems) {
+        saleItemsMap.set(si.id, si);
+      }
+    }
 
     const computeRealFt = (ft: any, inch: any) =>
       Number(ft) + Number(inch || 0) / 12;
@@ -140,13 +159,19 @@ export class CarpetReportsService {
 
       let revenue = 0;
       let cost = 0;
+
       for (const m of roll.movements) {
-        const si = (m as any).saleItem;
         const sqftAbs = Math.abs(Number(m.sqft));
+        const si = m.saleItemId ? saleItemsMap.get(m.saleItemId) : null;
+
         if (si) {
-          revenue += Number(si.total) || (sqftAbs * Number(si.price || 0));
+          // ✅ Use ACTUAL sale item total (respects custom price from POS)
+          // saleItem.total = saleItem.quantity (sqft) × saleItem.price (custom rate/sqft)
+          revenue += Number(si.total);
+          // Use ACTUAL cost price recorded at sale time
           cost += sqftAbs * Number(si.costPrice ?? roll.costPerSqft);
         } else {
+          // Fallback: pre-saleItem-link movements (legacy)
           revenue += sqftAbs * Number(roll.salePricePerSqft);
           cost += sqftAbs * Number(roll.costPerSqft);
         }
@@ -155,6 +180,7 @@ export class CarpetReportsService {
       const profit = revenue - cost;
       const profitMargin = revenue > 0 ? (profit / revenue) * 100 : 0;
 
+      // ✅ FIX: Use real decimal for both original and sold to get accurate usage %
       const originalRealFt = computeRealFt(
         roll.originalLengthFt,
         (roll as any).originalLengthInch,
@@ -346,12 +372,22 @@ export class CarpetReportsService {
             variant: { select: { id: true, name: true, color: true } },
           },
         },
-        // ✅ Join saleItem for actual price
-        saleItem: {
-          select: { price: true, total: true, quantity: true },
-        },
       },
     });
+
+    // ─── Fetch sale items separately for accurate pricing ──
+    const saleItemIds = movements
+      .map((m) => m.saleItemId)
+      .filter((id): id is string => !!id);
+
+    const saleItemsMap = new Map<string, any>();
+    if (saleItemIds.length > 0) {
+      const saleItems = await this.prisma.saleItem.findMany({
+        where: { id: { in: saleItemIds } },
+        select: { id: true, price: true, total: true, quantity: true },
+      });
+      for (const si of saleItems) saleItemsMap.set(si.id, si);
+    }
 
     const filtered = shopId
       ? movements.filter((m) => m.roll.shopId === shopId)
