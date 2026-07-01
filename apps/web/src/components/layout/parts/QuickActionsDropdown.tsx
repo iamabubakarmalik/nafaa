@@ -5,7 +5,7 @@ import {
   Wallet, PackagePlus, CheckCircle2, BookmarkPlus, Receipt, Sparkles,
   Zap, Truck, Tag, Layers, Smartphone, ArrowRightLeft,
 } from 'lucide-react';
-import { hasPermission, PERMISSIONS } from '@/lib/permissions';
+import { hasPermission, PERMISSIONS, type PermissionKey } from '@/lib/permissions';
 
 interface Props {
   role: any;
@@ -86,7 +86,7 @@ export function QuickActionsDropdown({ role, permissions, businessType }: Props)
   ];
 
   const filterActions = (list: Action[]) =>
-    list.filter((a) => !a.permission || hasPermission(role, permissions, a.permission));
+    list.filter((a) => !a.permission || hasPermission(role, permissions, a.permission as PermissionKey));
 
   const filteredPrimary = filterActions(primary);
   const filteredCreate = filterActions(create);

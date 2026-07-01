@@ -16,8 +16,8 @@ interface Props {
 export function ProfileDropdown({ user, tenant, onLogout }: Props) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const theme = useThemeStore((s) => s.theme);
-  const setTheme = useThemeStore((s) => s.setTheme);
+  const mode = useThemeStore((s) => s.mode);
+  const setMode = useThemeStore((s) => s.setMode);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -143,9 +143,9 @@ export function ProfileDropdown({ user, tenant, onLogout }: Props) {
               Theme
             </div>
             <div className="grid grid-cols-3 gap-1.5">
-              <ThemeButton icon={Sun} label="Light" active={theme === 'light'} onClick={() => setTheme('light')} />
-              <ThemeButton icon={Moon} label="Dark" active={theme === 'dark'} onClick={() => setTheme('dark')} />
-              <ThemeButton icon={Monitor} label="Auto" active={theme === 'auto'} onClick={() => setTheme('auto')} />
+              <ThemeButton icon={Sun} label="Light" active={mode === 'light'} onClick={() => setMode('light')} />
+              <ThemeButton icon={Moon} label="Dark" active={mode === 'dark'} onClick={() => setMode('dark')} />
+              <ThemeButton icon={Monitor} label="System" active={mode === 'system'} onClick={() => setMode('system')} />
             </div>
           </div>
 
