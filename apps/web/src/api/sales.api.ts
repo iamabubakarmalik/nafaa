@@ -1,5 +1,12 @@
 import { apiClient } from './client';
 
+export interface ServiceChargeItem {
+  type: string;   // GLUE, INSTALLATION, CUTTING, DELIVERY, UNDERLAY, CUSTOM, OTHER
+  label: string;  // Display label
+  amount: number; // PKR
+  note?: string;
+}
+
 export type PaymentMethod =
   | 'CASH'
   | 'CARD'
@@ -16,6 +23,7 @@ export interface CreateSaleItem {
   lineDiscount?: number;
   useWholesale?: boolean;
   note?: string;
+  internalNote?: string;
 }
 
 export interface CreateSalePayload {
@@ -27,6 +35,7 @@ export interface CreateSalePayload {
   discountCode?: string;
   loyaltyPointsToUse?: number;
   note?: string;
+  serviceCharges?: ServiceChargeItem[];
   items: CreateSaleItem[];
 }
 
@@ -40,6 +49,8 @@ export interface Sale {
   changeAmount: number;
   creditAmount: number;
   costOfGoods: number;
+  serviceCharges?: number;
+  serviceChargesBreakdown?: ServiceChargeItem[] | null;
   paymentMethod: PaymentMethod;
   soldAt: string;
   status?: 'COMPLETED' | 'PARTIALLY_RETURNED' | 'FULLY_RETURNED' | 'VOIDED';
@@ -103,6 +114,7 @@ export interface Sale {
     costPrice: number;
     total: number;
     note?: string | null;
+    internalNote?: string | null;
     product: {
       id: string;
       name: string;

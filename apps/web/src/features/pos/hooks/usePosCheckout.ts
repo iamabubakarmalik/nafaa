@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { type CreateSaleItem, type PaymentMethod } from '@/api/sales.api';
+import { type CreateSaleItem, type PaymentMethod, type ServiceChargeItem } from '@/api/sales.api';
 import { offlineSalesApi } from '@/lib/offline/offlineSales';
 import { carpetRollsApi } from '@/features/industries/carpet/api/carpet-rolls.api';
 import { carpetCutPiecesApi } from '@/features/industries/carpet/api/carpet-cut-pieces.api';
@@ -15,6 +15,7 @@ interface CheckoutPayload {
   paidAmount: number;
   discount: number;
   cart: CartItem[];
+  serviceCharges?: ServiceChargeItem[];
 }
 
 type CheckoutResult = {
@@ -35,7 +36,7 @@ export function usePosCheckout(onSuccess?: (result: CheckoutResult) => void) {
 
   return useMutation({
     mutationFn: async (payload: CheckoutPayload): Promise<CheckoutResult> => {
-      const { shopId, customerId, paymentMethod, paidAmount, discount, cart } = payload;
+      const { shopId, customerId, paymentMethod, paidAmount, discount, cart, serviceCharges } = payload;
 
       if (cart.length === 0) throw new Error('Cart khaali hai');
       if (!shopId) throw new Error('Shop ID missing');
@@ -124,6 +125,7 @@ export function usePosCheckout(onSuccess?: (result: CheckoutResult) => void) {
           lineDiscount: item.lineDiscount || undefined,
           useWholesale: item.useWholesale || undefined,
           note,
+          internalNote: item.internalNote?.trim() || undefined,
         };
       });
 
@@ -137,7 +139,8 @@ export function usePosCheckout(onSuccess?: (result: CheckoutResult) => void) {
           paidAmount,
           discount,
           items: saleItems,
-        });
+          serviceCharges: serviceCharges && serviceCharges.length > 0 ? serviceCharges : undefined,
+        } as any);
       } catch (err: any) {
         if (successfulCuts.length > 0) {
           await revertCuts(successfulCuts);

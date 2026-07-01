@@ -52,8 +52,38 @@ class CreateSaleItemDto {
   useWholesale?: boolean;
 
   @ApiPropertyOptional({
-    description: 'Optional note for this line (e.g. "12ft × 12ft = 144 sqft" or "IMEI: 354895...")',
+    description: 'Customer-visible note (prints on receipt & WhatsApp). e.g. "1 piece damage tha"',
   })
+  @IsOptional()
+  @IsString()
+  note?: string;
+
+  @ApiPropertyOptional({
+    description: 'Team-only internal note (never shown to customer). e.g. "customer regular hai"',
+  })
+  @IsOptional()
+  @IsString()
+  internalNote?: string;
+}
+
+class ServiceChargeItemDto {
+  @ApiProperty({
+    example: 'GLUE',
+    description: 'Type identifier: GLUE, INSTALLATION, CUTTING, DELIVERY, UNDERLAY, CUSTOM, OTHER',
+  })
+  @IsString()
+  type!: string;
+
+  @ApiProperty({ example: 'Adhesive / Glue', description: 'Display label' })
+  @IsString()
+  label!: string;
+
+  @ApiProperty({ example: 2000, description: 'Charge amount in PKR' })
+  @IsNumber()
+  @Min(0)
+  amount!: number;
+
+  @ApiPropertyOptional({ description: 'Optional note for this charge' })
   @IsOptional()
   @IsString()
   note?: string;
@@ -107,6 +137,16 @@ export class CreateSaleDto {
   @IsOptional()
   @IsString()
   note?: string;
+
+  @ApiPropertyOptional({
+    type: [ServiceChargeItemDto],
+    description: 'Extra service charges (glue, installation, cutting, delivery, etc.)',
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ServiceChargeItemDto)
+  serviceCharges?: ServiceChargeItemDto[];
 
   @ApiProperty({ type: [CreateSaleItemDto] })
   @IsArray()

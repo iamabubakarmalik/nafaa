@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
 import {
-  Printer, ArrowLeft, MessageCircle, X as XIcon, Package,
+  Printer, ArrowLeft, MessageCircle, X as XIcon, Package, StickyNote,
   User, Phone, Calendar, CreditCard, Receipt as ReceiptIcon,
   BookOpen, Tag, Copy, ShieldAlert, MapPin, Mail, Globe,
   Banknote, Smartphone, Building2, Zap, CheckCircle2, AlertTriangle,
@@ -193,6 +193,14 @@ export default function ReceiptPage() {
     lines.push(`Subtotal:        ${formatPKR(data.subtotal)}`);
     if (data.discount > 0) {
       lines.push(`Discount:        -${formatPKR(data.discount)} 🎉`);
+    }
+    if (data.serviceChargesBreakdown && data.serviceChargesBreakdown.length > 0) {
+      lines.push('');
+      lines.push('🧰 *Service Charges:*');
+      data.serviceChargesBreakdown.forEach((sc: any) => {
+        lines.push(`  • ${sc.label}: +${formatPKR(sc.amount)}`);
+      });
+      lines.push(`Services Total:  +${formatPKR(data.serviceCharges ?? 0)}`);
     }
     lines.push('');
     lines.push(`💰 *GRAND TOTAL:* *${formatPKR(data.total)}*`);
@@ -512,6 +520,19 @@ export default function ReceiptPage() {
                     <span>-{formatPKR(data.discount)}</span>
                   </div>
                 )}
+                {data.serviceChargesBreakdown && data.serviceChargesBreakdown.length > 0 && (
+                  <>
+                    <div className="pt-1 mt-1 border-t border-dotted border-slate-400 font-bold text-center">
+                      SERVICE CHARGES
+                    </div>
+                    {data.serviceChargesBreakdown.map((sc: any, idx: number) => (
+                      <div key={idx} className="flex justify-between">
+                        <span>{sc.label}:</span>
+                        <span>+{formatPKR(sc.amount)}</span>
+                      </div>
+                    ))}
+                  </>
+                )}
                 <div className={`flex justify-between border-t border-double border-slate-700 mt-1 pt-1 font-extrabold ${format === 'thermal58' ? 'text-xs' : 'text-sm'}`}>
                   <span>TOTAL:</span>
                   <span>{formatPKR(data.total)}</span>
@@ -755,7 +776,10 @@ export default function ReceiptPage() {
                               </div>
                             )}
                             {item.note && !carpet.type && !((item as any).imeis?.length) && (
-                              <div className="text-[10px] text-slate-500 mt-0.5 italic">{item.note}</div>
+                              <div className="mt-1.5 inline-flex items-start gap-1.5 px-2 py-1 rounded-md bg-amber-50 border border-amber-300 text-[10px] font-bold text-amber-900 print:bg-white print:border-slate-400">
+                                <StickyNote className="h-2.5 w-2.5 mt-0.5 shrink-0" />
+                                <span>{item.note}</span>
+                              </div>
                             )}
 
                             {(item as any).imeis && (item as any).imeis.length > 0 && (
@@ -861,6 +885,25 @@ export default function ReceiptPage() {
                       <Tag className="h-3 w-3" /> Discount
                     </span>
                     <span className="font-bold text-amber-700 tabular-nums">-{formatPKR(data.discount)}</span>
+                  </div>
+                )}
+
+                {/* ─── Service Charges Breakdown ─── */}
+                {data.serviceChargesBreakdown && data.serviceChargesBreakdown.length > 0 && (
+                  <div className="rounded-xl bg-orange-50 border-2 border-orange-200 p-2.5 space-y-1 print:bg-white">
+                    <div className="text-[10px] uppercase tracking-wider font-extrabold text-orange-700 mb-1">
+                      Service Charges
+                    </div>
+                    {data.serviceChargesBreakdown.map((sc: any, idx: number) => (
+                      <div key={idx} className="flex items-center justify-between text-xs">
+                        <span className="text-orange-800 font-semibold">{sc.label}</span>
+                        <span className="font-bold text-orange-800 tabular-nums">+{formatPKR(sc.amount)}</span>
+                      </div>
+                    ))}
+                    <div className="flex items-center justify-between text-sm pt-1 border-t border-orange-200">
+                      <span className="font-extrabold text-orange-900">Total Services</span>
+                      <span className="font-extrabold text-orange-900 tabular-nums">+{formatPKR(data.serviceCharges ?? 0)}</span>
+                    </div>
                   </div>
                 )}
 

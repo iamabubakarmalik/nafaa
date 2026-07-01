@@ -230,6 +230,22 @@ enum CustomerGender {
   OTHER
 }
 
+
+enum BookingStatus {
+  PENDING            // Just created, awaiting first payment
+  ADVANCE_PAID       // Some advance received, items reserved
+  READY_FOR_PICKUP   // Fully paid or ready to deliver
+  CONVERTED          // Turned into an actual sale
+  CANCELLED          // Customer cancelled — refund processed
+  EXPIRED            // Deadline passed, auto-cancel
+}
+
+enum BookingPaymentType {
+  ADVANCE            // Initial or partial advance
+  ADDITIONAL         // Extra installment before delivery
+  REFUND             // Money returned on cancel
+}
+
 model Plan {
   id             String  @id @default(uuid())
   name           String  @unique
@@ -347,6 +363,7 @@ model Tenant {
   referralsGiven         Referral[]              @relation("ReferralReferrer")
   referralsReceived      Referral[]              @relation("ReferralReferee")
   creditTransactions     CreditTransaction[]
+  bookings               Booking[]
 }
 
 model Referral {
@@ -530,6 +547,7 @@ model Shop {
   carpetCutPieces CarpetCutPiece[]
   usedPhones      UsedPhone[]
   repairTickets   RepairTicket[]
+  bookings        Booking[]
 
   @@unique([tenantId, name])
   @@index([tenantId])
@@ -948,6 +966,7 @@ model Customer {
   loyaltyTransactions LoyaltyTransaction[]
   usedPhonesSold      UsedPhone[]          @relation("UsedPhoneFromCustomer")
   repairTickets       RepairTicket[]       @relation("RepairTicketCustomer")
+  bookings            Booking[]
 
   @@index([tenantId])
   @@index([tenantId, name])
@@ -1044,6 +1063,9 @@ model Sale {
   refundedAmount Float         @default(0)
   paymentMethod  PaymentMethod @default(CASH)
   status         SaleStatus    @default(COMPLETED)
+  serviceCharges          Float @default(0)
+  serviceChargesBreakdown Json?
+  bookingId               String? @unique
   soldAt         DateTime      @default(now())
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
@@ -1056,6 +1078,7 @@ model Sale {
   discountCodeRef DiscountCode? @relation(fields: [discountCodeId], references: [id], onDelete: SetNull)
   items           SaleItem[]
   returns         SaleReturn[]
+  booking         Booking?      @relation(fields: [bookingId], references: [id], onDelete: SetNull)
 
   @@unique([tenantId, saleNumber])
   @@index([tenantId])
@@ -1069,13 +1092,14 @@ model SaleItem {
   id          String           @id @default(uuid())
   saleId      String
   productId   String
-  quantity    Float
-  returnedQty Float            @default(0)
-  price       Float
-  costPrice   Float            @default(0)
-  total       Float
-  note        String?          @db.Text
-  variantLink SaleItemVariant?
+  quantity     Float
+  returnedQty  Float            @default(0)
+  price        Float
+  costPrice    Float            @default(0)
+  total        Float
+  note         String?          @db.Text // Customer-visible note (prints on receipt)
+  internalNote String?          @db.Text // Team-only note (never on receipt/WhatsApp)
+  variantLink  SaleItemVariant?
   createdAt   DateTime         @default(now())
 
   sale            Sale                 @relation(fields: [saleId], references: [id], onDelete: Cascade)
@@ -2794,4 +2818,118 @@ model RepairPayment {
   ticket RepairTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
 
   @@index([ticketId])
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+// BOOKING / ADVANCE SYSTEM
+// ═══════════════════════════════════════════════════════════════
+
+model Booking {
+  id             String        @id @default(uuid())
+  tenantId       String
+  shopId         String?
+  customerId     String
+  createdById    String?
+  bookingNumber  String        // BK-2026-0001
+
+  status         BookingStatus @default(PENDING)
+
+  // ─── Amounts ────────────────────────────────────────────
+  subtotal        Float @default(0) // Sum of item totals
+  discount        Float @default(0)
+  serviceCharges  Float @default(0)
+  serviceChargesBreakdown Json?
+  total           Float @default(0) // Final expected total
+  totalPaid       Float @default(0) // Sum of ADVANCE + ADDITIONAL
+  totalRefunded   Float @default(0) // Sum of REFUND
+  balanceDue      Float @default(0) // total - totalPaid + totalRefunded
+
+  // ─── Timeline ───────────────────────────────────────────
+  expectedPickupAt DateTime? // Customer bola "kal / 2 din baad"
+  expiresAt        DateTime? // Auto-cancel deadline
+  convertedAt      DateTime?
+  cancelledAt      DateTime?
+  cancelReason     String?
+
+  // ─── Payment / Refund Method ────────────────────────────
+  paymentMethod    PaymentMethod @default(CASH)
+
+  // ─── Misc ───────────────────────────────────────────────
+  notes         String? @db.Text
+  internalNotes String? @db.Text // Team-only
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // ─── Relations ──────────────────────────────────────────
+  tenant   Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  shop     Shop?            @relation(fields: [shopId], references: [id], onDelete: SetNull)
+  customer Customer         @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  items    BookingItem[]
+  payments BookingPayment[]
+  sale     Sale? // Sale that was converted from this booking
+
+  @@unique([tenantId, bookingNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([customerId])
+  @@index([shopId])
+  @@index([expiresAt])
+  @@index([expectedPickupAt])
+}
+
+model BookingItem {
+  id        String @id @default(uuid())
+  bookingId String
+
+  productId String
+  variantId String?
+  imeiId    String?      // Reserved IMEI (mobile industry)
+  rollId    String?      // Reserved carpet roll (carpet industry)
+  cutPieceId String?     // Reserved cut piece
+
+  quantity     Float
+  price        Float    // Per unit price (rate)
+  costPrice    Float @default(0)
+  lineDiscount Float @default(0)
+  total        Float
+  useWholesale Boolean @default(false)
+
+  // Carpet-specific reservation dims
+  cutWidthFt   Float?
+  cutLengthFt  Float?
+  cutLengthInch Float?
+  cutSqft      Float?
+
+  note         String? @db.Text // Customer-visible
+  internalNote String? @db.Text // Team-only
+
+  createdAt DateTime @default(now())
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+  @@index([productId])
+  @@index([imeiId])
+  @@index([rollId])
+  @@index([cutPieceId])
+}
+
+model BookingPayment {
+  id            String              @id @default(uuid())
+  bookingId     String
+  type          BookingPaymentType  @default(ADVANCE)
+  amount        Float
+  paymentMethod PaymentMethod       @default(CASH)
+  reference     String?
+  notes         String?
+  createdById   String?
+  paidAt        DateTime            @default(now())
+  createdAt     DateTime            @default(now())
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+  @@index([type])
 }

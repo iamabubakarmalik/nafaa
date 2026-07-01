@@ -1,6 +1,7 @@
+import { useState, useEffect } from 'react';
 import {
   Package, Trash2, Edit3, Plus, Minus, Ruler, Tag, Smartphone, Layers,
-  Scissors, Lock, Sparkles,
+  Scissors, Lock, Sparkles, StickyNote, EyeOff, MessageSquare, X,
 } from 'lucide-react';
 import { formatPKR } from '@/lib/format';
 import type { CartItem } from './pos-types';
@@ -17,29 +18,85 @@ interface Props {
   onOpenLW: () => void;
 }
 
+// ─── Split note into system-generated part vs user-added part ───
+const SYSTEM_NOTE_PATTERNS = [
+  /^Cut from [\w-]+:.*$/,
+  /^Cut piece [\w-]+.*$/,
+  /^IMEI: .*$/,
+];
+
+function splitNote(note?: string): { systemNote: string; userNote: string } {
+  if (!note) return { systemNote: '', userNote: '' };
+  const parts = note.split(' | ');
+  if (parts.length >= 2) {
+    return { systemNote: parts[0].trim(), userNote: parts.slice(1).join(' | ').trim() };
+  }
+  const trimmed = note.trim();
+  const isSystem = SYSTEM_NOTE_PATTERNS.some((rx) => rx.test(trimmed));
+  return isSystem
+    ? { systemNote: trimmed, userNote: '' }
+    : { systemNote: '', userNote: trimmed };
+}
+
+function joinNote(systemNote: string, userNote: string): string | undefined {
+  const s = systemNote.trim();
+  const u = userNote.trim();
+  if (s && u) return `${s} | ${u}`;
+  if (s) return s;
+  if (u) return u;
+  return undefined;
+}
+
 export function PosCartLine({
   item, isEditing, hidePrices, onToggleEdit, onRemove, onUpdate, onSetQuantity, onOpenLW,
 }: Props) {
+  const [notesOpen, setNotesOpen] = useState(false);
+
   const unitPrice =
     item.priceOverride ??
     (item.useWholesale ? (item.wholesalePrice ?? item.basePrice) : item.basePrice);
   const lineTotal = unitPrice * item.quantity - (item.lineDiscount || 0);
   const canUseLW = LW_UNITS.has(item.unit) && !item.rollId && !item.cutPieceId;
   const isLocked = !!(item.imeiId || item.rollId || item.cutPieceId);
-  const hasCustomPrice = item.priceOverride !== undefined && !item.rollId && !item.cutPieceId;
+  const hasCustomPrice = item.priceOverride !== undefined;
   const hasDiscount = (item.lineDiscount || 0) > 0;
+
+  // Split customer-facing note
+  const { systemNote, userNote } = splitNote(item.note);
+  const hasUserNote = !!userNote;
+  const hasInternalNote = !!(item.internalNote && item.internalNote.trim());
+
+  const [userNoteDraft, setUserNoteDraft] = useState(userNote);
+  const [internalNoteDraft, setInternalNoteDraft] = useState(item.internalNote ?? '');
+
+  useEffect(() => { setUserNoteDraft(userNote); }, [userNote]);
+  useEffect(() => { setInternalNoteDraft(item.internalNote ?? ''); }, [item.internalNote]);
+
+  const saveUserNote = (next: string) => {
+    setUserNoteDraft(next);
+    onUpdate({ note: joinNote(systemNote, next) });
+  };
+
+  const saveInternalNote = (next: string) => {
+    setInternalNoteDraft(next);
+    onUpdate({ internalNote: next.trim() ? next : undefined });
+  };
 
   return (
     <div
       className={`rounded-2xl border-2 transition-all ${
         isEditing
           ? 'border-brand-500 bg-gradient-to-br from-brand-50/40 to-white shadow-lg shadow-brand-500/20'
+          : notesOpen
+          ? 'border-amber-400 bg-amber-50/40 shadow-md'
           : item.rollId
           ? 'border-emerald-200 bg-emerald-50/30 hover:border-emerald-400'
           : item.cutPieceId
           ? 'border-violet-200 bg-violet-50/30 hover:border-violet-400'
           : item.imeiId
           ? 'border-blue-200 bg-blue-50/30 hover:border-blue-400'
+          : hasUserNote || hasInternalNote
+          ? 'border-amber-200 bg-amber-50/20 hover:border-amber-400'
           : 'border-slate-200 bg-white hover:border-brand-300 hover:shadow-sm'
       }`}
     >
@@ -81,7 +138,6 @@ export function PosCartLine({
             </div>
           )}
 
-          {/* Carpet ROLL badge */}
           {item.rollId && item.rollNumber && (
             <div className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[9px] font-extrabold">
               <Layers className="h-2 w-2" />
@@ -94,7 +150,6 @@ export function PosCartLine({
             </div>
           )}
 
-          {/* Cut piece badge */}
           {item.cutPieceId && item.cutPieceCode && (
             <div className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-violet-100 text-violet-800 text-[9px] font-extrabold">
               <Scissors className="h-2 w-2" />
@@ -102,7 +157,6 @@ export function PosCartLine({
             </div>
           )}
 
-          {/* IMEI badge */}
           {item.imeiNumber && (
             <div className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-blue-100 text-blue-800 text-[9px] font-extrabold font-mono">
               <Smartphone className="h-2 w-2" />
@@ -121,15 +175,26 @@ export function PosCartLine({
             {hasCustomPrice && <span className="ml-1 text-blue-700 font-extrabold">CUSTOM</span>}
           </div>
 
-          {/* Note */}
-          {item.note && !item.imeiNumber && !item.rollId && !item.cutPieceId && (
-            <div className="mt-1 inline-flex items-center gap-1 text-[9px] text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">
-              <Ruler className="h-2 w-2" />
-              {item.note}
+          {/* Customer note preview */}
+          {hasUserNote && !notesOpen && (
+            <div className="mt-1.5 flex items-start gap-1.5 rounded-md bg-amber-100 border border-amber-300 px-1.5 py-1">
+              <MessageSquare className="h-2.5 w-2.5 text-amber-700 shrink-0 mt-0.5" />
+              <div className="flex-1 text-[10px] font-bold text-amber-900 leading-snug line-clamp-2">
+                {userNote}
+              </div>
             </div>
           )}
 
-          {/* Discount */}
+          {/* Internal note preview */}
+          {hasInternalNote && !notesOpen && (
+            <div className="mt-1 flex items-start gap-1.5 rounded-md bg-slate-100 border border-slate-300 px-1.5 py-1">
+              <EyeOff className="h-2.5 w-2.5 text-slate-600 shrink-0 mt-0.5" />
+              <div className="flex-1 text-[10px] font-bold text-slate-700 leading-snug line-clamp-2 italic">
+                {item.internalNote}
+              </div>
+            </div>
+          )}
+
           {hasDiscount && (
             <div className="mt-1 inline-flex items-center gap-1 text-[9px] text-rose-700 font-extrabold bg-rose-50 px-1.5 py-0.5 rounded">
               <Tag className="h-2 w-2" />
@@ -143,20 +208,34 @@ export function PosCartLine({
           <div className="font-extrabold text-slate-900 text-sm tabular-nums">
             {hidePrices ? '••••' : formatPKR(lineTotal)}
           </div>
-          <div className="flex gap-0.5 mt-1 justify-end">
-            {!isLocked && (
-              <button
-                onClick={onToggleEdit}
-                className={`h-6 w-6 rounded-md flex items-center justify-center transition ${
-                  isEditing
-                    ? 'bg-brand-600 text-white shadow-sm'
-                    : 'bg-slate-100 hover:bg-brand-100 text-slate-600 hover:text-brand-700'
-                }`}
-                title={isEditing ? 'Done editing' : 'Edit'}
-              >
-                <Edit3 className="h-3 w-3" />
-              </button>
-            )}
+          <div className="flex gap-0.5 mt-1 justify-end flex-wrap">
+            {/* Notes button — ALWAYS visible */}
+            <button
+              onClick={() => setNotesOpen((v) => !v)}
+              className={`h-6 w-6 rounded-md flex items-center justify-center transition relative ${
+                notesOpen || hasUserNote || hasInternalNote
+                  ? 'bg-amber-500 text-white shadow-sm'
+                  : 'bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200'
+              }`}
+              title="Notes (customer + internal)"
+            >
+              <StickyNote className="h-3 w-3" />
+              {(hasUserNote || hasInternalNote) && !notesOpen && (
+                <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-amber-600 border border-white" />
+              )}
+            </button>
+            {/* Edit button — NOW visible for ALL items (rate/discount edit) */}
+            <button
+              onClick={onToggleEdit}
+              className={`h-6 w-6 rounded-md flex items-center justify-center transition ${
+                isEditing
+                  ? 'bg-brand-600 text-white shadow-sm'
+                  : 'bg-slate-100 hover:bg-brand-100 text-slate-600 hover:text-brand-700'
+              }`}
+              title={isEditing ? 'Done editing' : 'Edit price / discount'}
+            >
+              <Edit3 className="h-3 w-3" />
+            </button>
             <button
               onClick={onRemove}
               className="h-6 w-6 rounded-md bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center transition"
@@ -167,6 +246,68 @@ export function PosCartLine({
           </div>
         </div>
       </div>
+
+      {/* ─── NOTES PANEL (2 notes side-by-side) ─── */}
+      {notesOpen && (
+        <div className="px-2.5 pb-2 -mt-1 space-y-2">
+          {/* Customer Note */}
+          <div className="rounded-lg bg-amber-50 border-2 border-amber-300 p-2 space-y-1">
+            <div className="flex items-center justify-between">
+              <label className="text-[9px] font-extrabold uppercase tracking-wider text-amber-800 flex items-center gap-1">
+                <MessageSquare className="h-2.5 w-2.5" />
+                Customer Note (prints on receipt)
+              </label>
+              {userNoteDraft.trim() && (
+                <button
+                  onClick={() => saveUserNote('')}
+                  className="text-[9px] font-extrabold text-rose-600 hover:text-rose-800 inline-flex items-center gap-0.5"
+                >
+                  <X className="h-2.5 w-2.5" /> Clear
+                </button>
+              )}
+            </div>
+            <textarea
+              value={userNoteDraft}
+              onChange={(e) => saveUserNote(e.target.value)}
+              rows={2}
+              placeholder='e.g. "1 piece damage tha, discount de dia", "customer VIP"'
+              className="w-full rounded-md border-2 border-amber-200 px-2 py-1.5 text-xs font-bold bg-white focus:outline-none focus:border-amber-500 resize-none"
+            />
+          </div>
+
+          {/* Internal / Team Note */}
+          <div className="rounded-lg bg-slate-100 border-2 border-slate-300 p-2 space-y-1">
+            <div className="flex items-center justify-between">
+              <label className="text-[9px] font-extrabold uppercase tracking-wider text-slate-700 flex items-center gap-1">
+                <EyeOff className="h-2.5 w-2.5" />
+                Internal Note (team-only, NOT on receipt)
+              </label>
+              {internalNoteDraft.trim() && (
+                <button
+                  onClick={() => saveInternalNote('')}
+                  className="text-[9px] font-extrabold text-rose-600 hover:text-rose-800 inline-flex items-center gap-0.5"
+                >
+                  <X className="h-2.5 w-2.5" /> Clear
+                </button>
+              )}
+            </div>
+            <textarea
+              value={internalNoteDraft}
+              onChange={(e) => saveInternalNote(e.target.value)}
+              rows={2}
+              placeholder='Team ke liye: "regular customer, next time bhi same rate", "supplier ne special discount diya"'
+              className="w-full rounded-md border-2 border-slate-200 px-2 py-1.5 text-xs font-bold bg-white focus:outline-none focus:border-slate-500 resize-none"
+            />
+          </div>
+
+          <button
+            onClick={() => setNotesOpen(false)}
+            className="w-full h-7 rounded-md bg-slate-800 hover:bg-slate-900 text-white text-[10px] font-extrabold transition"
+          >
+            Done
+          </button>
+        </div>
+      )}
 
       {/* Quantity controls (only for unlocked items) */}
       {!isLocked && (
@@ -210,10 +351,21 @@ export function PosCartLine({
         </div>
       )}
 
-      {/* Edit panel */}
-      {isEditing && !isLocked && (
+      {/* ─── EDIT PANEL — Now works for LOCKED items too (rate/discount) ─── */}
+      {isEditing && (
         <div className="border-t-2 border-brand-200 bg-brand-50/40 p-2.5 space-y-2 animate-in slide-in-from-top-2 duration-150">
-          {item.wholesalePrice && (
+          {isLocked && (
+            <div className="rounded-md bg-blue-50 border border-blue-200 px-2 py-1 flex items-start gap-1.5">
+              <Lock className="h-3 w-3 text-blue-700 shrink-0 mt-0.5" />
+              <div className="text-[9px] text-blue-900 font-bold leading-tight">
+                {item.rollId && 'Fixed item (roll cut). Quantity locked but rate & discount editable.'}
+                {item.cutPieceId && 'Fixed cut piece. Rate & discount editable.'}
+                {item.imeiId && 'Fixed IMEI (qty = 1). Rate & discount editable.'}
+              </div>
+            </div>
+          )}
+
+          {item.wholesalePrice && !isLocked && (
             <label className="flex items-center justify-between gap-2 text-[10px] cursor-pointer bg-white rounded-lg px-2 py-1.5 border border-amber-200">
               <span className="font-extrabold text-amber-800 inline-flex items-center gap-1">
                 <Tag className="h-3 w-3" />
@@ -233,7 +385,7 @@ export function PosCartLine({
           <div className="grid grid-cols-2 gap-1.5">
             <div>
               <label className="block text-[9px] font-extrabold text-slate-600 mb-0.5 uppercase tracking-wider">
-                Custom price
+                {item.rollId || item.cutPieceId ? 'Rate / sqft' : 'Custom price'}
               </label>
               <input
                 type="number"
@@ -261,14 +413,6 @@ export function PosCartLine({
               />
             </div>
           </div>
-
-          <input
-            type="text"
-            value={item.note ?? ''}
-            onChange={(e) => onUpdate({ note: e.target.value })}
-            placeholder="Note (optional)"
-            className="h-8 w-full rounded-md border-2 border-slate-200 px-2 text-xs focus:outline-none focus:border-brand-500"
-          />
 
           <button
             onClick={onToggleEdit}

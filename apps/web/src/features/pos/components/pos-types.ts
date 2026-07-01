@@ -42,7 +42,8 @@ export type CartItem = {
   useWholesale: boolean;
   priceOverride?: number;
   lineDiscount: number;
-  note?: string;
+  note?: string;         // Customer-visible (receipt + WhatsApp)
+  internalNote?: string; // Team-only (never on receipt)
 };
 
 export type SaleMode = 'FULL_PAYMENT' | 'PARTIAL_CREDIT' | 'FULL_CREDIT';

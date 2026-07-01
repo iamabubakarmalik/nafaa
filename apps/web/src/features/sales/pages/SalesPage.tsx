@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import {
-  Receipt, TrendingUp, Wallet, CalendarDays, ArrowUpRight,
+  Receipt, TrendingUp, Wallet, CalendarDays, ArrowUpRight, Wrench,
   Search, Filter, X, Calendar, Package, User, Phone,
   Banknote, CreditCard, Smartphone, Building2, Zap,
   CheckCircle2, XCircle, AlertTriangle, ShoppingCart,
@@ -532,6 +532,15 @@ export default function SalesPage() {
                             <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-extrabold inline-flex items-center gap-1">
                               <BookOpen className="h-2.5 w-2.5" />
                               UDHAAR
+                            </span>
+                          )}
+                          {!!(sale.serviceCharges && sale.serviceCharges > 0) && (
+                            <span
+                              className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[10px] font-extrabold inline-flex items-center gap-1"
+                              title={`Service charges: ${formatPKR(sale.serviceCharges)}`}
+                            >
+                              <Wrench className="h-2.5 w-2.5" />
+                              SERVICES +{formatPKR(sale.serviceCharges)}
                             </span>
                           )}
                         </div>

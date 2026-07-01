@@ -203,6 +203,7 @@ export class SalesService {
         lineDiscount,
         total: lineTotal,
         note: item.note,
+        internalNote: item.internalNote,
       };
     });
 
@@ -241,7 +242,15 @@ export class SalesService {
     }
 
     const totalDiscount = discount + loyaltyDiscount;
-    const total = Math.max(subtotal - totalDiscount, 0);
+
+    // ─── Service Charges (Carpet installation, glue, delivery, etc.) ──
+    const serviceChargesArr = dto.serviceCharges ?? [];
+    const serviceChargesTotal = serviceChargesArr.reduce(
+      (sum, sc) => sum + Number(sc.amount || 0),
+      0,
+    );
+
+    const total = Math.max(subtotal - totalDiscount + serviceChargesTotal, 0);
     const paidAmount = dto.paidAmount;
     const creditAmount = Math.max(total - paidAmount, 0);
     const changeAmount = Math.max(paidAmount - total, 0);
@@ -291,6 +300,11 @@ export class SalesService {
           creditAmount,
           paymentMethod: dto.paymentMethod,
           status: 'COMPLETED',
+          serviceCharges: serviceChargesTotal,
+          serviceChargesBreakdown:
+            serviceChargesArr.length > 0
+              ? (serviceChargesArr as any)
+              : undefined,
           items: {
             create: normalizedItems.map((item) => ({
               productId: item.productId,
@@ -299,6 +313,7 @@ export class SalesService {
               costPrice: item.costPrice,
               total: item.total,
               note: item.note,
+              internalNote: item.internalNote,
               ...(item.variantId && {
                 variantLink: { create: { variantId: item.variantId } },
               }),

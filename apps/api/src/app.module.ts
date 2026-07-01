@@ -41,6 +41,7 @@ import { ReportsModule } from './modules/reports/reports.module';
 import { StockReportModule } from './modules/reports/stock-report/stock-report.module';
 import { ReturnsModule } from './modules/returns/returns.module';
 import { SalesModule } from './modules/sales/sales.module';
+import { BookingsModule } from './modules/bookings/bookings.module';
 import { SearchModule } from './modules/search/search.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { ShopsModule } from './modules/shops/shops.module';
@@ -89,6 +90,7 @@ import { PrismaModule } from './prisma/prisma.module';
     CustomersModule,
     DiscountsModule,
     SalesModule,
+    BookingsModule,
     ReturnsModule,
     LoyaltyModule,
     SuppliersModule,

@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/Button';
 import { formatPKR } from '@/lib/format';
 import { toast } from 'sonner';
 import type { CartItem, SaleMode } from './pos-types';
-import type { PaymentMethod } from '@/api/sales.api';
+import type { PaymentMethod, ServiceChargeItem } from '@/api/sales.api';
+import { ServiceChargesPanel } from './ServiceChargesPanel';
 
 const paymentMethodConfig: Record<PaymentMethod, { label: string; icon: any; color: string; bg: string; activeBg: string }> = {
   CASH: { label: 'Cash', icon: Banknote, color: '#16a34a', bg: 'bg-white border-slate-200', activeBg: 'bg-emerald-50 border-emerald-500 ring-2 ring-emerald-200' },
@@ -29,6 +30,9 @@ interface Props {
   paidAmount: string;
   setPaidAmount: (v: string) => void;
   customerId: string;
+  serviceCharges: ServiceChargeItem[];
+  setServiceCharges: (v: ServiceChargeItem[]) => void;
+  showServiceCharges?: boolean;
   onCheckout: () => void;
   loading: boolean;
 }
@@ -36,7 +40,8 @@ interface Props {
 export function PosCheckoutPanel({
   cart, globalDiscount, setGlobalDiscount, saleMode, setSaleMode,
   paymentMethod, setPaymentMethod, paidAmount, setPaidAmount,
-  customerId, onCheckout, loading,
+  customerId, serviceCharges, setServiceCharges, showServiceCharges = false,
+  onCheckout, loading,
 }: Props) {
   const subtotal = useMemo(
     () =>
@@ -56,7 +61,8 @@ export function PosCheckoutPanel({
 
   const gDiscount = Number(globalDiscount) || 0;
   const totalDiscount = totalLineDiscount + gDiscount;
-  const total = Math.max(subtotal - totalDiscount, 0);
+  const serviceChargesTotal = serviceCharges.reduce((sum, c) => sum + Number(c.amount || 0), 0);
+  const total = Math.max(subtotal - totalDiscount + serviceChargesTotal, 0);
 
   const effectivePaid = useMemo(() => {
     if (saleMode === 'FULL_PAYMENT') return total;
@@ -75,6 +81,11 @@ export function PosCheckoutPanel({
 
   return (
     <div className="shrink-0 border-t-2 border-slate-200 bg-gradient-to-br from-slate-50 to-white p-3 space-y-2.5">
+      {/* Service Charges (carpet only) */}
+      {showServiceCharges && (
+        <ServiceChargesPanel charges={serviceCharges} onChange={setServiceCharges} />
+      )}
+
       {/* Global discount */}
       <div>
         <label className="text-[9px] font-extrabold uppercase tracking-wider text-slate-500 mb-1 flex items-center gap-1">
@@ -235,6 +246,12 @@ export function PosCheckoutPanel({
           <div className="flex items-center justify-between text-[10px]">
             <span className="text-amber-300 font-semibold">Discount</span>
             <span className="font-extrabold text-amber-300 tabular-nums">-{formatPKR(totalDiscount)}</span>
+          </div>
+        )}
+        {serviceChargesTotal > 0 && (
+          <div className="flex items-center justify-between text-[10px]">
+            <span className="text-orange-300 font-semibold">+ Service Charges</span>
+            <span className="font-extrabold text-orange-300 tabular-nums">+{formatPKR(serviceChargesTotal)}</span>
           </div>
         )}
         <div className="flex items-center justify-between pt-1.5 border-t border-white/15">

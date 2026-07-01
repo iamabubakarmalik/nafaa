@@ -12,7 +12,7 @@ import { offlineProductsApi as productsApi } from '@/lib/offline/offlineProducts
 import { productVariantsApi, type ProductVariant } from '@/api/product-variants.api';
 import { offlineCustomersApi as customersApi } from '@/lib/offline/offlineCustomers';
 import { categoriesApi } from '@/api/categories.api';
-import type { PaymentMethod } from '@/api/sales.api';
+import type { PaymentMethod, ServiceChargeItem } from '@/api/sales.api';
 import { Button } from '@/components/ui/Button';
 import { formatPKR } from '@/lib/format';
 import { toast } from 'sonner';
@@ -66,6 +66,7 @@ export default function PosPage() {
   const [paidAmount, setPaidAmount] = useState('');
   const [saleMode, setSaleMode] = useState<SaleMode>('FULL_PAYMENT');
   const [globalDiscount, setGlobalDiscount] = useState('');
+  const [serviceCharges, setServiceCharges] = useState<ServiceChargeItem[]>([]);
   const [scannerOpen, setScannerOpen] = useState(false);
   const [barcodeInput, setBarcodeInput] = useState('');
   const [lwOpen, setLwOpen] = useState<CartItem | null>(null);
@@ -252,6 +253,7 @@ export default function PosPage() {
     setPaymentMethod('CASH');
     setPaidAmount('');
     setGlobalDiscount('');
+    setServiceCharges([]);
     setSaleMode('FULL_PAYMENT');
   };
 
@@ -634,7 +636,8 @@ export default function PosPage() {
     }, 0);
     const totalLineDiscount = cart.reduce((sum, item) => sum + (item.lineDiscount || 0), 0);
     const gDiscount = Number(globalDiscount) || 0;
-    const total = Math.max(subtotal - totalLineDiscount - gDiscount, 0);
+    const svcTotal = serviceCharges.reduce((sum, c) => sum + Number(c.amount || 0), 0);
+    const total = Math.max(subtotal - totalLineDiscount - gDiscount + svcTotal, 0);
     const effectivePaid =
       saleMode === 'FULL_PAYMENT' ? total : saleMode === 'FULL_CREDIT' ? 0 : Number(paidAmount || 0);
     const credit = Math.max(total - effectivePaid, 0);
@@ -659,6 +662,7 @@ export default function PosPage() {
       paidAmount: effectivePaid,
       discount: gDiscount,
       cart,
+      serviceCharges,
     });
   };
 
@@ -670,8 +674,9 @@ export default function PosPage() {
       return sum + unitPrice * item.quantity;
     }, 0);
     const totalLineDiscount = cart.reduce((sum, item) => sum + (item.lineDiscount || 0), 0);
-    return Math.max(subtotal - totalLineDiscount - (Number(globalDiscount) || 0), 0);
-  }, [cart, globalDiscount]);
+    const svcTotal = serviceCharges.reduce((sum, c) => sum + Number(c.amount || 0), 0);
+    return Math.max(subtotal - totalLineDiscount - (Number(globalDiscount) || 0) + svcTotal, 0);
+  }, [cart, globalDiscount, serviceCharges]);
 
   const holdCurrentCart = () => {
     if (cart.length === 0) { toast.error('Cart khaali hai'); return; }
@@ -1471,6 +1476,9 @@ export default function PosPage() {
               paidAmount={paidAmount}
               setPaidAmount={setPaidAmount}
               customerId={customerId}
+              serviceCharges={serviceCharges}
+              setServiceCharges={setServiceCharges}
+              showServiceCharges={isCarpetBusiness}
               onCheckout={handleCheckout}
               loading={checkoutMutation.isPending}
             />

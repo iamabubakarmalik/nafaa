@@ -34,6 +34,9 @@ import CatalogPage from '@/features/catalog/pages/CatalogPage';
 import CustomersListPage from '@/features/customers/pages/CustomersListPage';
 import CustomerFormPage from '@/features/customers/pages/CustomerFormPage';
 import CustomerDetailPage from '@/features/customers/pages/CustomerDetailPage';
+import BookingsListPage from '@/features/bookings/pages/BookingsListPage';
+import BookingFormPage from '@/features/bookings/pages/BookingFormPage';
+import BookingDetailPage from '@/features/bookings/pages/BookingDetailPage';
 import PosPage from '@/features/pos/pages/PosPage';
 import SalesPage from '@/features/sales/pages/SalesPage';
 import ReceiptPage from '@/features/sales/pages/ReceiptPage';
@@ -160,6 +163,9 @@ export default function App() {
                 <Route path="/customers" element={secure(PERMISSIONS.CUSTOMERS_VIEW, <CustomersListPage />)} />
 
                 <Route path="/pos" element={secure(PERMISSIONS.POS_USE, <PosPage />)} />
+                <Route path="/bookings/new" element={secure(PERMISSIONS.SALES_VIEW, <BookingFormPage />)} />
+                <Route path="/bookings/:id" element={secure(PERMISSIONS.SALES_VIEW, <BookingDetailPage />)} />
+                <Route path="/bookings" element={secure(PERMISSIONS.SALES_VIEW, <BookingsListPage />)} />
                 <Route path="/sales" element={secure(PERMISSIONS.SALES_VIEW, <SalesPage />)} />
                 <Route path="/returns" element={secure(PERMISSIONS.RETURNS_VIEW, <ReturnsPage />)} />
                 <Route path="/discounts" element={secure(PERMISSIONS.DISCOUNTS_VIEW, <DiscountsPage />)} />

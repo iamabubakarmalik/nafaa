@@ -6,13 +6,14 @@ import {
   Tag, BookOpen, Award, Target, Boxes, DollarSign, Crown,
   Layers, Scissors, Smartphone, Wrench, RefreshCw, CreditCard,
   ArrowRightLeft, RotateCcw, Banknote, Building2, Zap, Activity,
-  Star, Clock, ChevronRight,
+  Star, Clock, ChevronRight, BookmarkPlus, Hourglass,
 } from 'lucide-react';
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid,
   BarChart, Bar, PieChart, Pie, Cell, Legend,
 } from 'recharts';
 import { dashboardApi } from '@/api/dashboard.api';
+import { bookingsApi } from '@/api/bookings.api';
 import { Button } from '@/components/ui/Button';
 import { formatPKR, formatPKRFull } from '@/lib/format';
 import { SubscriptionBanner } from '../components/SubscriptionBanner';
@@ -44,6 +45,12 @@ export default function DashboardPage() {
     queryKey: ['dashboard-overview'],
     queryFn: dashboardApi.overview,
     refetchInterval: 60 * 1000, // Auto-refresh every minute
+  });
+
+  const { data: bookingsSummary } = useQuery({
+    queryKey: ['dashboard-bookings-summary'],
+    queryFn: () => bookingsApi.summary(),
+    refetchInterval: 60 * 1000,
   });
 
   const stats = data?.stats;
@@ -396,6 +403,68 @@ export default function DashboardPage() {
           )}
         </div>
       </section>
+
+      {/* ═══ BOOKINGS / ADVANCE SUMMARY ═══ */}
+      {bookingsSummary && (
+        (bookingsSummary.counts.pending + bookingsSummary.counts.advancePaid + bookingsSummary.counts.ready) > 0
+      ) && (
+        <section className="rounded-3xl bg-gradient-to-br from-blue-50 via-indigo-50 to-cyan-50 border-2 border-blue-200 p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <div className="h-10 w-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/30">
+                <BookmarkPlus className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-extrabold text-blue-900">Bookings / Advance</h3>
+                <p className="text-xs text-blue-700">Customer advances aur reserved items</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Link to="/bookings">
+                <Button variant="secondary" size="sm">
+                  All Bookings <ArrowRight className="h-3.5 w-3.5" />
+                </Button>
+              </Link>
+              <Link to="/bookings/new">
+                <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="h-3.5 w-3.5" /> New
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <IndustryStatCard
+              label="Active"
+              value={String(bookingsSummary.counts.pending + bookingsSummary.counts.advancePaid + bookingsSummary.counts.ready)}
+              sub={`${bookingsSummary.counts.pending} pending • ${bookingsSummary.counts.ready} ready`}
+              icon={Hourglass}
+              color="blue"
+            />
+            <IndustryStatCard
+              label="Advance Held"
+              value={formatPKR(bookingsSummary.totalAdvanceHeld)}
+              sub="Customers ka paisa"
+              icon={Wallet}
+              color="emerald"
+            />
+            <IndustryStatCard
+              label="Balance Due"
+              value={formatPKR(bookingsSummary.totalBalanceDue)}
+              sub="Delivery pe milega"
+              icon={DollarSign}
+              color="amber"
+            />
+            <IndustryStatCard
+              label="Expiring Soon"
+              value={String(bookingsSummary.expiringSoon)}
+              sub="Next 3 days"
+              icon={AlertTriangle}
+              color="violet"
+            />
+          </div>
+        </section>
+      )}
 
       {/* ═══ REGISTER + INVENTORY + UDHAAR ═══ */}
       <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
