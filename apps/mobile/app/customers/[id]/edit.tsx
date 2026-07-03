@@ -17,6 +17,7 @@ import { customersApi, type UpsertCustomerPayload } from '@/api/customers.api';
 import Toast from 'react-native-toast-message';
 
 import { useTranslation } from '@/i18n/useTranslation';
+import { useSmartBack } from '@/hooks/useSmartBack';
 const empty: UpsertCustomerPayload = {
   name: '',
   phone: '',
@@ -35,6 +36,7 @@ export default function CustomerFormScreen({ mode }: { mode?: 'new' } = {}) {
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const goBack = useSmartBack();
   const queryClient = useQueryClient();
   const isNew = mode === 'new' || !id;
   const customerId = isNew ? null : (id as string);
@@ -97,7 +99,7 @@ export default function CustomerFormScreen({ mode }: { mode?: 'new' } = {}) {
 
       <View className="px-5 pt-4 pb-3 flex-row items-center gap-3">
         <Pressable
-          onPress={() => router.back()}
+          onPress={goBack}
           hitSlop={12}
           className="h-10 w-10 rounded-2xl bg-white dark:bg-neutral-900 items-center justify-center border border-neutral-200 dark:border-neutral-800"
         >

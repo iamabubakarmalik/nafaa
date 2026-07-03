@@ -14,6 +14,14 @@ export interface BankInfo {
   nayapay: { number: string; handle: string; title: string };
 }
 
+export interface UploadFile {
+  id: string;
+  url: string;
+  filename?: string;
+  originalName?: string;
+  mimeType?: string;
+}
+
 export interface Invoice {
   id: string;
   invoiceNumber: string;
@@ -25,6 +33,8 @@ export interface Invoice {
   description?: string | null;
   dueDate: string;
   paidAt?: string | null;
+  periodStart?: string | null;
+  periodEnd?: string | null;
   createdAt: string;
   subscription?: { plan: { name: string; slug: string } } | null;
   payments?: Payment[];
@@ -35,12 +45,14 @@ export interface Payment {
   amount: number;
   provider: PaymentProvider;
   status: PaymentStatus;
+  bankName?: string | null;
   payerName?: string | null;
   transactionId?: string | null;
+  notes?: string | null;
   rejectionReason?: string | null;
   createdAt: string;
   approvedAt?: string | null;
-  upload?: { id: string; url: string } | null;
+  upload?: UploadFile | null;
   invoice?: { invoiceNumber: string } | null;
 }
 
@@ -57,11 +69,18 @@ export interface SubmitPaymentPayload {
   notes?: string;
 }
 
+const unwrap = <T = any>(res: any): T =>
+  (res?.data?.data !== undefined ? res.data.data : res?.data) as T;
+
 export const billingApi = {
-  bankInfo: () => apiClient.get<BankInfo>('/billing/bank-info').then((r) => r.data),
-  invoices: () => apiClient.get<Invoice[]>('/billing/invoices').then((r) => r.data),
-  invoice: (id: string) => apiClient.get<Invoice>(`/billing/invoices/${id}`).then((r) => r.data),
-  payments: () => apiClient.get<Payment[]>('/billing/payments').then((r) => r.data),
-  submitPayment: (payload: SubmitPaymentPayload) =>
-    apiClient.post<Payment>('/billing/payments', payload).then((r) => r.data),
+  bankInfo: (): Promise<BankInfo> =>
+    apiClient.get('/billing/bank-info').then(unwrap) as any,
+  invoices: (): Promise<Invoice[]> =>
+    apiClient.get('/billing/invoices').then(unwrap) as any,
+  invoice: (id: string): Promise<Invoice> =>
+    apiClient.get(`/billing/invoices/${id}`).then(unwrap) as any,
+  payments: (): Promise<Payment[]> =>
+    apiClient.get('/billing/payments').then(unwrap) as any,
+  submitPayment: (payload: SubmitPaymentPayload): Promise<Payment> =>
+    apiClient.post('/billing/payments', payload).then(unwrap) as any,
 };

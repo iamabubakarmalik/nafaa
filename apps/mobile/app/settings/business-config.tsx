@@ -15,6 +15,7 @@ import { businessConfigApi, type BusinessFeatures } from '@/api/business-config.
 import { onboardingApi } from '@/api/onboarding.api';
 import { BusinessTypeSelector } from '@/components/onboarding/BusinessTypeSelector';
 import { useAuthStore } from '@/store/auth.store';
+import { useSmartBack } from '@/hooks/useSmartBack';
 import Toast from 'react-native-toast-message';
 
 interface FeatureMeta {
@@ -54,6 +55,7 @@ const FEATURE_META: FeatureMeta[] = [
 
 export default function BusinessConfigScreen() {
   const router = useRouter();
+  const goBack = useSmartBack();
   const queryClient = useQueryClient();
   const updateTenant = useAuthStore((s) => s.updateTenant);
   const [showTypeSelector, setShowTypeSelector] = useState(false);
@@ -158,7 +160,7 @@ export default function BusinessConfigScreen() {
       {/* Header */}
       <View className="px-5 pt-4 pb-3 flex-row items-center gap-3">
         <Pressable
-          onPress={() => router.back()}
+          onPress={goBack}
           hitSlop={12}
           className="h-10 w-10 rounded-2xl bg-white dark:bg-neutral-900 items-center justify-center border border-neutral-200 dark:border-neutral-800"
         >

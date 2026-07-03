@@ -13,6 +13,7 @@ import {
 } from 'lucide-react-native';
 import { staffApi, type StaffStatus } from '@/api/staff.api';
 import { formatPKRFull } from '@/lib/format';
+import { useSmartBack } from '@/hooks/useSmartBack';
 
 const statusConfig: Record<StaffStatus, { label: string; color: string; bg: string }> = {
   ACTIVE: { label: 'Active', color: '#16a34a', bg: '#dcfce7' },
@@ -33,6 +34,7 @@ const salaryLabels: Record<string, string> = {
 
 export default function StaffListScreen() {
   const router = useRouter();
+  const goBack = useSmartBack();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StaffStatus | 'all'>('all');
   const [refreshing, setRefreshing] = useState(false);
@@ -63,7 +65,7 @@ export default function StaffListScreen() {
       {/* Header */}
       <View className="px-5 pt-4 pb-3 flex-row items-center gap-3">
         <Pressable
-          onPress={() => router.back()}
+          onPress={goBack}
           hitSlop={12}
           className="h-10 w-10 rounded-2xl bg-white dark:bg-neutral-900 items-center justify-center border border-neutral-200 dark:border-neutral-800"
         >

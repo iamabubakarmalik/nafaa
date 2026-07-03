@@ -86,6 +86,9 @@ export const onboardingApi = {
   skip: (step: number) =>
     apiClient.post('/onboarding/skip', { step }).then((r) => unwrap<OnboardingProgress>(r)),
 
+  reset: () =>
+    apiClient.post('/onboarding/reset').then((r) => r.data?.data ?? r.data),
+
   complete: () =>
     apiClient.post('/onboarding/complete').then((r) => unwrap<OnboardingProgress>(r)),
 };

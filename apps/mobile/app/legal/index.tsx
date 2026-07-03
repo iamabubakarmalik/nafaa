@@ -11,6 +11,7 @@ import {
 } from 'lucide-react-native';
 
 import { useTranslation } from '@/i18n/useTranslation';
+import { useSmartBack } from '@/hooks/useSmartBack';
 type Tab = 'terms' | 'privacy';
 
 const termsSections = [
@@ -112,6 +113,7 @@ const privacySections = [
 export default function LegalScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const goBack = useSmartBack();
   const [tab, setTab] = useState<Tab>('terms');
 
   const sections = tab === 'terms' ? termsSections : privacySections;
@@ -128,7 +130,7 @@ export default function LegalScreen() {
 
       <View className="px-5 pt-4 pb-3 flex-row items-center gap-3">
         <Pressable
-          onPress={() => router.back()}
+          onPress={goBack}
           hitSlop={12}
           className="h-10 w-10 rounded-2xl bg-white dark:bg-neutral-900 items-center justify-center border border-neutral-200 dark:border-neutral-800"
         >

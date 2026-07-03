@@ -16,6 +16,7 @@ import { formatPKRFull } from '@/lib/format';
 import Toast from 'react-native-toast-message';
 
 import { useTranslation } from '@/i18n/useTranslation';
+import { useSmartBack } from '@/hooks/useSmartBack';
 function ThemedInput({ label, required, hint, ...props }: any) {
   return (
     <View>
@@ -40,6 +41,7 @@ function ThemedInput({ label, required, hint, ...props }: any) {
 export default function DiscountsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const goBack = useSmartBack();
   const queryClient = useQueryClient();
   const [refreshing, setRefreshing] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
@@ -129,7 +131,7 @@ export default function DiscountsScreen() {
       {/* Header */}
       <View className="px-5 pt-4 pb-3 flex-row items-center gap-3">
         <Pressable
-          onPress={() => router.back()}
+          onPress={goBack}
           hitSlop={12}
           className="h-10 w-10 rounded-2xl bg-white dark:bg-neutral-900 items-center justify-center border border-neutral-200 dark:border-neutral-800"
         >

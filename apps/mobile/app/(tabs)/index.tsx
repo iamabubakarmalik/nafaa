@@ -7,14 +7,18 @@ import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import {
-  TrendingUp, TrendingDown, ShoppingBag, Users, AlertTriangle, Plus,
+  TrendingUp, TrendingDown, ShoppingBag, Users, AlertTriangle, Plus, Smartphone,
   Package, BarChart3, BookOpen, ArrowRight, Bell, Sparkles, Sun, Moon,
   Receipt, ChevronRight, Crown, Wallet, Zap, Award, DollarSign,
-  Building2, ShoppingCart, Activity, Layers, Boxes, Target,
+  Building2, ShoppingCart, Activity, Layers, Boxes, Target, BookmarkPlus, Scissors, RefreshCw as RefreshCw2, Wrench, CreditCard, Hourglass,
 } from 'lucide-react-native';
 import { useAuthStore } from '@/store/auth.store';
 import { useThemeStore } from '@/store/theme.store';
 import { dashboardApi } from '@/api/dashboard.api';
+import { bookingsApi } from '@/api/bookings.api';
+import { carpetReportsApi } from '@/api/carpet-reports.api';
+import { mobileReportsApi } from '@/api/mobile-reports.api';
+import { useBusinessFeatures } from '@/hooks/useBusinessFeatures';
 import { BillingBanners } from '@/components/billing/BillingBanners';
 import { EmailVerifyBanner } from '@/components/auth/EmailVerifyBanner';
 import { formatPKR, formatPKRFull, formatRelative } from '@/lib/format';
@@ -47,6 +51,35 @@ export default function HomeScreen() {
     queryKey: ['dashboard-overview'],
     queryFn: dashboardApi.overview,
     enabled: isInitialized && isAuthenticated,
+  });
+
+  const { features, businessType } = useBusinessFeatures();
+
+  const isCarpetBusiness = (businessType ?? '').toUpperCase() === 'CARPET' ||
+    (businessType ?? '').toUpperCase() === 'FLOORING' ||
+    features?.lengthWidthCalc === true;
+
+  const isMobileBusiness = (businessType ?? '').toUpperCase() === 'MOBILE' ||
+    (businessType ?? '').toUpperCase() === 'PHONE' ||
+    (businessType ?? '').toUpperCase() === 'ELECTRONICS' ||
+    features?.imei === true;
+
+  const { data: bookingsSummary } = useQuery({
+    queryKey: ['dashboard-bookings-summary'],
+    queryFn: () => bookingsApi.summary(),
+    enabled: isInitialized && isAuthenticated,
+  });
+
+  const { data: carpetOverview } = useQuery({
+    queryKey: ['dashboard-carpet-overview'],
+    queryFn: () => carpetReportsApi.overview(),
+    enabled: isInitialized && isAuthenticated && isCarpetBusiness,
+  });
+
+  const { data: mobileDashboard } = useQuery({
+    queryKey: ['dashboard-mobile'],
+    queryFn: () => mobileReportsApi.dashboard(),
+    enabled: isInitialized && isAuthenticated && isMobileBusiness,
   });
 
   const onRefresh = async () => {
@@ -415,6 +448,224 @@ export default function HomeScreen() {
             })}
           </View>
         </View>
+
+        {/* ===== BOOKINGS SUMMARY ===== */}
+        {bookingsSummary && (
+          (bookingsSummary.counts.pending + bookingsSummary.counts.advancePaid + bookingsSummary.counts.ready) > 0
+        ) && (
+          <View className="px-5 mb-4">
+            <View className="flex-row items-center justify-between mb-3">
+              <View className="flex-row items-center gap-2">
+                <BookmarkPlus size={18} color="#2563eb" />
+                <Text className="text-base font-extrabold text-neutral-900 dark:text-white">Bookings / Advance</Text>
+              </View>
+              <Pressable
+                onPress={() => router.push('/bookings')}
+                className="flex-row items-center gap-1 px-3 py-1.5 rounded-full bg-blue-100"
+              >
+                <Text className="text-xs text-blue-700 font-extrabold">View</Text>
+                <ArrowRight size={12} color="#2563eb" />
+              </Pressable>
+            </View>
+            <View className="rounded-3xl bg-white dark:bg-neutral-900 border border-blue-200 p-4">
+              <View className="flex-row flex-wrap -mx-1">
+                <View className="w-1/2 px-1 mb-2">
+                  <View className="rounded-xl bg-blue-50 p-3">
+                    <View className="flex-row items-center gap-1 mb-0.5">
+                      <Hourglass size={11} color="#2563eb" />
+                      <Text className="text-[10px] uppercase font-extrabold text-blue-700">Active</Text>
+                    </View>
+                    <Text className="text-2xl font-extrabold text-blue-900">
+                      {bookingsSummary.counts.pending + bookingsSummary.counts.advancePaid + bookingsSummary.counts.ready}
+                    </Text>
+                  </View>
+                </View>
+                <View className="w-1/2 px-1 mb-2">
+                  <View className="rounded-xl bg-emerald-50 p-3">
+                    <View className="flex-row items-center gap-1 mb-0.5">
+                      <Wallet size={11} color="#16a34a" />
+                      <Text className="text-[10px] uppercase font-extrabold text-emerald-700">Advance Held</Text>
+                    </View>
+                    <Text className="text-sm font-extrabold text-emerald-900" numberOfLines={1}>
+                      {formatPKR(bookingsSummary.totalAdvanceHeld)}
+                    </Text>
+                  </View>
+                </View>
+                <View className="w-1/2 px-1">
+                  <View className="rounded-xl bg-amber-50 p-3">
+                    <View className="flex-row items-center gap-1 mb-0.5">
+                      <DollarSign size={11} color="#d97706" />
+                      <Text className="text-[10px] uppercase font-extrabold text-amber-700">Balance Due</Text>
+                    </View>
+                    <Text className="text-sm font-extrabold text-amber-900" numberOfLines={1}>
+                      {formatPKR(bookingsSummary.totalBalanceDue)}
+                    </Text>
+                  </View>
+                </View>
+                <View className="w-1/2 px-1">
+                  <View className="rounded-xl bg-rose-50 p-3">
+                    <View className="flex-row items-center gap-1 mb-0.5">
+                      <AlertTriangle size={11} color="#dc2626" />
+                      <Text className="text-[10px] uppercase font-extrabold text-rose-700">Expiring</Text>
+                    </View>
+                    <Text className="text-2xl font-extrabold text-rose-900">
+                      {bookingsSummary.expiringSoon}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* ===== CARPET INDUSTRY ===== */}
+        {isCarpetBusiness && carpetOverview && (
+          <View className="px-5 mb-4">
+            <View className="flex-row items-center justify-between mb-3">
+              <View className="flex-row items-center gap-2">
+                <Layers size={18} color="#16a34a" />
+                <Text className="text-base font-extrabold text-neutral-900 dark:text-white">Carpet Stock</Text>
+              </View>
+              <Pressable
+                onPress={() => router.push('/industries/carpet/reports' as any)}
+                className="flex-row items-center gap-1 px-3 py-1.5 rounded-full bg-emerald-100"
+              >
+                <Text className="text-xs text-emerald-700 font-extrabold">Reports</Text>
+                <ArrowRight size={12} color="#16a34a" />
+              </Pressable>
+            </View>
+            <View className="rounded-3xl bg-white border border-emerald-200 p-4">
+              <View className="items-center py-2">
+                <Text className="text-[10px] uppercase font-extrabold text-emerald-700">Total Stock</Text>
+                <Text className="text-3xl font-extrabold text-emerald-900 mt-1">
+                  {carpetOverview.grandTotalSqft.toFixed(0)} sqft
+                </Text>
+              </View>
+              <View className="flex-row flex-wrap -mx-1 mt-2">
+                <View className="w-1/2 px-1 mb-2">
+                  <View className="rounded-xl bg-emerald-50 p-2.5">
+                    <Text className="text-[9px] uppercase font-extrabold text-emerald-700">Active Rolls</Text>
+                    <Text className="text-lg font-extrabold text-emerald-900 mt-0.5">
+                      {carpetOverview.activeRollCount}
+                    </Text>
+                  </View>
+                </View>
+                <View className="w-1/2 px-1 mb-2">
+                  <View className="rounded-xl bg-violet-50 p-2.5">
+                    <Text className="text-[9px] uppercase font-extrabold text-violet-700">Cut Pieces</Text>
+                    <Text className="text-lg font-extrabold text-violet-900 mt-0.5">
+                      {carpetOverview.cutPieceAvailableCount}
+                    </Text>
+                  </View>
+                </View>
+                <View className="w-1/2 px-1">
+                  <View className="rounded-xl bg-blue-50 p-2.5">
+                    <Text className="text-[9px] uppercase font-extrabold text-blue-700">Stock Value</Text>
+                    <Text className="text-sm font-extrabold text-blue-900 mt-0.5" numberOfLines={1}>
+                      {formatPKR(carpetOverview.totalStockCost)}
+                    </Text>
+                  </View>
+                </View>
+                <View className="w-1/2 px-1">
+                  <View className="rounded-xl bg-orange-50 p-2.5">
+                    <Text className="text-[9px] uppercase font-extrabold text-orange-700">Potential Profit</Text>
+                    <Text className="text-sm font-extrabold text-orange-900 mt-0.5" numberOfLines={1}>
+                      {formatPKR(carpetOverview.potentialProfit)}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* ===== MOBILE INDUSTRY ===== */}
+        {isMobileBusiness && mobileDashboard && (
+          <View className="px-5 mb-4">
+            <View className="flex-row items-center justify-between mb-3">
+              <View className="flex-row items-center gap-2">
+                <Smartphone size={18} color="#2563eb" />
+                <Text className="text-base font-extrabold text-neutral-900 dark:text-white">Mobile Shop</Text>
+              </View>
+              <Pressable
+                onPress={() => router.push('/industries/mobile/reports' as any)}
+                className="flex-row items-center gap-1 px-3 py-1.5 rounded-full bg-blue-100"
+              >
+                <Text className="text-xs text-blue-700 font-extrabold">Reports</Text>
+                <ArrowRight size={12} color="#2563eb" />
+              </Pressable>
+            </View>
+            <View className="rounded-3xl bg-white border border-blue-200 p-4">
+              <View className="flex-row flex-wrap -mx-1">
+                <View className="w-1/2 px-1 mb-2">
+                  <View className="rounded-xl bg-blue-50 p-2.5">
+                    <View className="flex-row items-center gap-1 mb-0.5">
+                      <Smartphone size={11} color="#2563eb" />
+                      <Text className="text-[9px] uppercase font-extrabold text-blue-700">IMEIs</Text>
+                    </View>
+                    <Text className="text-lg font-extrabold text-blue-900">
+                      {mobileDashboard.newPhonesInStock}
+                    </Text>
+                  </View>
+                </View>
+                <View className="w-1/2 px-1 mb-2">
+                  <View className="rounded-xl bg-violet-50 p-2.5">
+                    <View className="flex-row items-center gap-1 mb-0.5">
+                      <RefreshCw2 size={11} color="#7c3aed" />
+                      <Text className="text-[9px] uppercase font-extrabold text-violet-700">Used</Text>
+                    </View>
+                    <Text className="text-lg font-extrabold text-violet-900">
+                      {mobileDashboard.usedPhonesInStock}
+                    </Text>
+                  </View>
+                </View>
+                <View className="w-1/2 px-1 mb-2">
+                  <View className="rounded-xl bg-orange-50 p-2.5">
+                    <View className="flex-row items-center gap-1 mb-0.5">
+                      <Wrench size={11} color="#ea580c" />
+                      <Text className="text-[9px] uppercase font-extrabold text-orange-700">Repairs</Text>
+                    </View>
+                    <Text className="text-lg font-extrabold text-orange-900">
+                      {mobileDashboard.openRepairTickets}
+                    </Text>
+                  </View>
+                </View>
+                <View className="w-1/2 px-1 mb-2">
+                  <View className="rounded-xl bg-amber-50 p-2.5">
+                    <View className="flex-row items-center gap-1 mb-0.5">
+                      <CreditCard size={11} color="#f59e0b" />
+                      <Text className="text-[9px] uppercase font-extrabold text-amber-700">EMI Plans</Text>
+                    </View>
+                    <Text className="text-lg font-extrabold text-amber-900">
+                      {mobileDashboard.activeEmiPlans}
+                    </Text>
+                  </View>
+                </View>
+                <View className="w-full px-1">
+                  <View className="rounded-xl bg-rose-50 p-2.5">
+                    <View className="flex-row items-center justify-between">
+                      <View>
+                        <View className="flex-row items-center gap-1">
+                          <DollarSign size={11} color="#dc2626" />
+                          <Text className="text-[9px] uppercase font-extrabold text-rose-700">PTA Tax Locked</Text>
+                        </View>
+                        <Text className="text-lg font-extrabold text-rose-900 mt-0.5">
+                          {formatPKR(mobileDashboard.ptaTaxLocked)}
+                        </Text>
+                      </View>
+                      <View>
+                        <Text className="text-[9px] uppercase font-extrabold text-rose-700">EMI Due</Text>
+                        <Text className="text-lg font-extrabold text-rose-900 mt-0.5">
+                          {formatPKR(mobileDashboard.emiOutstanding)}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
+        )}
 
         {/* ===== Quick Actions ===== */}
         <View className="px-5 mb-4">

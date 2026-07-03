@@ -3,17 +3,33 @@ import { apiClient } from './client';
 export type PaymentMethod =
   | 'CASH' | 'CARD' | 'BANK_TRANSFER' | 'JAZZCASH' | 'EASYPAISA';
 
+export interface ServiceChargeItem {
+  type: string;   // GLUE, INSTALLATION, CUTTING, DELIVERY, UNDERLAY, CUSTOM, OTHER
+  label: string;
+  amount: number;
+  note?: string;
+}
+
 export interface CreateSaleItem {
   productId: string;
   variantId?: string;
+  imeiId?: string;
+  rollId?: string;
+  cutPieceId?: string;
   quantity: number;
   priceOverride?: number;
   lineDiscount?: number;
   useWholesale?: boolean;
-  note?: string;
+  cutWidthFt?: number;
+  cutLengthFt?: number;
+  cutLengthInch?: number;
+  cutSqft?: number;
+  note?: string;         // Customer-visible (prints on receipt)
+  internalNote?: string; // Team-only (never on receipt)
 }
 
 export interface CreateSalePayload {
+  shopId?: string;
   customerId?: string;
   paymentMethod: PaymentMethod;
   paidAmount: number;
@@ -22,6 +38,7 @@ export interface CreateSalePayload {
   loyaltyPointsToUse?: number;
   allowCredit?: boolean;
   note?: string;
+  serviceCharges?: ServiceChargeItem[];
   items: CreateSaleItem[];
 }
 
@@ -31,6 +48,8 @@ export interface SaleItem {
   price: number;
   costPrice?: number;
   total: number;
+  note?: string | null;
+  internalNote?: string | null;
   product: {
     id: string;
     name: string;
@@ -56,6 +75,8 @@ export interface Sale {
   saleNumber: string;
   subtotal: number;
   discount: number;
+  serviceCharges?: number;
+  serviceChargesBreakdown?: ServiceChargeItem[] | null;
   total: number;
   paidAmount: number;
   changeAmount: number;
@@ -64,9 +85,28 @@ export interface Sale {
   paymentMethod: PaymentMethod;
   status: 'COMPLETED' | 'PARTIALLY_RETURNED' | 'FULLY_RETURNED' | 'VOIDED';
   soldAt: string;
+  bookingId?: string | null;
   customer?: { id: string; name: string; phone?: string | null; balance?: number } | null;
   createdBy?: { id: string; fullName: string } | null;
-  tenant?: { id: string; name: string };
+  shop?: { id: string; name: string; address?: string | null; phone?: string | null } | null;
+  tenant?: {
+    id: string;
+    name: string;
+    slug?: string;
+    phone?: string | null;
+    settings?: {
+      shopName?: string | null;
+      legalName?: string | null;
+      shopAddress?: string | null;
+      shopPhone?: string | null;
+      shopWhatsapp?: string | null;
+      shopEmail?: string | null;
+      logoUrl?: string | null;
+      taxNumber?: string | null;
+      receiptHeader?: string | null;
+      receiptFooter?: string | null;
+    } | null;
+  };
   items: SaleItem[];
 }
 
@@ -74,6 +114,7 @@ export interface SalesListParams {
   search?: string;
   page?: number;
   limit?: number;
+  shopId?: string;
 }
 
 export interface SalesListResponse {
@@ -108,19 +149,13 @@ function unwrapOne<T>(res: any): T {
 function unwrapSalesList(res: any, params?: SalesListParams): SalesListResponse {
   const body = res?.data;
   let arr: Sale[] = [];
-
   if (Array.isArray(body)) arr = body;
   else if (Array.isArray(body?.data)) arr = body.data;
-  else if (Array.isArray(body?.data?.items)) {
-    return body.data;
-  } else if (Array.isArray(body?.items)) {
-    return body;
-  }
+  else if (Array.isArray(body?.data?.items)) return body.data;
+  else if (Array.isArray(body?.items)) return body;
 
   const filtered = params?.search
-    ? arr.filter((s) =>
-        s.saleNumber.toLowerCase().includes(params.search!.toLowerCase()),
-      )
+    ? arr.filter((s) => s.saleNumber.toLowerCase().includes(params.search!.toLowerCase()))
     : arr;
 
   const limit = params?.limit ?? 50;
@@ -135,9 +170,7 @@ export const salesApi = {
     apiClient.post('/sales', payload).then((r) => unwrapOne<Sale>(r)),
 
   list: (params?: SalesListParams): Promise<SalesListResponse> =>
-    apiClient
-      .get('/sales', { params })
-      .then((r) => unwrapSalesList(r, params)),
+    apiClient.get('/sales', { params }).then((r) => unwrapSalesList(r, params)),
 
   summary: (): Promise<SalesSummary> =>
     apiClient.get('/sales/summary').then((r) => unwrapOne<SalesSummary>(r)),
@@ -145,12 +178,9 @@ export const salesApi = {
   byId: (id: string): Promise<Sale> =>
     apiClient.get(`/sales/${id}`).then((r) => unwrapOne<Sale>(r)),
 
-  // Alias for compatibility
   getOne: (id: string): Promise<Sale> =>
     apiClient.get(`/sales/${id}`).then((r) => unwrapOne<Sale>(r)),
 
   voidSale: (id: string, reason?: string): Promise<Sale> =>
-    apiClient
-      .post(`/sales/${id}/void`, { reason })
-      .then((r) => unwrapOne<Sale>(r)),
+    apiClient.post(`/sales/${id}/void`, { reason }).then((r) => unwrapOne<Sale>(r)),
 };

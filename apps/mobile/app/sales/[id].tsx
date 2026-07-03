@@ -17,10 +17,12 @@ import { Badge } from '@/components/ui/Badge';
 import { salesApi } from '@/api/sales.api';
 import { useAuthStore } from '@/store/auth.store';
 import { formatPKRFull, formatDate, formatTime, formatQty } from '@/lib/format';
+import { useSmartBack } from '@/hooks/useSmartBack';
 import Toast from 'react-native-toast-message';
 
 export default function SaleDetailScreen() {
   const router = useRouter();
+  const goBack = useSmartBack();
   const queryClient = useQueryClient();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { tenant } = useAuthStore();
@@ -171,7 +173,7 @@ export default function SaleDetailScreen() {
 
       <View className="px-5 pt-4 pb-3 flex-row items-center gap-3">
         <Pressable
-          onPress={() => router.back()}
+          onPress={goBack}
           hitSlop={12}
           className="h-10 w-10 rounded-2xl bg-white dark:bg-neutral-900 items-center justify-center border border-neutral-200 dark:border-neutral-800"
         >

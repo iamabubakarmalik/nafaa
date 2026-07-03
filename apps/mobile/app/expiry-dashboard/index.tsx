@@ -7,6 +7,7 @@ import {
   ArrowLeft, Pill, AlertTriangle, Calendar, Package, Sparkles, ChevronRight,
 } from 'lucide-react-native';
 import { batchesApi } from '@/api/batches.api';
+import { useSmartBack } from '@/hooks/useSmartBack';
 
 function daysUntil(date?: string | null): number | null {
   if (!date) return null;
@@ -17,6 +18,7 @@ function daysUntil(date?: string | null): number | null {
 
 export default function ExpiryDashboardScreen() {
   const router = useRouter();
+  const goBack = useSmartBack();
   const [refreshing, setRefreshing] = useState(false);
 
   const { data: stats, refetch: refetchStats } = useQuery({
@@ -46,7 +48,7 @@ export default function ExpiryDashboardScreen() {
 
       <View className="px-5 pt-4 pb-3 flex-row items-center gap-3">
         <Pressable
-          onPress={() => router.back()}
+          onPress={goBack}
           hitSlop={12}
           className="h-10 w-10 rounded-2xl bg-white dark:bg-neutral-900 items-center justify-center border border-neutral-200 dark:border-neutral-800"
         >

@@ -12,6 +12,7 @@ import {
 } from 'lucide-react-native';
 import { staffApi, type CreateStaffPayload, type SalaryType, type StaffGender } from '@/api/staff.api';
 import { formatPKRFull } from '@/lib/format';
+import { useSmartBack } from '@/hooks/useSmartBack';
 import Toast from 'react-native-toast-message';
 
 type Step = 'personal' | 'job' | 'salary' | 'emergency';
@@ -44,6 +45,7 @@ function FormInput({ label, required, hint, ...props }: any) {
 
 export default function NewStaffScreen() {
   const router = useRouter();
+  const goBack = useSmartBack();
   const queryClient = useQueryClient();
   const [step, setStep] = useState<Step>('personal');
   const [form, setForm] = useState<CreateStaffPayload>({
@@ -104,7 +106,7 @@ export default function NewStaffScreen() {
       {/* Header */}
       <View className="px-5 pt-4 pb-3 flex-row items-center gap-3">
         <Pressable
-          onPress={() => router.back()}
+          onPress={goBack}
           hitSlop={12}
           className="h-10 w-10 rounded-2xl bg-white border border-neutral-200 items-center justify-center"
         >

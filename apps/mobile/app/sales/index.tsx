@@ -15,6 +15,7 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { salesApi, type PaymentMethod } from '@/api/sales.api';
 import { formatPKRFull, formatRelative, formatQty } from '@/lib/format';
+import { useSmartBack } from '@/hooks/useSmartBack';
 
 const statusColors: Record<string, 'success' | 'warning' | 'danger' | 'info' | 'neutral'> = {
   COMPLETED: 'success',
@@ -35,6 +36,7 @@ type DateFilter = 'all' | 'today' | 'week' | 'month';
 
 export default function SalesScreen() {
   const router = useRouter();
+  const goBack = useSmartBack();
   const [search, setSearch] = useState('');
   const [dateFilter, setDateFilter] = useState<DateFilter>('all');
   const [paymentFilter, setPaymentFilter] = useState<PaymentMethod | 'all'>('all');
@@ -86,7 +88,7 @@ export default function SalesScreen() {
       {/* Header */}
       <View className="px-5 pt-4 pb-3 flex-row items-center gap-3">
         <Pressable
-          onPress={() => router.back()}
+          onPress={goBack}
           hitSlop={12}
           className="h-10 w-10 rounded-2xl bg-white dark:bg-neutral-900 items-center justify-center border border-neutral-200 dark:border-neutral-800"
         >

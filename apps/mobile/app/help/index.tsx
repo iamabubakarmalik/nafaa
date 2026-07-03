@@ -14,6 +14,7 @@ import {
 import Toast from 'react-native-toast-message';
 
 import { useTranslation } from '@/i18n/useTranslation';
+import { useSmartBack } from '@/hooks/useSmartBack';
 interface FAQ {
   id: string;
   question: string;
@@ -124,6 +125,7 @@ const WHATSAPP_NUMBER = '923001234567';
 export default function HelpScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const goBack = useSmartBack();
   const [expanded, setExpanded] = useState<string | null>(null);
 
   const toggleFaq = (id: string) => {
@@ -164,7 +166,7 @@ export default function HelpScreen() {
 
       <View className="px-5 pt-4 pb-3 flex-row items-center gap-3">
         <Pressable
-          onPress={() => router.back()}
+          onPress={goBack}
           hitSlop={12}
           className="h-10 w-10 rounded-2xl bg-white dark:bg-neutral-900 items-center justify-center border border-neutral-200 dark:border-neutral-800"
         >

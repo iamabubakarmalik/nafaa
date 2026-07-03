@@ -44,6 +44,8 @@ export interface SupplierDetail extends Supplier {
     totalPaid: number;
     outstanding: number;
     averagePurchase: number;
+    daysSinceLastPurchase: number | null;
+    lastPurchaseDate: string | null;
   };
 }
 

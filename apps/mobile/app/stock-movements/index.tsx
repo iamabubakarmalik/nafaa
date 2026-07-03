@@ -9,43 +9,41 @@ import * as Haptics from 'expo-haptics';
 import {
   ArrowLeft, Activity, Sparkles, Search, X, Package,
   ArrowDownToLine, ArrowUpFromLine, RotateCcw, ArrowRightLeft,
-  ClipboardCheck, AlertTriangle, TrendingDown,
+  ClipboardCheck, AlertTriangle, TrendingDown, TrendingUp,
+  Calendar, Filter,
 } from 'lucide-react-native';
 import { stockMovementsApi, type StockMovementType } from '@/api/stock-movements.api';
+import { useSmartBack } from '@/hooks/useSmartBack';
 
-import { useTranslation } from '@/i18n/useTranslation';
-const typeConfig: Record<StockMovementType, { label: string; icon: any; color: string; bg: string; isIn: boolean }> = {
-  PURCHASE_IN: { label: 'Purchase', icon: ArrowDownToLine, color: '#16a34a', bg: '#dcfce7', isIn: true },
-  SALE_OUT: { label: 'Sale', icon: ArrowUpFromLine, color: '#dc2626', bg: '#fee2e2', isIn: false },
-  RETURN_IN: { label: 'Return', icon: RotateCcw, color: '#f97316', bg: '#ffedd5', isIn: true },
-  TRANSFER_IN: { label: 'Transfer In', icon: ArrowDownToLine, color: '#0891b2', bg: '#cffafe', isIn: true },
-  TRANSFER_OUT: { label: 'Transfer Out', icon: ArrowUpFromLine, color: '#0891b2', bg: '#cffafe', isIn: false },
-  ADJUSTMENT_IN: { label: 'Adjust +', icon: ClipboardCheck, color: '#7c3aed', bg: '#ede9fe', isIn: true },
-  ADJUSTMENT_OUT: { label: 'Adjust -', icon: ClipboardCheck, color: '#7c3aed', bg: '#ede9fe', isIn: false },
-  DAMAGE: { label: 'Damage', icon: AlertTriangle, color: '#dc2626', bg: '#fee2e2', isIn: false },
-  LOSS: { label: 'Loss', icon: TrendingDown, color: '#dc2626', bg: '#fee2e2', isIn: false },
+const typeConfig: Record<StockMovementType, {
+  label: string; icon: any; color: string; bg: string; isIn: boolean;
+}> = {
+  PURCHASE_IN:    { label: 'Purchase',     icon: ArrowDownToLine,  color: '#16a34a', bg: '#dcfce7', isIn: true },
+  SALE_OUT:       { label: 'Sale',         icon: ArrowUpFromLine,  color: '#dc2626', bg: '#fee2e2', isIn: false },
+  RETURN_IN:      { label: 'Return',       icon: RotateCcw,        color: '#f97316', bg: '#ffedd5', isIn: true },
+  TRANSFER_IN:    { label: 'Transfer In',  icon: ArrowDownToLine,  color: '#0891b2', bg: '#cffafe', isIn: true },
+  TRANSFER_OUT:   { label: 'Transfer Out', icon: ArrowUpFromLine,  color: '#0891b2', bg: '#cffafe', isIn: false },
+  ADJUSTMENT_IN:  { label: 'Adjust +',     icon: ClipboardCheck,   color: '#7c3aed', bg: '#ede9fe', isIn: true },
+  ADJUSTMENT_OUT: { label: 'Adjust -',     icon: ClipboardCheck,   color: '#7c3aed', bg: '#ede9fe', isIn: false },
+  DAMAGE:         { label: 'Damage',       icon: AlertTriangle,    color: '#dc2626', bg: '#fee2e2', isIn: false },
+  LOSS:           { label: 'Loss',         icon: TrendingDown,     color: '#dc2626', bg: '#fee2e2', isIn: false },
 };
 
-const filterOptions: Array<{ key: 'all' | 'in' | 'out'; label: string; color: string }> = [
-  { key: 'all', label: 'All', color: '#737373' },
-  { key: 'in', label: 'Stock In', color: '#16a34a' },
-  { key: 'out', label: 'Stock Out', color: '#dc2626' },
-];
+type DateFilter = 'all' | 'today' | 'week' | 'month';
+type TypeFilter = 'all' | 'in' | 'out' | StockMovementType;
 
-const formatDate = (v: string) => {
-  const d = new Date(v);
-  return new Intl.DateTimeFormat('en-PK', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(d);
-};
+const formatDate = (v: string) =>
+  new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(v));
+
+const formatQty = (q: number) => q.toFixed(q % 1 === 0 ? 0 : 2);
 
 export default function StockMovementsScreen() {
-  const { t } = useTranslation();
   const router = useRouter();
+  const goBack = useSmartBack();
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<'all' | 'in' | 'out'>('all');
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
+  const [dateFilter, setDateFilter] = useState<DateFilter>('week');
 
   const { data: movements = [], refetch } = useQuery({
     queryKey: ['stock-movements'],
@@ -66,51 +64,76 @@ export default function StockMovementsScreen() {
   };
 
   const filtered = useMemo(() => {
-    let result = movements;
-    if (filter !== 'all') {
-      result = result.filter((m) => {
-        const isIn = typeConfig[m.type]?.isIn ?? false;
-        return filter === 'in' ? isIn : !isIn;
-      });
+    let result = [...movements];
+
+    // Date filter
+    if (dateFilter !== 'all') {
+      const now = new Date();
+      let cutoff = new Date();
+      if (dateFilter === 'today') cutoff.setHours(0, 0, 0, 0);
+      else if (dateFilter === 'week') cutoff.setDate(now.getDate() - 7);
+      else if (dateFilter === 'month') cutoff.setMonth(now.getMonth() - 1);
+      result = result.filter((m) => new Date(m.createdAt) >= cutoff);
     }
+
+    // Type filter
+    if (typeFilter === 'in') {
+      result = result.filter((m) => typeConfig[m.type]?.isIn);
+    } else if (typeFilter === 'out') {
+      result = result.filter((m) => !typeConfig[m.type]?.isIn);
+    } else if (typeFilter !== 'all') {
+      result = result.filter((m) => m.type === typeFilter);
+    }
+
+    // Search
     const q = search.toLowerCase().trim();
     if (q) {
       result = result.filter(
         (m) =>
           m.product.name.toLowerCase().includes(q) ||
           (m.reference || '').toLowerCase().includes(q) ||
-          (m.note || '').toLowerCase().includes(q),
+          (m.product.sku || '').toLowerCase().includes(q),
       );
     }
     return result;
-  }, [movements, search, filter]);
+  }, [movements, search, typeFilter, dateFilter]);
 
   const stats = useMemo(() => {
-    const inMoves = movements.filter((m) => typeConfig[m.type]?.isIn);
-    const outMoves = movements.filter((m) => !typeConfig[m.type]?.isIn);
+    const today = new Date().toDateString();
+    const todayCount = movements.filter((m) => new Date(m.createdAt).toDateString() === today).length;
+    const totalIn = movements.filter((m) => typeConfig[m.type]?.isIn).reduce((s, m) => s + Math.abs(m.quantity), 0);
+    const totalOut = movements.filter((m) => !typeConfig[m.type]?.isIn).reduce((s, m) => s + Math.abs(m.quantity), 0);
     return {
       total: movements.length,
-      stockIn: inMoves.length,
-      stockOut: outMoves.length,
+      today: todayCount,
+      totalIn,
+      totalOut,
+      stockInCount: movements.filter((m) => typeConfig[m.type]?.isIn).length,
+      stockOutCount: movements.filter((m) => !typeConfig[m.type]?.isIn).length,
     };
   }, [movements]);
+
+  const hasFilters = search || typeFilter !== 'all' || dateFilter !== 'week';
 
   return (
     <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-950" edges={['top']}>
       <Stack.Screen options={{ headerShown: false }} />
 
+      {/* Header */}
       <View className="px-5 pt-4 pb-3 flex-row items-center gap-3">
         <Pressable
-          onPress={() => router.back()}
+          onPress={goBack}
           hitSlop={12}
-          className="h-10 w-10 rounded-2xl bg-white dark:bg-neutral-900 items-center justify-center border border-neutral-200 dark:border-neutral-800"
+          className="h-10 w-10 rounded-2xl bg-white dark:bg-neutral-900 items-center justify-center border border-neutral-200"
         >
-          <ArrowLeft size={20} color="#16a34a" />
+          <ArrowLeft size={20} color="#2563eb" />
         </Pressable>
         <View className="flex-1">
-          <Text className="text-2xl font-extrabold text-neutral-900 dark:text-white">{t('auto.index.stock_movements')}</Text>
+          <Text className="text-2xl font-extrabold text-neutral-900 dark:text-white">
+            Stock Movements
+          </Text>
           <View className="flex-row items-center gap-1.5 mt-0.5">
-            <Sparkles size={11} color="#737373" />
+            <Sparkles size={11} color="#2563eb" />
             <Text className="text-xs text-neutral-500">
               Audit trail • {stats.total} records
             </Text>
@@ -118,177 +141,302 @@ export default function StockMovementsScreen() {
         </View>
       </View>
 
-      {/* Stats Pills */}
       <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 20, gap: 8, paddingBottom: 8 }}
+        contentContainerStyle={{ paddingBottom: 40 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#2563eb" />
+        }
+        showsVerticalScrollIndicator={false}
       >
-        <View className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-full bg-neutral-100">
-          <Activity size={11} color="#737373" />
-          <Text className="text-xs font-bold text-neutral-700">
-            Total {stats.total}
-          </Text>
-        </View>
-        <View className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100">
-          <ArrowDownToLine size={11} color="#16a34a" />
-          <Text className="text-xs font-bold text-emerald-700">
-            In {stats.stockIn}
-          </Text>
-        </View>
-        <View className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-100">
-          <ArrowUpFromLine size={11} color="#dc2626" />
-          <Text className="text-xs font-bold text-rose-700">
-            Out {stats.stockOut}
-          </Text>
-        </View>
-      </ScrollView>
-
-      {/* Search + Filter */}
-      <View className="px-5 pb-3">
-        <View className="flex-row items-center gap-2 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-4 h-12 mb-3">
-          <Search size={20} color="#9ca3af" />
-          <TextInput
-            placeholder="Search product, reference..."
-            placeholderTextColor="#9ca3af"
-            value={search}
-            onChangeText={setSearch}
-            className="flex-1 text-base text-neutral-900 dark:text-white"
-          />
-          {search.length > 0 && (
-            <Pressable
-              onPress={() => setSearch('')}
-              hitSlop={12}
-              className="h-7 w-7 rounded-full bg-neutral-100 dark:bg-neutral-800 items-center justify-center"
-            >
-              <X size={14} color="#9ca3af" />
-            </Pressable>
-          )}
+        {/* Hero */}
+        <View className="mx-5 rounded-3xl p-5 mb-4" style={{
+          backgroundColor: '#2563eb',
+          shadowColor: '#2563eb',
+          shadowOpacity: 0.3,
+          shadowRadius: 16,
+          elevation: 10,
+        }}>
+          <View className="flex-row items-center gap-3">
+            <View className="h-14 w-14 rounded-2xl bg-white/20 items-center justify-center">
+              <Activity size={28} color="#ffffff" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-[10px] uppercase tracking-wider text-white/80 font-extrabold">
+                Inventory Audit Trail
+              </Text>
+              <Text className="text-white text-3xl font-extrabold mt-0.5">
+                {stats.total}
+              </Text>
+              <Text className="text-xs text-white/80 mt-0.5">
+                {stats.today} today
+              </Text>
+            </View>
+          </View>
         </View>
 
-        <View className="flex-row gap-2">
-          {filterOptions.map((opt) => {
-            const active = filter === opt.key;
+        {/* Stats grid */}
+        <View className="px-5 mb-3">
+          <View className="flex-row flex-wrap -mx-1.5">
+            {[
+              { label: 'Today', value: stats.today, color: '#2563eb', bg: '#dbeafe', icon: Calendar },
+              { label: 'Total', value: stats.total, color: '#7c3aed', bg: '#ede9fe', icon: Activity },
+              { label: 'Stock In', value: `+${formatQty(stats.totalIn)}`, color: '#16a34a', bg: '#dcfce7', icon: TrendingUp, isText: true },
+              { label: 'Stock Out', value: `−${formatQty(stats.totalOut)}`, color: '#dc2626', bg: '#fee2e2', icon: TrendingDown, isText: true },
+            ].map((s) => {
+              const Icon = s.icon;
+              return (
+                <View key={s.label} className="w-1/2 px-1.5 mb-3">
+                  <View className="rounded-2xl border-2 p-3" style={{ backgroundColor: s.bg, borderColor: s.color }}>
+                    <View className="flex-row items-center gap-1.5 mb-1">
+                      <Icon size={12} color={s.color} />
+                      <Text className="text-[10px] uppercase font-extrabold" style={{ color: s.color }}>
+                        {s.label}
+                      </Text>
+                    </View>
+                    <Text
+                      className={s.isText ? 'text-lg font-extrabold mt-0.5' : 'text-2xl font-extrabold mt-0.5'}
+                      style={{ color: s.color }}
+                      numberOfLines={1}
+                    >
+                      {s.value}
+                    </Text>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* Search */}
+        <View className="px-5 mb-3">
+          <View className="flex-row items-center gap-2 rounded-2xl border border-neutral-200 bg-white px-4 h-12">
+            <Search size={18} color="#9ca3af" />
+            <TextInput
+              placeholder="Search product, reference, SKU..."
+              placeholderTextColor="#9ca3af"
+              value={search}
+              onChangeText={setSearch}
+              className="flex-1 text-sm text-neutral-900"
+            />
+            {search.length > 0 && (
+              <Pressable
+                onPress={() => setSearch('')}
+                hitSlop={12}
+                className="h-7 w-7 rounded-full bg-neutral-100 items-center justify-center"
+              >
+                <X size={14} color="#9ca3af" />
+              </Pressable>
+            )}
+          </View>
+        </View>
+
+        {/* Type filter chips */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}
+          className="mb-2"
+        >
+          {[
+            { key: 'all' as TypeFilter, label: 'All', count: stats.total, color: '#0f172a' },
+            { key: 'in' as TypeFilter, label: 'Stock In', count: stats.stockInCount, color: '#16a34a' },
+            { key: 'out' as TypeFilter, label: 'Stock Out', count: stats.stockOutCount, color: '#dc2626' },
+          ].map((f) => {
+            const active = typeFilter === f.key;
             return (
               <Pressable
-                key={opt.key}
+                key={f.key}
                 onPress={() => {
                   Haptics.selectionAsync();
-                  setFilter(opt.key);
+                  setTypeFilter(f.key);
                 }}
-                className="flex-1 h-10 rounded-xl items-center justify-center border-2"
+                className="h-9 px-3 rounded-xl border-2 flex-row items-center gap-1.5"
                 style={{
-                  backgroundColor: active ? opt.color : '#ffffff',
-                  borderColor: active ? opt.color : '#e5e7eb',
+                  backgroundColor: active ? f.color : '#ffffff',
+                  borderColor: active ? f.color : '#e5e7eb',
                 }}
               >
                 <Text
-                  className="text-sm font-bold"
+                  className="text-xs font-bold"
                   style={{ color: active ? '#ffffff' : '#374151' }}
                 >
-                  {opt.label}
+                  {f.label}
+                </Text>
+                <View
+                  className="px-1.5 py-0.5 rounded"
+                  style={{ backgroundColor: active ? 'rgba(255,255,255,0.25)' : '#f3f4f6' }}
+                >
+                  <Text
+                    className="text-[10px] font-extrabold"
+                    style={{ color: active ? '#ffffff' : '#6b7280' }}
+                  >
+                    {f.count}
+                  </Text>
+                </View>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+
+        {/* Date filter */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}
+          className="mb-3"
+        >
+          <View className="flex-row items-center gap-1 pr-1">
+            <Calendar size={11} color="#9ca3af" />
+            <Text className="text-[10px] uppercase font-extrabold text-neutral-500">Period:</Text>
+          </View>
+          {[
+            { v: 'all' as DateFilter, l: 'All Time' },
+            { v: 'today' as DateFilter, l: 'Today' },
+            { v: 'week' as DateFilter, l: 'Last 7 Days' },
+            { v: 'month' as DateFilter, l: 'Last 30 Days' },
+          ].map((opt) => {
+            const active = dateFilter === opt.v;
+            return (
+              <Pressable
+                key={opt.v}
+                onPress={() => setDateFilter(opt.v)}
+                className="h-8 px-3 rounded-lg border-2 items-center justify-center"
+                style={{
+                  backgroundColor: active ? '#2563eb' : '#ffffff',
+                  borderColor: active ? '#2563eb' : '#e5e7eb',
+                }}
+              >
+                <Text
+                  className="text-[11px] font-bold"
+                  style={{ color: active ? '#ffffff' : '#374151' }}
+                >
+                  {opt.l}
                 </Text>
               </Pressable>
             );
           })}
-        </View>
-      </View>
+        </ScrollView>
 
-      <ScrollView
-        contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#16a34a" />
-        }
-        showsVerticalScrollIndicator={false}
-      >
-        {filtered.length === 0 ? (
-          <View className="rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 items-center py-12">
-            <View className="h-16 w-16 rounded-3xl bg-neutral-100 items-center justify-center">
-              <Activity size={32} color="#9ca3af" />
-            </View>
-            <Text className="mt-3 text-base font-bold text-neutral-700">
-              {search || filter !== 'all' ? 'No matches' : 'No movements yet'}
-            </Text>
-            <Text className="mt-1 text-xs text-neutral-500">{t('auto.index.stock_changes_ka_pura_record_yahan_dikhe')}</Text>
-          </View>
-        ) : (
-          <View className="gap-2">
-            {filtered.map((m) => {
-              const cfg = typeConfig[m.type] || {
-                label: m.type,
-                icon: Activity,
-                color: '#737373',
-                bg: '#f3f4f6',
-                isIn: false,
-              };
-              const Icon = cfg.icon;
-              return (
-                <Pressable
-                  key={m.id}
-                  onPress={() => {
-                    Haptics.selectionAsync();
-                    router.push(`/products/${m.product.id}`);
-                  }}
-                  className="rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 p-3 active:opacity-70"
+        {/* Movement type detail chips */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 20, gap: 6 }}
+          className="mb-3"
+        >
+          {(Object.entries(typeConfig) as [StockMovementType, any][]).map(([key, cfg]) => {
+            const Icon = cfg.icon;
+            const active = typeFilter === key;
+            return (
+              <Pressable
+                key={key}
+                onPress={() => setTypeFilter(active ? 'all' : key)}
+                className="h-8 px-2.5 rounded-lg border flex-row items-center gap-1"
+                style={{
+                  backgroundColor: active ? cfg.color : cfg.bg,
+                  borderColor: active ? cfg.color : cfg.color + '40',
+                }}
+              >
+                <Icon size={11} color={active ? '#ffffff' : cfg.color} />
+                <Text
+                  className="text-[10px] font-extrabold"
+                  style={{ color: active ? '#ffffff' : cfg.color }}
                 >
-                  <View className="flex-row items-center gap-3">
-                    <View
-                      className="h-11 w-11 rounded-2xl items-center justify-center"
-                      style={{ backgroundColor: cfg.bg }}
-                    >
-                      <Icon size={18} color={cfg.color} />
-                    </View>
-                    <View className="flex-1">
-                      <View className="flex-row items-center gap-2">
-                        <Text
-                          className="font-bold text-neutral-900 dark:text-white text-sm"
-                          numberOfLines={1}
-                        >
-                          {m.product.name}
+                  {cfg.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+
+        {/* Movements list */}
+        <View className="px-5">
+          {filtered.length === 0 ? (
+            <View className="items-center py-16">
+              <View className="h-20 w-20 rounded-3xl bg-blue-100 items-center justify-center">
+                <Activity size={36} color="#2563eb" />
+              </View>
+              <Text className="mt-4 text-base font-bold text-neutral-900">
+                {hasFilters ? 'No movements match' : 'No movements yet'}
+              </Text>
+              <Text className="text-xs text-neutral-500 mt-1 text-center px-8">
+                Stock changes ka pura record yahan dikhega
+              </Text>
+            </View>
+          ) : (
+            <View className="gap-2">
+              {filtered.map((m) => {
+                const cfg = typeConfig[m.type] || {
+                  label: m.type, icon: Activity, color: '#737373', bg: '#f3f4f6', isIn: false,
+                };
+                const Icon = cfg.icon;
+                return (
+                  <Pressable
+                    key={m.id}
+                    onPress={() => {
+                      Haptics.selectionAsync();
+                      router.push(`/products/${m.product.id}`);
+                    }}
+                    className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-neutral-200 p-3 active:opacity-70"
+                  >
+                    <View className="flex-row items-start gap-3">
+                      <View
+                        className="h-12 w-12 rounded-2xl items-center justify-center shrink-0"
+                        style={{ backgroundColor: cfg.bg }}
+                      >
+                        <Icon size={20} color={cfg.color} />
+                      </View>
+                      <View className="flex-1 min-w-0">
+                        <View className="flex-row items-center gap-1.5 flex-wrap">
+                          <Text className="font-extrabold text-sm text-neutral-900" numberOfLines={1}>
+                            {m.product.name}
+                          </Text>
+                          <View
+                            className="px-1.5 py-0.5 rounded"
+                            style={{ backgroundColor: cfg.bg }}
+                          >
+                            <Text className="text-[9px] font-extrabold" style={{ color: cfg.color }}>
+                              {cfg.label}
+                            </Text>
+                          </View>
+                        </View>
+                        {m.reference && (
+                          <Text className="font-mono text-[10px] text-neutral-500 mt-0.5">
+                            🔗 {m.reference}
+                          </Text>
+                        )}
+                        {m.note && (
+                          <Text className="text-[11px] text-neutral-600 italic mt-0.5" numberOfLines={1}>
+                            {m.note}
+                          </Text>
+                        )}
+                        <Text className="text-[10px] text-neutral-400 mt-1">
+                          {formatDate(m.createdAt)}
                         </Text>
-                        <View
-                          className="px-1.5 py-0.5 rounded-md"
-                          style={{ backgroundColor: cfg.bg }}
+                      </View>
+                      <View className="items-end">
+                        <Text
+                          className="text-lg font-extrabold"
+                          style={{ color: cfg.isIn ? '#15803d' : '#b91c1c' }}
                         >
-                          <Text className="text-[9px] font-extrabold" style={{ color: cfg.color }}>
-                            {cfg.label}
+                          {cfg.isIn ? '+' : ''}{formatQty(m.quantity)}
+                        </Text>
+                        <Text className="text-[9px] text-neutral-500 font-bold uppercase">
+                          {m.product.unit}
+                        </Text>
+                        <View className="mt-1 px-1.5 py-0.5 rounded bg-slate-100">
+                          <Text className="text-[9px] font-extrabold text-slate-700">
+                            Bal: {formatQty(m.balanceAfter)}
                           </Text>
                         </View>
                       </View>
-                      {m.reference && (
-                        <Text className="font-mono text-[10px] text-neutral-500 mt-0.5">
-                          {m.reference}
-                        </Text>
-                      )}
-                      {m.note && (
-                        <Text className="text-[11px] text-neutral-500 mt-0.5" numberOfLines={1}>
-                          {m.note}
-                        </Text>
-                      )}
-                      <Text className="text-[10px] text-neutral-400 mt-0.5">
-                        {formatDate(m.createdAt)}
-                      </Text>
                     </View>
-                    <View className="items-end">
-                      <Text
-                        className="text-base font-extrabold"
-                        style={{ color: cfg.isIn ? '#15803d' : '#b91c1c' }}
-                      >
-                        {cfg.isIn ? '+' : ''}{m.quantity}
-                      </Text>
-                      <Text className="text-[9px] text-neutral-500 font-bold uppercase">
-                        {m.product.unit}
-                      </Text>
-                      <Text className="text-[10px] text-neutral-500 mt-0.5">
-                        Now: {m.balanceAfter}
-                      </Text>
-                    </View>
-                  </View>
-                </Pressable>
-              );
-            })}
-          </View>
-        )}
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

@@ -10,15 +10,20 @@ import * as Haptics from 'expo-haptics';
 import {
   ArrowLeft, RotateCcw, Search, X, Check, Receipt, User,
   Package, Minus, Plus, Banknote, CreditCard, Smartphone,
-  Building2, Zap, AlertCircle, Sparkles,
+  Building2, Zap, AlertCircle, Sparkles, Layers, Scissors,
+  Settings, AlertTriangle, ChevronRight,
 } from 'lucide-react-native';
-import { returnsApi } from '@/api/returns.api';
+import { returnsApi, parseCarpetNote, type CarpetInfo } from '@/api/returns.api';
 import { salesApi } from '@/api/sales.api';
 import type { PaymentMethod } from '@/api/sales.api';
 import { formatPKRFull } from '@/lib/format';
+import {
+  CarpetReturnOptionsModal,
+  type CarpetReturnOptions,
+} from '@/components/returns/CarpetReturnOptionsModal';
+import { useSmartBack } from '@/hooks/useSmartBack';
 import Toast from 'react-native-toast-message';
 
-import { useTranslation } from '@/i18n/useTranslation';
 const refundMethods: Array<{
   key: PaymentMethod;
   label: string;
@@ -41,18 +46,26 @@ const reasonPresets = [
   'Not as described',
 ];
 
+const CARPET_UNITS = new Set(['sqft', 'sqm', 'sqyd']);
+
 interface ReturnLine {
   saleItemId: string;
   productName: string;
+  variantName?: string;
+  variantColorHex?: string;
   unit: string;
   price: number;
   maxQty: number;
   qty: number;
+  note?: string | null;
+  isCarpet: boolean;
+  carpetInfo?: CarpetInfo;
+  carpetOptions?: CarpetReturnOptions;
 }
 
 export default function NewReturnScreen() {
-  const { t } = useTranslation();
   const router = useRouter();
+  const goBack = useSmartBack();
   const queryClient = useQueryClient();
   const { saleId: preselectedSaleId } = useLocalSearchParams<{ saleId?: string }>();
 
@@ -65,6 +78,12 @@ export default function NewReturnScreen() {
   const [refundMethod, setRefundMethod] = useState<PaymentMethod>('CASH');
   const [reason, setReason] = useState('');
   const [notes, setNotes] = useState('');
+
+  // Carpet dialog state
+  const [carpetDialogFor, setCarpetDialogFor] = useState<{
+    lineIndex: number;
+    saleItem: any;
+  } | null>(null);
 
   // Fetch all sales for picker
   const { data: salesData } = useQuery({
@@ -96,14 +115,24 @@ export default function NewReturnScreen() {
   useEffect(() => {
     if (sale && lines.length === 0) {
       setLines(
-        sale.items.map((item: any) => ({
-          saleItemId: item.id,
-          productName: item.product.name,
-          unit: item.product.unit,
-          price: item.price,
-          maxQty: item.quantity - (item.returnedQty || 0),
-          qty: 0,
-        })),
+        sale.items.map((item: any) => {
+          const variant = item.variantLink?.variant;
+          const isCarpet = CARPET_UNITS.has(item.product.unit);
+          const carpetInfo = isCarpet ? parseCarpetNote(item.note) : undefined;
+          return {
+            saleItemId: item.id,
+            productName: item.product.name,
+            variantName: variant?.name,
+            variantColorHex: variant?.colorHex,
+            unit: item.product.unit,
+            price: item.price,
+            maxQty: item.quantity - (item.returnedQty || 0),
+            qty: 0,
+            note: item.note,
+            isCarpet,
+            carpetInfo,
+          };
+        }),
       );
     }
   }, [sale]);
@@ -122,6 +151,20 @@ export default function NewReturnScreen() {
   const refundAmount = lines.reduce((s, l) => s + l.price * l.qty, 0);
   const hasItems = lines.some((l) => l.qty > 0);
 
+  // Carpet stats
+  const carpetStats = useMemo(() => {
+    const active = lines.filter((l) => l.qty > 0);
+    const carpetActive = active.filter((l) => l.isCarpet);
+    const willCreatePieces = carpetActive.filter(
+      (l) => l.carpetOptions?.createCutPiece && !l.carpetOptions?.isDamaged,
+    ).length;
+    const willCreateDamaged = carpetActive.filter(
+      (l) => l.carpetOptions?.createCutPiece && l.carpetOptions?.isDamaged,
+    ).length;
+    const unconfigured = carpetActive.filter((l) => !l.carpetOptions).length;
+    return { carpetActive: carpetActive.length, willCreatePieces, willCreateDamaged, unconfigured };
+  }, [lines]);
+
   const createMutation = useMutation({
     mutationFn: () =>
       returnsApi.create({
@@ -131,18 +174,38 @@ export default function NewReturnScreen() {
         notes: notes.trim() || undefined,
         items: lines
           .filter((l) => l.qty > 0)
-          .map((l) => ({ saleItemId: l.saleItemId, quantity: l.qty })),
+          .map((l) => ({
+            saleItemId: l.saleItemId,
+            quantity: l.qty,
+            ...(l.isCarpet && l.carpetOptions
+              ? {
+                  createCutPiece: l.carpetOptions.createCutPiece,
+                  isDamaged: l.carpetOptions.isDamaged,
+                  cutPieceCondition: l.carpetOptions.cutPieceCondition,
+                  cutPieceWidthFt: l.carpetOptions.cutPieceWidthFt,
+                  cutPieceLengthFt: l.carpetOptions.cutPieceLengthFt,
+                  cutPieceNotes: l.carpetOptions.cutPieceNotes,
+                }
+              : {}),
+          })),
       }),
-    onSuccess: () => {
+    onSuccess: (result) => {
+      const cutPiecesCount = result.createdCutPieces?.length ?? 0;
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Toast.show({
         type: 'success',
         text1: '✅ Return processed!',
-        text2: `Refunded ${formatPKRFull(refundAmount)}`,
+        text2:
+          cutPiecesCount > 0
+            ? `Refunded ${formatPKRFull(refundAmount)} + ${cutPiecesCount} cut piece${cutPiecesCount !== 1 ? 's' : ''} created`
+            : `Refunded ${formatPKRFull(refundAmount)}`,
       });
       queryClient.invalidateQueries({ queryKey: ['returns'] });
       queryClient.invalidateQueries({ queryKey: ['sales'] });
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['carpet-rolls'] });
+      queryClient.invalidateQueries({ queryKey: ['carpet-cut-pieces'] });
+      queryClient.invalidateQueries({ queryKey: ['carpet-product-summary'] });
       router.replace('/returns');
     },
     onError: (e: any) => {
@@ -166,6 +229,62 @@ export default function NewReturnScreen() {
     );
   };
 
+  const setLineQty = (saleItemId: string, qty: number) => {
+    setLines((prev) =>
+      prev.map((l) => {
+        if (l.saleItemId !== saleItemId) return l;
+        return { ...l, qty: Math.max(0, Math.min(l.maxQty, qty)) };
+      }),
+    );
+  };
+
+  const openCarpetDialog = (lineIndex: number) => {
+    if (!sale) return;
+    const line = lines[lineIndex];
+    const saleItem = sale.items.find((i: any) => i.id === line.saleItemId);
+    if (!saleItem) return;
+    setCarpetDialogFor({ lineIndex, saleItem });
+  };
+
+  const handleCarpetConfirm = (options: CarpetReturnOptions) => {
+    if (!carpetDialogFor) return;
+    const { lineIndex } = carpetDialogFor;
+
+    setLines((prev) =>
+      prev.map((l, i) => (i === lineIndex ? { ...l, carpetOptions: options } : l)),
+    );
+
+    setCarpetDialogFor(null);
+
+    Toast.show({
+      type: 'success',
+      text1: options.isDamaged
+        ? '⚠️ Marked as damaged'
+        : options.createCutPiece
+        ? '✓ Cut piece will be created'
+        : '✓ Configured — no piece',
+    });
+  };
+
+  const handleSubmit = () => {
+    if (!hasItems) {
+      Toast.show({ type: 'error', text1: 'Kam se kam 1 item add karein' });
+      return;
+    }
+    if (carpetStats.unconfigured > 0) {
+      Toast.show({
+        type: 'error',
+        text1: `${carpetStats.unconfigured} carpet item${carpetStats.unconfigured !== 1 ? 's' : ''} need configuration`,
+        text2: 'Cog icon tap karke setup karein',
+      });
+      return;
+    }
+    createMutation.mutate();
+  };
+
+  const activeCarpetLine =
+    carpetDialogFor !== null ? lines[carpetDialogFor.lineIndex] : null;
+
   return (
     <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-950" edges={['top']}>
       <Stack.Screen options={{ headerShown: false }} />
@@ -173,17 +292,17 @@ export default function NewReturnScreen() {
       {/* Header */}
       <View className="px-5 pt-4 pb-3 flex-row items-center gap-3">
         <Pressable
-          onPress={() => router.back()}
+          onPress={goBack}
           hitSlop={12}
           className="h-10 w-10 rounded-2xl bg-white dark:bg-neutral-900 items-center justify-center border border-neutral-200 dark:border-neutral-800"
         >
-          <ArrowLeft size={20} color="#16a34a" />
+          <ArrowLeft size={20} color="#f97316" />
         </Pressable>
         <View className="flex-1">
-          <Text className="text-2xl font-extrabold text-neutral-900 dark:text-white">{t('auto.new.new_return')}</Text>
+          <Text className="text-2xl font-extrabold text-neutral-900 dark:text-white">New Return</Text>
           <View className="flex-row items-center gap-1.5 mt-0.5">
             <Sparkles size={11} color="#f97316" />
-            <Text className="text-xs text-neutral-500">{t('auto.new.process_refund_exchange')}</Text>
+            <Text className="text-xs text-neutral-500">Process refund + carpet cut piece</Text>
           </View>
         </View>
       </View>
@@ -198,7 +317,9 @@ export default function NewReturnScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* Sale Selector */}
-          <Text className="text-xs font-bold uppercase text-neutral-500 mb-2 tracking-wider">{t('auto.new.sale_receipt')}</Text>
+          <Text className="text-xs font-bold uppercase text-neutral-500 mb-2 tracking-wider">
+            Sale Receipt
+          </Text>
           <Pressable
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -212,7 +333,7 @@ export default function NewReturnScreen() {
             <View className="flex-1">
               {sale ? (
                 <>
-                  <Text className="font-extrabold text-neutral-900 dark:text-white">
+                  <Text className="font-extrabold text-neutral-900 dark:text-white font-mono">
                     {sale.saleNumber}
                   </Text>
                   <Text className="text-xs text-neutral-500 mt-0.5">
@@ -221,52 +342,197 @@ export default function NewReturnScreen() {
                 </>
               ) : (
                 <>
-                  <Text className="font-bold text-neutral-900 dark:text-white">{t('auto.new.select_sale')}</Text>
-                  <Text className="text-xs text-neutral-500 mt-0.5">{t('auto.new.receipt_choose_karein')}</Text>
+                  <Text className="font-bold text-neutral-900 dark:text-white">Select Sale</Text>
+                  <Text className="text-xs text-neutral-500 mt-0.5">Receipt choose karein</Text>
                 </>
               )}
             </View>
             <ChevronRight size={18} color="#9ca3af" />
           </Pressable>
 
+          {/* Carpet Inventory Actions Banner */}
+          {carpetStats.carpetActive > 0 && (
+            <View className="rounded-2xl bg-emerald-50 border-2 border-emerald-300 p-4 mb-4">
+              <View className="flex-row items-center gap-2 mb-3">
+                <Layers size={14} color="#16a34a" />
+                <Text className="text-xs font-extrabold uppercase text-emerald-700 tracking-wider">
+                  Carpet Inventory Actions
+                </Text>
+              </View>
+              <View className="flex-row gap-2">
+                <View className="flex-1 rounded-xl bg-white p-2.5 items-center">
+                  <Text className="text-[9px] uppercase font-extrabold text-emerald-700">Cart</Text>
+                  <Text className="text-xl font-extrabold text-emerald-900 mt-0.5">
+                    {carpetStats.carpetActive}
+                  </Text>
+                  <Text className="text-[9px] text-emerald-700 font-bold">carpet items</Text>
+                </View>
+                <View className="flex-1 rounded-xl bg-white p-2.5 items-center">
+                  <Text className="text-[9px] uppercase font-extrabold text-emerald-700">Resellable</Text>
+                  <Text className="text-xl font-extrabold text-emerald-900 mt-0.5">
+                    {carpetStats.willCreatePieces}
+                  </Text>
+                  <Text className="text-[9px] text-emerald-700 font-bold">pieces</Text>
+                </View>
+                <View className="flex-1 rounded-xl bg-white p-2.5 items-center">
+                  <Text className="text-[9px] uppercase font-extrabold text-rose-700">Damaged</Text>
+                  <Text className="text-xl font-extrabold text-rose-900 mt-0.5">
+                    {carpetStats.willCreateDamaged}
+                  </Text>
+                  <Text className="text-[9px] text-rose-700 font-bold">pieces</Text>
+                </View>
+              </View>
+              {carpetStats.unconfigured > 0 && (
+                <View className="mt-3 rounded-lg bg-amber-100 border border-amber-300 p-2 flex-row items-center gap-1.5">
+                  <AlertTriangle size={14} color="#b45309" />
+                  <Text className="flex-1 text-[11px] text-amber-900 font-bold">
+                    {carpetStats.unconfigured} carpet item{carpetStats.unconfigured !== 1 ? 's' : ''} need configuration — tap ⚙️
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
+
           {/* Items */}
           {sale && lines.length > 0 && (
             <>
-              <Text className="text-xs font-bold uppercase text-neutral-500 mb-2 tracking-wider">{t('auto.new.items_to_return')}</Text>
+              <Text className="text-xs font-bold uppercase text-neutral-500 mb-2 tracking-wider">
+                Items to Return
+              </Text>
               <View className="gap-2 mb-4">
-                {lines.map((line) => {
+                {lines.map((line, idx) => {
                   const isSelected = line.qty > 0;
+                  const carpetConfigured = line.isCarpet && line.carpetOptions;
+                  const isDamaged = line.carpetOptions?.isDamaged;
+                  const willCreatePiece = line.carpetOptions?.createCutPiece;
+
                   return (
                     <View
                       key={line.saleItemId}
                       className="rounded-2xl border-2 p-3"
                       style={{
-                        borderColor: isSelected ? '#f97316' : '#e5e7eb',
-                        backgroundColor: isSelected ? '#fff7ed' : '#ffffff',
+                        borderColor: !isSelected
+                          ? '#e5e7eb'
+                          : line.isCarpet
+                          ? isDamaged
+                            ? '#fca5a5'
+                            : willCreatePiece
+                            ? '#86efac'
+                            : '#fcd34d'
+                          : '#fdba74',
+                        backgroundColor: !isSelected
+                          ? '#ffffff'
+                          : line.isCarpet
+                          ? isDamaged
+                            ? '#fef2f2'
+                            : willCreatePiece
+                            ? '#f0fdf4'
+                            : '#fffbeb'
+                          : '#fff7ed',
                       }}
                     >
                       <View className="flex-row items-start gap-3">
-                        <View className="h-11 w-11 rounded-xl bg-orange-100 items-center justify-center">
-                          <Package size={18} color="#f97316" />
+                        <View
+                          className="h-11 w-11 rounded-xl items-center justify-center shrink-0"
+                          style={{
+                            backgroundColor: line.variantColorHex || (line.isCarpet ? '#dcfce7' : '#ffedd5'),
+                          }}
+                        >
+                          {!line.variantColorHex &&
+                            (line.isCarpet ? (
+                              <Layers size={18} color="#16a34a" />
+                            ) : (
+                              <Package size={18} color="#f97316" />
+                            ))}
                         </View>
                         <View className="flex-1">
-                          <Text
-                            className="font-bold text-neutral-900 dark:text-white"
-                            numberOfLines={2}
-                          >
-                            {line.productName}
-                          </Text>
+                          <View className="flex-row items-center gap-2 flex-wrap">
+                            <Text
+                              className="font-bold text-neutral-900 dark:text-white"
+                              numberOfLines={2}
+                            >
+                              {line.productName}
+                            </Text>
+                            {line.isCarpet && (
+                              <View className="flex-row items-center gap-0.5 px-1.5 py-0.5 rounded bg-emerald-100">
+                                <Layers size={9} color="#16a34a" />
+                                <Text className="text-[9px] font-extrabold text-emerald-700">
+                                  CARPET
+                                </Text>
+                              </View>
+                            )}
+                          </View>
+                          {line.variantName && (
+                            <Text className="text-[10px] font-bold text-violet-700 mt-0.5">
+                              {line.variantName}
+                            </Text>
+                          )}
                           <Text className="text-xs text-neutral-500 mt-0.5">
                             {formatPKRFull(line.price)} / {line.unit}
                           </Text>
                           <Text className="text-[10px] text-orange-700 mt-0.5 font-semibold">
-                            Available to return: {line.maxQty} {line.unit}
+                            Available: {line.maxQty.toFixed(line.maxQty % 1 === 0 ? 0 : 2)} {line.unit}
                           </Text>
+                          {line.isCarpet && line.note && (
+                            <View className="mt-1 px-2 py-1 rounded-md bg-emerald-100/50 border border-emerald-200 self-start">
+                              <Text className="text-[10px] text-emerald-800 font-bold italic" numberOfLines={1}>
+                                {line.note}
+                              </Text>
+                            </View>
+                          )}
+
+                          {/* Carpet action badge */}
+                          {isSelected && line.isCarpet && (
+                            <View className="mt-1.5">
+                              {carpetConfigured ? (
+                                <View
+                                  className="self-start px-2 py-0.5 rounded-md flex-row items-center gap-1"
+                                  style={{
+                                    backgroundColor: isDamaged
+                                      ? '#fee2e2'
+                                      : willCreatePiece
+                                      ? '#dcfce7'
+                                      : '#fef3c7',
+                                  }}
+                                >
+                                  {isDamaged ? (
+                                    <>
+                                      <AlertTriangle size={9} color="#b91c1c" />
+                                      <Text className="text-[9px] font-extrabold text-rose-700">
+                                        DAMAGED PIECE
+                                      </Text>
+                                    </>
+                                  ) : willCreatePiece ? (
+                                    <>
+                                      <Scissors size={9} color="#15803d" />
+                                      <Text className="text-[9px] font-extrabold text-emerald-700">
+                                        WILL CREATE PIECE
+                                      </Text>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Layers size={9} color="#b45309" />
+                                      <Text className="text-[9px] font-extrabold text-amber-700">
+                                        NO PIECE
+                                      </Text>
+                                    </>
+                                  )}
+                                </View>
+                              ) : (
+                                <View className="self-start px-2 py-0.5 rounded-md bg-amber-100 border border-amber-300 flex-row items-center gap-1">
+                                  <AlertTriangle size={9} color="#b45309" />
+                                  <Text className="text-[9px] font-extrabold text-amber-800">
+                                    CONFIGURE FIRST
+                                  </Text>
+                                </View>
+                              )}
+                            </View>
+                          )}
                         </View>
                       </View>
 
                       {line.maxQty > 0 ? (
-                        <View className="mt-3 flex-row items-center justify-between">
+                        <View className="mt-3 flex-row items-center justify-between gap-2">
                           <View className="flex-row items-center gap-1.5 bg-white rounded-xl p-1 border border-neutral-200">
                             <Pressable
                               onPress={() => updateQty(line.saleItemId, -1)}
@@ -276,9 +542,15 @@ export default function NewReturnScreen() {
                             >
                               <Minus size={14} color="#374151" />
                             </Pressable>
-                            <Text className="font-extrabold w-8 text-center text-neutral-900">
-                              {line.qty}
-                            </Text>
+                            <TextInput
+                              value={String(line.qty)}
+                              onChangeText={(t) => {
+                                const v = parseFloat(t);
+                                if (!isNaN(v)) setLineQty(line.saleItemId, v);
+                              }}
+                              keyboardType="decimal-pad"
+                              className="w-12 text-center font-extrabold text-neutral-900"
+                            />
                             <Pressable
                               onPress={() => updateQty(line.saleItemId, 1)}
                               disabled={line.qty >= line.maxQty}
@@ -289,17 +561,42 @@ export default function NewReturnScreen() {
                             >
                               <Plus size={14} color="#ffffff" />
                             </Pressable>
+                            <Pressable
+                              onPress={() => setLineQty(line.saleItemId, line.maxQty)}
+                              className="px-2.5 h-8 rounded-lg bg-amber-100 items-center justify-center"
+                            >
+                              <Text className="text-[10px] font-extrabold text-amber-800">Max</Text>
+                            </Pressable>
                           </View>
-                          {line.qty > 0 && (
-                            <Text className="text-base font-extrabold text-rose-700">
-                              -{formatPKRFull(line.price * line.qty)}
-                            </Text>
-                          )}
+
+                          <View className="flex-row items-center gap-2">
+                            {line.qty > 0 && line.isCarpet && (
+                              <Pressable
+                                onPress={() => openCarpetDialog(idx)}
+                                className="px-3 h-9 rounded-lg flex-row items-center gap-1.5 active:opacity-80"
+                                style={{
+                                  backgroundColor: carpetConfigured ? '#16a34a' : '#d97706',
+                                }}
+                              >
+                                <Settings size={12} color="#ffffff" />
+                                <Text className="text-white text-[11px] font-extrabold">
+                                  {carpetConfigured ? 'Edit' : 'Configure'}
+                                </Text>
+                              </Pressable>
+                            )}
+                            {line.qty > 0 && (
+                              <Text className="text-base font-extrabold text-rose-700">
+                                -{formatPKRFull(line.price * line.qty)}
+                              </Text>
+                            )}
+                          </View>
                         </View>
                       ) : (
                         <View className="mt-2 p-2 rounded-lg bg-neutral-100 flex-row items-center gap-1.5">
                           <AlertCircle size={12} color="#737373" />
-                          <Text className="text-[11px] text-neutral-600">{t('auto.new.already_fully_returned')}</Text>
+                          <Text className="text-[11px] text-neutral-600">
+                            Already fully returned
+                          </Text>
                         </View>
                       )}
                     </View>
@@ -308,7 +605,9 @@ export default function NewReturnScreen() {
               </View>
 
               {/* Reason Presets */}
-              <Text className="text-xs font-bold uppercase text-neutral-500 mb-2 tracking-wider">{t('auto.new.reason_quick_select')}</Text>
+              <Text className="text-xs font-bold uppercase text-neutral-500 mb-2 tracking-wider">
+                Reason (quick select)
+              </Text>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -359,7 +658,9 @@ export default function NewReturnScreen() {
               </View>
 
               {/* Refund Method */}
-              <Text className="text-xs font-bold uppercase text-neutral-500 mb-2 tracking-wider">{t('auto.new.refund_method')}</Text>
+              <Text className="text-xs font-bold uppercase text-neutral-500 mb-2 tracking-wider">
+                Refund Method
+              </Text>
               <View className="flex-row flex-wrap -m-1 mb-4">
                 {refundMethods.map((m) => {
                   const Icon = m.icon;
@@ -391,7 +692,9 @@ export default function NewReturnScreen() {
               </View>
 
               {/* Notes */}
-              <Text className="text-xs font-bold uppercase text-neutral-500 mb-2 tracking-wider">{t('auto.new.notes_optional')}</Text>
+              <Text className="text-xs font-bold uppercase text-neutral-500 mb-2 tracking-wider">
+                Notes (optional)
+              </Text>
               <View className="rounded-2xl border border-neutral-200 bg-white px-4 py-3 mb-4">
                 <TextInput
                   value={notes}
@@ -417,13 +720,17 @@ export default function NewReturnScreen() {
                     elevation: 6,
                   }}
                 >
-                  <Text className="text-xs font-bold uppercase tracking-wider text-white/80">{t('auto.new.total_refund')}</Text>
+                  <Text className="text-xs font-bold uppercase tracking-wider text-white/80">
+                    Total Refund
+                  </Text>
                   <Text className="text-4xl font-extrabold text-white mt-1">
                     -{formatPKRFull(refundAmount)}
                   </Text>
                   <Text className="text-xs text-white/80 mt-2">
                     {lines.filter((l) => l.qty > 0).length} items •{' '}
                     {refundMethods.find((m) => m.key === refundMethod)?.label}
+                    {carpetStats.willCreatePieces > 0 &&
+                      ` • ${carpetStats.willCreatePieces} cut piece${carpetStats.willCreatePieces !== 1 ? 's' : ''}`}
                   </Text>
                 </View>
               )}
@@ -435,12 +742,16 @@ export default function NewReturnScreen() {
         {sale && (
           <View className="px-5 py-4 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
             <Pressable
-              onPress={() => createMutation.mutate()}
-              disabled={createMutation.isPending || !hasItems}
+              onPress={handleSubmit}
+              disabled={
+                createMutation.isPending || !hasItems || carpetStats.unconfigured > 0
+              }
               className="h-14 rounded-2xl items-center justify-center flex-row gap-2 active:opacity-80"
               style={{
                 backgroundColor:
-                  createMutation.isPending || !hasItems ? '#9ca3af' : '#f97316',
+                  createMutation.isPending || !hasItems || carpetStats.unconfigured > 0
+                    ? '#9ca3af'
+                    : '#f97316',
                 shadowColor: '#f97316',
                 shadowOpacity: 0.4,
                 shadowRadius: 12,
@@ -448,11 +759,21 @@ export default function NewReturnScreen() {
               }}
             >
               {createMutation.isPending ? (
-                <Text className="text-white font-extrabold text-base">{t('auto.new.processing')}</Text>
+                <Text className="text-white font-extrabold text-base">Processing...</Text>
+              ) : carpetStats.unconfigured > 0 ? (
+                <>
+                  <AlertTriangle size={20} color="#ffffff" />
+                  <Text className="text-white font-extrabold text-base">
+                    Configure {carpetStats.unconfigured} carpet item
+                    {carpetStats.unconfigured !== 1 ? 's' : ''}
+                  </Text>
+                </>
               ) : (
                 <>
                   <RotateCcw size={20} color="#ffffff" />
-                  <Text className="text-white font-extrabold text-base">{t('auto.new.process_return')}</Text>
+                  <Text className="text-white font-extrabold text-base">
+                    Process Return {formatPKRFull(refundAmount)}
+                  </Text>
                 </>
               )}
             </Pressable>
@@ -464,13 +785,11 @@ export default function NewReturnScreen() {
       <Modal visible={salePickerOpen} animationType="slide" presentationStyle="pageSheet">
         <SafeAreaView className="flex-1 bg-neutral-50">
           <View className="flex-row items-center justify-between px-5 py-4 border-b border-neutral-200">
-            <Text className="text-xl font-extrabold text-neutral-900">
-              Select Sale
-            </Text>
+            <Text className="text-xl font-extrabold text-neutral-900">Select Sale</Text>
             <Pressable
               onPress={() => {
                 if (selectedSaleId) setSalePickerOpen(false);
-                else router.back();
+                else goBack();
               }}
               hitSlop={12}
               className="h-10 w-10 rounded-2xl bg-neutral-100 items-center justify-center"
@@ -494,7 +813,7 @@ export default function NewReturnScreen() {
             {filteredSales.length === 0 ? (
               <View className="items-center py-12">
                 <Receipt size={40} color="#d1d5db" />
-                <Text className="mt-3 text-neutral-500 font-semibold">{t('auto.new.no_sales_found')}</Text>
+                <Text className="mt-3 text-neutral-500 font-semibold">No sales found</Text>
               </View>
             ) : (
               <View className="gap-2">
@@ -543,14 +862,21 @@ export default function NewReturnScreen() {
           </ScrollView>
         </SafeAreaView>
       </Modal>
-    </SafeAreaView>
-  );
-}
 
-function ChevronRight({ size, color }: { size: number; color: string }) {
-  return (
-    <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
-      <Text style={{ color, fontSize: size, fontWeight: '300' }}>›</Text>
-    </View>
+      {/* Carpet Return Options Modal */}
+      {carpetDialogFor && activeCarpetLine && (
+        <CarpetReturnOptionsModal
+          visible={!!carpetDialogFor}
+          carpetInfo={activeCarpetLine.carpetInfo || { isRollCut: false, isCutPiece: false }}
+          productName={activeCarpetLine.productName}
+          variantName={activeCarpetLine.variantName}
+          returnedSqft={activeCarpetLine.qty}
+          pricePerSqft={activeCarpetLine.price}
+          initialOptions={activeCarpetLine.carpetOptions}
+          onConfirm={handleCarpetConfirm}
+          onClose={() => setCarpetDialogFor(null)}
+        />
+      )}
+    </SafeAreaView>
   );
 }

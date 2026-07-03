@@ -10,6 +10,7 @@ import * as Haptics from 'expo-haptics';
 import { ArrowLeft, Save, Check } from 'lucide-react-native';
 import { settingsApi, type TenantSettings } from '@/api/settings.api';
 import { ImagePickerSheet } from '@/components/uploads';
+import { useSmartBack } from '@/hooks/useSmartBack';
 import { Image as RNImage } from 'react-native';
 import Toast from 'react-native-toast-message';
 
@@ -41,6 +42,7 @@ const COLORS: Record<string, string> = {
 
 export default function SettingsSectionScreen() {
   const router = useRouter();
+  const goBack = useSmartBack();
   const { section } = useLocalSearchParams<{ section: string }>();
   const queryClient = useQueryClient();
   const [draft, setDraft] = useState<Partial<TenantSettings & { managerPin?: string }>>({});
@@ -87,9 +89,19 @@ export default function SettingsSectionScreen() {
         <Pressable
           onPress={() => {
             if (hasChanges) {
-              // Inline confirm
+              // eslint-disable-next-line @typescript-eslint/no-require-imports
+              const { Alert } = require('react-native');
+              Alert.alert(
+                'Unsaved Changes',
+                `${Object.keys(draft).length} change${Object.keys(draft).length > 1 ? 's' : ''} save nahi hue. Discard karein?`,
+                [
+                  { text: 'Rukiye', style: 'cancel' },
+                  { text: 'Discard', style: 'destructive', onPress: () => goBack()},
+                ],
+              );
+              return;
             }
-            router.back();
+            goBack();
           }}
           hitSlop={12}
           className="h-10 w-10 rounded-2xl bg-white dark:bg-neutral-900 items-center justify-center border border-neutral-200 dark:border-neutral-800"

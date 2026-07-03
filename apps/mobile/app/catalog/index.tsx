@@ -16,6 +16,7 @@ import { categoriesApi } from '@/api/categories.api';
 import { productVariantsApi } from '@/api/product-variants.api';
 import { formatPKRFull, formatQty } from '@/lib/format';
 import { useAuthStore } from '@/store/auth.store';
+import { useSmartBack } from '@/hooks/useSmartBack';
 import Toast from 'react-native-toast-message';
 import * as Clipboard from 'expo-clipboard';
 
@@ -30,6 +31,7 @@ const EMPTY_LIST = {
 
 export default function CatalogScreen() {
   const router = useRouter();
+  const goBack = useSmartBack();
   const { tenant } = useAuthStore();
   const [search, setSearch] = useState('');
   const [categoryId, setCategoryId] = useState<string>('');
@@ -92,7 +94,7 @@ export default function CatalogScreen() {
         <View className="px-5 pt-4 pb-3">
           <View className="flex-row items-center gap-3 mb-3">
             <Pressable
-              onPress={() => router.back()}
+              onPress={goBack}
               hitSlop={12}
               className="h-10 w-10 rounded-2xl bg-white dark:bg-neutral-900 items-center justify-center border border-neutral-200 dark:border-neutral-800"
             >

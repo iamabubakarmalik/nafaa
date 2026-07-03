@@ -14,9 +14,11 @@ import { loyaltyApi } from '@/api/loyalty.api';
 import { formatPKRFull } from '@/lib/format';
 
 import { useTranslation } from '@/i18n/useTranslation';
+import { useSmartBack } from '@/hooks/useSmartBack';
 export default function LoyaltyScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const goBack = useSmartBack();
   const [refreshing, setRefreshing] = useState(false);
 
   const { data, refetch } = useQuery({
@@ -47,7 +49,7 @@ export default function LoyaltyScreen() {
       {/* Header */}
       <View className="px-5 pt-4 pb-3 flex-row items-center gap-3">
         <Pressable
-          onPress={() => router.back()}
+          onPress={goBack}
           hitSlop={12}
           className="h-10 w-10 rounded-2xl bg-white dark:bg-neutral-900 items-center justify-center border border-neutral-200 dark:border-neutral-800"
         >

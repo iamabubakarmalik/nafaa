@@ -10,6 +10,8 @@ export interface TeamMember {
   role: UserRole;
   isActive: boolean;
   permissions?: string[];
+  shopId?: string | null;
+  assignedShop?: { id: string; name: string; isMain: boolean } | null;
   lastLoginAt?: string | null;
   createdAt: string;
 }
@@ -20,6 +22,7 @@ export interface CreateTeamMemberPayload {
   phone?: string;
   password: string;
   role: Exclude<UserRole, 'OWNER' | 'SUPER_ADMIN'>;
+  shopId?: string;
   permissions?: string[];
 }
 
@@ -53,6 +56,9 @@ export const teamApi = {
 
   updatePermissions: (id: string, permissions: string[]): Promise<TeamMember> =>
     apiClient.patch(`/team/${id}/permissions`, { permissions }).then((r) => unwrapOne<TeamMember>(r)),
+
+  updateShop: (id: string, shopId: string | null): Promise<TeamMember> =>
+    apiClient.patch(`/team/${id}/shop`, { shopId }).then((r) => unwrapOne<TeamMember>(r)),
 
   toggle: (id: string): Promise<TeamMember> =>
     apiClient.patch(`/team/${id}/toggle`).then((r) => unwrapOne<TeamMember>(r)),

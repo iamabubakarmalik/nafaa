@@ -14,6 +14,7 @@ import {
 } from 'lucide-react-native';
 import { staffApi } from '@/api/staff.api';
 import { formatPKRFull } from '@/lib/format';
+import { useSmartBack } from '@/hooks/useSmartBack';
 import Toast from 'react-native-toast-message';
 
 type Tab = 'overview' | 'attendance' | 'salary' | 'leaves';
@@ -34,6 +35,7 @@ const formatTime = (d?: string | null) =>
 export default function StaffDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const goBack = useSmartBack();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>('overview');
   const [refreshing, setRefreshing] = useState(false);
@@ -49,7 +51,7 @@ export default function StaffDetailScreen() {
     onSuccess: () => {
       Toast.show({ type: 'success', text1: 'Staff terminated' });
       queryClient.invalidateQueries({ queryKey: ['staff-list'] });
-      router.back();
+      goBack();
     },
   });
 
@@ -98,7 +100,7 @@ export default function StaffDetailScreen() {
       {/* Header */}
       <View className="px-5 pt-4 pb-3 flex-row items-center gap-2">
         <Pressable
-          onPress={() => router.back()}
+          onPress={goBack}
           hitSlop={12}
           className="h-10 w-10 rounded-2xl bg-white dark:bg-neutral-900 items-center justify-center border border-neutral-200 dark:border-neutral-800"
         >

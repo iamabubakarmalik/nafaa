@@ -1,415 +1,675 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
-  View, Text, FlatList, Pressable, RefreshControl, Image, ScrollView, Modal,
+  View, Text, ScrollView, Pressable, TextInput, RefreshControl,
+  FlatList, Image, Linking, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import * as Haptics from 'expo-haptics';
 import {
-  Search, Users, Plus, Phone, Crown, Wallet, TrendingUp, MapPin,
-  Star, SlidersHorizontal, X, MessageCircle, Award, ChevronRight,
+  Users, Plus, Search, X, Filter, Crown, Phone,
+  MapPin, TrendingUp, Wallet, Star, MessageCircle, Mail,
+  Edit3, Trash2, Sparkles, ChevronRight,
 } from 'lucide-react-native';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Input } from '@/components/ui/Input';
-import { Button } from '@/components/ui/Button';
 import { customersApi, type CustomersListParams } from '@/api/customers.api';
-import { formatPKRFull } from '@/lib/format';
-
+import { formatPKR } from '@/lib/format';
+import Toast from 'react-native-toast-message';
 import { useTranslation } from '@/i18n/useTranslation';
-export default function CustomersScreen() {
+
+type FilterType = 'all' | 'vip' | 'credit';
+type SortBy = 'createdAt' | 'name' | 'totalSpent' | 'balance';
+
+export default function CustomersListScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const [refreshing, setRefreshing] = useState(false);
+  const queryClient = useQueryClient();
+
+  const [search, setSearch] = useState('');
+  const [filterType, setFilterType] = useState<FilterType>('all');
+  const [sortBy, setSortBy] = useState<SortBy>('createdAt');
+  const [city, setCity] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const [params, setParams] = useState<CustomersListParams>({
-    search: '',
-    page: 1,
-    limit: 50,
-    sortBy: 'createdAt',
+  const [refreshing, setRefreshing] = useState(false);
+
+  const queryParams: CustomersListParams = useMemo(() => ({
+    search: search || undefined,
+    isVip: filterType === 'vip' ? true : undefined,
+    hasCredit: filterType === 'credit' ? true : undefined,
+    city: city || undefined,
+    sortBy,
     sortOrder: 'desc',
-  });
+    page: 1,
+    limit: 100,
+  }), [search, filterType, city, sortBy]);
 
   const { data, refetch } = useQuery({
-    queryKey: ['customers', params],
-    queryFn: () => customersApi.list(params),
+    queryKey: ['customers', queryParams],
+    queryFn: () => customersApi.list(queryParams),
   });
 
-  const { data: stats } = useQuery({
+  const { data: stats, refetch: refetchStats } = useQuery({
     queryKey: ['customers-stats'],
-    queryFn: customersApi.stats,
+    queryFn: () => customersApi.stats(),
+  });
+
+  const items = data?.items ?? [];
+  const hasFilters = !!(search || filterType !== 'all' || city);
+
+  const removeMutation = useMutation({
+    mutationFn: (id: string) => customersApi.remove(id),
+    onSuccess: () => {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      Toast.show({ type: 'success', text1: 'Customer deleted' });
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      queryClient.invalidateQueries({ queryKey: ['customers-stats'] });
+    },
+    onError: (e: any) =>
+      Toast.show({ type: 'error', text1: e?.response?.data?.message || 'Delete fail' }),
   });
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([refetch()]);
+    await Promise.all([refetch(), refetchStats()]);
     setRefreshing(false);
   };
 
-  const items = data?.items ?? [];
-  const activeFilters = !!(params.isVip || params.hasCredit || params.city);
+  const clearFilters = () => {
+    setSearch('');
+    setFilterType('all');
+    setCity('');
+    setSortBy('createdAt');
+  };
+
+  const handleWhatsApp = (phone: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const p = phone.replace(/[^0-9]/g, '').replace(/^0/, '92');
+    Linking.openURL(`whatsapp://send?phone=${p}`).catch(() =>
+      Linking.openURL(`https://wa.me/${p}`),
+    );
+  };
+
+  const handleCall = (phone: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Linking.openURL(`tel:${phone}`);
+  };
+
+  const handleEmail = (email: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Linking.openURL(`mailto:${email}`);
+  };
+
+  const handleDelete = (id: string, name: string) => {
+    Alert.alert(
+      'Delete Customer?',
+      `${name} ko permanently delete karein? Yeh action undo nahi ho sakta.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: () => removeMutation.mutate(id) },
+      ],
+    );
+  };
+
+  const renderCustomerItem = ({ item: c }: any) => (
+    <View className="px-5">
+      <Pressable
+        onPress={() => {
+          Haptics.selectionAsync();
+          router.push(`/customers/${c.id}` as any);
+        }}
+        className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-neutral-200 dark:border-neutral-800 p-3.5 active:opacity-70"
+      >
+        <View className="flex-row items-start gap-3">
+          <View className="relative shrink-0">
+            {c.avatarUrl ? (
+              <Image
+                source={{ uri: c.avatarUrl }}
+                className="h-14 w-14 rounded-2xl"
+                resizeMode="cover"
+              />
+            ) : (
+              <View
+                className="h-14 w-14 rounded-2xl items-center justify-center"
+                style={{ backgroundColor: c.isVip ? '#f59e0b' : '#2563eb' }}
+              >
+                <Text className="text-white text-xl font-extrabold">
+                  {c.name.charAt(0).toUpperCase()}
+                </Text>
+              </View>
+            )}
+            {c.isVip && (
+              <View
+                className="absolute -top-1 -right-1 h-6 w-6 rounded-full items-center justify-center border-2 border-white dark:border-neutral-950"
+                style={{ backgroundColor: '#f59e0b' }}
+              >
+                <Crown size={11} color="#ffffff" />
+              </View>
+            )}
+          </View>
+
+          <View className="flex-1 min-w-0">
+            <View className="flex-row items-center gap-1.5 flex-wrap">
+              <Text className="font-extrabold text-neutral-900 dark:text-white" numberOfLines={1}>
+                {c.name}
+              </Text>
+              {c.isVip && (
+                <View className="bg-amber-100 dark:bg-amber-950/40 px-1.5 py-0.5 rounded-md flex-row items-center gap-0.5">
+                  <Crown size={8} color="#f59e0b" />
+                  <Text className="text-[9px] font-extrabold text-amber-700">VIP</Text>
+                </View>
+              )}
+              {!c.isActive && (
+                <View className="bg-neutral-200 dark:bg-neutral-800 px-1.5 py-0.5 rounded-md">
+                  <Text className="text-[9px] font-extrabold text-neutral-600 dark:text-neutral-400">
+                    INACTIVE
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            {c.phone && (
+              <View className="flex-row items-center gap-1 mt-1">
+                <Phone size={10} color="#64748b" />
+                <Text className="text-xs text-neutral-500 font-bold" numberOfLines={1}>
+                  {c.phone}
+                </Text>
+              </View>
+            )}
+            {c.city && (
+              <View className="flex-row items-center gap-1 mt-0.5">
+                <MapPin size={10} color="#64748b" />
+                <Text className="text-xs text-neutral-500" numberOfLines={1}>
+                  {c.city}
+                  {c.area ? `, ${c.area}` : ''}
+                </Text>
+              </View>
+            )}
+
+            <View className="flex-row items-center gap-2 mt-2 flex-wrap">
+              <View className="flex-row items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/40">
+                <TrendingUp size={9} color="#16a34a" />
+                <Text className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400">
+                  {formatPKR(c.totalSpent)}
+                </Text>
+              </View>
+              {c.balance > 0 && (
+                <View className="flex-row items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-rose-100 dark:bg-rose-950/40">
+                  <Wallet size={9} color="#dc2626" />
+                  <Text className="text-[10px] font-extrabold text-rose-700 dark:text-rose-400">
+                    {formatPKR(c.balance)}
+                  </Text>
+                </View>
+              )}
+              {c.loyaltyPoints > 0 && (
+                <View className="flex-row items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/40">
+                  <Star size={9} color="#f59e0b" fill="#f59e0b" />
+                  <Text className="text-[10px] font-extrabold text-amber-700 dark:text-amber-400">
+                    {c.loyaltyPoints}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </View>
+
+          <ChevronRight size={16} color="#9ca3af" style={{ marginTop: 4 }} />
+        </View>
+
+        {/* Quick actions */}
+        <View className="mt-2.5 pt-2.5 border-t border-neutral-100 dark:border-neutral-800 flex-row items-center gap-1.5">
+          {c.phone && (
+            <>
+              <Pressable
+                onPress={() => handleCall(c.phone!)}
+                hitSlop={6}
+                className="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-950/40 items-center justify-center active:opacity-70"
+              >
+                <Phone size={13} color="#2563eb" />
+              </Pressable>
+              <Pressable
+                onPress={() => handleWhatsApp(c.phone!)}
+                hitSlop={6}
+                className="h-8 w-8 rounded-lg items-center justify-center active:opacity-70"
+                style={{ backgroundColor: '#dcfce7' }}
+              >
+                <MessageCircle size={13} color="#16a34a" />
+              </Pressable>
+            </>
+          )}
+          {c.email && (
+            <Pressable
+              onPress={() => handleEmail(c.email!)}
+              hitSlop={6}
+              className="h-8 w-8 rounded-lg bg-violet-100 dark:bg-violet-950/40 items-center justify-center active:opacity-70"
+            >
+              <Mail size={13} color="#8b5cf6" />
+            </Pressable>
+          )}
+          <View className="flex-1" />
+          <Pressable
+            onPress={() => router.push(`/customers/${c.id}/edit` as any)}
+            hitSlop={6}
+            className="h-8 w-8 rounded-lg bg-neutral-100 dark:bg-neutral-800 items-center justify-center active:opacity-70"
+          >
+            <Edit3 size={13} color="#374151" />
+          </Pressable>
+          <Pressable
+            onPress={() => handleDelete(c.id, c.name)}
+            hitSlop={6}
+            className="h-8 w-8 rounded-lg bg-rose-100 dark:bg-rose-950/40 items-center justify-center active:opacity-70"
+          >
+            <Trash2 size={13} color="#dc2626" />
+          </Pressable>
+        </View>
+      </Pressable>
+    </View>
+  );
 
   return (
     <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-950" edges={['top']}>
       {/* Header */}
-      <View className="px-5 pt-4 pb-3">
-        <View className="flex-row items-center justify-between mb-3">
-          <View>
-            <Text className="text-2xl font-bold text-neutral-900 dark:text-white">{t('auto.index.customers')}</Text>
-            <Text className="text-xs text-neutral-500 mt-0.5">
-              {stats?.total ?? items.length} total • {stats?.vip ?? 0} VIP
-            </Text>
-          </View>
-          <Pressable
-            onPress={() => router.push('/customers/new')}
-            className="flex-row items-center gap-2 px-4 h-11 rounded-2xl bg-blue-600 active:opacity-80"
-          >
-            <Plus size={20} color="#ffffff" />
-            <Text className="text-white font-bold">{t('auto.customers.naya')}</Text>
-          </Pressable>
-        </View>
-
-        {/* Quick stats */}
-        {stats && (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View className="flex-row gap-2">
-              <View className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-100 dark:bg-blue-950/40">
-                <Users size={12} color="#2563eb" />
-                <Text className="text-xs font-bold text-blue-700 dark:text-blue-400">
-                  {stats.total} total
-                </Text>
-              </View>
-              {stats.vip > 0 && (
-                <View className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-100 dark:bg-amber-950/40">
-                  <Crown size={12} color="#b45309" />
-                  <Text className="text-xs font-bold text-amber-700 dark:text-amber-400">
-                    {stats.vip} VIP
-                  </Text>
-                </View>
-              )}
-              {stats.withCredit > 0 && (
-                <View className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-100 dark:bg-rose-950/40">
-                  <Wallet size={12} color="#dc2626" />
-                  <Text className="text-xs font-bold text-rose-700 dark:text-rose-400">
-                    {formatPKRFull(stats.totalDebt)} udhaar
-                  </Text>
-                </View>
-              )}
-              {stats.newThisMonth > 0 && (
-                <View className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-950/40">
-                  <TrendingUp size={12} color="#16a34a" />
-                  <Text className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
-                    +{stats.newThisMonth} naye
-                  </Text>
-                </View>
-              )}
-            </View>
-          </ScrollView>
-        )}
-      </View>
-
-      {/* Search + Filter */}
-      <View className="px-5 pb-3 flex-row gap-2">
+      <View className="px-5 pt-4 pb-3 flex-row items-center gap-3">
         <View className="flex-1">
-          <Input
-            placeholder="Naam, phone, CNIC se search..."
-            value={params.search ?? ''}
-            onChangeText={(s) => setParams({ ...params, search: s, page: 1 })}
-            leftIcon={<Search size={20} color="#9ca3af" />}
-          />
+          <Text className="text-2xl font-extrabold text-neutral-900 dark:text-white">
+            Customers
+          </Text>
+          <Text className="text-xs text-neutral-500 mt-0.5">
+            {stats?.total ?? 0} total • {items.length} showing
+          </Text>
         </View>
         <Pressable
-          onPress={() => setShowFilters(true)}
-          className={`h-12 w-12 rounded-xl items-center justify-center border ${
-            activeFilters
-              ? 'bg-blue-600 border-blue-600'
-              : 'bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-700'
-          }`}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.push('/customers/new' as any);
+          }}
+          className="h-11 px-4 rounded-2xl flex-row items-center gap-1.5 active:opacity-80"
+          style={{
+            backgroundColor: '#2563eb',
+            shadowColor: '#2563eb',
+            shadowOpacity: 0.3,
+            shadowRadius: 8,
+            elevation: 4,
+          }}
         >
-          <SlidersHorizontal size={20} color={activeFilters ? '#fff' : '#6b7280'} />
+          <Plus size={16} color="#ffffff" />
+          <Text className="text-white font-bold text-sm">{t('auto.customers.naya') || 'New'}</Text>
         </Pressable>
       </View>
 
-      {/* Top Spenders horizontal */}
-      {stats && stats.topSpenders.length > 0 && (
-        <View className="pb-3">
-          <View className="flex-row items-center gap-2 px-5 mb-2">
-            <Award size={14} color="#f59e0b" />
-            <Text className="text-xs font-bold uppercase tracking-wider text-neutral-500">{t('auto.customers.top_spenders')}</Text>
-          </View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}
-          >
-            {stats.topSpenders.map((s, idx) => (
-              <Pressable
-                key={s.id}
-                onPress={() => router.push(`/customers/${s.id}`)}
-                className="rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 p-3 w-44"
-              >
-                <View className="flex-row items-center gap-2">
-                  <View className="relative">
-                    {s.avatarUrl ? (
-                      <Image source={{ uri: s.avatarUrl }} className="h-10 w-10 rounded-full" />
-                    ) : (
-                      <View className="h-10 w-10 rounded-full bg-amber-200 items-center justify-center">
-                        <Text className="text-amber-700 font-bold">
-                          {s.name.charAt(0).toUpperCase()}
-                        </Text>
-                      </View>
-                    )}
-                    <View className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-amber-500 items-center justify-center">
-                      <Text className="text-[9px] font-bold text-white">#{idx + 1}</Text>
-                    </View>
-                  </View>
-                  <View className="flex-1 min-w-0">
-                    <Text className="font-bold text-sm text-amber-900 dark:text-amber-200" numberOfLines={1}>
-                      {s.name}
-                    </Text>
-                    <Text className="text-[10px] font-bold text-amber-700 dark:text-amber-400">
-                      {formatPKRFull(s.totalSpent)}
-                    </Text>
-                  </View>
-                </View>
-              </Pressable>
-            ))}
-          </ScrollView>
-        </View>
-      )}
-
-      {/* List */}
       <FlatList
         data={items}
-        keyExtractor={(c) => c.id}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 80 }}
+        keyExtractor={(item) => item.id}
+        renderItem={renderCustomerItem}
+        contentContainerStyle={{ paddingBottom: 80 }}
+        ItemSeparatorComponent={() => <View className="h-2" />}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#2563eb" />
         }
-        ListEmptyComponent={
-          <View className="items-center py-20 px-10">
-            <View className="h-20 w-20 rounded-3xl bg-blue-100 dark:bg-blue-950/40 items-center justify-center">
-              <Users size={36} color="#2563eb" />
-            </View>
-            <Text className="mt-5 text-lg font-bold text-neutral-900 dark:text-white">{t('auto.customers.koi_customer_nahi')}</Text>
-            <Text className="mt-1 text-sm text-neutral-500 text-center">{t('auto.customers.pehla_customer_add_karein')}</Text>
-            <Button size="md" className="mt-6" onPress={() => router.push('/customers/new')}>
-              <Plus size={18} color="#fff" />
-              <Text className="text-white font-bold">{t('auto.customers.customer_add_karein')}</Text>
-            </Button>
-          </View>
-        }
-        ItemSeparatorComponent={() => <View className="h-2.5" />}
-        renderItem={({ item }) => (
-          <Pressable
-            onPress={() => router.push(`/customers/${item.id}`)}
-            className="active:opacity-80"
-          >
-            <Card variant="outline" className="p-3">
-              <View className="flex-row items-center gap-3">
-                <View className="relative">
-                  {item.avatarUrl ? (
-                    <Image source={{ uri: item.avatarUrl }} className="h-14 w-14 rounded-2xl" />
-                  ) : (
-                    <View
-                      className={`h-14 w-14 rounded-2xl items-center justify-center ${
-                        item.isVip
-                          ? 'bg-amber-500'
-                          : 'bg-blue-100 dark:bg-blue-950/40'
-                      }`}
-                    >
-                      <Text
-                        className={`text-lg font-bold ${
-                          item.isVip ? 'text-white' : 'text-blue-700 dark:text-blue-300'
-                        }`}
-                      >
-                        {item.name.charAt(0).toUpperCase()}
-                      </Text>
-                    </View>
-                  )}
-                  {item.isVip && (
-                    <View className="absolute -top-1 -right-1 h-6 w-6 rounded-full bg-amber-500 items-center justify-center border-2 border-white dark:border-neutral-900">
-                      <Crown size={11} color="#ffffff" />
-                    </View>
-                  )}
-                </View>
-
-                <View className="flex-1 min-w-0">
-                  <View className="flex-row items-center gap-1.5">
-                    <Text className="font-bold text-neutral-900 dark:text-white" numberOfLines={1}>
-                      {item.name}
-                    </Text>
-                    {item.isVip && (
-                      <View className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/40">
-                        <Text className="text-[9px] font-bold text-amber-700 dark:text-amber-400">VIP</Text>
-                      </View>
-                    )}
-                  </View>
-                  <View className="flex-row items-center gap-3 mt-0.5">
-                    {item.phone && (
-                      <View className="flex-row items-center gap-1">
-                        <Phone size={10} color="#9ca3af" />
-                        <Text className="text-xs text-neutral-500">{item.phone}</Text>
-                      </View>
-                    )}
-                    {item.city && (
-                      <View className="flex-row items-center gap-1">
-                        <MapPin size={10} color="#9ca3af" />
-                        <Text className="text-xs text-neutral-500">{item.city}</Text>
-                      </View>
-                    )}
-                  </View>
-                  {item.loyaltyPoints > 0 && (
-                    <View className="flex-row items-center gap-0.5 mt-1">
-                      <Star size={10} color="#f59e0b" fill="#f59e0b" />
-                      <Text className="text-[10px] font-bold text-amber-700 dark:text-amber-400">
-                        {item.loyaltyPoints} points
-                      </Text>
-                    </View>
-                  )}
-                </View>
-
-                <View className="items-end">
-                  {item.balance > 0 ? (
-                    <View className="px-2 py-1 rounded-lg bg-rose-50 dark:bg-rose-950/40">
-                      <Text className="text-[10px] font-bold text-rose-700 dark:text-rose-400 uppercase">{t('auto.id.khata')}</Text>
-                      <Text className="text-sm font-bold text-rose-700 dark:text-rose-400">
-                        {formatPKRFull(item.balance)}
-                      </Text>
-                    </View>
-                  ) : item.totalSpent > 0 ? (
-                    <View>
-                      <Text className="text-[10px] text-neutral-500 uppercase font-bold">{t('auto.customers.spent')}</Text>
-                      <Text className="text-sm font-bold text-emerald-700 dark:text-emerald-400">
-                        {formatPKRFull(item.totalSpent)}
-                      </Text>
-                    </View>
-                  ) : (
-                    <ChevronRight size={18} color="#9ca3af" />
-                  )}
-                </View>
-              </View>
-            </Card>
-          </Pressable>
-        )}
-      />
-
-      {/* Filters Modal */}
-      <Modal visible={showFilters} animationType="slide" transparent onRequestClose={() => setShowFilters(false)}>
-        <View className="flex-1 bg-black/50 justify-end">
-          <View className="bg-white dark:bg-neutral-900 rounded-t-3xl">
-            <View className="flex-row items-center justify-between px-5 py-4 border-b border-neutral-200 dark:border-neutral-800">
-              <Text className="text-lg font-bold text-neutral-900 dark:text-white">{t('auto.products.filters')}</Text>
-              <Pressable
-                onPress={() => setShowFilters(false)}
-                className="h-9 w-9 rounded-2xl bg-neutral-100 dark:bg-neutral-800 items-center justify-center"
+        showsVerticalScrollIndicator={false}
+        ListHeaderComponent={
+          <>
+            {/* Hero Gradient */}
+            <View className="px-5 mb-4">
+              <View
+                className="rounded-3xl p-5 overflow-hidden"
+                style={{
+                  backgroundColor: '#1e40af',
+                  shadowColor: '#1e40af',
+                  shadowOpacity: 0.3,
+                  shadowRadius: 16,
+                  shadowOffset: { width: 0, height: 8 },
+                  elevation: 10,
+                }}
               >
-                <X size={18} color="#6b7280" />
+                <View className="flex-row items-center gap-2 mb-2">
+                  <View className="bg-white/20 px-2 py-1 rounded-full flex-row items-center gap-1">
+                    <Users size={11} color="#fbbf24" />
+                    <Text className="text-[10px] font-extrabold text-white">CRM</Text>
+                  </View>
+                </View>
+                <Text className="text-white text-2xl font-extrabold">
+                  Customer Management
+                </Text>
+                <Text className="text-white/80 text-xs mt-1">
+                  VIP, regular, khata wale — sab yahan
+                </Text>
+              </View>
+            </View>
+
+            {/* Stats Grid */}
+            <View className="px-5 mb-4">
+              <View className="flex-row flex-wrap -mx-1.5">
+                <StatCard
+                  label="Total"
+                  value={String(stats?.total ?? 0)}
+                  sub={stats && stats.newThisMonth > 0 ? `+${stats.newThisMonth} this month` : undefined}
+                  icon={Users}
+                  color="#2563eb"
+                  bg="#dbeafe"
+                />
+                <StatCard
+                  label="VIP"
+                  value={String(stats?.vip ?? 0)}
+                  sub="Premium tier"
+                  icon={Crown}
+                  color="#f59e0b"
+                  bg="#fef3c7"
+                />
+                <StatCard
+                  label="Total Khata"
+                  value={formatPKR(stats?.totalDebt ?? 0)}
+                  sub={`${stats?.withCredit ?? 0} customers`}
+                  icon={Wallet}
+                  color="#dc2626"
+                  bg="#fee2e2"
+                />
+                <StatCard
+                  label="Growth"
+                  value={`${stats && stats.growthPct >= 0 ? '+' : ''}${stats?.growthPct?.toFixed(1) ?? 0}%`}
+                  sub="vs last month"
+                  icon={TrendingUp}
+                  color="#16a34a"
+                  bg="#dcfce7"
+                  highlight
+                />
+              </View>
+            </View>
+
+            {/* Top Spenders */}
+            {stats && stats.topSpenders.length > 0 && (
+              <View className="mb-4">
+                <View className="flex-row items-center gap-2 px-5 mb-2">
+                  <Sparkles size={14} color="#f59e0b" />
+                  <Text className="text-sm font-extrabold text-neutral-900 dark:text-white">
+                    Top Spenders
+                  </Text>
+                </View>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}
+                >
+                  {stats.topSpenders.map((s, idx) => (
+                    <Pressable
+                      key={s.id}
+                      onPress={() => {
+                        Haptics.selectionAsync();
+                        router.push(`/customers/${s.id}` as any);
+                      }}
+                      className="rounded-2xl p-3 border-2 border-amber-200"
+                      style={{
+                        width: 160,
+                        backgroundColor: '#fffbeb',
+                      }}
+                    >
+                      <View className="flex-row items-center gap-2">
+                        <View className="relative">
+                          {s.avatarUrl ? (
+                            <Image
+                              source={{ uri: s.avatarUrl }}
+                              className="h-10 w-10 rounded-full"
+                            />
+                          ) : (
+                            <View
+                              className="h-10 w-10 rounded-full items-center justify-center"
+                              style={{ backgroundColor: '#f59e0b' }}
+                            >
+                              <Text className="text-white font-extrabold">
+                                {s.name.charAt(0).toUpperCase()}
+                              </Text>
+                            </View>
+                          )}
+                          <View
+                            className="absolute -top-1 -right-1 h-5 w-5 rounded-full items-center justify-center border-2 border-amber-100"
+                            style={{
+                              backgroundColor:
+                                idx === 0 ? '#f59e0b' :
+                                idx === 1 ? '#737373' :
+                                idx === 2 ? '#c2410c' :
+                                '#64748b',
+                            }}
+                          >
+                            <Text className="text-[9px] font-extrabold text-white">
+                              #{idx + 1}
+                            </Text>
+                          </View>
+                        </View>
+                        <View className="flex-1 min-w-0">
+                          <Text
+                            className="text-xs font-extrabold text-neutral-900"
+                            numberOfLines={1}
+                          >
+                            {s.name}
+                          </Text>
+                          <Text className="text-xs font-extrabold text-amber-700 mt-0.5">
+                            {formatPKR(s.totalSpent)}
+                          </Text>
+                        </View>
+                      </View>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {/* Search bar + Filter toggle */}
+            <View className="px-5 mb-3 flex-row gap-2">
+              <View className="flex-1 flex-row items-center gap-2 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-4 h-12">
+                <Search size={18} color="#9ca3af" />
+                <TextInput
+                  placeholder="Search name, phone, CNIC..."
+                  placeholderTextColor="#9ca3af"
+                  value={search}
+                  onChangeText={setSearch}
+                  className="flex-1 text-sm text-neutral-900 dark:text-white"
+                />
+                {search.length > 0 && (
+                  <Pressable
+                    onPress={() => setSearch('')}
+                    hitSlop={12}
+                    className="h-7 w-7 rounded-full bg-neutral-100 dark:bg-neutral-800 items-center justify-center"
+                  >
+                    <X size={14} color="#9ca3af" />
+                  </Pressable>
+                )}
+              </View>
+              <Pressable
+                onPress={() => {
+                  Haptics.selectionAsync();
+                  setShowFilters((v) => !v);
+                }}
+                className="h-12 px-4 rounded-2xl flex-row items-center gap-1.5 border-2 active:opacity-70"
+                style={{
+                  backgroundColor: hasFilters || showFilters ? '#dbeafe' : '#ffffff',
+                  borderColor: hasFilters || showFilters ? '#2563eb' : '#e5e7eb',
+                }}
+              >
+                <Filter size={14} color={hasFilters || showFilters ? '#1d4ed8' : '#6b7280'} />
+                <Text
+                  className="font-bold text-xs"
+                  style={{ color: hasFilters || showFilters ? '#1d4ed8' : '#374151' }}
+                >
+                  Filter
+                </Text>
+                {hasFilters && (
+                  <View className="h-4 w-4 rounded-full bg-blue-600 items-center justify-center">
+                    <Text className="text-white text-[8px] font-extrabold">!</Text>
+                  </View>
+                )}
               </Pressable>
             </View>
 
-            <ScrollView contentContainerStyle={{ padding: 20 }}>
-              <View className="gap-5">
-                <View>
-                  <Text className="text-xs font-bold uppercase tracking-wider text-neutral-500 mb-2">{t('auto.index.type')}</Text>
-                  <View className="flex-row gap-2">
-                    <Pressable
-                      onPress={() => setParams({ ...params, isVip: undefined, hasCredit: undefined, page: 1 })}
-                      className={`flex-1 px-3 py-3 rounded-xl border-2 ${
-                        !params.isVip && !params.hasCredit
-                          ? 'bg-blue-600 border-blue-600'
-                          : 'bg-white dark:bg-neutral-800 border-neutral-200'
-                      }`}
-                    >
-                      <Text
-                        className={`text-center text-sm font-bold ${
-                          !params.isVip && !params.hasCredit ? 'text-white' : 'text-neutral-700 dark:text-neutral-300'
-                        }`}
-                      >{t('auto.products.all')}</Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={() => setParams({ ...params, isVip: true, hasCredit: undefined, page: 1 })}
-                      className={`flex-1 px-3 py-3 rounded-xl border-2 ${
-                        params.isVip
-                          ? 'bg-amber-500 border-amber-500'
-                          : 'bg-white dark:bg-neutral-800 border-neutral-200'
-                      }`}
-                    >
-                      <Text
-                        className={`text-center text-sm font-bold ${
-                          params.isVip ? 'text-white' : 'text-neutral-700 dark:text-neutral-300'
-                        }`}
-                      >
-                        VIP
-                      </Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={() => setParams({ ...params, isVip: undefined, hasCredit: true, page: 1 })}
-                      className={`flex-1 px-3 py-3 rounded-xl border-2 ${
-                        params.hasCredit
-                          ? 'bg-rose-600 border-rose-600'
-                          : 'bg-white dark:bg-neutral-800 border-neutral-200'
-                      }`}
-                    >
-                      <Text
-                        className={`text-center text-sm font-bold ${
-                          params.hasCredit ? 'text-white' : 'text-neutral-700 dark:text-neutral-300'
-                        }`}
-                      >{t('auto.id.khata')}</Text>
-                    </Pressable>
+            {/* Filters Panel */}
+            {showFilters && (
+              <View className="px-5 mb-3">
+                <View className="rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 p-4 gap-3">
+                  {/* Type */}
+                  <View>
+                    <Text className="text-[10px] uppercase tracking-wider font-bold text-neutral-500 mb-1.5">
+                      Type
+                    </Text>
+                    <View className="flex-row gap-2">
+                      {[
+                        { key: 'all' as FilterType, label: '👥 All', color: '#0f172a' },
+                        { key: 'vip' as FilterType, label: '👑 VIP', color: '#f59e0b' },
+                        { key: 'credit' as FilterType, label: '💳 Khata', color: '#dc2626' },
+                      ].map((f) => {
+                        const active = filterType === f.key;
+                        return (
+                          <Pressable
+                            key={f.key}
+                            onPress={() => {
+                              Haptics.selectionAsync();
+                              setFilterType(f.key);
+                            }}
+                            className="flex-1 h-10 rounded-lg items-center justify-center"
+                            style={{ backgroundColor: active ? f.color : '#f3f4f6' }}
+                          >
+                            <Text
+                              className="text-xs font-extrabold"
+                              style={{ color: active ? '#ffffff' : '#374151' }}
+                            >
+                              {f.label}
+                            </Text>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
                   </View>
-                </View>
 
-                <View>
-                  <Text className="text-xs font-bold uppercase tracking-wider text-neutral-500 mb-2">{t('auto.customers.sort_by')}</Text>
-                  <View className="gap-2">
-                    {[
-                      { id: 'createdAt', label: 'Newest first' },
-                      { id: 'name', label: 'Name (A-Z)' },
-                      { id: 'totalSpent', label: 'Top spenders' },
-                      { id: 'balance', label: 'Highest debt' },
-                    ].map((opt) => (
-                      <Pressable
-                        key={opt.id}
-                        onPress={() => setParams({ ...params, sortBy: opt.id as any, page: 1 })}
-                        className={`px-4 py-3 rounded-xl border-2 ${
-                          params.sortBy === opt.id
-                            ? 'bg-blue-600 border-blue-600'
-                            : 'bg-white dark:bg-neutral-800 border-neutral-200'
-                        }`}
-                      >
-                        <Text
-                          className={`font-bold ${
-                            params.sortBy === opt.id ? 'text-white' : 'text-neutral-700 dark:text-neutral-300'
-                          }`}
-                        >
-                          {opt.label}
-                        </Text>
-                      </Pressable>
-                    ))}
+                  {/* Sort */}
+                  <View>
+                    <Text className="text-[10px] uppercase tracking-wider font-bold text-neutral-500 mb-1.5">
+                      Sort By
+                    </Text>
+                    <View className="flex-row flex-wrap -m-1">
+                      {[
+                        { key: 'createdAt' as SortBy, label: '🆕 Newest first' },
+                        { key: 'name' as SortBy, label: '🔤 Name (A-Z)' },
+                        { key: 'totalSpent' as SortBy, label: '💰 Top spenders' },
+                        { key: 'balance' as SortBy, label: '⚠️ Highest debt' },
+                      ].map((s) => {
+                        const active = sortBy === s.key;
+                        return (
+                          <View key={s.key} className="w-1/2 p-1">
+                            <Pressable
+                              onPress={() => {
+                                Haptics.selectionAsync();
+                                setSortBy(s.key);
+                              }}
+                              className="h-10 rounded-lg items-center justify-center border-2"
+                              style={{
+                                backgroundColor: active ? '#2563eb' : '#ffffff',
+                                borderColor: active ? '#2563eb' : '#e5e7eb',
+                              }}
+                            >
+                              <Text
+                                className="text-[11px] font-bold"
+                                style={{ color: active ? '#ffffff' : '#374151' }}
+                                numberOfLines={1}
+                              >
+                                {s.label}
+                              </Text>
+                            </Pressable>
+                          </View>
+                        );
+                      })}
+                    </View>
                   </View>
+
+                  {/* City */}
+                  <View>
+                    <Text className="text-[10px] uppercase tracking-wider font-bold text-neutral-500 mb-1.5">
+                      City
+                    </Text>
+                    <TextInput
+                      value={city}
+                      onChangeText={setCity}
+                      placeholder="Lahore, Karachi..."
+                      placeholderTextColor="#9ca3af"
+                      className="h-11 rounded-xl border-2 border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-3 text-sm font-bold text-neutral-900 dark:text-white"
+                    />
+                  </View>
+
+                  {hasFilters && (
+                    <Pressable
+                      onPress={clearFilters}
+                      className="flex-row items-center gap-1"
+                    >
+                      <X size={11} color="#dc2626" />
+                      <Text className="text-xs text-rose-600 font-bold">Clear all filters</Text>
+                    </Pressable>
+                  )}
                 </View>
               </View>
-            </ScrollView>
+            )}
 
-            <View className="px-5 py-4 border-t border-neutral-200 dark:border-neutral-800 flex-row gap-2">
-              <Button
-                variant="secondary"
-                size="lg"
-                className="flex-1"
-                onPress={() =>
-                  setParams({ search: '', page: 1, limit: 50, sortBy: 'createdAt', sortOrder: 'desc' })
-                }
-              >
-                <Text className="font-bold">{t('auto.pos.clear')}</Text>
-              </Button>
-              <Button size="lg" className="flex-1" onPress={() => setShowFilters(false)}>
-                <Text className="text-white font-bold">{t('auto.customers.apply')}</Text>
-              </Button>
+            <View className="px-5 mb-2" />
+          </>
+        }
+        ListEmptyComponent={
+          <View className="px-5">
+            <View className="rounded-2xl border-2 border-dashed border-neutral-200 dark:border-neutral-800 items-center py-12">
+              <View className="h-20 w-20 rounded-3xl bg-blue-100 dark:bg-blue-950/40 items-center justify-center">
+                <Users size={36} color="#2563eb" />
+              </View>
+              <Text className="mt-4 text-base font-bold text-neutral-700 dark:text-neutral-300">
+                {hasFilters ? 'No customers match' : 'No customers yet'}
+              </Text>
+              <Text className="text-xs text-neutral-500 mt-1 text-center px-8">
+                {hasFilters ? 'Try different filters or clear them' : 'Apna pehla customer add karein'}
+              </Text>
+              {!hasFilters && (
+                <Pressable
+                  onPress={() => router.push('/customers/new' as any)}
+                  className="mt-4 h-10 px-5 rounded-xl flex-row items-center gap-1.5"
+                  style={{ backgroundColor: '#2563eb' }}
+                >
+                  <Plus size={16} color="#ffffff" />
+                  <Text className="text-white font-bold text-sm">Add Customer</Text>
+                </Pressable>
+              )}
             </View>
           </View>
-        </View>
-      </Modal>
+        }
+      />
     </SafeAreaView>
+  );
+}
+
+function StatCard({ label, value, sub, icon: Icon, color, bg, highlight }: any) {
+  return (
+    <View className="w-1/2 px-1.5 mb-3">
+      <View
+        className="rounded-2xl p-3.5 border-2"
+        style={{
+          backgroundColor: highlight ? bg : '#ffffff',
+          borderColor: highlight ? color : '#e5e7eb',
+        }}
+      >
+        <View
+          className="h-10 w-10 rounded-xl items-center justify-center"
+          style={{ backgroundColor: bg }}
+        >
+          <Icon size={18} color={color} />
+        </View>
+        <Text
+          className="mt-2 text-[10px] font-extrabold uppercase tracking-wider"
+          style={{ color }}
+        >
+          {label}
+        </Text>
+        <Text
+          className="text-lg font-extrabold text-neutral-900 dark:text-white mt-0.5"
+          numberOfLines={1}
+        >
+          {value}
+        </Text>
+        {sub && (
+          <Text className="text-[10px] font-bold mt-0.5" style={{ color }}>
+            {sub}
+          </Text>
+        )}
+      </View>
+    </View>
   );
 }

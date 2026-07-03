@@ -11,6 +11,7 @@ import {
 } from 'lucide-react-native';
 import { staffApi, type CreateStaffPayload, type StaffStatus } from '@/api/staff.api';
 import { formatPKRFull } from '@/lib/format';
+import { useSmartBack } from '@/hooks/useSmartBack';
 import Toast from 'react-native-toast-message';
 
 function FormInput({ label, ...props }: any) {
@@ -31,6 +32,7 @@ function FormInput({ label, ...props }: any) {
 export default function EditStaffScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const goBack = useSmartBack();
   const queryClient = useQueryClient();
   const [form, setForm] = useState<Partial<CreateStaffPayload>>({});
   const [loaded, setLoaded] = useState(false);
@@ -72,7 +74,7 @@ export default function EditStaffScreen() {
       Toast.show({ type: 'success', text1: 'Updated' });
       queryClient.invalidateQueries({ queryKey: ['staff', id] });
       queryClient.invalidateQueries({ queryKey: ['staff-list'] });
-      router.back();
+      goBack();
     },
   });
 
@@ -98,7 +100,7 @@ export default function EditStaffScreen() {
 
       <View className="px-5 pt-4 pb-3 flex-row items-center gap-3">
         <Pressable
-          onPress={() => router.back()}
+          onPress={goBack}
           hitSlop={12}
           className="h-10 w-10 rounded-2xl bg-white border border-neutral-200 items-center justify-center"
         >

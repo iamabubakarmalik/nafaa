@@ -12,6 +12,7 @@ import {
 import { activityLogApi } from '@/api/activity-log.api';
 
 import { useTranslation } from '@/i18n/useTranslation';
+import { useSmartBack } from '@/hooks/useSmartBack';
 const formatDate = (v: string) =>
   new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(v));
 
@@ -26,6 +27,7 @@ const actionColors: Record<string, { bg: string; text: string }> = {
 export default function ActivityLogScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const goBack = useSmartBack();
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
 
@@ -73,7 +75,7 @@ export default function ActivityLogScreen() {
 
       <View className="px-5 pt-4 pb-3 flex-row items-center gap-3">
         <Pressable
-          onPress={() => router.back()}
+          onPress={goBack}
           hitSlop={12}
           className="h-10 w-10 rounded-2xl bg-white dark:bg-neutral-900 items-center justify-center border border-neutral-200 dark:border-neutral-800"
         >

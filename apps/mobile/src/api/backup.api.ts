@@ -31,6 +31,4 @@ function unwrapOne<T>(res: any): T {
 export const backupApi = {
   summary: (): Promise<BackupSummary> =>
     apiClient.get('/backup/summary').then((r) => unwrapOne<BackupSummary>(r)),
-  download: (): Promise<Blob> =>
-    apiClient.get('/backup/download', { responseType: 'blob' }).then((r) => r.data),
 };

@@ -5,11 +5,23 @@ export type TransferStatus = 'PENDING' | 'IN_TRANSIT' | 'RECEIVED' | 'CANCELLED'
 export interface StockTransferItem {
   id: string;
   quantity: number;
+  notes?: string | null;
+  variantId?: string | null;
+  carpetRollId?: string | null;
   product: {
     id: string;
     name: string;
     unit: string;
   };
+  carpetRoll?: {
+    id: string;
+    rollNumber: string;
+    remainingSqft?: number;
+    widthFt?: number;
+    widthInch?: number;
+    remainingLengthFt?: number;
+    variant?: { id: string; name: string; color?: string | null } | null;
+  } | null;
 }
 
 export interface StockTransfer {
@@ -26,14 +38,19 @@ export interface StockTransfer {
   items: StockTransferItem[];
 }
 
+export interface CreateTransferItemPayload {
+  productId: string;
+  variantId?: string;
+  carpetRollId?: string;
+  quantity: number;
+  notes?: string;
+}
+
 export interface CreateTransferPayload {
   fromShopId: string;
   toShopId: string;
   notes?: string;
-  items: Array<{
-    productId: string;
-    quantity: number;
-  }>;
+  items: CreateTransferItemPayload[];
 }
 
 function unwrapOne<T>(res: any): T {
@@ -52,6 +69,8 @@ function unwrapArr<T>(res: any): T[] {
 export const transfersApi = {
   list: (): Promise<StockTransfer[]> =>
     apiClient.get('/transfers').then((r) => unwrapArr<StockTransfer>(r)),
+  getOne: (id: string): Promise<StockTransfer> =>
+    apiClient.get(`/transfers/${id}`).then((r) => unwrapOne<StockTransfer>(r)),
   create: (payload: CreateTransferPayload): Promise<StockTransfer> =>
     apiClient.post('/transfers', payload).then((r) => unwrapOne<StockTransfer>(r)),
   receive: (id: string): Promise<StockTransfer> =>

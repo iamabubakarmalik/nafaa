@@ -1,8 +1,14 @@
 import { apiClient } from './client';
 
+export type LedgerType =
+  | 'SALE_CREDIT'
+  | 'PAYMENT_RECEIVED'
+  | 'ADJUSTMENT'
+  | 'OPENING_BALANCE';
+
 export interface LedgerEntry {
   id: string;
-  type: string;
+  type: LedgerType;
   amount: number;
   balanceAfter: number;
   reference?: string | null;
@@ -11,11 +17,20 @@ export interface LedgerEntry {
   createdBy?: { id: string; fullName: string } | null;
 }
 
+export interface LedgerCustomer {
+  id: string;
+  name: string;
+  phone?: string | null;
+  email?: string | null;
+  balance: number;
+  creditLimit: number;
+  isVip?: boolean;
+}
+
 export interface KhataSummary {
-  totalOutstanding?: number;
-  customersWithCredit?: number;
+  totalOutstanding: number;
   totalCustomers: number;
-  totalUdhaar: number;
+  customersWithCredit: number;
   topDebtors: Array<{
     id: string;
     name: string;
@@ -25,8 +40,9 @@ export interface KhataSummary {
   }>;
 }
 
-export interface PaymentPayload {
+export interface ReceivePaymentPayload {
   amount: number;
+  reference?: string;
   note?: string;
 }
 
@@ -36,26 +52,34 @@ function unwrapOne<T>(res: any): T {
   return body as T;
 }
 
-function unwrapArr<T>(res: any): T[] {
-  const body = res?.data;
-  if (Array.isArray(body)) return body;
-  if (Array.isArray(body?.data)) return body.data;
-  return [];
-}
-
 export const customerLedgerApi = {
   summary: (): Promise<KhataSummary> =>
     apiClient.get('/customer-ledger/summary').then((r) => unwrapOne<KhataSummary>(r)),
-  customerLedger: (customerId: string): Promise<{ customer: any; entries: LedgerEntry[] }> =>
+
+  list: (customerId: string): Promise<{ customer: LedgerCustomer; ledgers: LedgerEntry[] }> =>
     apiClient
       .get(`/customer-ledger/${customerId}`)
-      .then((r) => unwrapOne<{ customer: any; entries: LedgerEntry[] }>(r)),
-  receivePayment: (customerId: string, payload: PaymentPayload): Promise<LedgerEntry> =>
+      .then((r) => unwrapOne<{ customer: LedgerCustomer; ledgers: LedgerEntry[] }>(r)),
+
+  // Backward-compat alias
+  customerLedger: (customerId: string): Promise<{ customer: LedgerCustomer; entries: LedgerEntry[] }> =>
+    apiClient
+      .get(`/customer-ledger/${customerId}`)
+      .then((r) => {
+        const data = unwrapOne<{ customer: LedgerCustomer; ledgers?: LedgerEntry[]; entries?: LedgerEntry[] }>(r);
+        return {
+          customer: data.customer,
+          entries: data.ledgers || data.entries || [],
+        };
+      }),
+
+  receivePayment: (customerId: string, payload: ReceivePaymentPayload): Promise<any> =>
     apiClient
       .post(`/customer-ledger/${customerId}/payment`, payload)
-      .then((r) => unwrapOne<LedgerEntry>(r)),
-  recordPayment: (customerId: string, payload: PaymentPayload): Promise<LedgerEntry> =>
+      .then((r) => unwrapOne<any>(r)),
+
+  recordPayment: (customerId: string, payload: ReceivePaymentPayload): Promise<any> =>
     apiClient
       .post(`/customer-ledger/${customerId}/payment`, payload)
-      .then((r) => unwrapOne<LedgerEntry>(r)),
+      .then((r) => unwrapOne<any>(r)),
 };

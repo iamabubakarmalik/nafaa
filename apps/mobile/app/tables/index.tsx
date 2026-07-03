@@ -14,6 +14,7 @@ import {
 import {
   tablesApi, type RestaurantTable, type TableStatus, type CreateTablePayload,
 } from '@/api/tables.api';
+import { useSmartBack } from '@/hooks/useSmartBack';
 import Toast from 'react-native-toast-message';
 
 const STATUS_CONFIG: Record<TableStatus, { label: string; bg: string; border: string; text: string; icon: any }> = {
@@ -26,6 +27,7 @@ const STATUS_CONFIG: Record<TableStatus, { label: string; bg: string; border: st
 
 export default function TablesScreen() {
   const router = useRouter();
+  const goBack = useSmartBack();
   const queryClient = useQueryClient();
   const [showAdd, setShowAdd] = useState(false);
   const [editingTable, setEditingTable] = useState<RestaurantTable | null>(null);
@@ -119,7 +121,7 @@ export default function TablesScreen() {
       {/* Header */}
       <View className="px-5 pt-4 pb-3 flex-row items-center gap-3">
         <Pressable
-          onPress={() => router.back()}
+          onPress={goBack}
           hitSlop={12}
           className="h-10 w-10 rounded-2xl bg-white dark:bg-neutral-900 items-center justify-center border border-neutral-200 dark:border-neutral-800"
         >

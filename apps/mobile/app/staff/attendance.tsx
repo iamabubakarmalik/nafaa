@@ -11,6 +11,7 @@ import {
   Search, Calendar, Sparkles, UserCheck, UserX,
 } from 'lucide-react-native';
 import { staffApi, type AttendanceStatus } from '@/api/staff.api';
+import { useSmartBack } from '@/hooks/useSmartBack';
 import Toast from 'react-native-toast-message';
 
 const statusConfig: Record<AttendanceStatus, { label: string; color: string; bg: string; icon: any }> = {
@@ -24,6 +25,7 @@ const statusConfig: Record<AttendanceStatus, { label: string; color: string; bg:
 
 export default function AttendanceScreen() {
   const router = useRouter();
+  const goBack = useSmartBack();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [refreshing, setRefreshing] = useState(false);
@@ -111,7 +113,7 @@ export default function AttendanceScreen() {
 
       <View className="px-5 pt-4 pb-3 flex-row items-center gap-3">
         <Pressable
-          onPress={() => router.back()}
+          onPress={goBack}
           hitSlop={12}
           className="h-10 w-10 rounded-2xl bg-white border border-neutral-200 items-center justify-center"
         >
