@@ -230,20 +230,19 @@ enum CustomerGender {
   OTHER
 }
 
-
 enum BookingStatus {
-  PENDING            // Just created, awaiting first payment
-  ADVANCE_PAID       // Some advance received, items reserved
-  READY_FOR_PICKUP   // Fully paid or ready to deliver
-  CONVERTED          // Turned into an actual sale
-  CANCELLED          // Customer cancelled — refund processed
-  EXPIRED            // Deadline passed, auto-cancel
+  PENDING // Just created, awaiting first payment
+  ADVANCE_PAID // Some advance received, items reserved
+  READY_FOR_PICKUP // Fully paid or ready to deliver
+  CONVERTED // Turned into an actual sale
+  CANCELLED // Customer cancelled — refund processed
+  EXPIRED // Deadline passed, auto-cancel
 }
 
 enum BookingPaymentType {
-  ADVANCE            // Initial or partial advance
-  ADDITIONAL         // Extra installment before delivery
-  REFUND             // Money returned on cancel
+  ADVANCE // Initial or partial advance
+  ADDITIONAL // Extra installment before delivery
+  REFUND // Money returned on cancel
 }
 
 model Plan {
@@ -671,9 +670,9 @@ model Session {
   refreshTokenHash  String
   userAgent         String?
   ipAddress         String?
-  deviceFingerprint String?  // Hash of browser+os+device for matching
-  deviceName        String?  // Human-readable: "iPhone 15 - Safari"
-  location          String?  // City/country from IP
+  deviceFingerprint String? // Hash of browser+os+device for matching
+  deviceName        String? // Human-readable: "iPhone 15 - Safari"
+  location          String? // City/country from IP
   lastUsedAt        DateTime @default(now())
   expiresAt         DateTime
   createdAt         DateTime @default(now())
@@ -684,6 +683,7 @@ model Session {
   @@index([deviceFingerprint])
   @@index([userId, deviceFingerprint])
 }
+
 model LoginHistory {
   id                String   @id @default(uuid())
   userId            String
@@ -706,7 +706,6 @@ model LoginHistory {
   @@index([tenantId])
   @@index([createdAt])
 }
-
 
 model OtpCode {
   id         String    @id @default(uuid())
@@ -893,6 +892,7 @@ model ProductVariant {
   shopStocks      ShopStock[]
   carpetRolls     CarpetRoll[]
   carpetCutPieces CarpetCutPiece[]
+  adjustments     StockAdjustment[] @relation("VariantAdjustments")
 
   @@index([productId])
   @@index([productId, isActive])
@@ -1042,33 +1042,33 @@ model DiscountCode {
 }
 
 model Sale {
-  id             String        @id @default(uuid())
-  tenantId       String
-  shopId         String?
-  cashRegisterId String?
-  customerId     String?
-  createdById    String?
-  discountCodeId String?
-  saleNumber     String
-  subtotal       Float
-  discount       Float         @default(0)
-  discountCode   String?
-  loyaltyUsed    Int           @default(0)
-  loyaltyEarned  Int           @default(0)
-  total          Float
-  costOfGoods    Float         @default(0)
-  paidAmount     Float
-  changeAmount   Float         @default(0)
-  creditAmount   Float         @default(0)
-  refundedAmount Float         @default(0)
-  paymentMethod  PaymentMethod @default(CASH)
-  status         SaleStatus    @default(COMPLETED)
-  serviceCharges          Float @default(0)
+  id                      String        @id @default(uuid())
+  tenantId                String
+  shopId                  String?
+  cashRegisterId          String?
+  customerId              String?
+  createdById             String?
+  discountCodeId          String?
+  saleNumber              String
+  subtotal                Float
+  discount                Float         @default(0)
+  discountCode            String?
+  loyaltyUsed             Int           @default(0)
+  loyaltyEarned           Int           @default(0)
+  total                   Float
+  costOfGoods             Float         @default(0)
+  paidAmount              Float
+  changeAmount            Float         @default(0)
+  creditAmount            Float         @default(0)
+  refundedAmount          Float         @default(0)
+  paymentMethod           PaymentMethod @default(CASH)
+  status                  SaleStatus    @default(COMPLETED)
+  serviceCharges          Float         @default(0)
   serviceChargesBreakdown Json?
-  bookingId               String? @unique
-  soldAt         DateTime      @default(now())
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  bookingId               String?       @unique
+  soldAt                  DateTime      @default(now())
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
 
   tenant          Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   shop            Shop?         @relation(fields: [shopId], references: [id], onDelete: SetNull)
@@ -1089,9 +1089,9 @@ model Sale {
 }
 
 model SaleItem {
-  id          String           @id @default(uuid())
-  saleId      String
-  productId   String
+  id           String           @id @default(uuid())
+  saleId       String
+  productId    String
   quantity     Float
   returnedQty  Float            @default(0)
   price        Float
@@ -1100,7 +1100,7 @@ model SaleItem {
   note         String?          @db.Text // Customer-visible note (prints on receipt)
   internalNote String?          @db.Text // Team-only note (never on receipt/WhatsApp)
   variantLink  SaleItemVariant?
-  createdAt   DateTime         @default(now())
+  createdAt    DateTime         @default(now())
 
   sale            Sale                 @relation(fields: [saleId], references: [id], onDelete: Cascade)
   product         Product              @relation(fields: [productId], references: [id], onDelete: Restrict)
@@ -1249,22 +1249,31 @@ model StockMovement {
 }
 
 model StockAdjustment {
-  id          String            @id @default(uuid())
-  tenantId    String
-  productId   String
-  createdById String?
-  type        StockMovementType
-  quantity    Float
-  reason      String
-  note        String?
-  createdAt   DateTime          @default(now())
+  id           String            @id @default(uuid())
+  tenantId     String
+  productId    String
+  variantId    String?
+  carpetRollId String?
+  imeiId       String?
+  createdById  String?
+  type         StockMovementType
+  quantity     Float
+  reason       String
+  note         String?
+  createdAt    DateTime          @default(now())
 
-  tenant    Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  createdBy User?   @relation("UserAdjustments", fields: [createdById], references: [id], onDelete: SetNull)
+  tenant     Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  product    Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant    ProductVariant? @relation("VariantAdjustments", fields: [variantId], references: [id], onDelete: SetNull)
+  carpetRoll CarpetRoll?     @relation("RollAdjustments", fields: [carpetRollId], references: [id], onDelete: SetNull)
+  imei       ProductImei?    @relation("ImeiAdjustments", fields: [imeiId], references: [id], onDelete: SetNull)
+  createdBy  User?           @relation("UserAdjustments", fields: [createdById], references: [id], onDelete: SetNull)
 
   @@index([tenantId])
   @@index([productId])
+  @@index([variantId])
+  @@index([carpetRollId])
+  @@index([imeiId])
   @@index([tenantId, createdAt])
 }
 
@@ -2145,9 +2154,10 @@ model ProductImei {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  tenant  Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  product Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
-  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  tenant      Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  product     Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant     ProductVariant?   @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  adjustments StockAdjustment[] @relation("ImeiAdjustments")
 
   @@unique([tenantId, imei1])
   @@index([tenantId])
@@ -2400,11 +2410,11 @@ model CarpetRoll {
 
   // ─── Dimensions (Pakistani shop format: feet + inches separate) ──
   widthFt             Float @default(12) // Whole feet portion
-  widthInch           Float @default(0)  // Inches portion (0-11)
-  originalLengthFt    Float              // Whole feet portion
-  originalLengthInch  Float @default(0)  // Inches portion (0-11)
-  remainingLengthFt   Float              // Whole feet remaining
-  remainingLengthInch Float @default(0)  // Inches remaining (0-11)
+  widthInch           Float @default(0) // Inches portion (0-11)
+  originalLengthFt    Float // Whole feet portion
+  originalLengthInch  Float @default(0) // Inches portion (0-11)
+  remainingLengthFt   Float // Whole feet remaining
+  remainingLengthInch Float @default(0) // Inches remaining (0-11)
 
   // ─── Auto-calculated Sqft (real decimal math) ──────
   // Formula: (widthFt + widthInch/12) × (lengthFt + lengthInch/12)
@@ -2448,6 +2458,7 @@ model CarpetRoll {
   cutPieces     CarpetCutPiece[]     @relation("RollToCutPieces")
   movements     CarpetRollMovement[]
   transferItems StockTransferItem[]
+  adjustments   StockAdjustment[]    @relation("RollAdjustments")
 
   @@unique([tenantId, rollNumber])
   @@index([tenantId])
@@ -2534,8 +2545,8 @@ model CarpetRollMovement {
   createdById String?
   createdAt   DateTime @default(now())
 
-  roll      CarpetRoll @relation(fields: [rollId], references: [id], onDelete: Cascade)
-  saleItem  SaleItem?  @relation(fields: [saleItemId], references: [id], onDelete: SetNull)
+  roll     CarpetRoll @relation(fields: [rollId], references: [id], onDelete: Cascade)
+  saleItem SaleItem?  @relation(fields: [saleItemId], references: [id], onDelete: SetNull)
 
   @@index([rollId])
   @@index([tenantId])
@@ -2820,30 +2831,29 @@ model RepairPayment {
   @@index([ticketId])
 }
 
-
 // ═══════════════════════════════════════════════════════════════
 // BOOKING / ADVANCE SYSTEM
 // ═══════════════════════════════════════════════════════════════
 
 model Booking {
-  id             String        @id @default(uuid())
-  tenantId       String
-  shopId         String?
-  customerId     String
-  createdById    String?
-  bookingNumber  String        // BK-2026-0001
+  id            String  @id @default(uuid())
+  tenantId      String
+  shopId        String?
+  customerId    String
+  createdById   String?
+  bookingNumber String // BK-2026-0001
 
-  status         BookingStatus @default(PENDING)
+  status BookingStatus @default(PENDING)
 
   // ─── Amounts ────────────────────────────────────────────
-  subtotal        Float @default(0) // Sum of item totals
-  discount        Float @default(0)
-  serviceCharges  Float @default(0)
+  subtotal                Float @default(0) // Sum of item totals
+  discount                Float @default(0)
+  serviceCharges          Float @default(0)
   serviceChargesBreakdown Json?
-  total           Float @default(0) // Final expected total
-  totalPaid       Float @default(0) // Sum of ADVANCE + ADDITIONAL
-  totalRefunded   Float @default(0) // Sum of REFUND
-  balanceDue      Float @default(0) // total - totalPaid + totalRefunded
+  total                   Float @default(0) // Final expected total
+  totalPaid               Float @default(0) // Sum of ADVANCE + ADDITIONAL
+  totalRefunded           Float @default(0) // Sum of REFUND
+  balanceDue              Float @default(0) // total - totalPaid + totalRefunded
 
   // ─── Timeline ───────────────────────────────────────────
   expectedPickupAt DateTime? // Customer bola "kal / 2 din baad"
@@ -2853,7 +2863,7 @@ model Booking {
   cancelReason     String?
 
   // ─── Payment / Refund Method ────────────────────────────
-  paymentMethod    PaymentMethod @default(CASH)
+  paymentMethod PaymentMethod @default(CASH)
 
   // ─── Misc ───────────────────────────────────────────────
   notes         String? @db.Text
@@ -2883,24 +2893,24 @@ model BookingItem {
   id        String @id @default(uuid())
   bookingId String
 
-  productId String
-  variantId String?
-  imeiId    String?      // Reserved IMEI (mobile industry)
-  rollId    String?      // Reserved carpet roll (carpet industry)
-  cutPieceId String?     // Reserved cut piece
+  productId  String
+  variantId  String?
+  imeiId     String? // Reserved IMEI (mobile industry)
+  rollId     String? // Reserved carpet roll (carpet industry)
+  cutPieceId String? // Reserved cut piece
 
   quantity     Float
-  price        Float    // Per unit price (rate)
-  costPrice    Float @default(0)
-  lineDiscount Float @default(0)
+  price        Float // Per unit price (rate)
+  costPrice    Float   @default(0)
+  lineDiscount Float   @default(0)
   total        Float
   useWholesale Boolean @default(false)
 
   // Carpet-specific reservation dims
-  cutWidthFt   Float?
-  cutLengthFt  Float?
+  cutWidthFt    Float?
+  cutLengthFt   Float?
   cutLengthInch Float?
-  cutSqft      Float?
+  cutSqft       Float?
 
   note         String? @db.Text // Customer-visible
   internalNote String? @db.Text // Team-only
@@ -2917,16 +2927,16 @@ model BookingItem {
 }
 
 model BookingPayment {
-  id            String              @id @default(uuid())
+  id            String             @id @default(uuid())
   bookingId     String
-  type          BookingPaymentType  @default(ADVANCE)
+  type          BookingPaymentType @default(ADVANCE)
   amount        Float
-  paymentMethod PaymentMethod       @default(CASH)
+  paymentMethod PaymentMethod      @default(CASH)
   reference     String?
   notes         String?
   createdById   String?
-  paidAt        DateTime            @default(now())
-  createdAt     DateTime            @default(now())
+  paidAt        DateTime           @default(now())
+  createdAt     DateTime           @default(now())
 
   booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 

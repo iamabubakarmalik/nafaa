@@ -33,6 +33,7 @@ import {
   IndustryVariantExtra,
   useActiveIndustryPlugin,
 } from '@/features/industries/_shared/components/IndustrySection';
+import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 
 type Tab = 'basic' | 'pricing' | 'inventory' | 'images' | 'variants' | 'tags' | 'imei';
 
@@ -175,8 +176,12 @@ export default function ProductFormPage() {
         expiryTracked: product.expiryTracked,
         isActive: product.isActive,
         isFeatured: product.isFeatured,
-        tagIds: product.tags?.map((t) => t.tag.id) ?? [],
-        imageUrls: product.images?.map((img) => img.url) ?? [],
+        tagIds: (product.tags ?? [])
+          .map((t) => t?.tag?.id)
+          .filter((id): id is string => !!id),
+        imageUrls: (product.images ?? [])
+          .map((img) => img?.url)
+          .filter((url): url is string => !!url),
       });
       setIsDirty(false);
     }
@@ -347,9 +352,9 @@ export default function ProductFormPage() {
   const profitMargin = form.price > 0 ? (((form.price - (form.costPrice ?? 0)) / form.price) * 100) : 0;
 
   const imeiStats = {
-    total: imeis.length,
-    inStock: imeis.filter((i) => i.status === 'IN_STOCK').length,
-    sold: imeis.filter((i) => i.status === 'SOLD').length,
+    total: Array.isArray(imeis) ? imeis.length : 0,
+    inStock: Array.isArray(imeis) ? imeis.filter((i) => i?.status === 'IN_STOCK').length : 0,
+    sold: Array.isArray(imeis) ? imeis.filter((i) => i?.status === 'SOLD').length : 0,
   };
 
   const industryProps = {
@@ -362,6 +367,7 @@ export default function ProductFormPage() {
   };
 
   return (
+    <ErrorBoundary>
     <div className="space-y-5 pb-20">
       {showImeiAdd && id && (
         <BulkImeiAddModal
@@ -417,18 +423,26 @@ export default function ProductFormPage() {
               {form.sku && (
                 <span className="font-mono bg-white/10 backdrop-blur rounded-md px-2 py-0.5 text-xs">{form.sku}</span>
               )}
-              {form.brandId && brands.find((b) => b.id === form.brandId) && (
-                <>
-                  <span className="text-white/40">•</span>
-                  <span className="font-bold">{brands.find((b) => b.id === form.brandId)?.name}</span>
-                </>
-              )}
-              {form.categoryId && categories.find((c: any) => c.id === form.categoryId) && (
-                <>
-                  <span className="text-white/40">•</span>
-                  <span>{categories.find((c: any) => c.id === form.categoryId)?.name}</span>
-                </>
-              )}
+              {(() => {
+                const brand = form.brandId ? brands.find((b) => b.id === form.brandId) : null;
+                if (!brand) return null;
+                return (
+                  <>
+                    <span className="text-white/40">•</span>
+                    <span className="font-bold">{brand.name}</span>
+                  </>
+                );
+              })()}
+              {(() => {
+                const cat = form.categoryId ? categories.find((c: any) => c.id === form.categoryId) : null;
+                if (!cat) return null;
+                return (
+                  <>
+                    <span className="text-white/40">•</span>
+                    <span>{cat.name}</span>
+                  </>
+                );
+              })()}
             </div>
           </div>
 
@@ -537,7 +551,9 @@ export default function ProductFormPage() {
                     onChange={(e) => updateForm({ categoryId: e.target.value })}
                   >
                     <option value="">No category</option>
-                    {categories.map((c: any) => (<option key={c.id} value={c.id}>{c.name}</option>))}
+                    {Array.isArray(categories) && categories.map((c: any) => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
                   </select>
                 </div>
                 <div>
@@ -548,7 +564,9 @@ export default function ProductFormPage() {
                     onChange={(e) => updateForm({ brandId: e.target.value })}
                   >
                     <option value="">No brand</option>
-                    {brands.map((b) => (<option key={b.id} value={b.id}>{b.name}</option>))}
+                    {Array.isArray(brands) && brands.map((b) => (
+                      <option key={b.id} value={b.id}>{b.name}</option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -946,14 +964,18 @@ export default function ProductFormPage() {
             </div>
 
             <div className="p-4 space-y-3">
-              {form.brandId && brands.find((b) => b.id === form.brandId) && (
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-violet-50 border border-violet-200">
-                  <span className="h-1.5 w-1.5 rounded-full bg-violet-500" />
-                  <span className="text-[10px] uppercase tracking-wider text-violet-700 font-extrabold">
-                    {brands.find((b) => b.id === form.brandId)?.name}
-                  </span>
-                </div>
-              )}
+              {(() => {
+                const brand = form.brandId ? brands.find((b) => b.id === form.brandId) : null;
+                if (!brand) return null;
+                return (
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-violet-50 border border-violet-200">
+                    <span className="h-1.5 w-1.5 rounded-full bg-violet-500" />
+                    <span className="text-[10px] uppercase tracking-wider text-violet-700 font-extrabold">
+                      {brand.name}
+                    </span>
+                  </div>
+                );
+              })()}
 
               <div>
                 <h3 className="font-extrabold text-slate-900 text-lg leading-snug line-clamp-2">{form.name || 'Product name'}</h3>
@@ -1007,7 +1029,7 @@ export default function ProductFormPage() {
                 </div>
               )}
 
-              {form.tagIds && form.tagIds.length > 0 && (
+              {Array.isArray(form.tagIds) && form.tagIds.length > 0 && (
                 <div className="pt-3 border-t border-slate-100">
                   <div className="flex flex-wrap gap-1">
                     {form.tagIds.slice(0, 4).map((tagId) => {
@@ -1108,6 +1130,7 @@ export default function ProductFormPage() {
         </div>
       )}
     </div>
+    </ErrorBoundary>
   );
 }
 

@@ -18,6 +18,7 @@ import { formatPKR, formatPKRFull } from '@/lib/format';
 import { toast } from 'sonner';
 import { useBusinessFeatures } from '@/hooks/useBusinessFeatures';
 import { carpetRollsApi, type CarpetProductSummary } from '@/features/industries/carpet/api/carpet-rolls.api';
+import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 
 type ViewMode = 'grid' | 'list';
 type SortBy = 'newest' | 'oldest' | 'name' | 'price-low' | 'price-high' | 'stock-low' | 'stock-high';
@@ -87,8 +88,8 @@ export default function ProductsListPage() {
 
   // ─── Sorted items ────────────────────────────────────────
   const items = useMemo(() => {
-    let list = data?.items ?? [];
-    list = [...list].sort((a, b) => {
+    let list = Array.isArray(data?.items) ? [...data.items] : [];
+    list = list.sort((a, b) => {
       switch (sortBy) {
         case 'oldest':
           return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
@@ -140,12 +141,12 @@ export default function ProductsListPage() {
 
   // ─── Stats ───────────────────────────────────────────────
   const stats = useMemo(() => {
-    const all = data?.items ?? [];
-    const active = all.filter((p) => p.isActive).length;
-    const featured = all.filter((p) => p.isFeatured).length;
-    const lowStock = all.filter((p) => !isCarpetProduct(p) && p.stock > 0 && p.stock <= p.lowStockAlert).length;
-    const outOfStock = all.filter((p) => !isCarpetProduct(p) && p.stock === 0).length;
-    const totalValue = all.reduce((s, p) => s + Number(p.price) * (p.stock ?? 0), 0);
+    const all = Array.isArray(data?.items) ? data.items : [];
+    const active = all.filter((p) => p?.isActive).length;
+    const featured = all.filter((p) => p?.isFeatured).length;
+    const lowStock = all.filter((p) => p && !isCarpetProduct(p) && (p.stock ?? 0) > 0 && (p.stock ?? 0) <= (p.lowStockAlert ?? 0)).length;
+    const outOfStock = all.filter((p) => p && !isCarpetProduct(p) && (p.stock ?? 0) === 0).length;
+    const totalValue = all.reduce((s, p) => s + Number(p?.price ?? 0) * Number(p?.stock ?? 0), 0);
     return { active, featured, lowStock, outOfStock, totalValue };
   }, [data?.items]);
 
@@ -162,6 +163,7 @@ export default function ProductsListPage() {
     params.brandId || params.categoryId || params.tagId || (params.stockStatus && params.stockStatus !== 'all');
 
   return (
+    <ErrorBoundary>
     <div className="space-y-5">
       {quickEditProduct && (
         <QuickEditProductModal
@@ -697,6 +699,7 @@ export default function ProductsListPage() {
         </div>
       )}
     </div>
+    </ErrorBoundary>
   );
 }
 
