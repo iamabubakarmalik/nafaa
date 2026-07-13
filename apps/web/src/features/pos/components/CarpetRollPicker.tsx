@@ -203,7 +203,7 @@ export function CarpetRollPicker({ product, variant, preSelectedRoll, onConfirm,
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="w-full sm:max-w-6xl bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col">
+      <div className="w-full sm:max-w-6xl bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95dvh] sm:max-h-[92vh] flex flex-col min-h-0">
         {/* HEADER */}
         <div className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 text-white shrink-0">
           <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-emerald-400/20 blur-2xl" />
@@ -242,10 +242,10 @@ export function CarpetRollPicker({ product, variant, preSelectedRoll, onConfirm,
           </div>
         </div>
 
-        <div className="flex-1 overflow-hidden min-h-0">
-          <div className="grid lg:grid-cols-[1fr_500px] h-full">
+        <div className="flex-1 overflow-hidden min-h-0 flex">
+          <div className="flex flex-col lg:flex-row w-full h-full min-h-0">
             {/* LEFT — ROLLS LIST */}
-            <div className={`flex flex-col min-h-0 border-r border-slate-200 ${showMobileConfig ? 'hidden lg:flex' : 'flex'}`}>
+            <div className={`flex flex-col min-h-0 border-r border-slate-200 lg:flex-1 lg:min-w-0 ${showMobileConfig ? 'hidden lg:flex' : 'flex flex-1'}`}>
               <div className="px-4 py-3 border-b border-slate-100 bg-white space-y-2 shrink-0">
                 <div className="relative">
                   <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -289,7 +289,7 @@ export function CarpetRollPicker({ product, variant, preSelectedRoll, onConfirm,
               </div>
 
               {/* SCROLLABLE ROLLS LIST */}
-              <div className="flex-1 overflow-y-auto p-3 bg-gradient-to-b from-slate-50/30 to-white">
+              <div className="flex-1 overflow-y-auto p-3 bg-gradient-to-b from-slate-50/30 to-white min-h-0">
                 {isLoading ? (
                   <div className="space-y-2">
                     {[1, 2, 3, 4, 5].map((i) => <div key={i} className="h-28 rounded-xl bg-slate-100 animate-pulse" />)}
@@ -393,7 +393,7 @@ export function CarpetRollPicker({ product, variant, preSelectedRoll, onConfirm,
             </div>
 
             {/* RIGHT — CUT CONFIG */}
-            <div className={`flex flex-col min-h-0 bg-slate-50/30 ${!showMobileConfig ? 'hidden lg:flex' : 'flex'}`}>
+            <div className={`flex flex-col min-h-0 bg-slate-50/30 lg:w-[500px] lg:shrink-0 ${!showMobileConfig ? 'hidden lg:flex' : 'flex flex-1'}`}>
               {!selectedRoll ? (
                 <div className="h-full flex flex-col items-center justify-center text-center px-6 py-12">
                   <div className="h-20 w-20 rounded-3xl bg-emerald-100 flex items-center justify-center">
@@ -402,7 +402,7 @@ export function CarpetRollPicker({ product, variant, preSelectedRoll, onConfirm,
                   <div className="mt-4 font-extrabold text-slate-900 text-lg">Select a roll</div>
                 </div>
               ) : (
-                <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0">
                   {/* Selected roll */}
                   <div className="rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-700 text-white p-4 shadow-lg">
                     <div className="flex items-center justify-between gap-2 mb-1.5">
