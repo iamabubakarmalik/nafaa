@@ -9,16 +9,21 @@ export type CartItem = {
   imeiId?: string;
   imeiNumber?: string;
 
-  // Carpet
+  // Carpet - Rolls
   rollId?: string;
   rollNumber?: string;
   cutPieceId?: string;
   cutPieceCode?: string;
+
+  // Cut dimensions with ft + inch precision
   cutWidthFt?: number;
+  cutWidthInch?: number;
   cutLengthFt?: number;
   cutLengthInch?: number;
-  cutLengthReal?: number;
+  cutLengthReal?: number; // decimal feet (for calculations)
+  cutWidthReal?: number;  // decimal feet
   cutSqft?: number;
+
   createLeftover?: boolean;
   rollCustomerWidthFt?: number;
   rollFullWidthFt?: number;
@@ -42,8 +47,8 @@ export type CartItem = {
   useWholesale: boolean;
   priceOverride?: number;
   lineDiscount: number;
-  note?: string;         // Customer-visible (receipt + WhatsApp)
-  internalNote?: string; // Team-only (never on receipt)
+  note?: string;
+  internalNote?: string;
 };
 
 export type SaleMode = 'FULL_PAYMENT' | 'PARTIAL_CREDIT' | 'FULL_CREDIT';
@@ -81,5 +86,24 @@ export const saveHeldCarts = (carts: HeldCart[]) => {
 };
 
 export const cartLineId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+// ─── Format helpers for ft + inch ─────────────────────────
+export const formatFtInch = (ft: number, inch = 0): string => {
+  const f = Math.floor(ft);
+  const i = Math.round(inch);
+  if (i === 0) return `${f}ft`;
+  return `${f}ft ${i}in`;
+};
+
+export const ftInchToDecimal = (ft: number, inch = 0): number => {
+  return Number(ft) + Number(inch || 0) / 12;
+};
+
+export const decimalToFtInch = (decimal: number): { ft: number; inch: number } => {
+  const ft = Math.floor(decimal);
+  const inch = Math.round((decimal - ft) * 12);
+  if (inch === 12) return { ft: ft + 1, inch: 0 };
+  return { ft, inch };
+};
 
 export type { ProductImei };

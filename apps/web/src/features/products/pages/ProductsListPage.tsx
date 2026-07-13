@@ -52,16 +52,19 @@ export default function ProductsListPage() {
   const { data: brands = [] } = useQuery({
     queryKey: ['brands'],
     queryFn: () => brandsApi.list(),
+    placeholderData: [],
   });
 
   const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
     queryFn: categoriesApi.list,
+    placeholderData: [],
   });
 
   const { data: tags = [] } = useQuery({
     queryKey: ['tags'],
     queryFn: tagsApi.list,
+    placeholderData: [],
   });
 
   const productIds = useMemo(
@@ -963,7 +966,7 @@ function QuickEditProductModal({
   const updateMutation = useMutation({
     mutationFn: () => productsApi.update(product.id, form),
     onSuccess: () => {
-      toast.success(`${product.name} updated`);
+      toast.success(`${product.name} updated ✓`, { duration: 2000 });
       onSuccess();
     },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Update failed'),

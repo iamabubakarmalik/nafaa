@@ -223,11 +223,7 @@ export default function ProductFormPage() {
 
   const addImageMutation = useMutation({
     mutationFn: (url: string) => productImagesApi.add(id!, { url, isPrimary: images.length === 0 }),
-    onSuccess: () => {
-      refetchImages();
-      queryClient.invalidateQueries({ queryKey: ['product', id] });
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-    },
+    onSuccess: () => refetchImages(),
   });
   const setPrimaryMutation = useMutation({
     mutationFn: (imageId: string) => productImagesApi.setPrimary(id!, imageId),
@@ -245,12 +241,9 @@ export default function ProductFormPage() {
   const bulkVariantsMutation = useMutation({
     mutationFn: (vs: UpsertVariantPayload[]) =>
       productVariantsApi.bulkCreate(id!, vs.map((v) => sanitizeVariantPayload(v))),
-    onSuccess: (data) => {
+    onSuccess: () => {
       refetchVariants();
-      queryClient.invalidateQueries({ queryKey: ['product', id] });
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      const count = Array.isArray(data) ? data.length : 0;
-      toast.success(`${count} variants generated ✓`, { duration: 2500 });
+      toast.success('Variants generated');
     },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed to generate variants'),
   });
@@ -260,9 +253,7 @@ export default function ProductFormPage() {
       productVariantsApi.update(id!, variantId, payload),
     onSuccess: () => {
       refetchVariants();
-      queryClient.invalidateQueries({ queryKey: ['product', id] });
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      toast.success('Variant updated ✓', { duration: 1800 });
+      toast.success('Variant updated');
     },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed to update variant'),
   });
@@ -271,9 +262,7 @@ export default function ProductFormPage() {
     mutationFn: (vid: string) => productVariantsApi.remove(id!, vid),
     onSuccess: () => {
       refetchVariants();
-      queryClient.invalidateQueries({ queryKey: ['product', id] });
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      toast.success('Variant deleted ✓', { duration: 1800 });
+      toast.success('Variant deleted');
     },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed to delete variant'),
   });

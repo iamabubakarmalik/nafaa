@@ -16,28 +16,32 @@ export default function AppShell() {
   const { user, tenant, refreshToken, logout } = useAuthStore();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Sidebar collapse state (persisted)
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
-    } catch {
-      return false;
-    }
+    try { return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true'; } catch { return false; }
   });
 
   useEffect(() => {
-    try {
-      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(sidebarCollapsed));
-    } catch {}
+    try { localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(sidebarCollapsed)); } catch {}
   }, [sidebarCollapsed]);
+
+  // Cmd/Ctrl + B to toggle sidebar
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
+        e.preventDefault();
+        setSidebarCollapsed((v) => !v);
+      }
+    };
+    document.addEventListener('keydown', h);
+    return () => document.removeEventListener('keydown', h);
+  }, []);
 
   const handleLogout = async () => {
     if (!confirm('Logout karna chahte hain?')) return;
     try {
       if (refreshToken) await authApi.logout(refreshToken);
-    } catch {
-      // silent
-    } finally {
+    } catch {}
+    finally {
       logout();
       toast.success('Logout ho gaya');
       navigate('/login');
@@ -45,18 +49,18 @@ export default function AppShell() {
   };
 
   return (
-    <div className="h-screen bg-slate-100 overflow-hidden">
+    <div className="h-screen-dvh bg-slate-100 dark:bg-neutral-950 overflow-hidden">
       <div
-        className={`h-full grid transition-all duration-300 ${
+        className={`h-full grid transition-[grid-template-columns] duration-300 ease-out ${
           sidebarCollapsed
             ? 'lg:grid-cols-[0px_minmax(0,1fr)]'
-            : 'lg:grid-cols-[280px_minmax(0,1fr)]'
+            : 'lg:grid-cols-[300px_minmax(0,1fr)]'
         }`}
       >
-        {/* DESKTOP SIDEBAR — collapsible */}
+        {/* DESKTOP SIDEBAR */}
         <aside
-          className={`hidden lg:flex h-screen flex-col bg-gradient-to-b from-slate-950 to-slate-900 text-white border-r border-slate-800/50 overflow-hidden transition-all duration-300 ${
-            sidebarCollapsed ? 'w-0 opacity-0' : 'w-[280px] opacity-100'
+          className={`hidden lg:flex h-screen-dvh flex-col bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900 text-white border-r border-slate-800/70 overflow-hidden transition-[width,opacity] duration-300 ${
+            sidebarCollapsed ? 'w-0 opacity-0' : 'w-[300px] opacity-100'
           }`}
         >
           {!sidebarCollapsed && (
@@ -71,18 +75,17 @@ export default function AppShell() {
           )}
         </aside>
 
-        {/* Floating expand button — visible only when collapsed on desktop */}
+        {/* Floating expand button */}
         {sidebarCollapsed && (
           <button
             onClick={() => setSidebarCollapsed(false)}
-            className="hidden lg:flex fixed top-4 left-4 z-40 h-10 w-10 rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-lg shadow-black/30 items-center justify-center transition border border-slate-700"
-            title="Show sidebar"
+            className="hidden lg:flex fixed top-4 left-4 z-40 h-11 w-11 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 text-white shadow-2xl shadow-black/40 items-center justify-center transition-all hover:scale-105 border border-slate-700 group"
+            title="Show sidebar (⌘B)"
           >
-            <PanelLeft className="h-5 w-5" />
+            <PanelLeft className="h-5 w-5 group-hover:scale-110 transition-transform" />
           </button>
         )}
 
-        {/* MOBILE SIDEBAR */}
         <MobileSidebar
           open={mobileOpen}
           onClose={() => setMobileOpen(false)}
@@ -94,7 +97,7 @@ export default function AppShell() {
         />
 
         {/* MAIN */}
-        <div className="min-w-0 h-screen flex flex-col overflow-hidden">
+        <div className="min-w-0 h-screen-dvh flex flex-col overflow-hidden">
           <Topbar
             user={user}
             tenant={tenant}
@@ -103,8 +106,8 @@ export default function AppShell() {
           />
 
           <main
-            className={`flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 print:p-0 print:overflow-visible ${
-              sidebarCollapsed ? 'lg:pl-20' : ''
+            className={`flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 print:p-0 print:overflow-visible bg-slate-50 dark:bg-neutral-950 transition-[padding] ${
+              sidebarCollapsed ? 'lg:pl-24' : ''
             }`}
           >
             <DesktopUpdateBanner />

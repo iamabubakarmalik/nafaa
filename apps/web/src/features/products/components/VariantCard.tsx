@@ -250,8 +250,9 @@ export function VariantCard({
               <FieldGroup icon={Package} title="Stock & Inventory" tone="blue">
                 <div className="grid sm:grid-cols-3 gap-3">
                   <FieldInput
-                    label="Stock"
+                    label={`Stock (${draft.unit || parentUnit || 'pcs'})`}
                     type="number"
+                    step="0.01"
                     value={String(draft.stock ?? 0)}
                     onChange={(v) => onUpdate({ stock: Number(v || 0) })}
                     bold
@@ -269,6 +270,19 @@ export function VariantCard({
                     placeholder={parentUnit || 'pcs'}
                   />
                 </div>
+                {/* Ft + Inch helper for carpet/area units */}
+                {(['sqft', 'sqm', 'sqyd', 'ft', 'meter', 'yard'].includes(draft.unit || parentUnit || '')) && (draft.stock ?? 0) > 0 && (
+                  <div className="mt-2 rounded-lg bg-blue-100 border border-blue-300 p-2 text-[11px] text-blue-900 font-bold flex items-center gap-2">
+                    <Package className="h-3 w-3" />
+                    <span>
+                      Stock breakdown:{' '}
+                      <strong>{Math.floor(draft.stock ?? 0)} {draft.unit || parentUnit}</strong>
+                      {((draft.stock ?? 0) % 1) > 0 && (
+                        <> + <strong>{Math.round(((draft.stock ?? 0) % 1) * 12)} inch</strong> (decimal: {(draft.stock ?? 0).toFixed(2)})</>
+                      )}
+                    </span>
+                  </div>
+                )}
               </FieldGroup>
 
               {/* Live analytics bar */}

@@ -31,6 +31,20 @@ type CheckoutResult = {
   isOffline: boolean;
 };
 
+// ═══ PREFERENCE: Auto-open receipt after sale ═══
+const AUTO_RECEIPT_KEY = 'nafaa.pos.auto-open-receipt';
+
+export function getAutoOpenReceipt(): boolean {
+  try {
+    const v = localStorage.getItem(AUTO_RECEIPT_KEY);
+    return v === null ? true : v === 'true'; // default ON
+  } catch { return true; }
+}
+
+export function setAutoOpenReceipt(value: boolean): void {
+  try { localStorage.setItem(AUTO_RECEIPT_KEY, String(value)); } catch {}
+}
+
 export function usePosCheckout(onSuccess?: (result: CheckoutResult) => void) {
   const queryClient = useQueryClient();
 
@@ -45,7 +59,6 @@ export function usePosCheckout(onSuccess?: (result: CheckoutResult) => void) {
       const rollCutItems = cart.filter((c) => c.rollId);
       const cutPieceItems = cart.filter((c) => c.cutPieceId);
 
-      // ─── ONLINE: Cut rolls via API ────────────────────
       const successfulCuts: Array<{
         rollId: string;
         rollNumber: string;
@@ -75,21 +88,20 @@ export function usePosCheckout(onSuccess?: (result: CheckoutResult) => void) {
             const errMsg = err?.response?.data?.message || `${item.rollNumber} se cut nahi ho saka`;
             if (successfulCuts.length > 0) {
               await revertCuts(successfulCuts);
-              throw new Error(`${errMsg}\n\n${successfulCuts.length} previous cut(s) revert ho gayi hain.`);
+              throw new Error(`${errMsg}\n\n${successfulCuts.length} previous cut(s) revert.`);
             }
             throw new Error(errMsg);
           }
         }
       }
 
-      // Validate cut pieces (online only)
       if (isOnline && cutPieceItems.length > 0) {
         for (const item of cutPieceItems) {
           try {
             const piece = await carpetCutPiecesApi.getOne(item.cutPieceId!);
             if (piece.status !== 'AVAILABLE') {
               if (successfulCuts.length > 0) await revertCuts(successfulCuts);
-              throw new Error(`Cut piece ${piece.pieceCode} pehle hi sold ya reserved hai`);
+              throw new Error(`Cut piece ${piece.pieceCode} pehle hi sold hai`);
             }
           } catch (err: any) {
             if (successfulCuts.length > 0) await revertCuts(successfulCuts);
@@ -98,7 +110,6 @@ export function usePosCheckout(onSuccess?: (result: CheckoutResult) => void) {
         }
       }
 
-      // ─── Build sale items ───────────────────────────────
       const saleItems: CreateSaleItem[] = cart.map((item) => {
         const baseUnitPrice =
           item.priceOverride ??
@@ -106,8 +117,11 @@ export function usePosCheckout(onSuccess?: (result: CheckoutResult) => void) {
 
         let note = item.note;
         if (item.rollId && item.rollNumber) {
-          const lenInchPart = (item.cutLengthInch ?? 0) > 0 ? ` ${item.cutLengthInch}in` : '';
-          note = `Cut from ${item.rollNumber}: ${item.cutWidthFt}ft × ${item.cutLengthFt}ft${lenInchPart} = ${item.cutSqft?.toFixed(2)} sqft`;
+          const wInch = item.cutWidthInch ?? 0;
+          const lInch = item.cutLengthInch ?? 0;
+          const wPart = wInch > 0 ? ` ${wInch}in` : '';
+          const lPart = lInch > 0 ? ` ${lInch}in` : '';
+          note = `Cut from ${item.rollNumber}: ${item.cutWidthFt}ft${wPart} × ${item.cutLengthFt}ft${lPart} = ${item.cutSqft?.toFixed(2)} sqft`;
           if (!isOnline) note += ' [OFFLINE — sync on reconnect]';
         } else if (item.cutPieceId && item.cutPieceCode) {
           note = `Cut piece ${item.cutPieceCode}`;
@@ -129,7 +143,6 @@ export function usePosCheckout(onSuccess?: (result: CheckoutResult) => void) {
         };
       });
 
-      // ─── Create sale (offline-aware) ────────────────────
       let saleResult: any;
       try {
         saleResult = await offlineSalesApi.create({
@@ -145,13 +158,12 @@ export function usePosCheckout(onSuccess?: (result: CheckoutResult) => void) {
         if (successfulCuts.length > 0) {
           await revertCuts(successfulCuts);
           throw new Error(
-            `Sale create nahi ho saki: ${err?.response?.data?.message || err?.message || 'unknown error'}\n\n${successfulCuts.length} roll cut(s) revert ho gayi hain.`,
+            `Sale create fail: ${err?.response?.data?.message || err?.message || 'unknown'}\n\n${successfulCuts.length} cut(s) reverted.`,
           );
         }
         throw err;
       }
 
-      // ─── OFFLINE: Update local cached carpet data ───────
       if (!isOnline) {
         for (const item of rollCutItems) {
           if (item.rollId && item.cutLengthFt) {
@@ -160,13 +172,10 @@ export function usePosCheckout(onSuccess?: (result: CheckoutResult) => void) {
           }
         }
         for (const item of cutPieceItems) {
-          if (item.cutPieceId) {
-            await markCachedCutPieceSold(item.cutPieceId);
-          }
+          if (item.cutPieceId) await markCachedCutPieceSold(item.cutPieceId);
         }
       }
 
-      // Mark cut pieces as sold (online only, best-effort)
       if (isOnline) {
         for (const item of cutPieceItems) {
           try {
@@ -177,16 +186,19 @@ export function usePosCheckout(onSuccess?: (result: CheckoutResult) => void) {
         }
       }
 
-      // ─── Invalidate caches ──────────────────────────────
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['products'] }),
         queryClient.invalidateQueries({ queryKey: ['products-for-pos'] }),
         queryClient.invalidateQueries({ queryKey: ['dashboard-overview'] }),
         queryClient.invalidateQueries({ queryKey: ['sales'] }),
+        queryClient.invalidateQueries({ queryKey: ['sales-list'] }),
+        queryClient.invalidateQueries({ queryKey: ['sales-summary'] }),
         queryClient.invalidateQueries({ queryKey: ['customers'] }),
         queryClient.invalidateQueries({ queryKey: ['customers-for-pos'] }),
         queryClient.invalidateQueries({ queryKey: ['pending-sales'] }),
         queryClient.invalidateQueries({ queryKey: ['carpet-product-summary-pos'] }),
+        queryClient.invalidateQueries({ queryKey: ['pos-fast-rolls'] }),
+        queryClient.invalidateQueries({ queryKey: ['pos-fast-cut-pieces'] }),
       ]);
 
       const isOfflineSale = !saleResult.saleNumber;
@@ -210,19 +222,36 @@ export function usePosCheckout(onSuccess?: (result: CheckoutResult) => void) {
     },
     onSuccess: (result) => {
       const msg = result.isOffline
-        ? `📡 Offline sale saved! Internet aane par sync ho ga`
+        ? `📡 Offline sale saved! Sync on reconnect`
         : result.credit > 0
-        ? `Sale + ${formatPKR(result.credit)} udhaar khata mein add ho gaya`
+        ? `Sale + ${formatPKR(result.credit)} udhaar khata mein`
         : `Sale complete! ${result.saleNumber}`;
 
       toast.success(msg, {
         description: `Total: ${formatPKR(result.total)}`,
         duration: result.isOffline ? 5000 : 3000,
       });
+
+      // ═══ AUTO-OPEN RECEIPT IN NEW TAB ═══
+      if (!result.isOffline && getAutoOpenReceipt()) {
+        setTimeout(() => {
+          const url = `/sales/${result.saleId}/receipt?auto=1`;
+          const win = window.open(url, '_blank', 'noopener,noreferrer');
+          if (!win) {
+            toast.info('Popup blocked — receipt link ready', {
+              action: {
+                label: 'Open',
+                onClick: () => window.location.href = url,
+              },
+            });
+          }
+        }, 100);
+      }
+
       onSuccess?.(result);
     },
     onError: (err: any) => {
-      toast.error(err?.message || err?.response?.data?.message || 'Checkout fail ho gaya');
+      toast.error(err?.message || err?.response?.data?.message || 'Checkout fail');
     },
   });
 }
@@ -236,16 +265,14 @@ async function revertCuts(
       await carpetRollsApi.adjust(c.rollId, {
         lengthDeltaFt: realLen,
         reason: 'POS checkout failed — auto revert',
-        note: 'Cut reverted because sale could not complete',
+        note: 'Cut reverted',
       });
       if (c.leftoverPieceId) {
-        try {
-          await carpetCutPiecesApi.remove(c.leftoverPieceId);
-        } catch {}
+        try { await carpetCutPiecesApi.remove(c.leftoverPieceId); } catch {}
       }
     } catch (err) {
       console.error(`Failed to revert cut for ${c.rollNumber}`, err);
-      toast.error(`${c.rollNumber}: auto-revert fail ho gaya — manually check karein`);
+      toast.error(`${c.rollNumber}: auto-revert fail — check manually`);
     }
   }
 }

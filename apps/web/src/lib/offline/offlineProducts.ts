@@ -7,6 +7,10 @@ export interface OfflineProductsResponse {
   isFromCache: boolean;
 }
 
+// Throttle background refreshes — one per minute max
+let lastBgRefreshAt = 0;
+const BG_REFRESH_GAP_MS = 60 * 1000;
+
 function filterProducts(
   products: OfflineProduct[],
   params?: ProductsListParams,
@@ -43,17 +47,33 @@ function filterProducts(
   return list;
 }
 
-/**
- * Strip internal sync fields and ensure required Product fields exist
- */
 function toProduct(op: OfflineProduct): Product {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { _syncedAt, _localDirty, _updatedAt, ...rest } = op;
   return {
     ...rest,
     createdAt: rest.createdAt || new Date().toISOString(),
     updatedAt: rest.updatedAt || new Date().toISOString(),
   } as Product;
+}
+
+async function backgroundRefresh(params?: ProductsListParams) {
+  const now = Date.now();
+  if (now - lastBgRefreshAt < BG_REFRESH_GAP_MS) return;
+  lastBgRefreshAt = now;
+
+  try {
+    const serverData = await productsApi.list({ ...params, page: 1, limit: 5000 });
+    if (!serverData.items?.length) return;
+
+    const syncedAt = Date.now();
+    await db.transaction('rw', db.products, async () => {
+      for (const p of serverData.items) {
+        await db.products.put({ ...p, _syncedAt: syncedAt } as OfflineProduct);
+      }
+    });
+  } catch {
+    // silent — background only
+  }
 }
 
 export const offlineProductsApi = {
@@ -68,31 +88,43 @@ export const offlineProductsApi = {
     const startIdx = (page - 1) * limit;
     const paginatedItems = filtered.slice(startIdx, startIdx + limit).map(toProduct);
 
-    // Background refresh
-    if (navigator.onLine) {
-      productsApi
-        .list({ ...params, page: 1, limit: 5000 })
-        .then(async (serverData) => {
-          const now = Date.now();
-          await db.transaction('rw', db.products, async () => {
-            for (const p of serverData.items) {
-              await db.products.put({ ...p, _syncedAt: now } as OfflineProduct);
-            }
-          });
-        })
-        .catch(() => {});
+    // Background refresh (throttled to once per minute)
+    if (navigator.onLine && allCached.length > 0) {
+      backgroundRefresh(params);
+    } else if (navigator.onLine && allCached.length === 0) {
+      // First load — fetch immediately (no throttle)
+      try {
+        const serverData = await productsApi.list({ ...params, page: 1, limit: 5000 });
+        const now = Date.now();
+        await db.transaction('rw', db.products, async () => {
+          for (const p of serverData.items) {
+            await db.products.put({ ...p, _syncedAt: now } as OfflineProduct);
+          }
+        });
+        // Re-filter from freshly loaded cache
+        const freshCache = await db.products.toArray();
+        const freshFiltered = filterProducts(freshCache, params);
+        return {
+          items: freshFiltered.slice(startIdx, startIdx + limit).map(toProduct),
+          meta: { page, limit, total: freshFiltered.length, totalPages: Math.ceil(freshFiltered.length / limit) },
+          isFromCache: false,
+        };
+      } catch {
+        // fall through to empty cache result
+      }
     }
 
     return {
       items: paginatedItems,
       meta: { page, limit, total, totalPages },
-      isFromCache: true,
+      isFromCache: allCached.length > 0,
     };
   },
 
   getOne: async (id: string): Promise<Product | null> => {
     const cached = await db.products.get(id);
 
+    // Background refresh (silent)
     if (navigator.onLine) {
       productsApi
         .getOne(id)
@@ -105,9 +137,6 @@ export const offlineProductsApi = {
     return cached ? toProduct(cached) : null;
   },
 
-  /**
-   * Lookup by barcode — throws if not found (matches original API behavior)
-   */
   byBarcode: async (code: string): Promise<Product> => {
     const trimmed = code.trim();
 

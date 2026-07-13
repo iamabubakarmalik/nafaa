@@ -4,8 +4,11 @@ import App from './App';
 import './index.css';
 import { initSyncEngine } from '@/lib/offline/syncEngine';
 
-// Initialize offline sync engine
-initSyncEngine();
+// Initialize offline sync engine ONCE
+// (initSyncEngine is idempotent — StrictMode double-invoke is handled inside)
+if (typeof window !== 'undefined') {
+  initSyncEngine();
+}
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

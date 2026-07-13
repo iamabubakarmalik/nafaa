@@ -29,10 +29,10 @@ import { useBusinessFeatures } from '@/hooks/useBusinessFeatures';
 import { BulkImeiAddModal } from '@/features/industries/mobile/components/BulkImeiAddModal';
 import { imeiApi } from '@/features/industries/mobile/api/imei.api';
 import {
-  SafeIndustrySection as IndustrySection,
-  SafeIndustryVariantExtra as IndustryVariantExtra,
+  IndustrySection,
+  IndustryVariantExtra,
   useActiveIndustryPlugin,
-} from '@/features/industries/_shared/components/SafeIndustrySection';
+} from '@/features/industries/_shared/components/IndustrySection';
 import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 
 type Tab = 'basic' | 'pricing' | 'inventory' | 'images' | 'variants' | 'tags' | 'imei';
@@ -131,9 +131,9 @@ export default function ProductFormPage() {
     enabled: isEdit,
   });
 
-  const { data: categories = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list, placeholderData: [] });
-  const { data: brands = [] } = useQuery({ queryKey: ['brands'], queryFn: () => brandsApi.list(), placeholderData: [] });
-  const { data: allTags = [] } = useQuery({ queryKey: ['tags'], queryFn: tagsApi.list, placeholderData: [] });
+  const { data: categories = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list });
+  const { data: brands = [] } = useQuery({ queryKey: ['brands'], queryFn: () => brandsApi.list() });
+  const { data: allTags = [] } = useQuery({ queryKey: ['tags'], queryFn: tagsApi.list });
 
   const { data: images = [], refetch: refetchImages } = useQuery({
     queryKey: ['product-images', id],
@@ -223,11 +223,7 @@ export default function ProductFormPage() {
 
   const addImageMutation = useMutation({
     mutationFn: (url: string) => productImagesApi.add(id!, { url, isPrimary: images.length === 0 }),
-    onSuccess: () => {
-      refetchImages();
-      queryClient.invalidateQueries({ queryKey: ['product', id] });
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-    },
+    onSuccess: () => refetchImages(),
   });
   const setPrimaryMutation = useMutation({
     mutationFn: (imageId: string) => productImagesApi.setPrimary(id!, imageId),
@@ -245,12 +241,9 @@ export default function ProductFormPage() {
   const bulkVariantsMutation = useMutation({
     mutationFn: (vs: UpsertVariantPayload[]) =>
       productVariantsApi.bulkCreate(id!, vs.map((v) => sanitizeVariantPayload(v))),
-    onSuccess: (data) => {
+    onSuccess: () => {
       refetchVariants();
-      queryClient.invalidateQueries({ queryKey: ['product', id] });
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      const count = Array.isArray(data) ? data.length : 0;
-      toast.success(`${count} variants generated ✓`, { duration: 2500 });
+      toast.success('Variants generated');
     },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed to generate variants'),
   });
@@ -260,9 +253,7 @@ export default function ProductFormPage() {
       productVariantsApi.update(id!, variantId, payload),
     onSuccess: () => {
       refetchVariants();
-      queryClient.invalidateQueries({ queryKey: ['product', id] });
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      toast.success('Variant updated ✓', { duration: 1800 });
+      toast.success('Variant updated');
     },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed to update variant'),
   });
@@ -271,9 +262,7 @@ export default function ProductFormPage() {
     mutationFn: (vid: string) => productVariantsApi.remove(id!, vid),
     onSuccess: () => {
       refetchVariants();
-      queryClient.invalidateQueries({ queryKey: ['product', id] });
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      toast.success('Variant deleted ✓', { duration: 1800 });
+      toast.success('Variant deleted');
     },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed to delete variant'),
   });
@@ -282,7 +271,6 @@ export default function ProductFormPage() {
     mutationFn: (imeiId: string) => imeiApi.remove(imeiId),
     onSuccess: () => {
       refetchImeis();
-      queryClient.invalidateQueries({ queryKey: ['product-imeis', id] });
       toast.success('IMEI removed');
     },
   });
@@ -303,22 +291,14 @@ export default function ProductFormPage() {
     submitLockRef.current = true;
     try {
       const saved = await saveMutation.mutateAsync();
-      // Set data immediately to avoid refetch flicker
       queryClient.setQueryData(['product', saved.id], saved);
-      // Invalidate lists but don't await — let them refetch in background
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      queryClient.invalidateQueries({ queryKey: ['product-images', saved.id] });
-      queryClient.invalidateQueries({ queryKey: ['product-variants', saved.id] });
-      queryClient.invalidateQueries({ queryKey: ['carpet-product-summary'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard-overview'] });
+      await queryClient.invalidateQueries({ queryKey: ['products'] });
+      await queryClient.invalidateQueries({ queryKey: ['product', saved.id] });
       setIsDirty(false);
-      toast.success(isEdit ? 'Product updated ✓' : 'Product created ✓', {
-        description: isEdit ? 'Changes saved successfully' : 'Now add images and variants',
-        duration: 2500,
-      });
-      // Auto-navigate to edit mode (WITH replace so back button doesn't return to "new")
+      toast.success(isEdit ? 'Product updated' : 'Product created successfully');
+      // Navigate WITHOUT replace so back button works correctly
       if (!isEdit) {
-        navigate(`/products/${saved.id}/edit`, { replace: true });
+        navigate(`/products/${saved.id}/edit`);
       }
     } catch (e: any) {
       toast.error(e?.response?.data?.message || 'Failed');
@@ -444,7 +424,7 @@ export default function ProductFormPage() {
                 <span className="font-mono bg-white/10 backdrop-blur rounded-md px-2 py-0.5 text-xs">{form.sku}</span>
               )}
               {(() => {
-                const brand = form.brandId && Array.isArray(brands) ? brands.find((b) => b?.id === form.brandId) : null;
+                const brand = form.brandId ? brands.find((b) => b.id === form.brandId) : null;
                 if (!brand) return null;
                 return (
                   <>
@@ -454,7 +434,7 @@ export default function ProductFormPage() {
                 );
               })()}
               {(() => {
-                const cat = form.categoryId && Array.isArray(categories) ? categories.find((c: any) => c?.id === form.categoryId) : null;
+                const cat = form.categoryId ? categories.find((c: any) => c.id === form.categoryId) : null;
                 if (!cat) return null;
                 return (
                   <>
@@ -985,7 +965,7 @@ export default function ProductFormPage() {
 
             <div className="p-4 space-y-3">
               {(() => {
-                const brand = form.brandId && Array.isArray(brands) ? brands.find((b) => b?.id === form.brandId) : null;
+                const brand = form.brandId ? brands.find((b) => b.id === form.brandId) : null;
                 if (!brand) return null;
                 return (
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-violet-50 border border-violet-200">

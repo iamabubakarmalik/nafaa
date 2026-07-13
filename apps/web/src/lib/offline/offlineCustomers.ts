@@ -2,14 +2,32 @@ import { db, type OfflineCustomer } from './db';
 import { customersApi, type Customer, type CustomerDetail } from '@/api/customers.api';
 import { queueGenericMutation } from './syncEngine';
 
+let lastBgRefreshAt = 0;
+const BG_REFRESH_GAP_MS = 60 * 1000;
+
 function toCustomer(oc: OfflineCustomer): Customer {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { _syncedAt, _localDirty, ...rest } = oc;
   return {
     ...rest,
     createdAt: rest.createdAt || new Date().toISOString(),
     updatedAt: rest.updatedAt || new Date().toISOString(),
   } as Customer;
+}
+
+async function backgroundRefresh() {
+  const now = Date.now();
+  if (now - lastBgRefreshAt < BG_REFRESH_GAP_MS) return;
+  lastBgRefreshAt = now;
+
+  try {
+    const server = await customersApi.list({ page: 1, limit: 5000 });
+    const syncedAt = Date.now();
+    await db.transaction('rw', db.customers, async () => {
+      for (const c of server.items) {
+        await db.customers.put({ ...c, _syncedAt: syncedAt } as OfflineCustomer);
+      }
+    });
+  } catch {}
 }
 
 export const offlineCustomersApi = {
@@ -33,18 +51,23 @@ export const offlineCustomersApi = {
     const startIdx = (page - 1) * limit;
     const items = all.slice(startIdx, startIdx + limit).map(toCustomer);
 
-    if (navigator.onLine) {
-      customersApi
-        .list({ page: 1, limit: 5000 })
-        .then(async (server) => {
-          const now = Date.now();
-          await db.transaction('rw', db.customers, async () => {
-            for (const c of server.items) {
-              await db.customers.put({ ...c, _syncedAt: now } as OfflineCustomer);
-            }
-          });
-        })
-        .catch(() => {});
+    if (navigator.onLine && all.length > 0) {
+      backgroundRefresh();
+    } else if (navigator.onLine && all.length === 0) {
+      try {
+        const server = await customersApi.list({ page: 1, limit: 5000 });
+        const now = Date.now();
+        await db.transaction('rw', db.customers, async () => {
+          for (const c of server.items) {
+            await db.customers.put({ ...c, _syncedAt: now } as OfflineCustomer);
+          }
+        });
+        const fresh = await db.customers.toArray();
+        return {
+          items: fresh.slice(startIdx, startIdx + limit).map(toCustomer),
+          meta: { page, limit, total: fresh.length, totalPages: Math.ceil(fresh.length / limit) },
+        };
+      } catch {}
     }
 
     return {
@@ -59,15 +82,12 @@ export const offlineCustomersApi = {
         const fresh = await customersApi.get(id);
         await db.customers.put({ ...fresh, _syncedAt: Date.now() } as OfflineCustomer);
         return fresh;
-      } catch {
-        // Fall through to cache
-      }
+      } catch {}
     }
 
     const cached = await db.customers.get(id);
     if (!cached) throw new Error('Customer not found');
 
-    // Return a minimal CustomerDetail shape
     return {
       ...toCustomer(cached),
       sales: [],
@@ -96,9 +116,7 @@ export const offlineCustomersApi = {
           _syncedAt: Date.now(),
         } as OfflineCustomer);
         return customer;
-      } catch {
-        // Fall through to offline mode
-      }
+      } catch {}
     }
 
     const tempId = `temp_cust_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;

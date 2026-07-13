@@ -3,8 +3,22 @@ import { db, setMeta, getMeta, type PendingSale, type SyncQueueItem } from './db
 import { toast } from 'sonner';
 
 let isSyncing = false;
-let syncInterval: ReturnType<typeof setInterval> | null = null;
+let uploadInterval: ReturnType<typeof setInterval> | null = null;
+let downloadInterval: ReturnType<typeof setInterval> | null = null;
+let onlineHandler: (() => void) | null = null;
+let offlineHandler: (() => void) | null = null;
+let visibilityHandler: (() => void) | null = null;
+
 const listeners = new Set<(status: SyncStatus) => void>();
+
+// ═══ CONFIG ═══
+const UPLOAD_INTERVAL_MS   = 45 * 1000;      // upload pending changes every 45s
+const DOWNLOAD_INTERVAL_MS = 15 * 60 * 1000; // background download every 15 min (was 5)
+const FIRST_SYNC_DELAY_MS  = 3000;
+const MIN_DOWNLOAD_GAP_MS  = 60 * 1000;      // don't re-download within 1 min
+const MAX_RETRIES          = 5;
+
+let lastDownloadAt = 0;
 
 export interface SyncStatus {
   isSyncing: boolean;
@@ -26,16 +40,10 @@ function notifyListeners() {
   listeners.forEach((cb) => cb({ ...currentStatus }));
 }
 
-/**
- * Subscribe to sync status updates.
- * Returns cleanup function that removes the listener.
- */
 export function subscribeSyncStatus(cb: (status: SyncStatus) => void): () => void {
   listeners.add(cb);
   cb({ ...currentStatus });
-  return () => {
-    listeners.delete(cb);
-  };
+  return () => { listeners.delete(cb); };
 }
 
 async function refreshStatus() {
@@ -45,55 +53,69 @@ async function refreshStatus() {
     getMeta<number>('lastFullSync'),
   ]);
 
-  currentStatus = {
-    ...currentStatus,
-    pendingSales,
-    pendingQueue,
-    lastSync,
-  };
+  currentStatus = { ...currentStatus, pendingSales, pendingQueue, lastSync };
   notifyListeners();
 }
 
-export async function downloadAllData(): Promise<{ success: boolean; error?: string }> {
+/**
+ * SMART DOWNLOAD — upserts records, doesn't clear cache.
+ * Removes only items that no longer exist on server (via ID diff).
+ */
+export async function downloadAllData(force = false): Promise<{ success: boolean; error?: string }> {
+  // Throttle: skip if just downloaded (unless forced)
+  if (!force && Date.now() - lastDownloadAt < MIN_DOWNLOAD_GAP_MS) {
+    return { success: true };
+  }
+
   try {
     currentStatus.isSyncing = true;
     notifyListeners();
 
-    console.log('[sync] Starting full download...');
-
+    // ─── PRODUCTS ────────────────────────────────────────
     const productsRes = await apiClient.get('/products', {
       params: { page: 1, limit: 5000, isActive: 'true' },
     });
     const products = productsRes.data?.data?.items || [];
     const now = Date.now();
 
-    await db.transaction('rw', db.products, async () => {
-      await db.products.clear();
-      await db.products.bulkAdd(
-        products.map((p: any) => ({
-          ...p,
-          _syncedAt: now,
-        })),
-      );
-    });
-    console.log(`[sync] Products: ${products.length}`);
+    if (products.length > 0) {
+      const serverIds = new Set<string>(products.map((p: any) => p.id));
 
+      await db.transaction('rw', db.products, async () => {
+        // Upsert each product (preserves any local-only fields you might add)
+        await db.products.bulkPut(
+          products.map((p: any) => ({ ...p, _syncedAt: now })),
+        );
+        // Delete rows that don't exist on server anymore
+        const allLocalIds = await db.products.toCollection().primaryKeys();
+        const toDelete = (allLocalIds as string[]).filter((id) => !serverIds.has(id));
+        if (toDelete.length > 0) await db.products.bulkDelete(toDelete);
+      });
+    }
+
+    // ─── CUSTOMERS ────────────────────────────────────────
     const customersRes = await apiClient.get('/customers', {
       params: { page: 1, limit: 5000 },
     });
     const customers = customersRes.data?.data?.items || [];
 
-    await db.transaction('rw', db.customers, async () => {
-      await db.customers.clear();
-      await db.customers.bulkAdd(
-        customers.map((c: any) => ({
-          ...c,
-          _syncedAt: now,
-        })),
-      );
-    });
-    console.log(`[sync] Customers: ${customers.length}`);
+    if (customers.length > 0) {
+      const serverIds = new Set<string>(customers.map((c: any) => c.id));
 
+      await db.transaction('rw', db.customers, async () => {
+        await db.customers.bulkPut(
+          customers.map((c: any) => ({ ...c, _syncedAt: now })),
+        );
+        // Only delete non-dirty local customers not on server
+        const localCustomers = await db.customers.toArray();
+        const toDelete = localCustomers
+          .filter((c) => !serverIds.has(c.id) && !c._localDirty && !c.id.startsWith('temp_'))
+          .map((c) => c.id);
+        if (toDelete.length > 0) await db.customers.bulkDelete(toDelete);
+      });
+    }
+
+    // ─── LOOKUPS ─────────────────────────────────────────
     const [categoriesRes, brandsRes, tagsRes] = await Promise.all([
       apiClient.get('/categories').catch(() => ({ data: { data: [] } })),
       apiClient.get('/brands').catch(() => ({ data: { data: [] } })),
@@ -107,43 +129,23 @@ export async function downloadAllData(): Promise<{ success: boolean; error?: str
     await db.transaction('rw', db.lookups, async () => {
       await db.lookups.clear();
       await db.lookups.bulkAdd([
-        ...categories.map((c: any) => ({
-          id: c.id,
-          type: 'category' as const,
-          name: c.name,
-          color: c.color,
-          _syncedAt: now,
-        })),
-        ...brands.map((b: any) => ({
-          id: b.id,
-          type: 'brand' as const,
-          name: b.name,
-          _syncedAt: now,
-        })),
-        ...tags.map((t: any) => ({
-          id: t.id,
-          type: 'tag' as const,
-          name: t.name,
-          color: t.color,
-          _syncedAt: now,
-        })),
+        ...categories.map((c: any) => ({ id: c.id, type: 'category' as const, name: c.name, color: c.color, _syncedAt: now })),
+        ...brands.map((b: any) => ({ id: b.id, type: 'brand' as const, name: b.name, _syncedAt: now })),
+        ...tags.map((t: any) => ({ id: t.id, type: 'tag' as const, name: t.name, color: t.color, _syncedAt: now })),
       ]);
     });
-    console.log(`[sync] Lookups: ${categories.length + brands.length + tags.length}`);
 
-    // Cache carpet data (if applicable)
-    try {
-      const { downloadCarpetData } = await import('./offlineCarpet');
-      await downloadCarpetData();
-    } catch (e) {
-      console.warn('[sync] Carpet cache failed:', e);
-    }
+    // Carpet cache (best-effort, non-blocking)
+    import('./offlineCarpet')
+      .then(({ downloadCarpetData }) => downloadCarpetData())
+      .catch(() => {});
 
     await setMeta('lastFullSync', now);
+    lastDownloadAt = now;
     currentStatus.lastSync = now;
     currentStatus.lastError = null;
 
-    console.log('[sync] ✅ Full download complete');
+    console.log(`[sync] ✅ Downloaded — ${products.length} products, ${customers.length} customers`);
     return { success: true };
   } catch (error: any) {
     const msg = error?.response?.data?.message || error?.message || 'Sync failed';
@@ -156,6 +158,9 @@ export async function downloadAllData(): Promise<{ success: boolean; error?: str
   }
 }
 
+/**
+ * Upload pending changes — sales + generic queue
+ */
 export async function uploadPendingChanges(): Promise<{
   salesSynced: number;
   queueSynced: number;
@@ -171,16 +176,10 @@ export async function uploadPendingChanges(): Promise<{
     .sortBy('createdAt');
 
   for (const sale of pendingSales) {
-    if (sale.retryCount >= 5) {
-      console.warn(`[sync] Skipping sale ${sale.id} — too many retries`);
-      continue;
-    }
+    if (sale.retryCount >= MAX_RETRIES) continue;
 
     try {
-      await db.pendingSales.update(sale.id, {
-        status: 'syncing',
-        lastTriedAt: Date.now(),
-      });
+      await db.pendingSales.update(sale.id, { status: 'syncing', lastTriedAt: Date.now() });
 
       const res = await apiClient.post('/sales', {
         shopId: sale.shopId,
@@ -192,15 +191,12 @@ export async function uploadPendingChanges(): Promise<{
       });
 
       const serverSale = res.data?.data;
-
       await db.pendingSales.update(sale.id, {
         status: 'synced',
         serverSaleId: serverSale?.id,
         serverSaleNumber: serverSale?.saleNumber,
       });
-
       salesSynced++;
-      console.log(`[sync] Sale synced: ${serverSale?.saleNumber}`);
     } catch (error: any) {
       failed++;
       const msg = error?.response?.data?.message || error?.message || 'Unknown error';
@@ -209,7 +205,6 @@ export async function uploadPendingChanges(): Promise<{
         syncError: msg,
         retryCount: sale.retryCount + 1,
       });
-      console.error(`[sync] Sale ${sale.id} failed:`, msg);
     }
   }
 
@@ -219,17 +214,11 @@ export async function uploadPendingChanges(): Promise<{
     .sortBy('createdAt');
 
   for (const item of queueItems) {
-    if (item.retryCount >= 5) continue;
+    if (item.retryCount >= MAX_RETRIES) continue;
 
     try {
       await db.syncQueue.update(item.id, { status: 'syncing' });
-
-      await apiClient.request({
-        method: item.method,
-        url: item.endpoint,
-        data: item.payload,
-      });
-
+      await apiClient.request({ method: item.method, url: item.endpoint, data: item.payload });
       await db.syncQueue.update(item.id, { status: 'synced' });
       queueSynced++;
     } catch (error: any) {
@@ -255,16 +244,18 @@ async function cleanupSynced() {
     .where('status').equals('synced')
     .and((s) => s.createdAt < weekAgo)
     .delete();
-
   await db.syncQueue
     .where('status').equals('synced')
     .and((s) => s.createdAt < weekAgo)
     .delete();
 }
 
-export async function fullSync(silent = false): Promise<void> {
+/**
+ * Full sync — upload then download. Silent by default.
+ */
+export async function fullSync(silent = false, force = false): Promise<void> {
   if (isSyncing) {
-    if (!silent) toast.info('Sync already in progress...');
+    if (!silent) toast.info('Sync already in progress');
     return;
   }
   if (!navigator.onLine) {
@@ -278,12 +269,15 @@ export async function fullSync(silent = false): Promise<void> {
 
   try {
     const uploadResult = await uploadPendingChanges();
-    await downloadAllData();
+    await downloadAllData(force);
 
     if (!silent && (uploadResult.salesSynced > 0 || uploadResult.queueSynced > 0)) {
       toast.success(
         `Synced: ${uploadResult.salesSynced} sales, ${uploadResult.queueSynced} changes`,
+        { duration: 2500 },
       );
+    } else if (!silent) {
+      toast.success('Sync complete', { duration: 1500 });
     }
   } finally {
     isSyncing = false;
@@ -293,34 +287,56 @@ export async function fullSync(silent = false): Promise<void> {
 }
 
 function setupAutoSync() {
-  window.addEventListener('online', () => {
-    console.log('[sync] Connection restored — syncing...');
-    toast.info('🌐 Connection restored — syncing...', { duration: 2000 });
-    setTimeout(() => fullSync(true), 1000);
-  });
+  // Online / offline events
+  onlineHandler = () => {
+    console.log('[sync] Connection restored');
+    toast.info('🌐 Wapis connect ho gaye', { duration: 2000 });
+    setTimeout(() => fullSync(true, true), 1000);
+  };
+  offlineHandler = () => {
+    console.log('[sync] Offline');
+    toast.warning('📡 Offline — sales queue mein save hongi', { duration: 3000 });
+  };
+  window.addEventListener('online', onlineHandler);
+  window.addEventListener('offline', offlineHandler);
 
-  window.addEventListener('offline', () => {
-    console.log('[sync] Gone offline');
-    toast.warning('📡 You are offline — sales will sync when connected');
-  });
+  // Sync when tab becomes visible (user came back)
+  visibilityHandler = () => {
+    if (document.visibilityState === 'visible' && navigator.onLine && !isSyncing) {
+      // Only if last sync was > 2 min ago
+      const gap = Date.now() - (currentStatus.lastSync || 0);
+      if (gap > 2 * 60 * 1000) {
+        uploadPendingChanges().catch(() => {});
+      }
+    }
+  };
+  document.addEventListener('visibilitychange', visibilityHandler);
 
-  syncInterval = setInterval(() => {
-    if (navigator.onLine && !isSyncing) {
+  // Upload pending every 45s (fast, only if any pending)
+  uploadInterval = setInterval(async () => {
+    if (!navigator.onLine || isSyncing) return;
+    const pendingCount = await db.pendingSales.where('status').anyOf('pending', 'failed').count();
+    const queueCount = await db.syncQueue.where('status').anyOf('pending', 'failed').count();
+    if (pendingCount + queueCount > 0) {
       uploadPendingChanges().catch(() => {});
     }
-  }, 30_000);
+  }, UPLOAD_INTERVAL_MS);
 
-  setInterval(() => {
-    if (navigator.onLine && !isSyncing) {
-      downloadAllData().catch(() => {});
+  // Background download every 15 min (was 5 min — too aggressive)
+  downloadInterval = setInterval(() => {
+    if (navigator.onLine && !isSyncing && document.visibilityState === 'visible') {
+      downloadAllData(false).catch(() => {});
     }
-  }, 5 * 60 * 1000);
+  }, DOWNLOAD_INTERVAL_MS);
 }
 
 let initialized = false;
 
 export function initSyncEngine() {
-  if (initialized) return;
+  if (initialized) {
+    console.log('[sync] Already initialized — skipping');
+    return;
+  }
   initialized = true;
 
   console.log('[sync] Initializing...');
@@ -328,15 +344,21 @@ export function initSyncEngine() {
   refreshStatus();
 
   if (navigator.onLine) {
-    setTimeout(() => fullSync(true), 2000);
+    setTimeout(() => fullSync(true, true), FIRST_SYNC_DELAY_MS);
   }
 }
 
 export function stopSyncEngine() {
-  if (syncInterval) {
-    clearInterval(syncInterval);
-    syncInterval = null;
-  }
+  if (uploadInterval) clearInterval(uploadInterval);
+  if (downloadInterval) clearInterval(downloadInterval);
+  if (onlineHandler) window.removeEventListener('online', onlineHandler);
+  if (offlineHandler) window.removeEventListener('offline', offlineHandler);
+  if (visibilityHandler) document.removeEventListener('visibilitychange', visibilityHandler);
+  uploadInterval = null;
+  downloadInterval = null;
+  onlineHandler = null;
+  offlineHandler = null;
+  visibilityHandler = null;
   initialized = false;
 }
 
@@ -353,9 +375,8 @@ export async function queuePendingSale(
   await refreshStatus();
 
   if (navigator.onLine) {
-    setTimeout(() => uploadPendingChanges(), 500);
+    setTimeout(() => uploadPendingChanges().catch(() => {}), 500);
   }
-
   return fullSale;
 }
 
@@ -373,6 +394,6 @@ export async function queueGenericMutation(
   await refreshStatus();
 
   if (navigator.onLine) {
-    setTimeout(() => uploadPendingChanges(), 500);
+    setTimeout(() => uploadPendingChanges().catch(() => {}), 500);
   }
 }

@@ -414,7 +414,7 @@ export default function PlansPage() {
           const price = getPrice(plan);
           const savings = getSavings(plan);
           const isFree = plan.priceMonthly === 0;
-          const isPendingThis = pendingUpgrade?.subscription?.plan?.id === plan?.id;
+          const isPendingThis = pendingUpgrade?.subscription?.plan?.id === plan.id;
 
           return (
             <div

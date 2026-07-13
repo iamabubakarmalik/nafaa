@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  Wrench, Plus, Trash2, X, Sparkles, Droplet, Hammer,
+  Wrench, Plus, X, Sparkles, Droplet, Hammer,
   Scissors, Truck, Layers, Package, ChevronDown, ChevronUp,
 } from 'lucide-react';
 import { formatPKR } from '@/lib/format';
@@ -42,14 +42,7 @@ export function ServiceChargesPanel({ charges, onChange }: Props) {
       onChange(charges.filter((_, i) => i !== existing));
       return;
     }
-    onChange([
-      ...charges,
-      {
-        type: preset.type,
-        label: preset.label,
-        amount: preset.suggested ?? 0,
-      },
-    ]);
+    onChange([...charges, { type: preset.type, label: preset.label, amount: preset.suggested ?? 0 }]);
   };
 
   const updateCharge = (idx: number, patch: Partial<ServiceChargeItem>) => {
@@ -77,19 +70,19 @@ export function ServiceChargesPanel({ charges, onChange }: Props) {
         className="w-full px-3 py-2.5 flex items-center justify-between hover:bg-amber-100/50 transition"
       >
         <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-md">
+          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-md">
             <Wrench className="h-4 w-4" />
           </div>
           <div className="text-left">
-            <div className="text-xs font-extrabold text-amber-900 flex items-center gap-1">
+            <div className="text-sm font-extrabold text-amber-900 flex items-center gap-1">
               Service Charges
               {charges.length > 0 && (
-                <span className="px-1.5 py-0.5 rounded-full bg-amber-600 text-white text-[9px] font-extrabold">
+                <span className="px-1.5 py-0.5 rounded-full bg-amber-600 text-white text-[10px] font-extrabold">
                   {charges.length}
                 </span>
               )}
             </div>
-            <div className="text-[10px] text-amber-700 font-semibold">
+            <div className="text-xs text-amber-700 font-semibold">
               {total > 0 ? `+${formatPKR(total)}` : 'Glue, installation, delivery...'}
             </div>
           </div>
@@ -99,9 +92,8 @@ export function ServiceChargesPanel({ charges, onChange }: Props) {
 
       {expanded && (
         <div className="border-t-2 border-amber-200 p-3 space-y-3 bg-white/60">
-          {/* Preset buttons */}
           <div>
-            <div className="text-[9px] uppercase tracking-wider font-extrabold text-slate-600 mb-1.5 flex items-center gap-1">
+            <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1.5 flex items-center gap-1">
               <Sparkles className="h-2.5 w-2.5 text-amber-500" />
               Quick Add
             </div>
@@ -116,17 +108,15 @@ export function ServiceChargesPanel({ charges, onChange }: Props) {
                     type="button"
                     onClick={() => addPreset(p)}
                     className={`p-2 rounded-xl border-2 transition text-left ${
-                      active
-                        ? `${c.bg} ${c.border} ring-2 ring-offset-1 ring-${p.color}-300 shadow-sm`
-                        : 'bg-white border-slate-200 hover:border-slate-300'
+                      active ? `${c.bg} ${c.border} shadow-sm` : 'bg-white border-slate-200 hover:border-slate-300'
                     }`}
                   >
                     <Icon className={`h-3.5 w-3.5 mb-0.5 ${active ? c.icon : 'text-slate-400'}`} />
-                    <div className={`text-[9px] font-extrabold leading-tight ${active ? c.text : 'text-slate-600'}`}>
+                    <div className={`text-[10px] font-extrabold leading-tight ${active ? c.text : 'text-slate-600'}`}>
                       {p.label}
                     </div>
                     {p.suggested && !active && (
-                      <div className="text-[8px] text-slate-500 font-bold mt-0.5">
+                      <div className="text-[9px] text-slate-500 font-bold mt-0.5">
                         ~{formatPKR(p.suggested)}
                       </div>
                     )}
@@ -136,10 +126,9 @@ export function ServiceChargesPanel({ charges, onChange }: Props) {
             </div>
           </div>
 
-          {/* Active charges list */}
           {charges.length > 0 && (
             <div className="space-y-1.5">
-              <div className="text-[9px] uppercase tracking-wider font-extrabold text-slate-600">
+              <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600">
                 Applied Charges
               </div>
               {charges.map((charge, idx) => {
@@ -147,16 +136,13 @@ export function ServiceChargesPanel({ charges, onChange }: Props) {
                 const Icon = preset?.icon ?? Package;
                 const c = COLOR_MAP[preset?.color ?? 'slate'];
                 return (
-                  <div
-                    key={`${charge.type}-${idx}`}
-                    className={`rounded-lg border-2 ${c.border} ${c.bg} p-2 flex items-center gap-2`}
-                  >
+                  <div key={`${charge.type}-${idx}`} className={`rounded-lg border-2 ${c.border} ${c.bg} p-2 flex items-center gap-2`}>
                     <Icon className={`h-4 w-4 ${c.icon} shrink-0`} />
                     <input
                       type="text"
                       value={charge.label}
                       onChange={(e) => updateCharge(idx, { label: e.target.value })}
-                      className={`flex-1 h-7 rounded-md bg-white border border-slate-200 px-2 text-[11px] font-bold ${c.text} focus:outline-none focus:border-amber-500`}
+                      className={`flex-1 h-8 rounded-md bg-white border border-slate-200 px-2 text-xs font-bold ${c.text} focus:outline-none focus:border-amber-500`}
                     />
                     <div className="relative">
                       <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] font-extrabold text-slate-500">Rs</span>
@@ -166,30 +152,28 @@ export function ServiceChargesPanel({ charges, onChange }: Props) {
                         min="0"
                         value={charge.amount}
                         onChange={(e) => updateCharge(idx, { amount: Number(e.target.value) || 0 })}
-                        className="h-7 w-24 rounded-md border border-slate-200 pl-7 pr-1.5 text-[11px] font-extrabold text-right tabular-nums focus:outline-none focus:border-amber-500"
+                        className="h-8 w-24 rounded-md border border-slate-200 pl-7 pr-1.5 text-xs font-extrabold text-right tabular-nums focus:outline-none focus:border-amber-500"
                       />
                     </div>
                     <button
                       onClick={() => removeCharge(idx)}
-                      className="h-6 w-6 rounded-md bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center shrink-0"
+                      className="h-7 w-7 rounded-md bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center shrink-0"
                     >
-                      <X className="h-3 w-3" />
+                      <X className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 );
               })}
 
-              {/* Total */}
               <div className="rounded-lg bg-gradient-to-r from-amber-600 to-orange-600 text-white p-2 flex items-center justify-between shadow-md">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider">Service Total</span>
-                <span className="text-sm font-extrabold tabular-nums">{formatPKR(total)}</span>
+                <span className="text-[11px] font-extrabold uppercase tracking-wider">Service Total</span>
+                <span className="text-base font-extrabold tabular-nums">{formatPKR(total)}</span>
               </div>
             </div>
           )}
 
-          {/* Custom add */}
           <div className="pt-2 border-t border-amber-200">
-            <div className="text-[9px] uppercase tracking-wider font-extrabold text-slate-600 mb-1.5">
+            <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1.5">
               Custom Charge
             </div>
             <div className="flex gap-1.5">
@@ -198,7 +182,7 @@ export function ServiceChargesPanel({ charges, onChange }: Props) {
                 value={customLabel}
                 onChange={(e) => setCustomLabel(e.target.value)}
                 placeholder="Label (e.g. Extra padding)"
-                className="flex-1 h-8 rounded-md border-2 border-slate-200 px-2 text-[11px] font-bold focus:outline-none focus:border-amber-500"
+                className="flex-1 h-9 rounded-md border-2 border-slate-200 px-2 text-xs font-bold focus:outline-none focus:border-amber-500"
               />
               <input
                 type="number"
@@ -207,13 +191,13 @@ export function ServiceChargesPanel({ charges, onChange }: Props) {
                 value={customAmount}
                 onChange={(e) => setCustomAmount(e.target.value)}
                 placeholder="Amount"
-                className="h-8 w-24 rounded-md border-2 border-slate-200 px-2 text-[11px] font-extrabold text-right focus:outline-none focus:border-amber-500"
+                className="h-9 w-24 rounded-md border-2 border-slate-200 px-2 text-xs font-extrabold text-right focus:outline-none focus:border-amber-500"
               />
               <button
                 type="button"
                 onClick={addCustom}
                 disabled={!customLabel.trim() || !(Number(customAmount) > 0)}
-                className="h-8 px-2.5 rounded-md bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-extrabold inline-flex items-center gap-1 disabled:opacity-50 transition"
+                className="h-9 px-3 rounded-md bg-amber-600 hover:bg-amber-700 text-white text-xs font-extrabold inline-flex items-center gap-1 disabled:opacity-50 transition"
               >
                 <Plus className="h-3 w-3" /> Add
               </button>
