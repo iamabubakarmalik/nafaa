@@ -363,6 +363,16 @@ model Tenant {
   referralsReceived      Referral[]              @relation("ReferralReferee")
   creditTransactions     CreditTransaction[]
   bookings               Booking[]
+
+  // ─── Retail Industry Relations ───
+  productCombos            ProductCombo[]
+  damageLogs               DamageLog[]
+  bulkImportJobs           BulkImportJob[]
+  retailQuickKeys          RetailQuickKey[]
+  barcodeLabelBatches      BarcodeLabelBatch[]
+  reorderSuggestions       ReorderSuggestion[]
+  restaurantOrders         RestaurantOrder[]
+  salonAppointmentLegacies SalonAppointmentLegacy[]
 }
 
 model Referral {
@@ -735,8 +745,9 @@ model Category {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  products Product[]
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  products      Product[]
+  productCombos ProductCombo[]
 
   @@unique([tenantId, name])
   @@index([tenantId])
@@ -772,24 +783,32 @@ model Product {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  tenant          Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  category        Category?           @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  brand           Brand?              @relation(fields: [brandId], references: [id], onDelete: SetNull)
-  saleItems       SaleItem[]
-  purchaseItems   PurchaseItem[]
-  stockMovements  StockMovement[]
-  adjustments     StockAdjustment[]
-  transferItems   StockTransferItem[]
-  returnItems     SaleReturnItem[]
-  images          ProductImage[]
-  variants        ProductVariant[]
-  tags            ProductTag[]
-  batches         ProductBatch[]
-  productImeis    ProductImei[]
-  shopStocks      ShopStock[]
-  carpetRolls     CarpetRoll[]
-  carpetCutPieces CarpetCutPiece[]
-  repairParts     RepairPart[]        @relation("RepairPartProduct")
+  tenant               Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  category             Category?             @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  brand                Brand?                @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  saleItems            SaleItem[]
+  purchaseItems        PurchaseItem[]
+  stockMovements       StockMovement[]
+  adjustments          StockAdjustment[]
+  transferItems        StockTransferItem[]
+  returnItems          SaleReturnItem[]
+  images               ProductImage[]
+  variants             ProductVariant[]
+  tags                 ProductTag[]
+  batches              ProductBatch[]
+  productImeis         ProductImei[]
+  shopStocks           ShopStock[]
+  carpetRolls          CarpetRoll[]
+  carpetCutPieces      CarpetCutPiece[]
+  repairParts          RepairPart[]          @relation("RepairPartProduct")
+  units                ProductUnit[]
+  comboItems           ProductComboItem[]
+  damageLogs           DamageLog[]
+  menuItem             RestaurantMenuItem?
+  recipeIngredients    RecipeIngredient[]    @relation("IngredientProduct")
+  restaurantOrderItems RestaurantOrderItem[] @relation("RestaurantOrderProduct")
+  pharmacyMedicine     PharmacyMedicine?     @relation("PharmacyMedicine")
+  productSalts         ProductSalt[]         @relation("ProductSalt")
 
   @@index([tenantId])
   @@index([tenantId, name])
@@ -885,14 +904,17 @@ model ProductVariant {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  product         Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product         Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
   batches         ProductBatch[]
   imeis           ProductImei[]
   saleItems       SaleItemVariant[]
   shopStocks      ShopStock[]
   carpetRolls     CarpetRoll[]
   carpetCutPieces CarpetCutPiece[]
-  adjustments     StockAdjustment[] @relation("VariantAdjustments")
+  adjustments     StockAdjustment[]  @relation("VariantAdjustments")
+  units           ProductUnit[]
+  comboItems      ProductComboItem[]
+  damageLogs      DamageLog[]
 
   @@index([productId])
   @@index([productId, isActive])
@@ -927,9 +949,10 @@ model ProductBatch {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  tenant  Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  product Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
-  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  tenant     Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  product    Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant    ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  damageLogs DamageLog[]
 
   @@index([tenantId])
   @@index([productId])
@@ -2219,7 +2242,7 @@ enum AppointmentStatus {
   NO_SHOW
 }
 
-model SalonAppointment {
+model SalonAppointmentLegacy {
   id               String  @id @default(uuid())
   tenantId         String
   shopId           String?
@@ -2942,4 +2965,3375 @@ model BookingPayment {
 
   @@index([bookingId])
   @@index([type])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INDUSTRY: RETAIL — Multi-Unit, Combos, Damage, Quick Keys, Bulk Import
+// FULL BEST — Kiryana, General Stores, Super Marts
+// ═══════════════════════════════════════════════════════════════
+
+enum UnitConversionType {
+  BASE // The base sellable unit (piece, kg, meter)
+  PACK // e.g. 1 pack = 6 pieces
+  BOX // e.g. 1 box = 12 pieces
+  DOZEN // 1 dozen = 12 pieces
+  CARTON // 1 carton = 10 dozens = 120 pieces
+  KG_TO_GRAM // 1 kg = 1000 grams (for fractional)
+  L_TO_ML // 1 liter = 1000 ml
+  CUSTOM
+}
+
+enum DamageStatus {
+  REPORTED // Damage logged, awaiting review
+  APPROVED // Manager approved, stock adjusted
+  REJECTED // Not damaged / false report
+  WRITTEN_OFF // Fully written off, cost booked
+}
+
+enum DamageReasonCode {
+  EXPIRY
+  BREAKAGE
+  SPOILAGE
+  PEST_DAMAGE
+  WATER_DAMAGE
+  THEFT
+  MISHANDLING
+  MANUFACTURING_DEFECT
+  OTHER
+}
+
+enum ComboStatus {
+  ACTIVE
+  INACTIVE
+  EXPIRED
+  DRAFT
+}
+
+enum BulkJobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  PARTIAL
+}
+
+enum BulkJobType {
+  PRODUCTS
+  CUSTOMERS
+  SUPPLIERS
+  STOCK_ADJUSTMENT
+  PRICE_UPDATE
+}
+
+// ─── Multi-Unit System ────────────────────────────────────────
+// Ek product multiple units mein bech sakte ho:
+// Colgate piece = Rs 150 (base)
+// Colgate dozen = Rs 1650 (12 pieces)
+// Colgate carton = Rs 15000 (10 dozens)
+model ProductUnit {
+  id        String  @id @default(uuid())
+  tenantId  String
+  productId String
+  variantId String?
+
+  unitName       String // "piece", "dozen", "carton", "kg"
+  unitLabel      String? // Display: "Dozen (12 pcs)"
+  conversionType UnitConversionType @default(BASE)
+  conversionRate Float              @default(1) // How many BASE units this = 
+  isBase         Boolean            @default(false)
+  isDefault      Boolean            @default(false) // Default at POS
+
+  // Pricing
+  price          Float  @default(0)
+  costPrice      Float  @default(0)
+  wholesalePrice Float?
+  mrpPrice       Float? // Maximum Retail Price
+
+  // Per-unit barcode/SKU
+  barcode String?
+  sku     String?
+
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product           Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant           ProductVariant?    @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  productComboItems ProductComboItem[]
+
+  @@unique([productId, variantId, unitName])
+  @@index([tenantId])
+  @@index([productId])
+  @@index([variantId])
+  @@index([barcode])
+  @@index([tenantId, isActive])
+}
+
+// ─── Combo / Bundle Products ──────────────────────────────────
+// "Chai Combo" = 1kg cheeni + 500g patti + 1 pack rusk = Rs 900 (save Rs 100)
+model ProductCombo {
+  id         String  @id @default(uuid())
+  tenantId   String
+  shopId     String?
+  categoryId String?
+
+  name        String
+  slug        String?
+  sku         String?
+  barcode     String?
+  description String? @db.Text
+  imageUrl    String?
+
+  // Pricing
+  comboPrice        Float @default(0)
+  originalTotal     Float @default(0)
+  savingsAmount     Float @default(0)
+  savingsPercentage Float @default(0)
+
+  // Availability
+  status    ComboStatus @default(ACTIVE)
+  validFrom DateTime?
+  validTo   DateTime?
+
+  // Limits
+  maxPurchasePerCustomer Int?
+  stockAvailable         Int? // If null = unlimited (until component stock runs out)
+
+  // Stats
+  soldCount    Int   @default(0)
+  totalRevenue Float @default(0)
+
+  // Display
+  isFeatured Boolean @default(false)
+  sortOrder  Int     @default(0)
+  tagLine    String? // "Best Deal!", "Limited Time"
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant   Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  category Category?          @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  items    ProductComboItem[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([tenantId, isFeatured])
+  @@index([barcode])
+  @@index([categoryId])
+}
+
+model ProductComboItem {
+  id        String  @id @default(uuid())
+  comboId   String
+  productId String
+  variantId String?
+  unitId    String? // Which unit: piece/dozen/carton
+
+  quantity      Float   @default(1)
+  unitName      String? // "piece", "dozen", "kg"
+  originalPrice Float   @default(0)
+  sortOrder     Int     @default(0)
+
+  createdAt DateTime @default(now())
+
+  combo   ProductCombo    @relation(fields: [comboId], references: [id], onDelete: Cascade)
+  product Product         @relation(fields: [productId], references: [id], onDelete: Restrict)
+  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  unit    ProductUnit?    @relation(fields: [unitId], references: [id], onDelete: SetNull)
+
+  @@index([comboId])
+  @@index([productId])
+  @@index([variantId])
+}
+
+// ─── Damage / Wastage / Loss Tracking ─────────────────────────
+model DamageLog {
+  id           String  @id @default(uuid())
+  tenantId     String
+  shopId       String?
+  productId    String
+  variantId    String?
+  batchId      String?
+  unitId       String?
+  reportedById String
+  approvedById String?
+
+  damageNumber String // DMG-2026-0001
+  quantity     Float
+  unitCost     Float  @default(0)
+  costImpact   Float  @default(0) // Total loss = quantity × unitCost
+  salvageValue Float  @default(0) // Recoverable amount (e.g. sold at discount)
+  netLoss      Float  @default(0) // costImpact - salvageValue
+
+  reason        String
+  reasonCode    DamageReasonCode @default(OTHER)
+  photos        String[]         @default([])
+  notes         String?          @db.Text
+  supplierClaim Boolean          @default(false) // Can claim from supplier?
+  claimStatus   String? // "PENDING", "APPROVED", "REJECTED"
+  claimAmount   Float            @default(0)
+
+  status          DamageStatus @default(REPORTED)
+  approvedAt      DateTime?
+  rejectedAt      DateTime?
+  rejectionReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant  Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  product Product         @relation(fields: [productId], references: [id], onDelete: Restrict)
+  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  batch   ProductBatch?   @relation(fields: [batchId], references: [id], onDelete: SetNull)
+
+  @@unique([tenantId, damageNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([tenantId, reasonCode])
+  @@index([productId])
+  @@index([shopId])
+  @@index([createdAt])
+}
+
+// ─── Quick-Access Favorites (POS shortcut grid) ───────────────
+model RetailQuickKey {
+  id        String  @id @default(uuid())
+  tenantId  String
+  userId    String? // Per-user or shared (null = shared)
+  shopId    String? // Shop-specific
+  productId String?
+  comboId   String?
+  variantId String?
+  unitId    String?
+
+  label    String
+  color    String?
+  icon     String? // Emoji or lucide icon name
+  position Int     @default(0)
+  hotkey   String? // F1-F12
+  group    String? // "Beverages", "Snacks" — visual grouping
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([tenantId, userId])
+  @@index([tenantId, shopId])
+  @@index([tenantId, position])
+}
+
+// ─── Bulk Import Job Tracking ─────────────────────────────────
+model BulkImportJob {
+  id       String      @id @default(uuid())
+  tenantId String
+  userId   String
+  jobType  BulkJobType
+
+  fileName      String
+  fileUrl       String?
+  fileSize      Int?
+  totalRows     Int     @default(0)
+  processedRows Int     @default(0)
+  successCount  Int     @default(0)
+  errorCount    Int     @default(0)
+  skipCount     Int     @default(0)
+  errors        Json?
+
+  status      BulkJobStatus @default(PENDING)
+  startedAt   DateTime?
+  completedAt DateTime?
+  duration    Int? // ms
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([tenantId, jobType])
+  @@index([createdAt])
+}
+
+// ─── Barcode Label Printing Sheet ─────────────────────────────
+model BarcodeLabelBatch {
+  id       String @id @default(uuid())
+  tenantId String
+  userId   String
+
+  name         String
+  layout       String  @default("30_per_sheet") // 30_per_sheet, 40_per_sheet, thermal_58mm
+  paperSize    String  @default("A4")
+  includePrice Boolean @default(true)
+  includeName  Boolean @default(true)
+  includeShop  Boolean @default(true)
+  includeMrp   Boolean @default(false)
+  fontFamily   String  @default("monospace")
+
+  items       Json // [{ productId, unitId, quantity, customPrice? }]
+  totalLabels Int  @default(0)
+
+  printedAt DateTime?
+  createdAt DateTime  @default(now())
+  tenant    Tenant    @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([createdAt])
+}
+
+// ─── Reorder Suggestions ──────────────────────────────────────
+model ReorderSuggestion {
+  id        String  @id @default(uuid())
+  tenantId  String
+  shopId    String?
+  productId String
+  variantId String?
+
+  currentStock        Float   @default(0)
+  reorderPoint        Float   @default(0)
+  suggestedQuantity   Float   @default(0)
+  avgDailySales       Float   @default(0)
+  daysOfStockLeft     Float   @default(0)
+  lastPurchasePrice   Float   @default(0)
+  preferredSupplierId String?
+
+  status    String   @default("PENDING") // PENDING, ORDERED, IGNORED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([productId])
+  @@index([shopId])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INDUSTRY: RESTAURANT / FOOD & BAKERY / CAFE
+// Full feature set — Menu, Modifiers, Tables, KOT, Delivery, Recipes
+// ═══════════════════════════════════════════════════════════════
+
+enum RestaurantOrderMode {
+  DINE_IN
+  TAKEAWAY
+  DELIVERY
+  DRIVE_THRU
+  ROOM_SERVICE
+  PICKUP
+}
+
+enum RestaurantOrderStatus {
+  DRAFT // Order being built
+  PLACED // Sent to kitchen
+  CONFIRMED // Kitchen accepted
+  COOKING // In preparation
+  READY // Ready to serve/pickup
+  SERVED // Delivered to table
+  OUT_FOR_DELIVERY // Rider picked up
+  DELIVERED // Customer received
+  COMPLETED // Paid + closed
+  CANCELLED
+  ON_HOLD
+}
+
+enum RestaurantTableStatus {
+  AVAILABLE
+  OCCUPIED
+  RESERVED
+  CLEANING
+  OUT_OF_SERVICE
+}
+
+enum SpiceLevel {
+  NONE
+  MILD
+  MEDIUM
+  HOT
+  EXTRA_HOT
+}
+
+enum DietaryTag {
+  VEGETARIAN
+  VEGAN
+  HALAL
+  GLUTEN_FREE
+  DAIRY_FREE
+  NUT_FREE
+  SPICY
+  CONTAINS_EGG
+  CONTAINS_SEAFOOD
+  BEEF
+  CHICKEN
+  MUTTON
+}
+
+enum ModifierType {
+  ADDON // Extra cheese, add bacon
+  VARIATION // Size: small/medium/large
+  REMOVAL // No onion, no garlic
+  SPICE_LEVEL // Mild/medium/hot
+  COOKING_STYLE // Well done, medium rare
+  NOTE // Free-text customer note
+}
+
+enum RiderStatus {
+  ACTIVE
+  BUSY
+  OFFLINE
+  ON_BREAK
+  INACTIVE
+}
+
+enum RiderDeliveryStatus {
+  PENDING
+  ASSIGNED
+  PICKED_UP
+  ON_THE_WAY
+  ARRIVED
+  DELIVERED
+  FAILED
+  RETURNED
+}
+
+enum KotStatus {
+  PENDING
+  PRINTED
+  ACKNOWLEDGED
+  COOKING
+  READY
+  SERVED
+  CANCELLED
+}
+
+// ─── Menu Item Extension (adds restaurant fields to Product) ───
+model RestaurantMenuItem {
+  id        String @id @default(uuid())
+  tenantId  String
+  productId String @unique
+
+  prepTimeMinutes     Int? // Kitchen prep time
+  cookingInstructions String?      @db.Text
+  chefSpecial         Boolean      @default(false)
+  bestSeller          Boolean      @default(false)
+  isSpicy             Boolean      @default(false)
+  spiceLevel          SpiceLevel?
+  calories            Int?
+  servingSize         String? // "1 plate", "500ml", "6 pieces"
+  servesPeople        Int?         @default(1)
+  dietaryTags         DietaryTag[] @default([])
+  allergenInfo        String?      @db.Text
+  displayOrder        Int          @default(0)
+  isAvailable         Boolean      @default(true)
+  availableFrom       String? // "07:00" HH:mm - breakfast only
+  availableTo         String? // "11:00"
+  availableDays       Int[]        @default([]) // 0=Sun, 1=Mon...
+
+  // Marketing
+  imageUrl       String?
+  videoUrl       String?
+  highlightColor String? // For UI badge
+  tagLine        String? // "Chef's Choice", "New!"
+
+  // Stats
+  totalOrdered Int    @default(0)
+  avgRating    Float?
+  totalReviews Int    @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product   Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  modifiers MenuItemModifier[]
+  recipe    Recipe?
+
+  @@index([tenantId])
+  @@index([tenantId, isAvailable])
+  @@index([tenantId, bestSeller])
+  @@index([tenantId, chefSpecial])
+}
+
+// ─── Modifier Groups (e.g. "Choose Size", "Extra Toppings") ───
+model ModifierGroup {
+  id       String @id @default(uuid())
+  tenantId String
+
+  name          String // "Size", "Toppings", "Spice Level"
+  description   String?
+  type          ModifierType @default(ADDON)
+  isRequired    Boolean      @default(false)
+  minSelections Int          @default(0)
+  maxSelections Int          @default(1)
+  displayOrder  Int          @default(0)
+  isActive      Boolean      @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  options   ModifierOption[]
+  menuItems MenuItemModifier[]
+
+  @@index([tenantId])
+  @@index([tenantId, isActive])
+}
+
+// ─── Individual modifier options ───
+model ModifierOption {
+  id              String @id @default(uuid())
+  tenantId        String
+  modifierGroupId String
+
+  name            String // "Small", "Extra Cheese", "No Onion"
+  priceAdjustment Float   @default(0) // Can be negative (discount)
+  isDefault       Boolean @default(false)
+  displayOrder    Int     @default(0)
+  isActive        Boolean @default(true)
+  emoji           String? // 🧀 🌶️ 🥩
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  modifierGroup  ModifierGroup                 @relation(fields: [modifierGroupId], references: [id], onDelete: Cascade)
+  orderModifiers RestaurantOrderItemModifier[]
+
+  @@index([tenantId])
+  @@index([modifierGroupId])
+}
+
+// ─── Link: which modifiers apply to which menu items ───
+model MenuItemModifier {
+  id              String  @id @default(uuid())
+  menuItemId      String
+  modifierGroupId String
+  isRequired      Boolean @default(false) // Override group's isRequired
+  displayOrder    Int     @default(0)
+
+  menuItem      RestaurantMenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  modifierGroup ModifierGroup      @relation(fields: [modifierGroupId], references: [id], onDelete: Cascade)
+
+  @@unique([menuItemId, modifierGroupId])
+  @@index([menuItemId])
+  @@index([modifierGroupId])
+}
+
+// ─── Recipes / BOM — for auto stock deduction ───
+model Recipe {
+  id         String @id @default(uuid())
+  tenantId   String
+  menuItemId String @unique
+
+  yieldQuantity    Float   @default(1) // 1 recipe produces X portions
+  yieldUnit        String  @default("portion")
+  totalCost        Float   @default(0) // Auto-calculated from ingredients
+  preparationSteps String? @db.Text
+  cookingTime      Int? // minutes
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  menuItem    RestaurantMenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  ingredients RecipeIngredient[]
+
+  @@index([tenantId])
+}
+
+model RecipeIngredient {
+  id                  String @id @default(uuid())
+  recipeId            String
+  ingredientProductId String // The raw material product
+
+  quantity     Float
+  unit         String // "kg", "g", "ml", "piece"
+  costPerUnit  Float   @default(0)
+  totalCost    Float   @default(0)
+  isOptional   Boolean @default(false)
+  notes        String?
+  displayOrder Int     @default(0)
+
+  createdAt DateTime @default(now())
+
+  recipe     Recipe  @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  ingredient Product @relation("IngredientProduct", fields: [ingredientProductId], references: [id], onDelete: Restrict)
+
+  @@index([recipeId])
+  @@index([ingredientProductId])
+}
+
+// ─── Tables (enhance existing RestaurantTable model with more fields) ───
+// If model already exists in schema, we'll add these fields via migration
+model RestaurantTableV2 {
+  id       String  @id @default(uuid())
+  tenantId String
+  shopId   String?
+
+  tableNumber String
+  tableName   String? // "Table 1", "Corner Booth", "VIP Room"
+  capacity    Int     @default(4)
+  minCapacity Int     @default(1)
+  maxCapacity Int     @default(8)
+
+  section   String? // "Ground Floor", "Rooftop", "Family Area", "Smoking"
+  floor     String? // "GF", "1st Floor"
+  location  String? // Coordinates or description
+  shape     String? // "round", "square", "rectangle"
+  positionX Float? // For floor plan visualization
+  positionY Float?
+
+  status           RestaurantTableStatus @default(AVAILABLE)
+  isReservable     Boolean               @default(true)
+  isSmokingAllowed Boolean               @default(false)
+  isAcRoom         Boolean               @default(true)
+  isFamilyArea     Boolean               @default(false)
+  isVip            Boolean               @default(false)
+  minOrderAmount   Float?
+
+  // Current session
+  currentOrderId  String?
+  occupiedAt      DateTime?
+  reservedAt      DateTime?
+  reservedFor     DateTime?
+  reservedByName  String?
+  reservedByPhone String?
+  reservationNote String?
+
+  // Stats
+  totalOrders        Int    @default(0)
+  totalRevenue       Float  @default(0)
+  avgTurnoverMinutes Float?
+
+  qrCodeUrl String? // Customer scans to view menu
+  notes     String?
+  isActive  Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders RestaurantOrder[]
+
+  @@unique([tenantId, tableNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([tenantId, section])
+  @@index([shopId])
+}
+
+// ─── Restaurant Orders (dining orders — separate from POS sales) ───
+model RestaurantOrder {
+  id         String  @id @default(uuid())
+  tenantId   String
+  shopId     String?
+  tableId    String?
+  customerId String?
+  riderId    String?
+  waiterId   String?
+
+  orderNumber String // ORD-2026-0001
+  mode        RestaurantOrderMode
+  status      RestaurantOrderStatus @default(DRAFT)
+
+  // Customer info (walk-in / phone order)
+  customerName    String?
+  customerPhone   String?
+  customerAddress String?
+  numberOfGuests  Int?
+  specialRequests String? @db.Text
+
+  // Amounts
+  subtotal         Float @default(0)
+  serviceCharge    Float @default(0)
+  serviceChargePct Float @default(0)
+  taxAmount        Float @default(0)
+  taxPct           Float @default(0)
+  discount         Float @default(0)
+  deliveryFee      Float @default(0)
+  packagingFee     Float @default(0)
+  tip              Float @default(0)
+  total            Float @default(0)
+  paidAmount       Float @default(0)
+
+  // Timing
+  placedAt           DateTime?
+  confirmedAt        DateTime?
+  cookingStartedAt   DateTime?
+  readyAt            DateTime?
+  servedAt           DateTime?
+  outForDeliveryAt   DateTime?
+  deliveredAt        DateTime?
+  completedAt        DateTime?
+  cancelledAt        DateTime?
+  cancellationReason String?
+
+  estimatedPrepTime     Int? // minutes
+  estimatedDeliveryTime DateTime?
+
+  // Delivery-specific
+  deliveryAddress  String?
+  deliveryLat      Float?
+  deliveryLng      Float?
+  deliveryDistance Float?
+  deliveryNotes    String?
+  deliveryStatus   RiderDeliveryStatus?
+
+  // KOT tracking
+  kotPrintedAt  DateTime?
+  kotPrintCount Int       @default(0)
+
+  // Split bill
+  isSplitBill   Boolean @default(false)
+  parentOrderId String?
+
+  saleId String? // Once paid, links to main Sale record
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant   Tenant                   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  table    RestaurantTableV2?       @relation(fields: [tableId], references: [id], onDelete: SetNull)
+  items    RestaurantOrderItem[]
+  kots     Kot[]
+  delivery DeliveryTracking?
+  payments RestaurantOrderPayment[]
+
+  @@unique([tenantId, orderNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([tenantId, mode])
+  @@index([tableId])
+  @@index([customerId])
+  @@index([riderId])
+  @@index([createdAt])
+}
+
+// ─── Order line items ───
+model RestaurantOrderItem {
+  id        String  @id @default(uuid())
+  orderId   String
+  productId String
+  variantId String?
+
+  quantity      Float
+  unit          String @default("piece")
+  basePrice     Float
+  modifierTotal Float  @default(0)
+  itemDiscount  Float  @default(0)
+  total         Float
+  costPrice     Float  @default(0)
+
+  // Kitchen instructions
+  specialInstructions String?     @db.Text
+  spiceLevel          SpiceLevel?
+  cookingNote         String?
+
+  // Status
+  status          RestaurantOrderStatus @default(PLACED)
+  courseNumber    Int? // 1st course, 2nd course
+  isComplimentary Boolean               @default(false)
+  isReturned      Boolean               @default(false)
+  returnReason    String?
+
+  // Kitchen tracking
+  sentToKitchenAt  DateTime?
+  cookingStartedAt DateTime?
+  readyAt          DateTime?
+  servedAt         DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  order     RestaurantOrder               @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product                       @relation("RestaurantOrderProduct", fields: [productId], references: [id], onDelete: Restrict)
+  modifiers RestaurantOrderItemModifier[]
+
+  @@index([orderId])
+  @@index([productId])
+  @@index([status])
+}
+
+// ─── Modifier selections per order item ───
+model RestaurantOrderItemModifier {
+  id               String @id @default(uuid())
+  orderItemId      String
+  modifierOptionId String
+
+  quantity        Int     @default(1)
+  priceAdjustment Float   @default(0)
+  notes           String?
+
+  createdAt DateTime @default(now())
+
+  orderItem      RestaurantOrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  modifierOption ModifierOption      @relation(fields: [modifierOptionId], references: [id], onDelete: Restrict)
+
+  @@index([orderItemId])
+  @@index([modifierOptionId])
+}
+
+// ─── KOT (Kitchen Order Ticket) ───
+model Kot {
+  id       String @id @default(uuid())
+  tenantId String
+  orderId  String
+
+  kotNumber String // KOT-2026-0001
+  station   String? // "Grill", "Tandoor", "Bar", "Dessert"
+  status    KotStatus @default(PENDING)
+
+  itemIds       String[] // Which order items are on this KOT
+  itemsSnapshot Json // Snapshot at time of print
+
+  printedAt        DateTime?
+  printedBy        String?
+  acknowledgedAt   DateTime?
+  cookingStartedAt DateTime?
+  readyAt          DateTime?
+  servedAt         DateTime?
+  cancelledAt      DateTime?
+
+  notes    String?
+  priority String? // "HIGH", "NORMAL", "LOW"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  order RestaurantOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, kotNumber])
+  @@index([tenantId])
+  @@index([orderId])
+  @@index([status])
+  @@index([station])
+}
+
+// ─── Split bill / Multiple payments per order ───
+model RestaurantOrderPayment {
+  id      String @id @default(uuid())
+  orderId String
+
+  amount        Float
+  paymentMethod String
+  paidBy        String? // Customer name (for split bills)
+  reference     String?
+  notes         String?
+  paidAt        DateTime @default(now())
+
+  createdAt DateTime @default(now())
+
+  order RestaurantOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+}
+
+// ─── Riders / Delivery Staff ───
+model Rider {
+  id       String @id @default(uuid())
+  tenantId String
+
+  name      String
+  phone     String
+  cnic      String?
+  email     String?
+  avatarUrl String?
+
+  vehicleType   String? // "Bike", "Car", "Bicycle", "On foot"
+  vehicleNumber String?
+  licenseNumber String?
+
+  status             RiderStatus @default(ACTIVE)
+  currentLat         Float?
+  currentLng         Float?
+  lastLocationUpdate DateTime?
+
+  // Employment
+  isEmployee      Boolean @default(true)
+  commissionType  String? // "PER_DELIVERY", "PERCENTAGE", "FIXED"
+  commissionValue Float   @default(0)
+  baseSalary      Float   @default(0)
+
+  // Stats
+  totalDeliveries Int    @default(0)
+  totalDistance   Float  @default(0)
+  avgRating       Float?
+  totalTips       Float  @default(0)
+
+  isActive Boolean @default(true)
+  notes    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  deliveries DeliveryTracking[]
+
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([tenantId, isActive])
+}
+
+// ─── Delivery tracking ───
+model DeliveryTracking {
+  id      String  @id @default(uuid())
+  orderId String  @unique
+  riderId String?
+
+  status      RiderDeliveryStatus @default(PENDING)
+  assignedAt  DateTime?
+  pickedUpAt  DateTime?
+  onTheWayAt  DateTime?
+  arrivedAt   DateTime?
+  deliveredAt DateTime?
+
+  pickupLat        Float?
+  pickupLng        Float?
+  dropoffLat       Float?
+  dropoffLng       Float?
+  distanceKm       Float?
+  estimatedMinutes Int?
+  actualMinutes    Int?
+
+  deliveryFee     Float @default(0)
+  riderCommission Float @default(0)
+  customerTip     Float @default(0)
+
+  customerRating   Int?
+  customerFeedback String?
+  proofPhotoUrl    String?
+  signatureUrl     String?
+  failureReason    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  order RestaurantOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  rider Rider?          @relation(fields: [riderId], references: [id], onDelete: SetNull)
+
+  @@index([riderId])
+  @@index([status])
+}
+
+// ─── Kitchen Stations (for KOT routing) ───
+model KitchenStation {
+  id       String @id @default(uuid())
+  tenantId String
+
+  name         String // "Grill", "Tandoor", "Cold Kitchen", "Bar", "Dessert"
+  code         String? // Short code for KOT
+  printerName  String? // Which printer prints for this station
+  categoryIds  String[] @default([]) // Auto-route these categories here
+  displayOrder Int      @default(0)
+  isActive     Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+// ─── Waiter / Server assignments ───
+model WaiterAssignment {
+  id         String    @id @default(uuid())
+  tenantId   String
+  userId     String // Staff member
+  tableIds   String[]  @default([])
+  section    String?
+  shiftStart DateTime?
+  shiftEnd   DateTime?
+  isActive   Boolean   @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, isActive])
+}
+
+// ─── Happy Hour / Time-based pricing ───
+model HappyHourRule {
+  id       String @id @default(uuid())
+  tenantId String
+
+  name          String
+  description   String?
+  discountType  String  @default("PERCENTAGE") // PERCENTAGE, FIXED, BUY_ONE_GET_ONE
+  discountValue Float
+
+  // Time windows
+  startTime  String // "17:00"
+  endTime    String // "19:00"
+  daysOfWeek Int[]     @default([]) // 0=Sun..6=Sat
+  validFrom  DateTime?
+  validTo    DateTime?
+
+  // Scope
+  categoryIds    String[]              @default([])
+  productIds     String[]              @default([])
+  minOrderAmount Float?
+  maxDiscount    Float?
+  orderModes     RestaurantOrderMode[] @default([])
+
+  isActive     Boolean @default(true)
+  displayOrder Int     @default(0)
+
+  // Stats
+  totalUsage Int   @default(0)
+  totalSaved Float @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, isActive])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INDUSTRY: PHARMACY / MEDICAL STORE
+// Full feature set — DRAP compliant, prescriptions, salts, doctors
+// ═══════════════════════════════════════════════════════════════
+
+enum PrescriptionStatus {
+  PENDING // Received, not verified
+  VERIFIED // Pharmacist verified
+  PARTIALLY_DISPENSED
+  DISPENSED // Fully dispensed
+  REJECTED // Invalid/expired
+  CANCELLED
+}
+
+enum PrescriptionType {
+  WALK_IN
+  ONLINE
+  REFILL
+  HOSPITAL
+  INSURANCE
+  EMERGENCY
+}
+
+enum DrugScheduleClass {
+  OTC // Over the counter
+  SCHEDULE_G // Prescription only
+  SCHEDULE_H // Restricted
+  SCHEDULE_X // Highly controlled (narcotics)
+  CONTROLLED
+  NARCOTIC
+  PSYCHOTROPIC
+}
+
+enum StorageCondition {
+  ROOM_TEMPERATURE // 15-30°C
+  COOL // 8-15°C
+  REFRIGERATED // 2-8°C
+  FROZEN // -18°C or below
+  CONTROLLED_ROOM // 20-25°C
+  PROTECT_FROM_LIGHT
+  PROTECT_FROM_MOISTURE
+}
+
+enum RefillFrequency {
+  DAILY
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+  QUARTERLY
+  AS_NEEDED
+}
+
+// ─── Drug/Salt Master (generic ingredients) ───
+model Salt {
+  id       String @id @default(uuid())
+  tenantId String
+
+  name        String // "Paracetamol", "Amoxicillin"
+  genericName String?
+  code        String? // ATC classification code
+  category    String? // "Analgesic", "Antibiotic"
+  description String? @db.Text
+
+  // Dosage info
+  standardDose String? // "500mg 3x daily"
+  maxDailyDose String?
+  routeOfAdmin String? // "Oral", "IV", "Topical"
+
+  // Safety
+  isPregnancySafe   Boolean @default(true)
+  isLactationSafe   Boolean @default(true)
+  isPediatricSafe   Boolean @default(true)
+  minAgeYears       Int?
+  contraindications String? @db.Text
+  sideEffects       String? @db.Text
+  warnings          String? @db.Text
+
+  // Regulatory
+  scheduleClass        DrugScheduleClass @default(OTC)
+  requiresPrescription Boolean           @default(false)
+  isNarcotic           Boolean           @default(false)
+  isBanned             Boolean           @default(false)
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  productSalts      ProductSalt[]
+  drugInteractionsA DrugInteraction[] @relation("SaltA")
+  drugInteractionsB DrugInteraction[] @relation("SaltB")
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+  @@index([tenantId, scheduleClass])
+  @@index([name])
+}
+
+// ─── Product ↔ Salt mapping (many-to-many with strength) ───
+model ProductSalt {
+  id        String @id @default(uuid())
+  productId String
+  saltId    String
+
+  strength      String // "500mg", "250mg/5ml"
+  strengthValue Float? // Numeric for sorting/filtering
+  strengthUnit  String? // "mg", "ml", "IU"
+  isMainSalt    Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  product Product @relation("ProductSalt", fields: [productId], references: [id], onDelete: Cascade)
+  salt    Salt    @relation(fields: [saltId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, saltId])
+  @@index([productId])
+  @@index([saltId])
+}
+
+// ─── Drug Interactions ───
+model DrugInteraction {
+  id       String @id @default(uuid())
+  tenantId String
+
+  saltAId        String
+  saltBId        String
+  severity       String // "MINOR", "MODERATE", "MAJOR", "CONTRAINDICATED"
+  description    String  @db.Text
+  clinicalEffect String? @db.Text
+  management     String? @db.Text
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  saltA Salt @relation("SaltA", fields: [saltAId], references: [id], onDelete: Cascade)
+  saltB Salt @relation("SaltB", fields: [saltBId], references: [id], onDelete: Cascade)
+
+  @@unique([saltAId, saltBId])
+  @@index([tenantId])
+  @@index([severity])
+}
+
+// ─── Pharmacy Product Extension ───
+model PharmacyMedicine {
+  id        String @id @default(uuid())
+  tenantId  String
+  productId String @unique
+
+  // Identification
+  registrationNumber String? // DRAP registration
+  approvalDate       DateTime?
+
+  // Dosage form
+  dosageForm String? // "Tablet", "Syrup", "Injection", "Cream", "Drops"
+  packSize   String? // "10 tablets", "60 ml"
+  packUnit   String? // Blister, bottle, tube, vial
+
+  // Manufacturer
+  manufacturer    String?
+  countryOfOrigin String?
+  importedBy      String?
+
+  // Clinical info
+  indication        String? @db.Text // What it's used for
+  mechanismOfAction String? @db.Text
+  pharmacokinetics  String? @db.Text
+
+  // Storage
+  storageCondition    StorageCondition @default(ROOM_TEMPERATURE)
+  storageInstructions String?          @db.Text
+  requiresColdChain   Boolean          @default(false)
+  minTemperature      Float?
+  maxTemperature      Float?
+
+  // Regulatory
+  scheduleClass        DrugScheduleClass @default(OTC)
+  requiresPrescription Boolean           @default(false)
+  isNarcotic           Boolean           @default(false)
+  isRefrigerated       Boolean           @default(false)
+
+  // Display
+  color    String?
+  shape    String?
+  markings String? // "M / 500" on the tablet
+
+  // Substitutes
+  isGeneric Boolean @default(false)
+  brandTier String? // "PREMIUM", "STANDARD", "GENERIC"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product      Product              @relation("PharmacyMedicine", fields: [productId], references: [id], onDelete: Cascade)
+  substitutes  MedicineSubstitute[] @relation("MainMedicine")
+  substituteOf MedicineSubstitute[] @relation("SubstituteMedicine")
+
+  @@index([tenantId])
+  @@index([productId])
+  @@index([tenantId, scheduleClass])
+  @@index([registrationNumber])
+}
+
+// ─── Medicine Substitutes ───
+model MedicineSubstitute {
+  id                   String  @id @default(uuid())
+  mainMedicineId       String
+  substituteMedicineId String
+  similarity           Float   @default(1.0) // 0-1, how similar
+  priceDifference      Float? // + means substitute is more expensive
+  notes                String?
+
+  createdAt DateTime @default(now())
+
+  main       PharmacyMedicine @relation("MainMedicine", fields: [mainMedicineId], references: [id], onDelete: Cascade)
+  substitute PharmacyMedicine @relation("SubstituteMedicine", fields: [substituteMedicineId], references: [id], onDelete: Cascade)
+
+  @@unique([mainMedicineId, substituteMedicineId])
+  @@index([mainMedicineId])
+  @@index([substituteMedicineId])
+}
+
+// ─── Doctors ───
+model Doctor {
+  id       String @id @default(uuid())
+  tenantId String
+
+  name  String
+  phone String?
+  email String?
+  cnic  String?
+
+  // Professional
+  registrationNumber String // PMDC number
+  qualification      String? // "MBBS, FCPS"
+  specialization     String? // "Cardiology", "Pediatrics"
+  yearsOfExperience  Int?
+
+  // Practice
+  clinicName          String?
+  clinicAddress       String?
+  hospitalAffiliation String?
+  consultationFee     Float?
+
+  // Prescription/commission
+  commissionType  String? @default("NONE") // NONE, PER_PRESCRIPTION, PERCENTAGE
+  commissionValue Float   @default(0)
+
+  // Stats
+  totalPrescriptions Int   @default(0)
+  totalBusiness      Float @default(0)
+  totalCommission    Float @default(0)
+
+  notes      String?
+  isActive   Boolean @default(true)
+  isVerified Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  prescriptions Prescription[]
+
+  @@unique([tenantId, registrationNumber])
+  @@index([tenantId])
+  @@index([tenantId, isActive])
+  @@index([specialization])
+}
+
+// ─── Patients (extends Customer with medical info) ───
+model PatientProfile {
+  id         String @id @default(uuid())
+  tenantId   String
+  customerId String @unique
+
+  // Medical basics
+  dateOfBirth DateTime?
+  bloodGroup  String?
+  height      Float? // cm
+  weight      Float? // kg
+  gender      String?
+
+  // Medical history
+  chronicConditions  String[] @default([])
+  allergies          String[] @default([])
+  currentMedications String[] @default([])
+  pastSurgeries      String?  @db.Text
+
+  // Emergency
+  emergencyContactName  String?
+  emergencyContactPhone String?
+  emergencyRelation     String?
+
+  // Insurance
+  hasInsurance      Boolean   @default(false)
+  insuranceProvider String?
+  insuranceNumber   String?
+  insuranceExpiry   DateTime?
+
+  // Notes
+  medicalNotes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([customerId])
+}
+
+// ─── Prescriptions ───
+model Prescription {
+  id         String  @id @default(uuid())
+  tenantId   String
+  shopId     String?
+  customerId String?
+  doctorId   String?
+  saleId     String?
+
+  prescriptionNumber String // Rx-2026-0001
+  type               PrescriptionType   @default(WALK_IN)
+  status             PrescriptionStatus @default(PENDING)
+
+  // Doctor info (snapshot — if manual entry)
+  doctorName       String?
+  doctorRegNumber  String?
+  doctorSpeciality String?
+  hospitalName     String?
+
+  // Patient info
+  patientName   String?
+  patientAge    Int?
+  patientGender String?
+  patientPhone  String?
+  patientCnic   String?
+  patientWeight Float?
+
+  // Prescription details
+  prescriptionDate DateTime?
+  diagnosis        String?   @db.Text
+  chiefComplaint   String?
+  vitals           Json? // BP, temp, pulse etc.
+
+  // Images
+  imageUrls   String[] @default([])
+  scannedText String?  @db.Text // OCR extraction
+
+  // Refill
+  isRefillable    Boolean          @default(false)
+  refillsAllowed  Int              @default(0)
+  refillsUsed     Int              @default(0)
+  refillFrequency RefillFrequency?
+  nextRefillDate  DateTime?
+
+  // Insurance
+  isInsuranceClaim      Boolean @default(false)
+  insuranceProvider     String?
+  insuranceApprovalCode String?
+  insuranceAmount       Float   @default(0)
+
+  // Verification
+  verifiedById      String?
+  verifiedAt        DateTime?
+  verificationNotes String?
+
+  // Dispensing
+  dispensedById String?
+  dispensedAt   DateTime?
+
+  // Rejection
+  rejectionReason String?
+
+  totalAmount Float   @default(0)
+  notes       String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  doctor Doctor?            @relation(fields: [doctorId], references: [id], onDelete: SetNull)
+  items  PrescriptionItem[]
+
+  @@unique([tenantId, prescriptionNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([customerId])
+  @@index([doctorId])
+  @@index([prescriptionDate])
+}
+
+// ─── Prescription Items ───
+model PrescriptionItem {
+  id             String  @id @default(uuid())
+  prescriptionId String
+  productId      String?
+  batchId        String?
+
+  // What doctor wrote
+  medicineName String
+  saltName     String?
+  strength     String?
+
+  // Dosage
+  dose         String? // "500mg"
+  frequency    String? // "1-0-1" or "TID"
+  duration     String? // "7 days"
+  route        String? // "Oral"
+  instructions String? @db.Text // "After meals"
+
+  // Quantity
+  prescribedQty Float
+  dispensedQty  Float  @default(0)
+  unit          String @default("tablet")
+
+  // Pricing
+  unitPrice  Float @default(0)
+  totalPrice Float @default(0)
+
+  // Status
+  isDispensed   Boolean @default(false)
+  isSubstituted Boolean @default(false)
+  substituteFor String? // Original medicine name if substituted
+  isOutOfStock  Boolean @default(false)
+
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  prescription Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+
+  @@index([prescriptionId])
+  @@index([productId])
+}
+
+// ─── Controlled Substance Log (Narcotic Register — govt required) ───
+model ControlledSubstanceLog {
+  id             String  @id @default(uuid())
+  tenantId       String
+  productId      String
+  batchId        String?
+  saleId         String?
+  prescriptionId String?
+
+  logNumber String // Sequential
+  logDate   DateTime @default(now())
+  logType   String // "SALE", "PURCHASE", "ADJUSTMENT", "DAMAGE"
+
+  quantity       Float
+  unit           String
+  openingBalance Float
+  closingBalance Float
+
+  // Patient info (mandatory for sales)
+  patientName    String?
+  patientCnic    String?
+  patientPhone   String?
+  patientAddress String?
+
+  // Doctor info
+  doctorName         String?
+  doctorRegNumber    String?
+  prescriptionNumber String?
+
+  // Handled by
+  dispensedBy  String? // Staff member
+  supervisedBy String? // Pharmacist name/reg
+
+  notes          String?
+  attachmentUrls String[] @default([])
+
+  isReversed     Boolean @default(false)
+  reversalReason String?
+
+  createdAt DateTime @default(now())
+
+  @@unique([tenantId, logNumber])
+  @@index([tenantId])
+  @@index([tenantId, logDate])
+  @@index([productId])
+}
+
+// ─── Refill Reminders ───
+model RefillReminder {
+  id             String  @id @default(uuid())
+  tenantId       String
+  customerId     String
+  productId      String?
+  prescriptionId String?
+
+  medicineName String
+  scheduledFor DateTime
+  reminderType String   @default("SMS") // SMS, EMAIL, WHATSAPP, CALL
+  status       String   @default("PENDING") // PENDING, SENT, ACKNOWLEDGED, MISSED
+
+  sentAt         DateTime?
+  acknowledgedAt DateTime?
+  notes          String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([customerId])
+  @@index([scheduledFor])
+}
+
+// ─── Cold Chain / Temperature Log ───
+model TemperatureLog {
+  id       String  @id @default(uuid())
+  tenantId String
+  shopId   String?
+
+  logDate       DateTime @default(now())
+  temperature   Float
+  humidity      Float?
+  unit          String   @default("celsius")
+  location      String? // "Fridge 1", "Freezer", "Storage Room"
+  isWithinRange Boolean  @default(true)
+  minLimit      Float?
+  maxLimit      Float?
+
+  recordedBy String?
+  automated  Boolean @default(false) // From IoT sensor
+  notes      String?
+  alertSent  Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([tenantId, logDate])
+  @@index([shopId])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INDUSTRY: GARMENTS / BOUTIQUE / CLOTHING / TAILORING
+// NAFaa Pakistan — Ready-made + Boutique + Custom Stitching
+// ═══════════════════════════════════════════════════════════════
+
+enum GarmentGender {
+  MEN
+  WOMEN
+  BOYS
+  GIRLS
+  UNISEX
+  KIDS
+  BABY
+}
+
+enum GarmentCategoryType {
+  SHIRT
+  T_SHIRT
+  POLO
+  KURTA
+  KURTA_SHALWAR
+  SHALWAR_KAMEEZ
+  SUIT
+  THREE_PIECE
+  TWO_PIECE
+  WAISTCOAT
+  TROUSER
+  JEANS
+  SHORTS
+  SKIRT
+  TOP
+  FROCK
+  GOWN
+  ABAYA
+  HIJAB
+  DUPATTA
+  SAREE
+  LEHENGA
+  MAXI
+  JACKET
+  COAT
+  SWEATER
+  HOODIE
+  TRACK_SUIT
+  NIGHTWEAR
+  UNDERGARMENT
+  SOCKS
+  SHOES
+  SANDALS
+  ACCESSORY
+  FABRIC
+  OTHER
+}
+
+enum GarmentSeason {
+  SPRING
+  SUMMER
+  AUTUMN
+  WINTER
+  ALL_SEASON
+  EID_COLLECTION
+  WEDDING_COLLECTION
+  FESTIVE_COLLECTION
+  RAMADAN_COLLECTION
+  SCHOOL_COLLECTION
+}
+
+enum GarmentFitType {
+  SLIM
+  REGULAR
+  RELAXED
+  OVERSIZED
+  SKINNY
+  STRAIGHT
+  BOOTCUT
+  FLARED
+  CUSTOM
+}
+
+enum GarmentFabricType {
+  COTTON
+  LAWN
+  LINEN
+  KHADDAR
+  KARANDI
+  SILK
+  CHIFFON
+  ORGANZA
+  VELVET
+  DENIM
+  JERSEY
+  WOOL
+  POLYESTER
+  VISCOSE
+  CAMBRIC
+  NET
+  GEORGETTE
+  LEATHER
+  MIXED
+  OTHER
+}
+
+enum GarmentWorkType {
+  PLAIN
+  PRINTED
+  EMBROIDERED
+  HAND_EMBROIDERED
+  BLOCK_PRINTED
+  DIGITAL_PRINTED
+  SEQUIN_WORK
+  ZARI_WORK
+  MIRROR_WORK
+  PEARL_WORK
+  STONE_WORK
+  LACE_WORK
+  PATCH_WORK
+  OTHER
+}
+
+enum GarmentOrderStatus {
+  DRAFT
+  QUOTED
+  CONFIRMED
+  FABRIC_PENDING
+  CUTTING
+  STITCHING
+  EMBROIDERY
+  QUALITY_CHECK
+  READY
+  DELIVERED
+  CANCELLED
+  ON_HOLD
+}
+
+enum GarmentAlterationStatus {
+  RECEIVED
+  MEASUREMENT_TAKEN
+  IN_PROGRESS
+  READY
+  DELIVERED
+  CANCELLED
+}
+
+enum GarmentReservationStatus {
+  ACTIVE
+  CONVERTED_TO_SALE
+  EXPIRED
+  CANCELLED
+}
+
+enum GarmentLayawayStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  DEFAULTED
+  REFUNDED
+}
+
+enum GarmentPaymentStatus {
+  UNPAID
+  PARTIALLY_PAID
+  PAID
+  REFUNDED
+}
+
+enum GarmentMeasurementUnit {
+  INCH
+  CM
+}
+
+enum GarmentPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+// ─────────────────────────────────────────────────────────────
+// Seasonal collection / designer collection
+// Example: Eid Luxury 2026, Summer Lawn 2026, Winter Collection
+// ─────────────────────────────────────────────────────────────
+model GarmentCollection {
+  id       String  @id @default(uuid())
+  tenantId String
+  shopId   String?
+
+  name        String
+  code        String?
+  description String? @db.Text
+
+  season     GarmentSeason @default(ALL_SEASON)
+  year       Int?
+  launchDate DateTime?
+  endDate    DateTime?
+
+  coverImageUrl  String?
+  bannerImageUrl String?
+  colorTheme     String?
+
+  isFeatured   Boolean @default(false)
+  isActive     Boolean @default(true)
+  displayOrder Int     @default(0)
+
+  totalProducts Int   @default(0)
+  totalSales    Float @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+  @@index([tenantId, isActive])
+  @@index([tenantId, season])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Size chart master
+// Example: Men's Kurta, Women's Shirt, Kids Garment
+// ─────────────────────────────────────────────────────────────
+model GarmentSizeChart {
+  id       String @id @default(uuid())
+  tenantId String
+
+  name         String
+  categoryType GarmentCategoryType?
+  gender       GarmentGender?
+  unit         GarmentMeasurementUnit @default(INCH)
+  description  String?                @db.Text
+
+  // Example JSON:
+  // [{"size":"S","chest":38,"length":28},{"size":"M","chest":40,"length":29}]
+  rows Json
+
+  isDefault Boolean @default(false)
+  isActive  Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+  @@index([tenantId, categoryType])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Product clothing extension
+// productId refers to existing Product.id
+// ─────────────────────────────────────────────────────────────
+model GarmentProductProfile {
+  id        String @id @default(uuid())
+  tenantId  String
+  productId String @unique
+
+  collectionId String?
+  sizeChartId  String?
+
+  gender       GarmentGender?
+  categoryType GarmentCategoryType?
+  season       GarmentSeason        @default(ALL_SEASON)
+
+  fabricType  GarmentFabricType?
+  fabricBlend String?
+  workType    GarmentWorkType    @default(PLAIN)
+  fitType     GarmentFitType     @default(REGULAR)
+
+  neckline         String?
+  sleeveType       String?
+  sleeveLength     String?
+  pattern          String?
+  careInstructions String? @db.Text
+
+  countryOfOrigin String?
+  manufacturer    String?
+  designer        String?
+
+  // Product presentation
+  modelHeight      String?
+  modelWearingSize String?
+  styleCode        String?
+  lookBookUrl      String?
+  videoUrl         String?
+
+  isReadyMade      Boolean @default(true)
+  isStitchable     Boolean @default(false)
+  isFabricOnly     Boolean @default(false)
+  allowAlteration  Boolean @default(true)
+  allowReservation Boolean @default(true)
+  allowLayaway     Boolean @default(false)
+
+  minAlterationDays    Int?
+  defaultStitchingDays Int?
+
+  isNewArrival Boolean @default(false)
+  isFeatured   Boolean @default(false)
+  isBestSeller Boolean @default(false)
+  isOnSale     Boolean @default(false)
+
+  totalSold        Int @default(0)
+  totalReturns     Int @default(0)
+  totalAlterations Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, gender])
+  @@index([tenantId, categoryType])
+  @@index([tenantId, season])
+  @@index([collectionId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Variant-level clothing metadata
+// variantId refers to existing ProductVariant.id
+// ─────────────────────────────────────────────────────────────
+model GarmentVariantProfile {
+  id        String @id @default(uuid())
+  tenantId  String
+  productId String
+  variantId String @unique
+
+  size        String?
+  colorName   String?
+  colorHex    String?
+  colorFamily String?
+
+  skuSuffix String?
+  barcode   String?
+
+  chest        Float?
+  waist        Float?
+  hip          Float?
+  shoulder     Float?
+  length       Float?
+  sleeveLength Float?
+  inseam       Float?
+
+  weightGrams  Float?
+  fabricMeters Float?
+
+  displayOrder    Int     @default(0)
+  isAvailable     Boolean @default(true)
+  isFeaturedColor Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([productId])
+  @@index([tenantId, size])
+  @@index([tenantId, colorFamily])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Customer body measurement profile
+// customerId refers to existing Customer.id
+// ─────────────────────────────────────────────────────────────
+model GarmentMeasurementProfile {
+  id         String @id @default(uuid())
+  tenantId   String
+  customerId String
+
+  profileName String                 @default("Default")
+  gender      GarmentGender?
+  unit        GarmentMeasurementUnit @default(INCH)
+
+  // Core measurements
+  neck          Float?
+  shoulder      Float?
+  chest         Float?
+  bust          Float?
+  waist         Float?
+  hip           Float?
+  armhole       Float?
+  bicep         Float?
+  wrist         Float?
+  sleeveLength  Float?
+  shirtLength   Float?
+  trouserLength Float?
+  inseam        Float?
+  thigh         Float?
+  knee          Float?
+  bottom        Float?
+
+  // Shalwar / Kurta
+  kurtaLength   Float?
+  shalwarLength Float?
+  shalwarBottom Float?
+  daman         Float?
+
+  postureNotes String?  @db.Text
+  fittingNotes String?  @db.Text
+  imageUrls    String[] @default([])
+
+  measuredById String?
+  measuredAt   DateTime @default(now())
+
+  isDefault Boolean @default(false)
+  isActive  Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, customerId, profileName])
+  @@index([tenantId])
+  @@index([customerId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Custom tailoring / stitching order
+// ─────────────────────────────────────────────────────────────
+model GarmentTailoringOrder {
+  id       String  @id @default(uuid())
+  tenantId String
+  shopId   String?
+
+  orderNumber          String
+  customerId           String?
+  measurementProfileId String?
+
+  customerName  String?
+  customerPhone String?
+  customerNotes String? @db.Text
+
+  orderStatus   GarmentOrderStatus   @default(DRAFT)
+  priority      GarmentPriority      @default(NORMAL)
+  paymentStatus GarmentPaymentStatus @default(UNPAID)
+
+  collectionId String?
+  tailorId     String?
+  designerId   String?
+
+  orderDate          DateTime  @default(now())
+  promisedDate       DateTime?
+  readyDate          DateTime?
+  deliveredAt        DateTime?
+  cancelledAt        DateTime?
+  cancellationReason String?
+
+  subtotal          Float @default(0)
+  stitchingCharges  Float @default(0)
+  embroideryCharges Float @default(0)
+  alterationCharges Float @default(0)
+  fabricCharges     Float @default(0)
+  accessoryCharges  Float @default(0)
+  discount          Float @default(0)
+  taxAmount         Float @default(0)
+  total             Float @default(0)
+  paidAmount        Float @default(0)
+
+  designReferenceUrls String[] @default([])
+  designInstructions  String?  @db.Text
+  internalNotes       String?  @db.Text
+
+  qualityCheckNotes  String?   @db.Text
+  qualityCheckedById String?
+  qualityCheckedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items    GarmentTailoringOrderItem[]
+  payments GarmentTailoringPayment[]
+
+  @@unique([tenantId, orderNumber])
+  @@index([tenantId])
+  @@index([tenantId, orderStatus])
+  @@index([customerId])
+  @@index([promisedDate])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Garments inside a tailoring order
+// ─────────────────────────────────────────────────────────────
+model GarmentTailoringOrderItem {
+  id      String @id @default(uuid())
+  orderId String
+
+  productId String?
+  variantId String?
+
+  garmentName  String
+  categoryType GarmentCategoryType?
+  quantity     Float                @default(1)
+
+  fabricProductId String?
+  fabricVariantId String?
+  fabricMeters    Float?
+  fabricCost      Float   @default(0)
+
+  stitchingCost  Float @default(0)
+  embroideryCost Float @default(0)
+  accessoryCost  Float @default(0)
+  total          Float @default(0)
+
+  size                String?
+  colorName           String?
+  designNotes         String?  @db.Text
+  measurementSnapshot Json?
+  referenceImageUrls  String[] @default([])
+
+  itemStatus   GarmentOrderStatus @default(DRAFT)
+  displayOrder Int                @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  order GarmentTailoringOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([productId])
+  @@index([fabricProductId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Payments against custom tailoring orders
+// ─────────────────────────────────────────────────────────────
+model GarmentTailoringPayment {
+  id      String @id @default(uuid())
+  orderId String
+
+  amount        Float
+  paymentMethod String
+  reference     String?
+  notes         String?
+  receivedById  String?
+  paidAt        DateTime @default(now())
+
+  createdAt DateTime @default(now())
+
+  order GarmentTailoringOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Alteration ticket for sold / customer-owned clothing
+// ─────────────────────────────────────────────────────────────
+model GarmentAlterationTicket {
+  id       String  @id @default(uuid())
+  tenantId String
+  shopId   String?
+
+  ticketNumber String
+  customerId   String?
+  saleId       String?
+  productId    String?
+  variantId    String?
+
+  customerName  String?
+  customerPhone String?
+
+  garmentDescription String
+  alterationType     String
+  alterationDetails  String? @db.Text
+
+  status   GarmentAlterationStatus @default(RECEIVED)
+  priority GarmentPriority         @default(NORMAL)
+
+  receivedAt   DateTime  @default(now())
+  promisedDate DateTime?
+  readyAt      DateTime?
+  deliveredAt  DateTime?
+
+  tailorId      String?
+  charges       Float                @default(0)
+  paidAmount    Float                @default(0)
+  paymentStatus GarmentPaymentStatus @default(UNPAID)
+
+  beforeImageUrls String[] @default([])
+  afterImageUrls  String[] @default([])
+  notes           String?  @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, ticketNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([customerId])
+  @@index([promisedDate])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Reserve a garment for a customer temporarily
+// ─────────────────────────────────────────────────────────────
+model GarmentReservation {
+  id       String  @id @default(uuid())
+  tenantId String
+  shopId   String?
+
+  reservationNumber String
+  customerId        String?
+  productId         String
+  variantId         String?
+
+  customerName  String?
+  customerPhone String?
+
+  quantity      Float @default(1)
+  unitPrice     Float @default(0)
+  depositAmount Float @default(0)
+
+  status          GarmentReservationStatus @default(ACTIVE)
+  reservedAt      DateTime                 @default(now())
+  expiresAt       DateTime
+  convertedSaleId String?
+
+  notes       String?
+  createdById String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, reservationNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([productId])
+  @@index([customerId])
+  @@index([expiresAt])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Installment / layaway plan for expensive garments
+// ─────────────────────────────────────────────────────────────
+model GarmentLayawayPlan {
+  id       String  @id @default(uuid())
+  tenantId String
+  shopId   String?
+
+  planNumber    String
+  customerId    String?
+  customerName  String?
+  customerPhone String?
+
+  productId        String?
+  variantId        String?
+  tailoringOrderId String?
+
+  totalAmount     Float
+  depositAmount   Float @default(0)
+  paidAmount      Float @default(0)
+  remainingAmount Float @default(0)
+
+  installmentCount  Int    @default(1)
+  installmentAmount Float  @default(0)
+  frequency         String @default("MONTHLY")
+
+  startDate    DateTime  @default(now())
+  nextDueDate  DateTime?
+  finalDueDate DateTime?
+
+  status             GarmentLayawayStatus @default(ACTIVE)
+  completedAt        DateTime?
+  cancelledAt        DateTime?
+  cancellationReason String?
+
+  notes       String?
+  createdById String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  installments GarmentLayawayInstallment[]
+
+  @@unique([tenantId, planNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([customerId])
+  @@index([nextDueDate])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Individual installment payments
+// ─────────────────────────────────────────────────────────────
+model GarmentLayawayInstallment {
+  id     String @id @default(uuid())
+  planId String
+
+  installmentNo Int
+  dueDate       DateTime
+  amount        Float
+  paidAmount    Float    @default(0)
+
+  status        GarmentPaymentStatus @default(UNPAID)
+  paidAt        DateTime?
+  paymentMethod String?
+  reference     String?
+  notes         String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  plan GarmentLayawayPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@unique([planId, installmentNo])
+  @@index([planId])
+  @@index([dueDate])
+  @@index([status])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INDUSTRY: SALON / BEAUTY PARLOUR / SPA
+// Appointments, services, staff commissions, memberships, packages
+// ═══════════════════════════════════════════════════════════════
+
+enum SalonServiceCategory {
+  HAIR_CUT
+  HAIR_COLOR
+  HAIR_TREATMENT
+  HAIR_STYLING
+  BEARD_SHAVE
+  FACIAL
+  MAKEUP
+  BRIDAL_MAKEUP
+  PARTY_MAKEUP
+  MANICURE
+  PEDICURE
+  NAIL_ART
+  WAXING
+  THREADING
+  MASSAGE
+  BODY_TREATMENT
+  SPA_PACKAGE
+  MEHNDI
+  HAIR_EXTENSION
+  KERATIN
+  BOTOX
+  OTHER
+}
+
+enum SalonAppointmentStatus {
+  DRAFT
+  CONFIRMED
+  ARRIVED
+  IN_PROGRESS
+  COMPLETED
+  NO_SHOW
+  CANCELLED
+  RESCHEDULED
+}
+
+enum SalonMembershipTier {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+  DIAMOND
+  CUSTOM
+}
+
+enum SalonMembershipStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  PAUSED
+}
+
+enum SalonPackageStatus {
+  ACTIVE
+  USED
+  EXPIRED
+  CANCELLED
+  REFUNDED
+}
+
+enum SalonStaffRole {
+  STYLIST
+  COLORIST
+  BEAUTICIAN
+  MAKEUP_ARTIST
+  NAIL_TECH
+  MASSAGE_THERAPIST
+  MEHNDI_ARTIST
+  APPRENTICE
+  RECEPTIONIST
+  MANAGER
+  OTHER
+}
+
+enum SalonCommissionType {
+  NONE
+  PERCENTAGE
+  FIXED_PER_SERVICE
+  TIERED
+  HYBRID
+}
+
+// ─── Salon Service Master ───
+model SalonService {
+  id       String  @id @default(uuid())
+  tenantId String
+  shopId   String?
+
+  name        String
+  code        String?
+  category    SalonServiceCategory @default(OTHER)
+  description String?              @db.Text
+
+  // Pricing
+  price         Float  @default(0)
+  discountPrice Float?
+  costPrice     Float?
+
+  // Duration
+  durationMinutes Int @default(30)
+  bufferBefore    Int @default(0)
+  bufferAfter     Int @default(0)
+
+  // Gender
+  forMen   Boolean @default(true)
+  forWomen Boolean @default(true)
+  forKids  Boolean @default(false)
+
+  // Commission
+  commissionPct   Float @default(0)
+  commissionFixed Float @default(0)
+
+  imageUrl     String?
+  displayOrder Int     @default(0)
+
+  isPopular  Boolean @default(false)
+  isFeatured Boolean @default(false)
+  isActive   Boolean @default(true)
+
+  totalBookings Int    @default(0)
+  totalRevenue  Float  @default(0)
+  avgRating     Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+  @@index([tenantId, category])
+  @@index([tenantId, isActive])
+}
+
+// ─── Salon Staff (extends existing Staff/User) ───
+model SalonStaffProfile {
+  id       String @id @default(uuid())
+  tenantId String
+  staffId  String @unique
+
+  role            SalonStaffRole @default(STYLIST)
+  specialization  String[]       @default([])
+  experienceYears Int?
+  bio             String?        @db.Text
+  photoUrl        String?
+
+  // Commission setup
+  commissionType  SalonCommissionType @default(NONE)
+  commissionPct   Float               @default(0)
+  commissionFixed Float               @default(0)
+
+  // Availability
+  workingDays    Int[]   @default([1, 2, 3, 4, 5, 6])
+  workStartTime  String  @default("09:00")
+  workEndTime    String  @default("21:00")
+  breakStartTime String?
+  breakEndTime   String?
+
+  // Booking rules
+  isBookable       Boolean @default(true)
+  maxDailyBookings Int?
+  bookingBuffer    Int     @default(0)
+
+  // Stats
+  totalAppointments Int    @default(0)
+  totalRevenue      Float  @default(0)
+  totalCommission   Float  @default(0)
+  avgRating         Float?
+  totalReviews      Int    @default(0)
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  services SalonStaffService[]
+
+  @@index([tenantId])
+  @@index([tenantId, role])
+}
+
+// ─── Which services can a staff perform ───
+model SalonStaffService {
+  id                  String  @id @default(uuid())
+  staffProfileId      String
+  serviceId           String
+  customPrice         Float?
+  customDuration      Int?
+  customCommissionPct Float?
+  isPrimary           Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  staffProfile SalonStaffProfile @relation(fields: [staffProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([staffProfileId, serviceId])
+  @@index([staffProfileId])
+  @@index([serviceId])
+}
+
+// ─── Appointments ───
+model SalonAppointment {
+  id       String  @id @default(uuid())
+  tenantId String
+  shopId   String?
+
+  appointmentNumber String
+  customerId        String?
+  customerName      String?
+  customerPhone     String?
+  customerEmail     String?
+  customerNotes     String? @db.Text
+
+  status SalonAppointmentStatus @default(DRAFT)
+
+  // Scheduling
+  scheduledStart DateTime
+  scheduledEnd   DateTime
+  actualStart    DateTime?
+  actualEnd      DateTime?
+
+  arrivedAt          DateTime?
+  cancelledAt        DateTime?
+  cancellationReason String?
+
+  // Reminders
+  reminderSent   Boolean   @default(false)
+  reminderSentAt DateTime?
+
+  // Financial
+  subtotal      Float  @default(0)
+  serviceCharge Float  @default(0)
+  taxAmount     Float  @default(0)
+  discount      Float  @default(0)
+  tip           Float  @default(0)
+  total         Float  @default(0)
+  paidAmount    Float  @default(0)
+  paymentStatus String @default("UNPAID")
+
+  // Rating
+  customerRating   Int?
+  customerFeedback String? @db.Text
+
+  // Reference
+  saleId       String?
+  packageId    String?
+  membershipId String?
+
+  internalNotes String? @db.Text
+
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  services SalonAppointmentService[]
+  tenant   Tenant                    @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, appointmentNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([customerId])
+  @@index([scheduledStart])
+}
+
+// ─── Services within an appointment ───
+model SalonAppointmentService {
+  id            String @id @default(uuid())
+  appointmentId String
+
+  serviceId      String
+  serviceName    String
+  staffProfileId String?
+  staffName      String?
+
+  price    Float @default(0)
+  discount Float @default(0)
+  total    Float @default(0)
+
+  durationMinutes       Int  @default(30)
+  actualDurationMinutes Int?
+
+  commissionAmount Float   @default(0)
+  commissionPaid   Boolean @default(false)
+
+  notes        String?
+  productsUsed Json?
+  displayOrder Int     @default(0)
+
+  createdAt DateTime @default(now())
+
+  appointment SalonAppointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  @@index([appointmentId])
+  @@index([serviceId])
+  @@index([staffProfileId])
+}
+
+// ─── Membership plans (monthly/quarterly/yearly) ───
+model SalonMembershipPlan {
+  id       String @id @default(uuid())
+  tenantId String
+
+  name        String
+  tier        SalonMembershipTier @default(SILVER)
+  description String?             @db.Text
+
+  price        Float
+  durationDays Int   @default(365)
+
+  // Benefits
+  discountPct      Float    @default(0)
+  freeServiceCount Int      @default(0)
+  freeServiceIds   String[] @default([])
+  priorityBooking  Boolean  @default(false)
+  freeConsultation Boolean  @default(false)
+  birthdayBonus    Float    @default(0)
+
+  colorTheme String?
+  iconUrl    String?
+  benefits   String[] @default([])
+
+  isActive     Boolean @default(true)
+  displayOrder Int     @default(0)
+
+  totalSubscribers Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships SalonMembership[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+// ─── Active memberships ───
+model SalonMembership {
+  id         String @id @default(uuid())
+  tenantId   String
+  planId     String
+  customerId String
+
+  membershipNumber String
+  status           SalonMembershipStatus @default(ACTIVE)
+
+  startDate  DateTime @default(now())
+  expiryDate DateTime
+
+  amountPaid    Float   @default(0)
+  paymentMethod String?
+
+  // Usage
+  usedServices Int   @default(0)
+  totalSaved   Float @default(0)
+
+  autoRenew          Boolean   @default(false)
+  cancelledAt        DateTime?
+  cancellationReason String?
+
+  notes       String?
+  createdById String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  plan SalonMembershipPlan @relation(fields: [planId], references: [id])
+
+  @@unique([tenantId, membershipNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([customerId])
+  @@index([expiryDate])
+}
+
+// ─── Prepaid service packages ───
+model SalonPackage {
+  id       String @id @default(uuid())
+  tenantId String
+
+  name        String
+  description String? @db.Text
+
+  price         Float
+  originalPrice Float?
+
+  // What's included
+  services      Json
+  totalSessions Int
+  validityDays  Int  @default(90)
+
+  imageUrl   String?
+  isFeatured Boolean @default(false)
+  isActive   Boolean @default(true)
+
+  totalSold Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  purchases SalonPackagePurchase[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+// ─── Customer's purchased packages ───
+model SalonPackagePurchase {
+  id         String @id @default(uuid())
+  tenantId   String
+  packageId  String
+  customerId String
+
+  purchaseNumber String
+  status         SalonPackageStatus @default(ACTIVE)
+
+  purchaseDate DateTime @default(now())
+  expiryDate   DateTime
+  amountPaid   Float
+
+  // Tracking
+  sessionsUsed      Int   @default(0)
+  sessionsRemaining Int   @default(0)
+  usageLog          Json?
+
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  package SalonPackage @relation(fields: [packageId], references: [id])
+
+  @@unique([tenantId, purchaseNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([customerId])
+}
+
+// ─── Customer service history / preferences ───
+model SalonCustomerProfile {
+  id         String @id @default(uuid())
+  tenantId   String
+  customerId String @unique
+
+  // Hair
+  hairType    String?
+  hairLength  String?
+  hairColor   String?
+  hairTexture String?
+
+  // Skin
+  skinType  String?
+  skinTone  String?
+  allergies String[] @default([])
+
+  // Preferences
+  preferredStaffId  String?
+  preferredServices String[] @default([])
+  favoriteBrands    String[] @default([])
+
+  // Health
+  medicalConditions String? @db.Text
+  medications       String? @db.Text
+  pregnancyStatus   String?
+
+  // Business
+  totalVisits Int       @default(0)
+  totalSpent  Float     @default(0)
+  lastVisitAt DateTime?
+  avgRating   Float?
+
+  notes     String?  @db.Text
+  photoUrls String[] @default([])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([customerId])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INDUSTRY: AUTO PARTS / WORKSHOP / MECHANIC / GARAGE
+// Spare parts + service jobs + vehicle history + fitment
+// ═══════════════════════════════════════════════════════════════
+
+enum VehicleType {
+  CAR
+  SUV
+  VAN
+  PICKUP
+  TRUCK
+  BUS
+  MOTORCYCLE
+  SCOOTER
+  RICKSHAW
+  TRACTOR
+  BICYCLE
+  ATV
+  BOAT
+  OTHER
+}
+
+enum FuelType {
+  PETROL
+  DIESEL
+  CNG
+  LPG
+  HYBRID
+  ELECTRIC
+  OTHER
+}
+
+enum TransmissionType {
+  MANUAL
+  AUTOMATIC
+  CVT
+  DCT
+  SEMI_AUTO
+}
+
+enum PartCategory {
+  ENGINE
+  TRANSMISSION
+  BRAKES
+  SUSPENSION
+  ELECTRICAL
+  BATTERY
+  COOLING
+  EXHAUST
+  FUEL_SYSTEM
+  BODY
+  INTERIOR
+  LIGHTING
+  TIRES_WHEELS
+  FILTERS
+  OILS_FLUIDS
+  BELTS_HOSES
+  IGNITION
+  AC_HEATING
+  STEERING
+  DRIVETRAIN
+  BEARINGS
+  GASKETS
+  SENSORS
+  ACCESSORIES
+  TOOLS
+  CONSUMABLES
+  OTHER
+}
+
+enum PartCondition {
+  NEW
+  USED
+  REFURBISHED
+  GENUINE
+  OEM
+  AFTERMARKET
+  LOCAL
+}
+
+enum JobStatus {
+  DRAFT
+  QUOTED
+  APPROVED
+  IN_PROGRESS
+  WAITING_PARTS
+  WAITING_APPROVAL
+  READY_FOR_TEST
+  QUALITY_CHECK
+  COMPLETED
+  DELIVERED
+  CANCELLED
+  ON_HOLD
+}
+
+enum JobPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+  EMERGENCY
+}
+
+enum JobType {
+  GENERAL_SERVICE
+  OIL_CHANGE
+  TUNE_UP
+  MAJOR_SERVICE
+  MINOR_SERVICE
+  REPAIR
+  DIAGNOSTIC
+  BODY_WORK
+  PAINT
+  ELECTRICAL
+  AC_SERVICE
+  TIRE_CHANGE
+  BATTERY_CHANGE
+  BRAKE_SERVICE
+  ENGINE_REBUILD
+  TRANSMISSION_REPAIR
+  DENTING_PAINTING
+  WHEEL_ALIGNMENT
+  ACCIDENT_REPAIR
+  INSPECTION
+  MODIFICATION
+  DETAILING
+  WASHING
+  OTHER
+}
+
+enum WarrantyStatus {
+  ACTIVE
+  EXPIRED
+  VOID
+  CLAIMED
+  NONE
+}
+
+// ─────────────────────────────────────────────────────────────
+// Vehicle Make (Toyota, Honda, Suzuki etc.)
+// ─────────────────────────────────────────────────────────────
+model VehicleMake {
+  id       String @id @default(uuid())
+  tenantId String
+
+  name         String
+  country      String?
+  logoUrl      String?
+  displayOrder Int     @default(0)
+  isActive     Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  models VehicleModel[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Vehicle Model (Corolla, Civic, Mehran, City etc.)
+// ─────────────────────────────────────────────────────────────
+model VehicleModel {
+  id       String @id @default(uuid())
+  tenantId String
+  makeId   String
+
+  name          String
+  vehicleType   VehicleType @default(CAR)
+  yearFrom      Int?
+  yearTo        Int?
+  engineOptions String[]    @default([])
+  imageUrl      String?
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  make VehicleMake @relation(fields: [makeId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, makeId, name])
+  @@index([tenantId])
+  @@index([makeId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Customer's Vehicle Registration
+// ─────────────────────────────────────────────────────────────
+model CustomerVehicle {
+  id         String @id @default(uuid())
+  tenantId   String
+  customerId String
+
+  // Registration
+  registrationNumber String
+  chassisNumber      String?
+  engineNumber       String?
+
+  // Vehicle info
+  makeId      String?
+  modelId     String?
+  makeName    String?
+  modelName   String?
+  vehicleType VehicleType @default(CAR)
+  year        Int?
+  color       String?
+
+  // Technical
+  fuelType     FuelType         @default(PETROL)
+  transmission TransmissionType @default(MANUAL)
+  engineCC     Int?
+  odometerKm   Int?
+
+  // Ownership
+  ownerName  String?
+  ownerPhone String?
+  ownerCnic  String?
+
+  // Insurance
+  insuranceProvider     String?
+  insurancePolicyNumber String?
+  insuranceExpiry       DateTime?
+
+  // Registration/token
+  tokenTaxExpiry DateTime?
+  fitnessExpiry  DateTime?
+
+  // Documents
+  documentUrls String[] @default([])
+  photoUrls    String[] @default([])
+
+  // Service preferences
+  preferredMechanicId String?
+  notes               String? @db.Text
+
+  // Stats
+  totalServices  Int       @default(0)
+  totalSpent     Float     @default(0)
+  lastServiceAt  DateTime?
+  lastOdometerKm Int?
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, registrationNumber])
+  @@index([tenantId])
+  @@index([customerId])
+  @@index([tenantId, insuranceExpiry])
+  @@index([tenantId, tokenTaxExpiry])
+  @@index([tenantId, fitnessExpiry])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Part Master (extends Product for auto parts)
+// ─────────────────────────────────────────────────────────────
+model AutoPartProfile {
+  id        String @id @default(uuid())
+  tenantId  String
+  productId String @unique
+
+  // Part identification
+  partNumber       String?
+  oemNumber        String?
+  alternateNumbers String[]     @default([])
+  category         PartCategory @default(OTHER)
+  subCategory      String?
+
+  // Part details
+  condition       PartCondition @default(NEW)
+  brand           String?
+  countryOfOrigin String?
+  manufacturer    String?
+
+  // Physical
+  weightGrams Float?
+  dimensions  String?
+  color       String?
+  material    String?
+
+  // Warranty
+  warrantyMonths Int     @default(0)
+  warrantyKm     Int?
+  warrantyNotes  String?
+
+  // Installation
+  installationMinutes    Int?
+  requiresSpecialTool    Boolean @default(false)
+  installationDifficulty String? // EASY | MEDIUM | HARD | EXPERT
+
+  // Compatibility (JSON: [{makeId, modelId, yearFrom, yearTo, engineCC, fuelType}])
+  compatibility Json?
+
+  // Business
+  minStockAlert Int     @default(0)
+  isFastMoving  Boolean @default(false)
+  isCritical    Boolean @default(false)
+
+  // Stats
+  totalSold      Int @default(0)
+  totalInstalled Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, category])
+  @@index([tenantId, partNumber])
+  @@index([tenantId, oemNumber])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Service Job (Workshop repair/service ticket)
+// ─────────────────────────────────────────────────────────────
+model WorkshopJob {
+  id       String  @id @default(uuid())
+  tenantId String
+  shopId   String?
+
+  jobNumber String
+  status    JobStatus   @default(DRAFT)
+  priority  JobPriority @default(NORMAL)
+  jobType   JobType     @default(GENERAL_SERVICE)
+
+  // Vehicle
+  vehicleId          String?
+  registrationNumber String?
+  makeName           String?
+  modelName          String?
+  year               Int?
+  odometerKm         Int?
+
+  // Customer
+  customerId    String?
+  customerName  String?
+  customerPhone String?
+
+  // Complaint & diagnosis
+  customerComplaint String? @db.Text
+  diagnosis         String? @db.Text
+  workDescription   String? @db.Text
+  recommendations   String? @db.Text
+
+  // Assignment
+  primaryMechanicId    String?
+  assistantMechanicIds String[] @default([])
+  bayNumber            String?
+
+  // Dates
+  receivedAt         DateTime  @default(now())
+  promisedAt         DateTime?
+  startedAt          DateTime?
+  completedAt        DateTime?
+  deliveredAt        DateTime?
+  cancelledAt        DateTime?
+  cancellationReason String?
+
+  // Vehicle inspection
+  fuelLevel           String?
+  hasSpareTire        Boolean  @default(false)
+  hasToolkit          Boolean  @default(false)
+  externalDamages     String?  @db.Text
+  inspectionImageUrls String[] @default([])
+
+  // Test drive
+  testDriveRequired     Boolean   @default(false)
+  testDriveNotes        String?   @db.Text
+  testDriveDoneAt       DateTime?
+  testDriveByMechanicId String?
+
+  // Financial
+  laborTotal    Float  @default(0)
+  partsTotal    Float  @default(0)
+  externalTotal Float  @default(0)
+  subtotal      Float  @default(0)
+  discount      Float  @default(0)
+  taxAmount     Float  @default(0)
+  total         Float  @default(0)
+  paidAmount    Float  @default(0)
+  paymentStatus String @default("UNPAID")
+
+  // Warranty
+  warrantyStatus WarrantyStatus @default(NONE)
+  warrantyMonths Int            @default(0)
+  warrantyKm     Int?
+  warrantyExpiry DateTime?
+  warrantyNotes  String?
+
+  // Insurance claim
+  isInsuranceClaim     Boolean @default(false)
+  insuranceProvider    String?
+  insuranceClaimNumber String?
+  insuranceApproved    Boolean @default(false)
+  insuranceAmount      Float   @default(0)
+
+  // Feedback
+  customerRating   Int?
+  customerFeedback String? @db.Text
+
+  // Notes
+  internalNotes String?  @db.Text
+  imageUrls     String[] @default([])
+  documentUrls  String[] @default([])
+
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  laborItems   WorkshopJobLabor[]
+  partsUsed    WorkshopJobPart[]
+  externalWork WorkshopJobExternal[]
+  payments     WorkshopJobPayment[]
+  statusLogs   WorkshopJobStatusLog[]
+
+  @@unique([tenantId, jobNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([vehicleId])
+  @@index([customerId])
+  @@index([primaryMechanicId])
+  @@index([promisedAt])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Labor line items in a job
+// ─────────────────────────────────────────────────────────────
+model WorkshopJobLabor {
+  id    String @id @default(uuid())
+  jobId String
+
+  description  String
+  jobType      JobType?
+  mechanicId   String?
+  mechanicName String?
+
+  hours       Float @default(1)
+  ratePerHour Float @default(0)
+  total       Float @default(0)
+
+  commissionAmount Float     @default(0)
+  isCompleted      Boolean   @default(false)
+  completedAt      DateTime?
+  notes            String?
+
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  job WorkshopJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+  @@index([mechanicId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Parts used in a job
+// ─────────────────────────────────────────────────────────────
+model WorkshopJobPart {
+  id    String @id @default(uuid())
+  jobId String
+
+  productId  String?
+  variantId  String?
+  partName   String
+  partNumber String?
+
+  quantity  Float @default(1)
+  unitPrice Float @default(0)
+  discount  Float @default(0)
+  total     Float @default(0)
+
+  condition          PartCondition @default(NEW)
+  isCustomerSupplied Boolean       @default(false)
+
+  warrantyMonths Int  @default(0)
+  warrantyKm     Int?
+
+  installedByMechanicId String?
+  installedAt           DateTime?
+  notes                 String?
+
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  job WorkshopJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+  @@index([productId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// External work (sent to another shop for painting, machining etc.)
+// ─────────────────────────────────────────────────────────────
+model WorkshopJobExternal {
+  id    String @id @default(uuid())
+  jobId String
+
+  description String
+  vendorName  String?
+  vendorPhone String?
+
+  cost   Float @default(0)
+  markup Float @default(0)
+  total  Float @default(0)
+
+  sentAt     DateTime?
+  receivedAt DateTime?
+
+  status String  @default("PENDING")
+  notes  String?
+
+  createdAt DateTime @default(now())
+
+  job WorkshopJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Job payments
+// ─────────────────────────────────────────────────────────────
+model WorkshopJobPayment {
+  id    String @id @default(uuid())
+  jobId String
+
+  amount        Float
+  paymentMethod String
+  reference     String?
+  notes         String?
+  receivedById  String?
+  paidAt        DateTime @default(now())
+
+  createdAt DateTime @default(now())
+
+  job WorkshopJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Status change log
+// ─────────────────────────────────────────────────────────────
+model WorkshopJobStatusLog {
+  id    String @id @default(uuid())
+  jobId String
+
+  fromStatus  JobStatus?
+  toStatus    JobStatus
+  notes       String?
+  changedById String?
+
+  createdAt DateTime @default(now())
+
+  job WorkshopJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Mechanic profile (extends Staff)
+// ─────────────────────────────────────────────────────────────
+model MechanicProfile {
+  id       String @id @default(uuid())
+  tenantId String
+  staffId  String @unique
+
+  // Skills & certification
+  specialization    String[] @default([])
+  certifications    String[] @default([])
+  yearsOfExperience Int?
+  bio               String?  @db.Text
+  photoUrl          String?
+
+  // Rates
+  hourlyRate    Float @default(0)
+  commissionPct Float @default(0)
+
+  // Availability
+  workingDays   Int[]  @default([1, 2, 3, 4, 5, 6])
+  workStartTime String @default("09:00")
+  workEndTime   String @default("18:00")
+
+  isAvailable  Boolean @default(true)
+  currentJobId String?
+
+  // Stats
+  totalJobs       Int    @default(0)
+  totalHours      Float  @default(0)
+  totalRevenue    Float  @default(0)
+  totalCommission Float  @default(0)
+  avgRating       Float?
+  totalReviews    Int    @default(0)
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Service reminders (next service due)
+// ─────────────────────────────────────────────────────────────
+model VehicleServiceReminder {
+  id        String @id @default(uuid())
+  tenantId  String
+  vehicleId String
+
+  reminderType String // OIL_CHANGE | FILTER | TIMING_BELT | INSURANCE | TOKEN_TAX | FITNESS | GENERAL
+  title        String
+  description  String?
+
+  dueDate       DateTime?
+  dueOdometerKm Int?
+
+  status         String    @default("PENDING") // PENDING | SENT | ACKNOWLEDGED | DONE | SNOOZED
+  sentAt         DateTime?
+  acknowledgedAt DateTime?
+  doneAt         DateTime?
+
+  autoCreated Boolean @default(false)
+  fromJobId   String?
+
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([vehicleId])
+  @@index([dueDate])
 }

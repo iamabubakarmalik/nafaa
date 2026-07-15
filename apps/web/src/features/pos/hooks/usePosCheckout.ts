@@ -45,6 +45,27 @@ export function setAutoOpenReceipt(value: boolean): void {
   try { localStorage.setItem(AUTO_RECEIPT_KEY, String(value)); } catch {}
 }
 
+function sanitizeCartItem(item: any) {
+  return {
+    productId: item.productId,
+    variantId: item.variantId,
+    imeiId: item.imeiId,
+    quantity: item.quantity,
+    priceOverride: item.priceOverride,
+    lineDiscount: item.lineDiscount,
+    useWholesale: item.useWholesale,
+    note: item.note,
+    rollId: item.rollId,
+    cutPieceId: item.cutPieceId,
+    cutSqft: item.cutSqft,
+    cutLengthFt: item.cutLengthFt,
+    cutLengthInch: item.cutLengthInch,
+    cutWidthFt: item.cutWidthFt,
+    cutWidthInch: item.cutWidthInch,
+    createLeftover: item.createLeftover,
+  };
+}
+
 export function usePosCheckout(onSuccess?: (result: CheckoutResult) => void) {
   const queryClient = useQueryClient();
 

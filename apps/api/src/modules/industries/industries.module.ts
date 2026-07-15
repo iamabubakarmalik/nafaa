@@ -1,27 +1,34 @@
 import { Module } from '@nestjs/common';
-import { ImeiModule } from './mobile/imei/imei.module';
-import { EmiModule } from './mobile/emi/emi.module';
-import { BatchesModule } from './pharmacy/batches/batches.module';
-import { TablesModule } from './restaurant/tables/tables.module';
-import { AppointmentsModule } from './salon/appointments/appointments.module';
 import { CarpetModule } from './carpet/carpet.module';
+import { RetailModule } from './retail/retail.module';
+import { RestaurantModule } from './restaurant/restaurant.module';
+import { MobileModule } from './mobile/mobile.module';
+import { GarmentsModule } from './garments/garments.module';
+import { PharmacyModule } from './pharmacy/pharmacy.module';
+import { AutoPartsModule } from './autoparts/autoparts.module';
+import { SalonModule } from './salon/salon.module';
+
 
 @Module({
   imports: [
-    ImeiModule,
-    EmiModule,
-    BatchesModule,
-    TablesModule,
-    AppointmentsModule,
+    RetailModule,
+    RestaurantModule,
     CarpetModule,
+    MobileModule,
+    GarmentsModule,
+    PharmacyModule,
+    AutoPartsModule,
+    SalonModule,
   ],
   exports: [
-    ImeiModule,
-    EmiModule,
-    BatchesModule,
-    TablesModule,
-    AppointmentsModule,
+    RetailModule,
+    RestaurantModule,
     CarpetModule,
+    MobileModule,
+    GarmentsModule,
+    PharmacyModule,
+    AutoPartsModule,
+    SalonModule,
   ],
 })
 export class IndustriesModule {}

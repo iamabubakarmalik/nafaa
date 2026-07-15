@@ -15,6 +15,8 @@ import {
   PieChart, Pie, Cell, Legend,
 } from 'recharts';
 import { salesApi, type PaymentMethod } from '@/api/sales.api';
+import { ordersApi as restaurantOrdersApi } from '@/features/industries/restaurant/api/orders.api';
+import { Utensils, Bike, ShoppingBag as Takeaway, Car, ChefHat } from 'lucide-react';
 import { formatPKR } from '@/lib/format';
 import { Button } from '@/components/ui/Button';
 import { useSalesPrivacy } from '../hooks/useSalesPrivacy';
@@ -71,6 +73,23 @@ export default function SalesPage() {
     queryFn: () => salesApi.summary(),
     enabled: !privacy.isLocked,
   });
+
+  // Fetch restaurant orders to enrich sales with table info
+  const { data: restaurantOrders = [] } = useQuery({
+    queryKey: ['restaurant-orders-for-sales'],
+    queryFn: () => restaurantOrdersApi.list({}),
+    enabled: !privacy.isLocked,
+  });
+
+  // Build map: saleId -> restaurantOrder
+  const roBySaleId = useMemo(() => {
+    const map: Record<string, any> = {};
+    for (const ro of restaurantOrders as any[]) {
+      const sid = (ro as any).saleId;
+      if (sid) map[sid] = ro;
+    }
+    return map;
+  }, [restaurantOrders]);
 
   const filteredSales = useMemo(() => {
     let result = [...sales];
@@ -646,6 +665,16 @@ export default function SalesPage() {
                                 UDHAAR
                               </span>
                             )}
+                            {roBySaleId[sale.id] && (() => {
+                              const ro = roBySaleId[sale.id];
+                              const ModeIcon = ro.mode === 'DINE_IN' ? Utensils : ro.mode === 'DELIVERY' ? Bike : ro.mode === 'TAKEAWAY' ? Takeaway : ro.mode === 'DRIVE_THRU' ? Car : ChefHat;
+                              return (
+                                <span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[10px] font-extrabold inline-flex items-center gap-1">
+                                  <ModeIcon className="h-2.5 w-2.5" />
+                                  {ro.table ? 'TABLE ' + ro.table.tableNumber : ro.mode.replace('_', ' ')}
+                                </span>
+                              );
+                            })()}
                             {!!(sale.serviceCharges && sale.serviceCharges > 0) && (
                               <span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[10px] font-extrabold inline-flex items-center gap-1">
                                 <Wrench className="h-2.5 w-2.5" />

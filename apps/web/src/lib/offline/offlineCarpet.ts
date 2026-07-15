@@ -2,6 +2,10 @@ import { db } from './db';
 import { carpetRollsApi } from '@/features/industries/carpet/api/carpet-rolls.api';
 import { carpetCutPiecesApi } from '@/features/industries/carpet/api/carpet-cut-pieces.api';
 
+
+let lastCarpetSync = 0;
+const CARPET_SYNC_GAP_MS = 3 * 60 * 1000; // 3 min
+
 interface CachedRoll {
   id: string;
   productId: string;
@@ -38,6 +42,8 @@ const CUT_PIECES_CACHE_KEY = 'carpet-cut-pieces-cache';
  */
 export async function downloadCarpetData(): Promise<void> {
   if (!navigator.onLine) return;
+  if (Date.now() - lastCarpetSync < CARPET_SYNC_GAP_MS) return;
+  lastCarpetSync = Date.now();
 
   try {
     // Fetch all active rolls

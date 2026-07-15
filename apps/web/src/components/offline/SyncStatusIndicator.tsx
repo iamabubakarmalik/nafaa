@@ -82,7 +82,7 @@ export function SyncStatusIndicator() {
       toast.error('Internet connect karein pehle');
       return;
     }
-    await fullSync();
+    await fullSync(false, true);
   };
 
   return (

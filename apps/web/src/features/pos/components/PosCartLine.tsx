@@ -6,6 +6,8 @@ import {
 import { formatPKR } from '@/lib/format';
 import type { CartItem } from './pos-types';
 import { LW_UNITS } from './pos-types';
+import { UnitSelectorInline } from './UnitSelectorInline';
+import { useIsRetailBusiness } from '@/features/industries/retail/hooks/useIsRetailBusiness';
 
 interface Props {
   item: CartItem;
@@ -34,7 +36,6 @@ function splitNote(note?: string): { systemNote: string; userNote: string } {
   const isSystem = SYSTEM_NOTE_PATTERNS.some((rx) => rx.test(trimmed));
   return isSystem ? { systemNote: trimmed, userNote: '' } : { systemNote: '', userNote: trimmed };
 }
-
 function joinNote(systemNote: string, userNote: string): string | undefined {
   const s = systemNote.trim();
   const u = userNote.trim();
@@ -48,6 +49,7 @@ export function PosCartLine({
   item, isEditing, hidePrices, onToggleEdit, onRemove, onUpdate, onSetQuantity, onOpenLW,
 }: Props) {
   const [notesOpen, setNotesOpen] = useState(false);
+  const isRetail = useIsRetailBusiness();
 
   const unitPrice = item.priceOverride ?? (item.useWholesale ? (item.wholesalePrice ?? item.basePrice) : item.basePrice);
   const lineTotal = unitPrice * item.quantity - (item.lineDiscount || 0);

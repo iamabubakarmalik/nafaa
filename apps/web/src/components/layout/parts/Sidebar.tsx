@@ -1,13 +1,11 @@
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
-  LayoutDashboard, Package, Sparkles, Users, ShoppingCart, Receipt,
-  Truck, PackagePlus, Tag, Wallet, Activity, BarChart3, Settings as SettingsIcon,
+  LayoutDashboard, Package, Sparkles, Users, ShoppingCart, Receipt, PackagePlus, Tag, Wallet, Activity, BarChart3, Settings as SettingsIcon,
   ScanLine, ShieldCheck, BookOpen, ClipboardCheck, AlertTriangle, Building2,
-  ArrowRightLeft, Download, Database, RotateCcw, Award, Percent, TrendingUp,
-  CreditCard, Gift, Gauge, Hash, UserCircle, LifeBuoy, ScrollText, Eye,
-  UserCog, CheckCircle2, Wallet2, Bell, Scissors, Layers,
-  RefreshCw, Wrench, Smartphone, BookmarkPlus, ChevronDown, ChevronRight,
+  ArrowRightLeft, Download, Database, RotateCcw, Award, Percent, TrendingUp, Gift, Gauge, Hash, UserCircle, LifeBuoy, ScrollText, Eye,
+  UserCog, CheckCircle2, Wallet2, Layers, Calendar,
+  RefreshCw, Smartphone, BookmarkPlus, ChevronDown, ChevronRight, ShoppingBag, ChefHat, Utensils, Timer, Bike, Pill, Beaker, Stethoscope, ShieldAlert, Thermometer, Shirt, Scissors, Ruler, Palette, CreditCard, UserCheck, Heart, Car, Wrench, Truck, Cog, Bell, Flame, MapPin,
   Search, X, Star, StarOff, PanelLeftClose, Zap,
 } from 'lucide-react';
 import { Logo } from '@/components/brand/Logo';
@@ -91,6 +89,20 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
+    label: 'Retail Industry',
+    icon: ShoppingBag,
+    items: [
+      { to: '/retail/dashboard', label: 'Retail Dashboard', icon: LayoutDashboard, badge: 'NEW' },
+      { to: '/retail/combos', label: 'Combos', icon: Sparkles },
+      { to: '/retail/product-units', label: 'Multi-Units', icon: Layers },
+      { to: '/retail/damage', label: 'Damage & Wastage', icon: AlertTriangle },
+      { to: '/retail/quick-keys', label: 'Quick Keys', icon: Zap },
+      { to: '/retail/bulk-import', label: 'Bulk Import', icon: Download, badge: 'NEW' },
+      { to: '/retail/reorders', label: 'Smart Reorder', icon: RefreshCw, badge: 'AI' },
+      { to: '/retail/barcode-labels', label: 'Print Labels', icon: ScanLine },
+    ],
+  },
+    {
     label: 'Mobile Industry',
     icon: Smartphone,
     items: [
@@ -102,6 +114,80 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
+    label: 'Restaurant Industry',
+    icon: ChefHat,
+    items: [
+      { to: '/restaurant/dashboard', label: 'Restaurant Dashboard', icon: LayoutDashboard, badge: 'NEW' },
+      { to: '/restaurant/orders', label: 'Orders', icon: ShoppingBag },
+      { to: '/restaurant/tables', label: 'Tables', icon: Utensils },
+      { to: '/restaurant/menu', label: 'Menu Items', icon: ChefHat },
+      { to: '/restaurant/modifiers', label: 'Modifiers', icon: Sparkles },
+      { to: '/restaurant/kot', label: 'Kitchen (KOT)', icon: Timer },
+      { to: '/restaurant/riders', label: 'Riders', icon: Bike },
+      { to: '/restaurant/happy-hours', label: 'Happy Hours', icon: Zap },
+      { to: '/restaurant/recipes', label: 'Recipes / BOM', icon: BookOpen, badge: 'NEW' },
+      { to: '/restaurant/stations', label: 'Kitchen Stations', icon: Flame },
+      { to: '/restaurant/delivery', label: 'Delivery Tracking', icon: MapPin },
+    ],
+  },
+    {
+    label: 'Pharmacy Industry',
+    icon: Pill,
+    items: [
+      { to: '/pharmacy/dashboard', label: 'Pharmacy Dashboard', icon: LayoutDashboard, badge: 'NEW' },
+      { to: '/pharmacy/prescriptions', label: 'Prescriptions', icon: AlertTriangle },
+      { to: '/pharmacy/medicines', label: 'Medicines', icon: Pill },
+      { to: '/pharmacy/salts', label: 'Salts / Drugs', icon: Beaker },
+      { to: '/pharmacy/doctors', label: 'Doctors', icon: Stethoscope },
+      { to: '/pharmacy/expiring', label: 'Expiring Stock', icon: AlertTriangle },
+      { to: '/pharmacy/controlled-log', label: 'Narcotic Register', icon: ShieldAlert },
+      { to: '/pharmacy/temperature-log', label: 'Cold Chain', icon: Thermometer },
+    ],
+  },
+    {
+    label: 'Garments Industry',
+    icon: Shirt,
+    items: [
+      { to: '/garments/dashboard', label: 'Garments Dashboard', icon: LayoutDashboard, badge: 'NEW' },
+      { to: '/garments/collections', label: 'Collections', icon: Palette },
+      { to: '/garments/products', label: 'Garment Products', icon: Shirt },
+      { to: '/garments/measurements', label: 'Measurements', icon: Ruler },
+      { to: '/garments/tailoring', label: 'Tailoring Orders', icon: Scissors },
+      { to: '/garments/alterations', label: 'Alterations', icon: Ruler },
+      { to: '/garments/reservations', label: 'Reservations', icon: BookmarkPlus },
+      { to: '/garments/layaway', label: 'Layaway Plans', icon: CreditCard },
+      { to: '/garments/size-charts', label: 'Size Charts', icon: Package },
+    ],
+  },
+    {
+    label: 'Salon Industry',
+    icon: Scissors,
+    items: [
+      { to: '/salon/dashboard', label: 'Salon Dashboard', icon: LayoutDashboard, badge: 'NEW' },
+      { to: '/salon/appointments', label: 'Appointments', icon: Calendar },
+      { to: '/salon/calendar', label: 'Calendar View', icon: Timer },
+      { to: '/salon/services', label: 'Services', icon: Scissors },
+      { to: '/salon/staff', label: 'Staff', icon: UserCheck },
+      { to: '/salon/memberships', label: 'Memberships', icon: Award },
+      { to: '/salon/packages', label: 'Packages', icon: BookmarkPlus },
+      { to: '/salon/customers', label: 'Customer Profiles', icon: Heart },
+    ],
+  },
+    {
+    label: 'Auto Parts / Workshop',
+    icon: Car,
+    items: [
+      { to: '/autoparts/dashboard', label: 'Workshop Dashboard', icon: LayoutDashboard, badge: 'NEW' },
+      { to: '/autoparts/jobs', label: 'Workshop Jobs', icon: Wrench },
+      { to: '/autoparts/vehicles', label: 'Customer Vehicles', icon: Car },
+      { to: '/autoparts/parts', label: 'Parts Catalog', icon: Package },
+      { to: '/autoparts/makes', label: 'Vehicle Makes', icon: Truck },
+      { to: '/autoparts/models', label: 'Vehicle Models', icon: Cog },
+      { to: '/autoparts/mechanics', label: 'Mechanics', icon: Users },
+      { to: '/autoparts/reminders', label: 'Service Reminders', icon: Bell },
+    ],
+  },
+    {
     label: 'Staff & Team',
     icon: UserCog,
     items: [
@@ -131,6 +217,7 @@ const navGroups: NavGroup[] = [
       { to: '/exports', label: 'Exports', icon: Download, permission: PERMISSIONS.EXPORTS_VIEW },
       { to: '/backup', label: 'Backup', icon: Database, permission: PERMISSIONS.BACKUP_MANAGE },
       { to: '/activity-log', label: 'Activity Log', icon: Activity, permission: PERMISSIONS.ACTIVITY_VIEW },
+      { to: '/receipt-settings', label: 'Receipt Settings', icon: ScanLine, permission: PERMISSIONS.SETTINGS_VIEW, badge: 'NEW' },
       { to: '/settings', label: 'Settings', icon: SettingsIcon, permission: PERMISSIONS.SETTINGS_VIEW },
       { to: '/profile', label: 'My Profile', icon: UserCircle },
       { to: '/help', label: 'Help', icon: LifeBuoy },
@@ -190,6 +277,18 @@ export const Sidebar = memo(function Sidebar({
     const isMobile = type.includes('MOBILE') || type.includes('PHONE') || type.includes('ELECTRONICS');
     return navGroups
       .filter((group) => {
+        const isRetail = type.includes('RETAIL') || type.includes('KIRYANA') || type.includes('GENERAL') || type.includes('SUPERMARKET');
+        const isRestaurant = type.includes('RESTAURANT') || type.includes('CAFE') || type.includes('BAKERY') || type.includes('FOOD') || type.includes('FAST_FOOD') || type.includes('DINE');
+        const isPharmacy = type.includes('PHARMACY') || type.includes('MEDICAL') || type.includes('CHEMIST') || type.includes('DRUG');
+        const isGarments = type.includes('GARMENT') || type.includes('CLOTHING') || type.includes('BOUTIQUE') || type.includes('APPAREL') || type.includes('TAILOR') || type.includes('FASHION');
+        if (group.label === 'Retail Industry' && !isRetail) return false;
+        if (group.label === 'Restaurant Industry' && !isRestaurant) return false;
+        if (group.label === 'Pharmacy Industry' && !isPharmacy) return false;
+        if (group.label === 'Garments Industry' && !isGarments) return false;
+        const isSalon = type.includes('SALON') || type.includes('PARLOUR') || type.includes('PARLOR') || type.includes('BEAUTY') || type.includes('SPA') || type.includes('BARBER');
+        if (group.label === 'Salon Industry' && !isSalon) return false;
+        const isAutoParts = type.includes('AUTO') || type.includes('WORKSHOP') || type.includes('GARAGE') || type.includes('MECHANIC') || type.includes('SPARE') || type.includes('MOTOR') || type.includes('VEHICLE') || type.includes('CAR');
+        if (group.label === 'Auto Parts / Workshop' && !isAutoParts) return false;
         if (group.label === 'Carpet Industry' && !isCarpet) return false;
         if (group.label === 'Mobile Industry' && !isMobile) return false;
         return true;

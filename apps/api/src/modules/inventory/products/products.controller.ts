@@ -219,7 +219,12 @@ export class ProductsController {
     return { count: updates.length, products: updates };
   }
 
-  @Post('bulk-action')
+  @Post('backfill-shop-stock')
+  async backfillShopStock(@GetUser() user: AuthenticatedUser) {
+    return this.productsService.backfillShopStock(user);
+  }
+
+    @Post('bulk-action')
   bulkAction(
     @GetUser() user: AuthenticatedUser,
     @Body() body: {

@@ -78,8 +78,6 @@ import OnboardingPage from '@/features/onboarding/pages/OnboardingPage';
 
 // ─── Staff Management ──────────────────────────────────────────────
 import StaffListPage from '@/features/staff/pages/StaffListPage';
-import ExpiryDashboardPage from '@/features/industries/pharmacy/pages/ExpiryDashboardPage';
-import TablesPage from '@/features/industries/restaurant/pages/TablesPage';
 import AppointmentsPage from '@/features/industries/salon/pages/AppointmentsPage';
 import CarpetRollsPage from '@/features/industries/carpet/pages/CarpetRollsPage';
 import CarpetCutPiecesPage from '@/features/industries/carpet/pages/CarpetCutPiecesPage';
@@ -90,6 +88,69 @@ import StaffFormPage from '@/features/staff/pages/StaffFormPage';
 import StaffDetailPage from '@/features/staff/pages/StaffDetailPage';
 import AttendancePage from '@/features/staff/pages/AttendancePage';
 import SalaryProcessPage from '@/features/staff/pages/SalaryProcessPage';
+
+import RetailDashboardPage from '@/features/industries/retail/pages/RetailDashboardPage';
+import CombosPage from '@/features/industries/retail/pages/CombosPage';
+import ComboFormPage from '@/features/industries/retail/pages/ComboFormPage';
+import DamageLogPage from '@/features/industries/retail/pages/DamageLogPage';
+import ProductUnitsPage from '@/features/industries/retail/pages/ProductUnitsPage';
+import QuickKeysPage from '@/features/industries/retail/pages/QuickKeysPage';
+import RestaurantDashboardPage from '@/features/industries/restaurant/pages/RestaurantDashboardPage';
+import ReceiptSettingsPage from '@/features/receipts/pages/ReceiptSettingsPage';
+import RestaurantOrdersPage from '@/features/industries/restaurant/pages/RestaurantOrdersPage';
+import TablesLayoutPage from '@/features/industries/restaurant/pages/TablesLayoutPage';
+import MenuItemsPage from '@/features/industries/restaurant/pages/MenuItemsPage';
+import ModifiersPage from '@/features/industries/restaurant/pages/ModifiersPage';
+import KotDisplayPage from '@/features/industries/restaurant/pages/KotDisplayPage';
+import RidersPage from '@/features/industries/restaurant/pages/RidersPage';
+import HappyHoursPage from '@/features/industries/restaurant/pages/HappyHoursPage';
+import NewOrderPage from '@/features/industries/restaurant/pages/NewOrderPage';
+import OrderDetailPage from '@/features/industries/restaurant/pages/OrderDetailPage';
+import PharmacyDashboardPage from '@/features/industries/pharmacy/pages/PharmacyDashboardPage';
+import PrescriptionsPage from '@/features/industries/pharmacy/pages/PrescriptionsPage';
+import NewPrescriptionPage from '@/features/industries/pharmacy/pages/NewPrescriptionPage';
+import PrescriptionDetailPage from '@/features/industries/pharmacy/pages/PrescriptionDetailPage';
+import DoctorsPage from '@/features/industries/pharmacy/pages/DoctorsPage';
+import SaltsPage from '@/features/industries/pharmacy/pages/SaltsPage';
+import MedicinesPage from '@/features/industries/pharmacy/pages/MedicinesPage';
+import ExpiringPage from '@/features/industries/pharmacy/pages/ExpiringPage';
+import ControlledLogPage from '@/features/industries/pharmacy/pages/ControlledLogPage';
+import TemperatureLogPage from '@/features/industries/pharmacy/pages/TemperatureLogPage';
+import GarmentsDashboardPage from '@/features/industries/garments/pages/GarmentsDashboardPage';
+import CollectionsPage from '@/features/industries/garments/pages/CollectionsPage';
+import SizeChartsPage from '@/features/industries/garments/pages/SizeChartsPage';
+import MeasurementsPage from '@/features/industries/garments/pages/MeasurementsPage';
+import GarmentProductsPage from '@/features/industries/garments/pages/GarmentProductsPage';
+import TailoringPage from '@/features/industries/garments/pages/TailoringPage';
+import NewTailoringOrderPage from '@/features/industries/garments/pages/NewTailoringOrderPage';
+import TailoringDetailPage from '@/features/industries/garments/pages/TailoringDetailPage';
+import AlterationsPage from '@/features/industries/garments/pages/AlterationsPage';
+import ReservationsPage from '@/features/industries/garments/pages/ReservationsPage';
+import LayawayPage from '@/features/industries/garments/pages/LayawayPage';
+import SalonDashboardPage from '@/features/industries/salon/pages/SalonDashboardPage';
+import ServicesPage from '@/features/industries/salon/pages/ServicesPage';
+import StaffPage from '@/features/industries/salon/pages/StaffPage';
+import NewAppointmentPage from '@/features/industries/salon/pages/NewAppointmentPage';
+import AppointmentDetailPage from '@/features/industries/salon/pages/AppointmentDetailPage';
+import MembershipsPage from '@/features/industries/salon/pages/MembershipsPage';
+import PackagesPage from '@/features/industries/salon/pages/PackagesPage';
+import CalendarViewPage from '@/features/industries/salon/pages/CalendarViewPage';
+import CustomersPage from '@/features/industries/salon/pages/CustomersPage';
+import AutoPartsDashboardPage from '@/features/industries/autoparts/pages/AutoPartsDashboardPage';
+import VehicleMakesPage from '@/features/industries/autoparts/pages/VehicleMakesPage';
+import VehicleModelsPage from '@/features/industries/autoparts/pages/VehicleModelsPage';
+import CustomerVehiclesPage from '@/features/industries/autoparts/pages/CustomerVehiclesPage';
+import PartsPage from '@/features/industries/autoparts/pages/PartsPage';
+import WorkshopJobsPage from '@/features/industries/autoparts/pages/WorkshopJobsPage';
+import NewWorkshopJobPage from '@/features/industries/autoparts/pages/NewWorkshopJobPage';
+import WorkshopJobDetailPage from '@/features/industries/autoparts/pages/WorkshopJobDetailPage';
+import MechanicsPage from '@/features/industries/autoparts/pages/MechanicsPage';
+import ServiceRemindersPage from '@/features/industries/autoparts/pages/ServiceRemindersPage';
+import RecipesPage from '@/features/industries/restaurant/pages/RecipesPage';
+import StationsPage from '@/features/industries/restaurant/pages/StationsPage';
+import DeliveryTrackingPage from '@/features/industries/restaurant/pages/DeliveryTrackingPage';
+import BulkImportPage from '@/features/industries/retail/pages/BulkImportPage';
+import ReorderPage from '@/features/industries/retail/pages/ReorderPage';
 
 import { ProtectedRoute, PublicOnlyRoute } from '@/routes/ProtectedRoute';
 import OnboardingGate from '@/routes/OnboardingGate';
@@ -189,6 +250,7 @@ export default function App() {
                 <Route path="/stock-report" element={secure(PERMISSIONS.REPORTS_VIEW, <StockReportPage />)} />
                 <Route path="/reports" element={secure(PERMISSIONS.REPORTS_VIEW, <ReportsPage />)} />
                 <Route path="/settings" element={secure(PERMISSIONS.SETTINGS_VIEW, <SettingsPage />)} />
+                <Route path="/receipt-settings" element={secure(PERMISSIONS.SETTINGS_VIEW, <ReceiptSettingsPage />)} />
                 <Route path="/barcode-labels" element={secure(PERMISSIONS.BARCODE_LABELS_VIEW, <BarcodeLabelsPage />)} />
 
                 {/* Team & Staff */}
@@ -198,8 +260,6 @@ export default function App() {
                 <Route path="/staff/attendance" element={secure(PERMISSIONS.STAFF_VIEW, <AttendancePage />)} />
                 <Route path="/staff/salary/new" element={secure(PERMISSIONS.STAFF_MANAGE, <SalaryProcessPage />)} />
                 <Route path="/staff/:id" element={secure(PERMISSIONS.STAFF_VIEW, <StaffDetailPage />)} />
-                <Route path="/expiry-dashboard" element={<ExpiryDashboardPage />} />
-                <Route path="/tables" element={<TablesPage />} />
                 <Route path="/appointments" element={<AppointmentsPage />} />
 
                 {/* Carpet Industry */}
@@ -208,6 +268,84 @@ export default function App() {
                 <Route path="/carpet-reports" element={<CarpetReportsPage />} />
                 <Route path="/carpet-bulk-import" element={<CarpetBulkImportPage />} />
                 <Route path="/carpet-cut-pieces" element={<CarpetCutPiecesPage />} />
+                                {/* Retail Industry — Additive, existing users safe */}
+                <Route path="/retail" element={<RetailDashboardPage />} />
+                <Route path="/retail/dashboard" element={<RetailDashboardPage />} />
+                {/* Restaurant Industry — full best */}
+                <Route path="/restaurant" element={<RestaurantDashboardPage />} />
+                <Route path="/restaurant/dashboard" element={<RestaurantDashboardPage />} />
+                <Route path="/restaurant/orders/new" element={<NewOrderPage />} />
+                <Route path="/restaurant/orders/:id" element={<OrderDetailPage />} />
+                {/* Pharmacy Industry — DRAP compliant, full best */}
+                <Route path="/pharmacy" element={<PharmacyDashboardPage />} />
+                <Route path="/pharmacy/dashboard" element={<PharmacyDashboardPage />} />
+                <Route path="/pharmacy/prescriptions/new" element={<NewPrescriptionPage />} />
+                <Route path="/pharmacy/prescriptions/:id" element={<PrescriptionDetailPage />} />
+                <Route path="/pharmacy/prescriptions" element={<PrescriptionsPage />} />
+                <Route path="/pharmacy/doctors" element={<DoctorsPage />} />
+                <Route path="/pharmacy/salts" element={<SaltsPage />} />
+                <Route path="/pharmacy/medicines" element={<MedicinesPage />} />
+                <Route path="/pharmacy/expiring" element={<ExpiringPage />} />
+                <Route path="/pharmacy/controlled-log" element={<ControlledLogPage />} />
+                <Route path="/pharmacy/temperature-log" element={<TemperatureLogPage />} />
+                {/* Garments / Boutique Industry — full best */}
+                <Route path="/garments" element={<GarmentsDashboardPage />} />
+                <Route path="/garments/dashboard" element={<GarmentsDashboardPage />} />
+                <Route path="/garments/collections" element={<CollectionsPage />} />
+                <Route path="/garments/size-charts" element={<SizeChartsPage />} />
+                <Route path="/garments/measurements" element={<MeasurementsPage />} />
+                <Route path="/garments/products" element={<GarmentProductsPage />} />
+                <Route path="/garments/tailoring/new" element={<NewTailoringOrderPage />} />
+                <Route path="/garments/tailoring/:id" element={<TailoringDetailPage />} />
+                <Route path="/garments/tailoring" element={<TailoringPage />} />
+                <Route path="/garments/alterations" element={<AlterationsPage />} />
+                <Route path="/garments/reservations" element={<ReservationsPage />} />
+                <Route path="/garments/layaway" element={<LayawayPage />} />
+                {/* Salon / Beauty Parlour Industry */}
+                <Route path="/salon" element={<SalonDashboardPage />} />
+                <Route path="/salon/dashboard" element={<SalonDashboardPage />} />
+                <Route path="/salon/services" element={<ServicesPage />} />
+                <Route path="/salon/staff" element={<StaffPage />} />
+                <Route path="/salon/appointments/new" element={<NewAppointmentPage />} />
+                <Route path="/salon/appointments/:id" element={<AppointmentDetailPage />} />
+                <Route path="/salon/appointments" element={<AppointmentsPage />} />
+                <Route path="/salon/memberships" element={<MembershipsPage />} />
+                <Route path="/salon/packages" element={<PackagesPage />} />
+                <Route path="/salon/calendar" element={<CalendarViewPage />} />
+                <Route path="/salon/customers" element={<CustomersPage />} />
+                {/* Auto Parts / Workshop Industry */}
+                <Route path="/autoparts" element={<AutoPartsDashboardPage />} />
+                <Route path="/autoparts/dashboard" element={<AutoPartsDashboardPage />} />
+                <Route path="/autoparts/makes" element={<VehicleMakesPage />} />
+                <Route path="/autoparts/models" element={<VehicleModelsPage />} />
+                <Route path="/autoparts/vehicles" element={<CustomerVehiclesPage />} />
+                <Route path="/autoparts/parts" element={<PartsPage />} />
+                <Route path="/autoparts/jobs/new" element={<NewWorkshopJobPage />} />
+                <Route path="/autoparts/jobs/:id" element={<WorkshopJobDetailPage />} />
+                <Route path="/autoparts/jobs" element={<WorkshopJobsPage />} />
+                <Route path="/autoparts/mechanics" element={<MechanicsPage />} />
+                <Route path="/autoparts/reminders" element={<ServiceRemindersPage />} />
+                <Route path="/restaurant/orders" element={<RestaurantOrdersPage />} />
+                <Route path="/restaurant/tables" element={<TablesLayoutPage />} />
+                <Route path="/restaurant/menu" element={<MenuItemsPage />} />
+                <Route path="/restaurant/modifiers" element={<ModifiersPage />} />
+                <Route path="/restaurant/kot" element={<KotDisplayPage />} />
+                <Route path="/restaurant/riders" element={<RidersPage />} />
+                <Route path="/restaurant/happy-hours" element={<HappyHoursPage />} />
+                <Route path="/restaurant/recipes" element={<RecipesPage />} />
+                <Route path="/restaurant/stations" element={<StationsPage />} />
+                <Route path="/restaurant/delivery" element={<DeliveryTrackingPage />} />
+                <Route path="/retail/combos/new" element={<ComboFormPage />} />
+                <Route path="/retail/combos/:id/edit" element={<ComboFormPage />} />
+                <Route path="/retail/combos" element={<CombosPage />} />
+                <Route path="/retail/damage" element={<DamageLogPage />} />
+                <Route path="/retail/product-units" element={<ProductUnitsPage />} />
+                <Route path="/retail/quick-keys" element={<QuickKeysPage />} />
+                <Route path="/retail/bulk-import" element={<BulkImportPage />} />
+                <Route path="/retail/reorders" element={<ReorderPage />} />
+                <Route path="/retail/barcode-labels" element={<BarcodeLabelsPage />} />
+
+
                 <Route path="/staff/:id/edit" element={secure(PERMISSIONS.STAFF_MANAGE, <StaffFormPage />)} />
 
                 <Route path="/shops" element={secure(PERMISSIONS.SHOPS_VIEW, <ShopsPage />)} />

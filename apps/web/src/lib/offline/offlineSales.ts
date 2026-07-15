@@ -36,9 +36,19 @@ export const offlineSalesApi = {
         }
 
         return sale;
-      } catch (error) {
-        console.warn('[offlineSales] Online create failed, queuing offline:', error);
-        // Fall through to offline mode
+      } catch (error: any) {
+        // Only queue offline for NETWORK errors — NOT business logic errors
+        const status = error?.response?.status;
+        const isNetworkError = !status || status === 0 || status >= 502;
+
+        if (!isNetworkError) {
+          // Business error (400/404/409 etc) — bubble up so POS shows error
+          console.error('[offlineSales] Server rejected:', error?.response?.data);
+          throw error;
+        }
+
+        console.warn('[offlineSales] Network issue, queuing offline:', error?.message);
+        // Fall through to offline mode for real network failures
       }
     }
 

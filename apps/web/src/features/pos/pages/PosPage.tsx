@@ -35,6 +35,15 @@ import type { ProductImei } from '@/features/industries/mobile/api/imei.api';
 import { usePosCheckout } from '../hooks/usePosCheckout';
 import type { CarpetRoll } from '@/features/industries/carpet/api/carpet-rolls.api';
 import type { CarpetCutPiece } from '@/features/industries/carpet/api/carpet-cut-pieces.api';
+import { RetailQuickKeysBar } from '../components/RetailQuickKeysBar';
+import { RetailReorderAlert } from '../components/RetailReorderAlert';
+import { RestaurantModeBar } from '../components/RestaurantModeBar';
+import { RestaurantModifierPicker } from '../components/RestaurantModifierPicker';
+import { useRestaurantOrderMode } from '../hooks/useRestaurantOrderMode';
+import { menuItemsApi } from '@/features/industries/restaurant/api/menu-items.api';
+import { useIsRetailBusiness } from '@/features/industries/retail/hooks/useIsRetailBusiness';
+import { useComboToCart } from '../hooks/useComboToCart';
+import { smartBarcodeScan } from '../hooks/useSmartBarcodeScan';
 import {
   type CartItem, type HeldCart, type SaleMode,
   CARPET_UNITS, MOBILE_KEYWORDS, PAGE_SIZE,
@@ -45,6 +54,11 @@ export default function PosPage() {
   const queryClient = useQueryClient();
   const { features: businessFeatures, businessType } = useBusinessFeatures();
   const currentShopId = useAuthStore((s) => s.currentShopId);
+// isRetail now derived from posIndustry above
+  const { expandCombo } = useComboToCart();
+// isRestaurant now derived from posIndustry above
+  const restaurantMode = useRestaurantOrderMode();
+  const [modifierPickerProductId, setModifierPickerProductId] = useState<string | null>(null);
   const tenant = useAuthStore((s) => s.tenant);
 
   const isCarpetBusiness = useMemo(() => {
@@ -56,6 +70,24 @@ export default function PosPage() {
     const type = (businessType ?? '').toUpperCase();
     return type === 'MOBILE' || type === 'PHONE' || type === 'ELECTRONICS' || businessFeatures?.imei === true;
   }, [businessType, businessFeatures]);
+
+  // ─── MUTUALLY EXCLUSIVE industry detection ───
+  // Only ONE industry's POS features show at a time
+  // Priority: Carpet > Mobile > Restaurant > Retail > Standard
+  const posIndustry = useMemo((): 'CARPET' | 'MOBILE' | 'RESTAURANT' | 'RETAIL' | 'STANDARD' => {
+    if (isCarpetBusiness) return 'CARPET';
+    if (isMobileBusiness) return 'MOBILE';
+    const type = (businessType ?? '').toUpperCase();
+    const isRestType = type.includes('RESTAURANT') || type.includes('CAFE') || type.includes('BAKERY') || type.includes('FOOD') || type.includes('FAST_FOOD') || type.includes('DINE');
+    if (isRestType) return 'RESTAURANT';
+    const isRetailType = type.includes('RETAIL') || type.includes('KIRYANA') || type.includes('GENERAL') || type.includes('SUPERMARKET') || type.includes('GROCERY');
+    if (isRetailType) return 'RETAIL';
+    return 'STANDARD';
+  }, [isCarpetBusiness, isMobileBusiness, businessType]);
+
+  // Override the old flags to be exclusive
+  const isRetail = posIndustry === 'RETAIL';
+  const isRestaurant = posIndustry === 'RESTAURANT';
 
   // Preferences
   const [prefs, setPrefs] = useState<PosPreferences>(loadPosPreferences());
@@ -176,6 +208,16 @@ export default function PosPage() {
     return counts;
   }, [products]);
 
+  const checkRestaurantModifiers = async (productId: string): Promise<boolean> => {
+    try {
+      const menuItems = await menuItemsApi.list({});
+      const mi = menuItems.find((m: any) => m.productId === productId);
+      if (!mi) return false;
+      const required = mi.modifiers?.some((mm: any) => mm.modifierGroup?.isRequired);
+      return !!required;
+    } catch { return false; }
+  };
+
   const productNeedsImei = useCallback(
     (product: Product) => {
       if (!businessFeatures.imei) return false;
@@ -211,6 +253,12 @@ export default function PosPage() {
   }, [customerDetail]);
 
   const checkoutMutation = usePosCheckout((result) => {
+    // Auto-open receipt in new tab if enabled
+    const autoOpenReceipt = localStorage.getItem('nafaa.pos.auto-open-receipt') !== 'false';
+    if (autoOpenReceipt && result.saleId) {
+      window.open('/sales/' + result.saleId + '/receipt?auto=1', '_blank');
+    }
+
     const hasImeiItem = cart.some((c) => c.imeiId);
     const shouldOfferEmi =
       hasImeiItem && result.customerId && result.customerName && result.credit > 0 && result.total > 0;
@@ -241,6 +289,11 @@ export default function PosPage() {
     },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Add failed'),
   });
+
+  const handleComboAdd = (combo: any) => {
+    const newItems = expandCombo(combo, cartLineId);
+    setCart((prev) => [...prev, ...newItems]);
+  };
 
   const resetCart = () => {
     setCart([]);
@@ -496,6 +549,59 @@ export default function PosPage() {
   const handleBarcodeScan = async (code: string) => {
     setScannerOpen(false);
     if (!code.trim()) return;
+
+    // Retail businesses — use smart barcode (checks unit + combo barcodes first)
+    if (isRetail) {
+      try {
+        const result = await smartBarcodeScan(code.trim());
+
+        if (result.type === 'combo' && result.combo) {
+          handleComboAdd(result.combo);
+          return;
+        }
+
+        if (result.type === 'unit' && result.unit && result.product) {
+          // Add to cart with unit-specific price
+          setCart((prev) => [...prev, {
+            cartLineId: cartLineId(),
+            productId: result.product.id,
+            variantId: result.variant?.id,
+            name: result.product.name,
+            variantName: result.variant?.name,
+            variantImage: result.variant?.imageUrl ?? undefined,
+            variantColor: result.variant?.color ?? undefined,
+            variantColorHex: result.variant?.colorHex ?? undefined,
+            basePrice: result.unit.price,
+            wholesalePrice: result.unit.wholesalePrice ?? null,
+            stock: result.product.stock,
+            quantity: 1,
+            unit: result.unit.unitName,
+            category: result.product.category,
+            useWholesale: false,
+            lineDiscount: 0,
+            note: `Unit: ${result.unit.unitName} (${result.unit.conversionRate}× base)`,
+          }]);
+          toast.success(`${result.product.name} added as ${result.unit.unitName}`);
+          return;
+        }
+
+        if (result.type === 'product' && result.product) {
+          await addProductToCart(result.product);
+          return;
+        }
+
+        if (result.type === 'variant' && result.product && result.variant) {
+          if (isCarpetProduct(result.product)) setCarpetPickerData({ product: result.product, variant: result.variant });
+          else if (productNeedsImei(result.product)) setImeiPickerData({ product: result.product, variant: result.variant });
+          else addToCart(result.product, result.variant);
+          return;
+        }
+      } catch {
+        // Fall through to standard flow
+      }
+    }
+
+    // Standard barcode flow
     try {
       const product = await productsApi.byBarcode(code.trim());
       if ((product as any).matchedVariant) {
@@ -617,6 +723,38 @@ export default function PosPage() {
 
   return (
     <>
+      {modifierPickerProductId && (
+        <RestaurantModifierPicker
+          productId={modifierPickerProductId}
+          onConfirm={(mods) => {
+            // Find product and add to cart with modifier notes
+            const product = products.find((p) => p.id === modifierPickerProductId);
+            if (product) {
+              const modText = mods.map((m: any) => m.optionName + (m.priceAdjustment !== 0 ? ' (' + (m.priceAdjustment > 0 ? '+' : '') + m.priceAdjustment + ')' : '')).join(', ');
+              const modTotal = mods.reduce((s: number, m: any) => s + m.priceAdjustment * m.quantity, 0);
+              setCart((prev) => [...prev, {
+                cartLineId: cartLineId(),
+                productId: product.id,
+                name: product.name,
+                variantImage: product.images?.[0]?.url ?? undefined,
+                basePrice: product.price + modTotal,
+                wholesalePrice: null,
+                stock: product.stock,
+                quantity: 1,
+                unit: product.unit,
+                category: product.category,
+                useWholesale: false,
+                lineDiscount: 0,
+                note: modText ? 'Modifiers: ' + modText : undefined,
+              }]);
+              toast.success(product.name + ' added with modifiers');
+            }
+            setModifierPickerProductId(null);
+          }}
+          onClose={() => setModifierPickerProductId(null)}
+        />
+      )}
+
       {scannerOpen && <BarcodeScanner onDetected={handleBarcodeScan} onClose={() => setScannerOpen(false)} />}
 
       {showOptions && <PosOptionsPanel onClose={() => setShowOptions(false)} onChange={setPrefs} />}
@@ -859,7 +997,41 @@ export default function PosPage() {
             </div>
           </div>
 
-          {/* SEARCH */}
+          {/* RETAIL QUICK KEYS BAR */}
+          {isRetail && (
+            <div className="shrink-0 px-3 pt-3">
+              <RetailQuickKeysBar
+                onProductAdd={(product) => addProductToCart(product)}
+                onComboAdd={handleComboAdd}
+                shopId={currentShopId ?? undefined}
+              />
+            </div>
+          )}
+
+          {/* CRITICAL REORDER ALERT */}
+          {isRetail && <RetailReorderAlert />}
+
+          {/* RESTAURANT ORDER MODE BAR */}
+          {isRestaurant && (
+            <div className="shrink-0 px-3 pt-3">
+              <RestaurantModeBar
+                orderMode={restaurantMode.orderMode}
+                onChangeMode={restaurantMode.setOrderMode}
+                selectedTableId={restaurantMode.selectedTableId}
+                onSelectTable={restaurantMode.setSelectedTableId}
+                numberOfGuests={restaurantMode.numberOfGuests}
+                onChangeGuests={restaurantMode.setNumberOfGuests}
+                deliveryAddress={restaurantMode.deliveryAddress}
+                onChangeDeliveryAddress={restaurantMode.setDeliveryAddress}
+                deliveryNotes={restaurantMode.deliveryNotes}
+                onChangeDeliveryNotes={restaurantMode.setDeliveryNotes}
+                specialRequests={restaurantMode.specialRequests}
+                onChangeSpecialRequests={restaurantMode.setSpecialRequests}
+              />
+            </div>
+          )}
+
+                    {/* SEARCH */}
           <div className="shrink-0 px-5 py-3 bg-slate-50/80 border-b border-slate-100 space-y-2.5">
             <div className="flex gap-2">
               <div className="relative flex-1">

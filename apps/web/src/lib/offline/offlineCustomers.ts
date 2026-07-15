@@ -3,7 +3,7 @@ import { customersApi, type Customer, type CustomerDetail } from '@/api/customer
 import { queueGenericMutation } from './syncEngine';
 
 let lastBgRefreshAt = 0;
-const BG_REFRESH_GAP_MS = 60 * 1000;
+const BG_REFRESH_GAP_MS = 30 * 1000;
 
 function toCustomer(oc: OfflineCustomer): Customer {
   const { _syncedAt, _localDirty, ...rest } = oc;

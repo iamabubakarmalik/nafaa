@@ -13,9 +13,9 @@ const listeners = new Set<(status: SyncStatus) => void>();
 
 // ═══ CONFIG ═══
 const UPLOAD_INTERVAL_MS   = 45 * 1000;      // upload pending changes every 45s
-const DOWNLOAD_INTERVAL_MS = 15 * 60 * 1000; // background download every 15 min (was 5)
+const DOWNLOAD_INTERVAL_MS = 10 * 60 * 1000; // background download every 10 min
 const FIRST_SYNC_DELAY_MS  = 3000;
-const MIN_DOWNLOAD_GAP_MS  = 60 * 1000;      // don't re-download within 1 min
+const MIN_DOWNLOAD_GAP_MS  = 30 * 1000;      // don't re-download within 30 sec
 const MAX_RETRIES          = 5;
 
 let lastDownloadAt = 0;
@@ -62,6 +62,10 @@ async function refreshStatus() {
  * Removes only items that no longer exist on server (via ID diff).
  */
 export async function downloadAllData(force = false): Promise<{ success: boolean; error?: string }> {
+  // Prevent concurrent downloads
+  if (currentStatus.isSyncing) {
+    return { success: true };
+  }
   // Throttle: skip if just downloaded (unless forced)
   if (!force && Date.now() - lastDownloadAt < MIN_DOWNLOAD_GAP_MS) {
     return { success: true };
@@ -303,9 +307,9 @@ function setupAutoSync() {
   // Sync when tab becomes visible (user came back)
   visibilityHandler = () => {
     if (document.visibilityState === 'visible' && navigator.onLine && !isSyncing) {
-      // Only if last sync was > 2 min ago
+      // Only upload pending — DO NOT re-download
       const gap = Date.now() - (currentStatus.lastSync || 0);
-      if (gap > 2 * 60 * 1000) {
+      if (gap > 5 * 60 * 1000) {
         uploadPendingChanges().catch(() => {});
       }
     }

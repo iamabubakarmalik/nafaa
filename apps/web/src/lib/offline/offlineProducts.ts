@@ -9,7 +9,7 @@ export interface OfflineProductsResponse {
 
 // Throttle background refreshes — one per minute max
 let lastBgRefreshAt = 0;
-const BG_REFRESH_GAP_MS = 60 * 1000;
+const BG_REFRESH_GAP_MS = 30 * 1000;  // 30 sec
 
 function filterProducts(
   products: OfflineProduct[],
@@ -76,6 +76,33 @@ async function backgroundRefresh(params?: ProductsListParams) {
   }
 }
 
+/**
+ * Force refresh — bypass all throttles. Call after mutations.
+ */
+export async function forceRefreshProducts(): Promise<void> {
+  lastBgRefreshAt = 0; // reset throttle
+  if (!navigator.onLine) return;
+  try {
+    const serverData = await productsApi.list({ page: 1, limit: 5000 });
+    const now = Date.now();
+    await db.transaction('rw', db.products, async () => {
+      // Clear stale entries not on server
+      const serverIds = new Set(serverData.items.map((p) => p.id));
+      const localIds = await db.products.toCollection().primaryKeys();
+      const toDelete = (localIds as string[]).filter((id) => !serverIds.has(id));
+      if (toDelete.length > 0) await db.products.bulkDelete(toDelete);
+
+      // Upsert all
+      for (const p of serverData.items) {
+        await db.products.put({ ...p, _syncedAt: now } as OfflineProduct);
+      }
+    });
+    console.log('[offlineProducts] Force refreshed:', serverData.items.length);
+  } catch (e) {
+    console.error('[offlineProducts] Force refresh failed', e);
+  }
+}
+
 export const offlineProductsApi = {
   list: async (params?: ProductsListParams): Promise<OfflineProductsResponse> => {
     const page = params?.page ?? 1;
@@ -88,7 +115,7 @@ export const offlineProductsApi = {
     const startIdx = (page - 1) * limit;
     const paginatedItems = filtered.slice(startIdx, startIdx + limit).map(toProduct);
 
-    // Background refresh (throttled to once per minute)
+    // Background refresh (throttled to prevent flood — 30s min gap)
     if (navigator.onLine && allCached.length > 0) {
       backgroundRefresh(params);
     } else if (navigator.onLine && allCached.length === 0) {

@@ -154,4 +154,128 @@ export class SettingsService {
     const ok = await comparePassword(pin, settings.managerPin);
     return { valid: ok, message: ok ? 'PIN correct' : 'Invalid PIN' };
   }
+  // ─── Receipt Configuration ───
+  async getReceiptConfig(user: AuthenticatedUser) {
+    const settings = await this.prisma.tenantSettings.findFirst({
+      where: { tenantId: user.tenantId },
+    });
+
+    // Default config based on business type
+    const businessType = (settings as any)?.businessType ?? 'STANDARD';
+    const defaults = this.getDefaultReceiptConfig(businessType);
+
+    const stored = (settings as any)?.receiptConfig;
+    return { ...defaults, ...(stored ? (typeof stored === 'string' ? JSON.parse(stored) : stored) : {}) };
+  }
+
+  async updateReceiptConfig(user: AuthenticatedUser, dto: any) {
+    const existing = await this.prisma.tenantSettings.findFirst({
+      where: { tenantId: user.tenantId },
+    });
+
+    if (existing) {
+      return this.prisma.tenantSettings.update({
+        where: { id: existing.id },
+        data: { receiptConfig: dto } as any,
+      });
+    }
+
+    return this.prisma.tenantSettings.create({
+      data: {
+        tenantId: user.tenantId,
+        receiptConfig: dto,
+      } as any,
+    });
+  }
+
+  private getDefaultReceiptConfig(businessType: string) {
+    const type = businessType.toUpperCase();
+
+    if (type.includes('RESTAURANT') || type.includes('CAFE') || type.includes('BAKERY') || type.includes('FOOD')) {
+      return {
+        template: 'RESTAURANT',
+        showLogo: true,
+        showShopName: true,
+        showShopAddress: true,
+        showShopPhone: true,
+        showCustomer: true,
+        showTableNumber: true,
+        showOrderMode: true,
+        showWaiterName: false,
+        showModifiers: true,
+        showSpecialInstructions: true,
+        showServiceCharge: true,
+        showTaxBreakdown: true,
+        showTip: true,
+        showKot: true,
+        showFooter: true,
+        footerText: 'Thank you for dining with us!',
+        paperWidth: 80, // 58mm or 80mm thermal
+        fontSize: 'normal',
+        showQRCode: false,
+        showBarcode: false,
+        copies: 1, // 1 = customer, 2 = customer + kitchen
+      };
+    }
+
+    if (type.includes('CARPET') || type.includes('FLOORING')) {
+      return {
+        template: 'CARPET',
+        showLogo: true,
+        showShopName: true,
+        showShopAddress: true,
+        showShopPhone: true,
+        showCustomer: true,
+        showDimensions: true,
+        showSqft: true,
+        showRollNumber: true,
+        showCutDetails: true,
+        showWholesalePrice: false,
+        showFooter: true,
+        footerText: 'Thank you for your business!',
+        paperWidth: 80,
+        fontSize: 'normal',
+        copies: 1,
+      };
+    }
+
+    if (type.includes('MOBILE') || type.includes('PHONE') || type.includes('ELECTRONICS')) {
+      return {
+        template: 'MOBILE',
+        showLogo: true,
+        showShopName: true,
+        showShopAddress: true,
+        showShopPhone: true,
+        showCustomer: true,
+        showImei: true,
+        showWarranty: true,
+        showSerialNumber: true,
+        showPtaStatus: false,
+        showFooter: true,
+        footerText: 'Thank you for shopping!',
+        paperWidth: 80,
+        fontSize: 'normal',
+        copies: 1,
+      };
+    }
+
+    // DEFAULT / RETAIL
+    return {
+      template: 'STANDARD',
+      showLogo: true,
+      showShopName: true,
+      showShopAddress: true,
+      showShopPhone: true,
+      showCustomer: true,
+      showUnit: true,
+      showMrp: false,
+      showBarcode: false,
+      showFooter: true,
+      footerText: 'Thank you for shopping!',
+      paperWidth: 80,
+      fontSize: 'normal',
+      copies: 1,
+    };
+  }
+
 }

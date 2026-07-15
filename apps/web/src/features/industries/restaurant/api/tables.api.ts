@@ -5,49 +5,65 @@ export type TableStatus = 'AVAILABLE' | 'OCCUPIED' | 'RESERVED' | 'CLEANING' | '
 export interface RestaurantTable {
   id: string;
   tableNumber: string;
-  name?: string | null;
+  tableName?: string;
   capacity: number;
+  minCapacity: number;
+  maxCapacity: number;
+  section?: string;
+  floor?: string;
+  shape?: string;
+  positionX?: number;
+  positionY?: number;
   status: TableStatus;
-  floor?: string | null;
-  zone?: string | null;
-  shopId?: string | null;
-  notes?: string | null;
-  currentSaleId?: string | null;
-  occupiedAt?: string | null;
+  isReservable: boolean;
+  isSmokingAllowed: boolean;
+  isAcRoom: boolean;
+  isFamilyArea: boolean;
+  isVip: boolean;
+  minOrderAmount?: number;
+  currentOrderId?: string;
+  occupiedAt?: string;
+  reservedAt?: string;
+  reservedFor?: string;
+  reservedByName?: string;
+  reservedByPhone?: string;
+  reservationNote?: string;
+  totalOrders: number;
+  totalRevenue: number;
+  qrCodeUrl?: string;
+  notes?: string;
   isActive: boolean;
   createdAt: string;
+  updatedAt: string;
 }
 
-export interface CreateTablePayload {
-  tableNumber: string;
-  name?: string;
-  capacity: number;
-  floor?: string;
-  zone?: string;
-  shopId?: string;
-  notes?: string;
-}
-
-export interface TableStats {
-  total: number;
-  available: number;
-  occupied: number;
-  reserved: number;
-}
-
-const unwrap = <T>(res: any): T => (res?.data?.data !== undefined ? res.data.data : res?.data);
+const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
 
 export const tablesApi = {
-  stats: () =>
-    apiClient.get('/industries/restaurant/tables/stats').then(unwrap) as Promise<TableStats>,
-  list: (shopId?: string) =>
-    apiClient.get('/industries/restaurant/tables', { params: { shopId } }).then(unwrap) as Promise<RestaurantTable[]>,
-  create: (payload: CreateTablePayload) =>
-    apiClient.post('/industries/restaurant/tables', payload).then(unwrap) as Promise<RestaurantTable>,
-  update: (id: string, payload: Partial<CreateTablePayload>) =>
-    apiClient.patch(`/industries/restaurant/tables/${id}`, payload).then(unwrap) as Promise<RestaurantTable>,
-  updateStatus: (id: string, status: TableStatus, saleId?: string) =>
-    apiClient.patch(`/industries/restaurant/tables/${id}/status`, { status, saleId }).then(unwrap) as Promise<RestaurantTable>,
+  create: (data: Partial<RestaurantTable>) =>
+    apiClient.post('/restaurant/tables', data).then(unwrap<RestaurantTable>),
+
+  list: (params?: { status?: string; section?: string; shopId?: string }) =>
+    apiClient.get('/restaurant/tables', { params }).then(unwrap<RestaurantTable[]>),
+
+  layout: (shopId?: string) =>
+    apiClient.get('/restaurant/tables/layout', { params: shopId ? { shopId } : {} }).then(unwrap<any>),
+
+  getOne: (id: string) =>
+    apiClient.get('/restaurant/tables/' + id).then(unwrap<RestaurantTable>),
+
+  update: (id: string, data: Partial<RestaurantTable>) =>
+    apiClient.patch('/restaurant/tables/' + id, data).then(unwrap<RestaurantTable>),
+
+  changeStatus: (id: string, status: TableStatus) =>
+    apiClient.post('/restaurant/tables/' + id + '/status', { status }).then(unwrap<RestaurantTable>),
+
+  reserve: (id: string, data: { reservedByName: string; reservedByPhone?: string; reservedFor: string; reservationNote?: string; numberOfGuests?: number }) =>
+    apiClient.post('/restaurant/tables/' + id + '/reserve', data).then(unwrap<RestaurantTable>),
+
+  cancelReservation: (id: string) =>
+    apiClient.post('/restaurant/tables/' + id + '/cancel-reservation').then(unwrap<RestaurantTable>),
+
   remove: (id: string) =>
-    apiClient.delete(`/industries/restaurant/tables/${id}`).then(unwrap),
+    apiClient.delete('/restaurant/tables/' + id).then(unwrap),
 };

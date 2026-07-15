@@ -101,6 +101,9 @@ export class ProductsService {
       });
     }
 
+    // Auto-create ShopStock for all shops so POS sale doesn't fail
+    await this.ensureShopStockForAllShops(user.tenantId, product.id, dto.stock ?? 0);
+
     return this.findOne(user, product.id);
   }
 
@@ -721,6 +724,9 @@ export class ProductsService {
           });
         }
 
+        // Auto-create ShopStock so POS works immediately
+        await this.ensureShopStockForAllShops(user.tenantId, product.id, Number(row.stock ?? 0));
+
         results.push({
           index: i + 1,
           productName: row.name,
@@ -750,6 +756,102 @@ export class ProductsService {
       newBrandsCreated,
       newTagsCreated,
       newVariantsCreated,
+    };
+  }
+
+  /**
+   * Ensure ShopStock row exists for this product in every active shop of the tenant.
+   * Called after product create — so POS sale doesn't fail with "not available in shop".
+   */
+  private async ensureShopStockForAllShops(
+    tenantId: string,
+    productId: string,
+    initialStock = 0,
+  ): Promise<void> {
+    const shops = await this.prisma.shop.findMany({
+      where: { tenantId, isActive: true },
+      select: { id: true },
+    });
+
+    if (shops.length === 0) return;
+
+    for (const shop of shops) {
+      try {
+        await this.prisma.shopStock.upsert({
+          where: {
+            // Compound unique: shopId + productId + variantId
+            shopId_productId_variantId: {
+              shopId: shop.id,
+              productId,
+              variantId: null as any,
+            },
+          },
+          create: {
+            tenantId,
+            shopId: shop.id,
+            productId,
+            variantId: null,
+            stock: initialStock,
+            isActive: true,
+          },
+          update: {},
+        });
+      } catch (e) {
+        // Fallback: if the compound unique doesn't exist, try findFirst + create
+        try {
+          const existing = await this.prisma.shopStock.findFirst({
+            where: {
+              shopId: shop.id,
+              productId,
+              variantId: null,
+            },
+          });
+          if (!existing) {
+            await this.prisma.shopStock.create({
+              data: {
+                tenantId,
+                shopId: shop.id,
+                productId,
+                variantId: null,
+                stock: initialStock,
+                isActive: true,
+              },
+            });
+          }
+        } catch {
+          // Ignore — table shape unknown, will not block product creation
+        }
+      }
+    }
+  }
+
+  /**
+   * Backfill ShopStock for ALL existing products of the tenant.
+   * Safe to call multiple times — uses upsert.
+   */
+  async backfillShopStock(user: AuthenticatedUser): Promise<{ productsProcessed: number; shopsProcessed: number }> {
+    const [products, shops] = await Promise.all([
+      this.prisma.product.findMany({
+        where: { tenantId: user.tenantId },
+        select: { id: true, stock: true },
+      }),
+      this.prisma.shop.findMany({
+        where: { tenantId: user.tenantId, isActive: true },
+        select: { id: true },
+      }),
+    ]);
+
+    for (const product of products) {
+      await this.ensureShopStockForAllShops(
+        user.tenantId,
+        product.id,
+        product.stock ?? 0,
+      );
+    }
+
+    return {
+      productsProcessed: products.length,
+      shopsProcessed: shops.length,
     };
   }
 

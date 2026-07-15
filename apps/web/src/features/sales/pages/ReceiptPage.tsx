@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { salesApi } from '@/api/sales.api';
+import { ordersApi } from '@/features/industries/restaurant/api/orders.api';
 import { formatPKR } from '@/lib/format';
 
 type CarpetNoteInfo = {
@@ -81,6 +82,23 @@ export default function ReceiptPage() {
     queryFn: () => salesApi.getOne(id!),
     enabled: !!id,
   });
+
+  // Try to fetch matching restaurant order (if this sale came from restaurant POS)
+  const { data: restaurantOrder } = useQuery({
+    queryKey: ['sale-restaurant-order', id],
+    queryFn: async () => {
+      try {
+        // Search restaurant orders by saleId
+        const allOrders = await ordersApi.list({ search: data?.saleNumber });
+        return allOrders.find((o: any) => o.saleId === id) ?? null;
+      } catch {
+        return null;
+      }
+    },
+    enabled: !!id && !!data,
+  });
+
+  const isRestaurantSale = !!restaurantOrder;
 
   useMemo(() => {
     const size = data?.tenant?.settings?.receiptSize;
@@ -446,16 +464,45 @@ export default function ReceiptPage() {
                 </div>
               )}
 
+              {/* Restaurant meta (thermal) */}
+              {isRestaurantSale && restaurantOrder && (
+                <div className="border-t border-dashed border-slate-400 pt-1 mb-1 text-center">
+                  {restaurantOrder.table && (
+                    <div className="font-extrabold text-base">Table: {restaurantOrder.table.tableNumber}</div>
+                  )}
+                  <div className="font-bold uppercase text-[10px]">
+                    {restaurantOrder.mode.replace('_', ' ')}
+                    {restaurantOrder.numberOfGuests && ' • ' + restaurantOrder.numberOfGuests + ' guests'}
+                  </div>
+                  {restaurantOrder.kots?.[0] && (
+                    <div className="text-[9px] font-mono">KOT: {restaurantOrder.kots[0].kotNumber}</div>
+                  )}
+                </div>
+              )}
+
               <div className="border-t border-dashed border-slate-400 pt-1 mb-1">
                 <div className="font-bold text-center mb-1">ITEMS</div>
                 {data.items.map((item, idx) => {
                   const variant = item.variantLink?.variant;
                   const itemName = variant ? `${item.product.name} (${variant.name})` : item.product.name;
                   const carpet = parseCarpetNote(item.note);
+                  const roItem = isRestaurantSale && restaurantOrder
+                    ? restaurantOrder.items?.find((ri: any) => ri.productId === item.product.id)
+                    : null;
 
                   return (
                     <div key={item.id} className="mb-1.5">
                       <div className="font-bold">{idx + 1}. {itemName}</div>
+                      {(roItem?.modifiers?.length ?? 0) > 0 && (
+                        <div className="pl-3 text-[9px] italic">
+                          {(roItem?.modifiers ?? []).map((m: any) => m.modifierOption?.name || m.optionName).join(', ')}
+                        </div>
+                      )}
+                      {roItem?.specialInstructions && (
+                        <div className="pl-3 text-[9px] italic">
+                          Note: {roItem.specialInstructions}
+                        </div>
+                      )}
                       {carpet.type === 'roll' && (
                         <div className="text-[9px] pl-2">Cut from {carpet.reference}{carpet.dimensions && ` ${carpet.dimensions}`}</div>
                       )}
@@ -493,6 +540,30 @@ export default function ReceiptPage() {
                       <div key={idx} className="flex justify-between"><span>{sc.label}:</span><span>+{formatPKR(sc.amount)}</span></div>
                     ))}
                   </>
+                )}
+                {isRestaurantSale && restaurantOrder?.serviceCharge > 0 && (
+                  <div className="flex justify-between">
+                    <span>Service ({restaurantOrder.serviceChargePct}%):</span>
+                    <span>+{formatPKR(restaurantOrder.serviceCharge)}</span>
+                  </div>
+                )}
+                {isRestaurantSale && restaurantOrder?.taxAmount > 0 && (
+                  <div className="flex justify-between">
+                    <span>Tax ({restaurantOrder.taxPct}%):</span>
+                    <span>+{formatPKR(restaurantOrder.taxAmount)}</span>
+                  </div>
+                )}
+                {isRestaurantSale && restaurantOrder?.deliveryFee > 0 && (
+                  <div className="flex justify-between">
+                    <span>Delivery:</span>
+                    <span>+{formatPKR(restaurantOrder.deliveryFee)}</span>
+                  </div>
+                )}
+                {isRestaurantSale && restaurantOrder?.tip > 0 && (
+                  <div className="flex justify-between">
+                    <span>Tip:</span>
+                    <span>+{formatPKR(restaurantOrder.tip)}</span>
+                  </div>
                 )}
                 <div className={`flex justify-between border-t border-double border-slate-700 mt-1 pt-1 font-extrabold ${format === 'thermal58' ? 'text-xs' : 'text-sm'}`}>
                   <span>TOTAL:</span><span>{formatPKR(data.total)}</span>
@@ -593,6 +664,57 @@ export default function ReceiptPage() {
               )}
             </div>
 
+            {/* RESTAURANT META (if applicable) */}
+            {isRestaurantSale && restaurantOrder && (
+              <div className="px-8 py-4 bg-gradient-to-r from-orange-50 via-white to-red-50 border-b-2 border-orange-200 print:bg-white print:border-slate-300">
+                <div className="grid sm:grid-cols-4 gap-3">
+                  {restaurantOrder.table && (
+                    <div>
+                      <div className="text-[10px] uppercase font-extrabold text-orange-700">Table</div>
+                      <div className="font-extrabold text-slate-900 text-lg">
+                        {restaurantOrder.table.tableNumber}
+                        {restaurantOrder.table.tableName && (
+                          <span className="text-sm text-slate-600 ml-1">
+                            ({restaurantOrder.table.tableName})
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  <div>
+                    <div className="text-[10px] uppercase font-extrabold text-orange-700">Order Mode</div>
+                    <div className="font-extrabold text-slate-900">
+                      {restaurantOrder.mode.replace('_', ' ')}
+                    </div>
+                  </div>
+                  {restaurantOrder.numberOfGuests && (
+                    <div>
+                      <div className="text-[10px] uppercase font-extrabold text-orange-700">Guests</div>
+                      <div className="font-extrabold text-slate-900">
+                        {restaurantOrder.numberOfGuests} people
+                      </div>
+                    </div>
+                  )}
+                  {restaurantOrder.kots && restaurantOrder.kots.length > 0 && (
+                    <div>
+                      <div className="text-[10px] uppercase font-extrabold text-orange-700">KOT #</div>
+                      <div className="font-extrabold text-slate-900 font-mono">
+                        {restaurantOrder.kots[0].kotNumber}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                {restaurantOrder.specialRequests && (
+                  <div className="mt-2 pt-2 border-t border-orange-200 flex items-start gap-2">
+                    <StickyNote className="h-3 w-3 text-orange-600 mt-0.5" />
+                    <div className="text-xs italic text-slate-700">
+                      <strong>Special Request:</strong> {restaurantOrder.specialRequests}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* INFO ROW */}
             <div className="px-8 py-5 grid sm:grid-cols-3 gap-4 border-b-2 border-slate-100 bg-slate-50/50 print:bg-white">
               {showCustomer && (
@@ -691,12 +813,57 @@ export default function ReceiptPage() {
                                 {carpet.dimensions && <span>• {carpet.dimensions}</span>}
                               </div>
                             )}
-                            {item.note && !carpet.type && !((item as any).imeis?.length) && (
+                            {item.note && !carpet.type && !((item as any).imeis?.length) && !isRestaurantSale && (
                               <div className="mt-1.5 inline-flex items-start gap-1.5 px-2 py-1 rounded-md bg-amber-50 border border-amber-300 text-[10px] font-bold text-amber-900 print:bg-white print:border-slate-400">
                                 <StickyNote className="h-2.5 w-2.5 mt-0.5 shrink-0" />
                                 <span>{item.note}</span>
                               </div>
                             )}
+
+                            {/* Restaurant modifiers */}
+                            {isRestaurantSale && restaurantOrder && (() => {
+                              const roItem = restaurantOrder.items?.find((ri: any) => ri.productId === item.product.id);
+                              if (!roItem) return null;
+                              return (
+                                <div className="mt-1.5 space-y-1">
+                                  {roItem?.modifiers && roItem.modifiers.length > 0 && (
+                                    <div className="rounded-lg bg-pink-50 border border-pink-200 p-2 print:bg-white print:border-slate-400">
+                                      <div className="text-[9px] uppercase tracking-wider font-extrabold text-pink-700 mb-1">Modifiers</div>
+                                      <div className="flex flex-wrap gap-1">
+                                        {(roItem.modifiers ?? []).map((m: any, mi: number) => (
+                                          <span key={mi} className="px-1.5 py-0.5 rounded bg-white border border-pink-200 text-[10px] font-bold text-pink-800 print:border-slate-400">
+                                            {m.modifierOption?.name || m.optionName}
+                                            {m.priceAdjustment !== 0 && (
+                                              <span className={m.priceAdjustment > 0 ? ' text-emerald-700' : ' text-rose-700'}>
+                                                {' '}({m.priceAdjustment > 0 ? '+' : ''}{formatPKR(m.priceAdjustment)})
+                                              </span>
+                                            )}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                  {roItem.specialInstructions && (
+                                    <div className="rounded-lg bg-amber-50 border border-amber-200 p-2 print:bg-white print:border-slate-400">
+                                      <div className="flex items-start gap-1.5 text-[10px] italic text-amber-900">
+                                        <StickyNote className="h-2.5 w-2.5 mt-0.5 shrink-0" />
+                                        <span><strong>Instructions:</strong> {roItem.specialInstructions}</span>
+                                      </div>
+                                    </div>
+                                  )}
+                                  {roItem.cookingNote && (
+                                    <div className="text-[10px] italic text-blue-700">
+                                      🍳 Cooking: {roItem.cookingNote}
+                                    </div>
+                                  )}
+                                  {roItem.spiceLevel && roItem.spiceLevel !== 'NONE' && (
+                                    <div className="text-[10px] font-extrabold text-red-600">
+                                      🌶️ Spice: {roItem.spiceLevel}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })()}
 
                             {(item as any).imeis && (item as any).imeis.length > 0 && (
                               <div className="mt-2 space-y-1">
@@ -767,6 +934,62 @@ export default function ReceiptPage() {
                   </div>
                 )}
 
+                {/* Restaurant: Service Charge */}
+                {isRestaurantSale && restaurantOrder?.serviceCharge > 0 && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-orange-700 font-semibold">
+                      Service Charge ({restaurantOrder.serviceChargePct}%)
+                    </span>
+                    <span className="font-bold text-orange-700 tabular-nums">
+                      +{formatPKR(restaurantOrder.serviceCharge)}
+                    </span>
+                  </div>
+                )}
+
+                {/* Restaurant: Tax */}
+                {isRestaurantSale && restaurantOrder?.taxAmount > 0 && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-slate-600 font-semibold">
+                      Tax ({restaurantOrder.taxPct}%)
+                    </span>
+                    <span className="font-bold text-slate-700 tabular-nums">
+                      +{formatPKR(restaurantOrder.taxAmount)}
+                    </span>
+                  </div>
+                )}
+
+                {/* Restaurant: Delivery Fee */}
+                {isRestaurantSale && restaurantOrder?.deliveryFee > 0 && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-violet-700 font-semibold">Delivery Fee</span>
+                    <span className="font-bold text-violet-700 tabular-nums">
+                      +{formatPKR(restaurantOrder.deliveryFee)}
+                    </span>
+                  </div>
+                )}
+
+                {/* Restaurant: Packaging */}
+                {isRestaurantSale && restaurantOrder?.packagingFee > 0 && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-slate-600 font-semibold">Packaging</span>
+                    <span className="font-bold text-slate-700 tabular-nums">
+                      +{formatPKR(restaurantOrder.packagingFee)}
+                    </span>
+                  </div>
+                )}
+
+                {/* Restaurant: Tip */}
+                {isRestaurantSale && restaurantOrder?.tip > 0 && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-emerald-700 font-semibold inline-flex items-center gap-1">
+                      <Award className="h-3 w-3" /> Tip
+                    </span>
+                    <span className="font-bold text-emerald-700 tabular-nums">
+                      +{formatPKR(restaurantOrder.tip)}
+                    </span>
+                  </div>
+                )}
+
                 {data.serviceChargesBreakdown && data.serviceChargesBreakdown.length > 0 && (
                   <div className="rounded-xl bg-orange-50 border-2 border-orange-200 p-2.5 space-y-1 print:bg-white">
                     <div className="text-[10px] uppercase tracking-wider font-extrabold text-orange-700 mb-1">Service Charges</div>
@@ -831,6 +1054,65 @@ export default function ReceiptPage() {
                 <Link to={`/customers/${data.customer.id}`} className="text-xs font-bold text-amber-700 hover:underline inline-flex items-center gap-1">
                   View Khata →
                 </Link>
+              </div>
+            )}
+
+            {/* KITCHEN COPY (Restaurant only, print) */}
+            {isRestaurantSale && restaurantOrder && (
+              <div className="hidden print:block print:page-break-before px-8 py-6">
+                <div className="text-center mb-3">
+                  <div className="inline-block px-4 py-2 border-4 border-double border-black">
+                    <div className="text-3xl font-extrabold uppercase tracking-widest">Kitchen Copy</div>
+                    <div className="text-xs font-mono mt-1">{restaurantOrder.orderNumber}</div>
+                  </div>
+                </div>
+
+                {restaurantOrder.table && (
+                  <div className="text-center mb-2 text-2xl font-extrabold">
+                    Table: {restaurantOrder.table.tableNumber}
+                  </div>
+                )}
+
+                <div className="text-center text-sm font-bold mb-3">
+                  {new Date().toLocaleString('en-PK', { dateStyle: 'short', timeStyle: 'short' })}
+                  {restaurantOrder.numberOfGuests && ' • ' + restaurantOrder.numberOfGuests + ' guests'}
+                </div>
+
+                <div className="border-t-2 border-b-2 border-black border-dashed py-2 space-y-2">
+                  {restaurantOrder.items?.map((item: any, i: number) => (
+                    <div key={i} className="text-lg">
+                      <div className="flex items-baseline gap-2">
+                        <span className="font-extrabold text-2xl">{item.quantity}×</span>
+                        <span className="font-bold uppercase">{item.product?.name}</span>
+                      </div>
+                      {item.modifiers?.length > 0 && (
+                        <div className="pl-6 text-sm italic">
+                          {item.modifiers.map((m: any) => m.modifierOption?.name || m.optionName).join(', ')}
+                        </div>
+                      )}
+                      {item.specialInstructions && (
+                        <div className="pl-2 text-sm italic font-bold uppercase border-l-4 border-black mt-1">
+                          ⚠ {item.specialInstructions}
+                        </div>
+                      )}
+                      {item.spiceLevel && item.spiceLevel !== 'NONE' && (
+                        <div className="pl-6 text-sm font-extrabold text-red-600">
+                          🌶️ {item.spiceLevel}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {restaurantOrder.specialRequests && (
+                  <div className="mt-3 border-2 border-black p-2 text-sm">
+                    <strong>SPECIAL:</strong> {restaurantOrder.specialRequests}
+                  </div>
+                )}
+
+                <div className="text-center text-xs mt-4 italic">
+                  --- End of Kitchen Copy ---
+                </div>
               </div>
             )}
 

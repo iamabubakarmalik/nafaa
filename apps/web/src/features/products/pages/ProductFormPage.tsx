@@ -34,6 +34,7 @@ import {
   useActiveIndustryPlugin,
 } from '@/features/industries/_shared/components/SafeIndustrySection';
 import { ErrorBoundary } from '@/components/error/ErrorBoundary';
+import { forceRefreshProducts } from '@/lib/offline/offlineProducts';
 
 type Tab = 'basic' | 'pricing' | 'inventory' | 'images' | 'variants' | 'tags' | 'imei';
 
@@ -227,6 +228,7 @@ export default function ProductFormPage() {
       refetchImages();
       queryClient.invalidateQueries({ queryKey: ['product', id] });
       queryClient.invalidateQueries({ queryKey: ['products'] });
+        forceRefreshProducts().catch(() => {});
     },
   });
   const setPrimaryMutation = useMutation({
@@ -249,6 +251,7 @@ export default function ProductFormPage() {
       refetchVariants();
       queryClient.invalidateQueries({ queryKey: ['product', id] });
       queryClient.invalidateQueries({ queryKey: ['products'] });
+        forceRefreshProducts().catch(() => {});
       const count = Array.isArray(data) ? data.length : 0;
       toast.success(`${count} variants generated ✓`, { duration: 2500 });
     },
