@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-query';
+import { Link } from 'react-router-dom';
+
 import { Link as RLink } from 'react-router-dom';
 import {
   Pill, AlertTriangle, Clock, RefreshCw, Thermometer, ShieldAlert,

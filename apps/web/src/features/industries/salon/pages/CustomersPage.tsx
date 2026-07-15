@@ -685,7 +685,7 @@ function CustomerProfileForm({ editing, onClose, onSaved }: {
 
             {/* Photos */}
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block flex items-center gap-1">
+              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block items-center gap-1">
                 <Camera className="h-3 w-3" />
                 Reference Photos
               </label>
@@ -728,7 +728,14 @@ function CustomerProfileForm({ editing, onClose, onSaved }: {
   );
 }
 
-function SelectField({ label, value, options, onChange, color }: any) {
+function SelectField({ label, value, options, onChange, color }: {
+  label: string;
+  value: string;
+  options: string[];
+  onChange: (v: string) => void;
+  color: string;
+}) {
+
   const colors: Record<string, string> = {
     pink: 'border-pink-300 focus:border-pink-500 bg-white dark:bg-pink-950/40',
     amber: 'border-amber-300 focus:border-amber-500 bg-white dark:bg-amber-950/40',

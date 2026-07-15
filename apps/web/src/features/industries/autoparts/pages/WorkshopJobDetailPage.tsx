@@ -314,13 +314,13 @@ export default function WorkshopJobDetailPage() {
               )}
             </div>
 
-            {job.payments?.length > 0 && (
+            {(job.payments?.length ?? 0) > 0 && (
               <div className="rounded-3xl bg-white dark:bg-neutral-900 border overflow-hidden">
                 <div className="px-4 py-3 border-b">
                   <h3 className="text-sm font-bold">Payment History</h3>
                 </div>
                 <div className="divide-y">
-                  {job.payments.map((p: any) => (
+                  {(job.payments ?? []).map((p: any) => (
                     <div key={p.id} className="p-3 text-xs">
                       <div className="flex justify-between font-bold">
                         <span>{p.paymentMethod}</span>

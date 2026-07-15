@@ -378,13 +378,15 @@ export default function TailoringDetailPage() {
             </div>
 
             {/* Payment history */}
-            {order.payments?.length > 0 && (
+            {(order.payments?.length ?? 0) > 0 && (
+
               <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
                 <div className="px-4 py-3 border-b border-slate-100 dark:border-neutral-800">
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white">Payment History</h3>
                 </div>
                 <div className="divide-y divide-slate-100 dark:divide-neutral-800">
-                  {order.payments.map((p: any) => (
+                  {(order.payments ?? []).map((p: any) => (
+
                     <div key={p.id} className="p-3 text-xs">
                       <div className="flex justify-between font-bold">
                         <span className="text-slate-700 dark:text-slate-300">{p.paymentMethod}</span>
