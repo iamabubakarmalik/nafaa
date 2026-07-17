@@ -15,7 +15,6 @@ import GoogleSuccessPage from '@/features/auth/pages/GoogleSuccessPage';
 import GoogleCompleteSignupPage from '@/features/auth/pages/GoogleCompleteSignupPage';
 import GoogleErrorPage from '@/features/auth/pages/GoogleErrorPage';
 import EmailVerifyPage from '@/features/auth/pages/EmailVerifyPage';
-
 import DashboardPage from '@/features/dashboard/pages/DashboardPage';
 import BrandsPage from '@/features/brands/pages/BrandsPage';
 import TagsPage from '@/features/tags/pages/TagsPage';
@@ -136,6 +135,60 @@ import MembershipsPage from '@/features/industries/salon/pages/MembershipsPage';
 import PackagesPage from '@/features/industries/salon/pages/PackagesPage';
 import CalendarViewPage from '@/features/industries/salon/pages/CalendarViewPage';
 import CustomersPage from '@/features/industries/salon/pages/CustomersPage';
+import HardwareDashboardPage from '@/features/industries/hardware/pages/HardwareDashboardPage';
+import HardwareBrandsPage from '@/features/industries/hardware/pages/BrandsPage';
+import HardwareProductsPage from '@/features/industries/hardware/pages/ProductsPage';
+import HardwareProjectsPage from '@/features/industries/hardware/pages/ProjectsPage';
+import HardwareQuotationsPage from '@/features/industries/hardware/pages/QuotationsPage';
+import HardwareNewQuotationPage from '@/features/industries/hardware/pages/NewQuotationPage';
+import HardwareQuotationDetailPage from '@/features/industries/hardware/pages/QuotationDetailPage';
+import HardwareDeliveriesPage from '@/features/industries/hardware/pages/DeliveriesPage';
+import HardwareCreditAccountsPage from '@/features/industries/hardware/pages/CreditAccountsPage';
+import HardwareReorderRulesPage from '@/features/industries/hardware/pages/ReorderRulesPage';
+import DairyDashboardPage from '@/features/industries/dairy/pages/DairyDashboardPage';
+import DairyFarmersPage from '@/features/industries/dairy/pages/FarmersPage';
+import DairyCustomersPage from '@/features/industries/dairy/pages/CustomersPage';
+import DairyRoutesPage from '@/features/industries/dairy/pages/RoutesPage';
+import DairyDeliveriesPage from '@/features/industries/dairy/pages/DeliveriesPage';
+import DairyFarmerSuppliesPage from '@/features/industries/dairy/pages/FarmerSuppliesPage';
+import DairyMonthlyBillsPage from '@/features/industries/dairy/pages/MonthlyBillsPage';
+import DairyQualityTestsPage from '@/features/industries/dairy/pages/QualityTestsPage';
+import DairyProductsPage from '@/features/industries/dairy/pages/ProductsPage';
+import MeatDashboardPage from '@/features/industries/meat/pages/MeatDashboardPage';
+import MeatProductsPage from '@/features/industries/meat/pages/MeatProductsPage';
+import LiveAnimalsPage from '@/features/industries/meat/pages/LiveAnimalsPage';
+import SlaughterLogPage from '@/features/industries/meat/pages/SlaughterLogPage';
+import CuttingJobsPage from '@/features/industries/meat/pages/CuttingJobsPage';
+import WeightOrdersPage from '@/features/industries/meat/pages/WeightOrdersPage';
+import NewWeightOrderPage from '@/features/industries/meat/pages/NewWeightOrderPage';
+import QurbaniPage from '@/features/industries/meat/pages/QurbaniPage';
+import SubscriptionsPage from '@/features/industries/meat/pages/SubscriptionsPage';
+import WholesalePage from '@/features/industries/meat/pages/WholesalePage';
+import AgriDashboardPage from '@/features/industries/agri/pages/AgriDashboardPage';
+import AgriProductsPage from '@/features/industries/agri/pages/AgriProductsPage';
+import FarmersPage from '@/features/industries/agri/pages/FarmersPage';
+import BulkOrdersPage from '@/features/industries/agri/pages/BulkOrdersPage';
+import NewBulkOrderPage from '@/features/industries/agri/pages/NewBulkOrderPage';
+import AdvisoryPage from '@/features/industries/agri/pages/AdvisoryPage';
+import SeasonalPlansPage from '@/features/industries/agri/pages/SeasonalPlansPage';
+import SubsidyPage from '@/features/industries/agri/pages/SubsidyPage';
+import HotelDashboardPage from '@/features/industries/hotel/pages/HotelDashboardPage';
+import RoomTypesPage from '@/features/industries/hotel/pages/RoomTypesPage';
+import RoomsPage from '@/features/industries/hotel/pages/RoomsPage';
+import GuestsPage from '@/features/industries/hotel/pages/GuestsPage';
+import BookingsPage from '@/features/industries/hotel/pages/BookingsPage';
+import NewBookingPage from '@/features/industries/hotel/pages/NewBookingPage';
+import HotelBookingDetailPage from '@/features/industries/hotel/pages/HotelBookingDetailPage';
+import HousekeepingPage from '@/features/industries/hotel/pages/HousekeepingPage';
+import JewelryDashboardPage from '@/features/industries/jewelry/pages/JewelryDashboardPage';
+import MetalRatesPage from '@/features/industries/jewelry/pages/MetalRatesPage';
+import JewelryProductsPage from '@/features/industries/jewelry/pages/JewelryProductsPage';
+import JewelrySalesPage from '@/features/industries/jewelry/pages/JewelrySalesPage';
+import NewSalePage from '@/features/industries/jewelry/pages/NewSalePage';
+import CustomOrdersPage from '@/features/industries/jewelry/pages/CustomOrdersPage';
+import ExchangesPage from '@/features/industries/jewelry/pages/ExchangesPage';
+import KarigarsPage from '@/features/industries/jewelry/pages/KarigarsPage';
+import MetalStockPage from '@/features/industries/jewelry/pages/MetalStockPage';
 import AutoPartsDashboardPage from '@/features/industries/autoparts/pages/AutoPartsDashboardPage';
 import VehicleMakesPage from '@/features/industries/autoparts/pages/VehicleMakesPage';
 import VehicleModelsPage from '@/features/industries/autoparts/pages/VehicleModelsPage';
@@ -146,6 +199,15 @@ import NewWorkshopJobPage from '@/features/industries/autoparts/pages/NewWorksho
 import WorkshopJobDetailPage from '@/features/industries/autoparts/pages/WorkshopJobDetailPage';
 import MechanicsPage from '@/features/industries/autoparts/pages/MechanicsPage';
 import ServiceRemindersPage from '@/features/industries/autoparts/pages/ServiceRemindersPage';
+import BookstoreDashboardPage from '@/features/industries/bookstore/pages/BookstoreDashboardPage';
+import PublishersPage from '@/features/industries/bookstore/pages/PublishersPage';
+import AuthorsPage from '@/features/industries/bookstore/pages/AuthorsPage';
+import BooksPage from '@/features/industries/bookstore/pages/BooksPage';
+import StationeryPage from '@/features/industries/bookstore/pages/StationeryPage';
+import ArtSuppliesPage from '@/features/industries/bookstore/pages/ArtSuppliesPage';
+import SchoolsPage from '@/features/industries/bookstore/pages/SchoolsPage';
+import SchoolListsPage from '@/features/industries/bookstore/pages/SchoolListsPage';
+import RentalsPage from '@/features/industries/bookstore/pages/RentalsPage';
 import RecipesPage from '@/features/industries/restaurant/pages/RecipesPage';
 import StationsPage from '@/features/industries/restaurant/pages/StationsPage';
 import DeliveryTrackingPage from '@/features/industries/restaurant/pages/DeliveryTrackingPage';
@@ -313,6 +375,72 @@ export default function App() {
                 <Route path="/salon/packages" element={<PackagesPage />} />
                 <Route path="/salon/calendar" element={<CalendarViewPage />} />
                 <Route path="/salon/customers" element={<CustomersPage />} />
+                {/* Hardware / Building Materials Industry */}
+                <Route path="/hardware" element={<HardwareDashboardPage />} />
+                <Route path="/hardware/dashboard" element={<HardwareDashboardPage />} />
+                <Route path="/hardware/brands" element={<HardwareBrandsPage />} />
+                <Route path="/hardware/products" element={<HardwareProductsPage />} />
+                <Route path="/hardware/projects" element={<HardwareProjectsPage />} />
+                <Route path="/hardware/quotations/new" element={<HardwareNewQuotationPage />} />
+                <Route path="/hardware/quotations/:id" element={<HardwareQuotationDetailPage />} />
+                <Route path="/hardware/quotations" element={<HardwareQuotationsPage />} />
+                <Route path="/hardware/deliveries" element={<HardwareDeliveriesPage />} />
+                <Route path="/hardware/credit-accounts" element={<HardwareCreditAccountsPage />} />
+                <Route path="/hardware/reorder-rules" element={<HardwareReorderRulesPage />} />
+                {/* Dairy / Milk Shop Industry */}
+                <Route path="/dairy" element={<DairyDashboardPage />} />
+                <Route path="/dairy/dashboard" element={<DairyDashboardPage />} />
+                <Route path="/dairy/farmers" element={<DairyFarmersPage />} />
+                <Route path="/dairy/customers" element={<DairyCustomersPage />} />
+                <Route path="/dairy/routes" element={<DairyRoutesPage />} />
+                <Route path="/dairy/deliveries" element={<DairyDeliveriesPage />} />
+                <Route path="/dairy/farmer-supplies" element={<DairyFarmerSuppliesPage />} />
+                <Route path="/dairy/monthly-bills" element={<DairyMonthlyBillsPage />} />
+                <Route path="/dairy/quality-tests" element={<DairyQualityTestsPage />} />
+                <Route path="/dairy/products" element={<DairyProductsPage />} />
+                {/* Meat / Butchery Industry */}
+                <Route path="/meat" element={<MeatDashboardPage />} />
+                <Route path="/meat/dashboard" element={<MeatDashboardPage />} />
+                <Route path="/meat/products" element={<MeatProductsPage />} />
+                <Route path="/meat/live-animals" element={<LiveAnimalsPage />} />
+                <Route path="/meat/slaughter" element={<SlaughterLogPage />} />
+                <Route path="/meat/cutting-jobs" element={<CuttingJobsPage />} />
+                <Route path="/meat/weight-orders/new" element={<NewWeightOrderPage />} />
+                <Route path="/meat/weight-orders" element={<WeightOrdersPage />} />
+                <Route path="/meat/subscriptions" element={<SubscriptionsPage />} />
+                <Route path="/meat/qurbani" element={<QurbaniPage />} />
+                <Route path="/meat/wholesale" element={<WholesalePage />} />
+                {/* Agri / Feed Store Industry */}
+                <Route path="/agri" element={<AgriDashboardPage />} />
+                <Route path="/agri/dashboard" element={<AgriDashboardPage />} />
+                <Route path="/agri/products" element={<AgriProductsPage />} />
+                <Route path="/agri/farmers" element={<FarmersPage />} />
+                <Route path="/agri/bulk-orders/new" element={<NewBulkOrderPage />} />
+                <Route path="/agri/bulk-orders" element={<BulkOrdersPage />} />
+                <Route path="/agri/advisory" element={<AdvisoryPage />} />
+                <Route path="/agri/seasonal-plans" element={<SeasonalPlansPage />} />
+                <Route path="/agri/subsidy" element={<SubsidyPage />} />
+                {/* Hotel / Guest House Industry */}
+                <Route path="/hotel" element={<HotelDashboardPage />} />
+                <Route path="/hotel/dashboard" element={<HotelDashboardPage />} />
+                <Route path="/hotel/room-types" element={<RoomTypesPage />} />
+                <Route path="/hotel/rooms" element={<RoomsPage />} />
+                <Route path="/hotel/guests" element={<GuestsPage />} />
+                <Route path="/hotel/bookings/new" element={<NewBookingPage />} />
+                <Route path="/hotel/bookings/:id" element={<HotelBookingDetailPage />} />
+                <Route path="/hotel/bookings" element={<BookingsPage />} />
+                <Route path="/hotel/housekeeping" element={<HousekeepingPage />} />
+                {/* Jewelry / Zargar Industry */}
+                <Route path="/jewelry" element={<JewelryDashboardPage />} />
+                <Route path="/jewelry/dashboard" element={<JewelryDashboardPage />} />
+                <Route path="/jewelry/metal-rates" element={<MetalRatesPage />} />
+                <Route path="/jewelry/products" element={<JewelryProductsPage />} />
+                <Route path="/jewelry/sales/new" element={<NewSalePage />} />
+                <Route path="/jewelry/sales" element={<JewelrySalesPage />} />
+                <Route path="/jewelry/custom-orders" element={<CustomOrdersPage />} />
+                <Route path="/jewelry/exchanges" element={<ExchangesPage />} />
+                <Route path="/jewelry/karigars" element={<KarigarsPage />} />
+                <Route path="/jewelry/metal-stock" element={<MetalStockPage />} />
                 {/* Auto Parts / Workshop Industry */}
                 <Route path="/autoparts" element={<AutoPartsDashboardPage />} />
                 <Route path="/autoparts/dashboard" element={<AutoPartsDashboardPage />} />
@@ -325,6 +453,17 @@ export default function App() {
                 <Route path="/autoparts/jobs" element={<WorkshopJobsPage />} />
                 <Route path="/autoparts/mechanics" element={<MechanicsPage />} />
                 <Route path="/autoparts/reminders" element={<ServiceRemindersPage />} />
+                {/* Bookstore / Stationery / Art Supplies Industry */}
+                <Route path="/bookstore" element={<BookstoreDashboardPage />} />
+                <Route path="/bookstore/dashboard" element={<BookstoreDashboardPage />} />
+                <Route path="/bookstore/publishers" element={<PublishersPage />} />
+                <Route path="/bookstore/authors" element={<AuthorsPage />} />
+                <Route path="/bookstore/books" element={<BooksPage />} />
+                <Route path="/bookstore/stationery" element={<StationeryPage />} />
+                <Route path="/bookstore/art-supplies" element={<ArtSuppliesPage />} />
+                <Route path="/bookstore/schools" element={<SchoolsPage />} />
+                <Route path="/bookstore/school-lists" element={<SchoolListsPage />} />
+                <Route path="/bookstore/rentals" element={<RentalsPage />} />
                 <Route path="/restaurant/orders" element={<RestaurantOrdersPage />} />
                 <Route path="/restaurant/tables" element={<TablesLayoutPage />} />
                 <Route path="/restaurant/menu" element={<MenuItemsPage />} />

@@ -616,7 +616,7 @@ function CustomerProfileForm({ editing, onClose, onSaved }: {
             <div className="rounded-xl border-2 border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-4 space-y-3">
               <div className="text-sm font-extrabold text-amber-900 dark:text-amber-300 flex items-center gap-2">
                 <Droplet className="h-4 w-4" />
-                Skin Profile
+                Skin Profile 
               </div>
               <div className="grid sm:grid-cols-2 gap-3">
                 <SelectField label="Skin Type" value={form.skinType} options={SKIN_TYPES} onChange={(v) => setForm({ ...form, skinType: v })} color="amber" />

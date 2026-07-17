@@ -1,0 +1,41 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { DairyMilkQuality, DairyProductType, DairyUnit } from '@prisma/client';
+import { IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
+
+export class UpsertDairyProductDto {
+  @ApiProperty() @IsString() productId!: string;
+  @ApiPropertyOptional({ enum: DairyProductType }) @IsOptional() @IsEnum(DairyProductType) productType?: DairyProductType;
+  @ApiPropertyOptional({ enum: DairyUnit }) @IsOptional() @IsEnum(DairyUnit) unit?: DairyUnit;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() fatContent?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() snfContent?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() proteinContent?: number;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() waterAdded?: boolean;
+  @ApiPropertyOptional({ enum: DairyMilkQuality }) @IsOptional() @IsEnum(DairyMilkQuality) quality?: DairyMilkQuality;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() isPasteurized?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() isHomogenized?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() isRaw?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() isOrganic?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() isFresh?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsString() productionDate?: string;
+  @ApiPropertyOptional() @IsOptional() @IsInt() bestBeforeHours?: number;
+  @ApiPropertyOptional() @IsOptional() @IsInt() shelfLifeHours?: number;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() requiresRefrigeration?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() storageTempMin?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() storageTempMax?: number;
+  @ApiPropertyOptional() @IsOptional() @IsString() farmSource?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() cattleType?: string;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() morningPrice?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() eveningPrice?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() bulkPrice?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() minBulkQty?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() wholesalePrice?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() retailPrice?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() homeDeliveryPrice?: number;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() availableMorning?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() availableEvening?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() homeDeliveryAvailable?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() isFeatured?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() isBestSeller?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsInt() displayOrder?: number;
+  @ApiPropertyOptional() @IsOptional() @IsString() notes?: string;
+}

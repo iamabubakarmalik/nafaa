@@ -2,11 +2,10 @@ import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, Package, Sparkles, Users, ShoppingCart, Receipt, PackagePlus, Tag, Wallet, Activity, BarChart3, Settings as SettingsIcon,
-  ScanLine, ShieldCheck, BookOpen, ClipboardCheck, AlertTriangle, Building2,
+  ScanLine, BookOpen, ClipboardCheck, AlertTriangle,
   ArrowRightLeft, Download, Database, RotateCcw, Award, Percent, TrendingUp, Gift, Gauge, Hash, UserCircle, LifeBuoy, ScrollText, Eye,
   UserCog, CheckCircle2, Wallet2, Layers, Calendar,
-  RefreshCw, Smartphone, BookmarkPlus, ChevronDown, ChevronRight, ShoppingBag, ChefHat, Utensils, Timer, Bike, Pill, Beaker, Stethoscope, ShieldAlert, Thermometer, Shirt, Scissors, Ruler, Palette, CreditCard, UserCheck, Heart, Car, Wrench, Truck, Cog, Bell, Flame, MapPin,
-  Search, X, Star, StarOff, PanelLeftClose, Zap,
+  RefreshCw, Smartphone, BookmarkPlus, ChevronDown, ChevronRight, ShoppingBag, ChefHat, Utensils, Timer, Bike, Pill, Beaker, Stethoscope, ShieldAlert, Thermometer, Shirt, Scissors, Ruler, Palette, CreditCard, UserCheck, Heart, Building, FileText, Beef, ShieldCheck, Truck, Building2, Car, Wrench, Cog, Bell, Flame, MapPin, Sparkle, Bed, Home,  Search, X, Star, StarOff, PanelLeftClose, Zap,PenTool, Newspaper , BookMarked, School, DollarSign, Wheat, Landmark, Leaf, RouteIcon, Milk, User, Coins, Gem, Repeat, Scale
 } from 'lucide-react';
 import { Logo } from '@/components/brand/Logo';
 import { hasPermission, PERMISSIONS, type PermissionKey } from '@/lib/permissions';
@@ -188,6 +187,108 @@ const navGroups: NavGroup[] = [
     ],
   },
     {
+    label: 'Bookstore / Stationery',
+    icon: BookOpen,
+    items: [
+      { to: '/bookstore/dashboard', label: 'Bookstore Dashboard', icon: LayoutDashboard, badge: 'NEW' },
+      { to: '/bookstore/books', label: 'Books', icon: BookOpen },
+      { to: '/bookstore/publishers', label: 'Publishers', icon: Building2 },
+      { to: '/bookstore/authors', label: 'Authors', icon: Users },
+      { to: '/bookstore/stationery', label: 'Stationery', icon: PenTool },
+      { to: '/bookstore/art-supplies', label: 'Art Supplies', icon: Palette },
+      { to: '/bookstore/schools', label: 'Schools', icon: School },
+      { to: '/bookstore/school-lists', label: 'School Lists', icon: Newspaper },
+      { to: '/bookstore/rentals', label: 'Book Rentals', icon: BookMarked },
+    ],
+  },
+    {
+    label: 'Meat Industry',
+    icon: Beef,
+    items: [
+      { to: '/meat/dashboard', label: 'Meat Dashboard', icon: LayoutDashboard, badge: 'NEW' },
+      { to: '/meat/products', label: 'Products / Cuts', icon: Beef },
+      { to: '/meat/live-animals', label: 'Live Animals', icon: Heart },
+      { to: '/meat/slaughter', label: 'Slaughter Log', icon: ShieldCheck },
+      { to: '/meat/cutting-jobs', label: 'Cutting Jobs', icon: Scissors },
+      { to: '/meat/weight-orders', label: 'Weight Orders', icon: Package },
+      { to: '/meat/subscriptions', label: 'Subscriptions', icon: Truck },
+      { to: '/meat/qurbani', label: 'Qurbani / Aqeeqa', icon: Heart },
+      { to: '/meat/wholesale', label: 'Wholesale Accounts', icon: Building2 },
+    ],
+  },
+    {
+    label: 'Hardware Industry',
+    icon: Building,
+    items: [
+      { to: '/hardware/dashboard', label: 'Hardware Dashboard', icon: LayoutDashboard, badge: 'NEW' },
+      { to: '/hardware/brands', label: 'Brands', icon: Award },
+      { to: '/hardware/products', label: 'Products', icon: Package },
+      { to: '/hardware/projects', label: 'Projects', icon: Building },
+      { to: '/hardware/quotations', label: 'Quotations', icon: FileText },
+      { to: '/hardware/deliveries', label: 'Deliveries', icon: Truck },
+      { to: '/hardware/credit-accounts', label: 'Credit Accounts', icon: CreditCard },
+      { to: '/hardware/credit-transactions', label: 'Ledger', icon: DollarSign },
+      { to: '/hardware/reorder-rules', label: 'Reorder Alerts', icon: AlertTriangle },
+    ],
+  },
+    {
+    label: 'Agri / Feed Industry',
+    icon: Wheat,
+    items: [
+      { to: '/agri/dashboard', label: 'Agri Dashboard', icon: LayoutDashboard, badge: 'NEW' },
+      { to: '/agri/products', label: 'Seeds / Fertilizer / Feed', icon: Wheat },
+      { to: '/agri/farmers', label: 'Farmers', icon: Users },
+      { to: '/agri/bulk-orders', label: 'Bulk Orders', icon: Package },
+      { to: '/agri/ledger', label: 'Farmer Ledger', icon: FileText },
+      { to: '/agri/advisory', label: 'Crop Advisory', icon: Leaf },
+      { to: '/agri/seasonal-plans', label: 'Seasonal Plans', icon: Calendar },
+      { to: '/agri/subsidy', label: 'Govt Subsidies', icon: Landmark },
+    ],
+  },
+    {
+    label: 'Dairy Industry',
+    icon: Milk,
+    items: [
+      { to: '/dairy/dashboard', label: 'Dairy Dashboard', icon: LayoutDashboard, badge: 'NEW' },
+      { to: '/dairy/customers', label: 'Customers', icon: Users },
+      { to: '/dairy/farmers', label: 'Farmers', icon: User },
+      { to: '/dairy/routes', label: 'Routes', icon: RouteIcon },
+      { to: '/dairy/deliveries', label: 'Deliveries', icon: Truck },
+      { to: '/dairy/farmer-supplies', label: 'Farmer Supplies', icon: Package },
+      { to: '/dairy/monthly-bills', label: 'Monthly Bills', icon: FileText },
+      { to: '/dairy/quality-tests', label: 'Quality Tests', icon: Beaker },
+      { to: '/dairy/products', label: 'Dairy Products', icon: Milk },
+    ],
+  },
+    {
+    label: 'Jewelry Industry',
+    icon: Gem,
+    items: [
+      { to: '/jewelry/dashboard', label: 'Jewelry Dashboard', icon: LayoutDashboard, badge: 'NEW' },
+      { to: '/jewelry/metal-rates', label: 'Metal Rates', icon: Coins },
+      { to: '/jewelry/products', label: 'Products', icon: Gem },
+      { to: '/jewelry/sales', label: 'Sales', icon: CreditCard },
+      { to: '/jewelry/custom-orders', label: 'Custom Orders', icon: Palette },
+      { to: '/jewelry/exchanges', label: 'Exchanges', icon: Repeat },
+      { to: '/jewelry/karigars', label: 'Karigars', icon: Users },
+      { to: '/jewelry/metal-stock', label: 'Metal Stock', icon: Scale },
+    ],
+  },
+    {
+    label: 'Hotel Industry',
+    icon: Building2,
+    items: [
+      { to: '/hotel/dashboard', label: 'Hotel Dashboard', icon: LayoutDashboard, badge: 'NEW' },
+      { to: '/hotel/room-types', label: 'Room Types', icon: Bed },
+      { to: '/hotel/rooms', label: 'Rooms', icon: Home },
+      { to: '/hotel/bookings', label: 'Bookings', icon: Calendar },
+      { to: '/hotel/bookings/new', label: 'New Booking', icon: Sparkles },
+      { to: '/hotel/guests', label: 'Guests', icon: Users },
+      { to: '/hotel/housekeeping', label: 'Housekeeping', icon: Sparkle },
+      { to: '/hotel/rate-plans', label: 'Rate Plans', icon: Award },
+    ],
+  },
+    {
     label: 'Staff & Team',
     icon: UserCog,
     items: [
@@ -287,8 +388,22 @@ export const Sidebar = memo(function Sidebar({
         if (group.label === 'Garments Industry' && !isGarments) return false;
         const isSalon = type.includes('SALON') || type.includes('PARLOUR') || type.includes('PARLOR') || type.includes('BEAUTY') || type.includes('SPA') || type.includes('BARBER');
         if (group.label === 'Salon Industry' && !isSalon) return false;
+        const isHardware = type.includes('HARDWARE') || type.includes('BUILDING') || type.includes('CONSTRUCTION') || type.includes('CEMENT') || type.includes('STEEL') || type.includes('SANITARY') || type.includes('PLUMBING') || type.includes('TILES') || type.includes('PAINT');
+        if (group.label === 'Hardware Industry' && !isHardware) return false;
+        const isDairy = type.includes('DAIRY') || type.includes('MILK') || type.includes('DODHI') || type.includes('GAWALA');
+        if (group.label === 'Dairy Industry' && !isDairy) return false;
+        const isMeat = type.includes('MEAT') || type.includes('BUTCHER') || type.includes('HALAL') || type.includes('POULTRY') || type.includes('SLAUGHTERHOUSE');
+        if (group.label === 'Meat Industry' && !isMeat) return false;
+        const isAgri = type.includes('AGRI') || type.includes('FARM') || type.includes('SEED') || type.includes('FERTILIZER') || type.includes('FEED') || type.includes('PESTICIDE') || type.includes('CROP');
+        if (group.label === 'Agri / Feed Industry' && !isAgri) return false;
+        const isHotel = type.includes('HOTEL') || type.includes('GUEST_HOUSE') || type.includes('GUESTHOUSE') || type.includes('MOTEL') || type.includes('RESORT') || type.includes('LODGE') || type.includes('INN') || type.includes('HOSTEL');
+        if (group.label === 'Hotel Industry' && !isHotel) return false;
+        const isJewelry = type.includes('JEWELRY') || type.includes('JEWELLERY') || type.includes('ZARGAR') || type.includes('SUNAR') || type.includes('GOLD') || type.includes('BULLION');
+        if (group.label === 'Jewelry Industry' && !isJewelry) return false;
         const isAutoParts = type.includes('AUTO') || type.includes('WORKSHOP') || type.includes('GARAGE') || type.includes('MECHANIC') || type.includes('SPARE') || type.includes('MOTOR') || type.includes('VEHICLE') || type.includes('CAR');
         if (group.label === 'Auto Parts / Workshop' && !isAutoParts) return false;
+        const isBookstore = type.includes('BOOK') || type.includes('STATIONERY') || type.includes('STATIONARY') || type.includes('LIBRARY') || type.includes('ART') || type.includes('SCHOOL') || type.includes('EDUCATION');
+        if (group.label === 'Bookstore / Stationery' && !isBookstore) return false;
         if (group.label === 'Carpet Industry' && !isCarpet) return false;
         if (group.label === 'Mobile Industry' && !isMobile) return false;
         return true;

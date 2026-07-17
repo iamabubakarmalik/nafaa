@@ -6337,3 +6337,4202 @@ model VehicleServiceReminder {
   @@index([vehicleId])
   @@index([dueDate])
 }
+
+// ═══════════════════════════════════════════════════════════════
+// INDUSTRY: BOOKSTORE / STATIONERY / ART SUPPLIES / SCHOOL SUPPLIES
+// Books + Stationery + Art + School lists + Publishers + Authors
+// ═══════════════════════════════════════════════════════════════
+
+enum BookCategory {
+  // Academic
+  TEXTBOOK
+  REFERENCE
+  GUIDE
+  WORKBOOK
+  EXAM_PREP
+  DICTIONARY
+  ATLAS
+  ENCYCLOPEDIA
+
+  // Fiction
+  NOVEL
+  SHORT_STORY
+  POETRY
+  DRAMA
+  FANTASY
+  MYSTERY
+  ROMANCE
+  THRILLER
+  SCIENCE_FICTION
+  HISTORICAL_FICTION
+
+  // Non-fiction
+  BIOGRAPHY
+  AUTOBIOGRAPHY
+  HISTORY
+  PHILOSOPHY
+  RELIGION
+  SELF_HELP
+  BUSINESS
+  ECONOMICS
+  SCIENCE
+  TECHNOLOGY
+  COOKING
+  TRAVEL
+  ART_BOOK
+  MUSIC_BOOK
+
+  // Kids
+  CHILDREN
+  PICTURE_BOOK
+  ACTIVITY_BOOK
+  COLORING_BOOK
+  STORYBOOK
+  COMICS
+  MANGA
+
+  // Islamic
+  QURAN
+  HADITH
+  SEERAH
+  FIQH
+  ISLAMIC_HISTORY
+  ISLAMIC_STUDIES
+  DUA_BOOK
+
+  // Language
+  URDU
+  ENGLISH_LANGUAGE
+  ARABIC
+  OTHER_LANGUAGE
+
+  // Magazines & Periodicals
+  MAGAZINE
+  NEWSPAPER
+  JOURNAL
+
+  OTHER
+}
+
+enum StationeryCategory {
+  // Writing
+  PEN_BALLPOINT
+  PEN_GEL
+  PEN_FOUNTAIN
+  PEN_MARKER
+  PENCIL_HB
+  PENCIL_COLOR
+  PENCIL_MECHANICAL
+  HIGHLIGHTER
+  CRAYON
+  CHALK
+
+  // Paper
+  NOTEBOOK
+  REGISTER
+  DIARY
+  SKETCHBOOK
+  PAD
+  LOOSE_PAPER
+  GRAPH_PAPER
+  ENVELOPE
+  LETTER_HEAD
+  CHART_PAPER
+  CARD_PAPER
+  STICKY_NOTES
+
+  // Tools
+  ERASER
+  SHARPENER
+  RULER
+  SCALE
+  COMPASS
+  PROTRACTOR
+  DIVIDER
+  GEOMETRY_BOX
+  CALCULATOR
+  SCISSORS
+  STAPLER
+  PUNCHER
+  CLIPBOARD
+
+  // Adhesives
+  GLUE
+  GUM
+  TAPE
+  DOUBLE_TAPE
+  MASKING_TAPE
+
+  // Filing
+  FILE_FOLDER
+  BINDER
+  ENVELOPE_FILE
+  BOX_FILE
+  ARCH_FILE
+  CLIP
+  PAPER_CLIP
+
+  // Office
+  STAMP_PAD
+  STAMP
+  MARKER_PERMANENT
+  MARKER_WHITEBOARD
+  WHITEBOARD
+  DUSTER
+  PAPER_TRAY
+
+  // Bags
+  SCHOOL_BAG
+  LUNCH_BOX
+  WATER_BOTTLE
+  PENCIL_POUCH
+
+  // Misc
+  BOOK_COVER
+  BOOK_MARK
+  BADGE
+  ID_CARD_HOLDER
+
+  OTHER
+}
+
+enum ArtSupplyCategory {
+  // Canvas & Surfaces
+  CANVAS_ROLL
+  CANVAS_STRETCHED
+  CANVAS_PANEL
+  DRAWING_PAPER
+  WATERCOLOR_PAPER
+  ACRYLIC_PAPER
+  OIL_PAPER
+  SKETCH_PAPER
+  PASTEL_PAPER
+
+  // Paints
+  ACRYLIC_PAINT
+  OIL_PAINT
+  WATERCOLOR_PAINT
+  POSTER_PAINT
+  FABRIC_PAINT
+  GLASS_PAINT
+  GOUACHE
+  TEMPERA
+  SPRAY_PAINT
+  ENAMEL_PAINT
+
+  // Brushes
+  BRUSH_FLAT
+  BRUSH_ROUND
+  BRUSH_FILBERT
+  BRUSH_FAN
+  BRUSH_LINER
+  BRUSH_SET
+  PALETTE_KNIFE
+
+  // Drawing
+  CHARCOAL
+  PASTEL_OIL
+  PASTEL_CHALK
+  PASTEL_SOFT
+  GRAPHITE
+  CONTE
+  INK_DRAWING
+  CALLIGRAPHY_INK
+
+  // Mediums
+  ACRYLIC_MEDIUM
+  OIL_MEDIUM
+  LINSEED_OIL
+  TURPENTINE
+  GESSO
+  VARNISH
+
+  // Tools
+  EASEL
+  PALETTE
+  CANVAS_STRETCHER
+  MAHL_STICK
+
+  // Crafts
+  ORIGAMI_PAPER
+  CARDBOARD
+  FOAM_SHEET
+  GLITTER
+  BEADS
+  RIBBON
+  CLAY
+  MODELING_CLAY
+  POLYMER_CLAY
+  PLASTER
+
+  // Calligraphy
+  CALLIGRAPHY_PEN
+  QALAM
+  DAWAT
+  CALLIGRAPHY_INK_BLACK
+
+  OTHER
+}
+
+enum BookCondition {
+  NEW
+  USED_LIKE_NEW
+  USED_GOOD
+  USED_ACCEPTABLE
+  OLD_STOCK
+  DAMAGED
+}
+
+enum BookBinding {
+  HARDCOVER
+  PAPERBACK
+  SPIRAL
+  RING
+  STAPLED
+  LEATHER
+  EBOOK
+  AUDIOBOOK
+}
+
+enum SchoolListStatus {
+  DRAFT
+  ACTIVE
+  CLOSED
+  ARCHIVED
+}
+
+enum BookRentalStatus {
+  ACTIVE
+  RETURNED
+  OVERDUE
+  LOST
+  DAMAGED
+  CANCELLED
+}
+
+// ─────────────────────────────────────────────────────────────
+// Publisher (Oxford, Ferozsons, Sang-e-Meel, etc.)
+// ─────────────────────────────────────────────────────────────
+model Publisher {
+  id       String @id @default(uuid())
+  tenantId String
+
+  name          String
+  code          String?
+  country       String?
+  city          String?
+  website       String?
+  phone         String?
+  email         String?
+  contactPerson String?
+
+  logoUrl     String?
+  description String? @db.Text
+
+  // Business
+  defaultDiscountPct Float   @default(0)
+  paymentTerms       String?
+  creditDays         Int     @default(0)
+
+  // Stats
+  totalBooks   Int   @default(0)
+  totalRevenue Float @default(0)
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  books BookProfile[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+  @@index([tenantId, isActive])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Author
+// ─────────────────────────────────────────────────────────────
+model Author {
+  id       String @id @default(uuid())
+  tenantId String
+
+  name        String
+  penName     String?
+  nationality String?
+  bornYear    Int?
+  diedYear    Int?
+  bio         String? @db.Text
+  photoUrl    String?
+
+  // Categories
+  genres    String[] @default([])
+  languages String[] @default([])
+
+  // Stats
+  totalBooks Int   @default(0)
+  totalSales Float @default(0)
+
+  isFeatured Boolean @default(false)
+  isActive   Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bookAuthors BookAuthor[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Book Profile (extends Product for books)
+// ─────────────────────────────────────────────────────────────
+model BookProfile {
+  id        String @id @default(uuid())
+  tenantId  String
+  productId String @unique
+
+  // Identifiers
+  isbn10            String?
+  isbn13            String?
+  publisherBookCode String?
+  barcode           String?
+
+  // Book details
+  title         String
+  subtitle      String?
+  originalTitle String?
+  category      BookCategory  @default(OTHER)
+  subCategory   String?
+  binding       BookBinding   @default(PAPERBACK)
+  condition     BookCondition @default(NEW)
+
+  // Publisher
+  publisherId   String?
+  edition       String?
+  editionNumber Int?
+  publishYear   Int?
+  reprintYear   Int?
+
+  // Physical
+  language     String  @default("English")
+  pageCount    Int?
+  weightGrams  Float?
+  dimensions   String?
+  paperQuality String?
+
+  // Description
+  description     String? @db.Text
+  tableOfContents String? @db.Text
+  synopsis        String? @db.Text
+
+  // Academic
+  isTextbook Boolean @default(false)
+  grade      String?
+  classLevel String?
+  subject    String?
+  board      String? // Punjab Board, Sindh Board, Federal Board, Cambridge etc.
+  curriculum String?
+
+  // Business
+  mrp          Float?
+  discountPct  Float  @default(0)
+  reorderLevel Int    @default(0)
+
+  // Marketing
+  isBestSeller  Boolean @default(false)
+  isNewArrival  Boolean @default(false)
+  isFeatured    Boolean @default(false)
+  isAwardWinner Boolean @default(false)
+  awardName     String?
+
+  // Reviews
+  avgRating    Float?
+  totalReviews Int    @default(0)
+
+  // Stats
+  totalSold   Int @default(0)
+  totalRented Int @default(0)
+
+  isRentable         Boolean @default(false)
+  rentalPricePerWeek Float   @default(0)
+  rentalDeposit      Float   @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  publisher   Publisher?   @relation(fields: [publisherId], references: [id])
+  bookAuthors BookAuthor[]
+
+  @@index([tenantId])
+  @@index([tenantId, category])
+  @@index([tenantId, isbn13])
+  @@index([tenantId, isbn10])
+  @@index([tenantId, board, grade])
+  @@index([publisherId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Book <-> Author (many-to-many with role)
+// ─────────────────────────────────────────────────────────────
+model BookAuthor {
+  id       String @id @default(uuid())
+  bookId   String
+  authorId String
+
+  role         String @default("AUTHOR") // AUTHOR | CO_AUTHOR | TRANSLATOR | EDITOR | ILLUSTRATOR
+  displayOrder Int    @default(0)
+
+  createdAt DateTime @default(now())
+
+  book   BookProfile @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  author Author      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@unique([bookId, authorId, role])
+  @@index([bookId])
+  @@index([authorId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Stationery Product Profile
+// ─────────────────────────────────────────────────────────────
+model StationeryProfile {
+  id        String @id @default(uuid())
+  tenantId  String
+  productId String @unique
+
+  category    StationeryCategory @default(OTHER)
+  subCategory String?
+  brand       String?
+  color       String?
+  size        String?
+
+  // Physical
+  weight     Float?
+  dimensions String?
+  material   String?
+
+  // Pack info
+  packSize     Int?
+  packUnit     String? // pieces, dozen, box, ream
+  itemsPerPack Int?
+
+  // Business
+  isFastMoving Boolean @default(false)
+  isSchoolItem Boolean @default(false)
+  isOfficeItem Boolean @default(false)
+  reorderLevel Int     @default(0)
+
+  // Stats
+  totalSold Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, category])
+  @@index([tenantId, brand])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Art Supply Product Profile
+// ─────────────────────────────────────────────────────────────
+model ArtSupplyProfile {
+  id        String @id @default(uuid())
+  tenantId  String
+  productId String @unique
+
+  category    ArtSupplyCategory @default(OTHER)
+  subCategory String?
+  brand       String?
+
+  // Specifics
+  color     String?
+  colorCode String? // like "Cadmium Red 306"
+  size      String? // Canvas size, brush #, etc.
+  grade     String? // Student, Professional, Artist grade
+
+  // Physical
+  weight     Float?
+  volume     String? // 100ml, 500ml, etc.
+  dimensions String?
+
+  // Compatibility
+  suitableFor String[] @default([]) // Canvas, Paper, Wood, Fabric
+
+  // Business
+  isProfessional Boolean @default(false)
+  isBeginner     Boolean @default(false)
+  reorderLevel   Int     @default(0)
+
+  // Stats
+  totalSold Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, category])
+  @@index([tenantId, brand])
+}
+
+// ─────────────────────────────────────────────────────────────
+// School / Institution (for bulk sales & lists)
+// ─────────────────────────────────────────────────────────────
+model School {
+  id       String @id @default(uuid())
+  tenantId String
+
+  name          String
+  code          String?
+  type          String? // School | College | University | Academy | Madrassa
+  board         String? // Punjab Board, Cambridge, Federal etc.
+  medium        String? // English, Urdu, Bilingual
+  address       String? @db.Text
+  city          String?
+  phone         String?
+  email         String?
+  principalName String?
+  contactPerson String?
+  contactPhone  String?
+
+  // Business
+  discountPct Float @default(0)
+  creditDays  Int   @default(0)
+  creditLimit Float @default(0)
+
+  logoUrl String?
+  notes   String? @db.Text
+
+  // Stats
+  totalOrders       Int   @default(0)
+  totalRevenue      Float @default(0)
+  outstandingAmount Float @default(0)
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bookLists SchoolBookList[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// School Book List (per grade per session)
+// ─────────────────────────────────────────────────────────────
+model SchoolBookList {
+  id       String @id @default(uuid())
+  tenantId String
+  schoolId String
+
+  session String // 2025-2026
+  grade   String // Class 1, Class 5, O-Level
+  section String?
+  medium  String?
+
+  title       String
+  description String? @db.Text
+
+  status SchoolListStatus @default(DRAFT)
+
+  // Business
+  discountPct Float  @default(0)
+  bundlePrice Float?
+  totalItems  Int    @default(0)
+
+  imageUrl String?
+
+  // Stats
+  totalOrders  Int   @default(0)
+  totalRevenue Float @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  school School               @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  items  SchoolBookListItem[]
+
+  @@index([tenantId])
+  @@index([schoolId])
+  @@index([tenantId, session])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Items in school book list
+// ─────────────────────────────────────────────────────────────
+model SchoolBookListItem {
+  id     String @id @default(uuid())
+  listId String
+
+  productId String?
+  itemName  String
+  itemType  String  @default("BOOK") // BOOK | STATIONERY | UNIFORM | OTHER
+
+  quantity Int    @default(1)
+  unit     String @default("piece")
+
+  unitPrice Float @default(0)
+  discount  Float @default(0)
+  total     Float @default(0)
+
+  subject    String?
+  isRequired Boolean @default(true)
+  isOptional Boolean @default(false)
+
+  notes        String?
+  displayOrder Int     @default(0)
+
+  createdAt DateTime @default(now())
+
+  list SchoolBookList @relation(fields: [listId], references: [id], onDelete: Cascade)
+
+  @@index([listId])
+  @@index([productId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Book Rentals (library-style rental)
+// ─────────────────────────────────────────────────────────────
+model BookRental {
+  id       String  @id @default(uuid())
+  tenantId String
+  shopId   String?
+
+  rentalNumber String
+  customerId   String?
+  productId    String
+  variantId    String?
+
+  customerName  String?
+  customerPhone String?
+  customerCnic  String?
+
+  quantity      Int   @default(1)
+  rentalPrice   Float
+  depositAmount Float @default(0)
+
+  issuedAt         DateTime  @default(now())
+  dueDate          DateTime
+  returnedAt       DateTime?
+  actualReturnDate DateTime?
+
+  status     BookRentalStatus @default(ACTIVE)
+  fineAmount Float            @default(0)
+  finePerDay Float            @default(0)
+
+  conditionOnIssue  String?
+  conditionOnReturn String?
+  damageNotes       String?
+
+  notes        String?
+  issuedById   String?
+  returnedToId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, rentalNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([customerId])
+  @@index([dueDate])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Reading list / wishlist for customers
+// ─────────────────────────────────────────────────────────────
+model CustomerReadingList {
+  id         String @id @default(uuid())
+  tenantId   String
+  customerId String
+
+  name        String  @default("Wishlist")
+  description String?
+
+  isPublic  Boolean @default(false)
+  isDefault Boolean @default(false)
+
+  totalItems Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items CustomerReadingListItem[]
+
+  @@index([tenantId])
+  @@index([customerId])
+}
+
+model CustomerReadingListItem {
+  id     String @id @default(uuid())
+  listId String
+
+  productId String
+  notes     String?
+  priority  String    @default("NORMAL") // LOW | NORMAL | HIGH
+  isRead    Boolean   @default(false)
+  readAt    DateTime?
+
+  createdAt DateTime @default(now())
+
+  list CustomerReadingList @relation(fields: [listId], references: [id], onDelete: Cascade)
+
+  @@unique([listId, productId])
+  @@index([listId])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INDUSTRY: HARDWARE / BUILDING MATERIALS
+// Steel, cement, sanitary, tiles, paint — bulk sales, delivery, credit
+// ═══════════════════════════════════════════════════════════════
+
+enum HardwareCategoryType {
+  CEMENT
+  STEEL_REBAR
+  STEEL_SHEET
+  STEEL_PIPE
+  BRICKS
+  BLOCKS
+  SAND
+  GRAVEL
+  CRUSH
+  TILES_FLOOR
+  TILES_WALL
+  MARBLE
+  GRANITE
+  SANITARY_WARE
+  PLUMBING_PIPE
+  PLUMBING_FITTING
+  ELECTRIC_WIRE
+  ELECTRIC_SWITCH
+  ELECTRIC_CONDUIT
+  PAINT
+  PRIMER
+  THINNER
+  WOOD_LUMBER
+  PLYWOOD
+  MDF
+  HARDWARE_TOOL
+  POWER_TOOL
+  HAND_TOOL
+  FASTENER
+  ADHESIVE
+  WATERPROOFING
+  INSULATION
+  DOOR
+  WINDOW
+  GLASS
+  ALUMINUM
+  IRON_FABRICATION
+  ROOFING
+  SAFETY_EQUIPMENT
+  OTHER
+}
+
+enum HardwareUnit {
+  BAG
+  KG
+  TON
+  PIECE
+  DOZEN
+  CARTON
+  METER
+  FEET
+  INCH
+  SQFT
+  SQMETER
+  CUBIC_FEET
+  CUBIC_METER
+  LITER
+  GALLON
+  BUNDLE
+  ROLL
+  SHEET
+  BOX
+  SET
+  TRIP
+}
+
+enum HardwareBrandTier {
+  PREMIUM
+  STANDARD
+  ECONOMY
+  IMPORTED
+  LOCAL
+}
+
+enum HardwareDeliveryStatus {
+  PENDING
+  SCHEDULED
+  LOADED
+  DISPATCHED
+  IN_TRANSIT
+  DELIVERED
+  PARTIALLY_DELIVERED
+  FAILED
+  CANCELLED
+  RETURNED
+}
+
+enum HardwareDeliveryVehicleType {
+  PICKUP
+  MINI_TRUCK
+  TRUCK
+  TRAILER
+  DUMPER
+  CRANE
+  RICKSHAW
+  MOTORCYCLE
+  CUSTOMER_PICKUP
+  OTHER
+}
+
+enum HardwareQuotationStatus {
+  DRAFT
+  SENT
+  VIEWED
+  ACCEPTED
+  REJECTED
+  EXPIRED
+  CONVERTED
+  REVISED
+}
+
+enum HardwareProjectStatus {
+  PLANNING
+  QUOTED
+  APPROVED
+  IN_PROGRESS
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+}
+
+enum HardwareCreditAccountStatus {
+  ACTIVE
+  SUSPENDED
+  CLOSED
+  DEFAULTED
+  OVERDUE
+}
+
+enum HardwareCreditTransactionType {
+  SALE
+  PAYMENT
+  ADJUSTMENT
+  REFUND
+  WRITE_OFF
+  INTEREST
+  OPENING_BALANCE
+}
+
+// ─── Brand master (Fauji, DG Khan, Lucky, Amreli, ITL, etc) ───
+model HardwareBrand {
+  id       String @id @default(uuid())
+  tenantId String
+
+  name            String
+  code            String?
+  tier            HardwareBrandTier @default(STANDARD)
+  countryOfOrigin String?
+  description     String?           @db.Text
+  logoUrl         String?
+
+  // Contact for reordering
+  supplierContact String?
+  supplierPhone   String?
+
+  // Marketing
+  isFeatured   Boolean @default(false)
+  displayOrder Int     @default(0)
+
+  isActive Boolean @default(true)
+
+  totalProducts Int   @default(0)
+  totalRevenue  Float @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+  @@index([tenantId, tier])
+}
+
+// ─── Hardware product profile ───
+model HardwareProductProfile {
+  id        String @id @default(uuid())
+  tenantId  String
+  productId String @unique
+
+  brandId      String?
+  categoryType HardwareCategoryType?
+
+  // Physical properties
+  unit         HardwareUnit  @default(PIECE)
+  bulkUnit     HardwareUnit?
+  bulkQuantity Int?
+
+  weightKg      Float?
+  weightPerUnit Float?
+  volumePerUnit Float?
+  lengthMm      Float?
+  widthMm       Float?
+  heightMm      Float?
+  diameterMm    Float?
+  thicknessMm   Float?
+
+  // Steel specific
+  grade    String?
+  diameter String?
+
+  // Cement specific
+  gradeStrength String?
+  bagWeight     Float?
+
+  // Tile specific
+  tileSize     String?
+  finishType   String?
+  piecesPerBox Int?
+  sqftPerBox   Float?
+
+  // Paint specific
+  colorCode    String?
+  colorName    String?
+  finishSheen  String?
+  coverage     Float?
+  litersPerCan Float?
+
+  // Bulk pricing tiers
+  minBulkQty     Float?
+  bulkPrice      Float?
+  wholesalePrice Float?
+  retailPrice    Float?
+  cashPrice      Float?
+  creditPrice    Float?
+
+  // Delivery
+  requiresTruck       Boolean @default(false)
+  requiresCrane       Boolean @default(false)
+  canDeliverInCity    Boolean @default(true)
+  canDeliverIntercity Boolean @default(true)
+  deliveryChargePerKm Float?
+  minDeliveryCharge   Float?
+
+  // Storage
+  requiresCoveredStorage Boolean @default(false)
+  requiresDryStorage     Boolean @default(false)
+  shelfLifeMonths        Int?
+
+  // Certifications
+  hasIsoCertification   Boolean  @default(false)
+  hasPsqcaCertification Boolean  @default(false)
+  certificationNumbers  String[] @default([])
+
+  // Origin
+  manufacturingLocation String?
+  batchTraceable        Boolean @default(false)
+
+  displayOrder Int     @default(0)
+  isFeatured   Boolean @default(false)
+  isBestSeller Boolean @default(false)
+  isFastMoving Boolean @default(false)
+
+  totalSold    Float @default(0)
+  totalRevenue Float @default(0)
+  totalReturns Float @default(0)
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, categoryType])
+  @@index([brandId])
+}
+
+// ─── Bulk pricing tiers (min qty → price) ───
+model HardwareBulkPricing {
+  id        String @id @default(uuid())
+  tenantId  String
+  productId String
+
+  minQuantity Float
+  maxQuantity Float?
+  price       Float
+  discount    Float?
+  discountPct Float?
+  label       String?
+
+  isActive     Boolean @default(true)
+  displayOrder Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([productId])
+}
+
+// ─── Construction project tracking ───
+model HardwareProject {
+  id       String  @id @default(uuid())
+  tenantId String
+  shopId   String?
+
+  projectNumber String
+  name          String
+  description   String? @db.Text
+
+  customerId      String?
+  customerName    String
+  customerPhone   String?
+  contractorName  String?
+  contractorPhone String?
+  architectName   String?
+
+  // Location
+  siteAddress      String  @db.Text
+  city             String?
+  area             String?
+  latitude         Float?
+  longitude        Float?
+  siteContactPhone String?
+
+  // Type
+  projectType String?
+  builtUpArea Float?
+  floors      Int?
+
+  // Timeline
+  startDate       DateTime?
+  expectedEndDate DateTime?
+  actualEndDate   DateTime?
+
+  status HardwareProjectStatus @default(PLANNING)
+
+  // Financial
+  estimatedBudget Float?
+  totalQuoted     Float  @default(0)
+  totalOrdered    Float  @default(0)
+  totalDelivered  Float  @default(0)
+  totalPaid       Float  @default(0)
+  totalPending    Float  @default(0)
+
+  // Credit
+  creditLimit Float @default(0)
+  creditDays  Int   @default(0)
+
+  // Additional
+  imageUrls    String[] @default([])
+  documentUrls String[] @default([])
+  notes        String?  @db.Text
+
+  isActive Boolean @default(true)
+
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  quotations HardwareQuotation[]
+  deliveries HardwareDelivery[]
+
+  @@unique([tenantId, projectNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([customerId])
+}
+
+// ─── Quotation / estimate ───
+model HardwareQuotation {
+  id       String  @id @default(uuid())
+  tenantId String
+  shopId   String?
+
+  quotationNumber String
+  projectId       String?
+  customerId      String?
+
+  customerName    String
+  customerPhone   String?
+  customerEmail   String?
+  customerAddress String? @db.Text
+
+  status HardwareQuotationStatus @default(DRAFT)
+
+  quotationDate   DateTime  @default(now())
+  validUntil      DateTime
+  sentAt          DateTime?
+  viewedAt        DateTime?
+  respondedAt     DateTime?
+  convertedAt     DateTime?
+  convertedSaleId String?
+
+  // Financial
+  subtotal        Float @default(0)
+  discount        Float @default(0)
+  discountPct     Float @default(0)
+  taxAmount       Float @default(0)
+  taxPct          Float @default(0)
+  deliveryCharges Float @default(0)
+  laborCharges    Float @default(0)
+  otherCharges    Float @default(0)
+  total           Float @default(0)
+
+  // Terms
+  paymentTerms  String? @db.Text
+  deliveryTerms String? @db.Text
+  warrantyTerms String? @db.Text
+  specialTerms  String? @db.Text
+  validityDays  Int     @default(15)
+
+  // Additional
+  attachmentUrls String[] @default([])
+  internalNotes  String?  @db.Text
+  customerNotes  String?  @db.Text
+  revisionNumber Int      @default(1)
+
+  createdById String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project HardwareProject?        @relation(fields: [projectId], references: [id])
+  items   HardwareQuotationItem[]
+
+  @@unique([tenantId, quotationNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([projectId])
+  @@index([customerId])
+}
+
+model HardwareQuotationItem {
+  id          String @id @default(uuid())
+  quotationId String
+
+  productId       String?
+  variantId       String?
+  itemName        String
+  itemDescription String?
+  brand           String?
+  specifications  String? @db.Text
+
+  quantity    Float
+  unit        HardwareUnit @default(PIECE)
+  unitPrice   Float
+  discount    Float        @default(0)
+  discountPct Float        @default(0)
+  total       Float
+
+  imageUrl     String?
+  displayOrder Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  quotation HardwareQuotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+
+  @@index([quotationId])
+}
+
+// ─── Delivery / dispatch tracking ───
+model HardwareDelivery {
+  id       String  @id @default(uuid())
+  tenantId String
+  shopId   String?
+
+  deliveryNumber String
+  saleId         String?
+  projectId      String?
+  quotationId    String?
+  customerId     String?
+
+  customerName  String
+  customerPhone String?
+
+  // Delivery address
+  deliveryAddress  String  @db.Text
+  city             String?
+  area             String?
+  latitude         Float?
+  longitude        Float?
+  landmark         String?
+  siteContactName  String?
+  siteContactPhone String?
+
+  status HardwareDeliveryStatus @default(PENDING)
+
+  // Vehicle
+  vehicleType   HardwareDeliveryVehicleType @default(TRUCK)
+  vehicleNumber String?
+  driverName    String?
+  driverPhone   String?
+  driverCnic    String?
+  helperName    String?
+
+  // Timing
+  scheduledDate      DateTime?
+  scheduledTime      String?
+  loadedAt           DateTime?
+  dispatchedAt       DateTime?
+  arrivedAt          DateTime?
+  deliveredAt        DateTime?
+  cancelledAt        DateTime?
+  cancellationReason String?
+
+  // Distance & charges
+  distanceKm      Float?
+  deliveryCharge  Float  @default(0)
+  loadingCharge   Float  @default(0)
+  unloadingCharge Float  @default(0)
+  laborCharge     Float  @default(0)
+  tollCharge      Float  @default(0)
+  totalCharges    Float  @default(0)
+
+  // Proof of delivery
+  receivedByName       String?
+  receivedByPhone      String?
+  receivedByCnic       String?
+  receiverSignatureUrl String?
+  deliveryProofUrls    String[] @default([])
+  gateEntryNumber      String?
+
+  // Notes
+  loadingInstructions String? @db.Text
+  driverInstructions  String? @db.Text
+  customerNotes       String? @db.Text
+  internalNotes       String? @db.Text
+  issueReported       String? @db.Text
+
+  createdById    String?
+  dispatchedById String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project HardwareProject?       @relation(fields: [projectId], references: [id])
+  items   HardwareDeliveryItem[]
+
+  @@unique([tenantId, deliveryNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([scheduledDate])
+  @@index([projectId])
+  @@index([customerId])
+}
+
+model HardwareDeliveryItem {
+  id         String @id @default(uuid())
+  deliveryId String
+
+  productId String?
+  variantId String?
+  itemName  String
+  brand     String?
+
+  orderedQty   Float
+  loadedQty    Float        @default(0)
+  deliveredQty Float        @default(0)
+  returnedQty  Float        @default(0)
+  damagedQty   Float        @default(0)
+  unit         HardwareUnit @default(PIECE)
+
+  unitPrice Float @default(0)
+  total     Float @default(0)
+
+  notes        String?
+  displayOrder Int     @default(0)
+
+  createdAt DateTime @default(now())
+
+  delivery HardwareDelivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryId])
+}
+
+// ─── Credit / khata account ───
+model HardwareCreditAccount {
+  id       String  @id @default(uuid())
+  tenantId String
+  shopId   String?
+
+  accountNumber   String
+  customerId      String? @unique
+  customerName    String
+  customerPhone   String?
+  customerCnic    String?
+  businessName    String?
+  businessAddress String? @db.Text
+
+  status HardwareCreditAccountStatus @default(ACTIVE)
+
+  // Limits
+  creditLimit         Float @default(0)
+  creditDays          Int   @default(30)
+  interestRateMonthly Float @default(0)
+
+  // Current balances
+  currentBalance Float @default(0)
+  totalPurchases Float @default(0)
+  totalPayments  Float @default(0)
+  totalWriteOffs Float @default(0)
+  totalInterest  Float @default(0)
+
+  // Age analysis
+  age0To30Days  Float @default(0)
+  age31To60Days Float @default(0)
+  age61To90Days Float @default(0)
+  ageOver90Days Float @default(0)
+
+  // Guarantee
+  guarantorName     String?
+  guarantorPhone    String?
+  guarantorCnic     String?
+  guarantorRelation String?
+  chequeSecurity    String?
+  postDatedCheques  String[] @default([])
+
+  // Reference
+  referredBy      String?
+  openedByStaffId String?
+  openingDate     DateTime  @default(now())
+  closedAt        DateTime?
+
+  // Contact
+  lastPurchaseDate DateTime?
+  lastPaymentDate  DateTime?
+  lastReminderDate DateTime?
+
+  notes         String?  @db.Text
+  documentsUrls String[] @default([])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  transactions HardwareCreditTransaction[]
+
+  @@unique([tenantId, accountNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([customerId])
+}
+
+// ─── Credit ledger entries ───
+model HardwareCreditTransaction {
+  id        String @id @default(uuid())
+  tenantId  String
+  accountId String
+
+  transactionNumber String
+  transactionType   HardwareCreditTransactionType
+  transactionDate   DateTime                      @default(now())
+
+  // Amount (positive for debit/sale, negative for credit/payment)
+  amount         Float
+  runningBalance Float
+
+  // References
+  saleId           String?
+  deliveryId       String?
+  paymentMethod    String?
+  paymentReference String?
+
+  // Description
+  description String
+  notes       String?
+
+  handledById    String?
+  attachmentUrls String[] @default([])
+
+  createdAt DateTime @default(now())
+
+  account HardwareCreditAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, transactionNumber])
+  @@index([tenantId])
+  @@index([accountId])
+  @@index([transactionDate])
+}
+
+// ─── Reorder alerts config ───
+model HardwareReorderRule {
+  id        String @id @default(uuid())
+  tenantId  String
+  productId String @unique
+
+  minStock     Float
+  reorderPoint Float
+  reorderQty   Float
+  maxStock     Float?
+
+  preferredSupplier String?
+  leadTimeDays      Int?
+  emergencyContact  String?
+
+  autoAlert   Boolean   @default(true)
+  lastAlertAt DateTime?
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INDUSTRY: MEAT / BUTCHERY / HALAL SHOP
+// Weight-based pricing, cuts, halal certification, live/fresh/frozen
+// ═══════════════════════════════════════════════════════════════
+
+enum MeatAnimalType {
+  BEEF
+  MUTTON
+  GOAT
+  LAMB
+  CHICKEN
+  DUCK
+  TURKEY
+  QUAIL
+  CAMEL
+  BUFFALO
+  FISH
+  PRAWN
+  OTHER
+}
+
+enum MeatCutCategory {
+  WHOLE_ANIMAL
+  HALF_ANIMAL
+  QUARTER
+  PRIMAL_CUT
+  RETAIL_CUT
+  BONELESS
+  WITH_BONE
+  MINCE
+  UNDERCUT
+  RIBS
+  CHOPS
+  BREAST
+  LEG
+  THIGH
+  WING
+  DRUMSTICK
+  LIVER
+  KIDNEY
+  HEART
+  BRAIN
+  TONGUE
+  TROTTERS
+  HEAD
+  TAIL
+  OFFAL
+  BONES
+  FAT
+  SKIN
+  OTHER
+}
+
+enum MeatFreshnessType {
+  LIVE
+  FRESH_SLAUGHTERED
+  FRESH_CHILLED
+  FROZEN
+  PREPARED
+  PROCESSED
+  MARINATED
+  SMOKED
+  DRIED
+  CURED
+}
+
+enum MeatSlaughterMethod {
+  HALAL_HAND
+  HALAL_MACHINE
+  KOSHER
+  STANDARD
+  ORGANIC
+  FREE_RANGE
+  OTHER
+}
+
+enum MeatQualityGrade {
+  PREMIUM
+  GRADE_A
+  GRADE_B
+  GRADE_C
+  STANDARD
+  ECONOMY
+}
+
+enum MeatSaleUnit {
+  KG
+  GRAM
+  POUND
+  PIECE
+  DOZEN
+  WHOLE
+  HALF
+  QUARTER
+  KILO_PACK
+}
+
+enum MeatOrderStatus {
+  DRAFT
+  CONFIRMED
+  PROCESSING
+  CUTTING
+  PACKED
+  READY
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+}
+
+enum MeatSubscriptionFreq {
+  DAILY
+  ALTERNATE_DAY
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+  CUSTOM
+}
+
+enum MeatSubscriptionStatus {
+  ACTIVE
+  PAUSED
+  CANCELLED
+  EXPIRED
+  COMPLETED
+}
+
+// ─── Master: Meat Product Extension ───
+model MeatProductProfile {
+  id        String @id @default(uuid())
+  tenantId  String
+  productId String @unique
+
+  animalType      MeatAnimalType
+  cutCategory     MeatCutCategory
+  freshnessType   MeatFreshnessType   @default(FRESH_CHILLED)
+  slaughterMethod MeatSlaughterMethod @default(HALAL_HAND)
+  qualityGrade    MeatQualityGrade    @default(GRADE_A)
+
+  // Weight
+  saleUnit          MeatSaleUnit @default(KG)
+  pricePerKg        Float        @default(0)
+  pricePerPiece     Float?
+  minOrderKg        Float?
+  maxOrderKg        Float?
+  weightVariancePct Float        @default(5)
+
+  // Attributes
+  isBoneless     Boolean @default(false)
+  isBoneIn       Boolean @default(false)
+  isSkinless     Boolean @default(true)
+  isMarinated    Boolean @default(false)
+  marinationType String?
+  isOrganic      Boolean @default(false)
+  isFreeRange    Boolean @default(false)
+  isGrainFed     Boolean @default(false)
+  isGrassFed     Boolean @default(false)
+  isFrozen       Boolean @default(false)
+
+  // Certifications
+  halalCertNumber  String?
+  halalCertBy      String?
+  halalCertExpiry  DateTime?
+  isHalalCertified Boolean   @default(true)
+  otherCerts       String[]  @default([])
+
+  // Source
+  farmName           String?
+  farmLocation       String?
+  slaughterhouseName String?
+  slaughterhouseLic  String?
+  countryOfOrigin    String?
+  breed              String?
+
+  // Storage/Handling
+  storageTempMin Float?
+  storageTempMax Float?
+  shelfLifeDays  Int?
+  packagingType  String?
+  batchNumber    String?
+
+  // Age/Sex (mainly for beef/mutton)
+  animalAge String?
+  animalSex String?
+
+  // Preparation
+  cuttingStyle    String?
+  cleaningLevel   String?
+  packagingWeight Float?
+
+  // Display
+  imageUrls          String[] @default([])
+  descriptionLong    String?  @db.Text
+  cookingSuggestions String?  @db.Text
+  nutritionInfo      Json?
+
+  isPopular    Boolean @default(false)
+  isFeatured   Boolean @default(false)
+  isNewArrival Boolean @default(false)
+  isOnSale     Boolean @default(false)
+
+  totalSoldKg  Float @default(0)
+  totalRevenue Float @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, animalType])
+  @@index([tenantId, cutCategory])
+  @@index([tenantId, freshnessType])
+}
+
+// ─── Live Animal Inventory ───
+model MeatLiveAnimal {
+  id       String  @id @default(uuid())
+  tenantId String
+  shopId   String?
+
+  tagNumber  String
+  animalType MeatAnimalType
+  breed      String?
+  color      String?
+
+  sex       String?
+  ageMonths Int?
+  weightKg  Float
+
+  purchasePrice Float    @default(0)
+  purchaseDate  DateTime @default(now())
+  vendorId      String?
+  vendorName    String?
+  sourceName    String?
+
+  // Health
+  vaccinationStatus String?
+  healthCertUrl     String?
+  isHealthy         Boolean   @default(true)
+  healthNotes       String?   @db.Text
+  vetCheckedAt      DateTime?
+
+  // Feeding
+  feedingType   String?
+  dailyFeedCost Float   @default(0)
+  daysHeld      Int     @default(0)
+  totalFeedCost Float   @default(0)
+
+  // Status
+  isSlaughtered     Boolean              @default(false)
+  slaughteredAt     DateTime?
+  slaughterMethod   MeatSlaughterMethod?
+  slaughterCertBy   String?
+  slaughterWeightKg Float?
+  meatYieldKg       Float?
+  yieldPct          Float?
+
+  isSold         Boolean   @default(false)
+  soldPrice      Float?
+  soldAt         DateTime?
+  soldToCustomer String?
+
+  photoUrls String[] @default([])
+  notes     String?  @db.Text
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, tagNumber])
+  @@index([tenantId])
+  @@index([tenantId, animalType])
+  @@index([tenantId, isSlaughtered])
+}
+
+// ─── Slaughter Log (Halal compliance) ───
+model MeatSlaughterLog {
+  id       String  @id @default(uuid())
+  tenantId String
+  shopId   String?
+
+  slaughterNumber String
+  liveAnimalId    String?
+
+  animalType    MeatAnimalType
+  animalTag     String?
+  slaughterDate DateTime       @default(now())
+  slaughterTime String?
+
+  slaughterMethod       MeatSlaughterMethod
+  slaughteredBy         String?
+  slaughtererId         String?
+  slaughtererCertNumber String?
+  witnessedBy           String?
+
+  liveWeightKg    Float
+  dressedWeightKg Float?
+  yieldPct        Float?
+
+  facilityName    String?
+  facilityLicense String?
+  facilityAddress String?
+
+  isHalal            Boolean @default(true)
+  halalCertNumber    String?
+  religiousAuthority String?
+
+  vetInspection    Boolean           @default(false)
+  vetInspectorName String?
+  vetCertNumber    String?
+  postMortemNotes  String?           @db.Text
+  qualityGrade     MeatQualityGrade?
+
+  temperature     Float?
+  storageLocation String?
+
+  photoUrls    String[] @default([])
+  documentUrls String[] @default([])
+
+  notes       String? @db.Text
+  createdById String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, slaughterNumber])
+  @@index([tenantId])
+  @@index([tenantId, slaughterDate])
+  @@index([liveAnimalId])
+}
+
+// ─── Cutting Job (from carcass to retail cuts) ───
+model MeatCuttingJob {
+  id       String  @id @default(uuid())
+  tenantId String
+  shopId   String?
+
+  jobNumber      String
+  slaughterLogId String?
+  butcherId      String?
+  butcherName    String?
+
+  inputWeightKg  Float
+  outputWeightKg Float?
+  wasteWeightKg  Float?
+  yieldPct       Float?
+
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  durationMin Int?
+
+  status String @default("IN_PROGRESS")
+
+  // Track individual cuts produced
+  cutsProduced Json?
+  notes        String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, jobNumber])
+  @@index([tenantId])
+  @@index([slaughterLogId])
+}
+
+// ─── Weight-based Order (for large/bulk purchases) ───
+model MeatWeightOrder {
+  id       String  @id @default(uuid())
+  tenantId String
+  shopId   String?
+
+  orderNumber   String
+  customerId    String?
+  customerName  String?
+  customerPhone String?
+
+  orderDate         DateTime  @default(now())
+  neededBy          DateTime?
+  scheduledDelivery DateTime?
+
+  status MeatOrderStatus @default(DRAFT)
+
+  // Delivery
+  isDelivery       Boolean   @default(false)
+  deliveryAddress  String?   @db.Text
+  deliveryCharges  Float     @default(0)
+  deliveryPersonId String?
+  deliveredAt      DateTime?
+
+  // Occasion (Eid ul Adha, Aqeeqa, Walima)
+  occasion            String?
+  specialInstructions String? @db.Text
+
+  // Financial
+  subtotal      Float  @default(0)
+  taxAmount     Float  @default(0)
+  discount      Float  @default(0)
+  total         Float  @default(0)
+  paidAmount    Float  @default(0)
+  paymentStatus String @default("UNPAID")
+
+  // Preparation
+  cuttingStyle    String?
+  packagingPref   String?
+  numberOfPackets Int?
+
+  createdById        String?
+  cancelledAt        DateTime?
+  cancellationReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items MeatWeightOrderItem[]
+
+  @@unique([tenantId, orderNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([customerId])
+}
+
+model MeatWeightOrderItem {
+  id      String @id @default(uuid())
+  orderId String
+
+  productId   String?
+  productName String
+  cutCategory MeatCutCategory?
+
+  requestedKg Float
+  actualKg    Float?
+  pricePerKg  Float
+  total       Float  @default(0)
+
+  cuttingInstructions String?
+  packagingNotes      String?
+  displayOrder        Int     @default(0)
+
+  createdAt DateTime @default(now())
+
+  order MeatWeightOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+}
+
+// ─── Meat Delivery / Subscription ───
+model MeatSubscription {
+  id         String @id @default(uuid())
+  tenantId   String
+  customerId String
+
+  subscriptionNumber String
+  status             MeatSubscriptionStatus @default(ACTIVE)
+
+  frequency  MeatSubscriptionFreq @default(WEEKLY)
+  customDays Int[]                @default([])
+
+  startDate        DateTime  @default(now())
+  endDate          DateTime?
+  nextDeliveryDate DateTime?
+  lastDeliveryDate DateTime?
+
+  // Regular order
+  standardItems  Json
+  totalMonthlyKg Float @default(0)
+  discountPct    Float @default(0)
+
+  // Delivery
+  deliveryAddress  String  @db.Text
+  deliveryTimeSlot String?
+  contactPerson    String?
+  contactPhone     String?
+
+  // Payment
+  billingCycle    String  @default("MONTHLY")
+  monthlyEstimate Float   @default(0)
+  autoRenew       Boolean @default(true)
+
+  pausedAt           DateTime?
+  pauseReason        String?
+  cancelledAt        DateTime?
+  cancellationReason String?
+
+  totalDeliveries Int   @default(0)
+  totalRevenue    Float @default(0)
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, subscriptionNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([customerId])
+  @@index([nextDeliveryDate])
+}
+
+// ─── Qurbani / Aqeeqa Booking (Eid ul Adha) ───
+model MeatQurbaniBooking {
+  id       String @id @default(uuid())
+  tenantId String
+
+  bookingNumber   String
+  customerId      String?
+  customerName    String
+  customerPhone   String
+  customerCnic    String?
+  customerAddress String? @db.Text
+
+  occasion String @default("QURBANI")
+
+  animalType       MeatAnimalType
+  animalPreference String?
+  shareCount       Int            @default(1)
+  shareNumber      Int?
+
+  advanceAmount Float  @default(0)
+  finalPrice    Float?
+  paidAmount    Float  @default(0)
+  paymentStatus String @default("PARTIAL")
+
+  slaughterDate DateTime?
+  slaughterDay  Int?
+
+  // Distribution
+  wantsMeatDelivery  Boolean @default(true)
+  deliveryPreference String  @default("SELF_PICKUP")
+  deliveryAddress    String? @db.Text
+  needsCharityShare  Boolean @default(false)
+  charityShareKg     Float?
+  charityRecipient   String?
+
+  // Preferences
+  cuttingStyle        String?
+  packagingCount      Int?
+  wantsSkin           Boolean @default(false)
+  wantsOffal          Boolean @default(true)
+  specialInstructions String? @db.Text
+
+  liveAnimalId   String?
+  slaughterLogId String?
+
+  status             String    @default("BOOKED")
+  cancelledAt        DateTime?
+  cancellationReason String?
+
+  bookedAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, bookingNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([customerId])
+}
+
+// ─── Wholesale Buyer / Restaurant Contract ───
+model MeatWholesaleAccount {
+  id         String @id @default(uuid())
+  tenantId   String
+  customerId String @unique
+
+  accountNumber String
+  businessName  String
+  businessType  String
+
+  contractStart DateTime?
+  contractEnd   DateTime?
+
+  creditLimit    Float @default(0)
+  currentBalance Float @default(0)
+  creditDays     Int   @default(30)
+
+  discountPct    Float @default(0)
+  specialPricing Json?
+
+  requiresDelivery Boolean @default(true)
+  deliveryDays     Int[]   @default([])
+  deliveryTimeSlot String?
+
+  contactPerson   String?
+  contactPhone    String?
+  contactEmail    String?
+  billingAddress  String? @db.Text
+  deliveryAddress String? @db.Text
+
+  gstNumber String?
+  ntnNumber String?
+
+  totalOrders      Int   @default(0)
+  totalPurchases   Float @default(0)
+  totalOutstanding Float @default(0)
+
+  isActive Boolean @default(true)
+  notes    String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, accountNumber])
+  @@index([tenantId])
+  @@index([tenantId, isActive])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INDUSTRY: AGRI / FEED / SEEDS / FERTILIZER STORE
+// Seeds, fertilizers, pesticides, animal feed, farmer accounts
+// ═══════════════════════════════════════════════════════════════
+
+enum AgriCategory {
+  SEEDS
+  FERTILIZER
+  PESTICIDE
+  HERBICIDE
+  FUNGICIDE
+  INSECTICIDE
+  ANIMAL_FEED
+  POULTRY_FEED
+  CATTLE_FEED
+  FISH_FEED
+  VETERINARY_MEDICINE
+  FARM_TOOLS
+  IRRIGATION
+  MACHINERY_PART
+  MULCH_COVER
+  GROWTH_HORMONE
+  SOIL_CONDITIONER
+  PLANT_NUTRIENT
+  ORGANIC_INPUT
+  OTHER
+}
+
+enum SeedType {
+  WHEAT
+  RICE
+  COTTON
+  MAIZE
+  SUGARCANE
+  POTATO
+  ONION
+  TOMATO
+  CHILLI
+  PULSES
+  VEGETABLES
+  FRUITS
+  FODDER
+  OILSEEDS
+  OTHER
+}
+
+enum FertilizerType {
+  UREA
+  DAP
+  NPK
+  POTASH
+  ZINC
+  SULFUR
+  BORON
+  MICRONUTRIENT
+  ORGANIC
+  BIO_FERTILIZER
+  LIQUID
+  FOLIAR
+  OTHER
+}
+
+enum FeedType {
+  STARTER
+  GROWER
+  FINISHER
+  LAYER
+  BREEDER
+  MILK_REPLACER
+  MINERAL_MIX
+  CONCENTRATE
+  ROUGHAGE
+  SILAGE
+  HAY
+  BRAN
+  OIL_CAKE
+  MOLASSES
+  OTHER
+}
+
+enum SeasonType {
+  KHARIF
+  RABI
+  ZAID
+  ALL_SEASON
+  SPRING
+  SUMMER
+  MONSOON
+  WINTER
+}
+
+enum AgriOrderStatus {
+  DRAFT
+  PENDING
+  CONFIRMED
+  PROCESSING
+  READY
+  OUT_FOR_DELIVERY
+  DELIVERED
+  RETURNED
+  CANCELLED
+}
+
+enum FarmerAccountStatus {
+  ACTIVE
+  SUSPENDED
+  DEFAULTED
+  CLOSED
+  PENDING_APPROVAL
+}
+
+// ─── Agri Product Extension ───
+model AgriProductProfile {
+  id        String @id @default(uuid())
+  tenantId  String
+  productId String @unique
+
+  category    AgriCategory
+  subCategory String?
+
+  seedType       SeedType?
+  fertilizerType FertilizerType?
+  feedType       FeedType?
+
+  brand           String?
+  manufacturer    String?
+  countryOfOrigin String?
+
+  // Composition
+  npkRatio         String?
+  activeIngredient String?
+  ingredients      Json?
+  concentration    String?
+
+  // Packaging
+  packSize   String?
+  packUnit   String?
+  bagsPerTon Int?
+
+  // Application
+  applicationRate     String?
+  applicationMethod   String?
+  applicationInterval String?
+  targetCrops         String[] @default([])
+  targetPests         String[] @default([])
+  targetAnimals       String[] @default([])
+
+  // Season & Crop
+  season      SeasonType?
+  suitableFor String[]    @default([])
+  cropStage   String?
+
+  // Safety
+  toxicityLevel String?
+  ppePeriod     Int?
+  reEntryPeriod Int?
+  warningLabel  String?
+  hazardClass   String?
+
+  // Certifications
+  isOrganic         Boolean   @default(false)
+  organicCertNumber String?
+  govtRegNumber     String?
+  govtRegExpiry     DateTime?
+
+  // Storage
+  shelfLifeMonths     Int?
+  storageTemp         String?
+  storageInstructions String?
+
+  // Stock alerts
+  reorderLevel  Float?
+  minStockAlert Float?
+
+  // Farmer discount (bulk)
+  bulkDiscountThreshold Float?
+  bulkDiscountPct       Float?
+
+  // Rich content
+  imageUrls         String[] @default([])
+  descriptionLong   String?  @db.Text
+  usageInstructions String?  @db.Text
+  precautions       String?  @db.Text
+  firstAid          String?  @db.Text
+  msdsUrl           String?
+  brochureUrl       String?
+  videoUrl          String?
+
+  isPopular       Boolean @default(false)
+  isFeatured      Boolean @default(false)
+  isBestSeller    Boolean @default(false)
+  isSeasonal      Boolean @default(false)
+  isRestricted    Boolean @default(false)
+  requiresLicense Boolean @default(false)
+
+  totalSold    Float @default(0)
+  totalRevenue Float @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, category])
+  @@index([tenantId, seedType])
+  @@index([tenantId, fertilizerType])
+}
+
+// ─── Farmer Registration ───
+model AgriFarmer {
+  id         String  @id @default(uuid())
+  tenantId   String
+  customerId String? @unique
+
+  farmerNumber String
+  fullName     String
+  fatherName   String?
+  cnic         String?
+  phone        String
+  altPhone     String?
+
+  // Location
+  village  String?
+  tehsil   String?
+  district String?
+  province String?
+  address  String? @db.Text
+  landmark String?
+
+  // Farm details
+  landAreaAcres  Float?
+  landAreaKanals Float?
+  landOwnership  String?
+  soilType       String?
+  waterSource    String?
+  irrigationType String?
+
+  // Farming type
+  farmingType  String[] @default([])
+  primaryCrops String[] @default([])
+  livestock    Json?
+
+  // Documents
+  cnicFrontUrl String?
+  cnicBackUrl  String?
+  landDocUrl   String?
+  photoUrl     String?
+
+  // Financial
+  creditLimit    Float @default(0)
+  currentBalance Float @default(0)
+  creditDays     Int   @default(60)
+  interestRate   Float @default(0)
+
+  // Season tracking
+  currentSeason SeasonType?
+  currentCrop   String?
+
+  // Stats
+  totalOrders      Int       @default(0)
+  totalPurchases   Float     @default(0)
+  totalOutstanding Float     @default(0)
+  totalPaid        Float     @default(0)
+  lastPurchaseAt   DateTime?
+
+  status           FarmerAccountStatus @default(ACTIVE)
+  registeredAt     DateTime            @default(now())
+  suspendedAt      DateTime?
+  suspensionReason String?
+
+  notes    String? @db.Text
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, farmerNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([customerId])
+  @@index([cnic])
+}
+
+// ─── Farmer Credit / Udhar Book ───
+model AgriFarmerLedger {
+  id       String @id @default(uuid())
+  tenantId String
+  farmerId String
+
+  entryNumber String
+  entryDate   DateTime @default(now())
+  entryType   String
+
+  description String
+  reference   String?
+
+  debit   Float @default(0)
+  credit  Float @default(0)
+  balance Float @default(0)
+
+  saleId    String?
+  paymentId String?
+
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  @@unique([tenantId, entryNumber])
+  @@index([tenantId])
+  @@index([farmerId])
+  @@index([entryDate])
+}
+
+// ─── Bulk Order (for large farmers) ───
+model AgriBulkOrder {
+  id       String  @id @default(uuid())
+  tenantId String
+  shopId   String?
+
+  orderNumber   String
+  farmerId      String?
+  customerId    String?
+  customerName  String?
+  customerPhone String?
+
+  orderDate    DateTime        @default(now())
+  deliveryDate DateTime?
+  status       AgriOrderStatus @default(DRAFT)
+
+  season        SeasonType?
+  cropTarget    String?
+  landAreaAcres Float?
+
+  isDelivery      Boolean @default(false)
+  deliveryAddress String? @db.Text
+  deliveryCharges Float   @default(0)
+  transportType   String?
+  vehicleNumber   String?
+
+  subtotal      Float     @default(0)
+  bulkDiscount  Float     @default(0)
+  taxAmount     Float     @default(0)
+  otherCharges  Float     @default(0)
+  total         Float     @default(0)
+  paidAmount    Float     @default(0)
+  paymentStatus String    @default("UNPAID")
+  paymentMethod String?
+  isCredit      Boolean   @default(false)
+  creditDueDate DateTime?
+
+  advisorNotes       String? @db.Text
+  farmerNotes        String? @db.Text
+  cancellationReason String?
+
+  createdById String?
+  deliveredBy String?
+  cancelledAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items AgriBulkOrderItem[]
+
+  @@unique([tenantId, orderNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([farmerId])
+}
+
+model AgriBulkOrderItem {
+  id      String @id @default(uuid())
+  orderId String
+
+  productId   String?
+  productName String
+  category    AgriCategory?
+
+  quantity     Float
+  unit         String
+  pricePerUnit Float
+  discount     Float  @default(0)
+  total        Float  @default(0)
+
+  batchNumber String?
+  expiryDate  DateTime?
+
+  displayOrder Int @default(0)
+
+  createdAt DateTime @default(now())
+
+  order AgriBulkOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+}
+
+// ─── Crop Advisory / Recommendations ───
+model AgriCropAdvisory {
+  id       String @id @default(uuid())
+  tenantId String
+
+  advisoryNumber String
+  farmerId       String?
+  advisorId      String?
+  advisorName    String?
+
+  cropName      String
+  cropVariety   String?
+  season        SeasonType?
+  landAreaAcres Float?
+  stage         String?
+
+  sowingDate      DateTime?
+  expectedHarvest DateTime?
+
+  currentIssues   String? @db.Text
+  soilTestResult  Json?
+  waterTestResult Json?
+
+  recommendations    Json?
+  productSuggestions Json?
+
+  followUpDate DateTime?
+  completed    Boolean   @default(false)
+
+  notes          String?  @db.Text
+  attachmentUrls String[] @default([])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, advisoryNumber])
+  @@index([tenantId])
+  @@index([farmerId])
+}
+
+// ─── Seasonal Calendar / Crop Schedule ───
+model AgriSeasonalPlan {
+  id       String @id @default(uuid())
+  tenantId String
+
+  season   SeasonType
+  year     Int
+  cropName String
+
+  sowingStart  DateTime
+  sowingEnd    DateTime
+  harvestStart DateTime
+  harvestEnd   DateTime
+
+  recommendedProducts Json?
+  applicationSchedule Json?
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, season, year, cropName])
+  @@index([tenantId, year])
+}
+
+// ─── Government Subsidy Tracking ───
+model AgriSubsidyClaim {
+  id       String @id @default(uuid())
+  tenantId String
+  farmerId String
+
+  claimNumber String
+  schemeName  String
+  govtScheme  String?
+
+  productType   String
+  quantity      Float
+  originalPrice Float
+  subsidyAmount Float
+  finalPrice    Float
+
+  farmerCnic    String?
+  cropTarget    String?
+  landAreaAcres Float?
+
+  documentsSubmitted String[]  @default([])
+  approvedBy         String?
+  approvalDate       DateTime?
+  disbursementDate   DateTime?
+
+  status          String  @default("PENDING")
+  rejectionReason String?
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, claimNumber])
+  @@index([tenantId])
+  @@index([farmerId])
+  @@index([status])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INDUSTRY: DAIRY / MILK SHOP
+// Daily delivery, monthly khata, farmers, quality tests
+// ═══════════════════════════════════════════════════════════════
+
+enum DairyProductType {
+  FRESH_MILK
+  BUFFALO_MILK
+  COW_MILK
+  GOAT_MILK
+  MIXED_MILK
+  BOILED_MILK
+  RAW_MILK
+  YOGURT
+  DAHI
+  LASSI
+  BUTTER_MILK
+  BUTTER
+  MAKHAN
+  DESI_GHEE
+  CREAM
+  MALAI
+  KHOA
+  MAWA
+  PANEER
+  CHEESE
+  KHEER
+  RABRI
+  KULFI
+  SWEETS
+  ICE_CREAM
+  MILK_POWDER
+  OTHER
+}
+
+enum DairyUnit {
+  LITER
+  KG
+  GRAM
+  PIECE
+  PLATE
+  CUP
+  BOTTLE
+  PACKET
+  KATTA
+  KILO
+  MAAN
+  SEER
+}
+
+enum DairyMilkQuality {
+  A_GRADE
+  B_GRADE
+  C_GRADE
+  REJECTED
+}
+
+enum DairyDeliveryFrequency {
+  DAILY
+  ALTERNATE_DAY
+  WEEKLY
+  ON_DEMAND
+  MORNING_ONLY
+  EVENING_ONLY
+  MORNING_EVENING
+}
+
+enum DairyDeliverySlot {
+  MORNING
+  AFTERNOON
+  EVENING
+  NIGHT
+}
+
+enum DairyRouteStatus {
+  ACTIVE
+  PAUSED
+  DISCONTINUED
+}
+
+enum DairyKhataStatus {
+  ACTIVE
+  SUSPENDED
+  CLOSED
+  DEFAULTED
+}
+
+enum DairyBillingCycle {
+  DAILY
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+  QUARTERLY
+}
+
+enum DairyDeliveryStatus {
+  SCHEDULED
+  DELIVERED
+  SKIPPED
+  MISSED
+  RETURNED
+  CANCELLED
+}
+
+// ─── Dairy Product Profile ───
+model DairyProduct {
+  id        String @id @default(uuid())
+  tenantId  String
+  productId String @unique
+
+  productType DairyProductType @default(FRESH_MILK)
+  unit        DairyUnit        @default(LITER)
+
+  // Milk-specific
+  fatContent     Float?
+  snfContent     Float?
+  proteinContent Float?
+  waterAdded     Boolean           @default(false)
+  quality        DairyMilkQuality?
+  isPasteurized  Boolean           @default(false)
+  isHomogenized  Boolean           @default(false)
+  isRaw          Boolean           @default(false)
+  isOrganic      Boolean           @default(false)
+
+  // Freshness
+  isFresh               Boolean   @default(true)
+  productionDate        DateTime?
+  bestBeforeHours       Int?
+  shelfLifeHours        Int?
+  requiresRefrigeration Boolean   @default(true)
+  storageTempMin        Float?
+  storageTempMax        Float?
+
+  // Farm source
+  farmSource String?
+  cattleType String?
+
+  // Pricing tiers
+  morningPrice      Float?
+  eveningPrice      Float?
+  bulkPrice         Float?
+  minBulkQty        Float?
+  wholesalePrice    Float?
+  retailPrice       Float?
+  homeDeliveryPrice Float?
+
+  // Delivery
+  availableMorning      Boolean @default(true)
+  availableEvening      Boolean @default(true)
+  homeDeliveryAvailable Boolean @default(true)
+
+  // Marketing
+  isFeatured   Boolean @default(false)
+  isBestSeller Boolean @default(false)
+  displayOrder Int     @default(0)
+
+  totalSold    Float @default(0)
+  totalRevenue Float @default(0)
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, productType])
+}
+
+// ─── Farmers / Milk Suppliers (Dodhi/Gawala) ───
+model DairyFarmer {
+  id       String @id @default(uuid())
+  tenantId String
+
+  farmerNumber String
+  name         String
+  fatherName   String?
+  cnic         String?
+  phone        String?
+  address      String? @db.Text
+  village      String?
+  city         String?
+
+  // Farm details
+  cattleCount         Int?
+  buffaloCount        Int?
+  cowCount            Int?
+  goatCount           Int?
+  totalCapacityLiters Float?
+
+  // Payment
+  ratePerLiter Float             @default(0)
+  fatBonusRate Float             @default(0)
+  paymentCycle DairyBillingCycle @default(WEEKLY)
+
+  // Balances
+  currentBalance Float @default(0)
+  totalSupplied  Float @default(0)
+  totalPaid      Float @default(0)
+
+  // Quality
+  avgFatContent Float?
+  avgSnfContent Float?
+  qualityRating Float?
+
+  // Contact
+  lastSupplyDate  DateTime?
+  lastPaymentDate DateTime?
+
+  photoUrl     String?
+  cnicFrontUrl String?
+  cnicBackUrl  String?
+  notes        String? @db.Text
+  isActive     Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  supplies DairyFarmerSupply[]
+
+  @@unique([tenantId, farmerNumber])
+  @@index([tenantId])
+  @@index([tenantId, isActive])
+}
+
+// ─── Daily Farmer Supply Records ───
+model DairyFarmerSupply {
+  id       String @id @default(uuid())
+  tenantId String
+  farmerId String
+
+  supplyDate DateTime          @default(now())
+  slot       DairyDeliverySlot @default(MORNING)
+
+  quantity Float
+  unit     DairyUnit @default(LITER)
+
+  fatContent Float?
+  snfContent Float?
+  quality    DairyMilkQuality?
+
+  ratePerLiter    Float
+  fatBonus        Float @default(0)
+  otherAdjustment Float @default(0)
+  totalAmount     Float
+
+  isPaid Boolean   @default(false)
+  paidAt DateTime?
+
+  receivedByStaffId String?
+  notes             String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  farmer DairyFarmer @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([farmerId])
+  @@index([supplyDate])
+}
+
+// ─── Delivery Routes ───
+model DairyRoute {
+  id       String  @id @default(uuid())
+  tenantId String
+  shopId   String?
+
+  routeNumber String
+  name        String
+  description String?
+
+  assignedStaffId String?
+  vehicleType     String?
+  vehicleNumber   String?
+
+  slot   DairyDeliverySlot @default(MORNING)
+  status DairyRouteStatus  @default(ACTIVE)
+
+  totalCustomers   Int   @default(0)
+  totalDailyLiters Float @default(0)
+
+  startTime            String?
+  estimatedDurationMin Int?
+
+  areaName String?
+  color    String?
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  customers DairyCustomer[]
+
+  @@unique([tenantId, routeNumber])
+  @@index([tenantId])
+}
+
+// ─── Regular Customers (with subscriptions) ───
+model DairyCustomer {
+  id         String  @id @default(uuid())
+  tenantId   String
+  customerId String? @unique
+  routeId    String?
+
+  customerNumber String
+  name           String
+  phone          String?
+  cnic           String?
+  address        String? @db.Text
+  city           String?
+  area           String?
+  landmark       String?
+  latitude       Float?
+  longitude      Float?
+
+  // Delivery
+  deliveryFrequency DairyDeliveryFrequency @default(DAILY)
+  morningQuantity   Float                  @default(0)
+  eveningQuantity   Float                  @default(0)
+  productPreference String?
+  containerType     String?
+
+  // Pricing
+  customRate   Float?
+  billingCycle DairyBillingCycle @default(MONTHLY)
+
+  // Balances
+  currentBalance Float @default(0)
+  totalPurchases Float @default(0)
+  totalPayments  Float @default(0)
+  advancePayment Float @default(0)
+
+  // Metrics
+  totalDeliveries  Int       @default(0)
+  missedDeliveries Int       @default(0)
+  lastDeliveryDate DateTime?
+  lastPaymentDate  DateTime?
+
+  status     DairyKhataStatus @default(ACTIVE)
+  startDate  DateTime         @default(now())
+  pausedFrom DateTime?
+  pausedTo   DateTime?
+
+  notes    String? @db.Text
+  photoUrl String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  route      DairyRoute?     @relation(fields: [routeId], references: [id])
+  deliveries DairyDelivery[]
+
+  @@unique([tenantId, customerNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([routeId])
+}
+
+// ─── Daily Delivery Records ───
+model DairyDelivery {
+  id       String @id @default(uuid())
+  tenantId String
+
+  dairyCustomerId String
+  routeId         String?
+
+  deliveryDate DateTime          @default(now())
+  slot         DairyDeliverySlot @default(MORNING)
+
+  scheduledQty Float
+  deliveredQty Float
+  returnedQty  Float     @default(0)
+  unit         DairyUnit @default(LITER)
+
+  status     DairyDeliveryStatus @default(SCHEDULED)
+  skipReason String?
+
+  ratePerLiter Float
+  totalAmount  Float
+
+  isPaid     Boolean @default(false)
+  paidAmount Float   @default(0)
+
+  deliveredByStaffId String?
+  containerReturned  Boolean @default(false)
+
+  deliveredAt       DateTime?
+  notes             String?
+  customerSignature String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  customer DairyCustomer @relation(fields: [dairyCustomerId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([dairyCustomerId])
+  @@index([deliveryDate])
+  @@index([tenantId, status])
+}
+
+// ─── Monthly Bills / Khata ───
+model DairyMonthlyBill {
+  id              String @id @default(uuid())
+  tenantId        String
+  dairyCustomerId String
+
+  billNumber     String
+  month          Int
+  year           Int
+  cycleStartDate DateTime
+  cycleEndDate   DateTime
+
+  totalLiters     Float @default(0)
+  totalDeliveries Int   @default(0)
+  totalAmount     Float @default(0)
+  discount        Float @default(0)
+  paidAmount      Float @default(0)
+  remainingAmount Float @default(0)
+
+  openingBalance Float @default(0)
+  closingBalance Float @default(0)
+
+  isPaid           Boolean   @default(false)
+  paidAt           DateTime?
+  paymentMethod    String?
+  paymentReference String?
+
+  isPrinted      Boolean   @default(false)
+  sentToCustomer Boolean   @default(false)
+  sentAt         DateTime?
+
+  notes       String?
+  handledById String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, billNumber])
+  @@unique([dairyCustomerId, month, year])
+  @@index([tenantId])
+  @@index([dairyCustomerId])
+}
+
+// ─── Quality Tests ───
+model DairyQualityTest {
+  id       String @id @default(uuid())
+  tenantId String
+
+  testNumber String
+  testedAt   DateTime @default(now())
+
+  sourceType String
+  sourceId   String?
+  sourceName String?
+
+  fatContent           Float?
+  snfContent           Float?
+  proteinContent       Float?
+  lactoseContent       Float?
+  waterContent         Float?
+  phLevel              Float?
+  temperature          Float?
+  adulterationDetected Boolean  @default(false)
+  adulterationTypes    String[] @default([])
+
+  quality     DairyMilkQuality?
+  passed      Boolean           @default(true)
+  actionTaken String?
+
+  testedByStaffId String?
+  testMethod      String?
+  notes           String?  @db.Text
+  imageUrls       String[] @default([])
+
+  createdAt DateTime @default(now())
+
+  @@unique([tenantId, testNumber])
+  @@index([tenantId])
+  @@index([testedAt])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INDUSTRY: JEWELRY / ZARGAR / SUNAR
+// Gold/silver purity, karat, making charges, wastage, hallmark
+// ═══════════════════════════════════════════════════════════════
+
+enum JewelryMetalType {
+  GOLD
+  SILVER
+  PLATINUM
+  PALLADIUM
+  ROSE_GOLD
+  WHITE_GOLD
+  IMITATION
+  MIXED
+  OTHER
+}
+
+enum JewelryPurity {
+  KARAT_24
+  KARAT_22
+  KARAT_21
+  KARAT_18
+  KARAT_14
+  KARAT_10
+  KARAT_9
+  STERLING_925
+  SILVER_999
+  SILVER_925
+  SILVER_800
+  PLATINUM_950
+  PLATINUM_900
+  OTHER
+}
+
+enum JewelryCategory {
+  RING
+  NECKLACE
+  EARRINGS
+  BANGLE
+  BRACELET
+  ANKLET
+  PENDANT
+  CHAIN
+  NOSE_PIN
+  NOSE_RING
+  MAANG_TIKKA
+  JHUMKA
+  CHOKER
+  MANGALSUTRA
+  HAAR
+  KUNDAN_SET
+  BRIDAL_SET
+  KADA
+  PAYAL
+  TOE_RING
+  BROOCH
+  CUFFLINK
+  TIE_PIN
+  WATCH
+  COIN
+  BAR
+  BULLION
+  BUTTON
+  RAKHI
+  OTHER
+}
+
+enum JewelryStyle {
+  TRADITIONAL
+  MODERN
+  ANTIQUE
+  BRIDAL
+  DAILY_WEAR
+  PARTY_WEAR
+  KUNDAN
+  POLKI
+  MEENAKARI
+  JADAU
+  TEMPLE
+  FILIGREE
+  HANDMADE
+  MACHINE_MADE
+  ITALIAN
+  TURKISH
+  DUBAI
+  INDIAN
+  PAKISTANI
+  CUSTOM
+  OTHER
+}
+
+enum GemstoneType {
+  DIAMOND
+  RUBY
+  EMERALD
+  SAPPHIRE
+  PEARL
+  OPAL
+  TOPAZ
+  AMETHYST
+  AQUAMARINE
+  GARNET
+  TURQUOISE
+  CORAL
+  ONYX
+  JADE
+  MOONSTONE
+  CITRINE
+  TANZANITE
+  ZIRCON
+  CZ
+  KUNDAN_STONE
+  OTHER
+  NONE
+}
+
+enum JewelryOrderStatus {
+  DRAFT
+  QUOTED
+  CONFIRMED
+  DESIGNING
+  METAL_ISSUED
+  IN_PRODUCTION
+  POLISHING
+  QUALITY_CHECK
+  HALLMARKING
+  READY
+  DELIVERED
+  CANCELLED
+  ON_HOLD
+}
+
+enum ExchangeType {
+  OLD_GOLD_EXCHANGE
+  OLD_SILVER_EXCHANGE
+  BROKEN_JEWELRY
+  PURE_METAL_DEPOSIT
+  COIN_EXCHANGE
+  RESIZING
+  REPAIR
+  RENOVATION
+  MELT_AND_REMAKE
+}
+
+// ─── Live Metal Rates (per gram/tola) ───
+model JewelryMetalRate {
+  id       String @id @default(uuid())
+  tenantId String
+
+  metalType JewelryMetalType
+  purity    JewelryPurity
+
+  ratePerGram  Float
+  ratePerTola  Float?
+  ratePerOunce Float?
+
+  buyRate  Float?
+  sellRate Float?
+
+  effectiveDate DateTime @default(now())
+  source        String?
+  notes         String?
+
+  isActive Boolean @default(true)
+
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([tenantId, metalType, purity, effectiveDate])
+  @@index([tenantId])
+  @@index([tenantId, metalType, purity])
+  @@index([effectiveDate])
+}
+
+// ─── Jewelry Product Extension ───
+model JewelryProductProfile {
+  id        String @id @default(uuid())
+  tenantId  String
+  productId String @unique
+
+  itemCode     String?
+  designNumber String?
+
+  category    JewelryCategory
+  subCategory String?
+  style       JewelryStyle    @default(TRADITIONAL)
+
+  metalType      JewelryMetalType
+  purity         JewelryPurity
+  purityHallmark String?
+
+  grossWeight Float
+  netWeight   Float
+  stoneWeight Float @default(0)
+  waxWeight   Float @default(0)
+  otherWeight Float @default(0)
+
+  size      String?
+  length    Float?
+  width     Float?
+  thickness Float?
+
+  makingChargePerGram Float @default(0)
+  makingChargeFixed   Float @default(0)
+  makingChargePct     Float @default(0)
+  wastagePct          Float @default(0)
+  wastageGrams        Float @default(0)
+
+  designerCharge Float @default(0)
+  polishCharge   Float @default(0)
+  hallmarkCharge Float @default(0)
+  otherCharges   Float @default(0)
+
+  hasStones   Boolean @default(false)
+  hasDiamond  Boolean @default(false)
+  hasGemstone Boolean @default(false)
+  hasPearl    Boolean @default(false)
+
+  stoneCount   Int     @default(0)
+  stoneCaret   Float?
+  stoneQuality String?
+  stoneColor   String?
+  stoneClarity String?
+  stoneCut     String?
+
+  hallmarkNumber    String?
+  hallmarkAuthority String?
+  hallmarkDate      DateTime?
+
+  bisNumber        String?
+  jewellerCode     String?
+  hallmarkPhotoUrl String?
+
+  designerName    String?
+  karigarName     String?
+  workshopName    String?
+  countryOfOrigin String?
+
+  isCustomOrder        Boolean @default(false)
+  isBespoke            Boolean @default(false)
+  isAntique            Boolean @default(false)
+  isCertified          Boolean @default(false)
+  certificateNumber    String?
+  certificateAuthority String?
+  certificatePhotoUrl  String?
+
+  isBuyBackEligible Boolean @default(true)
+  buyBackPct        Float   @default(90)
+
+  isReturnable Boolean @default(false)
+  returnDays   Int     @default(0)
+
+  currentValue          Float?
+  lastValuationDate     DateTime?
+  insuredValue          Float?
+  insurancePolicyNumber String?
+  insuranceExpiry       DateTime?
+
+  imageUrls        String[] @default([])
+  videoUrl         String?
+  descriptionLong  String?  @db.Text
+  careInstructions String?  @db.Text
+
+  isPopular          Boolean @default(false)
+  isFeatured         Boolean @default(false)
+  isBestSeller       Boolean @default(false)
+  isBridalCollection Boolean @default(false)
+  isFestivalSpecial  Boolean @default(false)
+
+  totalSold    Int   @default(0)
+  totalRevenue Float @default(0)
+
+  gemstones JewelryGemstone[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, category])
+  @@index([tenantId, metalType])
+  @@index([tenantId, purity])
+}
+
+model JewelryGemstone {
+  id               String @id @default(uuid())
+  jewelryProfileId String
+
+  type    GemstoneType
+  count   Int          @default(1)
+  caret   Float
+  quality String?
+  color   String?
+  clarity String?
+  cut     String?
+  shape   String?
+
+  origin            String?
+  isCertified       Boolean @default(false)
+  certificateNumber String?
+  ratePerCaret      Float?
+  totalValue        Float?
+
+  createdAt DateTime @default(now())
+
+  jewelryProfile JewelryProductProfile @relation(fields: [jewelryProfileId], references: [id], onDelete: Cascade)
+
+  @@index([jewelryProfileId])
+}
+
+// ─── Live Jewelry Order (dynamic pricing) ───
+model JewelrySale {
+  id       String  @id @default(uuid())
+  tenantId String
+  shopId   String?
+
+  invoiceNumber   String
+  customerId      String?
+  customerName    String?
+  customerPhone   String?
+  customerCnic    String?
+  customerAddress String? @db.Text
+
+  saleDate DateTime           @default(now())
+  status   JewelryOrderStatus @default(CONFIRMED)
+
+  metalRateSnapshot Json?
+
+  grossWeight     Float
+  netWeight       Float
+  metalValue      Float
+  makingCharges   Float @default(0)
+  wastageValue    Float @default(0)
+  polishCharges   Float @default(0)
+  hallmarkCharges Float @default(0)
+  stoneValue      Float @default(0)
+  gstAmount       Float @default(0)
+  otherCharges    Float @default(0)
+
+  subtotal      Float
+  discount      Float   @default(0)
+  total         Float
+  paidAmount    Float   @default(0)
+  paymentStatus String  @default("UNPAID")
+  paymentMethod String?
+
+  exchangeMetalGrams  Float          @default(0)
+  exchangeMetalPurity JewelryPurity?
+  exchangeValue       Float          @default(0)
+
+  hallmarkVerified Boolean @default(false)
+  hasCertificate   Boolean @default(false)
+
+  isReturned   Boolean   @default(false)
+  returnedAt   DateTime?
+  returnReason String?
+
+  isExchanged  Boolean       @default(false)
+  exchangedAt  DateTime?
+  exchangeType ExchangeType?
+
+  customerNotes String? @db.Text
+  internalNotes String? @db.Text
+
+  createdById        String?
+  cancelledAt        DateTime?
+  cancellationReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items JewelrySaleItem[]
+
+  @@unique([tenantId, invoiceNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([customerId])
+  @@index([saleDate])
+}
+
+model JewelrySaleItem {
+  id     String @id @default(uuid())
+  saleId String
+
+  productId   String?
+  productName String
+  category    JewelryCategory
+  metalType   JewelryMetalType
+  purity      JewelryPurity
+
+  ratePerGram Float
+  grossWeight Float
+  netWeight   Float
+  metalValue  Float
+
+  makingChargePerGram Float @default(0)
+  makingChargeFixed   Float @default(0)
+  makingChargePct     Float @default(0)
+  makingTotal         Float @default(0)
+
+  wastagePct      Float @default(0)
+  wastageValue    Float @default(0)
+  polishCharges   Float @default(0)
+  hallmarkCharges Float @default(0)
+  stoneValue      Float @default(0)
+
+  quantity  Int   @default(1)
+  itemTotal Float
+
+  hallmarkNumber    String?
+  certificateNumber String?
+  itemPhotoUrl      String?
+
+  displayOrder Int @default(0)
+
+  createdAt DateTime @default(now())
+
+  sale JewelrySale @relation(fields: [saleId], references: [id], onDelete: Cascade)
+
+  @@index([saleId])
+}
+
+// ─── Custom Jewelry Order (design + production workflow) ───
+model JewelryCustomOrder {
+  id       String @id @default(uuid())
+  tenantId String
+
+  orderNumber   String
+  customerId    String?
+  customerName  String
+  customerPhone String
+  customerEmail String?
+
+  orderDate    DateTime           @default(now())
+  promisedDate DateTime?
+  status       JewelryOrderStatus @default(DRAFT)
+
+  category  JewelryCategory
+  metalType JewelryMetalType
+  purity    JewelryPurity
+  style     JewelryStyle     @default(CUSTOM)
+
+  expectedGrossWeight   Float
+  expectedNetWeight     Float?
+  expectedMakingCharges Float?
+  advancePayment        Float  @default(0)
+  estimatedPrice        Float
+  finalPrice            Float?
+
+  designDescription  String   @db.Text
+  referenceImageUrls String[] @default([])
+  approvedDesignUrl  String?
+
+  hasGemstones      Boolean @default(false)
+  gemstonesRequired Json?
+
+  hasEngraving  Boolean @default(false)
+  engravingText String?
+
+  designedBy          String?
+  assignedKarigarId   String?
+  assignedKarigarName String?
+
+  metalIssuedGrams   Float?
+  metalIssuedDate    DateTime?
+  metalReceivedGrams Float?
+  metalReceivedDate  DateTime?
+  wastageGrams       Float?
+
+  designStartedAt     DateTime?
+  designApprovedAt    DateTime?
+  productionStartedAt DateTime?
+  polishingStartedAt  DateTime?
+  qualityCheckedAt    DateTime?
+  hallmarkedAt        DateTime?
+  readyAt             DateTime?
+  deliveredAt         DateTime?
+
+  customerRating   Int?
+  customerFeedback String? @db.Text
+
+  paidAmount    Float  @default(0)
+  paymentStatus String @default("ADVANCE_PAID")
+
+  hallmarkNumber    String?
+  certificateNumber String?
+
+  internalNotes      String? @db.Text
+  cancellationReason String?
+
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([tenantId, orderNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([customerId])
+  @@index([assignedKarigarId])
+}
+
+// ─── Old Gold / Silver Exchange ───
+model JewelryExchange {
+  id       String @id @default(uuid())
+  tenantId String
+
+  exchangeNumber String
+  exchangeType   ExchangeType
+
+  customerId    String?
+  customerName  String
+  customerPhone String
+  customerCnic  String?
+
+  exchangeDate DateTime @default(now())
+
+  itemDescription String           @db.Text
+  metalType       JewelryMetalType
+  claimedPurity   JewelryPurity
+  grossWeight     Float
+
+  testedPurity       JewelryPurity?
+  netWeight          Float?
+  stoneWeight        Float          @default(0)
+  fineGoldEquivalent Float?
+
+  ratePerGram    Float
+  grossValue     Float
+  deductions     Float @default(0)
+  netValue       Float
+  meltingCharges Float @default(0)
+  testingCharges Float @default(0)
+
+  saleId             String?
+  usedAgainstOrderId String?
+  purpose            String?
+
+  testingMethod String?
+  testedBy      String?
+  witnessedBy   String?
+
+  photoUrls    String[] @default([])
+  cnicPhotoUrl String?
+
+  notes String? @db.Text
+
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([tenantId, exchangeNumber])
+  @@index([tenantId])
+  @@index([customerId])
+  @@index([exchangeDate])
+}
+
+// ─── Karigar / Craftsman Management ───
+model JewelryKarigar {
+  id       String @id @default(uuid())
+  tenantId String
+
+  karigarNumber String
+  fullName      String
+  fatherName    String?
+  cnic          String?
+  phone         String
+  address       String? @db.Text
+  photoUrl      String?
+
+  specializations String[] @default([])
+  yearsExperience Int?
+  skillLevel      String?
+
+  hourlyRate        Float?
+  perGramRate       Float?
+  fixedRatePerPiece Float?
+
+  metalIssuedGrams   Float @default(0)
+  metalReturnedGrams Float @default(0)
+  wastageGrams       Float @default(0)
+  outstandingGrams   Float @default(0)
+
+  totalOrders     Int    @default(0)
+  completedOrders Int    @default(0)
+  totalEarnings   Float  @default(0)
+  qualityRating   Float?
+
+  isActive  Boolean @default(true)
+  isInHouse Boolean @default(true)
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, karigarNumber])
+  @@index([tenantId])
+  @@index([tenantId, isActive])
+}
+
+// ─── Metal Stock Register (bullion inventory) ───
+model JewelryMetalStock {
+  id       String @id @default(uuid())
+  tenantId String
+
+  entryNumber String
+  entryDate   DateTime @default(now())
+  entryType   String
+
+  metalType JewelryMetalType
+  purity    JewelryPurity
+
+  grams        Float
+  balanceGrams Float  @default(0)
+  ratePerGram  Float?
+  totalValue   Float?
+
+  source     String?
+  reference  String?
+  karigarId  String?
+  saleId     String?
+  exchangeId String?
+
+  notes       String? @db.Text
+  createdById String?
+
+  createdAt DateTime @default(now())
+
+  @@unique([tenantId, entryNumber])
+  @@index([tenantId])
+  @@index([tenantId, metalType, purity])
+  @@index([entryDate])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INDUSTRY: HOTEL / GUEST HOUSE / MOTEL / RESORT
+// Rooms, bookings, guests, housekeeping, POS, folio
+// ═══════════════════════════════════════════════════════════════
+
+enum RoomType {
+  SINGLE
+  DOUBLE
+  TWIN
+  TRIPLE
+  QUAD
+  FAMILY
+  SUITE
+  DELUXE
+  EXECUTIVE
+  PRESIDENTIAL
+  DORMITORY
+  STUDIO
+  APARTMENT
+  VILLA
+  BUNGALOW
+  TENT
+  CABIN
+  OTHER
+}
+
+enum RoomStatus {
+  AVAILABLE
+  OCCUPIED
+  RESERVED
+  CLEANING
+  MAINTENANCE
+  OUT_OF_ORDER
+  BLOCKED
+}
+
+enum BedType {
+  SINGLE_BED
+  DOUBLE_BED
+  QUEEN_BED
+  KING_BED
+  SOFA_BED
+  BUNK_BED
+  TWIN_BEDS
+  CUSTOM
+}
+
+enum HotelBookingStatus {
+  INQUIRY
+  QUOTED
+  TENTATIVE
+  CONFIRMED
+  CHECKED_IN
+  CHECKED_OUT
+  NO_SHOW
+  CANCELLED
+  EXTENDED
+}
+
+enum BookingSource {
+  DIRECT
+  WALK_IN
+  PHONE
+  WEBSITE
+  BOOKING_COM
+  AGODA
+  EXPEDIA
+  AIRBNB
+  TRAVEL_AGENT
+  CORPORATE
+  GOVT
+  REFERRAL
+  OTHER
+}
+
+enum GuestIdType {
+  CNIC
+  PASSPORT
+  DRIVING_LICENSE
+  NADRA
+  NIC
+  IQAMA
+  OTHER
+}
+
+enum HousekeepingStatus {
+  DIRTY
+  CLEAN
+  INSPECTED
+  OUT_OF_ORDER
+  MAINTENANCE_REQUIRED
+}
+
+enum MealPlan {
+  ROOM_ONLY
+  BED_BREAKFAST
+  HALF_BOARD
+  FULL_BOARD
+  ALL_INCLUSIVE
+}
+
+enum FolioChargeType {
+  ROOM
+  FOOD
+  BEVERAGE
+  LAUNDRY
+  SPA
+  MINIBAR
+  TELEPHONE
+  INTERNET
+  PARKING
+  TAX
+  SERVICE_CHARGE
+  DAMAGE
+  MISCELLANEOUS
+  DISCOUNT
+  REFUND
+}
+
+// ─── Room Types (Master) ───
+model HotelRoomType {
+  id       String @id @default(uuid())
+  tenantId String
+
+  code        String
+  name        String
+  type        RoomType @default(DOUBLE)
+  description String?  @db.Text
+
+  // Capacity
+  maxAdults    Int @default(2)
+  maxChildren  Int @default(0)
+  maxOccupancy Int @default(2)
+
+  // Bed
+  bedType         BedType @default(DOUBLE_BED)
+  bedCount        Int     @default(1)
+  extraBedAllowed Boolean @default(false)
+  extraBedPrice   Float   @default(0)
+
+  // Size
+  sizeSqft Float?
+  sizeSqm  Float?
+
+  // Pricing
+  basePrice      Float  @default(0)
+  weekendPrice   Float?
+  peakPrice      Float?
+  offSeasonPrice Float?
+  hourlyPrice    Float?
+
+  // Amenities
+  hasAC         Boolean @default(true)
+  hasHeater     Boolean @default(false)
+  hasTV         Boolean @default(true)
+  hasWifi       Boolean @default(true)
+  hasBalcony    Boolean @default(false)
+  hasKitchen    Boolean @default(false)
+  hasBathtub    Boolean @default(false)
+  hasSafe       Boolean @default(false)
+  hasMinibar    Boolean @default(false)
+  isPetFriendly Boolean @default(false)
+  isSmoking     Boolean @default(false)
+
+  amenities String[] @default([])
+  imageUrls String[] @default([])
+
+  displayOrder Int     @default(0)
+  isActive     Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  rooms HotelRoom[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+  @@index([tenantId, isActive])
+}
+
+// ─── Individual Rooms ───
+model HotelRoom {
+  id         String @id @default(uuid())
+  tenantId   String
+  roomTypeId String
+
+  roomNumber String
+  floor      String?
+  building   String?
+  wing       String?
+
+  status             RoomStatus         @default(AVAILABLE)
+  housekeepingStatus HousekeepingStatus @default(CLEAN)
+
+  // Overrides
+  customPrice Float?
+  customNotes String?
+
+  // Maintenance
+  lastCleanedAt    DateTime?
+  lastInspectedAt  DateTime?
+  maintenanceUntil DateTime?
+  maintenanceNotes String?
+
+  // View
+  viewType String?
+  facing   String?
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  roomType HotelRoomType @relation(fields: [roomTypeId], references: [id])
+
+  @@unique([tenantId, roomNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([roomTypeId])
+}
+
+// ─── Guest Master ───
+model HotelGuest {
+  id       String @id @default(uuid())
+  tenantId String
+
+  guestNumber String
+  customerId  String?
+
+  // Personal
+  title     String?
+  firstName String
+  lastName  String?
+  fullName  String
+
+  // Contact
+  email    String?
+  phone    String
+  altPhone String?
+
+  // ID
+  idType       GuestIdType?
+  idNumber     String?
+  idExpiryDate DateTime?
+  idFrontUrl   String?
+  idBackUrl    String?
+
+  // Personal info
+  dateOfBirth DateTime?
+  gender      String?
+  nationality String?
+  language    String?
+
+  // Address
+  address String? @db.Text
+  city    String?
+  state   String?
+  country String?
+  zipCode String?
+
+  // Company (for business guests)
+  companyName String?
+  designation String?
+  gstNumber   String?
+
+  // VIP / Preferences
+  isVIP         Boolean @default(false)
+  vipLevel      String?
+  loyaltyNumber String?
+  loyaltyPoints Int     @default(0)
+
+  preferences         Json?
+  allergies           String[] @default([])
+  dietaryRestrictions String[] @default([])
+  specialRequests     String?  @db.Text
+
+  // Blacklist
+  isBlacklisted   Boolean @default(false)
+  blacklistReason String?
+
+  // Stats
+  totalStays  Int       @default(0)
+  totalNights Int       @default(0)
+  totalSpent  Float     @default(0)
+  lastStayAt  DateTime?
+
+  photoUrl String?
+  notes    String? @db.Text
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, guestNumber])
+  @@index([tenantId])
+  @@index([phone])
+  @@index([email])
+  @@index([idNumber])
+}
+
+// ─── Booking / Reservation ───
+model HotelBooking {
+  id       String  @id @default(uuid())
+  tenantId String
+  shopId   String?
+
+  bookingNumber    String
+  confirmationCode String?
+
+  // Guest
+  primaryGuestId String?
+  guestName      String
+  guestPhone     String
+  guestEmail     String?
+  totalAdults    Int     @default(1)
+  totalChildren  Int     @default(0)
+
+  // Dates
+  checkInDate    DateTime
+  checkOutDate   DateTime
+  nights         Int       @default(1)
+  actualCheckIn  DateTime?
+  actualCheckOut DateTime?
+  earlyCheckIn   Boolean   @default(false)
+  lateCheckOut   Boolean   @default(false)
+
+  // Source
+  source          BookingSource @default(DIRECT)
+  sourceRef       String?
+  bookedBy        String?
+  agentName       String?
+  agentCommission Float         @default(0)
+
+  // Meal plan
+  mealPlan MealPlan @default(ROOM_ONLY)
+
+  // Status
+  status HotelBookingStatus @default(CONFIRMED)
+
+  // Pricing
+  roomTotal     Float  @default(0)
+  taxAmount     Float  @default(0)
+  serviceCharge Float  @default(0)
+  discount      Float  @default(0)
+  extraCharges  Float  @default(0)
+  grandTotal    Float  @default(0)
+  advancePaid   Float  @default(0)
+  paidAmount    Float  @default(0)
+  balanceAmount Float  @default(0)
+  paymentStatus String @default("UNPAID")
+
+  // Special requests
+  specialRequests String? @db.Text
+  arrivalTime     String?
+  purposeOfVisit  String?
+
+  // Cancellation
+  cancelledAt        DateTime?
+  cancellationReason String?
+  refundAmount       Float     @default(0)
+
+  createdById  String?
+  checkedInBy  String?
+  checkedOutBy String?
+  cancelledBy  String?
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bookedRooms  HotelBookedRoom[]
+  folioCharges HotelFolioCharge[]
+
+  @@unique([tenantId, bookingNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([primaryGuestId])
+  @@index([checkInDate])
+  @@index([checkOutDate])
+}
+
+// ─── Rooms in Booking ───
+model HotelBookedRoom {
+  id        String @id @default(uuid())
+  bookingId String
+
+  roomId     String?
+  roomTypeId String
+  roomNumber String?
+
+  // Pricing per night
+  ratePerNight Float
+  totalNights  Int
+  totalAmount  Float
+
+  // Occupants
+  adults    Int @default(1)
+  children  Int @default(0)
+  extraBeds Int @default(0)
+
+  // Special
+  isComplimentary Boolean @default(false)
+  discount        Float   @default(0)
+
+  notes String?
+
+  createdAt DateTime @default(now())
+
+  booking HotelBooking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+  @@index([roomId])
+}
+
+// ─── Folio (Charges on Booking) ───
+model HotelFolioCharge {
+  id        String @id @default(uuid())
+  bookingId String
+
+  chargeNumber String
+  chargeDate   DateTime        @default(now())
+  chargeType   FolioChargeType
+  description  String
+
+  quantity    Float @default(1)
+  unitPrice   Float
+  taxAmount   Float @default(0)
+  discount    Float @default(0)
+  totalAmount Float
+
+  reference  String?
+  postedById String?
+
+  isVoid     Boolean   @default(false)
+  voidedAt   DateTime?
+  voidReason String?
+
+  notes String?
+
+  createdAt DateTime @default(now())
+
+  booking HotelBooking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+  @@index([chargeDate])
+}
+
+// ─── Housekeeping Task ───
+model HotelHousekeepingTask {
+  id       String  @id @default(uuid())
+  tenantId String
+  shopId   String?
+
+  taskNumber String
+  roomId     String?
+  roomNumber String
+
+  taskType String
+  priority String @default("NORMAL")
+
+  scheduledFor DateTime?
+  startedAt    DateTime?
+  completedAt  DateTime?
+  durationMin  Int?
+
+  assignedTo   String?
+  assignedName String?
+
+  status String @default("PENDING")
+
+  checklist    Json?
+  suppliesUsed Json?
+
+  notes      String? @db.Text
+  issueFound String? @db.Text
+
+  photoUrls String[] @default([])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, taskNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([roomId])
+}
+
+// ─── Rate / Season Plans ───
+model HotelRatePlan {
+  id       String @id @default(uuid())
+  tenantId String
+
+  code        String
+  name        String
+  description String?
+
+  startDate DateTime
+  endDate   DateTime
+
+  // Type
+  planType String
+  mealPlan MealPlan @default(ROOM_ONLY)
+
+  // Adjustments
+  isPercentage Boolean @default(false)
+  adjustment   Float   @default(0)
+
+  // Restrictions
+  minNights          Int?
+  maxNights          Int?
+  applicableDays     Int[] @default([])
+  advanceBookingDays Int?
+  cancellationHours  Int?
+
+  // Room types
+  applicableRoomTypeIds String[] @default([])
+
+  // Booking sources
+  applicableSources String[] @default([])
+
+  isActive     Boolean @default(true)
+  displayOrder Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+  @@index([tenantId, isActive])
+}

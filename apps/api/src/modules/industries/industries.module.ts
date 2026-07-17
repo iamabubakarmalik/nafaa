@@ -7,7 +7,12 @@ import { GarmentsModule } from './garments/garments.module';
 import { PharmacyModule } from './pharmacy/pharmacy.module';
 import { AutoPartsModule } from './autoparts/autoparts.module';
 import { SalonModule } from './salon/salon.module';
-
+import { MeatModule } from './meat/meat.module';
+import { BookstoreModule } from './bookstore/bookstore.module';
+import { AgriModule } from './agri/agri.module';
+import { HardwareModule } from './hardware/hardware.module';
+import { DairyModule } from './dairy/dairy.module';
+import { JewelryModule } from './jewelry/jewelry.module';
 
 @Module({
   imports: [
@@ -19,6 +24,12 @@ import { SalonModule } from './salon/salon.module';
     PharmacyModule,
     AutoPartsModule,
     SalonModule,
+    MeatModule,
+    BookstoreModule,
+    AgriModule,
+    JewelryModule,
+    HardwareModule,
+    DairyModule,
   ],
   exports: [
     RetailModule,
@@ -29,6 +40,12 @@ import { SalonModule } from './salon/salon.module';
     PharmacyModule,
     AutoPartsModule,
     SalonModule,
+    MeatModule,
+    BookstoreModule,
+    AgriModule,
+    JewelryModule,
+    HardwareModule,
+    DairyModule,
   ],
 })
 export class IndustriesModule {}
