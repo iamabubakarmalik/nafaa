@@ -1,0 +1,27 @@
+import { lazy, Suspense } from 'react';
+import { useCurrentIndustry } from '@/features/industries/_shared/registry/useCurrentIndustry';
+import CustomerDetailPage from './CustomerDetailPage';
+
+const RestaurantCustomerDetail = lazy(() => import('@/features/industries/restaurant/pages/RestaurantCustomerDetailPage'));
+const MobileCustomerDetail = lazy(() => import('@/features/industries/mobile/pages/MobileCustomerDetailPage'));
+const CarpetCustomerDetail = lazy(() => import('@/features/industries/carpet/pages/CarpetCustomerDetailPage'));
+const RetailCustomerDetail = lazy(() => import('@/features/industries/retail/pages/RetailCustomerDetailPage'));
+const HotelCustomerDetail = lazy(() => import('@/features/industries/hotel/pages/HotelCustomerDetailPage'));
+
+function Loader() {
+  return (
+    <div className="flex items-center justify-center py-24">
+      <div className="h-12 w-12 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin" />
+    </div>
+  );
+}
+
+export default function CustomerDetailGate() {
+  const industry = useCurrentIndustry();
+  if (industry?.id === 'restaurant') return <Suspense fallback={<Loader />}><RestaurantCustomerDetail /></Suspense>;
+  if (industry?.id === 'mobile') return <Suspense fallback={<Loader />}><MobileCustomerDetail /></Suspense>;
+  if (industry?.id === 'carpet') return <Suspense fallback={<Loader />}><CarpetCustomerDetail /></Suspense>;
+  if (industry?.id === 'retail') return <Suspense fallback={<Loader />}><RetailCustomerDetail /></Suspense>;
+  if (industry?.id === 'hotel') return <Suspense fallback={<Loader />}><HotelCustomerDetail /></Suspense>;
+  return <CustomerDetailPage />;
+}

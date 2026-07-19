@@ -2,39 +2,35 @@ import { useState, useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Hash, Plus, Edit3, Trash2, X, Save, Search, Package, Sparkles,
-  Download, RefreshCw, Filter, Star, TrendingUp, Palette,
+  Download, RefreshCw, Star, Palette, Zap, Import, ChevronRight,
+  CheckCircle2,
 } from 'lucide-react';
 import { tagsApi, type Tag, type UpsertTagPayload } from '@/api/tags.api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { toast } from 'sonner';
+import { useIndustryPresets } from '@/features/industries/_shared/presets';
 
 const COLOR_PRESETS = [
   '#16a34a', '#0ea5e9', '#8b5cf6', '#f59e0b', '#ef4444',
   '#ec4899', '#14b8a6', '#84cc16', '#a855f7', '#f97316',
   '#06b6d4', '#10b981', '#6366f1', '#d946ef', '#eab308',
-];
-
-const SUGGESTED_TAGS = [
-  { name: 'New Arrival', color: '#10b981' },
-  { name: 'Best Seller', color: '#f59e0b' },
-  { name: 'Sale', color: '#ef4444' },
-  { name: 'Premium', color: '#8b5cf6' },
-  { name: 'Organic', color: '#16a34a' },
-  { name: 'Halal', color: '#0ea5e9' },
-  { name: 'Imported', color: '#ec4899' },
-  { name: 'Limited Edition', color: '#a855f7' },
+  '#dc2626', '#78350f', '#22c55e', '#16a34a', '#f97316',
 ];
 
 const empty: UpsertTagPayload = { name: '', color: '#16a34a' };
 
-type Filter = 'all' | 'used' | 'unused';
+type FilterMode = 'all' | 'used' | 'unused';
 
 export default function TagsPage() {
   const queryClient = useQueryClient();
+  const industryPresets = useIndustryPresets();
+
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<Filter>('all');
+  const [filter, setFilter] = useState<FilterMode>('all');
   const [showForm, setShowForm] = useState(false);
+  const [showBulkImport, setShowBulkImport] = useState(false);
+  const [selectedPresets, setSelectedPresets] = useState<Set<string>>(new Set());
   const [editing, setEditing] = useState<Tag | null>(null);
   const [form, setForm] = useState<UpsertTagPayload>(empty);
 
@@ -51,6 +47,24 @@ export default function TagsPage() {
       close();
     },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
+  });
+
+  const bulkCreateMutation = useMutation({
+    mutationFn: async (presets: Array<{ name: string; color: string }>) => {
+      const results = await Promise.allSettled(
+        presets.map((p) => tagsApi.create({ name: p.name, color: p.color }))
+      );
+      const succeeded = results.filter((r) => r.status === 'fulfilled').length;
+      const failed = results.length - succeeded;
+      return { succeeded, failed };
+    },
+    onSuccess: ({ succeeded, failed }) => {
+      if (succeeded > 0) toast.success(`${succeeded} tags added`);
+      if (failed > 0) toast.error(`${failed} failed`);
+      setShowBulkImport(false);
+      setSelectedPresets(new Set());
+      queryClient.invalidateQueries({ queryKey: ['tags'] });
+    },
   });
 
   const removeMutation = useMutation({
@@ -83,6 +97,11 @@ export default function TagsPage() {
       .slice(0, 5);
   }, [tags]);
 
+  const existingNames = new Set(tags.map((t) => t.name.toLowerCase()));
+  const availablePresets = industryPresets.tags.filter(
+    (s) => !existingNames.has(s.name.toLowerCase())
+  );
+
   const close = () => { setShowForm(false); setEditing(null); setForm(empty); };
 
   const openEdit = (t: Tag) => {
@@ -95,6 +114,21 @@ export default function TagsPage() {
     setForm(preset);
     setEditing(null);
     setShowForm(true);
+  };
+
+  const togglePresetSelection = (name: string) => {
+    setSelectedPresets((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  };
+
+  const bulkAddSelected = () => {
+    const toAdd = availablePresets.filter((p) => selectedPresets.has(p.name));
+    if (toAdd.length === 0) return toast.error('Select at least one tag');
+    bulkCreateMutation.mutate(toAdd);
   };
 
   const exportCSV = () => {
@@ -112,9 +146,6 @@ export default function TagsPage() {
     toast.success('Exported');
   };
 
-  const existingNames = new Set(tags.map((t) => t.name.toLowerCase()));
-  const availableSuggestions = SUGGESTED_TAGS.filter((s) => !existingNames.has(s.name.toLowerCase()));
-
   return (
     <div className="space-y-6">
       {/* ═══ HERO ═══ */}
@@ -127,13 +158,30 @@ export default function TagsPage() {
             <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur px-3 py-1 text-xs font-extrabold">
               <Hash className="h-3.5 w-3.5 text-amber-300" />
               Smart Labels
+              {industryPresets.industryId && (
+                <>
+                  <span className="text-white/40">•</span>
+                  <span>{industryPresets.industryEmoji} {industryPresets.industryName}</span>
+                </>
+              )}
             </div>
             <h2 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">Tags</h2>
             <p className="mt-2 text-sm text-white/80">
-              Organic, halal, imported, premium — colorful labels for fast filtering aur grouping
+              {industryPresets.industryId
+                ? `${industryPresets.industryName} ke liye popular tags — Halal, Bestseller, Organic wagera`
+                : 'Colorful labels for fast filtering aur grouping'}
             </p>
           </div>
           <div className="flex gap-2 flex-wrap">
+            {availablePresets.length > 0 && (
+              <button
+                onClick={() => setShowBulkImport(true)}
+                className="inline-flex items-center gap-2 rounded-xl bg-amber-500/30 hover:bg-amber-500/50 border-2 border-amber-300/40 px-4 py-2.5 text-sm font-bold transition backdrop-blur"
+              >
+                <Import className="h-4 w-4" />
+                Bulk Import ({availablePresets.length})
+              </button>
+            )}
             <button
               onClick={() => refetch()}
               disabled={isRefetching}
@@ -160,20 +208,38 @@ export default function TagsPage() {
         <StatCard label="Tagged Products" value={stats.totalProducts} sub="Across all tags" icon={Package} color="blue" />
       </section>
 
-      {/* ═══ SUGGESTIONS ═══ */}
-      {availableSuggestions.length > 0 && (
-        <section className="rounded-3xl bg-gradient-to-br from-pink-50 to-rose-50 border-2 border-pink-200 p-5">
-          <div className="flex items-center gap-2 mb-3">
-            <Sparkles className="h-4 w-4 text-pink-600" />
-            <h3 className="font-extrabold text-pink-900">Quick Add Suggestions</h3>
-            <span className="text-[10px] font-bold text-pink-700 bg-pink-100 px-2 py-0.5 rounded-full">Click to add</span>
+      {/* ═══ INDUSTRY QUICK ADD ═══ */}
+      {availablePresets.length > 0 && (
+        <section className="rounded-3xl bg-gradient-to-br from-pink-50 via-rose-50 to-fuchsia-50 border-2 border-pink-200 p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 text-white flex items-center justify-center shadow-md">
+                <Zap className="h-4 w-4" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-pink-900">
+                  {industryPresets.industryEmoji} {industryPresets.industryName} — Suggested Tags
+                </h3>
+                <p className="text-[11px] text-pink-700 font-bold">
+                  {availablePresets.length} smart labels for your industry
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowBulkImport(true)}
+              className="text-xs font-extrabold text-pink-700 hover:text-pink-800 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white border-2 border-pink-300 hover:border-pink-400 transition"
+            >
+              <Import className="h-3 w-3" />
+              Bulk Import
+              <ChevronRight className="h-3 w-3" />
+            </button>
           </div>
           <div className="flex flex-wrap gap-2">
-            {availableSuggestions.slice(0, 8).map((s) => (
+            {availablePresets.slice(0, 20).map((s) => (
               <button
                 key={s.name}
                 onClick={() => quickAdd(s)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border-2 hover:shadow-md hover:scale-105 transition"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full border-2 hover:shadow-md hover:scale-105 transition-all group"
                 style={{ backgroundColor: `${s.color}15`, borderColor: `${s.color}50` }}
               >
                 <Plus className="h-3 w-3" style={{ color: s.color }} />
@@ -181,13 +247,21 @@ export default function TagsPage() {
               </button>
             ))}
           </div>
+          {availablePresets.length > 20 && (
+            <button
+              onClick={() => setShowBulkImport(true)}
+              className="mt-3 w-full py-2 rounded-xl bg-white/80 hover:bg-white border-2 border-pink-200 hover:border-pink-300 text-xs font-extrabold text-pink-700 transition"
+            >
+              + {availablePresets.length - 20} more tags — Open Bulk Import
+            </button>
+          )}
         </section>
       )}
 
-      {/* ═══ TOP TAGS LEADERBOARD ═══ */}
+      {/* ═══ TOP TAGS ═══ */}
       {topTags.length > 0 && (
         <section className="rounded-3xl bg-white border-2 border-pink-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 bg-gradient-to-r from-pink-50 to-rose-50 border-b-2 border-pink-200 flex items-center justify-between">
+          <div className="px-5 py-4 bg-gradient-to-r from-pink-50 to-rose-50 border-b-2 border-pink-200">
             <div className="flex items-center gap-2">
               <Star className="h-5 w-5 text-amber-500" />
               <div>
@@ -245,9 +319,9 @@ export default function TagsPage() {
         </div>
         <div className="flex gap-1 bg-slate-100 rounded-xl p-1 w-fit">
           {[
-            { v: 'all' as Filter, l: 'All', count: stats.total, c: 'bg-slate-900' },
-            { v: 'used' as Filter, l: 'In Use', count: stats.used, c: 'bg-emerald-600' },
-            { v: 'unused' as Filter, l: 'Unused', count: stats.unused, c: 'bg-rose-600' },
+            { v: 'all' as FilterMode, l: 'All', count: stats.total, c: 'bg-slate-900' },
+            { v: 'used' as FilterMode, l: 'In Use', count: stats.used, c: 'bg-emerald-600' },
+            { v: 'unused' as FilterMode, l: 'Unused', count: stats.unused, c: 'bg-rose-600' },
           ].map((opt) => (
             <button
               key={opt.v}
@@ -278,6 +352,11 @@ export default function TagsPage() {
             <p className="text-sm text-slate-500 mt-2">
               {search || filter !== 'all' ? 'Try different search or filter' : 'Add tags to label your products'}
             </p>
+            {!search && filter === 'all' && availablePresets.length > 0 && (
+              <Button onClick={() => setShowBulkImport(true)} className="mt-5" variant="secondary">
+                <Import className="h-4 w-4" /> Import from {industryPresets.industryName}
+              </Button>
+            )}
           </div>
         ) : (
           <div className="flex flex-wrap gap-2">
@@ -291,9 +370,7 @@ export default function TagsPage() {
                 }}
               >
                 <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: t.color }} />
-                <span className="text-sm font-extrabold" style={{ color: t.color }}>
-                  {t.name}
-                </span>
+                <span className="text-sm font-extrabold" style={{ color: t.color }}>{t.name}</span>
                 <span className="text-[10px] font-extrabold text-slate-500 bg-white/70 rounded-full px-1.5 py-0.5 tabular-nums">
                   {t._count?.products ?? 0}
                 </span>
@@ -301,16 +378,12 @@ export default function TagsPage() {
                   <button
                     onClick={() => openEdit(t)}
                     className="h-7 w-7 rounded-full hover:bg-white/60 flex items-center justify-center"
-                    title="Edit"
                   >
                     <Edit3 className="h-3 w-3" style={{ color: t.color }} />
                   </button>
                   <button
-                    onClick={() => {
-                      if (confirm(`Delete tag "${t.name}"?`)) removeMutation.mutate(t.id);
-                    }}
+                    onClick={() => { if (confirm(`Delete tag "${t.name}"?`)) removeMutation.mutate(t.id); }}
                     className="h-7 w-7 rounded-full hover:bg-rose-100 flex items-center justify-center"
-                    title="Delete"
                   >
                     <Trash2 className="h-3 w-3 text-rose-600" />
                   </button>
@@ -321,10 +394,95 @@ export default function TagsPage() {
         )}
       </div>
 
+      {/* ═══ BULK IMPORT MODAL ═══ */}
+      {showBulkImport && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+            <div className="px-6 py-5 border-b-2 border-slate-100 bg-gradient-to-r from-pink-50 to-rose-50 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 text-white flex items-center justify-center shadow-lg">
+                  <Import className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-xl text-slate-900">
+                    {industryPresets.industryEmoji} Bulk Import — {industryPresets.industryName}
+                  </h3>
+                  <p className="text-xs text-slate-600 font-semibold">
+                    {selectedPresets.size} of {availablePresets.length} selected
+                  </p>
+                </div>
+              </div>
+              <button onClick={() => { setShowBulkImport(false); setSelectedPresets(new Set()); }} className="h-9 w-9 rounded-lg hover:bg-white flex items-center justify-center">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="px-6 py-3 border-b border-slate-100 flex items-center justify-between">
+              <div className="flex gap-2">
+                <button onClick={() => setSelectedPresets(new Set(availablePresets.map((p) => p.name)))} className="text-xs font-extrabold text-pink-700 hover:underline">Select All</button>
+                <span className="text-slate-300">•</span>
+                <button onClick={() => setSelectedPresets(new Set())} className="text-xs font-extrabold text-slate-600 hover:underline">Deselect All</button>
+              </div>
+              <div className="text-xs text-slate-500 font-semibold">Existing tags auto-hidden</div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="flex flex-wrap gap-2">
+                {availablePresets.map((p) => {
+                  const selected = selectedPresets.has(p.name);
+                  return (
+                    <button
+                      key={p.name}
+                      onClick={() => togglePresetSelection(p.name)}
+                      className={`inline-flex items-center gap-2 rounded-full px-3 py-2 border-2 transition ${
+                        selected
+                          ? 'shadow-md ring-2'
+                          : 'opacity-70 hover:opacity-100 hover:shadow-sm'
+                      }`}
+                      style={selected ? {
+                        backgroundColor: `${p.color}20`,
+                        borderColor: p.color,
+                        boxShadow: `0 0 0 3px ${p.color}20`,
+                      } : {
+                        backgroundColor: `${p.color}10`,
+                        borderColor: `${p.color}40`,
+                      }}
+                    >
+                      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: p.color }} />
+                      <span className="text-sm font-extrabold" style={{ color: p.color }}>{p.name}</span>
+                      {selected && <CheckCircle2 className="h-3.5 w-3.5" style={{ color: p.color }} />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="px-6 py-4 border-t-2 border-slate-100 bg-slate-50 flex items-center justify-between gap-2">
+              <div className="text-sm">
+                <div className="font-extrabold text-slate-900">{selectedPresets.size} tags selected</div>
+                <div className="text-xs text-slate-500 font-semibold">Skip duplicates on add</div>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="secondary" onClick={() => { setShowBulkImport(false); setSelectedPresets(new Set()); }}>Cancel</Button>
+                <Button
+                  onClick={bulkAddSelected}
+                  disabled={selectedPresets.size === 0}
+                  loading={bulkCreateMutation.isPending}
+                  className="bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700"
+                >
+                  <Import className="h-4 w-4" />
+                  Import {selectedPresets.size} Tags
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ═══ FORM MODAL ═══ */}
       {showForm && (
         <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 animate-in fade-in slide-in-from-bottom-4 duration-200">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 text-white flex items-center justify-center shadow-lg shadow-pink-500/30">
@@ -343,7 +501,7 @@ export default function TagsPage() {
               <Input label="Tag Name *" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="organic, halal, imported..." />
 
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-1.5">
+                <label className="block text-sm font-bold text-slate-700 mb-2 items-center gap-1.5">
                   <Palette className="h-3.5 w-3.5 text-slate-500" />
                   Color
                 </label>

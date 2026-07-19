@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/Button';
 import { useSalesPrivacy } from '../hooks/useSalesPrivacy';
 import { SalesPrivacyModal } from '../components/SalesPrivacyModal';
 import { HiddenAmount } from '../components/HiddenAmount';
+import { IndustrySlot } from '@/features/industries/_shared/components/IndustrySlot';
 import { toast } from 'sonner';
 
 const formatDate = (value: string) =>
@@ -665,6 +666,11 @@ export default function SalesPage() {
                                 UDHAAR
                               </span>
                             )}
+                            {/* Industry-contributed badge (Restaurant / Mobile / Carpet / Hotel) */}
+                            <IndustrySlot
+                              slot={(p) => p.sales?.saleBadge}
+                              slotProps={{ sale }}
+                            />
                             {roBySaleId[sale.id] && (() => {
                               const ro = roBySaleId[sale.id];
                               const ModeIcon = ro.mode === 'DINE_IN' ? Utensils : ro.mode === 'DELIVERY' ? Bike : ro.mode === 'TAKEAWAY' ? Takeaway : ro.mode === 'DRIVE_THRU' ? Car : ChefHat;
@@ -710,6 +716,7 @@ export default function SalesPage() {
                               <span key={item.id} className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 max-w-[180px] truncate inline-flex items-center gap-1">
                                 {item.product.unit === 'sqft' && <Layers className="h-2.5 w-2.5 text-emerald-600" />}
                                 {item.product.name} × {formatQty(item.quantity)}
+                                <IndustrySlot slot={(p) => p.sales?.saleItemBadge} slotProps={{ item }} />
                               </span>
                             ))}
                             {sale.items.length > 3 && (

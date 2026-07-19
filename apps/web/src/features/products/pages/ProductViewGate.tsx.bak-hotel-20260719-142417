@@ -1,0 +1,17 @@
+import { Navigate, useParams } from 'react-router-dom';
+import { useCurrentIndustry } from '@/features/industries/_shared/registry/useCurrentIndustry';
+
+export default function ProductViewGate() {
+  const industry = useCurrentIndustry();
+  const { id } = useParams();
+
+  if (!id) return <Navigate to="/products" replace />;
+
+  if (industry?.id === 'carpet') return <Navigate to={`/carpet-products/${id}`} replace />;
+  if (industry?.id === 'mobile') return <Navigate to={`/mobile-products/${id}`} replace />;
+  if (industry?.id === 'retail') return <Navigate to={`/retail-products/${id}`} replace />;
+  if (industry?.id === 'restaurant') return <Navigate to={`/restaurant-menu-items/${id}`} replace />;
+  if (industry?.id === 'jewelry') return <Navigate to={`/jewelry-items/${id}`} replace />;
+
+  return <Navigate to={`/products/${id}/edit`} replace />;
+}

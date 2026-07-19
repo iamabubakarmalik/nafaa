@@ -1,0 +1,37 @@
+import { Navigate, useParams } from 'react-router-dom';
+import { useCurrentIndustry } from '@/features/industries/_shared/registry/useCurrentIndustry';
+import ProductFormPage from './ProductFormPage';
+
+/**
+ * ProductFormGate — routes /products/new and /products/:id/edit to the
+ * correct industry-specific wizard.
+ *
+ *   • Carpet     → CarpetProductWizardPage
+ *   • Mobile     → MobileProductWizardPage
+ *   • Retail     → RetailProductWizardPage
+ *   • Restaurant → RestaurantMenuItemWizardPage
+ *   • Hotel      → HotelRoomTypeWizardPage
+ *   • Others     → generic ProductFormPage
+ */
+export default function ProductFormGate() {
+  const industry = useCurrentIndustry();
+  const { id } = useParams();
+
+  if (industry?.id === 'carpet') {
+    return <Navigate to={id ? `/carpet-products/${id}/edit` : '/carpet-products/new'} replace />;
+  }
+  if (industry?.id === 'mobile') {
+    return <Navigate to={id ? `/mobile-products/${id}/edit` : '/mobile-products/new'} replace />;
+  }
+  if (industry?.id === 'retail') {
+    return <Navigate to={id ? `/retail-products/${id}/edit` : '/retail-products/new'} replace />;
+  }
+  if (industry?.id === 'restaurant') {
+    return <Navigate to={id ? `/restaurant-menu-items/${id}/edit` : '/restaurant-menu-items/new'} replace />;
+  }
+  if (industry?.id === 'hotel') {
+    return <Navigate to={id ? `/hotel-room-types/${id}/edit` : '/hotel-room-types/new'} replace />;
+  }
+
+  return <ProductFormPage />;
+}

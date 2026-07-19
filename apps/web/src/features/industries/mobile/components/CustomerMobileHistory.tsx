@@ -8,7 +8,7 @@ import {
 import { apiClient } from '@/api/client';
 import { formatPKR } from '@/lib/format';
 import { PtaStatusBadge } from './PtaStatusBadge';
-import { RepairStatusBadge } from '../repairs/components/RepairStatusBadge';
+import { RepairStatusBadge } from './repairs/RepairStatusBadge';
 
 interface Props {
   customerId: string;

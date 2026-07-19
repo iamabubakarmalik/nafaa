@@ -11,6 +11,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { salesApi } from '@/api/sales.api';
+import { IndustrySlot } from '@/features/industries/_shared/components/IndustrySlot';
+import { useCurrentIndustry } from '@/features/industries/_shared/registry/useCurrentIndustry';
 import { ordersApi } from '@/features/industries/restaurant/api/orders.api';
 import { formatPKR } from '@/lib/format';
 
@@ -76,6 +78,7 @@ export default function ReceiptPage() {
   const queryClient = useQueryClient();
   const [format, setFormat] = useState<ReceiptFormat>('a4');
   const isAutoOpened = searchParams.get('auto') === '1';
+  const industry = useCurrentIndustry();
 
   const { data, isLoading } = useQuery({
     queryKey: ['sale-receipt', id],
@@ -136,6 +139,8 @@ export default function ReceiptPage() {
       return;
     }
     const phone = data.customer.phone.replace(/[^0-9]/g, '');
+    // Attach linked RestaurantOrder for pack whatsappLines()
+    if (restaurantOrder) (data as any).__restaurantOrder = restaurantOrder;
     const cleanPhone = phone.startsWith('92') ? phone : phone.startsWith('0') ? '92' + phone.slice(1) : '92' + phone;
 
     const shopName = data.tenant?.settings?.shopName || data.tenant?.name || 'Our Shop';
@@ -207,6 +212,14 @@ export default function ReceiptPage() {
       lines.push(`   💵 = *${formatPKR(it.total)}*`);
       lines.push('');
     });
+
+    // Industry-contributed extra lines (Restaurant table+mode+KOT, etc.)
+    try {
+      const extra = industry?.receipt?.whatsappLines?.(data);
+      if (Array.isArray(extra) && extra.length > 0) {
+        lines.push(...extra);
+      }
+    } catch { /* ignore pack errors */ }
 
     // ═══ PAYMENT SUMMARY ═══
     lines.push('┌─────────────────────────┐');
@@ -664,6 +677,12 @@ export default function ReceiptPage() {
               )}
             </div>
 
+            {/* Industry meta section (pack-contributed) */}
+            <IndustrySlot
+              slot={(p) => p.receipt?.metaSection}
+              slotProps={{ sale: data }}
+            />
+
             {/* RESTAURANT META (if applicable) */}
             {isRestaurantSale && restaurantOrder && (
               <div className="px-8 py-4 bg-gradient-to-r from-orange-50 via-white to-red-50 border-b-2 border-orange-200 print:bg-white print:border-slate-300">
@@ -819,6 +838,12 @@ export default function ReceiptPage() {
                                 <span>{item.note}</span>
                               </div>
                             )}
+
+                            {/* Industry item details (pack-contributed) */}
+                            <IndustrySlot
+                              slot={(p) => p.receipt?.itemDetails}
+                              slotProps={{ sale: data, item }}
+                            />
 
                             {/* Restaurant modifiers */}
                             {isRestaurantSale && restaurantOrder && (() => {
@@ -1006,6 +1031,12 @@ export default function ReceiptPage() {
                   </div>
                 )}
 
+                {/* Industry totals extension (pack-contributed) */}
+                <IndustrySlot
+                  slot={(p) => p.receipt?.totalsExtension}
+                  slotProps={{ sale: data }}
+                />
+
                 <div className="flex items-center justify-between text-lg pt-3 border-t-2 border-slate-300">
                   <span className="font-extrabold text-slate-900">GRAND TOTAL</span>
                   <span className="font-extrabold text-emerald-700 text-3xl tabular-nums">{formatPKR(data.total)}</span>
@@ -1056,6 +1087,12 @@ export default function ReceiptPage() {
                 </Link>
               </div>
             )}
+
+            {/* Industry kitchen copy (pack-contributed) */}
+            <IndustrySlot
+              slot={(p) => p.receipt?.kitchenCopy}
+              slotProps={{ sale: data }}
+            />
 
             {/* KITCHEN COPY (Restaurant only, print) */}
             {isRestaurantSale && restaurantOrder && (

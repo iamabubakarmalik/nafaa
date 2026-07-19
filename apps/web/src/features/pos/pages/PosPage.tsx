@@ -30,7 +30,7 @@ import { useAuthStore } from '@/store/auth.store';
 import { useOfflineCarpetSummary } from '../hooks/useOfflineCarpetSummary';
 import { usePosFastSearch } from '../hooks/usePosFastSearch';
 import { ImeiPickerModal } from '@/features/industries/mobile/components/ImeiPickerModal';
-import { QuickEmiFromSaleModal } from '@/features/industries/mobile/emi/components/QuickEmiFromSaleModal';
+import { QuickEmiFromSaleModal } from '@/features/industries/mobile/components/emi/QuickEmiFromSaleModal';
 import type { ProductImei } from '@/features/industries/mobile/api/imei.api';
 import { usePosCheckout } from '../hooks/usePosCheckout';
 import type { CarpetRoll } from '@/features/industries/carpet/api/carpet-rolls.api';
@@ -49,11 +49,15 @@ import {
   CARPET_UNITS, MOBILE_KEYWORDS, PAGE_SIZE,
   loadHeldCarts, saveHeldCarts, cartLineId,
 } from '../components/pos-types';
+import { IndustrySlot } from '@/features/industries/_shared/components/IndustrySlot';
+import { useIndustryDetection } from '@/features/industries/_shared/registry/useIndustryDetection';
 
 export default function PosPage() {
   const queryClient = useQueryClient();
   const { features: businessFeatures, businessType } = useBusinessFeatures();
   const currentShopId = useAuthStore((s) => s.currentShopId);
+  const industryDetection = useIndustryDetection();
+  const activeIndustryId = industryDetection.id; // 'carpet' | 'mobile' | 'restaurant' | 'retail' | 'hotel' | ...
 // isRetail now derived from posIndustry above
   const { expandCombo } = useComboToCart();
 // isRestaurant now derived from posIndustry above
@@ -61,33 +65,22 @@ export default function PosPage() {
   const [modifierPickerProductId, setModifierPickerProductId] = useState<string | null>(null);
   const tenant = useAuthStore((s) => s.tenant);
 
-  const isCarpetBusiness = useMemo(() => {
-    const type = (businessType ?? '').toUpperCase();
-    return type === 'CARPET' || type === 'FLOORING' || businessFeatures?.lengthWidthCalc === true;
-  }, [businessType, businessFeatures]);
+  // ─── Industry detection via pack registry (single source of truth) ───
+  // Only ONE pack matches the tenant at a time — priorities are set in each
+  // pack's `priority` field: Carpet=90, Mobile=80, Hotel=75, Restaurant=70,
+  // Jewelry=68, Pharmacy=65, Retail=60, etc.
+  const isCarpetBusiness = activeIndustryId === 'carpet';
+  const isMobileBusiness = activeIndustryId === 'mobile';
+  const isRestaurant     = activeIndustryId === 'restaurant';
+  const isRetail         = activeIndustryId === 'retail';
 
-  const isMobileBusiness = useMemo(() => {
-    const type = (businessType ?? '').toUpperCase();
-    return type === 'MOBILE' || type === 'PHONE' || type === 'ELECTRONICS' || businessFeatures?.imei === true;
-  }, [businessType, businessFeatures]);
-
-  // ─── MUTUALLY EXCLUSIVE industry detection ───
-  // Only ONE industry's POS features show at a time
-  // Priority: Carpet > Mobile > Restaurant > Retail > Standard
-  const posIndustry = useMemo((): 'CARPET' | 'MOBILE' | 'RESTAURANT' | 'RETAIL' | 'STANDARD' => {
-    if (isCarpetBusiness) return 'CARPET';
-    if (isMobileBusiness) return 'MOBILE';
-    const type = (businessType ?? '').toUpperCase();
-    const isRestType = type.includes('RESTAURANT') || type.includes('CAFE') || type.includes('BAKERY') || type.includes('FOOD') || type.includes('FAST_FOOD') || type.includes('DINE');
-    if (isRestType) return 'RESTAURANT';
-    const isRetailType = type.includes('RETAIL') || type.includes('KIRYANA') || type.includes('GENERAL') || type.includes('SUPERMARKET') || type.includes('GROCERY');
-    if (isRetailType) return 'RETAIL';
-    return 'STANDARD';
-  }, [isCarpetBusiness, isMobileBusiness, businessType]);
-
-  // Override the old flags to be exclusive
-  const isRetail = posIndustry === 'RETAIL';
-  const isRestaurant = posIndustry === 'RESTAURANT';
+  // Legacy alias — some downstream code still reads posIndustry
+  const posIndustry: 'CARPET' | 'MOBILE' | 'RESTAURANT' | 'RETAIL' | 'STANDARD' =
+    isCarpetBusiness ? 'CARPET' :
+    isMobileBusiness ? 'MOBILE' :
+    isRestaurant     ? 'RESTAURANT' :
+    isRetail         ? 'RETAIL' : 'STANDARD';
+  void posIndustry; // may be referenced elsewhere in this file
 
   // Preferences
   const [prefs, setPrefs] = useState<PosPreferences>(loadPosPreferences());
@@ -1011,25 +1004,10 @@ export default function PosPage() {
           {/* CRITICAL REORDER ALERT */}
           {isRetail && <RetailReorderAlert />}
 
-          {/* RESTAURANT ORDER MODE BAR */}
-          {isRestaurant && (
-            <div className="shrink-0 px-3 pt-3">
-              <RestaurantModeBar
-                orderMode={restaurantMode.orderMode}
-                onChangeMode={restaurantMode.setOrderMode}
-                selectedTableId={restaurantMode.selectedTableId}
-                onSelectTable={restaurantMode.setSelectedTableId}
-                numberOfGuests={restaurantMode.numberOfGuests}
-                onChangeGuests={restaurantMode.setNumberOfGuests}
-                deliveryAddress={restaurantMode.deliveryAddress}
-                onChangeDeliveryAddress={restaurantMode.setDeliveryAddress}
-                deliveryNotes={restaurantMode.deliveryNotes}
-                onChangeDeliveryNotes={restaurantMode.setDeliveryNotes}
-                specialRequests={restaurantMode.specialRequests}
-                onChangeSpecialRequests={restaurantMode.setSpecialRequests}
-              />
-            </div>
-          )}
+          {/* Industry POS mode bar (Restaurant / future: Hotel etc.) */}
+          <div className="shrink-0 px-3 pt-3 empty:hidden">
+            <IndustrySlot slot={(p) => p.pos?.modeBar} />
+          </div>
 
                     {/* SEARCH */}
           <div className="shrink-0 px-5 py-3 bg-slate-50/80 border-b border-slate-100 space-y-2.5">

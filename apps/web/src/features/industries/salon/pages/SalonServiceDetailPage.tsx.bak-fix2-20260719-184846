@@ -1,0 +1,378 @@
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  ArrowLeft, Edit3, Scissors, Clock, Users, DollarSign, Award,
+  Star, TrendingUp, Eye, Trash2, Image as ImageIcon, Hash,
+  CheckCircle2, Timer, Zap, Calendar,
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/Button';
+import { formatPKR, formatPKRFull } from '@/lib/format';
+import { salonServicesApi } from '../api/services.api';
+
+const CATEGORY_EMOJI: Record<string, string> = {
+  HAIR_CUT: '✂️', HAIR_COLOR: '🎨', HAIR_TREATMENT: '💆', HAIR_STYLING: '💇',
+  BEARD_SHAVE: '🪒', FACIAL: '✨', MAKEUP: '💄', BRIDAL_MAKEUP: '👰',
+  PARTY_MAKEUP: '🎉', MANICURE: '💅', PEDICURE: '🦶', NAIL_ART: '💎',
+  WAXING: '🧴', THREADING: '🧵', MASSAGE: '💆‍♀️', BODY_TREATMENT: '🧖',
+  SPA_PACKAGE: '🌿', MEHNDI: '🎨', HAIR_EXTENSION: '💇‍♀️', KERATIN: '🔬',
+  BOTOX: '💉', OTHER: '⭐',
+};
+
+export default function SalonServiceDetailPage() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const { data: service, isLoading } = useQuery({
+    queryKey: ['salon-service', id],
+    queryFn: () => salonServicesApi.getOne(id!),
+    enabled: !!id,
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: () => salonServicesApi.remove(id!),
+    onSuccess: () => {
+      toast.success('Service deleted');
+      queryClient.invalidateQueries({ queryKey: ['salon-services'] });
+      navigate('/salon/services');
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Delete failed'),
+  });
+
+  if (isLoading || !service) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <div className="h-12 w-12 rounded-full border-4 border-pink-200 border-t-pink-600 animate-spin" />
+      </div>
+    );
+  }
+
+  const hasDiscount = service.discountPrice && service.discountPrice < service.price;
+  const effectivePrice = hasDiscount ? service.discountPrice! : service.price;
+  const profit = effectivePrice - (service.costPrice || 0);
+  const margin = effectivePrice > 0 ? (profit / effectivePrice) * 100 : 0;
+  const commission = (effectivePrice * service.commissionPct / 100) + service.commissionFixed;
+  const totalDuration = service.durationMinutes + service.bufferBefore + service.bufferAfter;
+
+  return (
+    <div className="space-y-5 pb-8">
+      {/* Back + actions */}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <button
+          onClick={() => navigate('/salon/services')}
+          className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-pink-600 font-bold transition"
+        >
+          <ArrowLeft className="h-4 w-4" /> Back to Services
+        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link
+            to="/salon/appointments/new"
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-50 border-2 border-emerald-200 hover:bg-emerald-100 text-emerald-700 text-sm font-extrabold transition"
+          >
+            <Calendar className="h-4 w-4" /> Book Appointment
+          </Link>
+          <button
+            onClick={() => {
+              if (confirm(`Delete "${service.name}"?`)) removeMutation.mutate();
+            }}
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-rose-50 border-2 border-rose-200 hover:bg-rose-100 text-rose-700 text-sm font-extrabold transition"
+          >
+            <Trash2 className="h-4 w-4" /> Delete
+          </button>
+        </div>
+      </div>
+
+      {/* HERO */}
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-pink-900 to-rose-700 text-white shadow-2xl">
+        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-pink-400/20 blur-3xl" />
+        <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-rose-400/15 blur-3xl" />
+
+        <div className="relative grid lg:grid-cols-[280px_1fr] gap-6 p-6">
+          <div className="relative aspect-square rounded-2xl overflow-hidden bg-white/10 backdrop-blur border-2 border-white/20 shrink-0">
+            {service.imageUrl ? (
+              <img src={service.imageUrl} alt={service.name} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-6xl">
+                {CATEGORY_EMOJI[service.category] || '💇'}
+              </div>
+            )}
+            {service.isFeatured && (
+              <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-amber-500 text-white text-[10px] font-extrabold shadow-lg inline-flex items-center gap-1">
+                <Star className="h-3 w-3 fill-white" /> FEATURED
+              </div>
+            )}
+            {service.isPopular && (
+              <div className="absolute top-12 right-3 px-2 py-1 rounded-lg bg-red-500 text-white text-[10px] font-extrabold shadow-lg inline-flex items-center gap-1">
+                <TrendingUp className="h-3 w-3" /> POPULAR
+              </div>
+            )}
+            {!service.isActive && (
+              <div className="absolute inset-x-0 bottom-0 py-1.5 bg-rose-600 text-white text-center text-xs font-extrabold">
+                INACTIVE
+              </div>
+            )}
+          </div>
+
+          <div className="min-w-0">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
+              <Scissors className="h-3.5 w-3.5 text-amber-300" />
+              {CATEGORY_EMOJI[service.category]} {service.category.replace(/_/g, ' ')}
+            </div>
+            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">{service.name}</h1>
+            {service.description && (
+              <p className="mt-2 text-sm text-white/85 max-w-2xl">{service.description}</p>
+            )}
+
+            <div className="mt-3 flex items-center gap-3 flex-wrap text-xs">
+              {service.code && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/10 backdrop-blur font-mono">
+                  <Hash className="h-3 w-3" /> {service.code}
+                </span>
+              )}
+              {hasDiscount && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/30 border border-emerald-300/40 font-extrabold">
+                  <Zap className="h-3 w-3" /> {(((service.price - service.discountPrice!) / service.price) * 100).toFixed(0)}% OFF
+                </span>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5">
+              <HeroStat icon={Clock} label="Duration" value={`${service.durationMinutes}m`} sub={`Total: ${totalDuration}m`} tone="blue" />
+              <HeroStat icon={Users} label="Audience" value={[
+                service.forMen && 'Men', service.forWomen && 'Women', service.forKids && 'Kids',
+              ].filter(Boolean).length} sub="groups" tone="pink" />
+              <HeroStat icon={Calendar} label="Bookings" value={service.totalBookings} sub="total" tone="violet" />
+              <HeroStat icon={DollarSign} label="Revenue" value={formatPKR(service.totalRevenue)} tone="emerald" />
+            </div>
+
+            <div className="mt-5 flex items-center gap-4 flex-wrap">
+              <div>
+                <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">
+                  {hasDiscount ? 'Sale Price' : 'Price'}
+                </div>
+                <div className="text-3xl font-extrabold tabular-nums leading-none mt-1">
+                  {formatPKRFull(effectivePrice)}
+                </div>
+                {hasDiscount && (
+                  <div className="text-sm text-white/50 line-through tabular-nums">
+                    {formatPKRFull(service.price)}
+                  </div>
+                )}
+              </div>
+              {service.costPrice && service.costPrice > 0 && (
+                <div>
+                  <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Cost</div>
+                  <div className="text-xl font-extrabold tabular-nums text-white/80 leading-none mt-1">
+                    {formatPKRFull(service.costPrice)}
+                  </div>
+                </div>
+              )}
+              {commission > 0 && (
+                <div>
+                  <div className="text-[10px] uppercase font-extrabold text-amber-300 tracking-wider">Commission</div>
+                  <div className="text-xl font-extrabold tabular-nums text-amber-300 leading-none mt-1">
+                    {formatPKRFull(commission)}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* DETAILS GRID */}
+      <div className="grid lg:grid-cols-2 gap-4">
+        {/* Pricing Breakdown */}
+        <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-5">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-green-700 text-white flex items-center justify-center shadow-md">
+              <DollarSign className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-slate-900 text-lg leading-tight">Pricing Breakdown</h3>
+              <p className="text-xs text-slate-500 font-semibold">Complete financial picture</p>
+            </div>
+          </div>
+
+          <div className="space-y-2 text-sm">
+            <Row label="Regular Price" value={formatPKRFull(service.price)} />
+            {hasDiscount && (
+              <Row label="Discount Price" value={formatPKRFull(service.discountPrice!)} tone="emerald" />
+            )}
+            {service.costPrice && service.costPrice > 0 && (
+              <Row label="Cost (Products Used)" value={formatPKRFull(service.costPrice)} tone="slate" />
+            )}
+            <div className="pt-2 border-t border-slate-100">
+              <Row label="Profit / Service" value={formatPKRFull(profit)} tone="emerald" bold />
+              <Row label="Margin" value={`${margin.toFixed(1)}%`} tone="emerald" />
+            </div>
+          </div>
+        </section>
+
+        {/* Duration & Buffers */}
+        <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-5">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 text-white flex items-center justify-center shadow-md">
+              <Clock className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-slate-900 text-lg leading-tight">Time & Buffers</h3>
+              <p className="text-xs text-slate-500 font-semibold">Booking slot calculations</p>
+            </div>
+          </div>
+
+          <div className="space-y-2 text-sm">
+            <Row label="Service Duration" value={`${service.durationMinutes} min`} />
+            <Row label="Buffer Before" value={`${service.bufferBefore} min`} tone="slate" />
+            <Row label="Buffer After" value={`${service.bufferAfter} min`} tone="slate" />
+            <div className="pt-2 border-t border-slate-100">
+              <Row label="Total Chair Time" value={`${totalDuration} min`} tone="blue" bold />
+            </div>
+          </div>
+        </section>
+      </div>
+
+      {/* AUDIENCE + COMMISSION */}
+      <div className="grid lg:grid-cols-2 gap-4">
+        {/* Target Audience */}
+        <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-5">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-700 text-white flex items-center justify-center shadow-md">
+              <Users className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-slate-900 text-lg leading-tight">Target Audience</h3>
+              <p className="text-xs text-slate-500 font-semibold">Who can book this service</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2">
+            <AudienceBox label="Men" emoji="👨" active={service.forMen} />
+            <AudienceBox label="Women" emoji="👩" active={service.forWomen} />
+            <AudienceBox label="Kids" emoji="🧒" active={service.forKids} />
+          </div>
+        </section>
+
+        {/* Commission */}
+        <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-5">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-700 text-white flex items-center justify-center shadow-md">
+              <Award className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-slate-900 text-lg leading-tight">Staff Commission</h3>
+              <p className="text-xs text-slate-500 font-semibold">Per service payout</p>
+            </div>
+          </div>
+
+          <div className="space-y-2 text-sm">
+            <Row label="Percentage" value={`${service.commissionPct}%`} />
+            <Row label="Fixed Amount" value={formatPKRFull(service.commissionFixed)} tone="slate" />
+            <div className="pt-2 border-t border-slate-100">
+              <Row label="Total Commission" value={formatPKRFull(commission)} tone="amber" bold />
+              <Row label="Net to Salon" value={formatPKRFull(effectivePrice - commission)} tone="emerald" />
+            </div>
+          </div>
+        </section>
+      </div>
+
+      {/* STATS */}
+      <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-5">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-700 text-white flex items-center justify-center shadow-md">
+            <TrendingUp className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="font-extrabold text-slate-900 text-lg leading-tight">Performance Stats</h3>
+            <p className="text-xs text-slate-500 font-semibold">Historical booking data</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <StatBox label="Total Bookings" value={service.totalBookings} icon={Calendar} color="violet" />
+          <StatBox label="Total Revenue" value={formatPKR(service.totalRevenue)} icon={DollarSign} color="emerald" />
+          <StatBox label="Avg Rating" value={service.avgRating ? `${service.avgRating.toFixed(1)}★` : '—'} icon={Star} color="amber" />
+          <StatBox label="Total Reviews" value={service.totalReviews} icon={Eye} color="blue" />
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function HeroStat({ icon: Icon, label, value, sub, tone }: any) {
+  const tones: Record<string, string> = {
+    emerald: 'from-emerald-400/30 to-emerald-600/20 border-emerald-300/40',
+    blue: 'from-blue-400/30 to-blue-600/20 border-blue-300/40',
+    violet: 'from-violet-400/30 to-violet-600/20 border-violet-300/40',
+    pink: 'from-pink-400/30 to-pink-600/20 border-pink-300/40',
+  };
+  return (
+    <div className={`rounded-xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-3`}>
+      <div className="flex items-center gap-1.5 mb-1">
+        <Icon className="h-3 w-3 opacity-80" />
+        <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
+      </div>
+      <div className="text-xl font-extrabold text-white tabular-nums leading-none">{value}</div>
+      {sub && <div className="text-[10px] font-bold text-white/70 mt-0.5">{sub}</div>}
+    </div>
+  );
+}
+
+function Row({ label, value, tone, bold }: any) {
+  const tones: Record<string, string> = {
+    slate: 'text-slate-700',
+    emerald: 'text-emerald-700',
+    amber: 'text-amber-700',
+    blue: 'text-blue-700',
+  };
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-slate-500 font-semibold">{label}</span>
+      <span className={[
+        'tabular-nums',
+        bold ? 'text-base font-extrabold' : 'font-bold',
+        tones[tone] ?? 'text-slate-900',
+      ].join(' ')}>
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function AudienceBox({ label, emoji, active }: { label: string; emoji: string; active: boolean }) {
+  return (
+    <div className={[
+      'rounded-xl border-2 p-3 text-center transition',
+      active ? 'border-pink-500 bg-pink-50 shadow-sm' : 'border-slate-200 bg-slate-50 opacity-50',
+    ].join(' ')}>
+      <div className="text-3xl mb-1">{emoji}</div>
+      <div className={['text-xs font-extrabold', active ? 'text-pink-900' : 'text-slate-500'].join(' ')}>
+        {label}
+      </div>
+      {active && (
+        <div className="mt-1 inline-flex items-center gap-0.5 text-[9px] font-extrabold text-emerald-600">
+          <CheckCircle2 className="h-2.5 w-2.5" /> Available
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StatBox({ label, value, icon: Icon, color }: any) {
+  const colors: Record<string, string> = {
+    violet: 'from-violet-500 to-purple-600',
+    emerald: 'from-emerald-500 to-green-600',
+    amber: 'from-amber-500 to-orange-600',
+    blue: 'from-blue-500 to-blue-700',
+  };
+  return (
+    <div className="rounded-xl border-2 border-slate-200 p-3">
+      <div className={['h-8 w-8 rounded-lg bg-gradient-to-br text-white flex items-center justify-center shadow mb-2', colors[color]].join(' ')}>
+        <Icon className="h-4 w-4" />
+      </div>
+      <div className="text-[9px] uppercase font-extrabold text-slate-500">{label}</div>
+      <div className="text-lg font-extrabold text-slate-900 tabular-nums">{value}</div>
+    </div>
+  );
+}

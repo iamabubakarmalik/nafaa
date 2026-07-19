@@ -471,7 +471,7 @@ function SlaughterForm({ onClose, onSaved }: any) {
 
         {/* Photos */}
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block flex items-center gap-1">
+          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block items-center gap-1">
             <Camera className="h-3 w-3" />
             Photos
           </label>

@@ -158,8 +158,8 @@ export default function RoomsPage() {
             <RoomCard
               key={room.id}
               room={room}
-              onStatusChange={(status) => statusMutation.mutate({ id: room.id, status })}
-              onHkChange={(hs) => hkMutation.mutate({ id: room.id, hs })}
+              onStatusChange={(status: string) => statusMutation.mutate({ id: room.id, status })}
+              onHkChange={(hs: string) => hkMutation.mutate({ id: room.id, hs })}
               onEdit={() => { setEditing(room); setShowForm(true); }}
               onDelete={() => { if (confirm('Remove room ' + room.roomNumber + '?')) removeMutation.mutate(room.id); }}
             />

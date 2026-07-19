@@ -16,29 +16,35 @@ import GoogleCompleteSignupPage from '@/features/auth/pages/GoogleCompleteSignup
 import GoogleErrorPage from '@/features/auth/pages/GoogleErrorPage';
 import EmailVerifyPage from '@/features/auth/pages/EmailVerifyPage';
 import DashboardPage from '@/features/dashboard/pages/DashboardPage';
+import DashboardGate from '@/features/dashboard/pages/DashboardGate';
 import BrandsPage from '@/features/brands/pages/BrandsPage';
 import TagsPage from '@/features/tags/pages/TagsPage';
 import ProductsListPage from '@/features/products/pages/ProductsListPage';
 import ProductBulkImportPage from '@/features/products/pages/ProductBulkImportPage';
 import ProductFormPage from '@/features/products/pages/ProductFormPage';
+import ProductFormGate from '@/features/products/pages/ProductFormGate';
+import ProductViewGate from '@/features/products/pages/ProductViewGate';
 import ImeiInventoryPage from '@/features/industries/mobile/pages/ImeiInventoryPage';
-import MobileReportsPage from '@/features/industries/mobile/reports/pages/MobileReportsPage';
-import EmiPlansPage from '@/features/industries/mobile/emi/pages/EmiPlansPage';
-import EmiPlanDetailPage from '@/features/industries/mobile/emi/pages/EmiPlanDetailPage';
-import RepairTicketsPage from '@/features/industries/mobile/repairs/pages/RepairTicketsPage';
-import RepairTicketDetailPage from '@/features/industries/mobile/repairs/pages/RepairTicketDetailPage';
+import MobileReportsPage from '@/features/industries/mobile/pages/MobileReportsPage';
+import EmiPlansPage from '@/features/industries/mobile/pages/EmiPlansPage';
+import EmiPlanDetailPage from '@/features/industries/mobile/pages/EmiPlanDetailPage';
+import RepairTicketsPage from '@/features/industries/mobile/pages/RepairTicketsPage';
+import RepairTicketDetailPage from '@/features/industries/mobile/pages/RepairTicketDetailPage';
 import GlobalImeiInventoryPage from '@/features/industries/mobile/pages/GlobalImeiInventoryPage';
 import UsedPhonesPage from '@/features/industries/mobile/pages/UsedPhonesPage';
 import CatalogPage from '@/features/catalog/pages/CatalogPage';
+import CatalogGate from '@/features/catalog/pages/CatalogGate';
 import CustomersListPage from '@/features/customers/pages/CustomersListPage';
+import CustomersListGate from '@/features/customers/pages/CustomersListGate';
 import CustomerFormPage from '@/features/customers/pages/CustomerFormPage';
 import CustomerDetailPage from '@/features/customers/pages/CustomerDetailPage';
+import CustomerDetailGate from '@/features/customers/pages/CustomerDetailGate';
 import BookingsListPage from '@/features/bookings/pages/BookingsListPage';
 import BookingFormPage from '@/features/bookings/pages/BookingFormPage';
 import BookingDetailPage from '@/features/bookings/pages/BookingDetailPage';
-import PosPage from '@/features/pos/pages/PosPage';
-import SalesPage from '@/features/sales/pages/SalesPage';
-import ReceiptPage from '@/features/sales/pages/ReceiptPage';
+import PosGate from '@/features/pos/pages/PosGate';
+import SalesGate from '@/features/sales/pages/SalesGate';
+import ReceiptGate from '@/features/sales/pages/ReceiptGate';
 import SuppliersListPage from '@/features/suppliers/pages/SuppliersListPage';
 import SupplierFormPage from '@/features/suppliers/pages/SupplierFormPage';
 import SupplierDetailPage from '@/features/suppliers/pages/SupplierDetailPage';
@@ -48,6 +54,7 @@ import CategoriesPage from '@/features/categories/pages/CategoriesPage';
 import ExpensesPage from '@/features/expenses/pages/ExpensesPage';
 import StockMovementsPage from '@/features/stock-movements/pages/StockMovementsPage';
 import ReportsPage from '@/features/reports/pages/ReportsPage';
+import ReportsGate from '@/features/reports/pages/ReportsGate';
 import StockReportPage from '@/features/stock-report/pages/StockReportPage';
 import SettingsPage from '@/features/settings/pages/SettingsPage';
 import BarcodeLabelsPage from '@/features/barcodes/pages/BarcodeLabelsPage';
@@ -95,7 +102,6 @@ import DamageLogPage from '@/features/industries/retail/pages/DamageLogPage';
 import ProductUnitsPage from '@/features/industries/retail/pages/ProductUnitsPage';
 import QuickKeysPage from '@/features/industries/retail/pages/QuickKeysPage';
 import RestaurantDashboardPage from '@/features/industries/restaurant/pages/RestaurantDashboardPage';
-import ReceiptSettingsPage from '@/features/receipts/pages/ReceiptSettingsPage';
 import RestaurantOrdersPage from '@/features/industries/restaurant/pages/RestaurantOrdersPage';
 import TablesLayoutPage from '@/features/industries/restaurant/pages/TablesLayoutPage';
 import MenuItemsPage from '@/features/industries/restaurant/pages/MenuItemsPage';
@@ -147,13 +153,13 @@ import HardwareCreditAccountsPage from '@/features/industries/hardware/pages/Cre
 import HardwareReorderRulesPage from '@/features/industries/hardware/pages/ReorderRulesPage';
 import DairyDashboardPage from '@/features/industries/dairy/pages/DairyDashboardPage';
 import DairyFarmersPage from '@/features/industries/dairy/pages/FarmersPage';
-import DairyCustomersPage from '@/features/industries/dairy/pages/CustomersPage';
+import DairyCustomersPage from '@/features/industries/dairy/pages/DairyCustomersPage';
 import DairyRoutesPage from '@/features/industries/dairy/pages/RoutesPage';
 import DairyDeliveriesPage from '@/features/industries/dairy/pages/DeliveriesPage';
 import DairyFarmerSuppliesPage from '@/features/industries/dairy/pages/FarmerSuppliesPage';
 import DairyMonthlyBillsPage from '@/features/industries/dairy/pages/MonthlyBillsPage';
 import DairyQualityTestsPage from '@/features/industries/dairy/pages/QualityTestsPage';
-import DairyProductsPage from '@/features/industries/dairy/pages/ProductsPage';
+import DairyProductsPage from '@/features/industries/dairy/pages/DairyProductsPage';
 import MeatDashboardPage from '@/features/industries/meat/pages/MeatDashboardPage';
 import MeatProductsPage from '@/features/industries/meat/pages/MeatProductsPage';
 import LiveAnimalsPage from '@/features/industries/meat/pages/LiveAnimalsPage';
@@ -220,6 +226,12 @@ import AppShell from '@/components/layout/AppShell';
 import PermissionRoute from '@/routes/PermissionRoute';
 import { PERMISSIONS } from '@/lib/permissions';
 
+// ─── Industry Pack System ──────────────────────────────────
+import '@/bootstrap/registerIndustries';
+import { IndustryProvider } from '@/features/industries/_shared/registry/IndustryProvider';
+import { industryRoutes } from '@/features/industries/_shared/registry/IndustryRoutes';
+
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: { retry: 1, refetchOnWindowFocus: false },
@@ -242,7 +254,8 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <Routes>
+        <IndustryProvider>
+          <Routes>
           <Route element={<PublicOnlyRoute />}>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
@@ -256,13 +269,14 @@ export default function App() {
           <Route element={<ProtectedRoute />}>
             <Route element={<OnboardingGate />}>
               <Route element={<AppShell />}>
-                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/dashboard" element={<DashboardGate />} />
 
                 {/* Notifications inside shell so header + sidebar visible */}
                 <Route path="/notifications" element={<NotificationsPage />} />
 
-                <Route path="/products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <ProductFormPage />)} />
-                <Route path="/products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <ProductFormPage />)} />
+                <Route path="/products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <ProductFormGate />)} />
+                <Route path="/products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ProductViewGate />)} />
+            <Route path="/products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <ProductFormGate />)} />
                 <Route path="/mobile-reports" element={<MobileReportsPage />} />
                 <Route path="/emi-plans/:id" element={<EmiPlanDetailPage />} />
                 <Route path="/emi-plans" element={<EmiPlansPage />} />
@@ -274,7 +288,7 @@ export default function App() {
                 <Route path="/products/bulk-import" element={secure(PERMISSIONS.PRODUCTS_CREATE, <ProductBulkImportPage />)} />
                 <Route path="/products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ProductsListPage />)} />
 
-                <Route path="/catalog" element={secure(PERMISSIONS.PRODUCTS_VIEW, <CatalogPage />)} />
+                <Route path="/catalog" element={secure(PERMISSIONS.PRODUCTS_VIEW, <CatalogGate />)} />
 
                 <Route path="/brands" element={secure(PERMISSIONS.BRANDS_VIEW, <BrandsPage />)} />
                 <Route path="/tags" element={secure(PERMISSIONS.TAGS_VIEW, <TagsPage />)} />
@@ -282,14 +296,14 @@ export default function App() {
 
                 <Route path="/customers/new" element={secure(PERMISSIONS.CUSTOMERS_EDIT, <CustomerFormPage />)} />
                 <Route path="/customers/:id/edit" element={secure(PERMISSIONS.CUSTOMERS_EDIT, <CustomerFormPage />)} />
-                <Route path="/customers/:id" element={secure(PERMISSIONS.CUSTOMERS_VIEW, <CustomerDetailPage />)} />
-                <Route path="/customers" element={secure(PERMISSIONS.CUSTOMERS_VIEW, <CustomersListPage />)} />
+                <Route path="/customers/:id" element={secure(PERMISSIONS.CUSTOMERS_VIEW, <CustomerDetailGate />)} />
+                <Route path="/customers" element={secure(PERMISSIONS.CUSTOMERS_VIEW, <CustomersListGate />)} />
 
-                <Route path="/pos" element={secure(PERMISSIONS.POS_USE, <PosPage />)} />
+                <Route path="/pos" element={secure(PERMISSIONS.POS_USE, <PosGate />)} />
                 <Route path="/bookings/new" element={secure(PERMISSIONS.SALES_VIEW, <BookingFormPage />)} />
                 <Route path="/bookings/:id" element={secure(PERMISSIONS.SALES_VIEW, <BookingDetailPage />)} />
                 <Route path="/bookings" element={secure(PERMISSIONS.SALES_VIEW, <BookingsListPage />)} />
-                <Route path="/sales" element={secure(PERMISSIONS.SALES_VIEW, <SalesPage />)} />
+                <Route path="/sales" element={secure(PERMISSIONS.SALES_VIEW, <SalesGate />)} />
                 <Route path="/returns" element={secure(PERMISSIONS.RETURNS_VIEW, <ReturnsPage />)} />
                 <Route path="/discounts" element={secure(PERMISSIONS.DISCOUNTS_VIEW, <DiscountsPage />)} />
                 <Route path="/loyalty" element={secure(PERMISSIONS.LOYALTY_VIEW, <LoyaltyPage />)} />
@@ -308,11 +322,10 @@ export default function App() {
                 <Route path="/stock-movements" element={secure(PERMISSIONS.STOCK_MOVEMENTS_VIEW, <StockMovementsPage />)} />
                 <Route path="/stock-adjustments" element={secure(PERMISSIONS.STOCK_ADJUSTMENTS_MANAGE, <StockAdjustmentsPage />)} />
                 <Route path="/low-stock" element={secure(PERMISSIONS.LOW_STOCK_VIEW, <LowStockPage />)} />
-                <Route path="/reports" element={secure(PERMISSIONS.REPORTS_VIEW, <ReportsPage />)} />
+                <Route path="/reports" element={secure(PERMISSIONS.REPORTS_VIEW, <ReportsGate />)} />
                 <Route path="/stock-report" element={secure(PERMISSIONS.REPORTS_VIEW, <StockReportPage />)} />
-                <Route path="/reports" element={secure(PERMISSIONS.REPORTS_VIEW, <ReportsPage />)} />
+                <Route path="/reports" element={secure(PERMISSIONS.REPORTS_VIEW, <ReportsGate />)} />
                 <Route path="/settings" element={secure(PERMISSIONS.SETTINGS_VIEW, <SettingsPage />)} />
-                <Route path="/receipt-settings" element={secure(PERMISSIONS.SETTINGS_VIEW, <ReceiptSettingsPage />)} />
                 <Route path="/barcode-labels" element={secure(PERMISSIONS.BARCODE_LABELS_VIEW, <BarcodeLabelsPage />)} />
 
                 {/* Team & Staff */}
@@ -501,11 +514,15 @@ export default function App() {
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/help" element={<HelpPage />} />
                 <Route path="/legal" element={<LegalPage />} />
+
+                {/* ── Industry pack routes (auto-registered) ── */}
+                {industryRoutes()}
+
               </Route>
             </Route>
 
             {/* Standalone routes (no shell) */}
-            <Route path="/sales/:id/receipt" element={<ReceiptPage />} />
+            <Route path="/sales/:id/receipt" element={<ReceiptGate />} />
             <Route path="/onboarding" element={<OnboardingPage />} />
             <Route path="/verify-email" element={<EmailVerifyPage />} />
           </Route>
@@ -513,6 +530,7 @@ export default function App() {
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
+        </IndustryProvider>
       </BrowserRouter>
 
       <Toaster position="top-right" richColors />

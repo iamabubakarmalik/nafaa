@@ -1,0 +1,116 @@
+import { Building, LayoutDashboard, Award, Package, FileText, Truck, CreditCard, AlertTriangle, Sparkles } from 'lucide-react';
+import type { IndustryPack } from '@/features/industries/_shared/types/industry-pack';
+
+import HardwareDashboardPage from './pages/HardwareDashboardPage';
+import HardwareBrandsPage from './pages/BrandsPage';
+import HardwareProductsPage from './pages/ProductsPage';
+import HardwareProjectsPage from './pages/ProjectsPage';
+import HardwareQuotationsPage from './pages/QuotationsPage';
+import HardwareNewQuotationPage from './pages/NewQuotationPage';
+import HardwareQuotationDetailPage from './pages/QuotationDetailPage';
+import HardwareDeliveriesPage from './pages/DeliveriesPage';
+import HardwareCreditAccountsPage from './pages/CreditAccountsPage';
+import HardwareReorderRulesPage from './pages/ReorderRulesPage';
+import HardwareProductWizardPage from './pages/HardwareProductWizardPage';
+import HardwareProductDetailPage from './pages/HardwareProductDetailPage';
+
+export const HardwarePack: IndustryPack = {
+  id: 'hardware',
+  name: 'Hardware / Building Materials',
+  shortName: 'Hardware',
+  emoji: '🔨',
+  themeColor: '#a16207',
+  priority: 48,
+  description:
+    'Bulk pricing tiers, project tracking, quotations, delivery dispatch, credit khata, reorder alerts.',
+
+  matches: (tenant) => {
+    if (!tenant) return false;
+    const type = (tenant.businessType ?? '').toUpperCase();
+    return (
+      type.includes('HARDWARE') ||
+      type.includes('BUILDING') ||
+      type.includes('CONSTRUCTION') ||
+      type.includes('CEMENT') ||
+      type.includes('STEEL') ||
+      type.includes('SANITARY') ||
+      type.includes('PLUMBING') ||
+      type.includes('TILES') ||
+      type.includes('PAINT')
+    );
+  },
+
+  navGroups: [
+    {
+      label: 'Hardware Industry',
+      icon: Building,
+      emoji: '🔨',
+      color: '#a16207',
+      order: 20,
+      items: [
+        { to: '/hardware-products/new', label: '+ Add Hardware Product', icon: Sparkles, badge: 'FAST' },
+        { to: '/hardware/dashboard', label: 'Hardware Dashboard', icon: LayoutDashboard, badge: 'NEW' },
+        { to: '/hardware/brands', label: 'Brands', icon: Award },
+        { to: '/hardware/products', label: 'Products', icon: Package },
+        { to: '/hardware/projects', label: 'Projects', icon: Building },
+        { to: '/hardware/quotations', label: 'Quotations', icon: FileText },
+        { to: '/hardware/deliveries', label: 'Deliveries', icon: Truck },
+        { to: '/hardware/credit-accounts', label: 'Credit Accounts', icon: CreditCard },
+        { to: '/hardware/reorder-rules', label: 'Reorder Alerts', icon: AlertTriangle },
+      ],
+    },
+  ],
+
+  routes: [
+    // ✅ VERY IMPORTANT — wizard FIRST
+    { path: '/hardware-products/new', element: HardwareProductWizardPage },
+    { path: '/hardware-products/:id/edit', element: HardwareProductWizardPage },
+
+    { path: '/hardware', element: HardwareDashboardPage },
+    { path: '/hardware/dashboard', element: HardwareDashboardPage },
+    { path: '/hardware/brands', element: HardwareBrandsPage },
+    { path: '/hardware/products', element: HardwareProductsPage },
+
+    // optional detail page
+    { path: '/hardware-products/:id', element: HardwareProductDetailPage },
+
+    { path: '/hardware/projects', element: HardwareProjectsPage },
+    { path: '/hardware/quotations/new', element: HardwareNewQuotationPage },
+    { path: '/hardware/quotations/:id', element: HardwareQuotationDetailPage },
+    { path: '/hardware/quotations', element: HardwareQuotationsPage },
+    { path: '/hardware/deliveries', element: HardwareDeliveriesPage },
+    { path: '/hardware/credit-accounts', element: HardwareCreditAccountsPage },
+    { path: '/hardware/reorder-rules', element: HardwareReorderRulesPage },
+  ],
+
+  dashboardComponent: HardwareDashboardPage,
+
+  productForm: {
+    defaultUnit: 'pcs',
+    unitOptions: [
+      { value: 'bag', label: 'Bag (cement)', hint: '🛍️', group: 'Bulk' },
+      { value: 'ton', label: 'Ton (steel/sand)', hint: '⚖️', group: 'Bulk' },
+      { value: 'kg', label: 'Kilogram', hint: '⚖️', group: 'Weight' },
+      { value: 'pcs', label: 'Pieces', hint: '🔢', group: 'Count' },
+      { value: 'bundle', label: 'Bundle', hint: '📦', group: 'Count' },
+      { value: 'meter', label: 'Meter', hint: '📏', group: 'Length' },
+      { value: 'feet', label: 'Feet', hint: '📏', group: 'Length' },
+      { value: 'sqft', label: 'Sq Feet (tiles)', hint: '📐', group: 'Area' },
+      { value: 'sqm', label: 'Sq Meter', hint: '📐', group: 'Area' },
+      { value: 'cft', label: 'Cubic Feet (sand/gravel)', hint: '📦', group: 'Volume' },
+      { value: 'liter', label: 'Liter (paint)', hint: '🥛', group: 'Volume' },
+      { value: 'gallon', label: 'Gallon (paint)', hint: '🪣', group: 'Volume' },
+      { value: 'sheet', label: 'Sheet', hint: '📄', group: 'Count' },
+      { value: 'box', label: 'Box (tiles)', hint: '📦', group: 'Count' },
+      { value: 'trip', label: 'Trip (bulk delivery)', hint: '🚚', group: 'Delivery' },
+    ],
+  },
+
+  featureFlags: [
+    { key: 'hardwareBulkPricing', label: 'Bulk Pricing Tiers', defaultEnabled: true },
+    { key: 'hardwareProjects', label: 'Project Tracking', defaultEnabled: true },
+    { key: 'hardwareQuotations', label: 'Quotations', defaultEnabled: true },
+    { key: 'hardwareDeliveries', label: 'Delivery Dispatch', defaultEnabled: true },
+    { key: 'hardwareCredit', label: 'Credit Khata', defaultEnabled: true },
+  ],
+};

@@ -145,7 +145,7 @@ export default function BulkOrdersPage() {
             <OrderCard
               key={order.id}
               order={order}
-              onAdvance={(next) => statusMutation.mutate({ id: order.id, status: next })}
+              onAdvance={(next: string) => statusMutation.mutate({ id: order.id, status: next })}
             />
           ))}
         </section>

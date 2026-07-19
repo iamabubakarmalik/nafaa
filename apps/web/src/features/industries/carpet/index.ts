@@ -26,3 +26,4 @@ export const carpetPlugin: IndustryPlugin = {
   AdminStockBlock: CarpetAdminStockBlock,
   CustomerStockBlock: CarpetCustomerStockBlock,
 };
+export { CarpetPack } from './CarpetPack';

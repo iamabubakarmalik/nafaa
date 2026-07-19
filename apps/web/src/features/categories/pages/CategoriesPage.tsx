@@ -2,40 +2,38 @@ import { useState, useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Tag, Plus, Trash2, Package, Search, X, Edit3, Save, Sparkles,
-  Download, RefreshCw, Star, Palette, TrendingUp, Filter,
+  Download, RefreshCw, Star, Palette, Filter, Zap, CheckCircle2,
+  ChevronRight, Grid3x3, List, Import,
 } from 'lucide-react';
 import { categoriesApi } from '@/api/categories.api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { toast } from 'sonner';
+import { useIndustryPresets } from '@/features/industries/_shared/presets';
 
 const COLOR_PRESETS = [
   '#2c9466', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6',
   '#ec4899', '#06b6d4', '#84cc16', '#a855f7', '#f97316',
   '#10b981', '#6366f1', '#d946ef', '#eab308', '#14b8a6',
+  '#dc2626', '#f97316', '#78350f', '#0ea5e9', '#16a34a',
 ];
 
-const SUGGESTED_CATEGORIES = [
-  { name: 'Bakery Items', color: '#f59e0b' },
-  { name: 'Drinks & Beverages', color: '#3b82f6' },
-  { name: 'Snacks', color: '#ef4444' },
-  { name: 'Dairy Products', color: '#06b6d4' },
-  { name: 'Grocery', color: '#10b981' },
-  { name: 'Spare Parts', color: '#6366f1' },
-  { name: 'Stationery', color: '#8b5cf6' },
-  { name: 'Electronics', color: '#0ea5e9' },
-];
-
-type Filter = 'all' | 'used' | 'unused';
+type FilterMode = 'all' | 'used' | 'unused';
+type ViewMode = 'grid' | 'list';
 
 export default function CategoriesPage() {
   const queryClient = useQueryClient();
+  const industryPresets = useIndustryPresets();
+
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<Filter>('all');
+  const [filter, setFilter] = useState<FilterMode>('all');
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [showForm, setShowForm] = useState(false);
+  const [showBulkImport, setShowBulkImport] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const [name, setName] = useState('');
   const [color, setColor] = useState(COLOR_PRESETS[0]);
+  const [selectedPresets, setSelectedPresets] = useState<Set<string>>(new Set());
 
   const { data: categories = [], refetch, isRefetching } = useQuery({
     queryKey: ['categories'],
@@ -51,6 +49,24 @@ export default function CategoriesPage() {
       queryClient.invalidateQueries({ queryKey: ['dashboard-overview'] });
     },
     onError: (err: any) => toast.error(err?.response?.data?.message || 'Failed'),
+  });
+
+  const bulkCreateMutation = useMutation({
+    mutationFn: async (presets: Array<{ name: string; color: string }>) => {
+      const results = await Promise.allSettled(
+        presets.map((p) => categoriesApi.create({ name: p.name, color: p.color }))
+      );
+      const succeeded = results.filter((r) => r.status === 'fulfilled').length;
+      const failed = results.length - succeeded;
+      return { succeeded, failed };
+    },
+    onSuccess: ({ succeeded, failed }) => {
+      if (succeeded > 0) toast.success(`${succeeded} categories added`);
+      if (failed > 0) toast.error(`${failed} failed (likely duplicates)`);
+      setShowBulkImport(false);
+      setSelectedPresets(new Set());
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+    },
   });
 
   const deleteMutation = useMutation({
@@ -84,6 +100,11 @@ export default function CategoriesPage() {
       .slice(0, 5);
   }, [categories]);
 
+  const existingNames = new Set(categories.map((c: any) => c.name.toLowerCase()));
+  const availablePresets = industryPresets.categories.filter(
+    (s) => !existingNames.has(s.name.toLowerCase())
+  );
+
   const openCreate = () => {
     setEditing(null);
     setName('');
@@ -112,6 +133,24 @@ export default function CategoriesPage() {
     setShowForm(true);
   };
 
+  const togglePresetSelection = (name: string) => {
+    setSelectedPresets((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  };
+
+  const selectAllPresets = () => setSelectedPresets(new Set(availablePresets.map((p) => p.name)));
+  const deselectAllPresets = () => setSelectedPresets(new Set());
+
+  const bulkAddSelected = () => {
+    const toAdd = availablePresets.filter((p) => selectedPresets.has(p.name));
+    if (toAdd.length === 0) return toast.error('Select at least one category');
+    bulkCreateMutation.mutate(toAdd);
+  };
+
   const exportCSV = () => {
     if (filtered.length === 0) return toast.error('No data');
     const headers = ['Name', 'Color', 'Products Count'];
@@ -127,9 +166,6 @@ export default function CategoriesPage() {
     toast.success('Exported');
   };
 
-  const existingNames = new Set(categories.map((c: any) => c.name.toLowerCase()));
-  const availableSuggestions = SUGGESTED_CATEGORIES.filter((s) => !existingNames.has(s.name.toLowerCase()));
-
   return (
     <div className="space-y-6">
       {/* ═══ HERO ═══ */}
@@ -142,13 +178,30 @@ export default function CategoriesPage() {
             <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur px-3 py-1 text-xs font-extrabold">
               <Tag className="h-3.5 w-3.5 text-amber-300" />
               Product Organization
+              {industryPresets.industryId && (
+                <>
+                  <span className="text-white/40">•</span>
+                  <span>{industryPresets.industryEmoji} {industryPresets.industryName}</span>
+                </>
+              )}
             </div>
             <h2 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">Categories</h2>
             <p className="mt-2 text-sm text-white/80">
-              Apne products ko Bakery, Drinks, Spare Parts mein organize karein for fast filtering
+              {industryPresets.industryId
+                ? `${industryPresets.industryName} industry ke liye ready-made suggestions available hain — click karke add karo`
+                : 'Apne products ko groups mein organize karein for fast filtering'}
             </p>
           </div>
           <div className="flex gap-2 flex-wrap">
+            {availablePresets.length > 0 && (
+              <button
+                onClick={() => setShowBulkImport(true)}
+                className="inline-flex items-center gap-2 rounded-xl bg-amber-500/30 hover:bg-amber-500/50 border-2 border-amber-300/40 px-4 py-2.5 text-sm font-bold transition backdrop-blur"
+              >
+                <Import className="h-4 w-4" />
+                Bulk Import ({availablePresets.length})
+              </button>
+            )}
             <button
               onClick={() => refetch()}
               disabled={isRefetching}
@@ -172,32 +225,61 @@ export default function CategoriesPage() {
         <StatCard label="Total Products" value={stats.totalProducts} sub="Categorized items" icon={Package} color="violet" />
       </section>
 
-      {/* ═══ SUGGESTIONS ═══ */}
-      {availableSuggestions.length > 0 && (
-        <section className="rounded-3xl bg-gradient-to-br from-emerald-50 to-green-50 border-2 border-emerald-200 p-5">
-          <div className="flex items-center gap-2 mb-3">
-            <Sparkles className="h-4 w-4 text-emerald-600" />
-            <h3 className="font-extrabold text-emerald-900">Quick Add Suggestions</h3>
-            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">Popular categories</span>
+      {/* ═══ INDUSTRY QUICK ADD ═══ */}
+      {availablePresets.length > 0 && (
+        <section className="rounded-3xl bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 border-2 border-emerald-200 p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white flex items-center justify-center shadow-md">
+                <Zap className="h-4 w-4" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-emerald-900">
+                  {industryPresets.industryEmoji} {industryPresets.industryName} — Quick Add
+                </h3>
+                <p className="text-[11px] text-emerald-700 font-bold">
+                  {availablePresets.length} suggested categories for your industry
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowBulkImport(true)}
+              className="text-xs font-extrabold text-emerald-700 hover:text-emerald-800 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white border-2 border-emerald-300 hover:border-emerald-400 transition"
+            >
+              <Import className="h-3 w-3" />
+              Bulk Import All
+              <ChevronRight className="h-3 w-3" />
+            </button>
           </div>
-          <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-2">
-            {availableSuggestions.slice(0, 8).map((s) => (
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+            {availablePresets.slice(0, 12).map((s) => (
               <button
                 key={s.name}
                 onClick={() => quickAdd(s)}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white border-2 hover:shadow-md hover:scale-105 transition"
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white border-2 hover:shadow-lg hover:scale-105 hover:-translate-y-0.5 transition-all group"
                 style={{ borderColor: `${s.color}50` }}
               >
-                <div className="h-8 w-8 rounded-lg flex items-center justify-center text-white shadow-sm shrink-0" style={{ backgroundColor: s.color }}>
+                <div className="h-9 w-9 rounded-lg flex items-center justify-center text-white shadow-sm shrink-0 group-hover:scale-110 transition-transform" style={{ backgroundColor: s.color }}>
                   <Tag className="h-4 w-4" />
                 </div>
-                <div className="text-left min-w-0">
+                <div className="text-left min-w-0 flex-1">
                   <div className="text-xs font-extrabold text-slate-900 truncate">{s.name}</div>
-                  <div className="text-[9px] text-slate-500 font-bold">+ Click to add</div>
+                  <div className="text-[9px] text-slate-500 font-bold inline-flex items-center gap-0.5">
+                    <Plus className="h-2.5 w-2.5" />
+                    Click to add
+                  </div>
                 </div>
               </button>
             ))}
           </div>
+          {availablePresets.length > 12 && (
+            <button
+              onClick={() => setShowBulkImport(true)}
+              className="mt-3 w-full py-2 rounded-xl bg-white/80 hover:bg-white border-2 border-emerald-200 hover:border-emerald-300 text-xs font-extrabold text-emerald-700 transition"
+            >
+              + {availablePresets.length - 12} more suggestions — Open Bulk Import
+            </button>
+          )}
         </section>
       )}
 
@@ -258,6 +340,20 @@ export default function CategoriesPage() {
               </button>
             )}
           </div>
+          <div className="inline-flex rounded-xl border border-slate-200 bg-white overflow-hidden">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`px-3 py-2 text-xs font-bold transition ${viewMode === 'grid' ? 'bg-emerald-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`}
+            >
+              <Grid3x3 className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`px-3 py-2 text-xs font-bold transition border-l ${viewMode === 'list' ? 'bg-emerald-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`}
+            >
+              <List className="h-4 w-4" />
+            </button>
+          </div>
           {filtered.length > 0 && (
             <button onClick={exportCSV} className="h-11 px-4 rounded-xl border-2 border-slate-200 hover:border-emerald-300 bg-white text-sm font-bold text-slate-700 inline-flex items-center gap-1.5 transition">
               <Download className="h-4 w-4" /> Export
@@ -266,9 +362,9 @@ export default function CategoriesPage() {
         </div>
         <div className="flex gap-1 bg-slate-100 rounded-xl p-1 w-fit">
           {[
-            { v: 'all' as Filter, l: 'All', count: stats.total, c: 'bg-slate-900' },
-            { v: 'used' as Filter, l: 'In Use', count: stats.used, c: 'bg-emerald-600' },
-            { v: 'unused' as Filter, l: 'Unused', count: stats.unused, c: 'bg-rose-600' },
+            { v: 'all' as FilterMode, l: 'All', count: stats.total, c: 'bg-slate-900' },
+            { v: 'used' as FilterMode, l: 'In Use', count: stats.used, c: 'bg-emerald-600' },
+            { v: 'unused' as FilterMode, l: 'Unused', count: stats.unused, c: 'bg-rose-600' },
           ].map((opt) => (
             <button
               key={opt.v}
@@ -286,7 +382,7 @@ export default function CategoriesPage() {
         </div>
       </div>
 
-      {/* ═══ CATEGORIES GRID ═══ */}
+      {/* ═══ CATEGORIES GRID/LIST ═══ */}
       {filtered.length === 0 ? (
         <div className="rounded-3xl bg-white border-2 border-dashed border-slate-200 p-16 text-center">
           <div className="mx-auto h-20 w-20 rounded-3xl bg-gradient-to-br from-emerald-100 to-green-200 flex items-center justify-center">
@@ -299,12 +395,19 @@ export default function CategoriesPage() {
             {search || filter !== 'all' ? 'Try different search or filter' : 'Pehli category add karein'}
           </p>
           {!search && filter === 'all' && (
-            <Button onClick={openCreate} className="mt-5">
-              <Plus className="h-4 w-4" /> Add Category
-            </Button>
+            <div className="mt-5 flex gap-2 justify-center flex-wrap">
+              {availablePresets.length > 0 && (
+                <Button onClick={() => setShowBulkImport(true)} variant="secondary">
+                  <Import className="h-4 w-4" /> Import from {industryPresets.industryName}
+                </Button>
+              )}
+              <Button onClick={openCreate}>
+                <Plus className="h-4 w-4" /> Add Manually
+              </Button>
+            </div>
           )}
         </div>
-      ) : (
+      ) : viewMode === 'grid' ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filtered.map((cat: any) => (
             <div
@@ -329,14 +432,11 @@ export default function CategoriesPage() {
               </div>
 
               <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between opacity-0 group-hover:opacity-100 transition">
-                <div className="text-[10px] text-slate-500 font-bold">
-                  Click to manage
-                </div>
+                <div className="text-[10px] text-slate-500 font-bold">Click to manage</div>
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => openEdit(cat)}
                     className="h-8 w-8 rounded-lg bg-slate-100 hover:bg-emerald-100 hover:text-emerald-700 flex items-center justify-center transition"
-                    title="Edit"
                   >
                     <Edit3 className="h-4 w-4" />
                   </button>
@@ -347,7 +447,6 @@ export default function CategoriesPage() {
                       }
                     }}
                     className="h-8 w-8 rounded-lg bg-slate-100 hover:bg-rose-100 hover:text-rose-700 flex items-center justify-center transition"
-                    title="Delete"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -355,6 +454,124 @@ export default function CategoriesPage() {
               </div>
             </div>
           ))}
+        </div>
+      ) : (
+        <div className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+          <div className="divide-y divide-slate-100">
+            {filtered.map((cat: any) => (
+              <div key={cat.id} className="px-5 py-3 hover:bg-slate-50 transition flex items-center gap-3">
+                <div className="h-11 w-11 rounded-xl flex items-center justify-center text-white shadow-md shrink-0" style={{ backgroundColor: cat.color }}>
+                  <Tag className="h-5 w-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-extrabold text-slate-900 truncate">{cat.name}</div>
+                  <div className="text-[10px] font-mono text-slate-500 uppercase">{cat.color}</div>
+                </div>
+                <div className="text-right shrink-0">
+                  <div className="font-extrabold text-emerald-700">{cat._count?.products ?? 0}</div>
+                  <div className="text-[10px] text-slate-500 font-bold">products</div>
+                </div>
+                <div className="flex gap-1 shrink-0">
+                  <button onClick={() => openEdit(cat)} className="h-8 w-8 rounded-lg bg-slate-100 hover:bg-emerald-100 hover:text-emerald-700 flex items-center justify-center transition">
+                    <Edit3 className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => { if (confirm(`Delete "${cat.name}"?`)) deleteMutation.mutate(cat.id); }}
+                    className="h-8 w-8 rounded-lg bg-slate-100 hover:bg-rose-100 hover:text-rose-700 flex items-center justify-center transition"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ═══ BULK IMPORT MODAL ═══ */}
+      {showBulkImport && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-200">
+            <div className="px-6 py-5 border-b-2 border-slate-100 bg-gradient-to-r from-emerald-50 to-green-50 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 text-white flex items-center justify-center shadow-lg">
+                  <Import className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-xl text-slate-900">
+                    {industryPresets.industryEmoji} Bulk Import — {industryPresets.industryName}
+                  </h3>
+                  <p className="text-xs text-slate-600 font-semibold">
+                    {selectedPresets.size} of {availablePresets.length} selected
+                  </p>
+                </div>
+              </div>
+              <button onClick={() => { setShowBulkImport(false); setSelectedPresets(new Set()); }} className="h-9 w-9 rounded-lg hover:bg-white flex items-center justify-center">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="px-6 py-3 border-b border-slate-100 flex items-center justify-between gap-2">
+              <div className="flex gap-2">
+                <button onClick={selectAllPresets} className="text-xs font-extrabold text-emerald-700 hover:underline">Select All</button>
+                <span className="text-slate-300">•</span>
+                <button onClick={deselectAllPresets} className="text-xs font-extrabold text-slate-600 hover:underline">Deselect All</button>
+              </div>
+              <div className="text-xs text-slate-500 font-semibold">
+                Existing categories are auto-hidden
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-2">
+                {availablePresets.map((p) => {
+                  const selected = selectedPresets.has(p.name);
+                  return (
+                    <button
+                      key={p.name}
+                      onClick={() => togglePresetSelection(p.name)}
+                      className={`flex items-center gap-2 p-3 rounded-xl border-2 transition text-left ${
+                        selected
+                          ? 'border-emerald-500 bg-emerald-50 shadow-md ring-2 ring-emerald-200'
+                          : 'border-slate-200 bg-white hover:border-emerald-300 hover:shadow-sm'
+                      }`}
+                      style={selected ? { borderColor: p.color, backgroundColor: `${p.color}15` } : {}}
+                    >
+                      <div className="h-9 w-9 rounded-lg flex items-center justify-center text-white shadow-sm shrink-0" style={{ backgroundColor: p.color }}>
+                        <Tag className="h-4 w-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-extrabold text-slate-900 truncate">{p.name}</div>
+                        <div className="text-[9px] font-mono text-slate-500 uppercase">{p.color}</div>
+                      </div>
+                      {selected && <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="px-6 py-4 border-t-2 border-slate-100 bg-slate-50 flex items-center justify-between gap-2">
+              <div className="text-sm">
+                <div className="font-extrabold text-slate-900">{selectedPresets.size} categories selected</div>
+                <div className="text-xs text-slate-500 font-semibold">Bulk add will skip duplicates</div>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="secondary" onClick={() => { setShowBulkImport(false); setSelectedPresets(new Set()); }}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={bulkAddSelected}
+                  disabled={selectedPresets.size === 0}
+                  loading={bulkCreateMutation.isPending}
+                  className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
+                >
+                  <Import className="h-4 w-4" />
+                  Import {selectedPresets.size} Categories
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -381,7 +598,7 @@ export default function CategoriesPage() {
                 label="Category Name *"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Bakery Items, Drinks, Spare Parts..."
+                placeholder="Enter category name..."
               />
 
               <div>

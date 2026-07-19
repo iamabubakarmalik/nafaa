@@ -1,6 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { X, Save, Layers, Ruler, DollarSign, MapPin, Hash } from 'lucide-react';
+import {
+  X, Save, Layers, Ruler, DollarSign, MapPin, ChevronDown, ChevronUp,
+  Sparkles, Zap, Package,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -16,25 +19,17 @@ interface Props {
   onClose: () => void;
 }
 
-const emptyForm: CreateCarpetRollPayload = {
-  productId: '',
-  variantId: undefined,
-  rollNumber: '',
-  designCode: '',
-  widthFt: 12,
-  widthInch: 0,
-  originalLengthFt: 0,
-  originalLengthInch: 0,
-  costPerSqft: 0,
-  salePricePerSqft: 0,
-  wholesalePricePerSqft: undefined,
-  sourceType: 'OPENING_STOCK',
-  rackNumber: '',
-  notes: '',
-  quality: '',
-  pile: '',
-};
-
+/**
+ * FAST Add Roll Modal
+ * ────────────────────────────────────────────────────────
+ * Design goals:
+ *   • Auto-fill EVERYTHING from product defaults (prices)
+ *   • Only 4 mandatory fields visible: variant, width, length, rack
+ *   • Advanced fields (source, quality, pile, notes) collapsed
+ *   • Auto roll-number generation
+ *   • Enter key advances focus / saves
+ *   • Zero clutter — cashier can add roll in <10 seconds
+ */
 export function AddRollModal({
   preselectedProductId,
   preselectedVariantId,
@@ -42,29 +37,104 @@ export function AddRollModal({
   onClose,
 }: Props) {
   const queryClient = useQueryClient();
+
   const [form, setForm] = useState<CreateCarpetRollPayload>({
-    ...emptyForm,
     productId: preselectedProductId ?? '',
     variantId: preselectedVariantId,
+    rollNumber: '',
+    designCode: '',
+    widthFt: 12,
+    widthInch: 0,
+    originalLengthFt: 0,
+    originalLengthInch: 0,
+    costPerSqft: 0,
+    salePricePerSqft: 0,
+    wholesalePricePerSqft: undefined,
+    sourceType: 'OPENING_STOCK',
+    rackNumber: '',
+    notes: '',
+    quality: '',
+    pile: '',
   });
 
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [autoRollNum, setAutoRollNum] = useState(true);
+
+  // ─── Data ────────────────────────────────────────────
   const { data: productsData } = useQuery({
-    queryKey: ['products', { limit: 200, isActive: true }],
-    queryFn: () => productsApi.list({ limit: 200, isActive: true }),
+    queryKey: ['products', { limit: 500, isActive: true }],
+    queryFn: () => productsApi.list({ limit: 500, isActive: true }),
+    staleTime: 60_000,
   });
 
   const { data: variants = [] } = useQuery({
     queryKey: ['product-variants', form.productId],
     queryFn: () => productVariantsApi.list(form.productId),
     enabled: Boolean(form.productId),
+    staleTime: 60_000,
   });
 
+  // Existing rolls for this product — for auto roll-number
+  const { data: existingRollsData } = useQuery({
+    queryKey: ['carpet-rolls', { productId: form.productId, limit: 1 }],
+    queryFn: () => carpetRollsApi.list({ productId: form.productId, limit: 500 }),
+    enabled: Boolean(form.productId),
+    staleTime: 30_000,
+  });
+
+  const products = productsData?.items ?? [];
+  const selectedProduct = useMemo(
+    () => products.find((p) => p.id === form.productId),
+    [products, form.productId],
+  );
+  const selectedVariant = useMemo(
+    () => variants.find((v) => v.id === form.variantId),
+    [variants, form.variantId],
+  );
+
+  // ─── Auto-fill prices when product/variant changes ───
+  useEffect(() => {
+    if (!selectedProduct) return;
+    setForm((f) => ({
+      ...f,
+      costPerSqft:
+        selectedVariant?.costPrice ??
+        selectedProduct.costPrice ??
+        f.costPerSqft,
+      salePricePerSqft:
+        selectedVariant?.price ??
+        selectedProduct.price ??
+        f.salePricePerSqft,
+      wholesalePricePerSqft:
+        selectedVariant?.wholesalePrice ??
+        selectedProduct.wholesalePrice ??
+        f.wholesalePricePerSqft,
+    }));
+  }, [selectedProduct?.id, selectedVariant?.id]); // eslint-disable-line
+
+  // ─── Auto roll-number ────────────────────────────────
+  useEffect(() => {
+    if (!autoRollNum || !existingRollsData) return;
+    const existing = existingRollsData.items ?? [];
+    // Find highest R-### number and increment
+    let maxN = 0;
+    for (const r of existing) {
+      const m = String(r.rollNumber ?? '').match(/R-(\d+)/i);
+      if (m) maxN = Math.max(maxN, parseInt(m[1], 10));
+    }
+    const next = `R-${String(maxN + 1).padStart(3, '0')}`;
+    setForm((f) => ({ ...f, rollNumber: next }));
+  }, [autoRollNum, existingRollsData]);
+
+  // ─── Mutation ────────────────────────────────────────
   const createMutation = useMutation({
     mutationFn: () => carpetRollsApi.create(form),
     onSuccess: () => {
-      toast.success(`Roll added — ${form.rollNumber || 'auto-generated'}`);
+      toast.success(`✓ ${form.rollNumber} added`);
       queryClient.invalidateQueries({ queryKey: ['carpet-rolls'] });
       queryClient.invalidateQueries({ queryKey: ['carpet-rolls-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['carpet-rolls-for-product', form.productId] });
+      queryClient.invalidateQueries({ queryKey: ['carpet-product-summary'] });
       onSuccess?.();
       onClose();
     },
@@ -73,356 +143,381 @@ export function AddRollModal({
     },
   });
 
-  const totalSqft =
-    (Number(form.widthFt) + Number(form.widthInch || 0) / 12) *
-    (Number(form.originalLengthFt || 0) + Number(form.originalLengthInch || 0) / 12);
+  // ─── Derived ─────────────────────────────────────────
+  const widthReal =
+    Number(form.widthFt) + Number(form.widthInch || 0) / 12;
+  const lengthReal =
+    Number(form.originalLengthFt) + Number(form.originalLengthInch || 0) / 12;
+  const totalSqft = widthReal * lengthReal;
   const totalCost = totalSqft * Number(form.costPerSqft || 0);
   const totalSaleValue = totalSqft * Number(form.salePricePerSqft || 0);
-  const expectedProfit = totalSaleValue - totalCost;
-
-  const products = productsData?.items ?? [];
-  const selectedProduct = products.find((p) => p.id === form.productId);
+  const profit = totalSaleValue - totalCost;
+  const margin = totalSaleValue > 0 ? (profit / totalSaleValue) * 100 : 0;
 
   const handleSubmit = () => {
-    if (!form.productId) {
-      toast.error('Product select karein');
-      return;
-    }
-    if (!form.originalLengthFt || form.originalLengthFt <= 0) {
-      toast.error('Roll length zaroori hai');
-      return;
-    }
-    if (!form.widthFt || form.widthFt <= 0) {
-      toast.error('Width zaroori hai');
-      return;
-    }
+    if (!form.productId) { toast.error('Product select karein'); return; }
+    if (!form.widthFt || form.widthFt <= 0) { toast.error('Width required'); return; }
+    if (!form.originalLengthFt || form.originalLengthFt <= 0) { toast.error('Length required'); return; }
     createMutation.mutate();
   };
 
+  const canSave = form.productId && form.widthFt > 0 && form.originalLengthFt > 0;
+
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl my-8 overflow-hidden">
-        {/* Header */}
-        <div className="bg-gradient-to-br from-brand-900 to-emerald-700 text-white p-5 flex items-center justify-between">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium">
-              <Layers className="h-3.5 w-3.5" /> Carpet Inventory
+    <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[95vh] flex flex-col overflow-hidden">
+        {/* HEADER — Compact */}
+        <div className="bg-gradient-to-br from-emerald-700 to-emerald-600 text-white px-5 py-3.5 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-white/15 flex items-center justify-center">
+              <Layers className="h-5 w-5" />
             </div>
-            <h2 className="mt-2 text-2xl font-bold">Add New Roll</h2>
-            <p className="text-xs text-white/80 mt-1">
-              Physical roll add karein — stock automatically update ho jayega
-            </p>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-extrabold leading-none">Add Roll</h2>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/20 text-[10px] font-extrabold">
+                  <Zap className="h-2.5 w-2.5" /> FAST
+                </span>
+              </div>
+              <p className="text-[11px] text-white/85 font-semibold mt-0.5">
+                Prices auto-fill • 10-second entry
+              </p>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="h-9 w-9 rounded-full bg-white/10 hover:bg-white/20 inline-flex items-center justify-center"
+            className="h-9 w-9 rounded-xl bg-white/15 hover:bg-white/25 flex items-center justify-center"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Body */}
-        <div className="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
+        {/* BODY */}
+        <div className="flex-1 overflow-y-auto p-5 space-y-4">
           {/* Product + Variant */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 text-xs uppercase tracking-wider font-bold text-slate-500">
-              <Hash className="h-3.5 w-3.5" /> Product Selection
-            </div>
-            <div className="grid sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                  Product *
-                </label>
-                <select
-                  className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm"
-                  value={form.productId}
-                  onChange={(e) =>
-                    setForm({ ...form, productId: e.target.value, variantId: undefined })
-                  }
-                >
-                  <option value="">Select product…</option>
-                  {products.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name} {p.sku ? `(${p.sku})` : ''}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                  Color / Variant
-                </label>
-                <select
-                  className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm disabled:bg-slate-50"
-                  value={form.variantId ?? ''}
-                  onChange={(e) =>
-                    setForm({ ...form, variantId: e.target.value || undefined })
-                  }
-                  disabled={!form.productId || variants.length === 0}
-                >
-                  <option value="">
-                    {variants.length === 0 ? 'No variants' : 'No specific color'}
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">
+                Product *
+              </label>
+              <select
+                autoFocus={!form.productId}
+                className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-emerald-500"
+                value={form.productId}
+                onChange={(e) =>
+                  setForm({ ...form, productId: e.target.value, variantId: undefined })
+                }
+              >
+                <option value="">Select product…</option>
+                {products.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}{p.sku ? ` (${p.sku})` : ''}
                   </option>
-                  {variants.map((v) => (
-                    <option key={v.id} value={v.id}>
-                      {v.name}
-                      {v.color ? ` — ${v.color}` : ''}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                ))}
+              </select>
             </div>
-
-            <div className="grid sm:grid-cols-2 gap-3">
-              <Input
-                label="Roll Number (optional)"
-                value={form.rollNumber ?? ''}
-                onChange={(e) => setForm({ ...form, rollNumber: e.target.value })}
-                placeholder="R-001 (khali chhor dein auto generate ke liye)"
-                hint="Manual ya supplier ka roll number"
-              />
-              <Input
-                label="Design Code (optional)"
-                value={form.designCode ?? ''}
-                onChange={(e) => setForm({ ...form, designCode: e.target.value })}
-                placeholder="SF-2024-A"
-              />
+            <div>
+              <label className="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">
+                Color / Variant
+              </label>
+              <select
+                className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-emerald-500 disabled:bg-slate-50 disabled:text-slate-400"
+                value={form.variantId ?? ''}
+                onChange={(e) =>
+                  setForm({ ...form, variantId: e.target.value || undefined })
+                }
+                disabled={!form.productId || variants.length === 0}
+              >
+                <option value="">
+                  {variants.length === 0 ? 'No variants' : '— Select color —'}
+                </option>
+                {variants.map((v) => (
+                  <option key={v.id} value={v.id}>{v.name}</option>
+                ))}
+              </select>
             </div>
           </div>
 
-          {/* Dimensions */}
-          <div className="space-y-3 pt-2 border-t border-slate-100">
-            <div className="flex items-center gap-2 text-xs uppercase tracking-wider font-bold text-slate-500">
-              <Ruler className="h-3.5 w-3.5" /> Roll Dimensions
+          {/* Auto price preview (visible immediately after product select) */}
+          {selectedProduct && (
+            <div className="rounded-xl bg-gradient-to-r from-emerald-50 to-white border-2 border-emerald-200 p-3 flex items-center gap-2 flex-wrap text-[11px]">
+              <Sparkles className="h-3 w-3 text-emerald-700 shrink-0" />
+              <span className="font-extrabold text-emerald-900">Auto-filled from {selectedVariant ? 'variant' : 'product'}:</span>
+              <span className="font-bold text-slate-700">
+                Cost <span className="text-slate-900 tabular-nums">{formatPKRFull(form.costPerSqft ?? 0)}</span>
+              </span>
+              <span className="text-slate-400">•</span>
+              <span className="font-bold text-slate-700">
+                Sale <span className="text-emerald-700 tabular-nums">{formatPKRFull(form.salePricePerSqft ?? 0)}</span>
+              </span>
+              {form.wholesalePricePerSqft ? (
+                <>
+                  <span className="text-slate-400">•</span>
+                  <span className="font-bold text-slate-700">
+                    W/S <span className="text-amber-700 tabular-nums">{formatPKRFull(form.wholesalePricePerSqft)}</span>
+                  </span>
+                </>
+              ) : null}
             </div>
-            <div className="grid sm:grid-cols-3 gap-3">
-              <Input
-                label="Width (feet) *"
-                type="number"
-                step="0.01"
-                value={form.widthFt}
-                onChange={(e) => setForm({ ...form, widthFt: Number(e.target.value) })}
-                hint="Common: 12ft"
-              />
-              <Input
-                label="Width Extra (inch)"
-                type="number"
-                step="0.5"
-                value={form.widthInch ?? 0}
-                onChange={(e) => setForm({ ...form, widthInch: Number(e.target.value) })}
-                hint="0–11 (e.g. 13ft 2in)"
-              />
-              <Input
-                label="Length (feet) *"
-                type="number"
-                step="1"
-                value={form.originalLengthFt}
-                onChange={(e) =>
-                  setForm({ ...form, originalLengthFt: Number(e.target.value) })
-                }
-                hint="Whole feet (e.g. 29 for 29ft 6in)"
-              />
-            </div>
+          )}
 
-            <div className="grid sm:grid-cols-2 gap-3">
-              <Input
-                label="Length Extra (inches)"
-                type="number"
-                step="1"
-                min="0"
-                max="11"
-                value={form.originalLengthInch ?? 0}
-                onChange={(e) =>
-                  setForm({ ...form, originalLengthInch: Number(e.target.value) })
-                }
-                hint="0-11 inches (Pakistani format: 29.6 = 29ft + 6in)"
+          {/* Roll number + Auto toggle */}
+          <div className="grid sm:grid-cols-[1fr_auto] gap-3 items-end">
+            <div>
+              <label className="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">
+                Roll Number
+              </label>
+              <input
+                value={form.rollNumber ?? ''}
+                onChange={(e) => {
+                  setForm({ ...form, rollNumber: e.target.value });
+                  setAutoRollNum(false);
+                }}
+                placeholder="R-001"
+                className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-mono font-extrabold focus:outline-none focus:border-emerald-500"
               />
-              <div className="rounded-xl bg-blue-50 border-2 border-blue-200 p-3 text-xs flex items-center">
-                <div>
-                  <div className="font-extrabold text-blue-900 mb-0.5">📏 Calculator Mode</div>
-                  <div className="text-blue-700 font-semibold">
-                    Stock book "29.6" likha hai? <br />
-                    Length: <strong>29</strong> ft, Inches: <strong>6</strong>
+            </div>
+            <label className="inline-flex items-center gap-2 cursor-pointer h-11 px-3 rounded-xl bg-blue-50 border-2 border-blue-200 hover:bg-blue-100 transition">
+              <input
+                type="checkbox"
+                checked={autoRollNum}
+                onChange={(e) => setAutoRollNum(e.target.checked)}
+                className="h-4 w-4 rounded"
+              />
+              <span className="text-xs font-extrabold text-blue-900">Auto #</span>
+            </label>
+          </div>
+
+          {/* Dimensions — big, clear inputs */}
+          <div className="rounded-xl bg-slate-50 border-2 border-slate-200 p-3.5 space-y-3">
+            <div className="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+              <Ruler className="h-3 w-3" /> Dimensions
+            </div>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1">Width</label>
+                <div className="flex gap-1">
+                  <div className="relative flex-1">
+                    <input
+                      type="number"
+                      step="1"
+                      value={form.widthFt || ''}
+                      onChange={(e) =>
+                        setForm({ ...form, widthFt: Number(e.target.value) || 0 })
+                      }
+                      placeholder="12"
+                      className="h-11 w-full rounded-xl border-2 border-slate-300 bg-white px-3 pr-8 text-base font-extrabold tabular-nums text-right focus:outline-none focus:border-emerald-500"
+                    />
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-extrabold text-slate-500">ft</span>
+                  </div>
+                  <div className="relative w-20">
+                    <input
+                      type="number"
+                      step="1"
+                      min="0"
+                      max="11"
+                      value={form.widthInch || ''}
+                      onChange={(e) => {
+                        const v = Number(e.target.value) || 0;
+                        if (v > 11) return;
+                        setForm({ ...form, widthInch: v });
+                      }}
+                      placeholder="0"
+                      className="h-11 w-full rounded-xl border-2 border-slate-300 bg-white px-3 pr-8 text-base font-extrabold tabular-nums text-right focus:outline-none focus:border-emerald-500"
+                    />
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-extrabold text-slate-500">in</span>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1">Length *</label>
+                <div className="flex gap-1">
+                  <div className="relative flex-1">
+                    <input
+                      type="number"
+                      step="1"
+                      value={form.originalLengthFt || ''}
+                      onChange={(e) =>
+                        setForm({ ...form, originalLengthFt: Number(e.target.value) || 0 })
+                      }
+                      placeholder="29"
+                      className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white px-3 pr-8 text-base font-extrabold tabular-nums text-right focus:outline-none focus:border-emerald-500"
+                    />
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-extrabold text-slate-500">ft</span>
+                  </div>
+                  <div className="relative w-20">
+                    <input
+                      type="number"
+                      step="1"
+                      min="0"
+                      max="11"
+                      value={form.originalLengthInch || ''}
+                      onChange={(e) => {
+                        const v = Number(e.target.value) || 0;
+                        if (v > 11) return;
+                        setForm({ ...form, originalLengthInch: v });
+                      }}
+                      placeholder="6"
+                      className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white px-3 pr-8 text-base font-extrabold tabular-nums text-right focus:outline-none focus:border-emerald-500"
+                    />
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-extrabold text-slate-500">in</span>
                   </div>
                 </div>
               </div>
             </div>
 
+            {/* Live sqft + value preview */}
             {totalSqft > 0 && (
-              <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 flex items-center justify-between">
+              <div className="rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 text-white p-3 flex items-center justify-between flex-wrap gap-2">
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider font-bold text-emerald-700">
-                    Total Roll Area
-                  </div>
-                  <div className="text-2xl font-extrabold text-emerald-900 mt-0.5">
+                  <div className="text-[10px] uppercase tracking-wider font-extrabold text-emerald-100">Total Area</div>
+                  <div className="text-2xl font-extrabold tabular-nums">
                     {totalSqft.toFixed(2)} <span className="text-sm font-bold">sqft</span>
                   </div>
+                  <div className="text-[10px] text-emerald-100 font-bold">
+                    {widthReal.toFixed(2)}ft × {lengthReal.toFixed(2)}ft
+                  </div>
                 </div>
-                <div className="text-right text-xs text-emerald-700 font-bold">
-                  {Number(form.widthFt)}ft {Number(form.widthInch || 0) > 0 ? `${form.widthInch}in` : ''} ×{' '}
-                  {Number(form.originalLengthFt)}ft {Number(form.originalLengthInch || 0) > 0 ? `${form.originalLengthInch}in` : ''}
+                <div className="text-right">
+                  <div className="text-[10px] uppercase tracking-wider font-extrabold text-emerald-100">Sale Value</div>
+                  <div className="text-2xl font-extrabold tabular-nums">
+                    {formatPKRFull(totalSaleValue)}
+                  </div>
+                  {profit > 0 && (
+                    <div className="text-[10px] text-emerald-100 font-bold">
+                      Profit {formatPKRFull(profit)} ({margin.toFixed(0)}%)
+                    </div>
+                  )}
                 </div>
               </div>
             )}
           </div>
 
-          {/* Pricing */}
-          <div className="space-y-3 pt-2 border-t border-slate-100">
-            <div className="flex items-center gap-2 text-xs uppercase tracking-wider font-bold text-slate-500">
-              <DollarSign className="h-3.5 w-3.5" /> Pricing (per sqft)
-            </div>
-            <div className="grid sm:grid-cols-3 gap-3">
-              <Input
-                label="Cost / sqft (PKR)"
-                type="number"
-                step="0.01"
-                value={form.costPerSqft ?? 0}
-                onChange={(e) =>
-                  setForm({ ...form, costPerSqft: Number(e.target.value) })
-                }
-                hint="Aap ne kitne mein khareeda"
-              />
-              <Input
-                label="Sale / sqft (PKR)"
-                type="number"
-                step="0.01"
-                value={form.salePricePerSqft ?? 0}
-                onChange={(e) =>
-                  setForm({ ...form, salePricePerSqft: Number(e.target.value) })
-                }
-                hint="Customer ko kitne mein bechain"
-              />
-              <Input
-                label="Wholesale / sqft (PKR)"
-                type="number"
-                step="0.01"
-                value={form.wholesalePricePerSqft ?? ''}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    wholesalePricePerSqft: e.target.value
-                      ? Number(e.target.value)
-                      : undefined,
-                  })
-                }
-                hint="Bulk customers ke liye"
-              />
-            </div>
-
-            {totalSqft > 0 && (form.costPerSqft || form.salePricePerSqft) ? (
-              <div className="grid grid-cols-3 gap-2">
-                <div className="rounded-lg bg-slate-50 border border-slate-200 p-2.5 text-center">
-                  <div className="text-[10px] uppercase font-bold text-slate-500">Total Cost</div>
-                  <div className="text-sm font-extrabold text-slate-900 mt-0.5">
-                    {formatPKRFull(totalCost)}
-                  </div>
-                </div>
-                <div className="rounded-lg bg-blue-50 border border-blue-200 p-2.5 text-center">
-                  <div className="text-[10px] uppercase font-bold text-blue-700">Sale Value</div>
-                  <div className="text-sm font-extrabold text-blue-900 mt-0.5">
-                    {formatPKRFull(totalSaleValue)}
-                  </div>
-                </div>
-                <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-2.5 text-center">
-                  <div className="text-[10px] uppercase font-bold text-emerald-700">Profit</div>
-                  <div className="text-sm font-extrabold text-emerald-900 mt-0.5">
-                    {formatPKRFull(expectedProfit)}
-                  </div>
-                </div>
-              </div>
-            ) : null}
+          {/* Rack (single field, quick access) */}
+          <div>
+            <label className="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+              <MapPin className="h-3 w-3" /> Rack / Location
+            </label>
+            <input
+              value={form.rackNumber ?? ''}
+              onChange={(e) => setForm({ ...form, rackNumber: e.target.value })}
+              placeholder="Wall-1, Rack-A"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-emerald-500"
+            />
           </div>
 
-          {/* Source + Location */}
-          <div className="space-y-3 pt-2 border-t border-slate-100">
-            <div className="flex items-center gap-2 text-xs uppercase tracking-wider font-bold text-slate-500">
-              <MapPin className="h-3.5 w-3.5" /> Source & Location
-            </div>
-            <div className="grid sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                  Source Type
-                </label>
-                <select
-                  className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm"
-                  value={form.sourceType}
+          {/* Advanced (collapsed) */}
+          <button
+            type="button"
+            onClick={() => setShowAdvanced((v) => !v)}
+            className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border-2 border-slate-200 text-xs font-extrabold text-slate-700 transition"
+          >
+            <span className="inline-flex items-center gap-1.5">
+              <Package className="h-3 w-3" />
+              Advanced (prices, source, quality, notes)
+            </span>
+            {showAdvanced ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+          </button>
+
+          {showAdvanced && (
+            <div className="space-y-3 pt-2 border-t-2 border-slate-100">
+              <div className="grid sm:grid-cols-3 gap-3">
+                <Input
+                  label="Cost /sqft"
+                  type="number"
+                  step="0.01"
+                  value={form.costPerSqft ?? 0}
+                  onChange={(e) => setForm({ ...form, costPerSqft: Number(e.target.value) })}
+                />
+                <Input
+                  label="Sale /sqft"
+                  type="number"
+                  step="0.01"
+                  value={form.salePricePerSqft ?? 0}
+                  onChange={(e) => setForm({ ...form, salePricePerSqft: Number(e.target.value) })}
+                />
+                <Input
+                  label="Wholesale /sqft"
+                  type="number"
+                  step="0.01"
+                  value={form.wholesalePricePerSqft ?? ''}
                   onChange={(e) =>
-                    setForm({ ...form, sourceType: e.target.value as any })
+                    setForm({
+                      ...form,
+                      wholesalePricePerSqft: e.target.value ? Number(e.target.value) : undefined,
+                    })
                   }
-                >
-                  <option value="OPENING_STOCK">Opening Stock (already shop par para hai)</option>
-                  <option value="PURCHASE">Naya Purchase</option>
-                  <option value="TRANSFER_IN">Transfer In (doosray shop se aaya)</option>
-                  <option value="RETURN">Customer Return</option>
-                  <option value="ADJUSTMENT">Manual Adjustment</option>
-                </select>
+                />
               </div>
-              <Input
-                label="Rack / Location"
-                value={form.rackNumber ?? ''}
-                onChange={(e) => setForm({ ...form, rackNumber: e.target.value })}
-                placeholder="Wall-2, Godown-A, Rack-1"
-              />
-            </div>
 
-            <div className="grid sm:grid-cols-2 gap-3">
-              <Input
-                label="Quality (optional)"
-                value={form.quality ?? ''}
-                onChange={(e) => setForm({ ...form, quality: e.target.value })}
-                placeholder="Premium / Standard / Economy"
-              />
-              <Input
-                label="Pile / Material (optional)"
-                value={form.pile ?? ''}
-                onChange={(e) => setForm({ ...form, pile: e.target.value })}
-                placeholder="Wool / Synthetic / Mixed"
-              />
-            </div>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Source Type</label>
+                  <select
+                    className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-emerald-500"
+                    value={form.sourceType}
+                    onChange={(e) => setForm({ ...form, sourceType: e.target.value as any })}
+                  >
+                    <option value="OPENING_STOCK">Opening Stock</option>
+                    <option value="PURCHASE">Purchase</option>
+                    <option value="TRANSFER_IN">Transfer In</option>
+                    <option value="RETURN">Return</option>
+                    <option value="ADJUSTMENT">Adjustment</option>
+                  </select>
+                </div>
+                <Input
+                  label="Design Code"
+                  value={form.designCode ?? ''}
+                  onChange={(e) => setForm({ ...form, designCode: e.target.value })}
+                  placeholder="SF-2026-A"
+                />
+              </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                Notes
-              </label>
-              <textarea
-                rows={2}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
-                value={form.notes ?? ''}
-                onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                placeholder="Koi extra detail, defect, supplier note…"
-              />
-            </div>
-          </div>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <Input
+                  label="Quality"
+                  value={form.quality ?? ''}
+                  onChange={(e) => setForm({ ...form, quality: e.target.value })}
+                  placeholder="Premium / Standard"
+                />
+                <Input
+                  label="Pile"
+                  value={form.pile ?? ''}
+                  onChange={(e) => setForm({ ...form, pile: e.target.value })}
+                  placeholder="Wool / Synthetic"
+                />
+              </div>
 
-          {/* Product preview */}
-          {selectedProduct && (
-            <div className="rounded-xl bg-violet-50 border border-violet-200 p-3 text-xs">
-              <div className="font-bold text-violet-900">{selectedProduct.name}</div>
-              <div className="text-violet-700">
-                Default sale: {formatPKRFull(selectedProduct.price)} / {selectedProduct.unit}
-                {selectedProduct.costPrice
-                  ? ` • Cost: ${formatPKRFull(selectedProduct.costPrice)}`
-                  : ''}
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Notes</label>
+                <textarea
+                  rows={2}
+                  className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500"
+                  value={form.notes ?? ''}
+                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                  placeholder="Any special note"
+                />
               </div>
             </div>
           )}
         </div>
 
-        {/* Footer */}
-        <div className="bg-slate-50 border-t border-slate-200 p-4 flex items-center justify-between gap-2">
+        {/* FOOTER */}
+        <div className="bg-slate-50 border-t-2 border-slate-200 p-4 flex items-center justify-between gap-2 shrink-0">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-200"
+            className="px-4 py-2.5 rounded-xl text-sm font-extrabold text-slate-600 hover:bg-slate-200 transition"
           >
             Cancel
           </button>
           <Button
             onClick={handleSubmit}
             loading={createMutation.isPending}
-            className="bg-gradient-to-r from-brand-700 to-emerald-700"
+            disabled={!canSave}
+            className="bg-gradient-to-r from-emerald-700 to-emerald-600 disabled:opacity-40 shadow-lg"
           >
-            <Save className="h-4 w-4" /> Save Roll
+            <Save className="h-4 w-4" />
+            {totalSqft > 0 ? `Save Roll (${totalSqft.toFixed(0)} sqft)` : 'Save Roll'}
           </Button>
         </div>
       </div>

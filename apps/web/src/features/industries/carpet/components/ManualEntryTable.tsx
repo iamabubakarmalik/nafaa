@@ -1,12 +1,12 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Plus, Trash2, Copy, AlertCircle, CheckCircle2, Package,
-  Ruler, DollarSign, MapPin, Tag, X, GripVertical,
+  RefreshCw,
 } from 'lucide-react';
 import { formatPKR } from '@/lib/format';
 
 export interface ManualRow {
-  id: string; // local row id for UI
+  id: string;
   productName: string;
   variantName: string;
   rollNumber: string;
@@ -36,13 +36,23 @@ interface Props {
   rows: ManualRow[];
   onChange: (rows: ManualRow[]) => void;
   productOptions: ProductOption[];
+  /** True while parent is still fetching product variants — table shows loading state */
+  variantsLoading?: boolean;
+  /** Optional: parent can trigger a refetch of variants */
+  onRefetchVariants?: () => void;
 }
 
 const QUALITY_OPTIONS = ['', 'Premium', 'Standard', 'Economy'];
 const PILE_OPTIONS = ['', 'Wool', 'Synthetic', 'Mixed', 'Cotton', 'Jute'];
 
-export function ManualEntryTable({ rows, onChange, productOptions }: Props) {
-  // Group products by name for dropdown
+export function ManualEntryTable({
+  rows,
+  onChange,
+  productOptions,
+  variantsLoading = false,
+  onRefetchVariants,
+}: Props) {
+  // Group products by name for dropdown — recomputes whenever productOptions changes
   const productGroups = useMemo(() => {
     const map = new Map<string, ProductOption[]>();
     for (const opt of productOptions) {
@@ -58,40 +68,65 @@ export function ManualEntryTable({ rows, onChange, productOptions }: Props) {
     [productGroups],
   );
 
+  /**
+   * BACKFILL VARIANTS AFTER LOAD
+   * When variants finally arrive from the server, any row that has a product
+   * selected but no variant (because variants weren't loaded yet) gets its
+   * first available variant auto-filled. This fixes the "refresh needed" bug.
+   */
+  useEffect(() => {
+    if (variantsLoading || productOptions.length === 0) return;
+
+    let needsUpdate = false;
+    const patchedRows = rows.map((row) => {
+      if (!row.productName) return row;
+      const variants = productGroups.get(row.productName) ?? [];
+      const hasRealVariants = variants.some((v) => v.variantName);
+
+      // If product has variants but row's variantName is empty, backfill
+      if (hasRealVariants && !row.variantName) {
+        needsUpdate = true;
+        const firstVariant = variants[0];
+        return {
+          ...row,
+          variantName: firstVariant.variantName,
+          costPerSqft:
+            row.costPerSqft === '' && firstVariant.defaultCost && firstVariant.defaultCost > 0
+              ? firstVariant.defaultCost
+              : row.costPerSqft,
+          salePricePerSqft:
+            row.salePricePerSqft === '' && firstVariant.defaultPrice && firstVariant.defaultPrice > 0
+              ? firstVariant.defaultPrice
+              : row.salePricePerSqft,
+        };
+      }
+      return row;
+    });
+
+    if (needsUpdate) {
+      onChange(patchedRows);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productGroups, variantsLoading]);
+
   const newRow = (overrides?: Partial<ManualRow>): ManualRow => ({
     id: `row-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-    productName: '',
-    variantName: '',
-    rollNumber: '',
-    designCode: '',
-    widthFt: '',
-    widthInch: '',
-    lengthFt: '',
-    lengthInch: '',
-    costPerSqft: '',
-    salePricePerSqft: '',
-    rackNumber: '',
-    quality: '',
-    pile: '',
-    notes: '',
+    productName: '', variantName: '', rollNumber: '', designCode: '',
+    widthFt: '', widthInch: '', lengthFt: '', lengthInch: '',
+    costPerSqft: '', salePricePerSqft: '',
+    rackNumber: '', quality: '', pile: '', notes: '',
     ...overrides,
   });
 
-  const addRow = () => {
-    onChange([...rows, newRow()]);
-  };
+  const addRow = () => onChange([...rows, newRow()]);
 
   const addEmptyRows = (count: number) => {
     const newRows: ManualRow[] = [];
-    for (let i = 0; i < count; i++) {
-      newRows.push(newRow());
-    }
+    for (let i = 0; i < count; i++) newRows.push(newRow());
     onChange([...rows, ...newRows]);
   };
 
-  const removeRow = (id: string) => {
-    onChange(rows.filter((r) => r.id !== id));
-  };
+  const removeRow = (id: string) => onChange(rows.filter((r) => r.id !== id));
 
   const duplicateRow = (id: string) => {
     const row = rows.find((r) => r.id === id);
@@ -119,11 +154,14 @@ export function ManualEntryTable({ rows, onChange, productOptions }: Props) {
   };
 
   /**
-   * When product changes, auto-fill defaults (variant, cost, price)
+   * When product changes, auto-fill defaults.
+   * Also handles the case where variants haven't loaded yet — variantName
+   * stays empty and will get backfilled by the useEffect above.
    */
   const handleProductChange = (id: string, productName: string) => {
     const variants = productGroups.get(productName) ?? [];
     const firstVariant = variants[0];
+
     updateRow(id, {
       productName,
       variantName: firstVariant?.variantName ?? '',
@@ -138,9 +176,6 @@ export function ManualEntryTable({ rows, onChange, productOptions }: Props) {
     });
   };
 
-  /**
-   * When variant changes, auto-fill defaults for that variant
-   */
   const handleVariantChange = (id: string, variantName: string) => {
     const row = rows.find((r) => r.id === id);
     if (!row) return;
@@ -159,7 +194,6 @@ export function ManualEntryTable({ rows, onChange, productOptions }: Props) {
     });
   };
 
-  // Validation for each row
   const getRowStatus = (row: ManualRow) => {
     const errors: string[] = [];
     if (!row.productName) errors.push('Product required');
@@ -168,28 +202,17 @@ export function ManualEntryTable({ rows, onChange, productOptions }: Props) {
     return {
       isValid: errors.length === 0,
       errors,
-      isEmpty:
-        !row.productName &&
-        !row.widthFt &&
-        !row.lengthFt &&
-        !row.rollNumber,
+      isEmpty: !row.productName && !row.widthFt && !row.lengthFt && !row.rollNumber,
     };
   };
 
   const stats = useMemo(() => {
-    let valid = 0;
-    let invalid = 0;
-    let empty = 0;
-    let totalSqft = 0;
-    let totalCost = 0;
-    let totalValue = 0;
+    let valid = 0, invalid = 0, empty = 0;
+    let totalSqft = 0, totalCost = 0, totalValue = 0;
 
     for (const row of rows) {
       const status = getRowStatus(row);
-      if (status.isEmpty) {
-        empty++;
-        continue;
-      }
+      if (status.isEmpty) { empty++; continue; }
       if (status.isValid) {
         valid++;
         const sqft =
@@ -202,11 +225,11 @@ export function ManualEntryTable({ rows, onChange, productOptions }: Props) {
         invalid++;
       }
     }
-
     return { valid, invalid, empty, totalSqft, totalCost, totalValue };
   }, [rows]);
 
-  if (productOptions.length === 0) {
+  // ─── EMPTY STATE — no carpet products ─────────────────
+  if (productOptions.length === 0 && !variantsLoading) {
     return (
       <div className="rounded-3xl border-2 border-dashed border-amber-300 bg-amber-50/30 p-12 text-center">
         <div className="h-16 w-16 rounded-2xl bg-amber-100 text-amber-700 mx-auto flex items-center justify-center mb-3">
@@ -215,13 +238,13 @@ export function ManualEntryTable({ rows, onChange, productOptions }: Props) {
         <h3 className="text-xl font-extrabold text-amber-900">
           No Carpet Products Yet
         </h3>
-        <p className="text-sm text-amber-800 mt-2 max-w-md mx-auto">
+        <p className="text-sm text-amber-800 mt-2 max-w-md mx-auto font-semibold">
           Manual entry mode use karne ke liye pehle aap ke products mein
           carpet items hone chahiye (with <strong>sqft / sqm / sqyd</strong> unit).
         </p>
         <a
           href="/products/new"
-          className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-sm font-bold"
+          className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-sm font-extrabold"
         >
           <Plus className="h-4 w-4" /> Add First Carpet Product
         </a>
@@ -231,6 +254,21 @@ export function ManualEntryTable({ rows, onChange, productOptions }: Props) {
 
   return (
     <div className="space-y-4">
+      {/* Loading banner — variants abhi fetch ho rahay hain */}
+      {variantsLoading && (
+        <div className="rounded-2xl bg-blue-50 border-2 border-blue-200 p-3 flex items-center gap-3 shadow-sm">
+          <div className="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
+            <RefreshCw className="h-5 w-5 text-blue-700 animate-spin" />
+          </div>
+          <div className="flex-1">
+            <div className="font-extrabold text-blue-900 text-sm">Loading variants...</div>
+            <div className="text-xs text-blue-700 font-semibold">
+              Product ke saare colors/variants fetch ho rahay hain. Ek second rukein.
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Stats Banner */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
         <StatPill label="Total Rows" value={String(rows.length)} color="slate" />
@@ -241,63 +279,35 @@ export function ManualEntryTable({ rows, onChange, productOptions }: Props) {
       </div>
 
       {/* Table */}
-      <div className="rounded-2xl border-2 border-slate-200 bg-white overflow-hidden">
+      <div className="rounded-2xl border-2 border-slate-200 bg-white overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
-            <thead className="bg-gradient-to-br from-slate-100 to-slate-50 sticky top-0">
+            <thead className="bg-gradient-to-br from-slate-100 to-slate-50 sticky top-0 z-10">
               <tr>
-                <th className="px-2 py-3 text-left font-bold uppercase tracking-wider text-slate-700 w-8">#</th>
-                <th className="px-2 py-3 text-left font-bold uppercase tracking-wider text-slate-700 min-w-[180px]">
-                  Product *
-                </th>
-                <th className="px-2 py-3 text-left font-bold uppercase tracking-wider text-slate-700 min-w-[140px]">
-                  Variant
-                </th>
-                <th className="px-2 py-3 text-left font-bold uppercase tracking-wider text-slate-700 min-w-[100px]">
-                  Roll #
-                </th>
-                <th className="px-2 py-3 text-center font-bold uppercase tracking-wider text-slate-700 min-w-[90px]">
-                  Width *
-                </th>
-                <th className="px-2 py-3 text-center font-bold uppercase tracking-wider text-slate-700 min-w-[80px]">
-                  Inch
-                </th>
-                <th className="px-2 py-3 text-center font-bold uppercase tracking-wider text-slate-700 min-w-[90px]">
-                  Length *
-                </th>
-                <th className="px-2 py-3 text-center font-bold uppercase tracking-wider text-slate-700 min-w-[80px]">
-                  Len Inch
-                </th>
-                <th className="px-2 py-3 text-right font-bold uppercase tracking-wider text-slate-700 min-w-[80px]">
-                  Sqft
-                </th>
-                <th className="px-2 py-3 text-right font-bold uppercase tracking-wider text-slate-700 min-w-[100px]">
-                  Cost/sqft
-                </th>
-                <th className="px-2 py-3 text-right font-bold uppercase tracking-wider text-slate-700 min-w-[100px]">
-                  Sale/sqft
-                </th>
-                <th className="px-2 py-3 text-left font-bold uppercase tracking-wider text-slate-700 min-w-[100px]">
-                  Rack
-                </th>
-                <th className="px-2 py-3 text-left font-bold uppercase tracking-wider text-slate-700 min-w-[100px]">
-                  Quality
-                </th>
-                <th className="px-2 py-3 text-left font-bold uppercase tracking-wider text-slate-700 min-w-[100px]">
-                  Pile
-                </th>
-                <th className="px-2 py-3 text-center font-bold uppercase tracking-wider text-slate-700 w-20">
-                  Actions
-                </th>
+                <th className="px-2 py-3 text-left font-extrabold uppercase tracking-wider text-slate-700 w-8">#</th>
+                <th className="px-2 py-3 text-left font-extrabold uppercase tracking-wider text-slate-700 min-w-[180px]">Product *</th>
+                <th className="px-2 py-3 text-left font-extrabold uppercase tracking-wider text-slate-700 min-w-[140px]">Variant</th>
+                <th className="px-2 py-3 text-left font-extrabold uppercase tracking-wider text-slate-700 min-w-[100px]">Roll #</th>
+                <th className="px-2 py-3 text-center font-extrabold uppercase tracking-wider text-slate-700 min-w-[90px]">Width *</th>
+                <th className="px-2 py-3 text-center font-extrabold uppercase tracking-wider text-slate-700 min-w-[80px]">Inch</th>
+                <th className="px-2 py-3 text-center font-extrabold uppercase tracking-wider text-slate-700 min-w-[90px]">Length *</th>
+                <th className="px-2 py-3 text-center font-extrabold uppercase tracking-wider text-slate-700 min-w-[80px]">Len Inch</th>
+                <th className="px-2 py-3 text-right font-extrabold uppercase tracking-wider text-slate-700 min-w-[80px]">Sqft</th>
+                <th className="px-2 py-3 text-right font-extrabold uppercase tracking-wider text-slate-700 min-w-[100px]">Cost/sqft</th>
+                <th className="px-2 py-3 text-right font-extrabold uppercase tracking-wider text-slate-700 min-w-[100px]">Sale/sqft</th>
+                <th className="px-2 py-3 text-left font-extrabold uppercase tracking-wider text-slate-700 min-w-[100px]">Rack</th>
+                <th className="px-2 py-3 text-left font-extrabold uppercase tracking-wider text-slate-700 min-w-[100px]">Quality</th>
+                <th className="px-2 py-3 text-left font-extrabold uppercase tracking-wider text-slate-700 min-w-[100px]">Pile</th>
+                <th className="px-2 py-3 text-center font-extrabold uppercase tracking-wider text-slate-700 w-20">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {rows.length === 0 ? (
                 <tr>
                   <td colSpan={15} className="px-4 py-12 text-center">
-                    <Package className="h-10 w-10 text-slate-300 mx-auto mb-2" />
-                    <p className="font-bold text-slate-700">No rows yet</p>
-                    <p className="text-xs text-slate-500 mt-1">
+                    <Package className="h-12 w-12 text-slate-300 mx-auto mb-2" />
+                    <p className="font-extrabold text-slate-700 text-base">No rows yet</p>
+                    <p className="text-sm text-slate-500 mt-1 font-semibold">
                       "Add Row" button click karein neeche
                     </p>
                   </td>
@@ -306,6 +316,7 @@ export function ManualEntryTable({ rows, onChange, productOptions }: Props) {
                 rows.map((row, idx) => {
                   const status = getRowStatus(row);
                   const variants = productGroups.get(row.productName) ?? [];
+                  const hasRealVariants = variants.some((v) => v.variantName);
                   const sqft =
                     Number(row.widthFt || 0) > 0 && Number(row.lengthFt || 0) > 0
                       ? (Number(row.widthFt) + Number(row.widthInch || 0) / 12) *
@@ -316,25 +327,19 @@ export function ManualEntryTable({ rows, onChange, productOptions }: Props) {
                     <tr
                       key={row.id}
                       className={`hover:bg-slate-50 transition ${
-                        status.isEmpty
-                          ? ''
-                          : status.isValid
-                            ? 'bg-emerald-50/30'
-                            : 'bg-rose-50/30'
+                        status.isEmpty ? ''
+                        : status.isValid ? 'bg-emerald-50/30'
+                        : 'bg-rose-50/30'
                       }`}
                     >
-                      {/* Row number + status */}
                       <td className="px-2 py-2 text-center">
                         <div className="flex flex-col items-center gap-0.5">
-                          <span className="font-mono font-bold text-slate-500 text-[10px]">
-                            {idx + 1}
-                          </span>
-                          {!status.isEmpty &&
-                            (status.isValid ? (
-                              <CheckCircle2 className="h-3 w-3 text-emerald-600" />
-                            ) : (
-                              <AlertCircle className="h-3 w-3 text-rose-600" />
-                            ))}
+                          <span className="font-mono font-extrabold text-slate-500 text-[10px]">{idx + 1}</span>
+                          {!status.isEmpty && (
+                            status.isValid
+                              ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                              : <AlertCircle className="h-3.5 w-3.5 text-rose-600" />
+                          )}
                         </div>
                       </td>
 
@@ -351,24 +356,23 @@ export function ManualEntryTable({ rows, onChange, productOptions }: Props) {
                         >
                           <option value="">— Select product —</option>
                           {productNames.map((name) => (
-                            <option key={name} value={name}>
-                              {name}
-                            </option>
+                            <option key={name} value={name}>{name}</option>
                           ))}
                         </select>
                       </td>
 
-                      {/* Variant dropdown — always show if product selected and has variants */}
+                      {/* Variant dropdown — smart states */}
                       <td className="px-2 py-2">
                         {!row.productName ? (
                           <span className="px-2 py-1.5 text-xs text-slate-400 block">—</span>
-                        ) : variants.length === 0 ? (
+                        ) : variantsLoading ? (
+                          <div className="inline-flex items-center gap-1 px-2 py-1.5 text-[10px] font-bold text-blue-700 bg-blue-50 rounded-lg border border-blue-200">
+                            <RefreshCw className="h-2.5 w-2.5 animate-spin" />
+                            Loading...
+                          </div>
+                        ) : !hasRealVariants ? (
                           <span className="px-2 py-1.5 text-[10px] italic text-slate-500 block">
-                            No variants
-                          </span>
-                        ) : variants.length === 1 && !variants[0].variantName ? (
-                          <span className="px-2 py-1.5 text-[10px] italic text-slate-500 block">
-                            (default)
+                            (no variants)
                           </span>
                         ) : (
                           <select
@@ -378,7 +382,7 @@ export function ManualEntryTable({ rows, onChange, productOptions }: Props) {
                           >
                             {variants.length > 1 && <option value="">— Select variant —</option>}
                             {variants.map((v) => (
-                              <option key={v.variantName} value={v.variantName}>
+                              <option key={v.variantName || 'default'} value={v.variantName}>
                                 {v.variantName || '(default)'}
                               </option>
                             ))}
@@ -400,15 +404,9 @@ export function ManualEntryTable({ rows, onChange, productOptions }: Props) {
                       {/* Width Ft */}
                       <td className="px-2 py-2">
                         <input
-                          type="number"
-                          step="0.01"
-                          min="0"
+                          type="number" step="0.01" min="0"
                           value={row.widthFt}
-                          onChange={(e) =>
-                            updateRow(row.id, {
-                              widthFt: e.target.value === '' ? '' : Number(e.target.value),
-                            })
-                          }
+                          onChange={(e) => updateRow(row.id, { widthFt: e.target.value === '' ? '' : Number(e.target.value) })}
                           placeholder="12"
                           className={`w-full px-2 py-1.5 rounded-lg border text-xs font-bold text-center focus:outline-none focus:ring-2 ${
                             row.widthFt && Number(row.widthFt) > 0
@@ -421,16 +419,9 @@ export function ManualEntryTable({ rows, onChange, productOptions }: Props) {
                       {/* Width Inch */}
                       <td className="px-2 py-2">
                         <input
-                          type="number"
-                          step="1"
-                          min="0"
-                          max="11"
+                          type="number" step="1" min="0" max="11"
                           value={row.widthInch}
-                          onChange={(e) =>
-                            updateRow(row.id, {
-                              widthInch: e.target.value === '' ? '' : Number(e.target.value),
-                            })
-                          }
+                          onChange={(e) => updateRow(row.id, { widthInch: e.target.value === '' ? '' : Number(e.target.value) })}
                           placeholder="0"
                           className="w-full px-2 py-1.5 rounded-lg border border-slate-200 text-xs font-bold text-center focus:outline-none focus:border-emerald-500"
                         />
@@ -439,15 +430,9 @@ export function ManualEntryTable({ rows, onChange, productOptions }: Props) {
                       {/* Length */}
                       <td className="px-2 py-2">
                         <input
-                          type="number"
-                          step="1"
-                          min="0"
+                          type="number" step="1" min="0"
                           value={row.lengthFt}
-                          onChange={(e) =>
-                            updateRow(row.id, {
-                              lengthFt: e.target.value === '' ? '' : Number(e.target.value),
-                            })
-                          }
+                          onChange={(e) => updateRow(row.id, { lengthFt: e.target.value === '' ? '' : Number(e.target.value) })}
                           placeholder="29"
                           className={`w-full px-2 py-1.5 rounded-lg border text-xs font-bold text-center focus:outline-none focus:ring-2 ${
                             row.lengthFt && Number(row.lengthFt) > 0
@@ -460,57 +445,38 @@ export function ManualEntryTable({ rows, onChange, productOptions }: Props) {
                       {/* Length Inch */}
                       <td className="px-2 py-2">
                         <input
-                          type="number"
-                          step="1"
-                          min="0"
-                          max="11"
+                          type="number" step="1" min="0" max="11"
                           value={row.lengthInch}
-                          onChange={(e) =>
-                            updateRow(row.id, {
-                              lengthInch: e.target.value === '' ? '' : Number(e.target.value),
-                            })
-                          }
+                          onChange={(e) => updateRow(row.id, { lengthInch: e.target.value === '' ? '' : Number(e.target.value) })}
                           placeholder="0"
                           className="w-full px-2 py-1.5 rounded-lg border border-slate-200 text-xs font-bold text-center focus:outline-none focus:border-emerald-500"
                         />
                       </td>
 
-                      {/* Sqft (auto-calculated) */}
+                      {/* Sqft auto */}
                       <td className="px-2 py-2 text-right">
                         <div className="font-extrabold text-emerald-700 text-sm tabular-nums">
                           {sqft > 0 ? sqft.toFixed(2) : '—'}
                         </div>
                       </td>
 
-                      {/* Cost per sqft */}
+                      {/* Cost */}
                       <td className="px-2 py-2">
                         <input
-                          type="number"
-                          step="0.01"
-                          min="0"
+                          type="number" step="0.01" min="0"
                           value={row.costPerSqft}
-                          onChange={(e) =>
-                            updateRow(row.id, {
-                              costPerSqft: e.target.value === '' ? '' : Number(e.target.value),
-                            })
-                          }
+                          onChange={(e) => updateRow(row.id, { costPerSqft: e.target.value === '' ? '' : Number(e.target.value) })}
                           placeholder="0"
                           className="w-full px-2 py-1.5 rounded-lg border border-slate-200 text-xs font-bold text-right focus:outline-none focus:border-blue-500"
                         />
                       </td>
 
-                      {/* Sale per sqft */}
+                      {/* Sale */}
                       <td className="px-2 py-2">
                         <input
-                          type="number"
-                          step="0.01"
-                          min="0"
+                          type="number" step="0.01" min="0"
                           value={row.salePricePerSqft}
-                          onChange={(e) =>
-                            updateRow(row.id, {
-                              salePricePerSqft: e.target.value === '' ? '' : Number(e.target.value),
-                            })
-                          }
+                          onChange={(e) => updateRow(row.id, { salePricePerSqft: e.target.value === '' ? '' : Number(e.target.value) })}
                           placeholder="0"
                           className="w-full px-2 py-1.5 rounded-lg border border-slate-200 text-xs font-bold text-right focus:outline-none focus:border-emerald-500"
                         />
@@ -535,9 +501,7 @@ export function ManualEntryTable({ rows, onChange, productOptions }: Props) {
                           className="w-full px-2 py-1.5 rounded-lg border border-slate-200 text-xs font-bold focus:outline-none focus:border-emerald-500"
                         >
                           {QUALITY_OPTIONS.map((q) => (
-                            <option key={q || 'none'} value={q}>
-                              {q || '—'}
-                            </option>
+                            <option key={q || 'none'} value={q}>{q || '—'}</option>
                           ))}
                         </select>
                       </td>
@@ -550,9 +514,7 @@ export function ManualEntryTable({ rows, onChange, productOptions }: Props) {
                           className="w-full px-2 py-1.5 rounded-lg border border-slate-200 text-xs font-bold focus:outline-none focus:border-emerald-500"
                         >
                           {PILE_OPTIONS.map((p) => (
-                            <option key={p || 'none'} value={p}>
-                              {p || '—'}
-                            </option>
+                            <option key={p || 'none'} value={p}>{p || '—'}</option>
                           ))}
                         </select>
                       </td>
@@ -584,27 +546,37 @@ export function ManualEntryTable({ rows, onChange, productOptions }: Props) {
           </table>
         </div>
 
-        {/* Add rows footer */}
-        <div className="border-t border-slate-200 bg-slate-50 px-4 py-3 flex items-center justify-between gap-2 flex-wrap">
+        <div className="border-t-2 border-slate-200 bg-slate-50 px-4 py-3 flex items-center justify-between gap-2 flex-wrap">
           <div className="text-xs text-slate-600 font-semibold">
-            💡 Tip: Product select karte hi cost/sale price auto-fill ho jate hain product defaults se
+            💡 Tip: Product select karte hi cost/sale price aur variant auto-fill ho jate hain
           </div>
           <div className="flex items-center gap-2">
+            {onRefetchVariants && (
+              <button
+                onClick={onRefetchVariants}
+                disabled={variantsLoading}
+                className="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 border-2 border-slate-200 text-slate-700 text-xs font-extrabold inline-flex items-center gap-1 transition disabled:opacity-50"
+                title="Reload variants"
+              >
+                <RefreshCw className={`h-3 w-3 ${variantsLoading ? 'animate-spin' : ''}`} />
+                Reload
+              </button>
+            )}
             <button
               onClick={addRow}
-              className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center gap-1 transition"
+              className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold inline-flex items-center gap-1 transition"
             >
               <Plus className="h-3 w-3" /> Add Row
             </button>
             <button
               onClick={() => addEmptyRows(5)}
-              className="px-3 py-1.5 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold transition"
+              className="px-3 py-1.5 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-extrabold transition"
             >
               + 5 Rows
             </button>
             <button
               onClick={() => addEmptyRows(10)}
-              className="px-3 py-1.5 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold transition"
+              className="px-3 py-1.5 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-extrabold transition"
             >
               + 10 Rows
             </button>
@@ -616,14 +588,8 @@ export function ManualEntryTable({ rows, onChange, productOptions }: Props) {
 }
 
 function StatPill({
-  label,
-  value,
-  color,
-}: {
-  label: string;
-  value: string;
-  color: 'slate' | 'emerald' | 'rose' | 'violet' | 'amber';
-}) {
+  label, value, color,
+}: { label: string; value: string; color: 'slate' | 'emerald' | 'rose' | 'violet' | 'amber' }) {
   const colors = {
     slate: 'bg-slate-50 border-slate-200 text-slate-900',
     emerald: 'bg-emerald-50 border-emerald-200 text-emerald-900',
@@ -633,7 +599,7 @@ function StatPill({
   };
   return (
     <div className={`rounded-xl border-2 px-3 py-2 ${colors[color]}`}>
-      <div className="text-[9px] uppercase font-bold opacity-70">{label}</div>
+      <div className="text-[10px] uppercase font-extrabold opacity-70">{label}</div>
       <div className="text-base font-extrabold mt-0.5 tabular-nums">{value}</div>
     </div>
   );

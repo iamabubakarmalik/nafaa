@@ -1,0 +1,28 @@
+import { lazy, Suspense } from 'react';
+import { useCurrentIndustry } from '@/features/industries/_shared/registry/useCurrentIndustry';
+import DashboardPage from './DashboardPage';
+
+const RestaurantDashboard = lazy(() => import('@/features/industries/restaurant/pages/RestaurantDashboardV2'));
+const MobileDashboard = lazy(() => import('@/features/industries/mobile/pages/MobileDashboardV2'));
+const CarpetDashboard = lazy(() => import('@/features/industries/carpet/pages/CarpetDashboardV2'));
+const RetailDashboard = lazy(() => import('@/features/industries/retail/pages/RetailDashboardV2'));
+const MeatDashboard = lazy(() => import('@/features/industries/meat/pages/MeatDashboardV2'));
+
+function Loader() {
+  return (
+    <div className="flex items-center justify-center py-24">
+      <div className="h-12 w-12 rounded-full border-4 border-emerald-200 border-t-emerald-600 animate-spin" />
+    </div>
+  );
+}
+
+export default function DashboardGate() {
+  const industry = useCurrentIndustry();
+
+  if (industry?.id === 'restaurant') return <Suspense fallback={<Loader />}><RestaurantDashboard /></Suspense>;
+  if (industry?.id === 'mobile') return <Suspense fallback={<Loader />}><MobileDashboard /></Suspense>;
+  if (industry?.id === 'carpet') return <Suspense fallback={<Loader />}><CarpetDashboard /></Suspense>;
+  if (industry?.id === 'retail') return <Suspense fallback={<Loader />}><RetailDashboard /></Suspense>;
+  if (industry?.id === 'meat') return <Suspense fallback={<Loader />}><MeatDashboard /></Suspense>;
+  return <DashboardPage />;
+}

@@ -2,28 +2,33 @@ import { useState, useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Plus, Search, Edit3, Trash2, Globe, Building2, X, Save,
-  CheckCircle2, Sparkles, Package, ToggleLeft, Download, Eye,
-  ExternalLink, RefreshCw, Filter, TrendingUp, Star, ArrowRight,
+  CheckCircle2, Sparkles, Package, Download, ExternalLink,
+  RefreshCw, Star, Grid3x3, List, Import, Zap, ChevronRight, Award,
 } from 'lucide-react';
 import { brandsApi, type Brand, type UpsertBrandPayload } from '@/api/brands.api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { AvatarUpload } from '@/components/uploads';
 import { toast } from 'sonner';
+import { useIndustryPresets } from '@/features/industries/_shared/presets';
 
 const empty: UpsertBrandPayload = {
   name: '', description: '', logoUrl: '', website: '', isActive: true,
 };
 
-type Filter = 'all' | 'active' | 'inactive';
+type FilterMode = 'all' | 'active' | 'inactive';
 type ViewMode = 'grid' | 'list';
 
 export default function BrandsPage() {
   const queryClient = useQueryClient();
+  const industryPresets = useIndustryPresets();
+
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<Filter>('all');
+  const [filter, setFilter] = useState<FilterMode>('all');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [showForm, setShowForm] = useState(false);
+  const [showBulkImport, setShowBulkImport] = useState(false);
+  const [selectedPresets, setSelectedPresets] = useState<Set<string>>(new Set());
   const [editing, setEditing] = useState<Brand | null>(null);
   const [form, setForm] = useState<UpsertBrandPayload>(empty);
 
@@ -40,6 +45,29 @@ export default function BrandsPage() {
       closeForm();
     },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
+  });
+
+  const bulkCreateMutation = useMutation({
+    mutationFn: async (presets: Array<{ name: string; description?: string; website?: string }>) => {
+      const results = await Promise.allSettled(
+        presets.map((p) => brandsApi.create({
+          name: p.name,
+          description: p.description,
+          website: p.website,
+          isActive: true,
+        }))
+      );
+      const succeeded = results.filter((r) => r.status === 'fulfilled').length;
+      const failed = results.length - succeeded;
+      return { succeeded, failed };
+    },
+    onSuccess: ({ succeeded, failed }) => {
+      if (succeeded > 0) toast.success(`${succeeded} brands added`);
+      if (failed > 0) toast.error(`${failed} failed (likely duplicates)`);
+      setShowBulkImport(false);
+      setSelectedPresets(new Set());
+      queryClient.invalidateQueries({ queryKey: ['brands'] });
+    },
   });
 
   const removeMutation = useMutation({
@@ -85,6 +113,11 @@ export default function BrandsPage() {
       .slice(0, 5);
   }, [brands]);
 
+  const existingNames = new Set(brands.map((b) => b.name.toLowerCase()));
+  const availablePresets = industryPresets.brands.filter(
+    (s) => !existingNames.has(s.name.toLowerCase())
+  );
+
   const openCreate = () => { setEditing(null); setForm(empty); setShowForm(true); };
   const openEdit = (b: Brand) => {
     setEditing(b);
@@ -95,6 +128,33 @@ export default function BrandsPage() {
     setShowForm(true);
   };
   const closeForm = () => { setShowForm(false); setEditing(null); setForm(empty); };
+
+  const quickAdd = (preset: { name: string; description?: string; website?: string }) => {
+    setEditing(null);
+    setForm({
+      name: preset.name,
+      description: preset.description || '',
+      website: preset.website || '',
+      logoUrl: '',
+      isActive: true,
+    });
+    setShowForm(true);
+  };
+
+  const togglePresetSelection = (name: string) => {
+    setSelectedPresets((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  };
+
+  const bulkAddSelected = () => {
+    const toAdd = availablePresets.filter((p) => selectedPresets.has(p.name));
+    if (toAdd.length === 0) return toast.error('Select at least one brand');
+    bulkCreateMutation.mutate(toAdd);
+  };
 
   const exportCSV = () => {
     if (filtered.length === 0) return toast.error('No data');
@@ -128,13 +188,30 @@ export default function BrandsPage() {
             <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur px-3 py-1 text-xs font-extrabold">
               <Building2 className="h-3.5 w-3.5 text-amber-300" />
               Brand Management
+              {industryPresets.industryId && (
+                <>
+                  <span className="text-white/40">•</span>
+                  <span>{industryPresets.industryEmoji} {industryPresets.industryName}</span>
+                </>
+              )}
             </div>
             <h2 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">Brands</h2>
             <p className="mt-2 text-sm text-white/80">
-              Manufacturer brands manage karein — logos, websites, descriptions sab ek jagah
+              {industryPresets.industryId
+                ? `Popular ${industryPresets.industryName} brands ready to import — click aur ho gaya!`
+                : 'Manufacturer brands manage karein — logos, websites, descriptions sab ek jagah'}
             </p>
           </div>
           <div className="flex gap-2 flex-wrap">
+            {availablePresets.length > 0 && (
+              <button
+                onClick={() => setShowBulkImport(true)}
+                className="inline-flex items-center gap-2 rounded-xl bg-amber-500/30 hover:bg-amber-500/50 border-2 border-amber-300/40 px-4 py-2.5 text-sm font-bold transition backdrop-blur"
+              >
+                <Import className="h-4 w-4" />
+                Bulk Import ({availablePresets.length})
+              </button>
+            )}
             <button
               onClick={() => refetch()}
               disabled={isRefetching}
@@ -158,10 +235,67 @@ export default function BrandsPage() {
         <StatCard label="With Website" value={stats.withWebsite} sub="Online presence" icon={Globe} color="amber" />
       </section>
 
-      {/* ═══ TOP BRANDS LEADERBOARD ═══ */}
+      {/* ═══ INDUSTRY QUICK ADD ═══ */}
+      {availablePresets.length > 0 && (
+        <section className="rounded-3xl bg-gradient-to-br from-violet-50 via-purple-50 to-fuchsia-50 border-2 border-violet-200 p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center shadow-md">
+                <Zap className="h-4 w-4" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-violet-900">
+                  {industryPresets.industryEmoji} {industryPresets.industryName} — Popular Brands
+                </h3>
+                <p className="text-[11px] text-violet-700 font-bold">
+                  {availablePresets.length} suggested brands for your industry
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowBulkImport(true)}
+              className="text-xs font-extrabold text-violet-700 hover:text-violet-800 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white border-2 border-violet-300 hover:border-violet-400 transition"
+            >
+              <Import className="h-3 w-3" />
+              Bulk Import All
+              <ChevronRight className="h-3 w-3" />
+            </button>
+          </div>
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+            {availablePresets.slice(0, 12).map((s) => (
+              <button
+                key={s.name}
+                onClick={() => quickAdd(s)}
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white border-2 border-violet-200 hover:border-violet-400 hover:shadow-lg hover:scale-105 hover:-translate-y-0.5 transition-all group"
+              >
+                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-700 text-white flex items-center justify-center shadow-md shrink-0 group-hover:scale-110 transition-transform font-extrabold">
+                  {s.name.charAt(0).toUpperCase()}
+                </div>
+                <div className="text-left min-w-0 flex-1">
+                  <div className="text-xs font-extrabold text-slate-900 truncate">{s.name}</div>
+                  {s.description && (
+                    <div className="text-[9px] text-slate-500 font-semibold truncate">{s.description}</div>
+                  )}
+                </div>
+                <Plus className="h-3 w-3 text-violet-500 shrink-0" />
+              </button>
+            ))}
+          </div>
+          {availablePresets.length > 12 && (
+            <button
+              onClick={() => setShowBulkImport(true)}
+              className="mt-3 w-full py-2 rounded-xl bg-white/80 hover:bg-white border-2 border-violet-200 hover:border-violet-300 text-xs font-extrabold text-violet-700 transition"
+            >
+              + {availablePresets.length - 12} more brands — Open Bulk Import
+            </button>
+          )}
+        </section>
+      )}
+
+      {/* ═══ TOP BRANDS ═══ */}
       {topBrands.length > 0 && (
         <section className="rounded-3xl bg-white border-2 border-violet-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 bg-gradient-to-r from-violet-50 to-purple-50 border-b-2 border-violet-200 flex items-center justify-between">
+          <div className="px-5 py-4 bg-gradient-to-r from-violet-50 to-purple-50 border-b-2 border-violet-200">
             <div className="flex items-center gap-2">
               <Star className="h-5 w-5 text-amber-500" />
               <div>
@@ -214,7 +348,7 @@ export default function BrandsPage() {
             <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
-              placeholder="Search brands by name, description, slug..."
+              placeholder="Search brands..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -229,26 +363,26 @@ export default function BrandsPage() {
               onClick={() => setViewMode('grid')}
               className={`px-3 py-2 text-xs font-bold transition ${viewMode === 'grid' ? 'bg-violet-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`}
             >
-              Grid
+              <Grid3x3 className="h-4 w-4" />
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`px-3 py-2 text-xs font-bold transition border-l border-slate-200 ${viewMode === 'list' ? 'bg-violet-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`}
+              className={`px-3 py-2 text-xs font-bold transition border-l ${viewMode === 'list' ? 'bg-violet-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`}
             >
-              List
+              <List className="h-4 w-4" />
             </button>
           </div>
           {filtered.length > 0 && (
             <button onClick={exportCSV} className="h-11 px-4 rounded-xl border-2 border-slate-200 hover:border-violet-300 bg-white text-sm font-bold text-slate-700 inline-flex items-center gap-1.5 transition">
-              <Download className="h-4 w-4" /> Export CSV
+              <Download className="h-4 w-4" /> Export
             </button>
           )}
         </div>
         <div className="flex gap-1 bg-slate-100 rounded-xl p-1 w-fit">
           {[
-            { v: 'all' as Filter, l: 'All', count: stats.total, c: 'bg-slate-900' },
-            { v: 'active' as Filter, l: 'Active', count: stats.active, c: 'bg-emerald-600' },
-            { v: 'inactive' as Filter, l: 'Inactive', count: stats.inactive, c: 'bg-rose-600' },
+            { v: 'all' as FilterMode, l: 'All', count: stats.total, c: 'bg-slate-900' },
+            { v: 'active' as FilterMode, l: 'Active', count: stats.active, c: 'bg-emerald-600' },
+            { v: 'inactive' as FilterMode, l: 'Inactive', count: stats.inactive, c: 'bg-rose-600' },
           ].map((opt) => (
             <button
               key={opt.v}
@@ -266,7 +400,7 @@ export default function BrandsPage() {
         </div>
       </div>
 
-      {/* ═══ BRANDS GRID/LIST ═══ */}
+      {/* ═══ BRANDS ═══ */}
       {filtered.length === 0 ? (
         <div className="rounded-3xl bg-white border-2 border-dashed border-slate-200 p-16 text-center">
           <div className="mx-auto h-20 w-20 rounded-3xl bg-gradient-to-br from-violet-100 to-purple-200 flex items-center justify-center">
@@ -279,9 +413,16 @@ export default function BrandsPage() {
             {search || filter !== 'all' ? 'Try different search or filter' : 'Pehla brand add karein'}
           </p>
           {!search && filter === 'all' && (
-            <Button onClick={openCreate} className="mt-5">
-              <Plus className="h-4 w-4" /> Add Brand
-            </Button>
+            <div className="mt-5 flex gap-2 justify-center flex-wrap">
+              {availablePresets.length > 0 && (
+                <Button onClick={() => setShowBulkImport(true)} variant="secondary">
+                  <Import className="h-4 w-4" /> Import from {industryPresets.industryName}
+                </Button>
+              )}
+              <Button onClick={openCreate}>
+                <Plus className="h-4 w-4" /> Add Manually
+              </Button>
+            </div>
           )}
         </div>
       ) : viewMode === 'grid' ? (
@@ -335,21 +476,14 @@ export default function BrandsPage() {
                   {b._count?.products ?? 0} products
                 </span>
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
-                  <button
-                    onClick={() => openEdit(b)}
-                    className="h-8 w-8 rounded-lg bg-slate-100 hover:bg-violet-100 hover:text-violet-700 flex items-center justify-center transition"
-                    title="Edit"
-                  >
+                  <button onClick={() => openEdit(b)} className="h-8 w-8 rounded-lg bg-slate-100 hover:bg-violet-100 hover:text-violet-700 flex items-center justify-center transition">
                     <Edit3 className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => {
-                      if (confirm(`Delete brand "${b.name}"? Yeh action undo nahi ho sakta.`)) {
-                        removeMutation.mutate(b.id);
-                      }
+                      if (confirm(`Delete brand "${b.name}"?`)) removeMutation.mutate(b.id);
                     }}
                     className="h-8 w-8 rounded-lg bg-slate-100 hover:bg-rose-100 hover:text-rose-700 flex items-center justify-center transition"
-                    title="Delete"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -400,13 +534,103 @@ export default function BrandsPage() {
         </div>
       )}
 
+      {/* ═══ BULK IMPORT MODAL ═══ */}
+      {showBulkImport && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+            <div className="px-6 py-5 border-b-2 border-slate-100 bg-gradient-to-r from-violet-50 to-purple-50 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center shadow-lg">
+                  <Import className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-xl text-slate-900">
+                    {industryPresets.industryEmoji} Bulk Import — {industryPresets.industryName}
+                  </h3>
+                  <p className="text-xs text-slate-600 font-semibold">
+                    {selectedPresets.size} of {availablePresets.length} selected
+                  </p>
+                </div>
+              </div>
+              <button onClick={() => { setShowBulkImport(false); setSelectedPresets(new Set()); }} className="h-9 w-9 rounded-lg hover:bg-white flex items-center justify-center">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="px-6 py-3 border-b border-slate-100 flex items-center justify-between gap-2">
+              <div className="flex gap-2">
+                <button onClick={() => setSelectedPresets(new Set(availablePresets.map((p) => p.name)))} className="text-xs font-extrabold text-violet-700 hover:underline">Select All</button>
+                <span className="text-slate-300">•</span>
+                <button onClick={() => setSelectedPresets(new Set())} className="text-xs font-extrabold text-slate-600 hover:underline">Deselect All</button>
+              </div>
+              <div className="text-xs text-slate-500 font-semibold">Existing brands are auto-hidden</div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="grid sm:grid-cols-2 gap-2">
+                {availablePresets.map((p) => {
+                  const selected = selectedPresets.has(p.name);
+                  return (
+                    <button
+                      key={p.name}
+                      onClick={() => togglePresetSelection(p.name)}
+                      className={`flex items-start gap-3 p-3 rounded-xl border-2 transition text-left ${
+                        selected
+                          ? 'border-violet-500 bg-violet-50 shadow-md ring-2 ring-violet-200'
+                          : 'border-slate-200 bg-white hover:border-violet-300 hover:shadow-sm'
+                      }`}
+                    >
+                      <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-700 text-white flex items-center justify-center font-extrabold shrink-0">
+                        {p.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-extrabold text-slate-900 truncate">{p.name}</div>
+                        {p.description && (
+                          <div className="text-[10px] text-slate-600 font-semibold line-clamp-2">{p.description}</div>
+                        )}
+                        {p.website && (
+                          <div className="text-[9px] text-violet-700 font-mono truncate mt-0.5">
+                            <Globe className="h-2 w-2 inline mr-0.5" />
+                            {p.website.replace(/^https?:\/\//, '').slice(0, 30)}
+                          </div>
+                        )}
+                      </div>
+                      {selected && <CheckCircle2 className="h-4 w-4 text-violet-600 shrink-0 mt-1" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="px-6 py-4 border-t-2 border-slate-100 bg-slate-50 flex items-center justify-between gap-2">
+              <div className="text-sm">
+                <div className="font-extrabold text-slate-900">{selectedPresets.size} brands selected</div>
+                <div className="text-xs text-slate-500 font-semibold">Bulk add will skip duplicates</div>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="secondary" onClick={() => { setShowBulkImport(false); setSelectedPresets(new Set()); }}>Cancel</Button>
+                <Button
+                  onClick={bulkAddSelected}
+                  disabled={selectedPresets.size === 0}
+                  loading={bulkCreateMutation.isPending}
+                  className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"
+                >
+                  <Import className="h-4 w-4" />
+                  Import {selectedPresets.size} Brands
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ═══ FORM MODAL ═══ */}
       {showForm && (
         <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 my-8 animate-in fade-in slide-in-from-bottom-4 duration-200">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 my-8">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-700 text-white flex items-center justify-center shadow-lg shadow-violet-500/30">
+                <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-700 text-white flex items-center justify-center shadow-lg">
                   {editing ? <Edit3 className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
                 </div>
                 <div>
@@ -430,7 +654,7 @@ export default function BrandsPage() {
                   fallbackText={form.name || 'B'}
                 />
               </div>
-              <Input label="Brand Name *" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Sun Fibre, Nestle, Samsung..." />
+              <Input label="Brand Name *" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Enter brand name..." />
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-1.5">Description</label>
                 <textarea
@@ -438,7 +662,7 @@ export default function BrandsPage() {
                   rows={3}
                   value={form.description ?? ''}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  placeholder="Premium quality carpets manufacturer..."
+                  placeholder="About this brand..."
                 />
               </div>
               <Input
@@ -461,7 +685,7 @@ export default function BrandsPage() {
                   type="checkbox"
                   checked={form.isActive ?? true}
                   onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
-                  className="h-5 w-5 rounded text-emerald-600 focus:ring-emerald-500"
+                  className="h-5 w-5 rounded"
                 />
               </label>
               <div className="flex gap-2 pt-2">

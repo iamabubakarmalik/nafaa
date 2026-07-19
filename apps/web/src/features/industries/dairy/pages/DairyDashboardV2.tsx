@@ -1,0 +1,381 @@
+import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
+import {
+  Milk, Users, Truck, Sunrise, Sunset, Route as RouteIcon,
+  Package, TrendingUp, Wallet, Target, DollarSign, Award,
+  ArrowRight, RefreshCw, Clock, AlertTriangle, Activity,
+  Sparkles, Beaker, FileText, Home, Warehouse,
+} from 'lucide-react';
+import {
+  ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid,
+  BarChart, Bar, PieChart, Pie, Cell, Legend,
+} from 'recharts';
+import { dashboardApi } from '@/api/dashboard.api';
+import { dairyCustomersApi } from '../api/customers.api';
+import { routesApi as dairyRoutesApi } from '../api/routes.api';
+import { formatPKR } from '@/lib/format';
+import { Button } from '@/components/ui/Button';
+import {
+  DashboardHero, HeroKpiCard, QuickStat, PnLCard,
+  formatPercent, formatDate, PAYMENT_COLORS,
+} from '@/features/dashboard/components/shared/DashboardShared';
+
+export default function DairyDashboardV2() {
+  const { data, refetch, isRefetching } = useQuery({
+    queryKey: ['dashboard-overview'],
+    queryFn: dashboardApi.overview,
+    refetchInterval: 60_000,
+  });
+
+  const { data: dairyCustomers = [] } = useQuery({
+    queryKey: ['dairy-customers-dash'],
+    queryFn: () => dairyCustomersApi.list({}),
+    refetchInterval: 60_000,
+  });
+
+  const { data: routes = [] } = useQuery({
+    queryKey: ['dairy-routes-dash'],
+    queryFn: () => dairyRoutesApi.list(),
+  });
+
+  const stats = data?.stats;
+  const tenant = data?.tenant;
+
+  const subscribersActive = dairyCustomers.filter((c: any) => c.status === 'ACTIVE').length;
+  const subscribersPaused = dairyCustomers.filter((c: any) => c.status === 'SUSPENDED').length;
+  const totalDailyLiters = dairyCustomers
+    .filter((c: any) => c.status === 'ACTIVE')
+    .reduce((s: number, c: any) => s + (c.morningQuantity || 0) + (c.eveningQuantity || 0), 0);
+  const morningLiters = dairyCustomers
+    .filter((c: any) => c.status === 'ACTIVE')
+    .reduce((s: number, c: any) => s + (c.morningQuantity || 0), 0);
+  const eveningLiters = dairyCustomers
+    .filter((c: any) => c.status === 'ACTIVE')
+    .reduce((s: number, c: any) => s + (c.eveningQuantity || 0), 0);
+
+  const totalDebt = dairyCustomers.reduce((s: number, c: any) => s + (c.currentBalance || 0), 0);
+  const debtors = dairyCustomers.filter((c: any) => c.currentBalance > 0).length;
+
+  const trendData = (data?.salesTrend7Days ?? []).map((p) => {
+    const d = new Date(p.date);
+    const dayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getDay()];
+    return { ...p, label: dayName };
+  });
+
+  const growthVsYesterday = stats?.salesGrowthVsYesterday ?? 0;
+  const growthVsLastMonth = stats?.salesGrowthVsLastMonth ?? 0;
+
+  return (
+    <div className="space-y-6">
+      <DashboardHero
+        gradient="from-slate-950 via-fuchsia-900 to-pink-700"
+        emoji="🥛"
+        industryLabel="Dairy"
+        industryBadgeColor="bg-fuchsia-500/30 border border-fuchsia-300/40"
+        tenantName={tenant?.name}
+        netProfit={stats?.netProfitToday ?? 0}
+        salesToday={stats?.salesToday ?? 0}
+        cogsToday={stats?.cogsToday ?? 0}
+        expensesToday={stats?.expensesToday ?? 0}
+        growthVsYesterday={growthVsYesterday}
+        onRefresh={() => refetch()}
+        isRefetching={isRefetching}
+        posLabel="Open Dairy POS"
+        posLink="/pos"
+      />
+
+      {/* Dairy KPIs */}
+      <section className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <HeroKpiCard
+          title="Active Subscribers"
+          value={subscribersActive}
+          subtitle={`${subscribersPaused} paused • ${dairyCustomers.length} total`}
+          icon={Users}
+          color="from-fuchsia-500 to-pink-600"
+          isHighlight
+        />
+        <HeroKpiCard
+          title="Daily Milk Volume"
+          value={`${totalDailyLiters.toFixed(0)}L`}
+          subtitle={`🌅 ${morningLiters.toFixed(0)}L morning • 🌆 ${eveningLiters.toFixed(0)}L evening`}
+          icon={Milk}
+          color="from-amber-500 to-orange-600"
+        />
+        <HeroKpiCard
+          title="Delivery Routes"
+          value={routes.length}
+          subtitle="Active routes"
+          icon={RouteIcon}
+          color="from-violet-500 to-purple-600"
+        />
+        <HeroKpiCard
+          title="Aaj ka Profit"
+          value={formatPKR(stats?.netProfitToday ?? 0)}
+          subtitle={`${stats?.ordersToday ?? 0} sales • Khata ${formatPKR(totalDebt)}`}
+          icon={Target}
+          color="from-emerald-500 to-green-600"
+          trend={growthVsYesterday}
+        />
+      </section>
+
+      {/* Dairy Operations Panel */}
+      <section className="rounded-3xl bg-gradient-to-br from-fuchsia-50 via-pink-50 to-purple-50 border-2 border-fuchsia-200 p-5 shadow-sm">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+          <div className="flex items-center gap-2">
+            <div className="h-10 w-10 rounded-2xl bg-fuchsia-600 text-white flex items-center justify-center shadow-lg shadow-fuchsia-500/30">
+              <Milk className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-lg font-extrabold text-fuchsia-900">Dairy Operations</h3>
+              <p className="text-xs text-fuchsia-700">Subscribers, routes, deliveries, quality</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Link to="/dairy/deliveries">
+              <Button variant="secondary" size="sm">
+                <Truck className="h-3.5 w-3.5" /> Deliveries
+              </Button>
+            </Link>
+            <Link to="/dairy/routes">
+              <Button size="sm" className="bg-fuchsia-600 hover:bg-fuchsia-700">
+                <RouteIcon className="h-3.5 w-3.5" /> Routes
+              </Button>
+            </Link>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <Link to="/dairy/customers" className="rounded-2xl bg-white border-2 border-fuchsia-200 hover:border-fuchsia-400 p-3 transition">
+            <div className="h-8 w-8 rounded-lg bg-fuchsia-100 text-fuchsia-700 flex items-center justify-center mb-1">
+              <Users className="h-4 w-4" />
+            </div>
+            <div className="text-[10px] uppercase font-extrabold text-fuchsia-700">Subscribers</div>
+            <div className="text-lg font-extrabold text-slate-900 mt-0.5">{subscribersActive} active</div>
+          </Link>
+          <Link to="/dairy/farmers" className="rounded-2xl bg-white border-2 border-emerald-200 hover:border-emerald-400 p-3 transition">
+            <div className="h-8 w-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center mb-1">
+              <Warehouse className="h-4 w-4" />
+            </div>
+            <div className="text-[10px] uppercase font-extrabold text-emerald-700">Farmers</div>
+            <div className="text-lg font-extrabold text-slate-900 mt-0.5">Suppliers</div>
+          </Link>
+          <Link to="/dairy/quality-tests" className="rounded-2xl bg-white border-2 border-blue-200 hover:border-blue-400 p-3 transition">
+            <div className="h-8 w-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center mb-1">
+              <Beaker className="h-4 w-4" />
+            </div>
+            <div className="text-[10px] uppercase font-extrabold text-blue-700">Quality Tests</div>
+            <div className="text-lg font-extrabold text-slate-900 mt-0.5">Fat/SNF</div>
+          </Link>
+          <Link to="/dairy/bills" className="rounded-2xl bg-white border-2 border-amber-200 hover:border-amber-400 p-3 transition">
+            <div className="h-8 w-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center mb-1">
+              <FileText className="h-4 w-4" />
+            </div>
+            <div className="text-[10px] uppercase font-extrabold text-amber-700">Monthly Bills</div>
+            <div className="text-lg font-extrabold text-slate-900 mt-0.5">Khata</div>
+          </Link>
+        </div>
+
+        {debtors > 0 && (
+          <div className="mt-4 rounded-2xl bg-white border-2 border-rose-200 p-3 flex items-center gap-3">
+            <AlertTriangle className="h-5 w-5 text-rose-600" />
+            <div className="flex-1">
+              <div className="font-bold text-rose-900 text-sm">{debtors} subscribers with outstanding balance</div>
+              <div className="text-xs text-rose-700">Total khata: {formatPKR(totalDebt)}</div>
+            </div>
+            <Link to="/dairy/customers">
+              <Button size="sm" className="bg-rose-600 hover:bg-rose-700">
+                Review <ArrowRight className="h-3.5 w-3.5" />
+              </Button>
+            </Link>
+          </div>
+        )}
+      </section>
+
+      {/* Slot Split */}
+      <section className="grid sm:grid-cols-2 gap-4">
+        <Link to="/dairy/deliveries" className="rounded-3xl bg-gradient-to-br from-amber-500 to-orange-600 text-white p-5 shadow-lg shadow-amber-500/30 hover:shadow-xl transition">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center">
+              <Sunrise className="h-6 w-6" />
+            </div>
+            <div>
+              <div className="text-[10px] font-extrabold uppercase tracking-wider opacity-90">Morning Delivery</div>
+              <h3 className="text-2xl font-bold mt-1">{morningLiters.toFixed(0)}L</h3>
+            </div>
+          </div>
+          <div className="pt-3 border-t border-white/20 text-xs opacity-90 flex items-center justify-between">
+            <span>Daily morning volume</span>
+            <ArrowRight className="h-4 w-4" />
+          </div>
+        </Link>
+
+        <Link to="/dairy/deliveries" className="rounded-3xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-5 shadow-lg shadow-indigo-500/30 hover:shadow-xl transition">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center">
+              <Sunset className="h-6 w-6" />
+            </div>
+            <div>
+              <div className="text-[10px] font-extrabold uppercase tracking-wider opacity-90">Evening Delivery</div>
+              <h3 className="text-2xl font-bold mt-1">{eveningLiters.toFixed(0)}L</h3>
+            </div>
+          </div>
+          <div className="pt-3 border-t border-white/20 text-xs opacity-90 flex items-center justify-between">
+            <span>Daily evening volume</span>
+            <ArrowRight className="h-4 w-4" />
+          </div>
+        </Link>
+      </section>
+
+      {/* 7-day trend */}
+      <section className="rounded-3xl bg-white border border-slate-200 shadow-sm p-6">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h3 className="text-xl font-bold text-slate-900">7-Day Dairy Sales</h3>
+            <p className="text-sm text-slate-500">Revenue & profit trend</p>
+          </div>
+          <Link to="/reports" className="text-fuchsia-700 text-sm font-bold inline-flex items-center gap-1">
+            Reports <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+        {trendData.length >= 2 ? (
+          <div className="h-[280px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={trendData}>
+                <defs>
+                  <linearGradient id="dSales" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#d946ef" stopOpacity={0.4} />
+                    <stop offset="100%" stopColor="#d946ef" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="dProfit" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#10b981" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <XAxis dataKey="label" stroke="#64748b" fontSize={12} />
+                <YAxis stroke="#64748b" fontSize={11} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+                <Tooltip formatter={(value: any) => formatPKR(Number(value))} contentStyle={{ borderRadius: 12 }} />
+                <Legend wrapperStyle={{ fontSize: 11 }} />
+                <Area type="monotone" dataKey="sales" name="Sales" stroke="#d946ef" fill="url(#dSales)" strokeWidth={2.5} />
+                <Area type="monotone" dataKey="profit" name="Profit" stroke="#10b981" fill="url(#dProfit)" strokeWidth={2} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <div className="h-[280px] flex items-center justify-center text-sm text-slate-500">Need more data</div>
+        )}
+      </section>
+
+      {/* P&L */}
+      <section className="rounded-3xl bg-white border border-slate-200 shadow-sm p-6">
+        <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
+          <div>
+            <h3 className="text-xl font-bold text-slate-900">Profit & Loss — Is Mahina</h3>
+            <p className="text-sm text-slate-500">Dairy business monthly</p>
+          </div>
+          {growthVsLastMonth !== 0 && (
+            <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-extrabold ${
+              growthVsLastMonth >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+            }`}>
+              {formatPercent(growthVsLastMonth)}
+            </div>
+          )}
+        </div>
+        <div className="grid sm:grid-cols-4 gap-3">
+          <PnLCard label="Revenue" value={formatPKR(stats?.salesMonth ?? 0)} sub={`${stats?.ordersMonth ?? 0} sales`} color="emerald" />
+          <PnLCard label="Milk Cost" value={formatPKR(stats?.cogsMonth ?? 0)} sub="Farmer payouts" color="rose" />
+          <PnLCard label="Expenses" value={formatPKR(stats?.expensesMonth ?? 0)} sub="Delivery, staff" color="amber" />
+          <PnLCard label="Net Profit" value={formatPKR(stats?.netProfitMonth ?? 0)} sub="Bottom line" color="brand" isHighlight />
+        </div>
+      </section>
+
+      {/* Quick Stats */}
+      <section className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
+        <QuickStat title="Products" value={stats?.totalProducts ?? 0} icon={Package} tone="pink" link="/products" />
+        <QuickStat title="Subscribers" value={subscribersActive} icon={Users} tone="violet" link="/dairy/customers" />
+        <QuickStat title="Routes" value={routes.length} icon={RouteIcon} tone="cyan" link="/dairy/routes" />
+        <QuickStat title="Farmers" value={0} icon={Warehouse} tone="emerald" link="/dairy/farmers" />
+        <QuickStat title="Bills" value={0} icon={FileText} tone="amber" link="/dairy/bills" />
+        <QuickStat title="Khata" value={debtors} icon={AlertTriangle} tone="rose" link="/dairy/customers" alert />
+      </section>
+
+      {/* Top Products + Recent Sales */}
+      <section className="grid lg:grid-cols-2 gap-6">
+        <div className="rounded-3xl bg-white border border-slate-200 shadow-sm">
+          <div className="px-6 py-5 border-b border-slate-100 flex items-center gap-2">
+            <Award className="h-5 w-5 text-amber-500" />
+            <div>
+              <h3 className="text-lg font-bold text-slate-900">Top Selling Products</h3>
+              <p className="text-sm text-slate-500">This month</p>
+            </div>
+          </div>
+          <div className="divide-y divide-slate-100">
+            {data?.topProducts?.length ? (
+              data.topProducts.slice(0, 5).map((p, idx) => {
+                const rankColors = ['bg-amber-500', 'bg-slate-400', 'bg-orange-600', 'bg-violet-500', 'bg-blue-500'];
+                return (
+                  <div key={p.productId} className="px-6 py-3 flex items-center justify-between gap-3 hover:bg-slate-50">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={`h-8 w-8 rounded-lg ${rankColors[idx]} text-white font-extrabold flex items-center justify-center text-sm shrink-0`}>
+                        {idx + 1}
+                      </div>
+                      <div className="h-10 w-10 rounded-xl bg-slate-100 overflow-hidden flex items-center justify-center shrink-0">
+                        {p.product?.images?.[0]?.url ? (
+                          <img src={p.product.images[0].url} alt="" className="h-full w-full object-cover" />
+                        ) : (
+                          <Milk className="h-4 w-4 text-slate-400" />
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-bold text-slate-900 truncate text-sm">{p.product?.name}</div>
+                        <div className="text-xs text-slate-500">{p.quantitySold.toFixed(1)} {p.product?.unit}</div>
+                      </div>
+                    </div>
+                    <div className="font-extrabold text-emerald-700 text-sm">{formatPKR(p.revenue)}</div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="px-6 py-12 text-center text-sm text-slate-500">No sales yet</div>
+            )}
+          </div>
+        </div>
+
+        <div className="rounded-3xl bg-white border border-slate-200 shadow-sm p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-bold text-slate-900">Payment Methods</h3>
+              <p className="text-sm text-slate-500">This month</p>
+            </div>
+          </div>
+          {data?.paymentBreakdown?.length ? (
+            <div className="h-[260px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={data.paymentBreakdown}
+                    cx="50%" cy="45%" outerRadius={80} innerRadius={40} dataKey="total"
+                    label={(entry: any) => {
+                      const sum = data.paymentBreakdown.reduce((s, p) => s + p.total, 0);
+                      const pct = sum > 0 ? ((entry.total / sum) * 100).toFixed(0) : '0';
+                      return `${pct}%`;
+                    }}
+                    labelLine={false}
+                  >
+                    {data.paymentBreakdown.map((p) => (
+                      <Cell key={p.method} fill={PAYMENT_COLORS[p.method] || '#64748b'} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value: any) => formatPKR(Number(value))} contentStyle={{ borderRadius: 12 }} />
+                  <Legend wrapperStyle={{ fontSize: 10, paddingTop: 12 }} iconType="circle" />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="h-[260px] flex items-center justify-center text-sm text-slate-500">No data</div>
+          )}
+        </div>
+      </section>
+    </div>
+  );
+}

@@ -1,0 +1,148 @@
+import {
+  LayoutDashboard,
+  Bed,
+  Home,
+  Calendar,
+  Sparkles,
+  Users,
+  Sparkle,
+  Award,
+} from 'lucide-react';
+import type { IndustryPack } from '@/features/industries/_shared/types/industry-pack';
+import { useIsHotelBusiness } from './hooks/useIsHotelBusiness';
+
+// ── Pages ─────────────────────────────────────────────────────
+import HotelDashboardPage from './pages/HotelDashboardPage';
+import RoomTypesPage from './pages/RoomTypesPage';
+import RoomsPage from './pages/RoomsPage';
+import GuestsPage from './pages/GuestsPage';
+import BookingsPage from './pages/BookingsPage';
+import NewBookingPage from './pages/NewBookingPage';
+import HotelBookingDetailPage from './pages/HotelBookingDetailPage';
+import HousekeepingPage from './pages/HousekeepingPage';
+
+// ── Extensions (skeletons — will grow over time) ──────────────
+import { HotelPosCheckoutExtension } from './pos-extensions/HotelPosCheckoutExtension';
+import { HotelGuestExtension } from './customer-form/HotelGuestExtension';
+
+/**
+ * Hotel / Guest House / Motel / Resort industry pack.
+ *
+ * Everything hotel-specific lives here and is contributed to the core app
+ * via this pack. Core code never imports from this folder directly.
+ */
+export const HotelPack: IndustryPack = {
+  // ── Identity ────────────────────────────────────────────────
+  id: 'hotel',
+  name: 'Hotel / Guest House',
+  shortName: 'Hotel',
+  emoji: '🏨',
+  themeColor: '#4f46e5',
+  description:
+    'Rooms, bookings, guests, housekeeping, folio & rate plans — for hotels, guest houses, motels & resorts.',
+
+  // Priority for resolution when multiple packs match a tenant.
+  // Hotel is a top-level business type, so 75.
+  priority: 75,
+
+  // ── Detection ───────────────────────────────────────────────
+  matches: (tenant) => {
+    if (!tenant) return false;
+    const type = (tenant.businessType ?? '').toUpperCase();
+    const features = (tenant.businessFeatures ?? {}) as Record<string, boolean>;
+
+    const isHotelType =
+      type.includes('HOTEL') ||
+      type.includes('GUEST_HOUSE') ||
+      type.includes('GUESTHOUSE') ||
+      type.includes('MOTEL') ||
+      type.includes('RESORT') ||
+      type.includes('LODGE') ||
+      type.includes('INN') ||
+      type.includes('HOSTEL');
+
+    const hasHotelFeature =
+      features.hotelMode === true ||
+      features.rooms === true ||
+      features.bookings === true;
+
+    return isHotelType || hasHotelFeature;
+  },
+
+  // ── Sidebar ─────────────────────────────────────────────────
+  navGroups: [
+    {
+      label: 'Hotel',
+      icon: Bed,
+      emoji: '🏨',
+      color: '#4f46e5',
+      order: 20,
+      items: [
+        { to: '/hotel/dashboard', label: 'Hotel Dashboard', icon: LayoutDashboard, badge: 'NEW' },
+        { to: '/hotel/room-types', label: 'Room Types', icon: Bed },
+        { to: '/hotel/rooms', label: 'Rooms', icon: Home },
+        { to: '/hotel/bookings', label: 'Bookings', icon: Calendar },
+        { to: '/hotel/bookings/new', label: 'New Booking', icon: Sparkles },
+        { to: '/hotel/guests', label: 'Guests', icon: Users },
+        { to: '/hotel/housekeeping', label: 'Housekeeping', icon: Sparkle },
+        { to: '/hotel/rate-plans', label: 'Rate Plans', icon: Award },
+      ],
+    },
+  ],
+
+  // ── Routes ──────────────────────────────────────────────────
+  // Note: order matters — put more specific paths (e.g. `/new`) BEFORE
+  // dynamic ones (e.g. `/:id`) so React Router matches correctly.
+  routes: [
+    { path: '/hotel', element: HotelDashboardPage },
+    { path: '/hotel/dashboard', element: HotelDashboardPage },
+    { path: '/hotel/room-types', element: RoomTypesPage },
+    { path: '/hotel/rooms', element: RoomsPage },
+    { path: '/hotel/guests', element: GuestsPage },
+    { path: '/hotel/bookings/new', element: NewBookingPage },
+    { path: '/hotel/bookings/:id', element: HotelBookingDetailPage },
+    { path: '/hotel/bookings', element: BookingsPage },
+    { path: '/hotel/housekeeping', element: HousekeepingPage },
+  ],
+
+  // ── Dashboard override ──────────────────────────────────────
+  // When active, replaces core dashboard at `/` and `/dashboard`.
+  dashboardComponent: HotelDashboardPage,
+
+  // ── POS extensions ──────────────────────────────────────────
+  pos: {
+    // In hotel POS, cashier can attach a sale to a booking (charge to room).
+    checkoutExtension: HotelPosCheckoutExtension,
+  },
+
+  // ── Customer form extensions ────────────────────────────────
+  customerForm: {
+    // Hotel-specific guest fields (VIP, loyalty, ID docs, allergies, etc.)
+    extraFields: HotelGuestExtension,
+  },
+
+  // ── Feature flags ───────────────────────────────────────────
+  featureFlags: [
+    {
+      key: 'hotelHousekeeping',
+      label: 'Housekeeping Tasks',
+      description: 'Enable room cleaning & maintenance workflow',
+      defaultEnabled: true,
+    },
+    {
+      key: 'hotelFolio',
+      label: 'Folio Charges',
+      description: 'Post extra charges to room bills (F&B, laundry, minibar)',
+      defaultEnabled: true,
+    },
+    {
+      key: 'hotelRatePlans',
+      label: 'Rate Plans',
+      description: 'Seasonal / weekend / peak pricing rules',
+      defaultEnabled: false,
+    },
+  ],
+};
+
+// Convenience: re-export detection hook so consumers can `import { useIsHotelBusiness } from '@/features/industries/hotel'`
+export { useIsHotelBusiness };

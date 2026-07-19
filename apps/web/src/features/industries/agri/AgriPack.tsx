@@ -1,0 +1,112 @@
+import { Wheat, LayoutDashboard, Users, Package, Leaf, Calendar, Landmark, Sparkles } from 'lucide-react';
+import type { IndustryPack } from '@/features/industries/_shared/types/industry-pack';
+
+import AgriDashboardPage from './pages/AgriDashboardPage';
+import AgriProductsPage from './pages/AgriProductsPage';
+import FarmersPage from './pages/FarmersPage';
+import BulkOrdersPage from './pages/BulkOrdersPage';
+import NewBulkOrderPage from './pages/NewBulkOrderPage';
+import AdvisoryPage from './pages/AdvisoryPage';
+import SeasonalPlansPage from './pages/SeasonalPlansPage';
+import SubsidyPage from './pages/SubsidyPage';
+import AgriProductWizardPage from './pages/AgriProductWizardPage';
+import AgriProductDetailPage from './pages/AgriProductDetailPage';
+
+/**
+ * Agri / Feed / Seeds / Fertilizer industry pack.
+ * Farmer accounts, bulk orders, crop advisory, seasonal planning,
+ * government subsidy claims.
+ */
+export const AgriPack: IndustryPack = {
+  id: 'agri',
+  name: 'Agri / Feed Store',
+  shortName: 'Agri',
+  emoji: '🌾',
+  themeColor: '#65a30d',
+  priority: 42,
+  description:
+    'Seeds, fertilizer, pesticides, animal feed. Farmer credit, bulk orders, crop advisory, seasonal plans, subsidy claims.',
+
+  matches: (tenant) => {
+    if (!tenant) return false;
+    const type = (tenant.businessType ?? '').toUpperCase();
+    return (
+      type.includes('AGRI') ||
+      type.includes('FARM') ||
+      type.includes('SEED') ||
+      type.includes('FERTILIZER') ||
+      type.includes('FEED') ||
+      type.includes('PESTICIDE') ||
+      type.includes('CROP')
+    );
+  },
+
+  navGroups: [
+    {
+      label: 'Agri / Feed Industry',
+      icon: Wheat,
+      emoji: '🌾',
+      color: '#65a30d',
+      order: 20,
+      items: [
+        { to: '/agri-products/new', label: '+ Add Agri Product', icon: Sparkles, badge: 'FAST' },
+        { to: '/agri/dashboard', label: 'Agri Dashboard', icon: LayoutDashboard, badge: 'NEW' },
+        { to: '/agri/products', label: 'Seeds / Fertilizer / Feed', icon: Wheat },
+        { to: '/agri/farmers', label: 'Farmers', icon: Users },
+        { to: '/agri/bulk-orders', label: 'Bulk Orders', icon: Package },
+        { to: '/agri/advisory', label: 'Crop Advisory', icon: Leaf },
+        { to: '/agri/seasonal-plans', label: 'Seasonal Plans', icon: Calendar },
+        { to: '/agri/subsidy', label: 'Govt Subsidies', icon: Landmark },
+      ],
+    },
+  ],
+
+  routes: [
+    // ✅ VERY IMPORTANT — wizard FIRST
+    { path: '/agri-products/new', element: AgriProductWizardPage },
+    { path: '/agri-products/:id/edit', element: AgriProductWizardPage },
+
+    { path: '/agri', element: AgriDashboardPage },
+    { path: '/agri/dashboard', element: AgriDashboardPage },
+    { path: '/agri/products', element: AgriProductsPage },
+
+    // optional detail page
+    { path: '/agri-products/:id', element: AgriProductDetailPage },
+
+    { path: '/agri/farmers', element: FarmersPage },
+    { path: '/agri/bulk-orders/new', element: NewBulkOrderPage },
+    { path: '/agri/bulk-orders', element: BulkOrdersPage },
+    { path: '/agri/advisory', element: AdvisoryPage },
+    { path: '/agri/seasonal-plans', element: SeasonalPlansPage },
+    { path: '/agri/subsidy', element: SubsidyPage },
+  ],
+
+  dashboardComponent: AgriDashboardPage,
+
+  productForm: {
+    defaultUnit: 'bag',
+    unitOptions: [
+      { value: 'bag', label: 'Bag (50 kg)', hint: '🛍️', group: 'Bulk' },
+      { value: 'sack', label: 'Sack', hint: '🛍️', group: 'Bulk' },
+      { value: 'kg', label: 'Kilogram', hint: '⚖️', group: 'Weight' },
+      { value: 'gram', label: 'Gram', hint: '⚖️', group: 'Weight' },
+      { value: 'ton', label: 'Ton', hint: '⚖️', group: 'Bulk' },
+      { value: 'maan', label: 'Maan (40 kg)', hint: '⚖️', group: 'Weight' },
+      { value: 'seer', label: 'Seer', hint: '⚖️', group: 'Weight' },
+      { value: 'liter', label: 'Liter (liquid)', hint: '🥛', group: 'Volume' },
+      { value: 'ml', label: 'Milliliter', hint: '🥛', group: 'Volume' },
+      { value: 'pcs', label: 'Pieces', hint: '🔢', group: 'Count' },
+      { value: 'packet', label: 'Packet', hint: '📦', group: 'Pack' },
+      { value: 'acre', label: 'Per Acre (dose)', hint: '🌾', group: 'Application' },
+    ],
+  },
+
+  featureFlags: [
+    { key: 'agriFarmers', label: 'Farmer Accounts', defaultEnabled: true },
+    { key: 'agriBulkOrders', label: 'Bulk Orders', defaultEnabled: true },
+    { key: 'agriCredit', label: 'Farmer Credit (Udhar)', defaultEnabled: true },
+    { key: 'agriAdvisory', label: 'Crop Advisory', defaultEnabled: false },
+    { key: 'agriSeasonal', label: 'Seasonal Plans', defaultEnabled: false },
+    { key: 'agriSubsidy', label: 'Govt Subsidy Claims', defaultEnabled: false },
+  ],
+};

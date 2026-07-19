@@ -15,7 +15,6 @@ export interface CarpetReturnOptions {
 }
 
 interface Props {
-  /** Pre-parsed info from sale item note */
   carpetInfo: {
     rollNumber?: string;
     pieceCode?: string;
@@ -26,33 +25,26 @@ interface Props {
   };
   productName: string;
   variantName?: string;
-  /** Returned quantity in sqft */
   returnedSqft: number;
-  /** Per-sqft sale price (to calculate discount price preview) */
   pricePerSqft: number;
-  /** Initial options if reopening */
   initialOptions?: Partial<CarpetReturnOptions>;
   onConfirm: (options: CarpetReturnOptions) => void;
   onClose: () => void;
 }
 
 const CONDITIONS = [
-  { value: 'Good', label: 'Good', color: 'emerald' },
-  { value: 'Used', label: 'Used (slightly worn)', color: 'amber' },
-  { value: 'Worn', label: 'Worn / Damaged spot', color: 'orange' },
+  { value: 'Good', label: 'Good', color: 'emerald', desc: 'Like new' },
+  { value: 'Used', label: 'Used', color: 'amber', desc: 'Slightly worn' },
+  { value: 'Worn', label: 'Worn', color: 'orange', desc: 'Damaged spot' },
 ];
 
 export function CarpetReturnOptionsDialog({
   carpetInfo, productName, variantName, returnedSqft, pricePerSqft,
   initialOptions, onConfirm, onClose,
 }: Props) {
-  const [createCutPiece, setCreateCutPiece] = useState(
-    initialOptions?.createCutPiece ?? true,
-  );
+  const [createCutPiece, setCreateCutPiece] = useState(initialOptions?.createCutPiece ?? true);
   const [isDamaged, setIsDamaged] = useState(initialOptions?.isDamaged ?? false);
-  const [condition, setCondition] = useState(
-    initialOptions?.cutPieceCondition ?? 'Good',
-  );
+  const [condition, setCondition] = useState(initialOptions?.cutPieceCondition ?? 'Good');
   const [widthFt, setWidthFt] = useState(
     String(initialOptions?.cutPieceWidthFt ?? carpetInfo.widthFt ?? ''),
   );
@@ -66,15 +58,13 @@ export function CarpetReturnOptionsDialog({
   );
   const [notes, setNotes] = useState(initialOptions?.cutPieceNotes ?? '');
 
-  // Auto-recompute length when width changes (if user hasn't set length manually)
   useEffect(() => {
     if (!initialOptions?.cutPieceLengthFt && returnedSqft > 0) {
       const w = Number(widthFt) || 0;
-      if (w > 0) {
-        setLengthFt((returnedSqft / w).toFixed(2));
-      }
+      if (w > 0) setLengthFt((returnedSqft / w).toFixed(2));
     }
-  }, [widthFt, returnedSqft, initialOptions?.cutPieceLengthFt]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [widthFt, returnedSqft]);
 
   const previewSqft = useMemo(() => {
     const w = Number(widthFt) || 0;
@@ -84,16 +74,14 @@ export function CarpetReturnOptionsDialog({
 
   const previewPrice = useMemo(() => {
     if (isDamaged) return 0;
-    // Default discount: 80% of original per-sqft price
     return Number((previewSqft * pricePerSqft * 0.8).toFixed(2));
   }, [previewSqft, pricePerSqft, isDamaged]);
 
-  const sqftMismatch =
-    previewSqft > 0 && Math.abs(previewSqft - returnedSqft) > 0.5;
+  const sqftMismatch = previewSqft > 0 && Math.abs(previewSqft - returnedSqft) > 0.5;
 
   const handleConfirm = () => {
     if (createCutPiece && previewSqft <= 0) {
-      alert('Width aur length zaroori hain agar cut piece banana hai');
+      alert('Width aur length zaroori hain');
       return;
     }
     onConfirm({
@@ -109,289 +97,207 @@ export function CarpetReturnOptionsDialog({
   return (
     <div className="fixed inset-0 z-[60] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col">
-        {/* Header */}
-        <div className="px-5 py-4 border-b border-slate-200 bg-gradient-to-br from-emerald-50 to-green-50 flex items-center justify-between gap-3">
+        <div className="px-5 py-4 border-b-2 border-slate-200 bg-gradient-to-br from-emerald-50 to-green-50 flex items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-700 flex items-center justify-center shadow shrink-0">
-              <Scissors className="h-5 w-5 text-white" />
+            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-700 flex items-center justify-center shadow-md shrink-0">
+              <Scissors className="h-6 w-6 text-white" />
             </div>
             <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-wider text-emerald-700 font-bold">
+              <div className="text-xs uppercase tracking-wider text-emerald-700 font-extrabold">
                 Carpet Return Options
               </div>
-              <h3 className="font-bold text-slate-900 truncate">{productName}</h3>
+              <h3 className="font-extrabold text-slate-900 text-lg truncate">{productName}</h3>
               {variantName && (
-                <p className="text-xs text-violet-700 font-bold">{variantName}</p>
+                <p className="text-sm text-violet-700 font-bold">{variantName}</p>
               )}
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="h-9 w-9 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0"
-          >
+          <button onClick={onClose}
+            className="h-10 w-10 rounded-xl bg-white hover:bg-slate-100 border-2 border-slate-200 flex items-center justify-center shrink-0">
             <X className="h-4 w-4 text-slate-600" />
           </button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
-          {/* Original sale info */}
           {(carpetInfo.rollNumber || carpetInfo.pieceCode) && (
-            <div className="rounded-xl bg-blue-50 border border-blue-200 p-3 flex items-start gap-2">
-              <Info className="h-4 w-4 text-blue-700 shrink-0 mt-0.5" />
-              <div className="text-xs text-blue-900">
-                <div className="font-bold">Original Sale Info</div>
-                <div className="mt-0.5 space-y-0.5">
+            <div className="rounded-xl bg-blue-50 border-2 border-blue-200 p-3 flex items-start gap-2">
+              <Info className="h-5 w-5 text-blue-700 shrink-0 mt-0.5" />
+              <div className="text-sm text-blue-900">
+                <div className="font-extrabold">Original Sale Info</div>
+                <div className="mt-1 space-y-0.5 text-xs font-semibold">
                   {carpetInfo.rollNumber && (
-                    <div>
-                      Cut from roll:{' '}
-                      <span className="font-mono font-extrabold">{carpetInfo.rollNumber}</span>
-                    </div>
+                    <div>Cut from roll: <span className="font-mono font-extrabold">{carpetInfo.rollNumber}</span></div>
                   )}
                   {carpetInfo.pieceCode && (
-                    <div>
-                      Original piece:{' '}
-                      <span className="font-mono font-extrabold">{carpetInfo.pieceCode}</span>
-                    </div>
+                    <div>Original piece: <span className="font-mono font-extrabold">{carpetInfo.pieceCode}</span></div>
                   )}
                   {carpetInfo.widthFt && carpetInfo.lengthFt && (
                     <div>
-                      Sold as:{' '}
-                      <strong>
-                        {carpetInfo.widthFt}ft × {carpetInfo.lengthFt}ft{(carpetInfo as any).lengthInch ? ` ${(carpetInfo as any).lengthInch}in` : ''} (
-                        {(carpetInfo.widthFt * (carpetInfo.lengthFt + ((carpetInfo as any).lengthInch || 0) / 12)).toFixed(2)} sqft)
-                      </strong>
+                      Sold as: <strong>{carpetInfo.widthFt}ft × {carpetInfo.lengthFt}ft{(carpetInfo as any).lengthInch ? ` ${(carpetInfo as any).lengthInch}in` : ''} ({(carpetInfo.widthFt * (carpetInfo.lengthFt + ((carpetInfo as any).lengthInch || 0) / 12)).toFixed(2)} sqft)</strong>
                     </div>
                   )}
-                  <div>
-                    Returning: <strong>{returnedSqft.toFixed(2)} sqft</strong>
-                  </div>
+                  <div>Returning: <strong className="text-blue-800">{returnedSqft.toFixed(2)} sqft</strong></div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Main toggle: Create cut piece */}
           <div className="space-y-2">
-            <div className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">
-              Inventory Action
-            </div>
+            <div className="text-xs font-extrabold text-slate-600 uppercase tracking-wider">Inventory Action</div>
             <div className="grid sm:grid-cols-2 gap-3">
               <button
-                onClick={() => {
-                  setCreateCutPiece(true);
-                  setIsDamaged(false);
-                }}
+                onClick={() => { setCreateCutPiece(true); setIsDamaged(false); }}
                 className={`p-4 rounded-2xl border-2 text-left transition ${
                   createCutPiece && !isDamaged
-                    ? 'border-emerald-500 bg-emerald-50 shadow-md'
-                    : 'border-slate-200 bg-white hover:border-emerald-300'
+                    ? 'border-emerald-500 bg-emerald-50 shadow-md ring-2 ring-emerald-200'
+                    : 'border-slate-200 bg-white hover:border-emerald-300 hover:shadow-sm'
                 }`}
               >
-                <div className="flex items-center gap-2 mb-1">
-                  <CheckCircle2
-                    className={`h-5 w-5 ${
-                      createCutPiece && !isDamaged ? 'text-emerald-600' : 'text-slate-400'
-                    }`}
-                  />
-                  <span className="font-extrabold text-slate-900">Resellable</span>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <CheckCircle2 className={`h-5 w-5 ${createCutPiece && !isDamaged ? 'text-emerald-600' : 'text-slate-400'}`} />
+                  <span className="font-extrabold text-slate-900 text-base">Resellable</span>
                 </div>
-                <p className="text-xs text-slate-600">
-                  Cut piece <strong>AVAILABLE</strong> banega — discount price par bechain
+                <p className="text-xs text-slate-600 font-semibold">
+                  Cut piece <strong>AVAILABLE</strong> banega — discount par bechain
                 </p>
               </button>
 
               <button
-                onClick={() => {
-                  setCreateCutPiece(true);
-                  setIsDamaged(true);
-                }}
+                onClick={() => { setCreateCutPiece(true); setIsDamaged(true); }}
                 className={`p-4 rounded-2xl border-2 text-left transition ${
                   createCutPiece && isDamaged
-                    ? 'border-rose-500 bg-rose-50 shadow-md'
-                    : 'border-slate-200 bg-white hover:border-rose-300'
+                    ? 'border-rose-500 bg-rose-50 shadow-md ring-2 ring-rose-200'
+                    : 'border-slate-200 bg-white hover:border-rose-300 hover:shadow-sm'
                 }`}
               >
-                <div className="flex items-center gap-2 mb-1">
-                  <AlertTriangle
-                    className={`h-5 w-5 ${
-                      createCutPiece && isDamaged ? 'text-rose-600' : 'text-slate-400'
-                    }`}
-                  />
-                  <span className="font-extrabold text-slate-900">Damaged</span>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <AlertTriangle className={`h-5 w-5 ${createCutPiece && isDamaged ? 'text-rose-600' : 'text-slate-400'}`} />
+                  <span className="font-extrabold text-slate-900 text-base">Damaged</span>
                 </div>
-                <p className="text-xs text-slate-600">
-                  Cut piece <strong>DAMAGED</strong> status mein jayega — manual disposal
+                <p className="text-xs text-slate-600 font-semibold">
+                  Cut piece <strong>DAMAGED</strong> status mein jayega
                 </p>
               </button>
             </div>
 
             <button
-              onClick={() => {
-                setCreateCutPiece(false);
-                setIsDamaged(false);
-              }}
+              onClick={() => { setCreateCutPiece(false); setIsDamaged(false); }}
               className={`w-full p-3 rounded-xl border-2 text-left transition ${
-                !createCutPiece
-                  ? 'border-slate-500 bg-slate-50 shadow-md'
-                  : 'border-slate-200 bg-white hover:border-slate-300'
+                !createCutPiece ? 'border-slate-500 bg-slate-50 shadow-md' : 'border-slate-200 bg-white hover:border-slate-300'
               }`}
             >
               <div className="flex items-center gap-2">
-                <Layers
-                  className={`h-4 w-4 ${!createCutPiece ? 'text-slate-700' : 'text-slate-400'}`}
-                />
-                <span className="font-bold text-slate-900 text-sm">
+                <Layers className={`h-4 w-4 ${!createCutPiece ? 'text-slate-700' : 'text-slate-400'}`} />
+                <span className="font-extrabold text-slate-900 text-sm">
                   No cut piece — manual inventory adjustment
                 </span>
               </div>
-              <p className="text-[11px] text-slate-600 mt-0.5">
-                Sirf refund hoga, koi piece nahi banegi (use this if you'll add back to roll manually)
+              <p className="text-xs text-slate-600 mt-0.5 font-semibold">
+                Sirf refund hoga, koi piece nahi banegi
               </p>
             </button>
           </div>
 
-          {/* Cut piece details — only if creating */}
           {createCutPiece && (
             <>
-              {/* Condition (only for resellable) */}
               {!isDamaged && (
                 <div>
-                  <div className="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-2">
-                    Condition
-                  </div>
+                  <div className="text-xs font-extrabold text-slate-600 uppercase tracking-wider mb-2">Condition</div>
                   <div className="grid grid-cols-3 gap-2">
-                    {CONDITIONS.map((c) => (
-                      <button
-                        key={c.value}
-                        onClick={() => setCondition(c.value)}
-                        className={`px-3 py-2 rounded-xl border-2 text-xs font-bold transition ${
-                          condition === c.value
-                            ? `border-${c.color}-500 bg-${c.color}-50 text-${c.color}-900`
-                            : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
-                        }`}
-                      >
-                        {c.label}
-                      </button>
-                    ))}
+                    {CONDITIONS.map((c) => {
+                      const active = condition === c.value;
+                      const colorMap: Record<string, string> = {
+                        emerald: active ? 'border-emerald-500 bg-emerald-50 text-emerald-900' : 'border-slate-200 bg-white text-slate-700',
+                        amber: active ? 'border-amber-500 bg-amber-50 text-amber-900' : 'border-slate-200 bg-white text-slate-700',
+                        orange: active ? 'border-orange-500 bg-orange-50 text-orange-900' : 'border-slate-200 bg-white text-slate-700',
+                      };
+                      return (
+                        <button key={c.value} onClick={() => setCondition(c.value)}
+                          className={`px-3 py-2.5 rounded-xl border-2 text-sm font-extrabold transition ${colorMap[c.color]} hover:shadow-sm`}>
+                          <div>{c.label}</div>
+                          <div className="text-[10px] font-semibold opacity-70 mt-0.5">{c.desc}</div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}
 
-              {/* Dimensions */}
               <div>
-                <div className="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-2 flex items-center gap-1">
-                  <Ruler className="h-3 w-3" /> Cut Piece Dimensions
+                <div className="text-xs font-extrabold text-slate-600 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <Ruler className="h-3.5 w-3.5" /> Cut Piece Dimensions
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                   <div>
-                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-0.5">
-                      Width (ft)
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0.1"
-                      value={widthFt}
+                    <label className="block text-[10px] font-extrabold text-slate-500 uppercase mb-1">Width (ft)</label>
+                    <input type="number" step="0.01" min="0.1" value={widthFt}
                       onChange={(e) => setWidthFt(e.target.value)}
-                      className="h-10 w-full rounded-lg border-2 border-slate-200 px-2 text-sm font-bold focus:outline-none focus:border-emerald-500"
-                    />
+                      className="h-11 w-full rounded-lg border-2 border-slate-200 px-2 text-base font-extrabold text-right focus:outline-none focus:border-emerald-500" />
                   </div>
                   <div>
-                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-0.5">
-                      Length (ft)
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0.1"
-                      value={lengthFt}
+                    <label className="block text-[10px] font-extrabold text-slate-500 uppercase mb-1">Length (ft)</label>
+                    <input type="number" step="0.01" min="0.1" value={lengthFt}
                       onChange={(e) => setLengthFt(e.target.value)}
-                      className="h-10 w-full rounded-lg border-2 border-slate-200 px-2 text-sm font-bold focus:outline-none focus:border-emerald-500"
-                    />
+                      className="h-11 w-full rounded-lg border-2 border-slate-200 px-2 text-base font-extrabold text-right focus:outline-none focus:border-emerald-500" />
                   </div>
                   <div>
-                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-0.5">
-                      Sqft
-                    </label>
-                    <div className="h-10 rounded-lg bg-emerald-50 border-2 border-emerald-200 px-2 flex items-center justify-end">
-                      <div className="text-sm font-extrabold text-emerald-700">
+                    <label className="block text-[10px] font-extrabold text-slate-500 uppercase mb-1">Sqft</label>
+                    <div className="h-11 rounded-lg bg-emerald-50 border-2 border-emerald-200 px-2 flex items-center justify-end">
+                      <div className="text-base font-extrabold text-emerald-700 tabular-nums">
                         {previewSqft > 0 ? previewSqft.toFixed(2) : '—'}
                       </div>
                     </div>
                   </div>
                 </div>
                 {sqftMismatch && (
-                  <div className="mt-2 rounded-lg bg-amber-50 border border-amber-200 p-2 flex items-start gap-1.5">
-                    <AlertTriangle className="h-3.5 w-3.5 text-amber-700 shrink-0 mt-0.5" />
-                    <div className="text-[10px] text-amber-900">
-                      <strong>Mismatch:</strong> Cut piece ({previewSqft.toFixed(2)} sqft) returned
-                      qty ({returnedSqft.toFixed(2)} sqft) se thoda alag hai. OK hai agar partial
-                      damage hai.
+                  <div className="mt-2 rounded-lg bg-amber-50 border-2 border-amber-200 p-2.5 flex items-start gap-1.5">
+                    <AlertTriangle className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" />
+                    <div className="text-xs text-amber-900 font-semibold">
+                      <strong>Mismatch:</strong> Cut piece ({previewSqft.toFixed(2)} sqft) return qty ({returnedSqft.toFixed(2)} sqft) se alag hai. OK hai agar partial damage hai.
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* Price preview */}
-              <div className="rounded-xl bg-gradient-to-br from-emerald-50 to-green-50 border-2 border-emerald-200 p-3">
+              <div className="rounded-xl bg-gradient-to-br from-emerald-50 to-green-50 border-2 border-emerald-200 p-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <div className="text-[10px] uppercase font-bold text-emerald-700">
-                      Cut Piece Code
-                    </div>
-                    <div className="font-mono text-sm font-extrabold text-emerald-900">
-                      Auto-generated
-                    </div>
+                    <div className="text-xs uppercase font-extrabold text-emerald-700">Cut Piece Code</div>
+                    <div className="font-mono text-base font-extrabold text-emerald-900 mt-0.5">Auto-generated</div>
                   </div>
                   <div className="text-right">
-                    <div className="text-[10px] uppercase font-bold text-emerald-700">
+                    <div className="text-xs uppercase font-extrabold text-emerald-700">
                       {isDamaged ? 'Sale Price (Damaged)' : 'Sale Price (80% discount)'}
                     </div>
-                    <div className="text-lg font-extrabold text-emerald-900">
+                    <div className="text-2xl font-extrabold text-emerald-900 tabular-nums mt-0.5">
                       {formatPKRFull(previewPrice)}
                     </div>
                   </div>
                 </div>
                 {!isDamaged && pricePerSqft > 0 && (
-                  <div className="text-[10px] text-emerald-700 font-bold mt-1">
+                  <div className="text-xs text-emerald-700 font-bold mt-2 pt-2 border-t-2 border-emerald-200">
                     Original: {formatPKR(pricePerSqft)}/sqft × {previewSqft.toFixed(2)} × 0.8
                   </div>
                 )}
               </div>
 
-              {/* Notes */}
               <div>
-                <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">
-                  Notes (optional)
-                </label>
-                <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  rows={2}
+                <label className="block text-xs font-extrabold text-slate-600 uppercase mb-1.5">Notes (optional)</label>
+                <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}
                   placeholder="e.g. Customer returned for color mismatch, slightly used corner..."
-                  className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-emerald-500 resize-none"
-                />
+                  className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
               </div>
             </>
           )}
         </div>
 
-        {/* Footer */}
-        <div className="px-5 py-3 border-t border-slate-200 bg-white flex items-center justify-between gap-2">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100"
-          >
+        <div className="px-5 py-3 border-t-2 border-slate-200 bg-slate-50 flex items-center justify-between gap-2 shrink-0">
+          <button onClick={onClose}
+            className="px-4 py-2.5 rounded-xl text-sm font-extrabold text-slate-600 hover:bg-slate-200 transition">
             Cancel
           </button>
-          <Button
-            onClick={handleConfirm}
-            className={
-              isDamaged
-                ? 'bg-rose-600 hover:bg-rose-700'
-                : 'bg-gradient-to-r from-emerald-700 to-emerald-600'
-            }
-          >
+          <Button onClick={handleConfirm}
+            className={isDamaged ? 'bg-rose-600 hover:bg-rose-700 shadow-lg' : 'bg-gradient-to-r from-emerald-700 to-emerald-600 shadow-lg'}>
             {createCutPiece ? (
               <>
                 <Scissors className="h-4 w-4" />
@@ -410,10 +316,6 @@ export function CarpetReturnOptionsDialog({
   );
 }
 
-/**
- * Helper: Parse carpet info from sale item note string.
- * Mirrors the backend's parseCarpetNote logic.
- */
 export function parseCarpetNoteClient(note?: string | null): {
   isRollCut: boolean;
   isCutPiece: boolean;
@@ -430,8 +332,7 @@ export function parseCarpetNoteClient(note?: string | null): {
   );
   if (rollMatch) {
     return {
-      isRollCut: true,
-      isCutPiece: false,
+      isRollCut: true, isCutPiece: false,
       rollNumber: rollMatch[1],
       widthFt: Number(rollMatch[2]),
       lengthFt: Number(rollMatch[3]),
@@ -439,13 +340,10 @@ export function parseCarpetNoteClient(note?: string | null): {
     };
   }
 
-  const cutMatch = note.match(
-    /Cut piece ([\w-]+)(?:\s*[•·]\s*([\d.]+)\s*ft\s*[xX×]\s*([\d.]+)\s*ft)?/,
-  );
+  const cutMatch = note.match(/Cut piece ([\w-]+)(?:\s*[•·]\s*([\d.]+)\s*ft\s*[xX×]\s*([\d.]+)\s*ft)?/);
   if (cutMatch) {
     return {
-      isRollCut: false,
-      isCutPiece: true,
+      isRollCut: false, isCutPiece: true,
       pieceCode: cutMatch[1],
       widthFt: cutMatch[2] ? Number(cutMatch[2]) : undefined,
       lengthFt: cutMatch[3] ? Number(cutMatch[3]) : undefined,

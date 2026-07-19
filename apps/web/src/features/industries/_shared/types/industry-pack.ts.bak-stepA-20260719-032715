@@ -1,0 +1,190 @@
+/**
+ * Industry Pack — the contract every industry plugin must implement.
+ *
+ * An IndustryPack is a self-contained bundle that extends the core app:
+ *   • Navigation items (sidebar section)
+ *   • Routes (pages)
+ *   • POS extensions (mode bar, cart, checkout widgets)
+ *   • Product form extensions (extra fields, inventory section)
+ *   • Customer form extensions
+ *   • Dashboard override
+ *   • Reports
+ *   • Settings section
+ *
+ * Rules:
+ *   • Industry packs may depend on core/ and platform/ code.
+ *   • Core/platform code MUST NOT import industry pack code directly.
+ *   • Industry packs MUST NOT import each other.
+ *
+ * To register a pack, add it to `IndustryRegistry.register([...])`
+ * in `src/App.tsx` (or wherever registrations live).
+ */
+
+import type { ComponentType, LazyExoticComponent } from 'react';
+import type { LucideIcon } from 'lucide-react';
+import type { AuthTenant } from '@/store/auth.store';
+
+// ═══════════════════════════════════════════════════════════════
+// Navigation
+// ═══════════════════════════════════════════════════════════════
+
+export interface IndustryNavItem {
+  to: string;
+  label: string;
+  icon?: LucideIcon;
+  badge?: string;
+  /** Permission required (uses your existing permissions system) */
+  permission?: string;
+  /** Hide by feature flag key from tenant.businessFeatures */
+  featureFlag?: string;
+}
+
+export interface IndustryNavGroup {
+  label: string;
+  icon?: LucideIcon;
+  /** Optional emoji shown next to label */
+  emoji?: string;
+  /** Optional color for group header accent */
+  color?: string;
+  items: IndustryNavItem[];
+  /** Order relative to core groups. Lower = higher in sidebar. Default: 100 */
+  order?: number;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Routes
+// ═══════════════════════════════════════════════════════════════
+
+export interface IndustryRoute {
+  path: string;
+  element: ComponentType | LazyExoticComponent<ComponentType<any>>;
+  /** Permission required to access */
+  permission?: string;
+  /** If true, wrap in ProtectedRoute (default: true) */
+  protected?: boolean;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// POS Extensions
+// ═══════════════════════════════════════════════════════════════
+
+export interface IndustryPosExtensions {
+  /** Top bar above POS (e.g. Restaurant: Dine-in/Takeaway toggle) */
+  modeBar?: ComponentType;
+  /** Extra widget shown in each cart line (e.g. Restaurant modifier picker) */
+  cartLineExtension?: ComponentType<{ line: any; onChange: (patch: any) => void }>;
+  /** Extra section in checkout panel (e.g. Hotel: attach to booking) */
+  checkoutExtension?: ComponentType<{ cart: any; onChange: (patch: any) => void }>;
+  /** Extra tab/section in search panel (e.g. Carpet: cut-piece picker) */
+  searchExtension?: ComponentType;
+  /** Custom item selector when adding to cart (e.g. Mobile: IMEI picker) */
+  itemSelector?: ComponentType<{ product: any; onSelect: (item: any) => void }>;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Product Form Extensions
+// ═══════════════════════════════════════════════════════════════
+
+export interface IndustryProductFormExtensions {
+  /** Extra fields section in product form (e.g. Pharmacy: salt, schedule class) */
+  extraFields?: ComponentType<{ product: any; onChange: (patch: any) => void }>;
+  /** Replaces the inventory section entirely (e.g. Carpet: rolls table) */
+  inventorySection?: ComponentType<{ productId: string }>;
+  /** Extra content in each variant card (e.g. Mobile: IMEI list) */
+  variantExtension?: ComponentType<{ variant: any }>;
+  /** Extra header banner shown at top of variant list */
+  variantsBanner?: ComponentType;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Customer Form Extensions
+// ═══════════════════════════════════════════════════════════════
+
+export interface IndustryCustomerFormExtensions {
+  extraFields?: ComponentType<{ customer: any; onChange: (patch: any) => void }>;
+  /** Extra section in customer detail page (e.g. Hotel: stay history) */
+  detailSection?: ComponentType<{ customerId: string }>;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Reports
+// ═══════════════════════════════════════════════════════════════
+
+export interface IndustryReport {
+  id: string;
+  name: string;
+  description?: string;
+  icon?: LucideIcon;
+  component: ComponentType;
+  permission?: string;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// The Pack
+// ═══════════════════════════════════════════════════════════════
+
+export interface IndustryPack {
+  // ── Identity ───────────────────────────────────────────────
+  /** Stable ID, lowercase, hyphenated. e.g. 'hotel', 'auto-parts' */
+  id: string;
+  /** Display name */
+  name: string;
+  /** Short label for sidebar section header */
+  shortName?: string;
+  /** Emoji for visual identification */
+  emoji: string;
+  /** Primary theme color (hex) — used for accents, hero gradients */
+  themeColor: string;
+  /** One-liner description shown in industry picker */
+  description?: string;
+
+  // ── Detection ──────────────────────────────────────────────
+  /**
+   * Called with current tenant to decide if this pack is active.
+   * Return true if this industry applies to the tenant.
+   */
+  matches: (tenant: AuthTenant | null) => boolean;
+
+  // ── Navigation ─────────────────────────────────────────────
+  /** Sidebar nav groups to inject when this pack is active */
+  navGroups: IndustryNavGroup[];
+
+  // ── Routes ─────────────────────────────────────────────────
+  /** Routes to register in the app router */
+  routes: IndustryRoute[];
+
+  // ── Dashboard ──────────────────────────────────────────────
+  /**
+   * If provided, replaces the default core dashboard when this pack is active.
+   * Route is always `/` and `/dashboard`.
+   */
+  dashboardComponent?: ComponentType;
+
+  // ── Extensions ─────────────────────────────────────────────
+  pos?: IndustryPosExtensions;
+  productForm?: IndustryProductFormExtensions;
+  customerForm?: IndustryCustomerFormExtensions;
+
+  // ── Settings / Reports ─────────────────────────────────────
+  /** Extra tab in Settings page */
+  settingsSection?: {
+    id: string;
+    label: string;
+    icon?: LucideIcon;
+    component: ComponentType;
+  };
+  /** Industry-specific reports listed alongside core reports */
+  reports?: IndustryReport[];
+
+  // ── Feature Flags ──────────────────────────────────────────
+  /**
+   * Feature flags this pack contributes to tenant.businessFeatures.
+   * These are shown in onboarding / settings so tenant can toggle sub-features.
+   */
+  featureFlags?: Array<{
+    key: string;
+    label: string;
+    description?: string;
+    defaultEnabled?: boolean;
+  }>;
+}

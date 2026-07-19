@@ -1,0 +1,99 @@
+import { BookOpen, LayoutDashboard, Building2, Users, PenTool, Palette, School, Newspaper, BookMarked } from 'lucide-react';
+import type { IndustryPack } from '@/features/industries/_shared/types/industry-pack';
+
+import BookstoreDashboardPage from './pages/BookstoreDashboardPage';
+import PublishersPage from './pages/PublishersPage';
+import AuthorsPage from './pages/AuthorsPage';
+import BooksPage from './pages/BooksPage';
+import StationeryPage from './pages/StationeryPage';
+import ArtSuppliesPage from './pages/ArtSuppliesPage';
+import SchoolsPage from './pages/SchoolsPage';
+import SchoolListsPage from './pages/SchoolListsPage';
+import RentalsPage from './pages/RentalsPage';
+
+/**
+ * Bookstore / Stationery / Art Supplies industry pack.
+ * Books (ISBN, publisher, author), stationery, art supplies,
+ * school book lists, rentals.
+ */
+export const BookstorePack: IndustryPack = {
+  id: 'bookstore',
+  name: 'Bookstore / Stationery',
+  shortName: 'Bookstore',
+  emoji: '📚',
+  themeColor: '#7c3aed',
+  priority: 52,
+  description:
+    'Books (ISBN, publisher, author), stationery, art supplies, school book lists, rentals, bulk school orders.',
+
+  matches: (tenant) => {
+    if (!tenant) return false;
+    const type = (tenant.businessType ?? '').toUpperCase();
+    return (
+      type.includes('BOOK') ||
+      type.includes('STATIONERY') ||
+      type.includes('STATIONARY') ||
+      type.includes('LIBRARY') ||
+      type.includes('ART') ||
+      type.includes('SCHOOL') ||
+      type.includes('EDUCATION')
+    );
+  },
+
+  navGroups: [
+    {
+      label: 'Bookstore / Stationery',
+      icon: BookOpen,
+      emoji: '📚',
+      color: '#7c3aed',
+      order: 20,
+      items: [
+        { to: '/bookstore/dashboard', label: 'Bookstore Dashboard', icon: LayoutDashboard, badge: 'NEW' },
+        { to: '/bookstore/books', label: 'Books', icon: BookOpen },
+        { to: '/bookstore/publishers', label: 'Publishers', icon: Building2 },
+        { to: '/bookstore/authors', label: 'Authors', icon: Users },
+        { to: '/bookstore/stationery', label: 'Stationery', icon: PenTool },
+        { to: '/bookstore/art-supplies', label: 'Art Supplies', icon: Palette },
+        { to: '/bookstore/schools', label: 'Schools', icon: School },
+        { to: '/bookstore/school-lists', label: 'School Lists', icon: Newspaper },
+        { to: '/bookstore/rentals', label: 'Book Rentals', icon: BookMarked },
+      ],
+    },
+  ],
+
+  routes: [
+    { path: '/bookstore', element: BookstoreDashboardPage },
+    { path: '/bookstore/dashboard', element: BookstoreDashboardPage },
+    { path: '/bookstore/books', element: BooksPage },
+    { path: '/bookstore/publishers', element: PublishersPage },
+    { path: '/bookstore/authors', element: AuthorsPage },
+    { path: '/bookstore/stationery', element: StationeryPage },
+    { path: '/bookstore/art-supplies', element: ArtSuppliesPage },
+    { path: '/bookstore/schools', element: SchoolsPage },
+    { path: '/bookstore/school-lists', element: SchoolListsPage },
+    { path: '/bookstore/rentals', element: RentalsPage },
+  ],
+
+  dashboardComponent: BookstoreDashboardPage,
+
+  productForm: {
+    defaultUnit: 'pcs',
+    unitOptions: [
+      { value: 'pcs', label: 'Pieces', hint: '🔢', group: 'Count' },
+      { value: 'copy', label: 'Copy (book)', hint: '📖', group: 'Books' },
+      { value: 'set', label: 'Set / Volumes', hint: '📚', group: 'Books' },
+      { value: 'dozen', label: 'Dozen', hint: '📦', group: 'Count' },
+      { value: 'pack', label: 'Pack', hint: '📦', group: 'Count' },
+      { value: 'box', label: 'Box', hint: '📦', group: 'Count' },
+      { value: 'ream', label: 'Ream (paper)', hint: '📄', group: 'Paper' },
+      { value: 'sheet', label: 'Sheet', hint: '📄', group: 'Paper' },
+      { value: 'roll', label: 'Roll', hint: '🧻', group: 'Count' },
+    ],
+  },
+
+  featureFlags: [
+    { key: 'bookIsbn', label: 'ISBN Tracking', defaultEnabled: true },
+    { key: 'schoolLists', label: 'School Book Lists', defaultEnabled: true },
+    { key: 'bookRentals', label: 'Book Rentals', defaultEnabled: false },
+  ],
+};

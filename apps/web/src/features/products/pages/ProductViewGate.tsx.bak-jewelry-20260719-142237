@@ -1,0 +1,23 @@
+import { Navigate, useParams } from 'react-router-dom';
+import { useCurrentIndustry } from '@/features/industries/_shared/registry/useCurrentIndustry';
+
+/**
+ * ProductViewGate — routes /products/:id to the correct industry view.
+ *
+ *   • Carpet → /carpet-products/:id (detail view)
+ *   • Mobile → /mobile-products/:id (detail view)
+ *   • Retail → /retail-products/:id (detail view)
+ *   • Others → /products/:id/edit (standard edit form)
+ */
+export default function ProductViewGate() {
+  const industry = useCurrentIndustry();
+  const { id } = useParams();
+
+  if (!id) return <Navigate to="/products" replace />;
+
+  if (industry?.id === 'carpet') return <Navigate to={`/carpet-products/${id}`} replace />;
+  if (industry?.id === 'mobile') return <Navigate to={`/mobile-products/${id}`} replace />;
+  if (industry?.id === 'retail') return <Navigate to={`/retail-products/${id}`} replace />;
+
+  return <Navigate to={`/products/${id}/edit`} replace />;
+}

@@ -41,3 +41,4 @@ export const mobilePlugin: IndustryPlugin = {
   VariantsBanner: MobileVariantsBanner,
   VariantExtraPanel: MobileVariantExtraPanel,
 };
+export { MobilePack } from './MobilePack';
