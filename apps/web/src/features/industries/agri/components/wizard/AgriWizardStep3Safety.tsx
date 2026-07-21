@@ -1,7 +1,6 @@
 import {
   ShieldCheck, AlertTriangle, Info, Package, DollarSign,
   Sparkles, Star, TrendingUp, Eye, AlertCircle, Percent,
-  HeartPulse,
 } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import type { AgriWizardSafety } from '../../hooks/useAgriWizard';
