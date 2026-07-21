@@ -5,7 +5,7 @@ import PharmacyDashboardPage from './pages/PharmacyDashboardPage';
 import PrescriptionsPage from './pages/PrescriptionsPage';
 import NewPrescriptionPage from './pages/NewPrescriptionPage';
 import PrescriptionDetailPage from './pages/PrescriptionDetailPage';
-import DoctorsPage from './pages/DoctorsPage';
+import DoctorsPage from './pages/PharmacyDoctorsPage';
 import SaltsPage from './pages/SaltsPage';
 import MedicinesPage from './pages/MedicinesPage';
 import ExpiringPage from './pages/ExpiringPage';

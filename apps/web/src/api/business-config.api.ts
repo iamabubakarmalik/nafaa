@@ -17,16 +17,20 @@ export interface BusinessFeatures {
   prescriptionRequired: boolean;
   multiUnit: boolean;
   sizeMatrix: boolean;
+  [key: string]: boolean;
 }
 
 export interface BusinessConfig {
   businessType: string;
   defaultUnit: string;
+  currency?: string;
   features: BusinessFeatures;
   template: {
     label: string;
+    labelUrdu?: string;
     emoji: string;
     description: string;
+    color?: string;
     quickUnits: string[];
     suggestedCategories: string[];
     highlights: string[];
@@ -54,8 +58,10 @@ const DEFAULT_FEATURES: BusinessFeatures = {
 
 const FALLBACK_TEMPLATE = {
   label: 'General Retail',
+  labelUrdu: '',
   emoji: '🏬',
   description: 'General business configuration',
+  color: '#6b7280',
   quickUnits: ['pcs', 'kg', 'meter'],
   suggestedCategories: [],
   highlights: [],
@@ -75,6 +81,7 @@ function normalizeConfig(raw: any): BusinessConfig {
   return {
     businessType: data?.businessType || 'GENERAL',
     defaultUnit: data?.defaultUnit || 'pcs',
+    currency: data?.currency,
     features,
     template: {
       ...FALLBACK_TEMPLATE,
@@ -111,3 +118,5 @@ export const businessConfigApi = {
     return normalizeConfig(unwrapRaw(res));
   },
 };
+
+export const DEFAULT_BUSINESS_FEATURES = DEFAULT_FEATURES;

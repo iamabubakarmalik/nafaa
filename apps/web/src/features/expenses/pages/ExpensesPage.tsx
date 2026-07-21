@@ -1,22 +1,23 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Wallet, Plus, Trash2, TrendingDown, CalendarDays, Receipt, Tag,
   Search, X, Download, Edit3, Calendar, Save, CheckCircle2,
   Banknote, CreditCard, Smartphone, Zap, Building, Sparkles, FolderOpen,
-  Palette, BarChart3, RefreshCw, Activity, ArrowDownRight, FileText,
-  AlertTriangle, Crown, Filter, TrendingUp, ArrowUpRight,
+  Palette, BarChart3, RefreshCw, AlertTriangle, Crown, Filter, TrendingUp,
+  Import, ChevronRight, Repeat, DollarSign, Info,
 } from 'lucide-react';
 import {
-  ResponsiveContainer, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
+  ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell,
   XAxis, YAxis, Tooltip, CartesianGrid, Legend,
 } from 'recharts';
 import { expensesApi, expenseCategoriesApi } from '@/api/expenses.api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { formatPKR, formatPKRFull } from '@/lib/format';
+import { formatPKR } from '@/lib/format';
 import type { PaymentMethod } from '@/api/sales.api';
 import { toast } from 'sonner';
+import { useIndustryExpensePresets } from '@/features/industries/_shared/presets';
 
 const formatDate = (value: string) =>
   new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
@@ -40,17 +41,6 @@ const COLOR_PRESETS = [
   '#10b981', '#d946ef', '#eab308', '#0ea5e9', '#dc2626',
 ];
 
-const SUGGESTED_CATEGORIES = [
-  { name: 'Rent', color: '#ef4444', emoji: '🏠' },
-  { name: 'Utilities (Electric/Gas/Water)', color: '#06b6d4', emoji: '💡' },
-  { name: 'Staff Salary', color: '#8b5cf6', emoji: '👥' },
-  { name: 'Transportation', color: '#f97316', emoji: '🚗' },
-  { name: 'Internet & Phone', color: '#3b82f6', emoji: '📞' },
-  { name: 'Marketing', color: '#ec4899', emoji: '📣' },
-  { name: 'Maintenance', color: '#84cc16', emoji: '🔧' },
-  { name: 'Tea & Refreshments', color: '#a855f7', emoji: '☕' },
-];
-
 const paymentIcons: any = {
   CASH: Banknote, CARD: CreditCard, JAZZCASH: Smartphone,
   EASYPAISA: Zap, BANK_TRANSFER: Building,
@@ -71,6 +61,7 @@ type Tab = 'overview' | 'list' | 'categories';
 
 export default function ExpensesPage() {
   const queryClient = useQueryClient();
+  const industryPresets = useIndustryExpensePresets();
 
   const [tab, setTab] = useState<Tab>('overview');
 
@@ -87,8 +78,10 @@ export default function ExpensesPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [paymentFilter, setPaymentFilter] = useState<PaymentMethod | 'all'>('all');
 
-  // Category modal
+  // Modals
   const [showCatModal, setShowCatModal] = useState(false);
+  const [showBulkImport, setShowBulkImport] = useState(false);
+  const [selectedPresets, setSelectedPresets] = useState<Set<string>>(new Set());
   const [editingCat, setEditingCat] = useState<any>(null);
   const [catName, setCatName] = useState('');
   const [catColor, setCatColor] = useState(COLOR_PRESETS[0]);
@@ -127,7 +120,6 @@ export default function ExpensesPage() {
       toast.success('Expense deleted');
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
       queryClient.invalidateQueries({ queryKey: ['expenses-summary'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard-overview'] });
     },
   });
 
@@ -139,6 +131,24 @@ export default function ExpensesPage() {
       queryClient.invalidateQueries({ queryKey: ['expense-categories'] });
     },
     onError: (err: any) => toast.error(err?.response?.data?.message || 'Failed'),
+  });
+
+  const bulkCreateCategories = useMutation({
+    mutationFn: async (presets: Array<{ name: string; color: string }>) => {
+      const results = await Promise.allSettled(
+        presets.map((p) => expenseCategoriesApi.create({ name: p.name, color: p.color }))
+      );
+      const succeeded = results.filter((r) => r.status === 'fulfilled').length;
+      const failed = results.length - succeeded;
+      return { succeeded, failed };
+    },
+    onSuccess: ({ succeeded, failed }) => {
+      if (succeeded > 0) toast.success(`${succeeded} categories added`);
+      if (failed > 0) toast.error(`${failed} failed (duplicates)`);
+      setShowBulkImport(false);
+      setSelectedPresets(new Set());
+      queryClient.invalidateQueries({ queryKey: ['expense-categories'] });
+    },
   });
 
   const deleteCategory = useMutation({
@@ -217,7 +227,7 @@ export default function ExpensesPage() {
     return Object.values(buckets);
   }, [expenses]);
 
-  // Category breakdown for pie
+  // Category breakdown
   const categoryBreakdown = useMemo(() => {
     const map = new Map<string, { name: string; color: string; total: number; count: number }>();
     for (const e of expenses as any[]) {
@@ -237,7 +247,7 @@ export default function ExpensesPage() {
     return [...expenses].sort((a: any, b: any) => b.amount - a.amount).slice(0, 5);
   }, [expenses]);
 
-  // Payment method breakdown
+  // Payment breakdown
   const paymentBreakdown = useMemo(() => {
     const map = new Map<string, number>();
     for (const e of expenses as any[]) {
@@ -253,6 +263,14 @@ export default function ExpensesPage() {
   const todayCount = (summary?.todayCount ?? 0);
   const avgPerDay = (summary?.monthExpenses ?? 0) / 30;
   const biggestExpense = topExpenses[0];
+
+  const existingCatNames = new Set(categories.map((c: any) => c.name.toLowerCase()));
+  const availablePresets = industryPresets.categories.filter(
+    (s) => !existingCatNames.has(s.name.toLowerCase())
+  );
+
+  const recurringPresets = availablePresets.filter((p) => p.isRecurring);
+  const oneTimePresets = availablePresets.filter((p) => !p.isRecurring);
 
   const closeCatModal = () => {
     setShowCatModal(false);
@@ -279,6 +297,21 @@ export default function ExpensesPage() {
     setCatName(preset.name);
     setCatColor(preset.color);
     setShowCatModal(true);
+  };
+
+  const togglePresetSelection = (name: string) => {
+    setSelectedPresets((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  };
+
+  const bulkAddSelected = () => {
+    const toAdd = availablePresets.filter((p) => selectedPresets.has(p.name));
+    if (toAdd.length === 0) return toast.error('Select at least one category');
+    bulkCreateCategories.mutate(toAdd);
   };
 
   const exportCSV = () => {
@@ -311,11 +344,6 @@ export default function ExpensesPage() {
     setPaymentFilter('all');
   };
 
-  const existingCatNames = new Set(categories.map((c: any) => c.name.toLowerCase()));
-  const availableSuggestions = SUGGESTED_CATEGORIES.filter(
-    (s) => !existingCatNames.has(s.name.toLowerCase()),
-  );
-
   return (
     <div className="space-y-6">
       {/* ═══ HERO ═══ */}
@@ -328,13 +356,30 @@ export default function ExpensesPage() {
             <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur px-3 py-1 text-xs font-extrabold">
               <Wallet className="h-3.5 w-3.5 text-amber-300" />
               Money Out Tracking
+              {industryPresets.industryId && (
+                <>
+                  <span className="text-white/40">•</span>
+                  <span>{industryPresets.industryEmoji} {industryPresets.industryName}</span>
+                </>
+              )}
             </div>
             <h2 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">Expenses</h2>
             <p className="mt-2 text-sm text-white/80">
-              Rent, bills, salaries — har kharcha track karo aur asli profit dekho
+              {industryPresets.industryId
+                ? `${industryPresets.industryName} businesses ke liye ${availablePresets.length} ready-made expense categories`
+                : 'Rent, bills, salaries — har kharcha track karo aur asli profit dekho'}
             </p>
           </div>
           <div className="flex gap-2 flex-wrap">
+            {availablePresets.length > 0 && (
+              <button
+                onClick={() => setShowBulkImport(true)}
+                className="inline-flex items-center gap-2 rounded-xl bg-amber-500/30 hover:bg-amber-500/50 border-2 border-amber-300/40 px-4 py-2.5 text-sm font-bold transition backdrop-blur"
+              >
+                <Import className="h-4 w-4" />
+                Bulk Import ({availablePresets.length})
+              </button>
+            )}
             <button
               onClick={() => refetch()}
               disabled={isRefetching}
@@ -360,7 +405,7 @@ export default function ExpensesPage() {
         {[
           { id: 'overview' as Tab, label: 'Overview', icon: BarChart3 },
           { id: 'list' as Tab, label: 'All Expenses', icon: Receipt },
-          { id: 'categories' as Tab, label: 'Categories', icon: FolderOpen },
+          { id: 'categories' as Tab, label: `Categories (${categories.length})`, icon: FolderOpen },
         ].map((t) => {
           const Icon = t.icon;
           const active = tab === t.id;
@@ -381,7 +426,7 @@ export default function ExpensesPage() {
         })}
       </section>
 
-      {/* ═══ STATS GRID ═══ */}
+      {/* ═══ STATS ═══ */}
       <section className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           label="Aaj ke Expenses"
@@ -389,7 +434,6 @@ export default function ExpensesPage() {
           sub={`${todayCount} entries today`}
           icon={TrendingDown}
           color="rose"
-          isText
           isAlert={(summary?.todayExpenses ?? 0) > 5000}
         />
         <StatCard
@@ -398,7 +442,6 @@ export default function ExpensesPage() {
           sub={`Avg ${formatPKR(avgPerDay)}/day`}
           icon={CalendarDays}
           color="violet"
-          isText
         />
         <StatCard
           label="Total Expenses"
@@ -406,7 +449,6 @@ export default function ExpensesPage() {
           sub={`${expenses.length} all time`}
           icon={Wallet}
           color="amber"
-          isText
         />
         <StatCard
           label="Biggest Expense"
@@ -414,14 +456,48 @@ export default function ExpensesPage() {
           sub={biggestExpense?.title?.slice(0, 30) || 'No expenses yet'}
           icon={AlertTriangle}
           color="orange"
-          isText
         />
       </section>
+
+      {/* ═══ INDUSTRY QUICK ADD BANNER ═══ */}
+      {tab !== 'categories' && availablePresets.length > 0 && categories.length < 5 && (
+        <section className="rounded-3xl bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 border-2 border-amber-300 p-5 shadow-sm">
+          <div className="flex items-start gap-3">
+            <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-lg shrink-0">
+              <Info className="h-5 w-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-extrabold text-amber-900">
+                {industryPresets.industryEmoji} Setup expenses for {industryPresets.industryName}
+              </h3>
+              <p className="text-xs text-amber-800 font-semibold mt-1">
+                {availablePresets.length} suggested expense categories tayyar hain — Kitchen Gas,
+                Staff Salary, Delivery Fuel wagera. Bulk Import se ek click mein sab add karo.
+              </p>
+              <div className="mt-3 flex gap-2 flex-wrap">
+                <button
+                  onClick={() => setShowBulkImport(true)}
+                  className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-extrabold inline-flex items-center gap-1 shadow-sm"
+                >
+                  <Import className="h-3 w-3" />
+                  Import All {availablePresets.length}
+                </button>
+                <button
+                  onClick={() => setTab('categories')}
+                  className="px-3 py-1.5 rounded-lg bg-white border-2 border-amber-300 hover:border-amber-400 text-amber-800 text-xs font-extrabold inline-flex items-center gap-1"
+                >
+                  <FolderOpen className="h-3 w-3" />
+                  Manage Categories
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ═══ OVERVIEW TAB ═══ */}
       {tab === 'overview' && (
         <>
-          {/* Charts row */}
           <section className="grid lg:grid-cols-[1.5fr_1fr] gap-6">
             <div className="rounded-3xl bg-white border border-slate-200 shadow-sm p-6">
               <div className="flex items-center justify-between mb-5">
@@ -444,10 +520,7 @@ export default function ExpensesPage() {
                       <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                       <XAxis dataKey="label" stroke="#64748b" fontSize={11} />
                       <YAxis stroke="#64748b" fontSize={11} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-                      <Tooltip
-                        formatter={(value: any) => formatPKR(Number(value))}
-                        contentStyle={{ borderRadius: 12, border: '2px solid #e2e8f0' }}
-                      />
+                      <Tooltip formatter={(value: any) => formatPKR(Number(value))} contentStyle={{ borderRadius: 12 }} />
                       <Area type="monotone" dataKey="total" name="Expenses" fill="url(#expGrad)" stroke="#ef4444" strokeWidth={2.5} />
                     </AreaChart>
                   </ResponsiveContainer>
@@ -502,7 +575,6 @@ export default function ExpensesPage() {
             </div>
           </section>
 
-          {/* Top expenses + Payment methods */}
           <section className="grid lg:grid-cols-2 gap-6">
             <div className="rounded-3xl bg-white border-2 border-rose-200 shadow-sm overflow-hidden">
               <div className="px-5 py-4 bg-gradient-to-r from-rose-50 to-pink-50 border-b-2 border-rose-200 flex items-center justify-between">
@@ -510,7 +582,6 @@ export default function ExpensesPage() {
                   <Crown className="h-5 w-5 text-amber-500" />
                   <h3 className="font-extrabold text-rose-900">Top 5 Biggest Expenses</h3>
                 </div>
-                <span className="text-[10px] font-bold uppercase text-rose-700 bg-rose-100 px-2 py-1 rounded-full">All Time</span>
               </div>
               <div className="divide-y divide-slate-100">
                 {topExpenses.length > 0 ? (
@@ -562,7 +633,8 @@ export default function ExpensesPage() {
                   {paymentBreakdown.map((p) => {
                     const total = paymentBreakdown.reduce((s, x) => s + x.value, 0);
                     const pct = total > 0 ? (p.value / total) * 100 : 0;
-                    const PayIcon = paymentIcons[Object.keys(paymentLabels).find(k => paymentLabels[k] === p.name) || 'CASH'] || CreditCard;
+                    const methodKey = Object.keys(paymentLabels).find(k => paymentLabels[k] === p.name) || 'CASH';
+                    const PayIcon = paymentIcons[methodKey] || CreditCard;
                     return (
                       <div key={p.name}>
                         <div className="flex items-center justify-between mb-1.5">
@@ -575,9 +647,7 @@ export default function ExpensesPage() {
                               <div className="text-[10px] text-slate-500 font-bold">{pct.toFixed(1)}%</div>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <div className="font-extrabold text-rose-700 text-sm tabular-nums">{formatPKR(p.value)}</div>
-                          </div>
+                          <div className="font-extrabold text-rose-700 text-sm tabular-nums">{formatPKR(p.value)}</div>
                         </div>
                         <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                           <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: p.color }} />
@@ -597,7 +667,6 @@ export default function ExpensesPage() {
       {/* ═══ LIST TAB ═══ */}
       {tab === 'list' && (
         <section className="grid xl:grid-cols-[420px_1fr] gap-6">
-          {/* Sticky form */}
           <div className="rounded-3xl bg-white border-2 border-rose-200 shadow-sm p-6 h-fit sticky top-6">
             <div className="flex items-center gap-3 mb-5">
               <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-rose-500 to-rose-700 text-white flex items-center justify-center shadow-lg shadow-rose-500/30">
@@ -610,20 +679,8 @@ export default function ExpensesPage() {
             </div>
 
             <div className="space-y-4">
-              <Input
-                label="Title *"
-                placeholder="Shop rent for May"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-              />
-              <Input
-                label="Amount (PKR) *"
-                type="number"
-                step="0.01"
-                placeholder="50000"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-              />
+              <Input label="Title *" placeholder="Shop rent for May" value={title} onChange={(e) => setTitle(e.target.value)} />
+              <Input label="Amount (PKR) *" type="number" step="0.01" placeholder="50000" value={amount} onChange={(e) => setAmount(e.target.value)} />
 
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-1.5">Category</label>
@@ -637,12 +694,12 @@ export default function ExpensesPage() {
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
                 </select>
-                {categories.length === 0 && (
+                {categories.length === 0 && availablePresets.length > 0 && (
                   <button
-                    onClick={() => setTab('categories')}
+                    onClick={() => setShowBulkImport(true)}
                     className="text-xs text-rose-700 font-bold hover:underline mt-1 inline-flex items-center gap-1"
                   >
-                    <Plus className="h-3 w-3" /> Create first category
+                    <Import className="h-3 w-3" /> Import {industryPresets.industryName} categories
                   </button>
                 )}
               </div>
@@ -663,7 +720,6 @@ export default function ExpensesPage() {
                             ? 'border-rose-500 bg-rose-50 text-rose-700 ring-2 ring-rose-200'
                             : 'border-slate-200 text-slate-500 hover:border-slate-300'
                         }`}
-                        title={paymentLabels[m]}
                       >
                         <Icon className="h-3.5 w-3.5" />
                         <span className="text-[9px] font-extrabold">{paymentLabels[m]}</span>
@@ -706,7 +762,6 @@ export default function ExpensesPage() {
             </div>
           </div>
 
-          {/* Expenses list */}
           <div className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
             <div className="px-6 py-5 border-b border-slate-100 space-y-3">
               <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -724,7 +779,7 @@ export default function ExpensesPage() {
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search title, description, expense #..."
+                  placeholder="Search title, description..."
                   className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-9 text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-200"
                 />
                 {search && (
@@ -754,28 +809,6 @@ export default function ExpensesPage() {
                     </button>
                   ))}
                 </div>
-                <div className="flex gap-1 flex-wrap items-center">
-                  <span className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mr-1">Pay:</span>
-                  <button
-                    onClick={() => setPaymentFilter('all')}
-                    className={`px-2.5 py-1 rounded-md text-xs font-bold transition ${
-                      paymentFilter === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                    }`}
-                  >
-                    All
-                  </button>
-                  {(Object.keys(paymentLabels) as PaymentMethod[]).map((m) => (
-                    <button
-                      key={m}
-                      onClick={() => setPaymentFilter(m)}
-                      className={`px-2.5 py-1 rounded-md text-xs font-bold transition ${
-                        paymentFilter === m ? 'bg-rose-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                      }`}
-                    >
-                      {paymentLabels[m]}
-                    </button>
-                  ))}
-                </div>
                 {hasFilters && (
                   <button onClick={clearFilters} className="text-xs font-bold text-rose-600 hover:text-rose-700 inline-flex items-center gap-1">
                     <X className="h-3 w-3" /> Clear filters
@@ -792,9 +825,6 @@ export default function ExpensesPage() {
                 <h4 className="mt-5 text-lg font-bold text-slate-900">
                   {hasFilters ? 'No matches' : 'Abhi koi expense nahi'}
                 </h4>
-                <p className="text-xs text-slate-500 mt-1">
-                  {hasFilters ? 'Try different filter' : 'Left side se pehla expense add karein'}
-                </p>
               </div>
             ) : (
               <div className="divide-y divide-slate-100 max-h-[700px] overflow-y-auto">
@@ -804,10 +834,7 @@ export default function ExpensesPage() {
                     <div key={e.id} className="px-6 py-4 hover:bg-slate-50 transition group">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-start gap-3 min-w-0 flex-1">
-                          <div
-                            className="h-11 w-11 rounded-xl flex items-center justify-center text-white shadow-md shrink-0"
-                            style={{ backgroundColor: e.category?.color || '#64748b' }}
-                          >
+                          <div className="h-11 w-11 rounded-xl flex items-center justify-center text-white shadow-md shrink-0" style={{ backgroundColor: e.category?.color || '#64748b' }}>
                             <Wallet className="h-5 w-5" />
                           </div>
                           <div className="min-w-0 flex-1">
@@ -817,10 +844,7 @@ export default function ExpensesPage() {
                             </div>
                             <div className="flex items-center gap-2 mt-0.5 flex-wrap text-xs">
                               {e.category ? (
-                                <span
-                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white"
-                                  style={{ backgroundColor: e.category.color }}
-                                >
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white" style={{ backgroundColor: e.category.color }}>
                                   <Tag className="h-2.5 w-2.5" />
                                   {e.category.name}
                                 </span>
@@ -844,13 +868,9 @@ export default function ExpensesPage() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
-                          <div className="text-right">
-                            <div className="font-extrabold text-rose-700 text-lg tabular-nums">{formatPKR(e.amount)}</div>
-                          </div>
+                          <div className="font-extrabold text-rose-700 text-lg tabular-nums">{formatPKR(e.amount)}</div>
                           <button
-                            onClick={() => {
-                              if (confirm(`Delete "${e.title}"?`)) deleteExpense.mutate(e.id);
-                            }}
+                            onClick={() => { if (confirm(`Delete "${e.title}"?`)) deleteExpense.mutate(e.id); }}
                             className="h-8 w-8 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -869,28 +889,82 @@ export default function ExpensesPage() {
       {/* ═══ CATEGORIES TAB ═══ */}
       {tab === 'categories' && (
         <section className="space-y-4">
-          {/* Quick suggestions */}
-          {availableSuggestions.length > 0 && (
-            <div className="rounded-3xl bg-gradient-to-br from-violet-50 to-purple-50 border-2 border-violet-200 p-5">
-              <div className="flex items-center gap-2 mb-3">
-                <Sparkles className="h-4 w-4 text-violet-600" />
-                <h3 className="font-extrabold text-violet-900">Quick Add Suggestions</h3>
-                <span className="text-[10px] font-bold text-violet-700 bg-violet-100 px-2 py-0.5 rounded-full">
-                  Popular categories
-                </span>
+          {/* Industry recurring expenses */}
+          {recurringPresets.length > 0 && (
+            <div className="rounded-3xl bg-gradient-to-br from-blue-50 via-sky-50 to-cyan-50 border-2 border-blue-200 p-5">
+              <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 text-white flex items-center justify-center shadow-md">
+                    <Repeat className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-blue-900">
+                      {industryPresets.industryEmoji} Recurring Monthly Expenses
+                    </h3>
+                    <p className="text-[11px] text-blue-700 font-bold">
+                      {recurringPresets.length} regular expenses for {industryPresets.industryName}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-2">
-                {availableSuggestions.slice(0, 8).map((s) => (
+              <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                {recurringPresets.slice(0, 12).map((s) => (
+                  <button
+                    key={s.name}
+                    onClick={() => quickAddCategory(s)}
+                    className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white border-2 border-blue-200 hover:border-blue-400 hover:shadow-md hover:scale-105 transition group"
+                  >
+                    <div className="h-9 w-9 rounded-lg flex items-center justify-center text-white shadow-sm shrink-0 text-base" style={{ backgroundColor: s.color }}>
+                      {s.emoji}
+                    </div>
+                    <div className="text-left min-w-0 flex-1">
+                      <div className="text-xs font-extrabold text-slate-900 truncate">{s.name}</div>
+                      {s.typicalMonthly && (
+                        <div className="text-[9px] text-blue-600 font-bold">
+                          ~{formatPKR(s.typicalMonthly.min)}-{formatPKR(s.typicalMonthly.max)}
+                        </div>
+                      )}
+                    </div>
+                    <Repeat className="h-3 w-3 text-blue-500 shrink-0" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* One-time expenses */}
+          {oneTimePresets.length > 0 && (
+            <div className="rounded-3xl bg-gradient-to-br from-violet-50 to-purple-50 border-2 border-violet-200 p-5">
+              <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center shadow-md">
+                    <DollarSign className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-violet-900">One-Time / Occasional Expenses</h3>
+                    <p className="text-[11px] text-violet-700 font-bold">
+                      {oneTimePresets.length} occasional {industryPresets.industryName} expenses
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowBulkImport(true)}
+                  className="text-xs font-extrabold text-violet-700 hover:text-violet-800 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white border-2 border-violet-300 hover:border-violet-400 transition"
+                >
+                  <Import className="h-3 w-3" />
+                  Bulk Import
+                  <ChevronRight className="h-3 w-3" />
+                </button>
+              </div>
+              <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                {oneTimePresets.slice(0, 12).map((s) => (
                   <button
                     key={s.name}
                     onClick={() => quickAddCategory(s)}
                     className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white border-2 hover:shadow-md hover:scale-105 transition group"
                     style={{ borderColor: `${s.color}50` }}
                   >
-                    <div
-                      className="h-9 w-9 rounded-lg flex items-center justify-center text-white shadow-sm shrink-0 text-base"
-                      style={{ backgroundColor: s.color }}
-                    >
+                    <div className="h-9 w-9 rounded-lg flex items-center justify-center text-white shadow-sm shrink-0 text-base" style={{ backgroundColor: s.color }}>
                       {s.emoji}
                     </div>
                     <div className="text-left min-w-0 flex-1">
@@ -910,7 +984,7 @@ export default function ExpensesPage() {
                   <FolderOpen className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900">All Categories</h3>
+                  <h3 className="text-xl font-bold text-slate-900">All Expense Categories</h3>
                   <p className="text-sm text-slate-500">{categories.length} categories</p>
                 </div>
               </div>
@@ -923,21 +997,15 @@ export default function ExpensesPage() {
               <div className="rounded-2xl border-2 border-dashed border-slate-200 p-8 text-center">
                 <Tag className="h-10 w-10 text-slate-300 mx-auto mb-2" />
                 <p className="font-bold text-slate-700 text-sm">No categories yet</p>
-                <p className="text-xs text-slate-500 mt-1">Suggestions upar se quick add karein ya manual create karein</p>
+                <p className="text-xs text-slate-500 mt-1">Upar se {industryPresets.industryName} suggestions ka use karo</p>
               </div>
             ) : (
               <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {categories.map((c: any) => (
-                  <div
-                    key={c.id}
-                    className="group rounded-2xl border-2 border-slate-200 p-4 hover:border-violet-300 hover:shadow-lg hover:-translate-y-0.5 transition-all"
-                  >
+                  <div key={c.id} className="group rounded-2xl border-2 border-slate-200 p-4 hover:border-violet-300 hover:shadow-lg hover:-translate-y-0.5 transition-all">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                        <div
-                          className="h-12 w-12 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0"
-                          style={{ backgroundColor: c.color, boxShadow: `0 8px 20px ${c.color}40` }}
-                        >
+                        <div className="h-12 w-12 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0" style={{ backgroundColor: c.color, boxShadow: `0 8px 20px ${c.color}40` }}>
                           <Tag className="h-5 w-5" />
                         </div>
                         <div className="min-w-0">
@@ -948,15 +1016,12 @@ export default function ExpensesPage() {
                         </div>
                       </div>
                       <button
-                        onClick={() => {
-                          if (confirm(`Delete "${c.name}"?`)) deleteCategory.mutate(c.id);
-                        }}
+                        onClick={() => { if (confirm(`Delete "${c.name}"?`)) deleteCategory.mutate(c.id); }}
                         className="h-7 w-7 rounded-md bg-rose-50 hover:bg-rose-100 text-rose-700 flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
-                    <div className="mt-3 text-[10px] font-mono text-slate-400 uppercase">{c.color}</div>
                   </div>
                 ))}
               </div>
@@ -965,19 +1030,108 @@ export default function ExpensesPage() {
         </section>
       )}
 
-      {/* ═══ CATEGORY MODAL ═══ */}
+      {/* ═══ BULK IMPORT MODAL ═══ */}
+      {showBulkImport && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col">
+            <div className="px-6 py-5 border-b-2 border-slate-100 bg-gradient-to-r from-rose-50 to-pink-50 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 text-white flex items-center justify-center shadow-lg">
+                  <Import className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-xl text-slate-900">
+                    {industryPresets.industryEmoji} Expense Categories — {industryPresets.industryName}
+                  </h3>
+                  <p className="text-xs text-slate-600 font-semibold">
+                    {selectedPresets.size} of {availablePresets.length} selected
+                  </p>
+                </div>
+              </div>
+              <button onClick={() => { setShowBulkImport(false); setSelectedPresets(new Set()); }} className="h-9 w-9 rounded-lg hover:bg-white flex items-center justify-center">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="px-6 py-3 border-b border-slate-100 flex items-center justify-between">
+              <div className="flex gap-2">
+                <button onClick={() => setSelectedPresets(new Set(availablePresets.map((p) => p.name)))} className="text-xs font-extrabold text-rose-700 hover:underline">Select All</button>
+                <span className="text-slate-300">•</span>
+                <button onClick={() => setSelectedPresets(new Set(recurringPresets.map((p) => p.name)))} className="text-xs font-extrabold text-blue-700 hover:underline">Only Recurring</button>
+                <span className="text-slate-300">•</span>
+                <button onClick={() => setSelectedPresets(new Set())} className="text-xs font-extrabold text-slate-600 hover:underline">Deselect All</button>
+              </div>
+              <div className="text-xs text-slate-500 font-semibold">Existing categories hidden</div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-2">
+                {availablePresets.map((p) => {
+                  const selected = selectedPresets.has(p.name);
+                  return (
+                    <button
+                      key={p.name}
+                      onClick={() => togglePresetSelection(p.name)}
+                      className={`flex items-start gap-2 p-3 rounded-xl border-2 transition text-left ${
+                        selected
+                          ? 'shadow-md ring-2 ring-rose-200 border-rose-500 bg-rose-50'
+                          : 'border-slate-200 bg-white hover:border-rose-300 hover:shadow-sm'
+                      }`}
+                    >
+                      <div className="h-10 w-10 rounded-lg flex items-center justify-center text-white shadow-sm shrink-0 text-lg" style={{ backgroundColor: p.color }}>
+                        {p.emoji}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1">
+                          <div className="text-xs font-extrabold text-slate-900 truncate">{p.name}</div>
+                          {p.isRecurring && <Repeat className="h-2.5 w-2.5 text-blue-600 shrink-0" />}
+                        </div>
+                        {p.typicalMonthly && (
+                          <div className="text-[9px] text-slate-500 font-bold mt-0.5">
+                            ~{formatPKR(p.typicalMonthly.min)} - {formatPKR(p.typicalMonthly.max)}/mo
+                          </div>
+                        )}
+                      </div>
+                      {selected && <CheckCircle2 className="h-4 w-4 text-rose-600 shrink-0 mt-1" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="px-6 py-4 border-t-2 border-slate-100 bg-slate-50 flex items-center justify-between gap-2">
+              <div className="text-sm">
+                <div className="font-extrabold text-slate-900">{selectedPresets.size} categories selected</div>
+                <div className="text-xs text-slate-500 font-semibold">Duplicates auto-skipped</div>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="secondary" onClick={() => { setShowBulkImport(false); setSelectedPresets(new Set()); }}>Cancel</Button>
+                <Button
+                  onClick={bulkAddSelected}
+                  disabled={selectedPresets.size === 0}
+                  loading={bulkCreateCategories.isPending}
+                  className="bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700"
+                >
+                  <Import className="h-4 w-4" />
+                  Import {selectedPresets.size} Categories
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ CATEGORY FORM MODAL ═══ */}
       {showCatModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden">
             <div className="px-6 py-4 bg-gradient-to-br from-violet-50 to-purple-50 border-b-2 border-violet-200 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center shadow-lg shadow-violet-500/30">
+                <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center shadow-lg">
                   {editingCat ? <Edit3 className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-lg text-slate-900">
-                    {editingCat ? 'Edit Category' : 'New Category'}
-                  </h3>
+                  <h3 className="font-extrabold text-lg text-slate-900">{editingCat ? 'Edit Category' : 'New Category'}</h3>
                   <p className="text-xs text-slate-600 font-semibold">Expense group</p>
                 </div>
               </div>
@@ -987,13 +1141,7 @@ export default function ExpensesPage() {
             </div>
 
             <div className="p-6 space-y-4">
-              <Input
-                label="Category Name *"
-                value={catName}
-                onChange={(e) => setCatName(e.target.value)}
-                placeholder="Rent, Salary, Bills..."
-                autoFocus
-              />
+              <Input label="Category Name *" value={catName} onChange={(e) => setCatName(e.target.value)} placeholder="Rent, Salary..." autoFocus />
               <div>
                 <label className="text-sm font-bold text-slate-700 mb-2 flex items-center gap-1.5">
                   <Palette className="h-3.5 w-3.5 text-slate-500" />
@@ -1012,21 +1160,6 @@ export default function ExpensesPage() {
                     />
                   ))}
                 </div>
-                <div className="mt-2 flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={catColor}
-                    onChange={(e) => setCatColor(e.target.value)}
-                    className="h-10 w-16 rounded-xl border-2 border-slate-200 cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={catColor}
-                    onChange={(e) => setCatColor(e.target.value)}
-                    className="h-10 flex-1 rounded-xl border-2 border-slate-200 px-3 text-sm font-mono font-bold focus:outline-none focus:border-violet-500"
-                    placeholder="#8b5cf6"
-                  />
-                </div>
               </div>
               <div className="rounded-xl bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200 p-4">
                 <div className="text-[10px] uppercase tracking-wider text-slate-500 font-extrabold mb-3 flex items-center gap-1">
@@ -1034,10 +1167,7 @@ export default function ExpensesPage() {
                   Live Preview
                 </div>
                 <div className="flex items-center gap-3">
-                  <div
-                    className="h-14 w-14 rounded-2xl flex items-center justify-center text-white shadow-lg"
-                    style={{ backgroundColor: catColor, boxShadow: `0 10px 25px -5px ${catColor}40` }}
-                  >
+                  <div className="h-14 w-14 rounded-2xl flex items-center justify-center text-white shadow-lg" style={{ backgroundColor: catColor, boxShadow: `0 10px 25px -5px ${catColor}40` }}>
                     <Tag className="h-6 w-6" />
                   </div>
                   <div>
@@ -1067,7 +1197,7 @@ export default function ExpensesPage() {
   );
 }
 
-function StatCard({ label, value, sub, icon: Icon, color, isText, isAlert }: any) {
+function StatCard({ label, value, sub, icon: Icon, color, isAlert }: any) {
   const colors: any = {
     rose: 'from-rose-500 to-rose-700 shadow-rose-500/30',
     violet: 'from-violet-500 to-purple-600 shadow-violet-500/30',
@@ -1081,7 +1211,7 @@ function StatCard({ label, value, sub, icon: Icon, color, isText, isAlert }: any
       <div className="flex items-center justify-between">
         <div className="min-w-0 flex-1">
           <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className={`mt-2 font-extrabold text-slate-900 tabular-nums truncate ${isText ? 'text-xl' : 'text-2xl'}`}>
+          <div className="mt-2 font-extrabold text-slate-900 tabular-nums truncate text-xl">
             {value}
           </div>
           {sub && <div className="text-xs text-slate-600 font-semibold mt-1 truncate">{sub}</div>}

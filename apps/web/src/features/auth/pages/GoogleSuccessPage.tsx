@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { Sparkles } from 'lucide-react';
 import { apiClient } from '@/api/client';
 import { useAuthStore } from '@/store/auth.store';
-import { onboardingApi } from '@/api/onboarding.api';
+import { onboardingApi } from '@/features/onboarding/api/onboarding.api';
 
 export default function GoogleSuccessPage() {
   const navigate = useNavigate();

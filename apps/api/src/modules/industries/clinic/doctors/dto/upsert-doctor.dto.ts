@@ -1,0 +1,43 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ClinicSpecialty } from '@prisma/client';
+import { IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
+
+export class UpsertDoctorDto {
+  @ApiProperty() @IsString() staffId!: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() title?: string;
+  @ApiProperty() @IsString() fullName!: string;
+  @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() qualifications?: string[];
+  @ApiPropertyOptional({ enum: ClinicSpecialty, isArray: true }) @IsOptional() @IsArray() specialties?: ClinicSpecialty[];
+  @ApiPropertyOptional() @IsOptional() @IsString() subSpecialty?: string;
+  @ApiPropertyOptional() @IsOptional() @IsInt() yearsOfExperience?: number;
+  @ApiPropertyOptional() @IsOptional() @IsString() bio?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() photoUrl?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() signatureUrl?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() pmcNumber?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() licenseNumber?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() licenseExpiry?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() registeredWith?: string;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() consultationFee?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() followUpFee?: number;
+  @ApiPropertyOptional() @IsOptional() @IsInt() followUpDays?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() telemedicineFee?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() homeVisitFee?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() emergencyFee?: number;
+  @ApiPropertyOptional() @IsOptional() @IsInt() slotDurationMin?: number;
+  @ApiPropertyOptional() @IsOptional() @IsInt() bufferMin?: number;
+  @ApiPropertyOptional() @IsOptional() @IsInt() maxDailyPatients?: number;
+  @ApiPropertyOptional({ type: [Number] }) @IsOptional() @IsArray() workingDays?: number[];
+  @ApiPropertyOptional() @IsOptional() @IsString() workStartTime?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() workEndTime?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() breakStartTime?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() breakEndTime?: string;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() commissionPct?: number;
+  @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() languages?: string[];
+  @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() services?: string[];
+  @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() proceduresOffered?: string[];
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() acceptsTelemedicine?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() acceptsHomeVisit?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() acceptsEmergency?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() isFeatured?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean;
+}

@@ -1,0 +1,200 @@
+import {
+  ShieldAlert, Baby, Heart, FileText, RefreshCw, Users, ArrowLeft,
+  Save, AlertTriangle,
+} from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import type { ClinicWizardSafety } from '../../hooks/useClinicWizard';
+
+interface Props {
+  safety: ClinicWizardSafety;
+  onChange: (patch: Partial<ClinicWizardSafety>) => void;
+  onBack: () => void;
+  onSubmit: () => void;
+  submitting: boolean;
+  validation: { valid: boolean; errors: string[] };
+  allValid: boolean;
+}
+
+export function ClinicWizardStep3Safety({
+  safety, onChange, onBack, onSubmit, submitting, validation, allValid,
+}: Props) {
+  return (
+    <div className="space-y-5">
+      {/* ─── AGE RESTRICTIONS ─── */}
+      <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-4">
+        <div className="flex items-center gap-3 pb-3 border-b-2 border-slate-100">
+          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 text-white flex items-center justify-center shadow-md">
+            <Users className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Age Restrictions</h3>
+            <p className="text-[11px] text-slate-500 font-semibold">Kis umar ke patients ke liye</p>
+          </div>
+        </div>
+
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div>
+            <label className="text-xs font-extrabold text-blue-700 mb-1.5 block uppercase">Min Age (years)</label>
+            <input
+              type="number"
+              value={safety.ageRestrictionMin}
+              onChange={(e) => onChange({ ageRestrictionMin: e.target.value === '' ? '' : Number(e.target.value) })}
+              placeholder="No minimum"
+              className="h-11 w-full rounded-xl border-2 border-blue-300 bg-blue-50 dark:bg-blue-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-extrabold text-blue-700 mb-1.5 block uppercase">Max Age (years)</label>
+            <input
+              type="number"
+              value={safety.ageRestrictionMax}
+              onChange={(e) => onChange({ ageRestrictionMax: e.target.value === '' ? '' : Number(e.target.value) })}
+              placeholder="No maximum"
+              className="h-11 w-full rounded-xl border-2 border-blue-300 bg-blue-50 dark:bg-blue-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* ─── PREGNANCY & LACTATION ─── */}
+      <section className="rounded-3xl bg-gradient-to-br from-pink-50 via-white to-rose-50 dark:from-pink-950/30 dark:via-neutral-900 dark:to-rose-950/30 border-2 border-pink-200 dark:border-pink-800 shadow-sm p-5 space-y-4">
+        <div className="flex items-center gap-3 pb-3 border-b-2 border-pink-200/60">
+          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 text-white flex items-center justify-center shadow-md">
+            <Baby className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Maternal Safety</h3>
+            <p className="text-[11px] text-slate-500 font-semibold">Pregnancy & breastfeeding safe?</p>
+          </div>
+        </div>
+
+        <div className="grid sm:grid-cols-2 gap-3">
+          <SafeToggle active={safety.pregnancySafe} onToggle={(v: any) => onChange({ pregnancySafe: v })} emoji="🤰" label="Pregnancy Safe" desc="Safe during pregnancy" tone="pink" />
+          <SafeToggle active={safety.lactationSafe} onToggle={(v: any) => onChange({ lactationSafe: v })} emoji="🤱" label="Lactation Safe" desc="Safe while breastfeeding" tone="rose" />
+        </div>
+      </section>
+
+      {/* ─── CONSENT & GUARDIAN ─── */}
+      <section className="rounded-3xl bg-gradient-to-br from-purple-50 via-white to-violet-50 dark:from-purple-950/30 dark:via-neutral-900 dark:to-violet-950/30 border-2 border-purple-200 dark:border-purple-800 shadow-sm p-5 space-y-4">
+        <div className="flex items-center gap-3 pb-3 border-b-2 border-purple-200/60">
+          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-500 to-violet-600 text-white flex items-center justify-center shadow-md">
+            <FileText className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Legal & Consent</h3>
+            <p className="text-[11px] text-slate-500 font-semibold">Documentation required</p>
+          </div>
+        </div>
+
+        <div className="grid sm:grid-cols-2 gap-3">
+          <SafeToggle active={safety.requiresConsent} onToggle={(v: any) => onChange({ requiresConsent: v })} emoji="✍️" label="Requires Consent" desc="Signed consent form needed" tone="purple" />
+          <SafeToggle active={safety.requiresGuardian} onToggle={(v: any) => onChange({ requiresGuardian: v })} emoji="👨‍👩‍👧" label="Requires Guardian" desc="For minors / incapacitated" tone="violet" />
+        </div>
+      </section>
+
+      {/* ─── FOLLOW-UP ─── */}
+      <section className="rounded-3xl bg-gradient-to-br from-emerald-50 via-white to-teal-50 dark:from-emerald-950/30 dark:via-neutral-900 dark:to-teal-950/30 border-2 border-emerald-200 dark:border-emerald-800 shadow-sm p-5 space-y-4">
+        <div className="flex items-center gap-3 pb-3 border-b-2 border-emerald-200/60">
+          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-md">
+            <RefreshCw className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Follow-up</h3>
+            <p className="text-[11px] text-slate-500 font-semibold">Repeat visits required?</p>
+          </div>
+        </div>
+
+        <SafeToggle active={safety.followUpRequired} onToggle={(v: any) => onChange({ followUpRequired: v })} emoji="🔁" label="Follow-up Required" desc="Patient needs repeat visit" tone="emerald" />
+
+        {safety.followUpRequired && (
+          <div>
+            <label className="text-xs font-extrabold text-emerald-700 mb-1.5 block uppercase">Follow-up After (days)</label>
+            <input
+              type="number"
+              value={safety.followUpDays}
+              onChange={(e) => onChange({ followUpDays: e.target.value === '' ? '' : Number(e.target.value) })}
+              placeholder="7"
+              className="h-11 w-full max-w-xs rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500"
+            />
+          </div>
+        )}
+      </section>
+
+      {/* ─── WARNING NOTES ─── */}
+      <section className="rounded-3xl bg-gradient-to-br from-red-50 via-white to-rose-50 dark:from-red-950/30 dark:via-neutral-900 dark:to-rose-950/30 border-2 border-red-200 dark:border-red-800 shadow-sm p-5 space-y-3">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 text-white flex items-center justify-center shadow-md">
+            <ShieldAlert className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Warning Notes</h3>
+            <p className="text-[11px] text-slate-500 font-semibold">Important safety warnings</p>
+          </div>
+        </div>
+
+        <textarea
+          rows={3}
+          value={safety.warningNotes}
+          onChange={(e) => onChange({ warningNotes: e.target.value })}
+          placeholder="Important warnings staff and patients should know..."
+          className="w-full rounded-xl border-2 border-red-200 bg-red-50 dark:bg-red-950/30 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-red-500 resize-none"
+        />
+      </section>
+
+      {!validation.valid && validation.errors.length > 0 && (
+        <div className="rounded-2xl bg-rose-50 border-2 border-rose-300 p-4 flex items-start gap-3">
+          <AlertTriangle className="h-5 w-5 text-rose-700 shrink-0 mt-0.5" />
+          <div className="flex-1 text-sm text-rose-900">
+            <div className="font-extrabold mb-1">Fix these:</div>
+            <ul className="list-disc list-inside space-y-0.5 text-xs">
+              {validation.errors.map((e, i) => (<li key={i}>{e}</li>))}
+            </ul>
+          </div>
+        </div>
+      )}
+
+      <div className="rounded-2xl bg-gradient-to-r from-cyan-600 via-blue-600 to-teal-700 text-white shadow-xl p-5 flex items-center justify-between flex-wrap gap-3">
+        <Button variant="secondary" onClick={onBack} className="bg-white/15 text-white hover:bg-white/25 border-white/20">
+          <ArrowLeft className="h-4 w-4" /> Back
+        </Button>
+        <Button
+          onClick={onSubmit}
+          disabled={!allValid || submitting}
+          loading={submitting}
+          className="bg-white text-cyan-800 hover:bg-cyan-50 shadow-lg"
+        >
+          <Save className="h-4 w-4" /> Save Service
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function SafeToggle({ active, onToggle, emoji, label, desc, tone }: any) {
+  const tones: Record<string, string> = {
+    pink: 'from-pink-500 to-rose-600 border-pink-500',
+    rose: 'from-rose-500 to-red-600 border-rose-500',
+    purple: 'from-purple-500 to-violet-600 border-purple-500',
+    violet: 'from-violet-500 to-fuchsia-600 border-violet-500',
+    emerald: 'from-emerald-500 to-teal-600 border-emerald-500',
+  };
+  return (
+    <button
+      type="button"
+      onClick={() => onToggle(!active)}
+      className={[
+        'p-4 rounded-2xl border-2 text-left transition-all',
+        active ? 'bg-gradient-to-br ' + tones[tone] + ' text-white shadow-md'
+          : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-slate-300',
+      ].join(' ')}
+    >
+      <div className="flex items-center gap-2">
+        <span className="text-2xl">{emoji}</span>
+        <div>
+          <div className={'font-extrabold text-sm ' + (active ? 'text-white' : 'text-slate-900')}>{label}</div>
+          <div className={'text-[10px] font-semibold ' + (active ? 'text-white/85' : 'text-slate-500')}>{desc}</div>
+        </div>
+      </div>
+    </button>
+  );
+}

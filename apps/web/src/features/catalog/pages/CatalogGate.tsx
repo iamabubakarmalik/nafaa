@@ -5,7 +5,11 @@ import CatalogPage from './CatalogPage';
 const RestaurantCatalogPage = lazy(() => import('@/features/industries/restaurant/pages/RestaurantCatalogPage'));
 const MobileCatalogPage = lazy(() => import('@/features/industries/mobile/pages/MobileCatalogPage'));
 const CarpetCatalogPage = lazy(() => import('@/features/industries/carpet/pages/CarpetCatalogPage'));
+const BakeryCatalogPage = lazy(() => import('@/features/industries/bakery/pages/BakeryCatalogPage'));
+const ClinicCatalogPage = lazy(() => import('@/features/industries/clinic/pages/ClinicCatalogPage'));
+const ServicesBizCatalogPage = lazy(() => import('@/features/industries/services-biz/pages/ServicesBizCatalogPage'));
 const JewelryCatalogPage = lazy(() => import('@/features/industries/jewelry/pages/JewelryCatalogPage'));
+const GymCatalogPage = lazy(() => import('@/features/industries/gym/pages/GymCatalogPage'));
 
 function Loader() {
   return (
@@ -15,48 +19,17 @@ function Loader() {
   );
 }
 
-/**
- * CatalogGate — routes /catalog to the industry-specific catalog page.
- *
- *   • Restaurant → RestaurantCatalogPage (menu tabs, add to cart, WhatsApp order)
- *   • Mobile     → MobileCatalogPage (spec cards, EMI calc, compare)
- *   • Carpet     → CarpetCatalogPage (roll gallery, request quote)
- *   • Jewelry    → JewelryCatalogPage (metal rate, karat filter, appointment)
- *   • Others     → Generic CatalogPage (enhanced)
- *
- * All catalogs share a common cart/inquiry system so tenants can
- * eventually accept marketplace orders from customers.
- */
 export default function CatalogGate() {
   const industry = useCurrentIndustry();
 
-  if (industry?.id === 'restaurant') {
-    return (
-      <Suspense fallback={<Loader />}>
-        <RestaurantCatalogPage />
-      </Suspense>
-    );
-  }
-  if (industry?.id === 'mobile') {
-    return (
-      <Suspense fallback={<Loader />}>
-        <MobileCatalogPage />
-      </Suspense>
-    );
-  }
-  if (industry?.id === 'carpet') {
-    return (
-      <Suspense fallback={<Loader />}>
-        <CarpetCatalogPage />
-      </Suspense>
-    );
-  }
-  if (industry?.id === 'jewelry') {
-    return (
-      <Suspense fallback={<Loader />}>
-        <JewelryCatalogPage />
-      </Suspense>
-    );
-  }
+  if (industry?.id === 'restaurant') return <Suspense fallback={<Loader />}><RestaurantCatalogPage /></Suspense>;
+  if (industry?.id === 'mobile') return <Suspense fallback={<Loader />}><MobileCatalogPage /></Suspense>;
+  if (industry?.id === 'carpet') return <Suspense fallback={<Loader />}><CarpetCatalogPage /></Suspense>;
+  if (industry?.id === 'bakery') return <Suspense fallback={<Loader />}><BakeryCatalogPage /></Suspense>;
+  if (industry?.id === 'gym') return <Suspense fallback={<Loader />}><GymCatalogPage /></Suspense>;
+  if (industry?.id === 'clinic') return <Suspense fallback={<Loader />}><ClinicCatalogPage /></Suspense>;
+  if (industry?.id === 'services-biz') return <Suspense fallback={<Loader />}><ServicesBizCatalogPage /></Suspense>;
+  if (industry?.id === 'jewelry') return <Suspense fallback={<Loader />}><JewelryCatalogPage /></Suspense>;
+
   return <CatalogPage />;
 }

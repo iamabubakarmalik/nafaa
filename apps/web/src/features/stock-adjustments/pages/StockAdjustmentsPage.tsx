@@ -18,6 +18,8 @@ import { productsApi } from '@/api/products.api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { toast } from 'sonner';
+import { useIndustryStockPresets } from '@/features/industries/_shared/presets';
+import { Sparkles as SparklesIcon, Zap as ZapIcon } from 'lucide-react';
 
 const formatDate = (v: string) =>
   new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(v));
@@ -34,6 +36,7 @@ type TargetMode = 'PRODUCT' | 'VARIANT' | 'ROLL' | 'IMEI';
 
 export default function StockAdjustmentsPage() {
   const queryClient = useQueryClient();
+  const industryStock = useIndustryStockPresets();
 
   // Form state
   const [productId, setProductId] = useState('');
@@ -580,8 +583,64 @@ export default function StockAdjustmentsPage() {
                 onChange={(e) => setQuantity(e.target.value)} placeholder="5" />
             )}
 
-            <Input label="Reason *" value={reason} onChange={(e) => setReason(e.target.value)}
-              placeholder="Damaged in transport, counting correction, etc." />
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-sm font-bold text-slate-700">Reason *</label>
+                {industryStock.industryId && (
+                  <span className="text-[9px] font-extrabold text-blue-700 bg-blue-50 border border-blue-200 rounded-full px-2 py-0.5 inline-flex items-center gap-1">
+                    <SparklesIcon className="h-2.5 w-2.5" />
+                    {industryStock.industryEmoji} {industryStock.industryName}
+                  </span>
+                )}
+              </div>
+              <Input value={reason} onChange={(e) => setReason(e.target.value)}
+                placeholder="Damaged in transport, counting correction, etc." />
+
+              {/* Industry damage reasons filtered by current type */}
+              {industryStock.damageReasons.length > 0 && (() => {
+                const filtered = industryStock.damageReasons.filter((r) => r.category === type);
+                if (filtered.length === 0) return null;
+                return (
+                  <div className="mt-2 p-2 rounded-lg bg-gradient-to-br from-blue-50 to-cyan-50 border-2 border-blue-200">
+                    <div className="text-[9px] uppercase tracking-wider text-blue-800 font-extrabold mb-1.5 flex items-center gap-1">
+                      <ZapIcon className="h-2.5 w-2.5" />
+                      {industryStock.industryName} Quick Reasons ({type})
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {filtered.map((r) => (
+                        <button
+                          key={r.reason}
+                          type="button"
+                          onClick={() => setReason(r.reason)}
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg border-2 text-[10px] font-extrabold hover:shadow-md transition"
+                          style={{ borderColor: `${r.color}50`, backgroundColor: `${r.color}15`, color: r.color }}
+                        >
+                          <span>{r.emoji}</span>
+                          <span>{r.reason}</span>
+                          {r.severity === 'critical' && <span className="text-[8px] px-1 rounded bg-red-600 text-white">CRITICAL</span>}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {industryStock.adjustmentReasons.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1">
+                  <span className="text-[9px] uppercase text-slate-500 font-bold mr-1">Common:</span>
+                  {industryStock.adjustmentReasons.slice(0, 5).map((r) => (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => setReason(r)}
+                      className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
+                    >
+                      {r}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             <Input label="Note (optional)" value={note} onChange={(e) => setNote(e.target.value)}
               placeholder="Additional details" />
 

@@ -115,7 +115,7 @@ interface KpiCardProps {
   label: string;
   value: string | number;
   icon: any;
-  color: 'emerald' | 'violet' | 'blue' | 'amber' | 'orange' | 'pink' | 'rose' | 'cyan' | 'sky';
+  color: 'emerald' | 'violet' | 'blue' | 'amber' | 'orange' | 'pink' | 'rose' | 'cyan' | 'sky' | 'red' | 'green' | 'indigo' | 'fuchsia' | 'purple';
   isHighlight?: boolean;
   sub?: string;
 }
@@ -243,7 +243,7 @@ export function PnLLine({ label, value, type, sub }: PnLLineProps) {
 interface MiniStatProps {
   label: string;
   value: string | number;
-  color: 'blue' | 'rose' | 'emerald' | 'amber' | 'violet' | 'pink' | 'orange' | 'cyan';
+  color: 'blue' | 'rose' | 'emerald' | 'amber' | 'violet' | 'pink' | 'orange' | 'cyan' | 'red' | 'green' | 'indigo' | 'fuchsia' | 'purple' | 'sky';
   icon: any;
 }
 

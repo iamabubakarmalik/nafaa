@@ -1,0 +1,34 @@
+import { lazy, Suspense } from 'react';
+import { useCurrentIndustry } from '@/features/industries/_shared/registry/useCurrentIndustry';
+import CustomersListPage from './CustomersListPage';
+
+const RestaurantCustomers = lazy(() => import('@/features/industries/restaurant/pages/RestaurantCustomersPage'));
+const MobileCustomers = lazy(() => import('@/features/industries/mobile/pages/MobileCustomersPage'));
+const CarpetCustomers = lazy(() => import('@/features/industries/carpet/pages/CarpetCustomersPage'));
+const RetailCustomers = lazy(() => import('@/features/industries/retail/pages/RetailCustomersPage'));
+const GarmentCustomers = lazy(() => import('@/features/industries/garments/pages/GarmentCustomersPage'));
+const BakeryCustomers = lazy(() => import('@/features/industries/bakery/pages/BakeryCustomersPage'));
+const ClinicCustomersPage = lazy(() => import('@/features/industries/clinic/pages/ClinicCustomersPage'));
+const ServicesBizCustomersPage = lazy(() => import('@/features/industries/services-biz/pages/ServicesBizCustomersPage'));
+
+function Loader() {
+  return (
+    <div className="flex items-center justify-center py-24">
+      <div className="h-12 w-12 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin" />
+    </div>
+  );
+}
+
+export default function CustomersListGate() {
+  const industry = useCurrentIndustry();
+
+  if (industry?.id === 'restaurant') return <Suspense fallback={<Loader />}><RestaurantCustomers /></Suspense>;
+  if (industry?.id === 'mobile') return <Suspense fallback={<Loader />}><MobileCustomers /></Suspense>;
+  if (industry?.id === 'carpet') return <Suspense fallback={<Loader />}><CarpetCustomers /></Suspense>;
+  if (industry?.id === 'retail') return <Suspense fallback={<Loader />}><RetailCustomers /></Suspense>;
+  if (industry?.id === 'garments') return <Suspense fallback={<Loader />}><GarmentCustomers /></Suspense>;
+  if (industry?.id === 'bakery') return <Suspense fallback={<Loader />}><BakeryCustomers /></Suspense>;
+
+  if (industry?.id === 'services-biz') return <Suspense fallback={<Loader />}><ServicesBizCustomersPage /></Suspense>;
+  return <CustomersListPage />;
+}

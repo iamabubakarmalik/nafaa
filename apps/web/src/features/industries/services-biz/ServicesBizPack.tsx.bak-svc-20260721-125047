@@ -1,0 +1,121 @@
+import {
+  Wrench, LayoutDashboard, Briefcase, Package, FileText, Users,
+  Truck, ShieldCheck, MapPin, Award,
+} from 'lucide-react';
+import type { IndustryPack } from '@/features/industries/_shared/types/industry-pack';
+
+import ServicesDashboardPage from './pages/ServicesDashboardPage';
+import CatalogPage from './pages/CatalogPage';
+import JobsListPage from './pages/JobsListPage';
+import JobDetailPage from './pages/JobDetailPage';
+import NewJobPage from './pages/NewJobPage';
+import QuotesPage from './pages/QuotesPage';
+import TechniciansPage from './pages/TechniciansPage';
+import DispatchPage from './pages/DispatchPage';
+import AmcPage from './pages/AmcPage';
+import WarrantyPage from './pages/WarrantyPage';
+
+/**
+ * Services Business industry pack — plumber, electrician, AC tech,
+ * IT support, home cleaning, appliance repair, event services, etc.
+ *
+ * Field jobs, technicians, quotes, dispatch by zone, AMC contracts,
+ * warranty tracking.
+ */
+export const ServicesBizPack: IndustryPack = {
+  id: 'services-biz',
+  name: 'Services Business',
+  shortName: 'Services',
+  emoji: '🛠️',
+  themeColor: '#0ea5e9',
+  priority: 56,
+  description:
+    'Field service jobs, technician dispatch, quotes, AMC contracts, warranty — plumbers, electricians, AC techs, IT support, cleaners.',
+
+  matches: (tenant) => {
+    if (!tenant) return false;
+    const type = (tenant.businessType ?? '').toUpperCase();
+    return (
+      type.includes('SERVICE') ||
+      type.includes('PLUMBER') ||
+      type.includes('PLUMBING') ||
+      type.includes('ELECTRICIAN') ||
+      type.includes('ELECTRICAL') ||
+      type.includes('AC_TECH') ||
+      type.includes('HVAC') ||
+      type.includes('APPLIANCE') ||
+      type.includes('CLEANING') ||
+      type.includes('IT_SUPPORT') ||
+      type.includes('FIELD_SERVICE') ||
+      type.includes('MAINTENANCE') ||
+      type.includes('CONTRACTOR')
+    );
+  },
+
+  navGroups: [
+    {
+      label: 'Services Business',
+      icon: Wrench,
+      emoji: '🛠️',
+      color: '#0ea5e9',
+      order: 20,
+      items: [
+        { to: '/services-biz/dashboard', label: 'Services Dashboard', icon: LayoutDashboard, badge: 'NEW' },
+        { to: '/services-biz/jobs/new', label: 'New Job', icon: Briefcase, badge: 'FAST' },
+        { to: '/services-biz/jobs', label: 'Jobs / Work Orders', icon: Briefcase },
+        { to: '/services-biz/dispatch', label: 'Dispatch Board', icon: MapPin },
+        { to: '/services-biz/catalog', label: 'Service Catalog', icon: Package },
+        { to: '/services-biz/quotes', label: 'Quotes / Estimates', icon: FileText },
+        { to: '/services-biz/technicians', label: 'Technicians', icon: Users },
+        { to: '/services-biz/amc', label: 'AMC Contracts', icon: Award },
+        { to: '/services-biz/warranty', label: 'Warranty Register', icon: ShieldCheck },
+      ],
+    },
+  ],
+
+  routes: [
+    { path: '/services-biz', element: ServicesDashboardPage },
+    { path: '/services-biz/dashboard', element: ServicesDashboardPage },
+    { path: '/services-biz/jobs/new', element: NewJobPage },
+    { path: '/services-biz/jobs/:id', element: JobDetailPage },
+    { path: '/services-biz/jobs', element: JobsListPage },
+    { path: '/services-biz/dispatch', element: DispatchPage },
+    { path: '/services-biz/catalog', element: CatalogPage },
+    { path: '/services-biz/quotes', element: QuotesPage },
+    { path: '/services-biz/technicians', element: TechniciansPage },
+    { path: '/services-biz/amc', element: AmcPage },
+    { path: '/services-biz/warranty', element: WarrantyPage },
+  ],
+
+  dashboardComponent: ServicesDashboardPage,
+
+  productForm: {
+    defaultUnit: 'service',
+    unitOptions: [
+      { value: 'service', label: 'Service Call', hint: '🛠️', group: 'Service' },
+      { value: 'visit', label: 'Visit', hint: '🚪', group: 'Service' },
+      { value: 'job', label: 'Job / Work Order', hint: '📋', group: 'Service' },
+      { value: 'hour', label: 'Labor Hour', hint: '⏰', group: 'Labor' },
+      { value: 'day', label: 'Day (bulk labor)', hint: '📅', group: 'Labor' },
+      { value: 'quarter-hour', label: 'Quarter Hour (15 min)', hint: '⏱️', group: 'Labor' },
+      { value: 'installation', label: 'Installation', hint: '⚙️', group: 'Package' },
+      { value: 'repair', label: 'Repair', hint: '🔧', group: 'Package' },
+      { value: 'inspection', label: 'Inspection', hint: '🔍', group: 'Package' },
+      { value: 'contract', label: 'Contract / AMC', hint: '📄', group: 'Contract' },
+      { value: 'pcs', label: 'Piece (parts)', hint: '🔢', group: 'Parts' },
+      { value: 'meter', label: 'Meter (cable/pipe)', hint: '📏', group: 'Parts' },
+      { value: 'feet', label: 'Feet', hint: '📏', group: 'Parts' },
+      { value: 'liter', label: 'Liter (fluids)', hint: '🥛', group: 'Parts' },
+      { value: 'kg', label: 'Kilogram', hint: '⚖️', group: 'Parts' },
+    ],
+  },
+
+  featureFlags: [
+    { key: 'servicesJobs', label: 'Field Jobs / Work Orders', defaultEnabled: true },
+    { key: 'servicesDispatch', label: 'Dispatch Board', defaultEnabled: true },
+    { key: 'servicesQuotes', label: 'Quotes / Estimates', defaultEnabled: true },
+    { key: 'servicesAmc', label: 'AMC Contracts', defaultEnabled: false },
+    { key: 'servicesWarranty', label: 'Warranty Register', defaultEnabled: false },
+    { key: 'servicesZones', label: 'Zone-based Dispatch', defaultEnabled: false },
+  ],
+};

@@ -25,52 +25,183 @@ type ViewMode = 'grid' | 'list';
 type SortBy = 'newest' | 'oldest' | 'name' | 'price-low' | 'price-high' | 'stock-low' | 'stock-high';
 
 // ═══════════════════════════════════════════════════════════════
-// INDUSTRY THEMES — each industry has its own visual identity
+// INDUSTRY THEMES — one entry per industry pack
+// Each theme drives: hero gradient, accent colour, ribbon badge,
+// "+ Add" button label, and the wizard/detail route pattern used
+// when the user clicks a product card or the "New" button.
 // ═══════════════════════════════════════════════════════════════
-const INDUSTRY_THEMES: Record<string, {
+interface IndustryTheme {
   gradient: string;
   accent: string;
   accentHex: string;
   ribbon: string;
   emoji: string;
+  ribbonLabel: string;
   wizardPath: string;
   wizardLabel: string;
-}> = {
+  detailPathPrefix: string;   // e.g. /bakery-products  → /bakery-products/:id
+}
+
+const INDUSTRY_THEMES: Record<string, IndustryTheme> = {
   carpet: {
     gradient: 'from-slate-950 via-emerald-900 to-emerald-700',
-    accent: 'emerald',
-    accentHex: '#059669',
-    ribbon: 'from-emerald-600 to-emerald-700',
-    emoji: '🧶',
-    wizardPath: '/carpet-products/new',
-    wizardLabel: 'Add Carpet Product',
+    accent: 'emerald', accentHex: '#059669',
+    ribbon: 'from-emerald-600 to-emerald-700', emoji: '🧶',
+    ribbonLabel: 'Carpet',
+    wizardPath: '/carpet-products/new', wizardLabel: 'Add Carpet Product',
+    detailPathPrefix: '/carpet-products',
   },
   mobile: {
     gradient: 'from-slate-950 via-blue-900 to-indigo-700',
-    accent: 'blue',
-    accentHex: '#2563eb',
-    ribbon: 'from-blue-600 to-indigo-700',
-    emoji: '📱',
-    wizardPath: '/mobile-products/new',
-    wizardLabel: 'Add Mobile Product',
+    accent: 'blue', accentHex: '#2563eb',
+    ribbon: 'from-blue-600 to-indigo-700', emoji: '📱',
+    ribbonLabel: 'Mobile',
+    wizardPath: '/mobile-products/new', wizardLabel: 'Add Mobile Product',
+    detailPathPrefix: '/mobile-products',
   },
   retail: {
     gradient: 'from-slate-950 via-sky-900 to-cyan-700',
-    accent: 'sky',
-    accentHex: '#0ea5e9',
-    ribbon: 'from-sky-600 to-cyan-700',
-    emoji: '🛒',
-    wizardPath: '/retail-products/new',
-    wizardLabel: 'Add Retail Product',
+    accent: 'sky', accentHex: '#0ea5e9',
+    ribbon: 'from-sky-600 to-cyan-700', emoji: '🛒',
+    ribbonLabel: 'Retail',
+    wizardPath: '/retail-products/new', wizardLabel: 'Add Retail Product',
+    detailPathPrefix: '/retail-products',
+  },
+  restaurant: {
+    gradient: 'from-slate-950 via-orange-900 to-red-700',
+    accent: 'orange', accentHex: '#ea580c',
+    ribbon: 'from-orange-600 to-red-700', emoji: '🍽️',
+    ribbonLabel: 'Menu',
+    wizardPath: '/restaurant-menu-items/new', wizardLabel: 'Add Menu Item',
+    detailPathPrefix: '/restaurant-menu-items',
+  },
+  pharmacy: {
+    gradient: 'from-slate-950 via-teal-900 to-emerald-700',
+    accent: 'teal', accentHex: '#0d9488',
+    ribbon: 'from-teal-600 to-emerald-700', emoji: '💊',
+    ribbonLabel: 'Medicine',
+    wizardPath: '/pharmacy-medicines/new', wizardLabel: 'Add Medicine',
+    detailPathPrefix: '/pharmacy-medicines',
+  },
+  bakery: {
+    gradient: 'from-slate-950 via-pink-900 to-fuchsia-700',
+    accent: 'pink', accentHex: '#ec4899',
+    ribbon: 'from-pink-600 to-fuchsia-700', emoji: '🍰',
+    ribbonLabel: 'Bakery',
+    wizardPath: '/bakery-products/new', wizardLabel: 'Add Bakery Product',
+    detailPathPrefix: '/bakery-products',
+  },
+  garments: {
+    gradient: 'from-slate-950 via-rose-900 to-pink-700',
+    accent: 'rose', accentHex: '#e11d48',
+    ribbon: 'from-rose-600 to-pink-700', emoji: '👗',
+    ribbonLabel: 'Garment',
+    wizardPath: '/garment-products/new', wizardLabel: 'Add Garment Product',
+    detailPathPrefix: '/garment-products',
+  },
+  jewelry: {
+    gradient: 'from-slate-950 via-amber-900 to-yellow-700',
+    accent: 'amber', accentHex: '#d97706',
+    ribbon: 'from-amber-600 to-yellow-700', emoji: '💎',
+    ribbonLabel: 'Jewelry',
+    wizardPath: '/jewelry-items/new', wizardLabel: 'Add Jewelry Item',
+    detailPathPrefix: '/jewelry-items',
+  },
+  hardware: {
+    gradient: 'from-slate-950 via-stone-800 to-zinc-700',
+    accent: 'stone', accentHex: '#57534e',
+    ribbon: 'from-stone-700 to-zinc-800', emoji: '🔧',
+    ribbonLabel: 'Hardware',
+    wizardPath: '/hardware-products/new', wizardLabel: 'Add Hardware Product',
+    detailPathPrefix: '/hardware-products',
+  },
+  dairy: {
+    gradient: 'from-slate-950 via-cyan-900 to-sky-700',
+    accent: 'cyan', accentHex: '#0891b2',
+    ribbon: 'from-cyan-600 to-sky-700', emoji: '🥛',
+    ribbonLabel: 'Dairy',
+    wizardPath: '/dairy-products/new', wizardLabel: 'Add Dairy Product',
+    detailPathPrefix: '/dairy-products',
+  },
+  meat: {
+    gradient: 'from-slate-950 via-red-900 to-rose-700',
+    accent: 'red', accentHex: '#dc2626',
+    ribbon: 'from-red-700 to-rose-800', emoji: '🥩',
+    ribbonLabel: 'Meat',
+    wizardPath: '/meat-products/new', wizardLabel: 'Add Meat Product',
+    detailPathPrefix: '/meat-products',
+  },
+  agri: {
+    gradient: 'from-slate-950 via-lime-900 to-green-700',
+    accent: 'lime', accentHex: '#65a30d',
+    ribbon: 'from-lime-600 to-green-700', emoji: '🌾',
+    ribbonLabel: 'Agri',
+    wizardPath: '/agri-products/new', wizardLabel: 'Add Agri Product',
+    detailPathPrefix: '/agri-products',
+  },
+  autoparts: {
+    gradient: 'from-slate-950 via-slate-800 to-neutral-700',
+    accent: 'slate', accentHex: '#334155',
+    ribbon: 'from-slate-700 to-neutral-800', emoji: '🔩',
+    ribbonLabel: 'Auto Part',
+    wizardPath: '/autoparts-parts/new', wizardLabel: 'Add Auto Part',
+    detailPathPrefix: '/autoparts-parts',
+  },
+  bookstore: {
+    gradient: 'from-slate-950 via-indigo-900 to-violet-700',
+    accent: 'indigo', accentHex: '#4f46e5',
+    ribbon: 'from-indigo-600 to-violet-700', emoji: '📚',
+    ribbonLabel: 'Book',
+    wizardPath: '/bookstore-products/new', wizardLabel: 'Add Book / Item',
+    detailPathPrefix: '/bookstore-products',
+  },
+  salon: {
+    gradient: 'from-slate-950 via-purple-900 to-fuchsia-700',
+    accent: 'purple', accentHex: '#9333ea',
+    ribbon: 'from-purple-600 to-fuchsia-700', emoji: '💇',
+    ribbonLabel: 'Service',
+    wizardPath: '/salon-services/new', wizardLabel: 'Add Salon Service',
+    detailPathPrefix: '/salon-services',
+  },
+  hotel: {
+    gradient: 'from-slate-950 via-blue-900 to-cyan-700',
+    accent: 'blue', accentHex: '#1d4ed8',
+    ribbon: 'from-blue-700 to-cyan-700', emoji: '🏨',
+    ribbonLabel: 'Room',
+    wizardPath: '/hotel-room-types/new', wizardLabel: 'Add Room Type',
+    detailPathPrefix: '/hotel-room-types',
+  },
+  clinic: {
+    gradient: 'from-slate-950 via-cyan-900 to-blue-700',
+    accent: 'cyan', accentHex: '#06b6d4',
+    ribbon: 'from-cyan-600 to-blue-700', emoji: '🩺',
+    ribbonLabel: 'Service',
+    wizardPath: '/clinic-services/new', wizardLabel: 'Add Clinical Service',
+    detailPathPrefix: '/clinic-services',
+  },
+  gym: {
+    gradient: 'from-slate-950 via-red-900 to-orange-700',
+    accent: 'red', accentHex: '#b91c1c',
+    ribbon: 'from-red-700 to-orange-700', emoji: '💪',
+    ribbonLabel: 'Gym',
+    wizardPath: '/products/new', wizardLabel: 'Add Plan / Item',
+    detailPathPrefix: '/products',
+  },
+  'services-biz': {
+    gradient: 'from-slate-950 via-sky-900 to-blue-700',
+    accent: 'sky', accentHex: '#0369a1',
+    ribbon: 'from-sky-700 to-blue-700', emoji: '🛠️',
+    ribbonLabel: 'Service',
+    wizardPath: '/products/new', wizardLabel: 'Add Service / Item',
+    detailPathPrefix: '/products',
   },
   default: {
     gradient: 'from-slate-950 via-slate-800 to-slate-700',
-    accent: 'slate',
-    accentHex: '#475569',
-    ribbon: 'from-slate-700 to-slate-800',
-    emoji: '📦',
-    wizardPath: '/products/new',
-    wizardLabel: 'New Product',
+    accent: 'slate', accentHex: '#475569',
+    ribbon: 'from-slate-700 to-slate-800', emoji: '📦',
+    ribbonLabel: 'Product',
+    wizardPath: '/products/new', wizardLabel: 'New Product',
+    detailPathPrefix: '/products',
   },
 };
 
@@ -83,20 +214,14 @@ export default function ProductsListPage() {
   const isCarpet = industryId === 'carpet';
   const isMobile = industryId === 'mobile';
   const isRetail = industryId === 'retail';
+  const hasIndustryRibbon = industryId !== 'default';
 
   const productHref = (id: string) => {
-    if (isCarpet) return `/carpet-products/${id}`;
-    if (isMobile) return `/mobile-products/${id}`;
-    if (isRetail) return `/retail-products/${id}`;
-    return `/products/${id}/edit`;
+    if (theme.detailPathPrefix === '/products') return `/products/${id}/edit`;
+    return `${theme.detailPathPrefix}/${id}`;
   };
 
-  const newProductHref = () => {
-    if (isCarpet) return '/carpet-products/new';
-    if (isMobile) return '/mobile-products/new';
-    if (isRetail) return '/retail-products/new';
-    return '/products/new';
-  };
+  const newProductHref = () => theme.wizardPath;
 
   const [params, setParams] = useState<ProductsListParams>({
     search: '',
@@ -170,7 +295,7 @@ export default function ProductsListPage() {
 
   const isRetailProduct = (p: Product) => {
     if (!isRetail) return false;
-    return true; // All products in retail tenant are retail products
+    return true;
   };
 
   // ─── Sorted items ────────────────────────────────────────
@@ -381,7 +506,6 @@ export default function ProductsListPage() {
               <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white pl-10 pr-10 text-sm font-semibold focus:outline-none transition"
-                style={{ borderColor: undefined }}
                 placeholder="Search by name, SKU, barcode..."
                 value={params.search ?? ''}
                 onChange={(e) => setParams({ ...params, search: e.target.value, page: 1 })}
@@ -625,6 +749,7 @@ export default function ProductsListPage() {
                 onQuickEdit={() => setQuickEditProduct(p)}
                 detailHref={productHref(p.id)}
                 theme={theme}
+                hasIndustryRibbon={hasIndustryRibbon}
               />
             ))}
           </div>
@@ -689,14 +814,11 @@ export default function ProductsListPage() {
                                 {p.brand && (
                                   <span className="text-[10px] font-bold text-violet-700">{p.brand.name}</span>
                                 )}
-                                {isCarpetP && (
-                                  <span className="text-[9px] font-extrabold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">CARPET</span>
-                                )}
-                                {isMobileP && (
-                                  <span className="text-[9px] font-extrabold text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded">MOBILE</span>
-                                )}
-                                {isRetail && !isCarpetP && !isMobileP && (
-                                  <span className="text-[9px] font-extrabold text-sky-700 bg-sky-100 px-1.5 py-0.5 rounded">RETAIL</span>
+                                {hasIndustryRibbon && (
+                                  <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase"
+                                        style={{ color: theme.accentHex, backgroundColor: `${theme.accentHex}15` }}>
+                                    {theme.ribbonLabel}
+                                  </span>
                                 )}
                                 {p.isFeatured && (
                                   <Star className="h-2.5 w-2.5 text-amber-500 fill-amber-500" />
@@ -891,7 +1013,7 @@ function FilterChip({
 }
 
 function ProductCard({
-  product: p, isCarpet, isMobile, isRetail, carpetData, isSelected, onSelect, onQuickEdit, detailHref, theme,
+  product: p, isCarpet, isMobile, isRetail, carpetData, isSelected, onSelect, onQuickEdit, detailHref, theme, hasIndustryRibbon,
 }: {
   product: Product;
   isCarpet: boolean;
@@ -902,7 +1024,8 @@ function ProductCard({
   onSelect: () => void;
   onQuickEdit: () => void;
   detailHref: string;
-  theme: typeof INDUSTRY_THEMES.default;
+  theme: IndustryTheme;
+  hasIndustryRibbon: boolean;
 }) {
   const primaryImage = p.images?.[0]?.url;
   const carpetTotalSqft = carpetData?.totalSqft ?? 0;
@@ -926,19 +1049,9 @@ function ProductCard({
       style={isSelected ? { borderColor: theme.accentHex, boxShadow: `0 0 0 2px ${theme.accentHex}30` } : undefined}
     >
       {/* Industry ribbon */}
-      {isCarpet && (
+      {hasIndustryRibbon && (
         <div className={`absolute top-0 left-0 z-10 px-2 py-0.5 rounded-br-lg bg-gradient-to-r ${theme.ribbon} text-white text-[9px] font-extrabold uppercase tracking-wider shadow`}>
-          Carpet
-        </div>
-      )}
-      {isMobile && (
-        <div className={`absolute top-0 left-0 z-10 px-2 py-0.5 rounded-br-lg bg-gradient-to-r ${theme.ribbon} text-white text-[9px] font-extrabold uppercase tracking-wider shadow`}>
-          Mobile
-        </div>
-      )}
-      {isRetail && (
-        <div className={`absolute top-0 left-0 z-10 px-2 py-0.5 rounded-br-lg bg-gradient-to-r ${theme.ribbon} text-white text-[9px] font-extrabold uppercase tracking-wider shadow`}>
-          Retail
+          <span className="mr-1">{theme.emoji}</span>{theme.ribbonLabel}
         </div>
       )}
 
@@ -947,7 +1060,7 @@ function ProductCard({
         onClick={onSelect}
         className={`absolute top-2 left-2 z-20 h-6 w-6 rounded-md border-2 flex items-center justify-center transition shadow-sm ${
           isSelected ? 'text-white' : 'bg-white border-slate-300 opacity-0 group-hover:opacity-100'
-        } ${(isCarpet || isMobile || isRetail) ? 'translate-y-5' : ''}`}
+        } ${hasIndustryRibbon ? 'translate-y-5' : ''}`}
         style={isSelected ? { backgroundColor: theme.accentHex, borderColor: theme.accentHex } : undefined}
       >
         {isSelected && (
@@ -1106,7 +1219,7 @@ function ProductCard({
         ) : (
           <>
             <div className="flex items-center justify-between pt-1">
-              <div className="font-extrabold text-emerald-700 tabular-nums">
+              <div className="font-extrabold tabular-nums" style={{ color: theme.accentHex }}>
                 {formatPKR(p.price)}
               </div>
               {isOut ? (
@@ -1145,10 +1258,11 @@ function ProductCard({
             <div className="flex gap-1 pt-1">
               <Link
                 to={detailHref}
-                className="flex-1 px-2 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-extrabold inline-flex items-center justify-center gap-1 transition"
+                className={`flex-1 px-2 py-1.5 rounded-lg bg-gradient-to-r ${theme.ribbon} hover:opacity-90 text-white text-[10px] font-extrabold inline-flex items-center justify-center gap-1 transition shadow-sm`}
                 title="View product details"
               >
-                <Eye className="h-3 w-3" /> View
+                <Eye className="h-3 w-3" /> View Details
+                <ArrowRight className="h-2.5 w-2.5" />
               </Link>
               <button
                 onClick={onQuickEdit}

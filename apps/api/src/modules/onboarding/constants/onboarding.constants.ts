@@ -1,53 +1,44 @@
-export const PAKISTAN_CITIES = [
-  'Karachi', 'Lahore', 'Islamabad', 'Rawalpindi', 'Faisalabad',
-  'Multan', 'Peshawar', 'Quetta', 'Sialkot', 'Gujranwala',
-  'Hyderabad', 'Bahawalpur', 'Sargodha', 'Sukkur', 'Larkana',
-  'Sheikhupura', 'Mirpur Khas', 'Rahim Yar Khan', 'Jhang', 'Mardan',
-  'Gujrat', 'Kasur', 'Dera Ghazi Khan', 'Sahiwal', 'Nawabshah',
-  'Mingora', 'Okara', 'Burewala', 'Jacobabad', 'Muzaffargarh',
-  'Khanpur', 'Other',
-];
+export const TOTAL_STEPS = 8;
+
+export const STEP_LABELS: Record<number, { title: string; desc: string; emoji: string; estimatedMin: number }> = {
+  1: { title: 'Business Type', desc: 'Apni industry select karein', emoji: '🏪', estimatedMin: 1 },
+  2: { title: 'Owner Profile', desc: 'Apni tafseelat', emoji: '👤', estimatedMin: 1 },
+  3: { title: 'Shop Details', desc: 'Dukaan ki jaghah aur waqt', emoji: '📍', estimatedMin: 2 },
+  4: { title: 'Preferences', desc: 'Payment, receipt, categories', emoji: '⚙️', estimatedMin: 2 },
+  5: { title: 'Features', desc: 'Industry-specific features toggle', emoji: '✨', estimatedMin: 1 },
+  6: { title: 'First Products', desc: 'Kuch products add karein (ya samples use karein)', emoji: '📦', estimatedMin: 3 },
+  7: { title: 'Team Members', desc: 'Apni team add karein', emoji: '👥', estimatedMin: 2 },
+  8: { title: 'All Set!', desc: 'Software ready hai — chalo shuru karte hain', emoji: '🎉', estimatedMin: 1 },
+};
 
 export const PAKISTAN_PROVINCES = [
-  'Punjab',
-  'Sindh',
-  'Khyber Pakhtunkhwa',
-  'Balochistan',
-  'Gilgit-Baltistan',
-  'Azad Jammu & Kashmir',
-  'Islamabad Capital Territory',
-];
-
-export const BUSINESS_TYPES = [
-  { value: 'KIRYANA', label: 'Kiryana / General Store', emoji: '🛒', category: 'Retail' },
-  { value: 'BAKERY', label: 'Bakery / Sweets', emoji: '🍰', category: 'Food' },
-  { value: 'PHARMACY', label: 'Pharmacy / Medical', emoji: '💊', category: 'Healthcare' },
-  { value: 'MOBILE_SHOP', label: 'Mobile / Electronics', emoji: '📱', category: 'Electronics' },
-  { value: 'RESTAURANT', label: 'Restaurant / Dhaba', emoji: '🍽️', category: 'Food' },
-  { value: 'COSMETICS', label: 'Cosmetics / Beauty', emoji: '💄', category: 'Lifestyle' },
-  { value: 'CLOTHING', label: 'Clothing / Garments', emoji: '👕', category: 'Fashion' },
-  { value: 'HARDWARE', label: 'Hardware / Tools', emoji: '🔧', category: 'Industrial' },
-  { value: 'STATIONERY', label: 'Stationery / Books', emoji: '📚', category: 'Education' },
-  { value: 'OTHER', label: 'Other Business', emoji: '🏪', category: 'Other' },
+  { value: 'PUNJAB', label: 'Punjab' },
+  { value: 'SINDH', label: 'Sindh' },
+  { value: 'KPK', label: 'Khyber Pakhtunkhwa' },
+  { value: 'BALOCHISTAN', label: 'Balochistan' },
+  { value: 'GB', label: 'Gilgit-Baltistan' },
+  { value: 'AJK', label: 'Azad Jammu & Kashmir' },
+  { value: 'ICT', label: 'Islamabad Capital Territory' },
 ];
 
 export const BUSINESS_SIZES = [
-  { value: 'SMALL', label: 'Small', desc: '1-2 staff, 1 location', icon: '🏠' },
-  { value: 'MEDIUM', label: 'Medium', desc: '3-10 staff, 1-2 shops', icon: '🏢' },
-  { value: 'LARGE', label: 'Large', desc: '10+ staff, multi-branch', icon: '🏬' },
+  { value: 'MICRO', label: 'Micro', desc: 'Ghar se, 1 person', icon: '🏠', staffRange: '1', monthlyRevenue: '< 100K' },
+  { value: 'SMALL', label: 'Small', desc: '1-3 staff, 1 shop', icon: '🏪', staffRange: '1-3', monthlyRevenue: '100K - 500K' },
+  { value: 'MEDIUM', label: 'Medium', desc: '4-15 staff, 1-3 shops', icon: '🏢', staffRange: '4-15', monthlyRevenue: '500K - 5M' },
+  { value: 'LARGE', label: 'Large', desc: '15+ staff, multi-branch', icon: '🏬', staffRange: '15+', monthlyRevenue: '5M+' },
 ];
 
 export const PREFERRED_LANGUAGES = [
   { value: 'ur', label: 'اردو', english: 'Urdu' },
   { value: 'en', label: 'English', english: 'English' },
-  { value: 'roman_ur', label: 'Roman Urdu', english: 'Roman Urdu' },
+  { value: 'roman_ur', label: 'Roman Urdu', english: 'Roman Urdu (Urdu in English letters)' },
 ];
 
 export const RECEIPT_TEMPLATES = [
-  { value: 'THERMAL_58MM', label: '58mm Thermal', desc: 'Small thermal printer (2.3")' },
-  { value: 'THERMAL_80MM', label: '80mm Thermal', desc: 'Standard thermal (3.1")' },
-  { value: 'BASIC', label: 'A4 Basic', desc: 'Plain A4 paper' },
-  { value: 'DETAILED', label: 'A4 Detailed', desc: 'A4 with logo + footer' },
+  { value: 'THERMAL_58MM', label: '58mm Thermal', desc: 'Small thermal printer (2.3")', icon: '🖨️' },
+  { value: 'THERMAL_80MM', label: '80mm Thermal', desc: 'Standard thermal (3.1")', icon: '🖨️' },
+  { value: 'A4_BASIC', label: 'A4 Basic', desc: 'Plain A4 paper', icon: '📄' },
+  { value: 'A4_DETAILED', label: 'A4 Detailed', desc: 'A4 with logo + footer', icon: '📃' },
 ];
 
 export const PAYMENT_METHODS_LIST = [
@@ -56,30 +47,31 @@ export const PAYMENT_METHODS_LIST = [
   { value: 'EASYPAISA', label: 'EasyPaisa', emoji: '💚' },
   { value: 'CARD', label: 'Debit/Credit Card', emoji: '💳' },
   { value: 'BANK_TRANSFER', label: 'Bank Transfer', emoji: '🏦' },
+  { value: 'RAAST', label: 'Raast', emoji: '⚡' },
+  { value: 'SADAPAY', label: 'SadaPay', emoji: '💜' },
+  { value: 'NAYAPAY', label: 'NayaPay', emoji: '🔵' },
 ];
 
 export const WORKING_DAYS = [
-  { value: 'mon', label: 'Monday', short: 'Mon' },
-  { value: 'tue', label: 'Tuesday', short: 'Tue' },
-  { value: 'wed', label: 'Wednesday', short: 'Wed' },
-  { value: 'thu', label: 'Thursday', short: 'Thu' },
-  { value: 'fri', label: 'Friday', short: 'Fri' },
-  { value: 'sat', label: 'Saturday', short: 'Sat' },
-  { value: 'sun', label: 'Sunday', short: 'Sun' },
+  { value: 'mon', label: 'Monday', short: 'Mon', urdu: 'پیر' },
+  { value: 'tue', label: 'Tuesday', short: 'Tue', urdu: 'منگل' },
+  { value: 'wed', label: 'Wednesday', short: 'Wed', urdu: 'بدھ' },
+  { value: 'thu', label: 'Thursday', short: 'Thu', urdu: 'جمعرات' },
+  { value: 'fri', label: 'Friday', short: 'Fri', urdu: 'جمعہ' },
+  { value: 'sat', label: 'Saturday', short: 'Sat', urdu: 'ہفتہ' },
+  { value: 'sun', label: 'Sunday', short: 'Sun', urdu: 'اتوار' },
 ];
 
-// Suggested categories by business type
-export const SUGGESTED_CATEGORIES: Record<string, string[]> = {
-  KIRYANA: ['Daal & Chawal', 'Aata & Maida', 'Tel & Ghee', 'Cheeni & Chai', 'Masala', 'Biscuits', 'Drinks', 'Soap & Surf'],
-  BAKERY: ['Cakes', 'Pastries', 'Bread', 'Biscuits', 'Sweets', 'Beverages'],
-  PHARMACY: ['Tablets', 'Syrups', 'Injections', 'Surgical', 'Baby Care', 'Vitamins', 'OTC'],
-  MOBILE_SHOP: ['Phones', 'Accessories', 'Chargers', 'Earphones', 'Covers', 'SIM Cards', 'Repair'],
-  RESTAURANT: ['Starters', 'Main Course', 'BBQ', 'Desserts', 'Beverages', 'Deals'],
-  COSMETICS: ['Skincare', 'Makeup', 'Haircare', 'Fragrance', 'Tools'],
-  CLOTHING: ['Men', 'Women', 'Kids', 'Accessories', 'Footwear'],
-  HARDWARE: ['Tools', 'Paints', 'Plumbing', 'Electrical', 'Fasteners'],
-  STATIONERY: ['Books', 'Pens', 'Notebooks', 'Art Supplies', 'Office'],
-  OTHER: ['General'],
-};
+export const CURRENCIES = [
+  { value: 'PKR', label: 'Pakistani Rupee', symbol: 'Rs', default: true },
+  { value: 'USD', label: 'US Dollar', symbol: '$' },
+  { value: 'AED', label: 'UAE Dirham', symbol: 'د.إ' },
+  { value: 'SAR', label: 'Saudi Riyal', symbol: '﷼' },
+  { value: 'GBP', label: 'British Pound', symbol: '£' },
+];
 
-export const TOTAL_STEPS = 6;
+export const TEAM_ROLES = [
+  { value: 'MANAGER', label: 'Manager', desc: 'Full access except billing', icon: '👔' },
+  { value: 'CASHIER', label: 'Cashier', desc: 'POS + sales access', icon: '💰' },
+  { value: 'STAFF', label: 'Staff', desc: 'Basic inventory access', icon: '👤' },
+];

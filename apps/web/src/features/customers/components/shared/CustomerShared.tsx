@@ -81,7 +81,7 @@ export function CustomerStatCard({ label, value, sub, icon: Icon, color, isHighl
 
 interface CustomerCardProps {
   customer: any;
-  themeColor: 'blue' | 'orange' | 'emerald' | 'sky';
+  themeColor: 'blue' | 'orange' | 'emerald' | 'sky' | 'pink' | 'red' | 'cyan' | 'fuchsia' | 'purple' | 'violet' | 'rose' | 'amber';
   extraBadges?: React.ReactNode;
   onDelete?: (id: string) => void;
 }
@@ -92,13 +92,29 @@ export function CustomerCard({ customer: c, themeColor, extraBadges, onDelete }:
     orange: 'hover:border-orange-300 group-hover:text-orange-700',
     emerald: 'hover:border-emerald-300 group-hover:text-emerald-700',
     sky: 'hover:border-sky-300 group-hover:text-sky-700',
-  };
+  pink: 'hover:border-pink-300',
+  red: 'hover:border-red-300',
+  cyan: 'hover:border-cyan-300',
+  fuchsia: 'hover:border-fuchsia-300',
+  purple: 'hover:border-purple-300',
+  violet: 'hover:border-violet-300',
+  rose: 'hover:border-rose-300',
+  amber: 'hover:border-amber-300',
+};
   const gradients = {
     blue: 'from-blue-500 to-cyan-600',
     orange: 'from-orange-500 to-red-600',
     emerald: 'from-emerald-500 to-teal-600',
     sky: 'from-sky-500 to-cyan-600',
-  };
+  pink: 'from-pink-500 to-fuchsia-600',
+  red: 'from-red-500 to-orange-600',
+  cyan: 'from-cyan-500 to-blue-600',
+  fuchsia: 'from-fuchsia-500 to-pink-600',
+  purple: 'from-purple-500 to-violet-600',
+  violet: 'from-violet-500 to-purple-600',
+  rose: 'from-rose-500 to-pink-600',
+  amber: 'from-amber-500 to-orange-600',
+};
 
   return (
     <div className={`group rounded-2xl bg-white border-2 border-slate-200 ${themes[themeColor]} hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden`}>

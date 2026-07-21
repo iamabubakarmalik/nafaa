@@ -7,7 +7,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Store, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
 import { authApi } from '@/api/auth.api';
-import { onboardingApi } from '@/api/onboarding.api';
+import { onboardingApi } from '@/features/onboarding/api/onboarding.api';
 import { useAuthStore } from '@/store/auth.store';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';

@@ -1,14 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsIn, IsOptional, IsString } from 'class-validator';
+import { BUSINESS_TEMPLATES } from '../templates/business-templates';
 
-const BUSINESS_TYPES = [
-  'CARPET', 'MOBILE', 'GROCERY', 'PHARMACY', 'RESTAURANT',
-  'SALON', 'CLOTHING', 'HARDWARE', 'STATIONERY', 'COSMETICS',
-  'BAKERY', 'GENERAL',
-  'KIRYANA', 'MOBILE_SHOP', 'OTHER',
-];
-
-const BUSINESS_SIZES = ['SMALL', 'MEDIUM', 'LARGE'];
+const BUSINESS_TYPES = Object.keys(BUSINESS_TEMPLATES);
+const BUSINESS_SIZES = ['MICRO', 'SMALL', 'MEDIUM', 'LARGE'];
 
 export class UpdateStep1Dto {
   @ApiProperty({ enum: BUSINESS_TYPES })

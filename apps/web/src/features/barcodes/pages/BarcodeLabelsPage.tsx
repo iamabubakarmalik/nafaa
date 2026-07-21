@@ -3,9 +3,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Printer, ScanLine, Plus, Minus, Search, X, Settings2,
   Building2, DollarSign, Package, Layers, AlertCircle, Sparkles,
-  Edit3, Wand2, Copy, CheckCircle2, RefreshCw, Download,
-  Eye, EyeOff, Hash, Tag, FileSpreadsheet, Zap, Trash2,
-  Image as ImageIcon, Filter, MapPin, BarChart3,
+  Edit3, Wand2, CheckCircle2, RefreshCw, Zap,
+  Hash, Tag, Trash2, Eye, Filter, ChevronRight, QrCode,
+  Star, Ruler, ShieldCheck, Award, Grid3x3, LayoutGrid,
 } from 'lucide-react';
 import JsBarcode from 'jsbarcode';
 import { productsApi, type Product } from '@/api/products.api';
@@ -15,6 +15,7 @@ import { settingsApi } from '@/api/settings.api';
 import { Button } from '@/components/ui/Button';
 import { formatPKRFull } from '@/lib/format';
 import { toast } from 'sonner';
+import { useCurrentIndustry } from '@/features/industries/_shared/registry/useCurrentIndustry';
 
 interface LabelItem {
   id: string;
@@ -23,75 +24,61 @@ interface LabelItem {
   copies: number;
 }
 
-type LabelSize = 'small' | 'medium' | 'large' | 'xlarge' | 'jewelry';
+type LabelSize = 'small' | 'medium' | 'large' | 'xlarge' | 'jewelry' | 'carpet' | 'mobile';
 type BarcodeFormat = 'CODE128' | 'CODE39' | 'EAN13' | 'UPC';
 
 const SIZE_CONFIG: Record<LabelSize, any> = {
   small: {
-    label: 'Small (40×25mm)',
-    desc: 'Thermal printer',
-    cols: 5,
-    barcodeHeight: 28,
-    barcodeWidth: 1.1,
-    fontSize: 8,
-    cardPadding: 'p-1.5',
-    nameSize: 'text-[8px]',
-    priceSize: 'text-[10px]',
-    width: '40mm',
-    height: '25mm',
+    label: 'Small', dims: '40×25mm', desc: 'Thermal printer',
+    cols: 5, barcodeHeight: 28, barcodeWidth: 1.1, fontSize: 8,
+    cardPadding: 'p-1.5', nameSize: 'text-[8px]', priceSize: 'text-[10px]',
+    icon: '🏷️',
   },
   medium: {
-    label: 'Medium (50×30mm)',
-    desc: 'Standard thermal',
-    cols: 4,
-    barcodeHeight: 38,
-    barcodeWidth: 1.3,
-    fontSize: 10,
-    cardPadding: 'p-2',
-    nameSize: 'text-[10px]',
-    priceSize: 'text-xs',
-    width: '50mm',
-    height: '30mm',
+    label: 'Medium', dims: '50×30mm', desc: 'Standard thermal',
+    cols: 4, barcodeHeight: 38, barcodeWidth: 1.3, fontSize: 10,
+    cardPadding: 'p-2', nameSize: 'text-[10px]', priceSize: 'text-xs',
+    icon: '📋',
   },
   large: {
-    label: 'Large (70×40mm)',
-    desc: 'A4 sheet labels',
-    cols: 3,
-    barcodeHeight: 48,
-    barcodeWidth: 1.5,
-    fontSize: 12,
-    cardPadding: 'p-2.5',
-    nameSize: 'text-xs',
-    priceSize: 'text-sm',
-    width: '70mm',
-    height: '40mm',
+    label: 'Large', dims: '70×40mm', desc: 'A4 sheet labels',
+    cols: 3, barcodeHeight: 48, barcodeWidth: 1.5, fontSize: 12,
+    cardPadding: 'p-2.5', nameSize: 'text-xs', priceSize: 'text-sm',
+    icon: '📄',
   },
   xlarge: {
-    label: 'X-Large (100×50mm)',
-    desc: 'Detailed labels',
-    cols: 2,
-    barcodeHeight: 60,
-    barcodeWidth: 1.8,
-    fontSize: 14,
-    cardPadding: 'p-3',
-    nameSize: 'text-sm',
-    priceSize: 'text-base',
-    width: '100mm',
-    height: '50mm',
+    label: 'X-Large', dims: '100×50mm', desc: 'Detailed labels',
+    cols: 2, barcodeHeight: 60, barcodeWidth: 1.8, fontSize: 14,
+    cardPadding: 'p-3', nameSize: 'text-sm', priceSize: 'text-base',
+    icon: '📃',
   },
   jewelry: {
-    label: 'Jewelry Tag (30×20mm)',
-    desc: 'Small price tags',
-    cols: 6,
-    barcodeHeight: 22,
-    barcodeWidth: 1,
-    fontSize: 7,
-    cardPadding: 'p-1',
-    nameSize: 'text-[7px]',
-    priceSize: 'text-[9px]',
-    width: '30mm',
-    height: '20mm',
+    label: 'Jewelry Tag', dims: '30×20mm', desc: 'Gold/silver price tags',
+    cols: 6, barcodeHeight: 22, barcodeWidth: 1, fontSize: 7,
+    cardPadding: 'p-1', nameSize: 'text-[7px]', priceSize: 'text-[9px]',
+    icon: '💎',
   },
+  carpet: {
+    label: 'Carpet Roll', dims: '80×60mm', desc: 'With dimensions',
+    cols: 2, barcodeHeight: 55, barcodeWidth: 1.6, fontSize: 13,
+    cardPadding: 'p-3', nameSize: 'text-sm', priceSize: 'text-base',
+    icon: '🧶',
+  },
+  mobile: {
+    label: 'Mobile IMEI', dims: '60×35mm', desc: 'IMEI + warranty',
+    cols: 3, barcodeHeight: 42, barcodeWidth: 1.4, fontSize: 11,
+    cardPadding: 'p-2', nameSize: 'text-xs', priceSize: 'text-sm',
+    icon: '📱',
+  },
+};
+
+const INDUSTRY_SIZE_HINTS: Record<string, LabelSize> = {
+  jewelry: 'jewelry',
+  carpet: 'carpet',
+  mobile: 'mobile',
+  restaurant: 'medium',
+  pharmacy: 'small',
+  retail: 'medium',
 };
 
 function BarcodeImage({
@@ -120,11 +107,15 @@ function BarcodeImage({
 
 export default function BarcodeLabelsPage() {
   const queryClient = useQueryClient();
+  const industry = useCurrentIndustry();
+
+  const industryDefault = industry?.id ? (INDUSTRY_SIZE_HINTS[industry.id] || 'medium') : 'medium';
+
   const [selected, setSelected] = useState<LabelItem[]>([]);
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [stockFilter, setStockFilter] = useState<'all' | 'with-barcode' | 'without-barcode'>('all');
-  const [labelSize, setLabelSize] = useState<LabelSize>('medium');
+  const [labelSize, setLabelSize] = useState<LabelSize>(industryDefault);
   const [barcodeFormat, setBarcodeFormat] = useState<BarcodeFormat>('CODE128');
   const [showShopName, setShowShopName] = useState(true);
   const [showPrice, setShowPrice] = useState(true);
@@ -133,7 +124,7 @@ export default function BarcodeLabelsPage() {
   const [showSettings, setShowSettings] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
-  const { data: productsData, refetch: refetchProducts } = useQuery({
+  const { data: productsData, refetch: refetchProducts, isRefetching } = useQuery({
     queryKey: ['products-for-labels'],
     queryFn: () => productsApi.list({ page: 1, limit: 500 }),
   });
@@ -312,10 +303,13 @@ export default function BarcodeLabelsPage() {
 
   const config = SIZE_CONFIG[labelSize];
   const shopName = (settings as any)?.shopName || (settings as any)?.shopAddress || 'My Shop';
+  const isJewelry = industry?.id === 'jewelry' || labelSize === 'jewelry';
+  const isCarpet = industry?.id === 'carpet' || labelSize === 'carpet';
+  const isMobile = industry?.id === 'mobile' || labelSize === 'mobile';
 
   return (
     <div className="space-y-6 print:space-y-0">
-      {/* HERO */}
+      {/* ═══ HERO ═══ */}
       <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 text-white p-6 sm:p-8 shadow-2xl print:hidden">
         <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-emerald-400/20 blur-3xl" />
         <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-amber-400/15 blur-3xl" />
@@ -325,27 +319,38 @@ export default function BarcodeLabelsPage() {
             <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur px-3 py-1 text-xs font-extrabold">
               <ScanLine className="h-3.5 w-3.5 text-amber-300" />
               Barcode Label Studio
+              {industry?.id && (
+                <>
+                  <span className="text-white/40">•</span>
+                  <span>{industry.emoji} {industry.name}</span>
+                </>
+              )}
             </div>
             <h2 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">Barcode Labels</h2>
             <p className="mt-2 text-sm text-white/80">
-              Auto-generate barcodes, beautiful labels — thermal, A4, jewelry tags sab supported
+              {industry?.id
+                ? `${industry.name} ke liye optimized labels — ${config.label} default select`
+                : 'Auto-generate barcodes, beautiful labels — thermal, A4, jewelry tags sab supported'}
             </p>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => refetchProducts()}
+              disabled={isRefetching}
               className="h-11 px-3 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur text-white text-sm font-bold inline-flex items-center gap-1.5 transition"
             >
-              <RefreshCw className="h-4 w-4" />
+              <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
               Refresh
             </button>
             <button
               onClick={() => setShowSettings((v) => !v)}
-              className="h-11 px-4 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur text-white text-sm font-bold inline-flex items-center gap-2 transition"
+              className={`h-11 px-4 rounded-xl backdrop-blur text-white text-sm font-bold inline-flex items-center gap-2 transition border-2 ${
+                showSettings ? 'bg-amber-500/40 border-amber-300/40' : 'bg-white/10 hover:bg-white/20 border-white/20'
+              }`}
             >
               <Settings2 className="h-4 w-4" />
-              {showSettings ? 'Hide' : 'Settings'}
+              {showSettings ? 'Hide Settings' : 'Settings'}
             </button>
             <Button
               size="lg"
@@ -361,24 +366,26 @@ export default function BarcodeLabelsPage() {
 
         {/* Settings Panel */}
         {showSettings && (
-          <div className="relative mt-5 rounded-2xl bg-white/10 backdrop-blur p-4 space-y-3">
+          <div className="relative mt-5 rounded-2xl bg-white/10 backdrop-blur p-4 space-y-4 border border-white/20">
             <div>
-              <label className="text-[10px] uppercase tracking-wider font-bold text-white/80 block mb-2">
-                Label Size
+              <label className="text-[10px] uppercase tracking-wider font-bold text-white/80 block mb-2 items-center gap-1">
+                <LayoutGrid className="h-3 w-3" />
+                Label Size Templates
               </label>
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
                 {(Object.entries(SIZE_CONFIG) as [LabelSize, any][]).map(([key, cfg]) => (
                   <button
                     key={key}
                     onClick={() => setLabelSize(key)}
-                    className={`px-3 py-2 rounded-xl text-xs font-bold transition border-2 ${
+                    className={`px-3 py-2.5 rounded-xl text-xs font-bold transition border-2 ${
                       labelSize === key
-                        ? 'bg-white text-slate-900 border-white shadow-lg'
+                        ? 'bg-white text-slate-900 border-white shadow-lg scale-105'
                         : 'bg-white/5 text-white border-white/20 hover:bg-white/10'
                     }`}
                   >
-                    <div className="font-extrabold">{cfg.label.split('(')[0]}</div>
-                    <div className="text-[9px] opacity-70 font-bold mt-0.5">{cfg.desc}</div>
+                    <div className="text-lg mb-0.5">{cfg.icon}</div>
+                    <div className="font-extrabold text-[11px]">{cfg.label}</div>
+                    <div className="text-[9px] opacity-70 font-bold">{cfg.dims}</div>
                   </button>
                 ))}
               </div>
@@ -386,7 +393,8 @@ export default function BarcodeLabelsPage() {
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
               <div>
-                <label className="text-[10px] uppercase tracking-wider font-bold text-white/80 block mb-1.5">
+                <label className="text-[10px] uppercase tracking-wider font-bold text-white/80 block mb-1.5 items-center gap-1">
+                  <QrCode className="h-3 w-3" />
                   Barcode Format
                 </label>
                 <select
@@ -401,21 +409,27 @@ export default function BarcodeLabelsPage() {
                 </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <Checkbox checked={showShopName} onChange={setShowShopName} icon={Building2} label="Shop" />
-                <Checkbox checked={showPrice} onChange={setShowPrice} icon={DollarSign} label="Price" />
-                <Checkbox checked={showCategory} onChange={setShowCategory} icon={Tag} label="Category" />
-                <Checkbox checked={showSku} onChange={setShowSku} icon={Hash} label="SKU" />
+              <div className="sm:col-span-2 lg:col-span-2">
+                <label className="text-[10px] uppercase tracking-wider font-bold text-white/80 block mb-1.5 items-center gap-1">
+                  <Eye className="h-3 w-3" />
+                  Label Contents
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <Checkbox checked={showShopName} onChange={setShowShopName} icon={Building2} label="Shop" />
+                  <Checkbox checked={showPrice} onChange={setShowPrice} icon={DollarSign} label="Price" />
+                  <Checkbox checked={showCategory} onChange={setShowCategory} icon={Tag} label="Category" />
+                  <Checkbox checked={showSku} onChange={setShowSku} icon={Hash} label="SKU" />
+                </div>
               </div>
             </div>
           </div>
         )}
       </section>
 
-      {/* STATS */}
-      <section className="grid grid-cols-3 gap-4 print:hidden">
+      {/* ═══ STATS ═══ */}
+      <section className="grid grid-cols-2 sm:grid-cols-4 gap-4 print:hidden">
         <StatCard label="Total Products" value={stats.total} icon={Package} color="violet" />
-        <StatCard label="With Barcodes" value={stats.withBarcode} icon={CheckCircle2} color="emerald" />
+        <StatCard label="With Barcodes" value={stats.withBarcode} icon={CheckCircle2} color="emerald" sub={`${stats.total > 0 ? Math.round((stats.withBarcode / stats.total) * 100) : 0}% ready`} />
         <StatCard
           label="Need Barcodes"
           value={stats.withoutBarcode}
@@ -432,6 +446,7 @@ export default function BarcodeLabelsPage() {
             </button>
           ) : null}
         />
+        <StatCard label="Selected" value={labelsToPrint.length} icon={Printer} color="blue" sub={`${selected.length} unique`} isHighlight />
       </section>
 
       <section className="grid lg:grid-cols-[420px_1fr] gap-6 print:grid-cols-1 print:gap-0">
@@ -451,7 +466,6 @@ export default function BarcodeLabelsPage() {
             </div>
           </div>
 
-          {/* Filters */}
           <div className="p-4 border-b border-slate-100 bg-slate-50/50 space-y-2">
             <div className="relative">
               <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -504,7 +518,7 @@ export default function BarcodeLabelsPage() {
                 className="h-9 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold disabled:opacity-50 inline-flex items-center justify-center gap-1"
               >
                 <Plus className="h-3 w-3" />
-                Add All
+                Add All ({filteredProducts.filter((p) => p.barcode).length})
               </button>
               <button
                 onClick={handleBulkGenerateBarcodes}
@@ -594,7 +608,6 @@ export default function BarcodeLabelsPage() {
 
         {/* SELECTED + PREVIEW */}
         <div className="space-y-4">
-          {/* Selected list */}
           <div className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-5 print:hidden">
             <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
               <div>
@@ -607,9 +620,9 @@ export default function BarcodeLabelsPage() {
                 </p>
               </div>
               {selected.length > 0 && (
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 flex-wrap">
                   <span className="text-[10px] text-slate-500 font-bold mr-1">Set all:</span>
-                  {[1, 5, 10, 20].map((n) => (
+                  {[1, 5, 10, 20, 50].map((n) => (
                     <button
                       key={n}
                       onClick={() => setAllCopies(n)}
@@ -692,7 +705,10 @@ export default function BarcodeLabelsPage() {
                 <Eye className="h-4 w-4 text-emerald-700" />
                 Print Preview
               </h3>
-              <span className="text-xs font-bold text-slate-500">{config.label}</span>
+              <span className="text-xs font-bold text-slate-500 inline-flex items-center gap-1">
+                <span>{config.icon}</span>
+                {config.label} • {config.dims}
+              </span>
             </div>
 
             <div
@@ -730,6 +746,18 @@ export default function BarcodeLabelsPage() {
                         {displaySku}
                       </div>
                     )}
+                    {isJewelry && (
+                      <div className="flex items-center justify-center gap-1 text-[7px] font-extrabold text-amber-700">
+                        <Award className="h-2 w-2" />
+                        {item.product.unit || 'gm'}
+                      </div>
+                    )}
+                    {isCarpet && (
+                      <div className="flex items-center justify-center gap-1 text-[8px] font-extrabold text-emerald-700">
+                        <Ruler className="h-2.5 w-2.5" />
+                        Per {item.product.unit || 'sqft'}
+                      </div>
+                    )}
                     <div className="my-0.5 flex justify-center">
                       {barcodeValue && (
                         <BarcodeImage
@@ -744,6 +772,12 @@ export default function BarcodeLabelsPage() {
                     {showPrice && (
                       <div className={`${config.priceSize} font-extrabold text-slate-900`}>
                         {formatPKRFull(displayPrice)}
+                      </div>
+                    )}
+                    {isMobile && (
+                      <div className="text-[8px] font-extrabold text-blue-700 inline-flex items-center gap-0.5">
+                        <ShieldCheck className="h-2 w-2" />
+                        Warranty
                       </div>
                     )}
                   </div>
@@ -761,7 +795,6 @@ export default function BarcodeLabelsPage() {
         </div>
       </section>
 
-      {/* EDIT MODAL */}
       {editingProduct && (
         <EditBarcodeModal
           product={editingProduct}
@@ -805,18 +838,22 @@ function Checkbox({ checked, onChange, icon: Icon, label }: any) {
   );
 }
 
-function StatCard({ label, value, icon: Icon, color, action }: any) {
+function StatCard({ label, value, sub, icon: Icon, color, action, isHighlight }: any) {
   const colors: any = {
     violet: 'from-violet-500 to-purple-600 shadow-violet-500/30',
     emerald: 'from-emerald-500 to-green-600 shadow-emerald-500/30',
     amber: 'from-amber-500 to-orange-600 shadow-amber-500/30',
+    blue: 'from-blue-500 to-blue-700 shadow-blue-500/30',
   };
   return (
-    <div className="rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm hover:shadow-md transition">
+    <div className={`rounded-2xl border-2 p-4 shadow-sm hover:shadow-md transition ${
+      isHighlight ? 'bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-300' : 'bg-white border-slate-200'
+    }`}>
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0 flex-1">
           <div className="text-[10px] uppercase tracking-wider text-slate-500 font-extrabold">{label}</div>
           <div className="mt-1 text-2xl font-extrabold text-slate-900 tabular-nums">{value}</div>
+          {sub && <div className="text-[10px] text-slate-600 font-semibold mt-0.5">{sub}</div>}
           {action}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${colors[color]} text-white flex items-center justify-center shadow-lg shrink-0`}>

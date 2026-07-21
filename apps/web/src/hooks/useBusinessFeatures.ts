@@ -22,7 +22,7 @@ const DEFAULT_FEATURES: BusinessFeatures = {
   sizeMatrix: false,
 };
 
-const TEMPLATE_FEATURES: Record<string, Partial<BusinessFeatures> & { defaultUnit?: string }> = {
+const TEMPLATE_FEATURES: Record<string, Record<string, any>> = {
   CARPET: {
     variants: true,
     variantImages: true,

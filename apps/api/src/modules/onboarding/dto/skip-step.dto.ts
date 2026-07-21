@@ -3,8 +3,6 @@ import { IsInt, Max, Min } from 'class-validator';
 
 export class SkipStepDto {
   @ApiProperty({ example: 5 })
-  @IsInt()
-  @Min(1)
-  @Max(6)
+  @IsInt() @Min(1) @Max(8)
   step!: number;
 }

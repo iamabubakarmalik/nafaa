@@ -5,8 +5,8 @@ import {
   ScanLine, BookOpen, ClipboardCheck, AlertTriangle,
   ArrowRightLeft, Download, Database, RotateCcw, Award, Percent, TrendingUp, Gift, Gauge, Hash, UserCircle, LifeBuoy, ScrollText, Eye,
   UserCog, CheckCircle2, Wallet2,
-  BookmarkPlus, ChevronDown, ChevronRight, ShieldCheck, CreditCard, Bell, Building2, Truck,
-  Search, X, Star, StarOff, PanelLeftClose,
+  BookmarkPlus, ChevronDown, ChevronRight, ShieldCheck, CreditCard, Bell, Building2, Truck, Cake, Calendar, Cookie, ChefHat, Wheat, Timer, ShoppingBag,
+  Search, X, Star, StarOff, PanelLeftClose, LogIn, Dumbbell, Flame, Pill, TestTube, Syringe, Stethoscope, Target
 } from 'lucide-react';
 import { Logo } from '@/components/brand/Logo';
 import { hasPermission, PERMISSIONS, type PermissionKey } from '@/lib/permissions';

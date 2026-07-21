@@ -1,0 +1,110 @@
+import {
+  Dumbbell, LayoutDashboard, Users, LogIn, Award, Target, Calendar,
+  Flame, Activity,
+} from 'lucide-react';
+import type { IndustryPack } from '@/features/industries/_shared/types/industry-pack';
+
+import GymDashboardPage from './pages/GymDashboardPage';
+import MembersPage from './pages/MembersPage';
+import MemberDetailPage from './pages/MemberDetailPage';
+import AttendancePage from './pages/AttendancePage';
+import MembershipsPage from './pages/MembershipsPage';
+import PlansPage from './pages/PlansPage';
+import TrainersPage from './pages/TrainersPage';
+import ClassesPage from './pages/ClassesPage';
+import PTSessionsPage from './pages/PTSessionsPage';
+import EquipmentPage from './pages/EquipmentPage';
+
+/**
+ * Gym / Fitness Studio industry pack.
+ * Member management, check-in/attendance, membership plans,
+ * personal training, group classes, equipment tracking.
+ */
+export const GymPack: IndustryPack = {
+  id: 'gym',
+  name: 'Gym / Fitness',
+  shortName: 'Gym',
+  emoji: '💪',
+  themeColor: '#dc2626',
+  priority: 54,
+  description:
+    'Members, check-in attendance, membership plans, personal training sessions, group classes, equipment.',
+
+  matches: (tenant) => {
+    if (!tenant) return false;
+    const type = (tenant.businessType ?? '').toUpperCase();
+    return (
+      type.includes('GYM') ||
+      type.includes('FITNESS') ||
+      type.includes('YOGA') ||
+      type.includes('CROSSFIT') ||
+      type.includes('MARTIAL') ||
+      type.includes('PILATES') ||
+      type.includes('AEROBICS')
+    );
+  },
+
+  navGroups: [
+    {
+      label: 'Gym Industry',
+      icon: Dumbbell,
+      emoji: '💪',
+      color: '#dc2626',
+      order: 20,
+      items: [
+        { to: '/gym/dashboard', label: 'Gym Dashboard', icon: LayoutDashboard, badge: 'NEW' },
+        { to: '/gym/members', label: 'Members', icon: Users },
+        { to: '/gym/attendance', label: 'Check-in / Attendance', icon: LogIn, badge: 'FAST' },
+        { to: '/gym/memberships', label: 'Memberships', icon: Award },
+        { to: '/gym/plans', label: 'Membership Plans', icon: Target },
+        { to: '/gym/trainers', label: 'Trainers', icon: Dumbbell },
+        { to: '/gym/classes', label: 'Group Classes', icon: Calendar },
+        { to: '/gym/personal-training', label: 'PT Sessions', icon: Flame },
+        { to: '/gym/equipment', label: 'Equipment', icon: Activity },
+      ],
+    },
+  ],
+
+  routes: [
+    { path: '/gym', element: GymDashboardPage },
+    { path: '/gym/dashboard', element: GymDashboardPage },
+    { path: '/gym/members/:id', element: MemberDetailPage },
+    { path: '/gym/members', element: MembersPage },
+    { path: '/gym/attendance', element: AttendancePage },
+    { path: '/gym/memberships', element: MembershipsPage },
+    { path: '/gym/plans', element: PlansPage },
+    { path: '/gym/trainers', element: TrainersPage },
+    { path: '/gym/classes', element: ClassesPage },
+    { path: '/gym/personal-training', element: PTSessionsPage },
+    { path: '/gym/equipment', element: EquipmentPage },
+  ],
+
+  dashboardComponent: GymDashboardPage,
+
+  productForm: {
+    defaultUnit: 'month',
+    unitOptions: [
+      { value: 'month', label: 'Month (membership)', hint: '📅', group: 'Membership' },
+      { value: 'quarter', label: 'Quarter (3 mo)', hint: '📅', group: 'Membership' },
+      { value: 'half-year', label: 'Half Year (6 mo)', hint: '📅', group: 'Membership' },
+      { value: 'year', label: 'Year (12 mo)', hint: '📅', group: 'Membership' },
+      { value: 'session', label: 'Session (PT)', hint: '💪', group: 'Training' },
+      { value: 'class', label: 'Class', hint: '🏋️', group: 'Training' },
+      { value: 'visit', label: 'Visit / Drop-in', hint: '🚪', group: 'Access' },
+      { value: 'day-pass', label: 'Day Pass', hint: '🎟️', group: 'Access' },
+      { value: 'pcs', label: 'Piece (supplements)', hint: '🔢', group: 'Retail' },
+      { value: 'bottle', label: 'Bottle', hint: '🍶', group: 'Retail' },
+      { value: 'kg', label: 'Kilogram', hint: '⚖️', group: 'Retail' },
+      { value: 'hour', label: 'Hour', hint: '⏰', group: 'Time' },
+    ],
+  },
+
+  featureFlags: [
+    { key: 'gymMembers', label: 'Member Management', defaultEnabled: true },
+    { key: 'gymAttendance', label: 'Check-in / Attendance', defaultEnabled: true },
+    { key: 'gymPT', label: 'Personal Training', defaultEnabled: true },
+    { key: 'gymClasses', label: 'Group Classes', defaultEnabled: true },
+    { key: 'gymEquipment', label: 'Equipment Tracking', defaultEnabled: false },
+    { key: 'gymDietPlans', label: 'Diet Plans', defaultEnabled: false },
+  ],
+};

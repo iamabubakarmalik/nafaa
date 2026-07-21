@@ -1,33 +1,21 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import {
-  IsArray, IsBoolean, IsEmail, IsIn, IsOptional, IsString, ValidateNested,
-} from 'class-validator';
+import { IsArray, IsBoolean, IsNumber, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
 
-class TeamMemberDto {
-  @IsString()
-  fullName!: string;
-
-  @IsEmail()
-  email!: string;
-
-  @IsString()
-  password!: string;
-
-  @IsIn(['MANAGER', 'CASHIER', 'STAFF'])
-  role!: 'MANAGER' | 'CASHIER' | 'STAFF';
+class QuickProductDto {
+  @IsString() name!: string;
+  @IsNumber() @Min(0) price!: number;
+  @IsOptional() @IsNumber() @Min(0) costPrice?: number;
+  @IsOptional() @IsNumber() @Min(0) stock?: number;
+  @IsOptional() @IsString() category?: string;
+  @IsOptional() @IsString() unit?: string;
+  @IsOptional() @IsString() barcode?: string;
 }
 
 export class UpdateStep6Dto {
-  @ApiPropertyOptional({ type: [TeamMemberDto] })
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => TeamMemberDto)
-  teamMembers?: TeamMemberDto[];
+  @ApiPropertyOptional({ type: [QuickProductDto] })
+  @IsOptional() @IsArray() @ValidateNested({ each: true }) @Type(() => QuickProductDto)
+  products?: QuickProductDto[];
 
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsBoolean()
-  wantsTutorial?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() useSampleData?: boolean;
 }

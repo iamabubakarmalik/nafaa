@@ -41,14 +41,17 @@ export const CarpetPack: IndustryPack = {
   matches: (tenant) => {
     if (!tenant) return false;
     const type = (tenant.businessType ?? '').toUpperCase();
+    // ── Business type has FINAL say ───────────────────────
+    if (type) {
+      return (
+        type.includes('CARPET') ||
+        type.includes('FLOORING') ||
+        type.includes('MATTING')
+      );
+    }
+    // ── Fallback: only when businessType is missing entirely ─
     const features = (tenant.businessFeatures ?? {}) as Record<string, boolean>;
-    return (
-      type.includes('CARPET') ||
-      type.includes('FLOORING') ||
-      type.includes('MATTING') ||
-      features.lengthWidthCalc === true ||
-      features.carpetRolls === true
-    );
+    return features.carpetRolls === true;
   },
 
   navGroups: [

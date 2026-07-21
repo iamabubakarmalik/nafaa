@@ -10,6 +10,8 @@ import { transfersApi, type StockTransfer, type TransferStatus } from '@/api/tra
 import { useAuthStore } from '@/store/auth.store';
 import { formatPKR } from '@/lib/format';
 import { toast } from 'sonner';
+import { useIndustryStockPresets } from '@/features/industries/_shared/presets';
+import { Sparkles as SparklesIcon } from 'lucide-react';
 import { TransferRollPicker } from '@/features/industries/carpet/components/TransferRollPicker';
 import { TransferCartLine, type TransferLineItem } from '@/features/industries/carpet/components/TransferCartLine';
 import type { CarpetRoll } from '@/features/industries/carpet/api/carpet-rolls.api';
@@ -29,6 +31,7 @@ const statusConfig: Record<TransferStatus, { label: string; tone: string; icon: 
 export default function TransfersPage() {
   const queryClient = useQueryClient();
   const currentShopId = useAuthStore((s) => s.currentShopId);
+  const industryStock = useIndustryStockPresets();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<TransferStatus | 'all'>('all');
   const [createOpen, setCreateOpen] = useState(false);
@@ -461,9 +464,17 @@ export default function TransfersPage() {
                 </div>
               )}
 
-              {/* Notes */}
+              {/* Notes with industry purposes */}
               <div>
-                <label className="block text-xs font-bold text-slate-600 mb-1.5">Notes (optional)</label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-bold text-slate-600">Purpose / Notes (optional)</label>
+                  {industryStock.industryId && (
+                    <span className="text-[9px] font-extrabold text-cyan-700 bg-cyan-50 border border-cyan-200 rounded-full px-2 py-0.5 inline-flex items-center gap-1">
+                      <SparklesIcon className="h-2.5 w-2.5" />
+                      {industryStock.industryEmoji} {industryStock.industryName}
+                    </span>
+                  )}
+                </div>
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
@@ -471,6 +482,29 @@ export default function TransfersPage() {
                   rows={2}
                   className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-cyan-500 resize-none"
                 />
+
+                {industryStock.transferPurposes.length > 0 && (
+                  <div className="mt-2 p-2 rounded-lg bg-gradient-to-br from-cyan-50 to-blue-50 border-2 border-cyan-200">
+                    <div className="text-[9px] uppercase tracking-wider text-cyan-800 font-extrabold mb-1.5">
+                      {industryStock.industryEmoji} Common Transfer Purposes
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {industryStock.transferPurposes.map((p) => (
+                        <button
+                          key={p.name}
+                          type="button"
+                          onClick={() => setNotes(`${p.emoji} ${p.name}${p.description ? ' — ' + p.description : ''}`)}
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg border-2 text-[10px] font-extrabold hover:shadow-md transition"
+                          style={{ borderColor: `${p.color}50`, backgroundColor: `${p.color}15`, color: p.color }}
+                          title={p.description}
+                        >
+                          <span>{p.emoji}</span>
+                          <span>{p.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

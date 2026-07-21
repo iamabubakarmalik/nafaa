@@ -1,0 +1,45 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ServiceBusinessType, ServiceCategory, ServiceChargeType, TechnicianLevel, WarrantyType } from '@prisma/client';
+import { IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
+
+export class UpsertCatalogDto {
+  @ApiProperty() @IsString() name!: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() code?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() description?: string;
+  @ApiPropertyOptional({ enum: ServiceCategory }) @IsOptional() @IsEnum(ServiceCategory) category?: ServiceCategory;
+  @ApiPropertyOptional({ enum: ServiceBusinessType }) @IsOptional() @IsEnum(ServiceBusinessType) businessType?: ServiceBusinessType;
+  @ApiPropertyOptional({ enum: ServiceChargeType }) @IsOptional() @IsEnum(ServiceChargeType) chargeType?: ServiceChargeType;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() baseCharge?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() hourlyRate?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() visitCharge?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() minCharge?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() maxCharge?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() emergencyCharge?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() weekendCharge?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() nightCharge?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() outOfCityCharge?: number;
+  @ApiPropertyOptional() @IsOptional() @IsInt() estimatedDurationMin?: number;
+  @ApiPropertyOptional() @IsOptional() @IsInt() minDurationMin?: number;
+  @ApiPropertyOptional() @IsOptional() @IsInt() maxDurationMin?: number;
+  @ApiPropertyOptional({ enum: TechnicianLevel }) @IsOptional() @IsEnum(TechnicianLevel) requiredSkillLevel?: TechnicianLevel;
+  @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() requiredTools?: string[];
+  @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() requiredParts?: string[];
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() requiresLicense?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsString() licenseType?: string;
+  @ApiPropertyOptional() @IsOptional() @IsInt() warrantyDays?: number;
+  @ApiPropertyOptional({ enum: WarrantyType }) @IsOptional() @IsEnum(WarrantyType) warrantyType?: WarrantyType;
+  @ApiPropertyOptional() @IsOptional() @IsString() warrantyTerms?: string;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() isEmergency?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() isRemoteAvailable?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() requiresQuote?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() requiresAdvance?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() advancePct?: number;
+  @ApiPropertyOptional() @IsOptional() @IsString() imageUrl?: string;
+  @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() imageUrls?: string[];
+  @ApiPropertyOptional() @IsOptional() @IsString() videoUrl?: string;
+  @ApiPropertyOptional() @IsOptional() @IsInt() displayOrder?: number;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() isPopular?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() isFeatured?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsString() shopId?: string;
+}

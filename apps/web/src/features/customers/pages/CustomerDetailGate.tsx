@@ -2,11 +2,23 @@ import { lazy, Suspense } from 'react';
 import { useCurrentIndustry } from '@/features/industries/_shared/registry/useCurrentIndustry';
 import CustomerDetailPage from './CustomerDetailPage';
 
-const RestaurantCustomerDetail = lazy(() => import('@/features/industries/restaurant/pages/RestaurantCustomerDetailPage'));
-const MobileCustomerDetail = lazy(() => import('@/features/industries/mobile/pages/MobileCustomerDetailPage'));
-const CarpetCustomerDetail = lazy(() => import('@/features/industries/carpet/pages/CarpetCustomerDetailPage'));
-const RetailCustomerDetail = lazy(() => import('@/features/industries/retail/pages/RetailCustomerDetailPage'));
-const HardwareCustomerDetail = lazy(() => import('@/features/industries/hardware/pages/HardwareCustomerDetailPage'));
+const RestaurantCustomerDetailPage = lazy(() => import('@/features/industries/restaurant/pages/RestaurantCustomerDetailPage'));
+const MobileCustomerDetailPage = lazy(() => import('@/features/industries/mobile/pages/MobileCustomerDetailPage'));
+const CarpetCustomerDetailPage = lazy(() => import('@/features/industries/carpet/pages/CarpetCustomerDetailPage'));
+const RetailCustomerDetailPage = lazy(() => import('@/features/industries/retail/pages/RetailCustomerDetailPage'));
+const GarmentCustomerDetailPage = lazy(() => import('@/features/industries/garments/pages/GarmentCustomerDetailPage'));
+const BakeryCustomerDetailPage = lazy(() => import('@/features/industries/bakery/pages/BakeryCustomerDetailPage'));
+const ClinicCustomerDetailPage = lazy(() => import('@/features/industries/clinic/pages/ClinicCustomerDetailPage'));
+const ServicesBizCustomerDetailPage = lazy(() => import('@/features/industries/services-biz/pages/ServicesBizCustomerDetailPage'));
+const PharmacyCustomerDetailPage = lazy(() => import('@/features/industries/pharmacy/pages/PharmacyCustomerDetailPage'));
+const HardwareCustomerDetailPage = lazy(() => import('@/features/industries/hardware/pages/HardwareCustomerDetailPage'));
+const DairyCustomerDetailPage = lazy(() => import('@/features/industries/dairy/pages/DairyCustomerDetailPage'));
+const MeatCustomerDetailPage = lazy(() => import('@/features/industries/meat/pages/MeatCustomerDetailPage'));
+const AgriCustomerDetailPage = lazy(() => import('@/features/industries/agri/pages/AgriCustomerDetailPage'));
+const AutoPartsCustomerDetailPage = lazy(() => import('@/features/industries/autoparts/pages/AutoPartsCustomerDetailPage'));
+const BookstoreCustomerDetailPage = lazy(() => import('@/features/industries/bookstore/pages/BookstoreCustomerDetailPage'));
+const HotelCustomerDetailPage = lazy(() => import('@/features/industries/hotel/pages/HotelCustomerDetailPage'));
+const GymCustomerDetail = lazy(() => import('@/features/industries/gym/pages/GymCustomerDetailPage'));
 
 function Loader() {
   return (
@@ -19,11 +31,23 @@ function Loader() {
 export default function CustomerDetailGate() {
   const industry = useCurrentIndustry();
 
-  if (industry?.id === 'restaurant') return <Suspense fallback={<Loader />}><RestaurantCustomerDetail /></Suspense>;
-  if (industry?.id === 'mobile') return <Suspense fallback={<Loader />}><MobileCustomerDetail /></Suspense>;
-  if (industry?.id === 'carpet') return <Suspense fallback={<Loader />}><CarpetCustomerDetail /></Suspense>;
-  if (industry?.id === 'retail') return <Suspense fallback={<Loader />}><RetailCustomerDetail /></Suspense>;
-  if (industry?.id === 'hardware') return <Suspense fallback={<Loader />}><HardwareCustomerDetail /></Suspense>;
+  if (industry?.id === 'restaurant') return <Suspense fallback={<Loader />}><RestaurantCustomerDetailPage /></Suspense>;
+  if (industry?.id === 'mobile') return <Suspense fallback={<Loader />}><MobileCustomerDetailPage /></Suspense>;
+  if (industry?.id === 'carpet') return <Suspense fallback={<Loader />}><CarpetCustomerDetailPage /></Suspense>;
+  if (industry?.id === 'retail') return <Suspense fallback={<Loader />}><RetailCustomerDetailPage /></Suspense>;
+  if (industry?.id === 'garments') return <Suspense fallback={<Loader />}><GarmentCustomerDetailPage /></Suspense>;
+  if (industry?.id === 'bakery') return <Suspense fallback={<Loader />}><BakeryCustomerDetailPage /></Suspense>;
+  if (industry?.id === 'gym') return <Suspense fallback={<Loader />}><GymCustomerDetail /></Suspense>;
+  if (industry?.id === 'clinic') return <Suspense fallback={<Loader />}><ClinicCustomerDetailPage /></Suspense>;
+  if (industry?.id === 'services-biz') return <Suspense fallback={<Loader />}><ServicesBizCustomerDetailPage /></Suspense>;
+  if (industry?.id === 'pharmacy') return <Suspense fallback={<Loader />}><PharmacyCustomerDetailPage /></Suspense>;
+  if (industry?.id === 'hardware') return <Suspense fallback={<Loader />}><HardwareCustomerDetailPage /></Suspense>;
+  if (industry?.id === 'dairy') return <Suspense fallback={<Loader />}><DairyCustomerDetailPage /></Suspense>;
+  if (industry?.id === 'meat') return <Suspense fallback={<Loader />}><MeatCustomerDetailPage /></Suspense>;
+  if (industry?.id === 'agri') return <Suspense fallback={<Loader />}><AgriCustomerDetailPage /></Suspense>;
+  if (industry?.id === 'autoparts') return <Suspense fallback={<Loader />}><AutoPartsCustomerDetailPage /></Suspense>;
+  if (industry?.id === 'bookstore') return <Suspense fallback={<Loader />}><BookstoreCustomerDetailPage /></Suspense>;
+  if (industry?.id === 'hotel') return <Suspense fallback={<Loader />}><HotelCustomerDetailPage /></Suspense>;
 
   return <CustomerDetailPage />;
 }

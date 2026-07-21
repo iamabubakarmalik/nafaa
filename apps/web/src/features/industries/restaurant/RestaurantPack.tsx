@@ -44,13 +44,39 @@ export const RestaurantPack: IndustryPack = {
   matches: (tenant) => {
     if (!tenant) return false;
     const type = (tenant.businessType ?? '').toUpperCase();
+    if (!type) return false;
+
+    // ── HARD EXCLUSIONS ──────────────────────────────────
+    // Bakery / cake / sweet shops have their own dedicated pack.
+    // Never let them fall into Restaurant just because of "FOOD".
+    if (
+      type.includes('BAKERY') ||
+      type.includes('CAKE') ||
+      type.includes('SWEET') ||
+      type.includes('MITHAI') ||
+      type.includes('CONFECTIONERY') ||
+      type.includes('PATISSERIE') ||
+      type.includes('DESSERT')
+    ) {
+      return false;
+    }
+
+    // ── Restaurant-family keywords (narrow, explicit) ────
     return (
+      type === 'RESTAURANT' ||
+      type === 'CAFE' ||
+      type === 'FAST_FOOD' ||
+      type === 'DINE_IN' ||
       type.includes('RESTAURANT') ||
       type.includes('CAFE') ||
-      type.includes('BAKERY') ||
-      type.includes('FOOD') ||
       type.includes('FAST_FOOD') ||
-      type.includes('DINE')
+      type.includes('FASTFOOD') ||
+      type.includes('DINE') ||
+      type.includes('DHABA') ||
+      type.includes('CAFETERIA') ||
+      type.includes('FOOD_TRUCK') ||
+      type.includes('FOODTRUCK') ||
+      type.includes('CLOUD_KITCHEN')
     );
   },
 

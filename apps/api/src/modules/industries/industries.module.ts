@@ -13,6 +13,11 @@ import { AgriModule } from './agri/agri.module';
 import { HardwareModule } from './hardware/hardware.module';
 import { DairyModule } from './dairy/dairy.module';
 import { JewelryModule } from './jewelry/jewelry.module';
+import { GymModule } from './gym/gym.module';
+import { BakeryModule } from './bakery/bakery.module';
+import { ClinicModule } from './clinic/clinic.module';
+import { ServicesBizModule } from './services-biz/services-biz.module';
+
 
 @Module({
   imports: [
@@ -30,7 +35,12 @@ import { JewelryModule } from './jewelry/jewelry.module';
     JewelryModule,
     HardwareModule,
     DairyModule,
+    GymModule,
+    ClinicModule,
+    BakeryModule,
+    ServicesBizModule,
   ],
+  
   exports: [
     RetailModule,
     RestaurantModule,
@@ -46,6 +56,10 @@ import { JewelryModule } from './jewelry/jewelry.module';
     JewelryModule,
     HardwareModule,
     DairyModule,
+    GymModule,
+    ClinicModule,
+    BakeryModule,
+    ServicesBizModule,
   ],
 })
 export class IndustriesModule {}

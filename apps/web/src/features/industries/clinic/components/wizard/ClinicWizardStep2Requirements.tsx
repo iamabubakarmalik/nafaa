@@ -1,0 +1,234 @@
+import { useState } from 'react';
+import {
+  Stethoscope, Calendar, Ban, FileText, Package, AlertTriangle,
+  Info, ArrowRight, ArrowLeft, Plus, X, CheckCircle2,
+} from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { COMMON_TESTS, COMMON_PROCEDURES, HEALTH_PACKAGES } from '../../api/constants';
+import type { ClinicWizardRequirements } from '../../hooks/useClinicWizard';
+
+interface Props {
+  requirements: ClinicWizardRequirements;
+  serviceCategory: string;
+  onChange: (patch: Partial<ClinicWizardRequirements>) => void;
+  onTogglePackageItem: (item: string) => void;
+  onBack: () => void;
+  onNext: () => void;
+  validation: { valid: boolean; errors: string[] };
+}
+
+export function ClinicWizardStep2Requirements({
+  requirements, serviceCategory, onChange, onTogglePackageItem, onBack, onNext, validation,
+}: Props) {
+  const [customItem, setCustomItem] = useState('');
+  const suggestedItems =
+    serviceCategory === 'LAB_TEST' || serviceCategory === 'DIAGNOSTIC' ? COMMON_TESTS :
+    serviceCategory === 'PROCEDURE' ? COMMON_PROCEDURES :
+    serviceCategory === 'HEALTH_PACKAGE' ? HEALTH_PACKAGES : [];
+
+  const addCustom = () => {
+    if (!customItem.trim()) return;
+    onTogglePackageItem(customItem.trim());
+    setCustomItem('');
+  };
+
+  return (
+    <div className="space-y-5">
+      <section className="rounded-3xl bg-gradient-to-br from-blue-50 via-white to-cyan-50 dark:from-blue-950/30 dark:via-neutral-900 dark:to-cyan-950/30 border-2 border-blue-200 dark:border-blue-800 shadow-sm p-5 space-y-4">
+        <div className="flex items-center gap-3 pb-3 border-b-2 border-blue-200/60">
+          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 text-white flex items-center justify-center shadow-md">
+            <Stethoscope className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Service Requirements</h3>
+            <p className="text-[11px] text-slate-500 font-semibold">Kya kya chahiye is service ke liye</p>
+          </div>
+        </div>
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <ReqToggle active={requirements.requiresDoctor} onToggle={(v: any) => onChange({ requiresDoctor: v })} icon={Stethoscope} label="Requires Doctor" desc="Doctor must be present" tone="blue" />
+          <ReqToggle active={requirements.requiresAppointment} onToggle={(v: any) => onChange({ requiresAppointment: v })} icon={Calendar} label="Requires Appointment" desc="Book slot first" tone="cyan" />
+          <ReqToggle active={requirements.requiresFasting} onToggle={(v: any) => onChange({ requiresFasting: v })} icon={Ban} label="Requires Fasting" desc="Empty stomach" tone="amber" />
+        </div>
+      </section>
+
+      {/* ─── PREP INSTRUCTIONS ─── */}
+      <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-4">
+        <div className="flex items-center gap-3 pb-3 border-b-2 border-slate-100">
+          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-md">
+            <FileText className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Instructions</h3>
+            <p className="text-[11px] text-slate-500 font-semibold">Patient ko batayen kya karna hai</p>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-xs font-extrabold text-amber-700 uppercase mb-1.5">Pre-Service Instructions</label>
+          <textarea
+            rows={3}
+            value={requirements.prepInstructions}
+            onChange={(e) => onChange({ prepInstructions: e.target.value })}
+            placeholder="e.g. 8 hours fasting required, no water after midnight, avoid strenuous exercise..."
+            className="w-full rounded-xl border-2 border-amber-200 bg-amber-50 dark:bg-amber-950/30 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none"
+          />
+        </div>
+
+        <div>
+          <label className="block text-xs font-extrabold text-emerald-700 uppercase mb-1.5">Post-Service Care</label>
+          <textarea
+            rows={3}
+            value={requirements.postCareInstructions}
+            onChange={(e) => onChange({ postCareInstructions: e.target.value })}
+            placeholder="e.g. Rest for 24 hours, take pain relief as needed, apply ice pack..."
+            className="w-full rounded-xl border-2 border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none"
+          />
+        </div>
+
+        <div>
+          <label className="block text-xs font-extrabold text-red-700 uppercase mb-1.5">Contraindications</label>
+          <textarea
+            rows={2}
+            value={requirements.contraindications}
+            onChange={(e) => onChange({ contraindications: e.target.value })}
+            placeholder="Who should NOT get this service..."
+            className="w-full rounded-xl border-2 border-red-200 bg-red-50 dark:bg-red-950/30 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-red-500 resize-none"
+          />
+        </div>
+
+        <div>
+          <label className="block text-xs font-extrabold text-slate-700 uppercase mb-1.5">Side Effects</label>
+          <textarea
+            rows={2}
+            value={requirements.sideEffects}
+            onChange={(e) => onChange({ sideEffects: e.target.value })}
+            placeholder="Common side effects patients may experience..."
+            className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-slate-500 resize-none"
+          />
+        </div>
+      </section>
+
+      {/* ─── PACKAGE INCLUDES ─── */}
+      <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-4">
+        <div className="flex items-center gap-3 pb-3 border-b-2 border-slate-100">
+          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center shadow-md">
+            <Package className="h-5 w-5" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Package Includes</h3>
+            <p className="text-[11px] text-slate-500 font-semibold">Kya kya milta hai patient ko is package mein</p>
+          </div>
+          {requirements.packageIncludes.length > 0 && (
+            <span className="px-2 py-0.5 rounded bg-violet-100 text-violet-700 text-[10px] font-extrabold">
+              {requirements.packageIncludes.length} items
+            </span>
+          )}
+        </div>
+
+        {suggestedItems.length > 0 && (
+          <div>
+            <div className="text-[10px] uppercase font-extrabold text-violet-700 mb-2">Suggested Items</div>
+            <div className="flex flex-wrap gap-1.5">
+              {suggestedItems.map((item) => {
+                const active = requirements.packageIncludes.includes(item);
+                return (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => onTogglePackageItem(item)}
+                    className={[
+                      'inline-flex items-center px-3 py-1.5 rounded-lg border-2 text-xs font-extrabold transition',
+                      active
+                        ? 'border-violet-500 bg-violet-50 text-violet-800 shadow-sm ring-2 ring-violet-200'
+                        : 'border-slate-200 bg-white text-slate-700 hover:border-violet-300',
+                    ].join(' ')}
+                  >
+                    {item}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        <div className="pt-3 border-t border-slate-100">
+          <div className="text-[10px] uppercase font-extrabold text-slate-600 mb-2">Add Custom Item</div>
+          <div className="flex gap-2">
+            <input
+              value={customItem}
+              onChange={(e) => setCustomItem(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustom(); } }}
+              placeholder="e.g. Free follow-up in 7 days, Home sample collection..."
+              className="flex-1 h-10 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-semibold focus:outline-none focus:border-violet-500"
+            />
+            <button
+              onClick={addCustom}
+              disabled={!customItem.trim()}
+              className="h-10 px-4 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-extrabold inline-flex items-center gap-1 disabled:opacity-50"
+            >
+              <Plus className="h-3.5 w-3.5" /> Add
+            </button>
+          </div>
+        </div>
+
+        {requirements.packageIncludes.length > 0 && (
+          <div className="pt-3 border-t border-slate-100">
+            <div className="text-[10px] uppercase font-extrabold text-emerald-700 mb-2">Included Items</div>
+            <div className="flex flex-wrap gap-1">
+              {requirements.packageIncludes.map((item) => (
+                <span
+                  key={item}
+                  className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-xs font-extrabold text-emerald-800"
+                >
+                  <CheckCircle2 className="h-3 w-3" />
+                  {item}
+                  <button
+                    onClick={() => onTogglePackageItem(item)}
+                    className="h-4 w-4 rounded hover:bg-emerald-200 flex items-center justify-center"
+                  >
+                    <X className="h-2.5 w-2.5" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
+
+      <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 shadow-sm p-4 flex items-center justify-between flex-wrap gap-3">
+        <Button variant="secondary" onClick={onBack}>
+          <ArrowLeft className="h-4 w-4" /> Back
+        </Button>
+        <Button onClick={onNext} disabled={!validation.valid} className="bg-gradient-to-r from-blue-600 to-cyan-700 shadow-md">
+          Next: Safety & Follow-up <ArrowRight className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function ReqToggle({ active, onToggle, icon: Icon, label, desc, tone }: any) {
+  const tones: Record<string, string> = {
+    blue: 'from-blue-500 to-cyan-600 border-blue-500',
+    cyan: 'from-cyan-500 to-teal-600 border-cyan-500',
+    amber: 'from-amber-500 to-orange-500 border-amber-500',
+  };
+  return (
+    <button
+      type="button"
+      onClick={() => onToggle(!active)}
+      className={[
+        'p-3 rounded-xl border-2 text-left transition-all',
+        active ? 'bg-gradient-to-br ' + tones[tone] + ' text-white shadow-md'
+          : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-slate-300',
+      ].join(' ')}
+    >
+      <div className="flex items-center gap-2">
+        <Icon className={'h-4 w-4 ' + (active ? 'text-white' : 'text-slate-500')} />
+        <div className={'font-extrabold text-sm ' + (active ? 'text-white' : 'text-slate-900')}>{label}</div>
+      </div>
+      <div className={'text-[10px] font-semibold mt-0.5 ' + (active ? 'text-white/85' : 'text-slate-500')}>{desc}</div>
+    </button>
+  );
+}

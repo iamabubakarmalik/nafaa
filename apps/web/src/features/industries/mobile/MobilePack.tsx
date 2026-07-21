@@ -30,13 +30,15 @@ export const MobilePack: IndustryPack = {
   matches: (tenant) => {
     if (!tenant) return false;
     const type = (tenant.businessType ?? '').toUpperCase();
+    if (type) {
+      return (
+        type.includes('MOBILE') ||
+        type.includes('PHONE') ||
+        type.includes('ELECTRONICS')
+      );
+    }
     const features = (tenant.businessFeatures ?? {}) as Record<string, boolean>;
-    return (
-      type.includes('MOBILE') ||
-      type.includes('PHONE') ||
-      type.includes('ELECTRONICS') ||
-      features.imei === true
-    );
+    return features.imei === true;
   },
 
   navGroups: [

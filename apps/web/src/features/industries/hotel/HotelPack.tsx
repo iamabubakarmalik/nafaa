@@ -43,24 +43,20 @@ export const HotelPack: IndustryPack = {
   matches: (tenant) => {
     if (!tenant) return false;
     const type = (tenant.businessType ?? '').toUpperCase();
+    if (type) {
+      return (
+        type.includes('HOTEL') ||
+        type.includes('GUEST_HOUSE') ||
+        type.includes('GUESTHOUSE') ||
+        type.includes('MOTEL') ||
+        type.includes('RESORT') ||
+        type.includes('LODGE') ||
+        type.includes('INN') ||
+        type.includes('HOSTEL')
+      );
+    }
     const features = (tenant.businessFeatures ?? {}) as Record<string, boolean>;
-
-    const isHotelType =
-      type.includes('HOTEL') ||
-      type.includes('GUEST_HOUSE') ||
-      type.includes('GUESTHOUSE') ||
-      type.includes('MOTEL') ||
-      type.includes('RESORT') ||
-      type.includes('LODGE') ||
-      type.includes('INN') ||
-      type.includes('HOSTEL');
-
-    const hasHotelFeature =
-      features.hotelMode === true ||
-      features.rooms === true ||
-      features.bookings === true;
-
-    return isHotelType || hasHotelFeature;
+    return features.hotelMode === true || features.rooms === true;
   },
 
   navGroups: [

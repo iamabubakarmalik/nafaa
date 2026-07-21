@@ -1,15 +1,18 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Sparkles } from 'lucide-react';
-import { onboardingApi } from '@/api/onboarding.api';
+import { onboardingApi } from '@/features/onboarding/api/onboarding.api';
 import { useAuthStore } from '@/store/auth.store';
 
 /**
  * OnboardingGate — BLOCKS render until onboarding state is known.
  *
  * Flow:
+ *  - Not authenticated → let ProtectedRoute handle
+ *  - On /onboarding: if already completed → redirect to /dashboard (prevents loop)
+ *  - On /verify-email: always allow
  *  - While loading → show spinner (don't render Outlet)
- *  - If incomplete + not on /onboarding → Navigate (synchronous, blocks render)
+ *  - If incomplete + not on /onboarding → <Navigate> (synchronous, blocks render)
  *  - If complete → render Outlet
  *
  * Key fix: NO useEffect — useEffect runs AFTER render, causing flicker.
@@ -19,22 +22,11 @@ export default function OnboardingGate() {
   const location = useLocation();
   const { isAuthenticated, user } = useAuthStore();
 
-  // Skip gate if not authenticated or already on onboarding page
   const isOnboardingRoute = location.pathname === '/onboarding';
   const isVerifyRoute = location.pathname === '/verify-email';
 
-  const { data: progress, isLoading, isError } = useQuery({
-    queryKey: ['onboarding'],
-    queryFn: onboardingApi.get,
-    enabled: isAuthenticated && !isOnboardingRoute && !isVerifyRoute,
-    retry: 1,
-    staleTime: 30_000, // Cache for 30s — but always fresh on session change
-    refetchOnWindowFocus: false,
-    refetchOnMount: 'always', // Re-check on every mount
-  });
-
-  // Skip gate for these routes
-  if (isOnboardingRoute || isVerifyRoute) {
+  // Always allow verify-email route (needed before login checks)
+  if (isVerifyRoute) {
     return <Outlet />;
   }
 
@@ -42,6 +34,18 @@ export default function OnboardingGate() {
   if (!isAuthenticated || !user) {
     return <Outlet />;
   }
+
+  // Fetch onboarding — enabled on ALL protected routes (including /onboarding)
+  // so we can decide whether to redirect completed users away from /onboarding.
+  const { data: progress, isLoading, isError } = useQuery({
+    queryKey: ['onboarding'],
+    queryFn: onboardingApi.get,
+    enabled: isAuthenticated,
+    retry: 1,
+    staleTime: 30_000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: 'always',
+  });
 
   // Loading state — BLOCK rendering, show spinner
   if (isLoading) {
@@ -55,16 +59,27 @@ export default function OnboardingGate() {
     );
   }
 
-  // Error state — let user proceed (don't block)
+  // Error state — let user proceed (don't lock them out of the app)
   if (isError || !progress) {
     return <Outlet />;
   }
 
-  // CRITICAL: Synchronously redirect during render (no flash of dashboard)
+  // ═══ CASE 1: User is on /onboarding ═══
+  if (isOnboardingRoute) {
+    // Already completed → send them to dashboard (prevents loop for existing users)
+    if (progress.isCompleted) {
+      return <Navigate to="/dashboard" replace />;
+    }
+    // Still onboarding — let OnboardingPage render
+    return <Outlet />;
+  }
+
+  // ═══ CASE 2: User is on any other protected route ═══
+  // Not completed → force onboarding
   if (!progress.isCompleted) {
     return <Navigate to="/onboarding" replace />;
   }
 
-  // Onboarding complete → render protected app
+  // Completed → render protected app
   return <Outlet />;
 }

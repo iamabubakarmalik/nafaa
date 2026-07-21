@@ -1,0 +1,42 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { GymGoal, GymMemberStatus } from '@prisma/client';
+import { IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
+
+export class UpsertMemberDto {
+  @ApiProperty() @IsString() customerId!: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() memberNumber?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() rfidCard?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() biometricId?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() qrCode?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() dateOfBirth?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() gender?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() bloodGroup?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() emergencyContactName?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() emergencyContactPhone?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() emergencyContactRelation?: string;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() heightCm?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() currentWeightKg?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() targetWeightKg?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() bodyFatPct?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() muscleMassPct?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() bmi?: number;
+  @ApiPropertyOptional({ enum: GymGoal }) @IsOptional() @IsEnum(GymGoal) primaryGoal?: GymGoal;
+  @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() secondaryGoals?: GymGoal[];
+  @ApiPropertyOptional() @IsOptional() @IsString() fitnessLevel?: string;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() experienceYears?: number;
+  @ApiPropertyOptional() @IsOptional() @IsString() medicalConditions?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() injuries?: string;
+  @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() allergies?: string[];
+  @ApiPropertyOptional() @IsOptional() @IsString() medications?: string;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() doctorClearance?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsString() doctorClearanceUrl?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() preferredWorkoutTime?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() preferredTrainerId?: string;
+  @ApiPropertyOptional({ type: [Number] }) @IsOptional() @IsArray() workoutDays?: number[];
+  @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() dietaryPreferences?: string[];
+  @ApiPropertyOptional() @IsOptional() @IsString() photoUrl?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() bio?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() notes?: string;
+  @ApiPropertyOptional({ enum: GymMemberStatus }) @IsOptional() @IsEnum(GymMemberStatus) status?: GymMemberStatus;
+  @ApiPropertyOptional() @IsOptional() @IsString() referredById?: string;
+}

@@ -1,0 +1,1 @@
+export { ClinicPack } from './ClinicPack';
