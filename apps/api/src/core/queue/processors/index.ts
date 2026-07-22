@@ -1,0 +1,9 @@
+export { EmailProcessor } from './email.processor';
+export { SmsProcessor } from './sms.processor';
+export { PushProcessor } from './push.processor';
+export { WhatsappProcessor } from './whatsapp.processor';
+export { NotificationProcessor } from './notification.processor';
+export { BargainProcessor } from './bargain.processor';
+export { AuctionProcessor } from './auction.processor';
+export { GroupBuyProcessor } from './group-buy.processor';
+export { CartRecoveryProcessor } from './cart-recovery.processor';

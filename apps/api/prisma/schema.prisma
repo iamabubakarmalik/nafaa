@@ -141,6 +141,9 @@ enum NotificationChannel {
   EMAIL
   SMS
   BOTH
+  PUSH
+  IN_APP
+  WHATSAPP
 }
 
 enum DeliveryStatus {
@@ -228,6 +231,7 @@ enum CustomerGender {
   MALE
   FEMALE
   OTHER
+  PREFER_NOT_TO_SAY
 }
 
 enum BookingStatus {
@@ -373,6 +377,22 @@ model Tenant {
   reorderSuggestions       ReorderSuggestion[]
   restaurantOrders         RestaurantOrder[]
   salonAppointmentLegacies SalonAppointmentLegacy[]
+
+  // ── Marketplace relations ──
+  marketplaceShopProfiles    ShopMarketplaceProfile[]
+  marketplaceProductProfiles ProductMarketplaceProfile[]
+  marketplaceOrders          MarketplaceOrder[]
+  bargains                   Bargain[]
+  groupBuys                  GroupBuy[]
+  auctions                   Auction[]
+  riders                     Rider[]
+  liveShops                  LiveShop[]
+  mktDeliveryRiders          MktRider[]
+  mktDeliveryZones           MktDeliveryZone[]
+  promotions                 Promotion[]
+  messageTemplates           MessageTemplate[]
+  messageCampaigns           MessageCampaign[]
+  conversations              Conversation[]
 }
 
 model Referral {
@@ -557,6 +577,17 @@ model Shop {
   usedPhones      UsedPhone[]
   repairTickets   RepairTicket[]
   bookings        Booking[]
+
+  // ── Marketplace relations ──
+  marketplaceProfile  ShopMarketplaceProfile?
+  marketplaceOrders   MarketplaceOrder[]
+  bargains            Bargain[]
+  groupBuys           GroupBuy[]
+  auctions            Auction[]
+  followedBy          CustomerFollowsShop[]
+  marketplaceProducts ProductMarketplaceProfile[]
+  mktDeliveryRiders   MktRider[]
+  promotions          Promotion[]
 
   @@unique([tenantId, name])
   @@index([tenantId])
@@ -839,6 +870,9 @@ model Product {
   restaurantOrderItems RestaurantOrderItem[] @relation("RestaurantOrderProduct")
   pharmacyMedicine     PharmacyMedicine?     @relation("PharmacyMedicine")
   productSalts         ProductSalt[]         @relation("ProductSalt")
+
+  // ── Marketplace relations ──
+  marketplaceProfile ProductMarketplaceProfile?
 
   @@index([tenantId])
   @@index([tenantId, name])
@@ -3900,6 +3934,7 @@ model Rider {
   updatedAt DateTime @updatedAt
 
   deliveries DeliveryTracking[]
+  tenant     Tenant             @relation(fields: [tenantId], references: [id])
 
   @@index([tenantId])
   @@index([tenantId, status])
@@ -10733,6 +10768,9 @@ enum DeliveryType {
   HOME_DELIVERY
   VENUE_DELIVERY
   COURIER
+  DELIVERY
+  PICKUP
+  DINE_IN
 }
 
 enum FreshnessStatus {
@@ -13542,4 +13580,2325 @@ model ServiceZone {
 
   @@unique([tenantId, name])
   @@index([tenantId])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ▓▓▓  MARKETPLACE MODELS  ▓▓▓
+// ═══════════════════════════════════════════════════════════════
+
+enum MarketplaceAuthProvider {
+  PHONE_OTP
+  EMAIL_PASSWORD
+  GOOGLE
+  FACEBOOK
+  APPLE
+}
+
+enum MarketplaceOrderStatus {
+  DRAFT
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY_FOR_PICKUP
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+  REFUNDED
+  DISPUTED
+  RETURNED
+}
+
+enum MarketplacePaymentMethod {
+  COD
+  CARD
+  JAZZCASH
+  EASYPAISA
+  NAYAPAY
+  SADAPAY
+  RAAST
+  BANK_TRANSFER
+  WALLET
+  SPLIT
+}
+
+enum MarketplacePaymentStatus {
+  PENDING
+  PAID
+  PARTIAL
+  FAILED
+  REFUNDED
+}
+
+enum BargainStatus {
+  PENDING
+  COUNTER_OFFERED
+  ACCEPTED
+  REJECTED
+  EXPIRED
+  CONVERTED
+}
+
+enum GroupBuyStatus {
+  ACTIVE
+  SUCCESS
+  FAILED
+  CANCELLED
+  EXPIRED
+}
+
+enum AuctionStatus {
+  DRAFT
+  SCHEDULED
+  LIVE
+  ENDED
+  CANCELLED
+}
+
+enum LiveShopStatus {
+  SCHEDULED
+  LIVE
+  ENDED
+  CANCELLED
+}
+
+enum ReviewType {
+  PRODUCT
+  SHOP
+  RIDER
+  ORDER
+}
+
+enum SupportTicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_CUSTOMER
+  RESOLVED
+  CLOSED
+}
+
+enum SupportTicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum ShopVerificationLevel {
+  UNVERIFIED
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+}
+
+enum WalletTransactionType {
+  CREDIT
+  DEBIT
+  CASHBACK
+  REFUND
+  REFERRAL_BONUS
+  PROMOTIONAL
+}
+
+// ─── CUSTOMER ────────────────────────────────────────────────
+
+model MarketplaceCustomer {
+  id              String                  @id @default(cuid())
+  phone           String                  @unique
+  phoneVerified   Boolean                 @default(false)
+  phoneVerifiedAt DateTime?
+  email           String?                 @unique
+  emailVerified   Boolean                 @default(false)
+  emailVerifiedAt DateTime?
+  passwordHash    String?
+  fullName        String
+  displayName     String?
+  avatarUrl       String?
+  dateOfBirth     DateTime?
+  gender          CustomerGender?
+  authProvider    MarketplaceAuthProvider @default(PHONE_OTP)
+  googleId        String?                 @unique
+  facebookId      String?                 @unique
+  appleId         String?                 @unique
+
+  language String @default("ur")
+  timezone String @default("Asia/Karachi")
+  currency String @default("PKR")
+
+  loyaltyPoints Int                   @default(0)
+  walletBalance Decimal               @default(0) @db.Decimal(12, 2)
+  referralCode  String                @unique
+  referredById  String?
+  referredBy    MarketplaceCustomer?  @relation("CustomerReferrals", fields: [referredById], references: [id])
+  referrals     MarketplaceCustomer[] @relation("CustomerReferrals")
+
+  defaultAddressId String?
+  lastKnownLat     Float?
+  lastKnownLng     Float?
+  lastKnownCity    String?
+
+  marketingEmails   Boolean @default(true)
+  marketingSms      Boolean @default(true)
+  marketingPush     Boolean @default(true)
+  marketingWhatsapp Boolean @default(true)
+
+  isActive  Boolean   @default(true)
+  isBanned  Boolean   @default(false)
+  banReason String?
+  bannedAt  DateTime?
+
+  passwordResetToken   String?
+  passwordResetExpires DateTime?
+
+  lastLoginAt  DateTime?
+  lastActiveAt DateTime?
+  registeredIp String?
+  deviceInfo   Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  addresses        CustomerAddress[]
+  savedCards       CustomerSavedCard[]
+  otpCodes         CustomerOtpCode[]
+  sessions         CustomerSession[]
+  loginHistory     CustomerLoginHistory[]
+  orders           MarketplaceOrder[]
+  cart             MarketplaceCart?
+  wishlistItems    WishlistItem[]
+  reviews          MarketplaceReview[]
+  reviewVotes      ReviewVote[]
+  supportTickets   SupportTicket[]
+  supportMessages  SupportMessage[]
+  bargains         Bargain[]
+  bargainMessages  BargainMessage[]
+  groupBuyJoins    GroupBuyParticipant[]
+  auctionBids      AuctionBid[]
+  liveShopViewers  LiveShopViewer[]
+  liveShopMessages LiveShopMessage[]
+  notifications    CustomerNotification[]
+  walletTxns       CustomerWalletTxn[]
+  pushTokens       CustomerPushToken[]
+  followingShops   CustomerFollowsShop[]
+  productViews     ProductView[]
+  searchHistory    CustomerSearchHistory[]
+
+  @@index([phone])
+  @@index([email])
+  @@index([lastActiveAt])
+  @@index([referralCode])
+  @@map("marketplace_customers")
+}
+
+model CustomerAddress {
+  id            String              @id @default(cuid())
+  customerId    String
+  customer      MarketplaceCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  label         String
+  fullName      String
+  phone         String
+  addressLine1  String
+  addressLine2  String?
+  landmark      String?
+  city          String
+  area          String
+  province      String?
+  postalCode    String?
+  country       String              @default("Pakistan")
+  lat           Float?
+  lng           Float?
+  addressType   String              @default("HOME")
+  isDefault     Boolean             @default(false)
+  deliveryNotes String?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  orders        MarketplaceOrder[]
+
+  @@index([customerId])
+  @@index([customerId, isDefault])
+  @@map("customer_addresses")
+}
+
+model CustomerSavedCard {
+  id              String              @id @default(cuid())
+  customerId      String
+  customer        MarketplaceCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  cardBrand       String
+  last4           String
+  expiryMonth     Int
+  expiryYear      Int
+  holderName      String
+  gatewayToken    String
+  gatewayProvider String
+  isDefault       Boolean             @default(false)
+  createdAt       DateTime            @default(now())
+
+  @@index([customerId])
+  @@map("customer_saved_cards")
+}
+
+model CustomerOtpCode {
+  id          String               @id @default(cuid())
+  customerId  String?
+  customer    MarketplaceCustomer? @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  phone       String?
+  email       String?
+  code        String
+  purpose     String
+  attempts    Int                  @default(0)
+  maxAttempts Int                  @default(5)
+  expiresAt   DateTime
+  verifiedAt  DateTime?
+  createdAt   DateTime             @default(now())
+
+  @@index([phone, purpose])
+  @@index([email, purpose])
+  @@index([expiresAt])
+  @@map("customer_otp_codes")
+}
+
+model CustomerSession {
+  id                String              @id @default(cuid())
+  customerId        String
+  customer          MarketplaceCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  refreshTokenHash  String
+  userAgent         String?
+  ipAddress         String?
+  deviceFingerprint String?
+  deviceName        String?
+  location          String?
+  lastUsedAt        DateTime            @default(now())
+  expiresAt         DateTime
+  createdAt         DateTime            @default(now())
+
+  @@index([customerId])
+  @@index([expiresAt])
+  @@map("customer_sessions")
+}
+
+model CustomerLoginHistory {
+  id            String               @id @default(cuid())
+  customerId    String?
+  customer      MarketplaceCustomer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  phone         String?
+  email         String?
+  success       Boolean
+  failureReason String?
+  ipAddress     String?
+  userAgent     String?
+  deviceName    String?
+  location      String?
+  isNewDevice   Boolean              @default(false)
+  createdAt     DateTime             @default(now())
+
+  @@index([customerId, createdAt])
+  @@map("customer_login_history")
+}
+
+model CustomerPushToken {
+  id         String              @id @default(cuid())
+  customerId String
+  customer   MarketplaceCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  token      String              @unique
+  platform   String
+  deviceInfo Json?
+  isActive   Boolean             @default(true)
+  lastUsedAt DateTime            @default(now())
+  createdAt  DateTime            @default(now())
+
+  @@index([customerId])
+  @@map("customer_push_tokens")
+}
+
+model CustomerFollowsShop {
+  id         String              @id @default(cuid())
+  customerId String
+  customer   MarketplaceCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  shopId     String
+  shop       Shop                @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  createdAt  DateTime            @default(now())
+
+  @@unique([customerId, shopId])
+  @@index([shopId])
+  @@map("customer_follows_shop")
+}
+
+model ProductView {
+  id         String               @id @default(cuid())
+  customerId String?
+  customer   MarketplaceCustomer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  productId  String
+  shopId     String
+  viewedAt   DateTime             @default(now())
+  source     String?
+
+  @@index([customerId, viewedAt])
+  @@index([productId])
+  @@map("product_views")
+}
+
+model CustomerSearchHistory {
+  id          String               @id @default(cuid())
+  customerId  String?
+  customer    MarketplaceCustomer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  query       String
+  resultCount Int                  @default(0)
+  filters     Json?
+  createdAt   DateTime             @default(now())
+
+  @@index([customerId, createdAt])
+  @@index([query])
+  @@map("customer_search_history")
+}
+
+// ─── SHOP / PRODUCT MARKETPLACE PROFILES ─────────────────────
+
+model ShopMarketplaceProfile {
+  id       String @id @default(cuid())
+  shopId   String @unique
+  shop     Shop   @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  publicName               String
+  slug                     String                @unique
+  tagline                  String?
+  description              String?               @db.Text
+  logoUrl                  String?
+  coverUrl                 String?
+  galleryUrls              String[]              @default([])
+  publicPhone              String?
+  publicEmail              String?
+  websiteUrl               String?
+  whatsappNumber           String?
+  addressLine1             String?
+  addressLine2             String?
+  city                     String
+  area                     String?
+  province                 String?
+  lat                      Float?
+  lng                      Float?
+  industry                 String
+  subCategories            String[]              @default([])
+  isListedOnMarketplace    Boolean               @default(false)
+  listedAt                 DateTime?
+  isOpen                   Boolean               @default(true)
+  isPaused                 Boolean               @default(false)
+  pausedReason             String?
+  verificationLevel        ShopVerificationLevel @default(UNVERIFIED)
+  verifiedAt               DateTime?
+  verifiedBy               String?
+  cnicNumber               String?
+  businessRegNumber        String?
+  taxNumber                String?
+  documents                Json?
+  ratingAverage            Float                 @default(0)
+  ratingCount              Int                   @default(0)
+  totalOrders              Int                   @default(0)
+  completedOrders          Int                   @default(0)
+  cancelledOrders          Int                   @default(0)
+  totalRevenue             Decimal               @default(0) @db.Decimal(14, 2)
+  followerCount            Int                   @default(0)
+  avgResponseTimeMinutes   Int?
+  avgPreparationMinutes    Int?
+  offersDelivery           Boolean               @default(true)
+  offersPickup             Boolean               @default(true)
+  offersDineIn             Boolean               @default(false)
+  deliveryRadiusKm         Float                 @default(5)
+  deliveryFee              Decimal               @default(0) @db.Decimal(10, 2)
+  freeDeliveryAbove        Decimal?              @db.Decimal(10, 2)
+  minOrderAmount           Decimal               @default(0) @db.Decimal(10, 2)
+  maxOrderAmount           Decimal?              @db.Decimal(10, 2)
+  estimatedDeliveryMinutes Int?                  @default(30)
+  estimatedPickupMinutes   Int?                  @default(15)
+  acceptsCod               Boolean               @default(true)
+  acceptsCard              Boolean               @default(false)
+  acceptsJazzcash          Boolean               @default(false)
+  acceptsEasypaisa         Boolean               @default(false)
+  acceptsRaast             Boolean               @default(false)
+  acceptsWallet            Boolean               @default(true)
+  bargainEnabled           Boolean               @default(false)
+  bargainMinPercent        Int?                  @default(80)
+  groupBuyEnabled          Boolean               @default(false)
+  auctionEnabled           Boolean               @default(false)
+  liveShopEnabled          Boolean               @default(false)
+  workingHours             Json?
+  holidayDates             DateTime[]            @default([])
+  prayerTimeMode           Boolean               @default(false)
+  ramzanScheduleActive     Boolean               @default(false)
+  metaTitle                String?
+  metaDescription          String?
+  keywords                 String[]              @default([])
+  createdAt                DateTime              @default(now())
+  updatedAt                DateTime              @updatedAt
+
+  shopReviews MarketplaceReview[] @relation("ShopReviews")
+  liveShops   LiveShop[]          @relation("LiveShopToProfile")
+
+  @@index([shopId])
+  @@index([tenantId])
+  @@index([slug])
+  @@index([isListedOnMarketplace, isOpen])
+  @@index([city, area])
+  @@index([industry])
+  @@index([ratingAverage])
+  @@map("shop_marketplace_profiles")
+}
+
+model ProductMarketplaceProfile {
+  id                     String    @id @default(cuid())
+  productId              String    @unique
+  product                Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  shopId                 String
+  shop                   Shop      @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  tenantId               String
+  tenant                 Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  isListedOnMarketplace  Boolean   @default(false)
+  listedAt               DateTime?
+  publicName             String
+  publicDescription      String?   @db.Text
+  publicPrice            Decimal   @db.Decimal(12, 2)
+  compareAtPrice         Decimal?  @db.Decimal(12, 2)
+  publicImages           String[]  @default([])
+  publicVideos           String[]  @default([])
+  marketplaceCategory    String?
+  marketplaceSubCategory String?
+  tags                   String[]  @default([])
+  isAvailable            Boolean   @default(true)
+  availableFrom          DateTime?
+  availableUntil         DateTime?
+  totalSold              Int       @default(0)
+  ratingAverage          Float     @default(0)
+  ratingCount            Int       @default(0)
+  viewCount              Int       @default(0)
+  wishlistCount          Int       @default(0)
+  bargainEnabled         Boolean   @default(false)
+  bargainMinPrice        Decimal?  @db.Decimal(12, 2)
+  groupBuyEnabled        Boolean   @default(false)
+  auctionEnabled         Boolean   @default(false)
+  metaTitle              String?
+  metaDescription        String?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  productReviews MarketplaceReview[] @relation("ProductReviews")
+
+  @@index([shopId, isListedOnMarketplace])
+  @@index([marketplaceCategory])
+  @@index([totalSold])
+  @@index([ratingAverage])
+  @@map("product_marketplace_profiles")
+}
+
+// ─── CART ────────────────────────────────────────────────────
+
+model MarketplaceCart {
+  id         String                @id @default(cuid())
+  customerId String                @unique
+  customer   MarketplaceCustomer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  lines      MarketplaceCartLine[]
+  createdAt  DateTime              @default(now())
+  updatedAt  DateTime              @updatedAt
+
+  @@map("marketplace_carts")
+}
+
+model MarketplaceCartLine {
+  id          String          @id @default(cuid())
+  cartId      String
+  cart        MarketplaceCart @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  shopId      String
+  productId   String
+  variantId   String?
+  productName String
+  variantName String?
+  imageUrl    String?
+  unitPrice   Decimal         @db.Decimal(12, 2)
+  quantity    Int
+  notes       String?
+  modifiers   Json?
+  bargainId   String?         @unique
+  groupBuyId  String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([cartId])
+  @@index([shopId])
+  @@map("marketplace_cart_lines")
+}
+
+// ─── ORDERS ──────────────────────────────────────────────────
+
+model MarketplaceOrder {
+  id                  String                   @id @default(cuid())
+  orderNumber         String                   @unique
+  customerId          String
+  customer            MarketplaceCustomer      @relation(fields: [customerId], references: [id])
+  shopId              String
+  shop                Shop                     @relation(fields: [shopId], references: [id])
+  tenantId            String
+  tenant              Tenant                   @relation(fields: [tenantId], references: [id])
+  status              MarketplaceOrderStatus   @default(PENDING)
+  deliveryType        DeliveryType             @default(DELIVERY)
+  subtotal            Decimal                  @db.Decimal(12, 2)
+  discount            Decimal                  @default(0) @db.Decimal(12, 2)
+  deliveryFee         Decimal                  @default(0) @db.Decimal(12, 2)
+  serviceFee          Decimal                  @default(0) @db.Decimal(12, 2)
+  taxAmount           Decimal                  @default(0) @db.Decimal(12, 2)
+  tipAmount           Decimal                  @default(0) @db.Decimal(12, 2)
+  walletUsed          Decimal                  @default(0) @db.Decimal(12, 2)
+  loyaltyPointsUsed   Int                      @default(0)
+  loyaltyDiscount     Decimal                  @default(0) @db.Decimal(12, 2)
+  total               Decimal                  @db.Decimal(12, 2)
+  currency            String                   @default("PKR")
+  paymentMethod       MarketplacePaymentMethod
+  paymentStatus       MarketplacePaymentStatus @default(PENDING)
+  paymentGatewayRef   String?
+  paidAt              DateTime?
+  addressId           String?
+  address             CustomerAddress?         @relation(fields: [addressId], references: [id])
+  addressSnapshot     Json?
+  deliverySlotStart   DateTime?
+  deliverySlotEnd     DateTime?
+  estimatedDeliveryAt DateTime?
+  actualDeliveryAt    DateTime?
+  riderId             String?
+  riderName           String?
+  riderPhone          String?
+  couponCode          String?
+  couponDiscount      Decimal                  @default(0) @db.Decimal(12, 2)
+  customerNotes       String?
+  shopNotes           String?
+  cancelReason        String?
+  cancelledBy         String?
+  cancelledAt         DateTime?
+  isRated             Boolean                  @default(false)
+  shopRating          Int?
+  riderRating         Int?
+  source              String                   @default("APP")
+  isGuestOrder        Boolean                  @default(false)
+  splitPaymentGroupId String?
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
+
+  items         MarketplaceOrderItem[]
+  statusHistory OrderStatusHistory[]
+  reviews       MarketplaceReview[]
+
+  @@index([customerId, status])
+  @@index([shopId, status])
+  @@index([tenantId, createdAt])
+  @@index([orderNumber])
+  @@index([riderId])
+  @@map("marketplace_orders")
+}
+
+model MarketplaceOrderItem {
+  id          String           @id @default(cuid())
+  orderId     String
+  order       MarketplaceOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   String
+  variantId   String?
+  productName String
+  variantName String?
+  imageUrl    String?
+  unitPrice   Decimal          @db.Decimal(12, 2)
+  quantity    Int
+  discount    Decimal          @default(0) @db.Decimal(12, 2)
+  total       Decimal          @db.Decimal(12, 2)
+  notes       String?
+  modifiers   Json?
+  bargainId   String?
+
+  @@index([orderId])
+  @@map("marketplace_order_items")
+}
+
+model OrderStatusHistory {
+  id        String                 @id @default(cuid())
+  orderId   String
+  order     MarketplaceOrder       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  status    MarketplaceOrderStatus
+  note      String?
+  changedBy String?
+  changedAt DateTime               @default(now())
+
+  @@index([orderId])
+  @@map("order_status_history")
+}
+
+// ─── WISHLIST ────────────────────────────────────────────────
+
+model WishlistItem {
+  id         String              @id @default(cuid())
+  customerId String
+  customer   MarketplaceCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  productId  String
+  shopId     String
+  addedAt    DateTime            @default(now())
+  notes      String?
+
+  @@unique([customerId, productId])
+  @@index([customerId])
+  @@map("wishlist_items")
+}
+
+// ─── REVIEWS ─────────────────────────────────────────────────
+
+model MarketplaceReview {
+  id                 String                     @id @default(cuid())
+  customerId         String
+  customer           MarketplaceCustomer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  reviewType         ReviewType
+  orderId            String?
+  order              MarketplaceOrder?          @relation(fields: [orderId], references: [id])
+  productId          String?
+  productProfile     ProductMarketplaceProfile? @relation("ProductReviews", fields: [productId], references: [productId])
+  shopId             String?
+  shopProfile        ShopMarketplaceProfile?    @relation("ShopReviews", fields: [shopId], references: [shopId])
+  riderId            String?
+  rating             Int
+  title              String?
+  comment            String?                    @db.Text
+  imageUrls          String[]                   @default([])
+  videoUrl           String?
+  qualityRating      Int?
+  packagingRating    Int?
+  deliveryRating     Int?
+  valueRating        Int?
+  isVerifiedPurchase Boolean                    @default(false)
+  isApproved         Boolean                    @default(true)
+  isHidden           Boolean                    @default(false)
+  hiddenReason       String?
+  moderatedBy        String?
+  moderatedAt        DateTime?
+  helpfulCount       Int                        @default(0)
+  unhelpfulCount     Int                        @default(0)
+  replyFromShop      String?                    @db.Text
+  replyAt            DateTime?
+  createdAt          DateTime                   @default(now())
+  updatedAt          DateTime                   @updatedAt
+  votes              ReviewVote[]
+
+  @@index([customerId])
+  @@index([productId])
+  @@index([shopId])
+  @@index([orderId])
+  @@index([rating])
+  @@map("marketplace_reviews")
+}
+
+model ReviewVote {
+  id         String              @id @default(cuid())
+  reviewId   String
+  review     MarketplaceReview   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  customerId String
+  customer   MarketplaceCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  isHelpful  Boolean
+  createdAt  DateTime            @default(now())
+
+  @@unique([reviewId, customerId])
+  @@map("review_votes")
+}
+
+// ─── NOTIFICATIONS ───────────────────────────────────────────
+
+model CustomerNotification {
+  id           String              @id @default(cuid())
+  customerId   String
+  customer     MarketplaceCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  type         String
+  channel      NotificationChannel @default(IN_APP)
+  title        String
+  body         String
+  imageUrl     String?
+  actionUrl    String?
+  data         Json?
+  isRead       Boolean             @default(false)
+  readAt       DateTime?
+  sentAt       DateTime            @default(now())
+  pushSent     Boolean             @default(false)
+  smsSent      Boolean             @default(false)
+  emailSent    Boolean             @default(false)
+  whatsappSent Boolean             @default(false)
+  createdAt    DateTime            @default(now())
+
+  @@index([customerId, isRead])
+  @@index([customerId, createdAt])
+  @@map("customer_notifications")
+}
+
+// ─── WALLET ──────────────────────────────────────────────────
+
+model CustomerWalletTxn {
+  id            String                @id @default(cuid())
+  customerId    String
+  customer      MarketplaceCustomer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  type          WalletTransactionType
+  amount        Decimal               @db.Decimal(12, 2)
+  balanceAfter  Decimal               @db.Decimal(12, 2)
+  reason        String
+  referenceId   String?
+  referenceType String?
+  metadata      Json?
+  createdAt     DateTime              @default(now())
+
+  @@index([customerId, createdAt])
+  @@map("customer_wallet_txns")
+}
+
+// ─── SUPPORT ─────────────────────────────────────────────────
+
+model SupportTicket {
+  id           String                @id @default(cuid())
+  ticketNumber String                @unique
+  customerId   String
+  customer     MarketplaceCustomer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  orderId      String?
+  shopId       String?
+  subject      String
+  category     String
+  priority     SupportTicketPriority @default(MEDIUM)
+  status       SupportTicketStatus   @default(OPEN)
+  assignedTo   String?
+  resolvedAt   DateTime?
+  closedAt     DateTime?
+  rating       Int?
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+  messages     SupportMessage[]
+
+  @@index([customerId, status])
+  @@index([status, priority])
+  @@map("support_tickets")
+}
+
+model SupportMessage {
+  id          String               @id @default(cuid())
+  ticketId    String
+  ticket      SupportTicket        @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  senderType  String
+  senderId    String?
+  customerId  String?
+  customer    MarketplaceCustomer? @relation(fields: [customerId], references: [id])
+  message     String               @db.Text
+  attachments String[]             @default([])
+  isInternal  Boolean              @default(false)
+  createdAt   DateTime             @default(now())
+
+  @@index([ticketId])
+  @@map("support_messages")
+}
+
+// ─── BARGAIN ─────────────────────────────────────────────────
+
+model Bargain {
+  id            String              @id @default(cuid())
+  customerId    String
+  customer      MarketplaceCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  shopId        String
+  shop          Shop                @relation(fields: [shopId], references: [id])
+  tenantId      String
+  tenant        Tenant              @relation(fields: [tenantId], references: [id])
+  productId     String
+  variantId     String?
+  productName   String
+  originalPrice Decimal             @db.Decimal(12, 2)
+  customerOffer Decimal             @db.Decimal(12, 2)
+  currentOffer  Decimal             @db.Decimal(12, 2)
+  finalPrice    Decimal?            @db.Decimal(12, 2)
+  quantity      Int                 @default(1)
+  status        BargainStatus       @default(PENDING)
+  offerCount    Int                 @default(1)
+  maxOffers     Int                 @default(3)
+  expiresAt     DateTime
+  orderId       String?             @unique
+  convertedAt   DateTime?
+  rejectedBy    String?
+  rejectedAt    DateTime?
+  rejectReason  String?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  messages      BargainMessage[]
+
+  @@index([customerId, status])
+  @@index([shopId, status])
+  @@index([productId])
+  @@index([expiresAt])
+  @@map("bargains")
+}
+
+model BargainMessage {
+  id           String               @id @default(cuid())
+  bargainId    String
+  bargain      Bargain              @relation(fields: [bargainId], references: [id], onDelete: Cascade)
+  senderType   String
+  customerId   String?
+  customer     MarketplaceCustomer? @relation(fields: [customerId], references: [id])
+  message      String?              @db.Text
+  offeredPrice Decimal?             @db.Decimal(12, 2)
+  action       String
+  createdAt    DateTime             @default(now())
+
+  @@index([bargainId])
+  @@map("bargain_messages")
+}
+
+// ─── GROUP BUY ───────────────────────────────────────────────
+
+model GroupBuy {
+  id              String                @id @default(cuid())
+  shopId          String
+  shop            Shop                  @relation(fields: [shopId], references: [id])
+  tenantId        String
+  tenant          Tenant                @relation(fields: [tenantId], references: [id])
+  productId       String
+  variantId       String?
+  productName     String
+  imageUrl        String?
+  regularPrice    Decimal               @db.Decimal(12, 2)
+  groupPrice      Decimal               @db.Decimal(12, 2)
+  minParticipants Int                   @default(5)
+  maxParticipants Int?
+  currentCount    Int                   @default(0)
+  status          GroupBuyStatus        @default(ACTIVE)
+  startsAt        DateTime              @default(now())
+  expiresAt       DateTime
+  reachedTargetAt DateTime?
+  cancelledReason String?
+  metadata        Json?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  participants    GroupBuyParticipant[]
+
+  @@index([shopId, status])
+  @@index([status, expiresAt])
+  @@map("group_buys")
+}
+
+model GroupBuyParticipant {
+  id         String              @id @default(cuid())
+  groupBuyId String
+  groupBuy   GroupBuy            @relation(fields: [groupBuyId], references: [id], onDelete: Cascade)
+  customerId String
+  customer   MarketplaceCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  quantity   Int                 @default(1)
+  amount     Decimal             @db.Decimal(12, 2)
+  orderId    String?
+  joinedAt   DateTime            @default(now())
+
+  @@unique([groupBuyId, customerId])
+  @@index([customerId])
+  @@map("group_buy_participants")
+}
+
+// ─── AUCTION ─────────────────────────────────────────────────
+
+model Auction {
+  id              String        @id @default(cuid())
+  shopId          String
+  shop            Shop          @relation(fields: [shopId], references: [id])
+  tenantId        String
+  tenant          Tenant        @relation(fields: [tenantId], references: [id])
+  productId       String?
+  variantId       String?
+  title           String
+  description     String?       @db.Text
+  imageUrls       String[]      @default([])
+  videoUrl        String?
+  startingPrice   Decimal       @db.Decimal(12, 2)
+  reservePrice    Decimal?      @db.Decimal(12, 2)
+  bidIncrement    Decimal       @default(100) @db.Decimal(12, 2)
+  currentPrice    Decimal       @db.Decimal(12, 2)
+  bidCount        Int           @default(0)
+  status          AuctionStatus @default(SCHEDULED)
+  startsAt        DateTime
+  endsAt          DateTime
+  autoExtendOnBid Boolean       @default(true)
+  extendedUntil   DateTime?
+  winnerId        String?
+  winningBidId    String?       @unique
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  bids            AuctionBid[]
+
+  @@index([shopId, status])
+  @@index([status, startsAt, endsAt])
+  @@map("auctions")
+}
+
+model AuctionBid {
+  id          String              @id @default(cuid())
+  auctionId   String
+  auction     Auction             @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  customerId  String
+  customer    MarketplaceCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  amount      Decimal             @db.Decimal(12, 2)
+  isAutoBid   Boolean             @default(false)
+  maxAutoBid  Decimal?            @db.Decimal(12, 2)
+  isRetracted Boolean             @default(false)
+  retractedAt DateTime?
+  createdAt   DateTime            @default(now())
+
+  @@index([auctionId, amount])
+  @@index([customerId])
+  @@map("auction_bids")
+}
+
+// ─── LIVE SHOP ───────────────────────────────────────────────
+
+model LiveShop {
+  id                 String                 @id @default(cuid())
+  shopId             String
+  shopProfile        ShopMarketplaceProfile @relation("LiveShopToProfile", fields: [shopId], references: [shopId])
+  tenantId           String
+  tenant             Tenant                 @relation(fields: [tenantId], references: [id])
+  title              String
+  description        String?                @db.Text
+  coverImageUrl      String?
+  streamUrl          String?
+  streamKey          String?
+  recordingUrl       String?
+  status             LiveShopStatus         @default(SCHEDULED)
+  scheduledAt        DateTime?
+  startedAt          DateTime?
+  endedAt            DateTime?
+  durationSeconds    Int?
+  peakViewerCount    Int                    @default(0)
+  totalViewers       Int                    @default(0)
+  totalMessages      Int                    @default(0)
+  totalOrders        Int                    @default(0)
+  totalRevenue       Decimal                @default(0) @db.Decimal(14, 2)
+  featuredProductIds String[]               @default([])
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+  viewers            LiveShopViewer[]
+  messages           LiveShopMessage[]
+
+  @@index([shopId, status])
+  @@index([status, scheduledAt])
+  @@map("live_shops")
+}
+
+model LiveShopViewer {
+  id           String              @id @default(cuid())
+  liveShopId   String
+  liveShop     LiveShop            @relation(fields: [liveShopId], references: [id], onDelete: Cascade)
+  customerId   String
+  customer     MarketplaceCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  joinedAt     DateTime            @default(now())
+  leftAt       DateTime?
+  watchTimeSec Int                 @default(0)
+
+  @@unique([liveShopId, customerId])
+  @@index([liveShopId])
+  @@map("live_shop_viewers")
+}
+
+model LiveShopMessage {
+  id         String               @id @default(cuid())
+  liveShopId String
+  liveShop   LiveShop             @relation(fields: [liveShopId], references: [id], onDelete: Cascade)
+  senderType String
+  customerId String?
+  customer   MarketplaceCustomer? @relation(fields: [customerId], references: [id])
+  message    String               @db.Text
+  isPinned   Boolean              @default(false)
+  isHidden   Boolean              @default(false)
+  createdAt  DateTime             @default(now())
+
+  @@index([liveShopId, createdAt])
+  @@map("live_shop_messages")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ▓▓▓  MARKETPLACE DELIVERY  ▓▓▓
+// ═══════════════════════════════════════════════════════════════
+
+enum MktRiderStatus {
+  OFFLINE
+  AVAILABLE
+  ON_DELIVERY
+  BREAK
+  SUSPENDED
+}
+
+enum MktRiderVehicleType {
+  MOTORBIKE
+  BICYCLE
+  CAR
+  ON_FOOT
+}
+
+enum MktDeliveryAssignmentStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  PICKED_UP
+  DELIVERED
+  CANCELLED
+}
+
+model MktRider {
+  id                  String              @id @default(cuid())
+  tenantId            String
+  tenant              Tenant              @relation(fields: [tenantId], references: [id])
+  shopId              String?
+  shop                Shop?               @relation(fields: [shopId], references: [id])
+  fullName            String
+  phone               String              @unique
+  email               String?             @unique
+  cnic                String?
+  passwordHash        String?
+  avatarUrl           String?
+  vehicleType         MktRiderVehicleType @default(MOTORBIKE)
+  vehicleNumber       String?
+  licenseNumber       String?
+  licenseExpiryDate   DateTime?
+  status              MktRiderStatus      @default(OFFLINE)
+  isActive            Boolean             @default(true)
+  isVerified          Boolean             @default(false)
+  verifiedAt          DateTime?
+  currentLat          Float?
+  currentLng          Float?
+  lastLocationAt      DateTime?
+  ratingAverage       Float               @default(0)
+  ratingCount         Int                 @default(0)
+  totalDeliveries     Int                 @default(0)
+  completedDeliveries Int                 @default(0)
+  cancelledDeliveries Int                 @default(0)
+  totalEarnings       Decimal             @default(0) @db.Decimal(12, 2)
+  lastLoginAt         DateTime?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  assignments     MktDeliveryAssignment[]
+  locationHistory MktRiderLocationHistory[]
+  sessions        MktRiderSession[]
+
+  @@index([tenantId, status])
+  @@index([shopId])
+  @@index([currentLat, currentLng])
+  @@map("mkt_riders")
+}
+
+model MktRiderSession {
+  id               String   @id @default(cuid())
+  riderId          String
+  rider            MktRider @relation(fields: [riderId], references: [id], onDelete: Cascade)
+  refreshTokenHash String
+  deviceInfo       Json?
+  ipAddress        String?
+  lastUsedAt       DateTime @default(now())
+  expiresAt        DateTime
+  createdAt        DateTime @default(now())
+
+  @@index([riderId])
+  @@map("mkt_rider_sessions")
+}
+
+model MktDeliveryAssignment {
+  id                 String                      @id @default(cuid())
+  orderId            String
+  riderId            String
+  rider              MktRider                    @relation(fields: [riderId], references: [id])
+  tenantId           String
+  shopId             String
+  status             MktDeliveryAssignmentStatus @default(PENDING)
+  assignedAt         DateTime                    @default(now())
+  acceptedAt         DateTime?
+  pickedUpAt         DateTime?
+  deliveredAt        DateTime?
+  cancelledAt        DateTime?
+  rejectedAt         DateTime?
+  pickupLat          Float?
+  pickupLng          Float?
+  dropoffLat         Float?
+  dropoffLng         Float?
+  distanceKm         Float?
+  estimatedMinutes   Int?
+  actualMinutes      Int?
+  deliveryFee        Decimal                     @default(0) @db.Decimal(10, 2)
+  riderCommission    Decimal                     @default(0) @db.Decimal(10, 2)
+  tip                Decimal                     @default(0) @db.Decimal(10, 2)
+  notes              String?
+  rejectReason       String?
+  cancelReason       String?
+  proofOfDeliveryUrl String?
+  otpCode            String?
+  otpVerifiedAt      DateTime?
+  createdAt          DateTime                    @default(now())
+  updatedAt          DateTime                    @updatedAt
+
+  @@index([riderId, status])
+  @@index([orderId])
+  @@index([tenantId, status])
+  @@map("mkt_delivery_assignments")
+}
+
+model MktRiderLocationHistory {
+  id         String   @id @default(cuid())
+  riderId    String
+  rider      MktRider @relation(fields: [riderId], references: [id], onDelete: Cascade)
+  orderId    String?
+  lat        Float
+  lng        Float
+  speed      Float?
+  heading    Float?
+  accuracy   Float?
+  recordedAt DateTime @default(now())
+
+  @@index([riderId, recordedAt])
+  @@index([orderId])
+  @@map("mkt_rider_location_history")
+}
+
+model MktDeliveryZone {
+  id             String   @id @default(cuid())
+  tenantId       String
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  shopId         String?
+  name           String
+  description    String?
+  polygonGeoJson Json
+  baseFee        Decimal  @default(0) @db.Decimal(10, 2)
+  perKmFee       Decimal  @default(0) @db.Decimal(10, 2)
+  freeAbove      Decimal? @db.Decimal(12, 2)
+  minOrder       Decimal  @default(0) @db.Decimal(10, 2)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("mkt_delivery_zones")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ▓▓▓  PROMOTIONS  ▓▓▓
+// ═══════════════════════════════════════════════════════════════
+
+enum PromoType {
+  COUPON
+  FLASH_SALE
+  BUNDLE
+  HAPPY_HOUR
+  BANNER
+  BOGO
+}
+
+enum PromoStatus {
+  DRAFT
+  SCHEDULED
+  ACTIVE
+  PAUSED
+  EXPIRED
+  ARCHIVED
+}
+
+enum PromoDiscountType {
+  PERCENT
+  FIXED
+  FREE_SHIPPING
+  BUY_X_GET_Y
+}
+
+enum PromoScope {
+  MARKETPLACE_WIDE
+  SHOP
+  CATEGORY
+  PRODUCT
+  FIRST_ORDER
+  RETURNING_CUSTOMER
+}
+
+model Promotion {
+  id       String  @id @default(cuid())
+  tenantId String?
+  tenant   Tenant? @relation(fields: [tenantId], references: [id])
+  shopId   String?
+  shop     Shop?   @relation(fields: [shopId], references: [id])
+
+  type        PromoType
+  status      PromoStatus @default(DRAFT)
+  scope       PromoScope  @default(SHOP)
+  title       String
+  description String?     @db.Text
+  slug        String      @unique
+  imageUrl    String?
+  bannerUrl   String?
+
+  discountType   PromoDiscountType
+  discountValue  Decimal           @db.Decimal(12, 2)
+  maxDiscount    Decimal?          @db.Decimal(12, 2)
+  minOrderAmount Decimal           @default(0) @db.Decimal(12, 2)
+
+  couponCode    String? @unique
+  isPublic      Boolean @default(true)
+  requiresLogin Boolean @default(true)
+
+  usageLimit       Int?
+  usageCount       Int  @default(0)
+  perCustomerLimit Int? @default(1)
+
+  targetProductIds   String[] @default([])
+  targetCategoryIds  String[] @default([])
+  excludedProductIds String[] @default([])
+  buyQty             Int?
+  getQty             Int?
+  getDiscountPercent Int?
+
+  startsAt     DateTime
+  endsAt       DateTime
+  isFlashSale  Boolean  @default(false)
+  displayOrder Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  redemptions PromoRedemption[]
+
+  @@index([tenantId, status])
+  @@index([shopId, status])
+  @@index([status, startsAt, endsAt])
+  @@index([couponCode])
+  @@index([type, isFlashSale])
+  @@map("promotions")
+}
+
+model PromoRedemption {
+  id             String    @id @default(cuid())
+  promotionId    String
+  promotion      Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  customerId     String
+  orderId        String?
+  discountAmount Decimal   @db.Decimal(12, 2)
+  redeemedAt     DateTime  @default(now())
+
+  @@index([promotionId, customerId])
+  @@index([customerId, redeemedAt])
+  @@map("promo_redemptions")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ▓▓▓  MESSAGING HUB  ▓▓▓
+// ═══════════════════════════════════════════════════════════════
+
+enum MessageChannel {
+  SMS
+  EMAIL
+  WHATSAPP
+  PUSH
+  IN_APP
+}
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  RUNNING
+  COMPLETED
+  PAUSED
+  FAILED
+}
+
+enum ConversationStatus {
+  OPEN
+  CLOSED
+  ARCHIVED
+}
+
+model MessageTemplate {
+  id         String         @id @default(cuid())
+  tenantId   String
+  tenant     Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name       String
+  slug       String
+  channel    MessageChannel
+  subject    String?
+  body       String         @db.Text
+  variables  String[]       @default([])
+  category   String?
+  isActive   Boolean        @default(true)
+  usageCount Int            @default(0)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  campaigns MessageCampaign[]
+
+  @@unique([tenantId, slug])
+  @@index([tenantId, channel])
+  @@map("message_templates")
+}
+
+model MessageCampaign {
+  id              String           @id @default(cuid())
+  tenantId        String
+  tenant          Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name            String
+  channel         MessageChannel
+  templateId      String?
+  template        MessageTemplate? @relation(fields: [templateId], references: [id])
+  status          CampaignStatus   @default(DRAFT)
+  targetSegment   String
+  segmentFilters  Json?
+  scheduledAt     DateTime?
+  startedAt       DateTime?
+  completedAt     DateTime?
+  totalRecipients Int              @default(0)
+  sentCount       Int              @default(0)
+  failedCount     Int              @default(0)
+  openedCount     Int              @default(0)
+  clickedCount    Int              @default(0)
+  customSubject   String?
+  customBody      String?          @db.Text
+  variables       Json?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  logs MessageLog[]
+
+  @@index([tenantId, status])
+  @@index([status, scheduledAt])
+  @@map("message_campaigns")
+}
+
+model MessageLog {
+  id           String           @id @default(cuid())
+  campaignId   String?
+  campaign     MessageCampaign? @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  tenantId     String
+  channel      MessageChannel
+  toPhone      String?
+  toEmail      String?
+  customerId   String?
+  templateSlug String?
+  subject      String?
+  body         String?          @db.Text
+  status       String
+  providerRef  String?
+  errorMessage String?
+  sentAt       DateTime         @default(now())
+  deliveredAt  DateTime?
+  openedAt     DateTime?
+  clickedAt    DateTime?
+
+  @@index([tenantId, sentAt])
+  @@index([customerId])
+  @@index([campaignId])
+  @@map("message_logs")
+}
+
+model Conversation {
+  id                 String             @id @default(cuid())
+  tenantId           String
+  tenant             Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  shopId             String?
+  customerId         String?
+  channel            MessageChannel
+  externalHandle     String?
+  status             ConversationStatus @default(OPEN)
+  lastMessageAt      DateTime           @default(now())
+  lastMessagePreview String?
+  unreadCount        Int                @default(0)
+  assignedTo         String?
+  tags               String[]           @default([])
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  messages ConversationMessage[]
+
+  @@index([tenantId, status])
+  @@index([customerId])
+  @@index([lastMessageAt])
+  @@map("conversations")
+}
+
+model ConversationMessage {
+  id             String         @id @default(cuid())
+  conversationId String
+  conversation   Conversation   @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  direction      String
+  senderType     String
+  senderId       String?
+  body           String         @db.Text
+  attachments    String[]       @default([])
+  channel        MessageChannel
+  providerRef    String?
+  isRead         Boolean        @default(false)
+  readAt         DateTime?
+  createdAt      DateTime       @default(now())
+
+  @@index([conversationId, createdAt])
+  @@map("conversation_messages")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ▓▓▓  LOYALTY TIERS  ▓▓▓
+// ═══════════════════════════════════════════════════════════════
+
+enum LoyaltyTierLevel {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+}
+
+model LoyaltyTierConfig {
+  id                  String           @id @default(cuid())
+  level               LoyaltyTierLevel @unique
+  displayName         String
+  minLifetimeSpend    Decimal          @db.Decimal(12, 2)
+  minOrdersCount      Int              @default(0)
+  pointsMultiplier    Float            @default(1.0)
+  cashbackPercent     Float            @default(0)
+  freeDeliveryAbove   Decimal?         @db.Decimal(10, 2)
+  prioritySupport     Boolean          @default(false)
+  earlyAccessDrops    Boolean          @default(false)
+  birthdayBonusPoints Int              @default(0)
+  exclusiveDeals      Boolean          @default(false)
+  badgeColor          String?
+  badgeIcon           String?
+  perksJson           Json?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  @@map("loyalty_tier_configs")
+}
+
+model CustomerLoyaltyState {
+  id               String            @id @default(cuid())
+  customerId       String            @unique
+  currentTier      LoyaltyTierLevel  @default(BRONZE)
+  lifetimeSpend    Decimal           @default(0) @db.Decimal(14, 2)
+  lifetimeOrders   Int               @default(0)
+  lifetimePoints   Int               @default(0)
+  pointsThisYear   Int               @default(0)
+  tierAchievedAt   DateTime?
+  tierExpiresAt    DateTime?
+  nextTier         LoyaltyTierLevel?
+  progressToNext   Float             @default(0)
+  amountToNextTier Decimal?          @db.Decimal(12, 2)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  tierHistory LoyaltyTierHistory[]
+
+  @@index([currentTier])
+  @@map("customer_loyalty_states")
+}
+
+model LoyaltyTierHistory {
+  id        String               @id @default(cuid())
+  stateId   String
+  state     CustomerLoyaltyState @relation(fields: [stateId], references: [id], onDelete: Cascade)
+  fromTier  LoyaltyTierLevel?
+  toTier    LoyaltyTierLevel
+  reason    String
+  changedAt DateTime             @default(now())
+
+  @@index([stateId, changedAt])
+  @@map("loyalty_tier_history")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ▓▓▓  SUBSCRIBE & SAVE (Recurring Orders)  ▓▓▓
+// ═══════════════════════════════════════════════════════════════
+
+enum SubscriptionFrequency {
+  DAILY
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+  CUSTOM_DAYS
+}
+
+enum CustomerSubscriptionStatus {
+  ACTIVE
+  PAUSED
+  CANCELLED
+  EXPIRED
+}
+
+model CustomerSubscription {
+  id              String                     @id @default(cuid())
+  customerId      String
+  shopId          String
+  addressId       String?
+  frequency       SubscriptionFrequency
+  customDays      Int?
+  status          CustomerSubscriptionStatus @default(ACTIVE)
+  discountPercent Float                      @default(5)
+  nextDeliveryAt  DateTime
+  lastDeliveredAt DateTime?
+  totalDeliveries Int                        @default(0)
+  totalSpent      Decimal                    @default(0) @db.Decimal(12, 2)
+  paymentMethod   MarketplacePaymentMethod
+  pausedUntil     DateTime?
+  cancelledAt     DateTime?
+  cancelReason    String?
+  startedAt       DateTime                   @default(now())
+  createdAt       DateTime                   @default(now())
+  updatedAt       DateTime                   @updatedAt
+
+  items      SubscriptionItem[]
+  deliveries SubscriptionDelivery[]
+
+  @@index([customerId, status])
+  @@index([nextDeliveryAt, status])
+  @@map("customer_subscriptions")
+}
+
+model SubscriptionItem {
+  id             String               @id @default(cuid())
+  subscriptionId String
+  subscription   CustomerSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  productId      String
+  variantId      String?
+  productName    String
+  imageUrl       String?
+  quantity       Int
+  unitPrice      Decimal              @db.Decimal(12, 2)
+
+  @@index([subscriptionId])
+  @@map("subscription_items")
+}
+
+model SubscriptionDelivery {
+  id             String               @id @default(cuid())
+  subscriptionId String
+  subscription   CustomerSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  orderId        String?
+  scheduledFor   DateTime
+  status         String
+  totalAmount    Decimal              @db.Decimal(12, 2)
+  skippedReason  String?
+  createdAt      DateTime             @default(now())
+
+  @@index([subscriptionId, scheduledFor])
+  @@map("subscription_deliveries")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ▓▓▓  FRAUD DETECTION  ▓▓▓
+// ═══════════════════════════════════════════════════════════════
+
+enum FraudRiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum FraudActionTaken {
+  NONE
+  FLAGGED
+  BLOCKED
+  MANUAL_REVIEW
+  BANNED
+  REFUND_HELD
+}
+
+model FraudCheck {
+  id             String           @id @default(cuid())
+  entityType     String
+  entityId       String
+  customerId     String?
+  tenantId       String?
+  riskLevel      FraudRiskLevel   @default(LOW)
+  riskScore      Float            @default(0)
+  triggeredRules String[]         @default([])
+  reasons        Json?
+  ipAddress      String?
+  deviceId       String?
+  actionTaken    FraudActionTaken @default(NONE)
+  reviewedBy     String?
+  reviewedAt     DateTime?
+  reviewNotes    String?
+  createdAt      DateTime         @default(now())
+
+  @@index([entityType, entityId])
+  @@index([customerId])
+  @@index([riskLevel])
+  @@index([createdAt])
+  @@map("fraud_checks")
+}
+
+model FraudRule {
+  id          String           @id @default(cuid())
+  name        String           @unique
+  slug        String           @unique
+  description String?
+  condition   Json
+  action      FraudActionTaken @default(FLAGGED)
+  scoreImpact Float            @default(10)
+  isActive    Boolean          @default(true)
+  hitCount    Int              @default(0)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@map("fraud_rules")
+}
+
+model DeviceFingerprint {
+  id              String   @id @default(cuid())
+  fingerprint     String   @unique
+  customerIds     String[] @default([])
+  ipAddresses     String[] @default([])
+  userAgent       String?
+  firstSeenAt     DateTime @default(now())
+  lastSeenAt      DateTime @default(now())
+  isBlocked       Boolean  @default(false)
+  blockReason     String?
+  suspiciousScore Float    @default(0)
+
+  @@index([fingerprint])
+  @@map("device_fingerprints")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ▓▓▓  SPLIT PAYMENT (Pay with friends)  ▓▓▓
+// ═══════════════════════════════════════════════════════════════
+
+enum SplitPaymentStatus {
+  PENDING
+  PARTIALLY_PAID
+  FULLY_PAID
+  EXPIRED
+  CANCELLED
+}
+
+enum SplitParticipantStatus {
+  INVITED
+  ACCEPTED
+  PAID
+  DECLINED
+  EXPIRED
+}
+
+model SplitPayment {
+  id             String             @id @default(cuid())
+  orderId        String             @unique
+  initiatorId    String
+  totalAmount    Decimal            @db.Decimal(12, 2)
+  paidAmount     Decimal            @default(0) @db.Decimal(12, 2)
+  status         SplitPaymentStatus @default(PENDING)
+  shareLinkToken String             @unique
+  expiresAt      DateTime
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  participants SplitPaymentParticipant[]
+
+  @@index([initiatorId])
+  @@index([status])
+  @@map("split_payments")
+}
+
+model SplitPaymentParticipant {
+  id          String                 @id @default(cuid())
+  splitId     String
+  split       SplitPayment           @relation(fields: [splitId], references: [id], onDelete: Cascade)
+  customerId  String?
+  phone       String?
+  name        String?
+  shareAmount Decimal                @db.Decimal(12, 2)
+  paidAmount  Decimal                @default(0) @db.Decimal(12, 2)
+  status      SplitParticipantStatus @default(INVITED)
+  paymentRef  String?
+  paidAt      DateTime?
+  invitedAt   DateTime               @default(now())
+  respondedAt DateTime?
+
+  @@index([splitId])
+  @@index([customerId])
+  @@map("split_payment_participants")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ▓▓▓  VOICE SEARCH  ▓▓▓
+// ═══════════════════════════════════════════════════════════════
+
+model VoiceSearchLog {
+  id             String   @id @default(cuid())
+  customerId     String?
+  audioUrl       String?
+  transcript     String   @db.Text
+  language       String   @default("ur")
+  detectedIntent String?
+  resultCount    Int      @default(0)
+  clickedResult  String?
+  durationMs     Int?
+  createdAt      DateTime @default(now())
+
+  @@index([customerId, createdAt])
+  @@index([language])
+  @@map("voice_search_logs")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ▓▓▓  EMERGENCY DELIVERY (30-min)  ▓▓▓
+// ═══════════════════════════════════════════════════════════════
+
+enum EmergencyDeliveryStatus {
+  REQUESTED
+  ACCEPTED
+  PICKED_UP
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+  FAILED
+}
+
+model EmergencyDelivery {
+  id                 String                  @id @default(cuid())
+  orderId            String                  @unique
+  customerId         String
+  shopId             String
+  status             EmergencyDeliveryStatus @default(REQUESTED)
+  requestedAt        DateTime                @default(now())
+  promisedByMinutes  Int                     @default(30)
+  promisedByAt       DateTime
+  actualDeliveredAt  DateTime?
+  surchargeAmount    Decimal                 @default(0) @db.Decimal(10, 2)
+  refundIfLate       Boolean                 @default(true)
+  wasLate            Boolean                 @default(false)
+  compensationAmount Decimal                 @default(0) @db.Decimal(10, 2)
+  riderId            String?
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
+
+  @@index([status, promisedByAt])
+  @@index([customerId])
+  @@map("emergency_deliveries")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ▓▓▓  FBR TAX (Pakistan Federal Board of Revenue)  ▓▓▓
+// ═══════════════════════════════════════════════════════════════
+
+enum FbrPosStatus {
+  PENDING
+  SUBMITTED
+  ACKNOWLEDGED
+  REJECTED
+  RETRY_REQUIRED
+}
+
+model FbrConfig {
+  id                String    @id @default(cuid())
+  tenantId          String    @unique
+  posId             String
+  ntn               String
+  strn              String?
+  apiToken          String
+  apiEndpoint       String    @default("https://gw.fbr.gov.pk/imsp/v1/api/inv/postinvoicedata_sb")
+  isSandbox         Boolean   @default(true)
+  isActive          Boolean   @default(false)
+  lastSyncAt        DateTime?
+  totalInvoicesSent Int       @default(0)
+  totalRejected     Int       @default(0)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@map("fbr_configs")
+}
+
+model FbrInvoiceLog {
+  id             String       @id @default(cuid())
+  tenantId       String
+  saleId         String?      @unique
+  invoiceNumber  String
+  fbrInvoiceRef  String?
+  fbrQrCode      String?      @db.Text
+  status         FbrPosStatus @default(PENDING)
+  payload        Json
+  response       Json?
+  errorMessage   String?
+  retryCount     Int          @default(0)
+  submittedAt    DateTime?
+  acknowledgedAt DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([tenantId, status])
+  @@index([saleId])
+  @@map("fbr_invoice_logs")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ▓▓▓  COURIER (PostEx / Leopards / TCS)  ▓▓▓
+// ═══════════════════════════════════════════════════════════════
+
+enum CourierProvider {
+  POSTEX
+  LEOPARDS
+  TCS
+  MNP
+  DAEWOO
+  BLUE_EX
+  RIDER
+  MANUAL
+}
+
+enum CourierShipmentStatus {
+  CREATED
+  PICKED_UP
+  IN_TRANSIT
+  OUT_FOR_DELIVERY
+  DELIVERED
+  RETURNED
+  CANCELLED
+  FAILED
+  ON_HOLD
+}
+
+model CourierConfig {
+  id            String          @id @default(cuid())
+  tenantId      String
+  provider      CourierProvider
+  apiKey        String
+  apiSecret     String?
+  merchantCode  String?
+  pickupAddress String?
+  isActive      Boolean         @default(true)
+  isSandbox     Boolean         @default(false)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@unique([tenantId, provider])
+  @@map("courier_configs")
+}
+
+model CourierShipment {
+  id              String                @id @default(cuid())
+  tenantId        String
+  orderId         String                @unique
+  provider        CourierProvider
+  trackingNumber  String                @unique
+  courierRef      String?
+  status          CourierShipmentStatus @default(CREATED)
+  bookedAt        DateTime              @default(now())
+  pickedUpAt      DateTime?
+  deliveredAt     DateTime?
+  returnedAt      DateTime?
+  cnValue         Decimal               @default(0) @db.Decimal(12, 2)
+  codAmount       Decimal               @default(0) @db.Decimal(12, 2)
+  weightKg        Float?
+  pieces          Int                   @default(1)
+  destinationCity String?
+  originCity      String?
+  labelUrl        String?
+  lastEvent       String?
+  lastEventAt     DateTime?
+  events          Json?
+  metadata        Json?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  @@index([tenantId, status])
+  @@index([trackingNumber])
+  @@map("courier_shipments")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ▓▓▓  WHATSAPP BUSINESS  ▓▓▓
+// ═══════════════════════════════════════════════════════════════
+
+model WhatsappConfig {
+  id                String   @id @default(cuid())
+  tenantId          String   @unique
+  phoneNumberId     String
+  businessId        String?
+  accessToken       String   @db.Text
+  verifyToken       String
+  webhookUrl        String?
+  isActive          Boolean  @default(false)
+  isVerified        Boolean  @default(false)
+  displayName       String?
+  totalMessagesSent Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("whatsapp_configs")
+}
+
+model WhatsappTemplate {
+  id             String    @id @default(cuid())
+  tenantId       String
+  name           String
+  slug           String
+  language       String    @default("en_US")
+  category       String    @default("MARKETING")
+  bodyText       String    @db.Text
+  headerText     String?
+  footerText     String?
+  buttons        Json?
+  variables      String[]  @default([])
+  metaTemplateId String?
+  isApproved     Boolean   @default(false)
+  approvedAt     DateTime?
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([tenantId, slug])
+  @@index([tenantId])
+  @@map("whatsapp_templates")
+}
+
+model WhatsappMessage {
+  id            String    @id @default(cuid())
+  tenantId      String
+  toPhone       String
+  templateSlug  String?
+  body          String    @db.Text
+  mediaUrl      String?
+  status        String    @default("QUEUED")
+  metaMessageId String?
+  errorMessage  String?
+  deliveredAt   DateTime?
+  readAt        DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@index([tenantId, createdAt])
+  @@index([toPhone])
+  @@map("whatsapp_messages")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ▓▓▓  ABANDONED CART RECOVERY  ▓▓▓
+// ═══════════════════════════════════════════════════════════════
+
+enum CartRecoveryStage {
+  DETECTED
+  FIRST_REMINDER
+  SECOND_REMINDER
+  COUPON_OFFERED
+  RECOVERED
+  LOST
+}
+
+model CartRecoveryCampaign {
+  id                  String            @id @default(cuid())
+  customerId          String
+  cartValue           Decimal           @db.Decimal(12, 2)
+  itemCount           Int               @default(0)
+  stage               CartRecoveryStage @default(DETECTED)
+  firstReminderAt     DateTime?
+  secondReminderAt    DateTime?
+  couponOfferedAt     DateTime?
+  couponCode          String?
+  couponDiscountPct   Int?
+  recoveredAt         DateTime?
+  recoveredOrderId    String?
+  lostAt              DateTime?
+  cartSnapshot        Json
+  lastReminderChannel String?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  @@unique([customerId, stage])
+  @@index([stage])
+  @@index([customerId])
+  @@map("cart_recovery_campaigns")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ▓▓▓  TRY BEFORE YOU BUY  ▓▓▓
+// ═══════════════════════════════════════════════════════════════
+
+enum TryBeforeBuyStatus {
+  REQUESTED
+  APPROVED
+  DEPOSIT_PAID
+  DELIVERED_TO_HOME
+  IN_TRIAL
+  RETURNED
+  PURCHASED
+  DEPOSIT_FORFEITED
+  CANCELLED
+}
+
+model TryBeforeBuyRequest {
+  id                    String             @id @default(cuid())
+  customerId            String
+  shopId                String
+  productId             String
+  variantId             String?
+  productName           String
+  productImageUrl       String?
+  productPrice          Decimal            @db.Decimal(12, 2)
+  depositAmount         Decimal            @db.Decimal(12, 2)
+  depositPaid           Decimal            @default(0) @db.Decimal(12, 2)
+  status                TryBeforeBuyStatus @default(REQUESTED)
+  trialDays             Int                @default(3)
+  requestedAt           DateTime           @default(now())
+  approvedAt            DateTime?
+  depositPaidAt         DateTime?
+  deliveredAt           DateTime?
+  trialStartedAt        DateTime?
+  trialEndsAt           DateTime?
+  returnedAt            DateTime?
+  purchasedAt           DateTime?
+  purchaseOrderId       String?
+  addressId             String?
+  addressSnapshot       Json?
+  itemConditionOnReturn String?
+  photosOnReturn        String[]           @default([])
+  refundAmount          Decimal            @default(0) @db.Decimal(12, 2)
+  forfeitedAmount       Decimal            @default(0) @db.Decimal(12, 2)
+  forfeitReason         String?
+  customerNotes         String?
+  shopNotes             String?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  @@index([customerId, status])
+  @@index([shopId, status])
+  @@index([trialEndsAt])
+  @@map("try_before_buy_requests")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ▓▓▓  B2B WHOLESALE (Shop-to-Shop)  ▓▓▓
+// ═══════════════════════════════════════════════════════════════
+
+enum B2BOrderStatus {
+  DRAFT
+  QUOTED
+  NEGOTIATING
+  CONFIRMED
+  PACKED
+  IN_TRANSIT
+  DELIVERED
+  DISPUTED
+  CANCELLED
+  RETURNED
+}
+
+enum B2BAccountTier {
+  STANDARD
+  PREFERRED
+  PARTNER
+  VIP
+}
+
+model B2BAccount {
+  id                String         @id @default(cuid())
+  buyerShopId       String         @unique
+  tier              B2BAccountTier @default(STANDARD)
+  creditLimit       Decimal        @default(0) @db.Decimal(14, 2)
+  creditUsed        Decimal        @default(0) @db.Decimal(14, 2)
+  creditDays        Int            @default(0)
+  discountPct       Float          @default(0)
+  totalOrders       Int            @default(0)
+  totalSpent        Decimal        @default(0) @db.Decimal(14, 2)
+  outstandingDue    Decimal        @default(0) @db.Decimal(14, 2)
+  cnicNumber        String?
+  taxNumber         String?
+  businessProofUrls String[]       @default([])
+  verifiedAt        DateTime?
+  isActive          Boolean        @default(true)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  @@index([tier])
+  @@map("b2b_accounts")
+}
+
+model B2BOrder {
+  id                 String         @id @default(cuid())
+  orderNumber        String         @unique
+  buyerShopId        String
+  sellerShopId       String
+  tenantId           String
+  status             B2BOrderStatus @default(DRAFT)
+  subtotal           Decimal        @db.Decimal(14, 2)
+  discount           Decimal        @default(0) @db.Decimal(14, 2)
+  deliveryFee        Decimal        @default(0) @db.Decimal(12, 2)
+  taxAmount          Decimal        @default(0) @db.Decimal(12, 2)
+  total              Decimal        @db.Decimal(14, 2)
+  paidAmount         Decimal        @default(0) @db.Decimal(14, 2)
+  paymentTerms       String         @default("COD")
+  creditDays         Int            @default(0)
+  dueDate            DateTime?
+  paidAt             DateTime?
+  expectedDeliveryAt DateTime?
+  actualDeliveryAt   DateTime?
+  buyerNotes         String?
+  sellerNotes        String?
+  cancelReason       String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  items B2BOrderItem[]
+
+  @@index([buyerShopId, status])
+  @@index([sellerShopId, status])
+  @@index([status])
+  @@map("b2b_orders")
+}
+
+model B2BOrderItem {
+  id             String   @id @default(cuid())
+  orderId        String
+  order          B2BOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId      String
+  variantId      String?
+  productName    String
+  imageUrl       String?
+  unitPrice      Decimal  @db.Decimal(12, 2)
+  wholesalePrice Decimal  @db.Decimal(12, 2)
+  quantity       Int
+  total          Decimal  @db.Decimal(14, 2)
+  notes          String?
+
+  @@index([orderId])
+  @@map("b2b_order_items")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ▓▓▓  PRAYER / RAMZAN MODE  ▓▓▓
+// ═══════════════════════════════════════════════════════════════
+
+enum PrayerName {
+  FAJR
+  DHUHR
+  ASR
+  MAGHRIB
+  ISHA
+  JUMMAH
+}
+
+model PrayerSchedule {
+  id        String   @id @default(cuid())
+  city      String
+  date      DateTime @db.Date
+  fajr      String
+  sunrise   String
+  dhuhr     String
+  asr       String
+  maghrib   String
+  isha      String
+  jummah    String?
+  hijriDate String?
+  isRamzan  Boolean  @default(false)
+  isEid     Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@unique([city, date])
+  @@index([city, date])
+  @@map("prayer_schedules")
+}
+
+model ShopPrayerConfig {
+  id                   String   @id @default(cuid())
+  shopId               String   @unique
+  enablePrayerMode     Boolean  @default(false)
+  pauseDuringPrayer    Boolean  @default(true)
+  pauseMinutesBefore   Int      @default(5)
+  pauseMinutesAfter    Int      @default(30)
+  enabledPrayers       String[] @default(["DHUHR", "ASR", "MAGHRIB", "ISHA"])
+  ramzanModeActive     Boolean  @default(false)
+  sehriDeliveryEnabled Boolean  @default(false)
+  sehriDeliverySlots   Json?
+  iftarBoostEnabled    Boolean  @default(false)
+  jummahMode           Boolean  @default(false)
+  jummahPauseFrom      String?  @default("12:30")
+  jummahPauseTo        String?  @default("14:30")
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@map("shop_prayer_configs")
+}
+
+model ZakatCalculation {
+  id              String   @id @default(cuid())
+  customerId      String
+  cashAmount      Decimal  @default(0) @db.Decimal(14, 2)
+  goldGrams       Float    @default(0)
+  silverGrams     Float    @default(0)
+  investments     Decimal  @default(0) @db.Decimal(14, 2)
+  business        Decimal  @default(0) @db.Decimal(14, 2)
+  otherAssets     Decimal  @default(0) @db.Decimal(14, 2)
+  liabilities     Decimal  @default(0) @db.Decimal(14, 2)
+  nisabThreshold  Decimal  @db.Decimal(14, 2)
+  zakatDue        Decimal  @db.Decimal(14, 2)
+  goldRatePerGram Decimal  @db.Decimal(10, 2)
+  isNisabMet      Boolean
+  paidAmount      Decimal  @default(0) @db.Decimal(14, 2)
+  paidTo          String?
+  calculatedAt    DateTime @default(now())
+
+  @@index([customerId, calculatedAt])
+  @@map("zakat_calculations")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ▓▓▓  AI SHOPPING ASSISTANT  ▓▓▓
+// ═══════════════════════════════════════════════════════════════
+
+enum AiConversationType {
+  PRODUCT_SEARCH
+  OCCASION_SHOPPING
+  GIFT_ADVISOR
+  PRICE_COMPARISON
+  RECOMMENDATION
+  GENERAL_QUERY
+}
+
+model AiConversation {
+  id                String             @id @default(cuid())
+  customerId        String?
+  sessionId         String             @unique
+  type              AiConversationType @default(GENERAL_QUERY)
+  language          String             @default("ur")
+  occasion          String?
+  budget            Decimal?           @db.Decimal(12, 2)
+  intent            Json?
+  suggestedProducts String[]           @default([])
+  clickedProducts   String[]           @default([])
+  purchasedOrderId  String?
+  totalMessages     Int                @default(0)
+  isCompleted       Boolean            @default(false)
+  satisfaction      Int?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  messages AiConversationMessage[]
+
+  @@index([customerId, createdAt])
+  @@index([sessionId])
+  @@map("ai_conversations")
+}
+
+model AiConversationMessage {
+  id             String         @id @default(cuid())
+  conversationId String
+  conversation   AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String
+  content        String         @db.Text
+  metadata       Json?
+  productIds     String[]       @default([])
+  createdAt      DateTime       @default(now())
+
+  @@index([conversationId, createdAt])
+  @@map("ai_conversation_messages")
+}
+
+model AiRecommendation {
+  id          String   @id @default(cuid())
+  customerId  String
+  productId   String
+  score       Float
+  reason      String
+  category    String?
+  isViewed    Boolean  @default(false)
+  isClicked   Boolean  @default(false)
+  isPurchased Boolean  @default(false)
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  @@unique([customerId, productId])
+  @@index([customerId, score])
+  @@map("ai_recommendations")
 }
