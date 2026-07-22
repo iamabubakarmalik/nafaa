@@ -15,7 +15,7 @@ import { generateOtp, generateSlug } from '../../common/utils/slug.util';
 import {
   parseUserAgent, getLocationFromIp, formatLoginTime, type DeviceInfo,
 } from '../../common/helpers/device-detection.helper';
-import { AdminNotificationsService } from '../admin/notifications/admin-notifications.service';
+import { AdminNotificationsService } from '../../admin/notifications/admin-notifications.service';
 import { EmailService } from '../email/email.service';
 import { SmsService } from '../sms/sms.service';
 import { LoginDto } from './dto/login.dto';
