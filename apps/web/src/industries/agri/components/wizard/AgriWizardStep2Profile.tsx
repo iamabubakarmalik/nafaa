@@ -1,0 +1,430 @@
+import { useState } from 'react';
+import {
+  FlaskConical, Plus, X, AlertCircle, Leaf, Award, Calendar,
+  Sprout, Bug, Beef, Info, Beaker, Package, ShieldCheck,
+} from 'lucide-react';
+import { Input } from '@core/ui/Input';
+import type { AgriWizardProfile, SeasonType } from '../../hooks/useAgriWizard';
+
+interface Props {
+  profile: AgriWizardProfile;
+  agriCategory: string;
+  onChange: (patch: Partial<AgriWizardProfile>) => void;
+  onToggleCrop: (crop: string) => void;
+  onTogglePest: (pest: string) => void;
+  onToggleAnimal: (animal: string) => void;
+  onToggleSuitableFor: (item: string) => void;
+  errors: string[];
+}
+
+const SEASONS: { value: SeasonType; label: string; emoji: string }[] = [
+  { value: 'KHARIF', label: 'Kharif', emoji: '🌧️' },
+  { value: 'RABI', label: 'Rabi', emoji: '❄️' },
+  { value: 'ZAID', label: 'Zaid', emoji: '☀️' },
+  { value: 'ALL_SEASON', label: 'All Season', emoji: '🌍' },
+  { value: 'SPRING', label: 'Spring', emoji: '🌸' },
+  { value: 'SUMMER', label: 'Summer', emoji: '🌞' },
+  { value: 'MONSOON', label: 'Monsoon', emoji: '☔' },
+  { value: 'WINTER', label: 'Winter', emoji: '❄️' },
+];
+
+const COMMON_CROPS = ['Wheat', 'Rice', 'Cotton', 'Sugarcane', 'Maize', 'Potato', 'Tomato', 'Onion', 'Chilli', 'Pulses', 'Fodder', 'Soybean', 'Mustard', 'Sunflower', 'Tobacco', 'Sesame'];
+const COMMON_PESTS = ['Aphids', 'Bollworm', 'Leafhopper', 'Whitefly', 'Thrips', 'Mealybug', 'Stem Borer', 'Fruit Fly', 'Nematodes', 'Termites', 'Armyworm', 'Jassid'];
+const COMMON_ANIMALS = ['Cattle', 'Buffalo', 'Goat', 'Sheep', 'Poultry', 'Fish', 'Horse', 'Camel', 'Donkey'];
+const SUITABLE_FOR = ['Drip Irrigation', 'Sprinkler', 'Flood Irrigation', 'Rain-fed', 'Greenhouse', 'Open Field', 'Hydroponics', 'Organic Farming', 'Conventional'];
+
+const CROP_STAGES = ['Pre-sowing', 'Sowing', 'Germination', 'Seedling', 'Vegetative', 'Flowering', 'Fruiting', 'Maturity', 'Harvest', 'Post-harvest'];
+
+export function AgriWizardStep2Profile({
+  profile, agriCategory, onChange, onToggleCrop, onTogglePest, onToggleAnimal, onToggleSuitableFor, errors,
+}: Props) {
+  const [customCrop, setCustomCrop] = useState('');
+  const [customPest, setCustomPest] = useState('');
+  const [customAnimal, setCustomAnimal] = useState('');
+
+  const showNPK = agriCategory === 'FERTILIZER';
+  const showActiveIngredient = ['PESTICIDE', 'HERBICIDE', 'FUNGICIDE', 'INSECTICIDE', 'VETERINARY_MEDICINE'].includes(agriCategory);
+  const showCrops = ['SEEDS', 'FERTILIZER', 'PESTICIDE', 'HERBICIDE', 'FUNGICIDE', 'INSECTICIDE', 'GROWTH_HORMONE', 'ORGANIC_INPUT', 'PLANT_NUTRIENT'].includes(agriCategory);
+  const showPests = ['PESTICIDE', 'HERBICIDE', 'FUNGICIDE', 'INSECTICIDE'].includes(agriCategory);
+  const showAnimals = ['ANIMAL_FEED', 'POULTRY_FEED', 'CATTLE_FEED', 'FISH_FEED', 'VETERINARY_MEDICINE'].includes(agriCategory);
+
+  const addCustomCrop = () => {
+    if (customCrop.trim()) { onToggleCrop(customCrop.trim()); setCustomCrop(''); }
+  };
+  const addCustomPest = () => {
+    if (customPest.trim()) { onTogglePest(customPest.trim()); setCustomPest(''); }
+  };
+  const addCustomAnimal = () => {
+    if (customAnimal.trim()) { onToggleAnimal(customAnimal.trim()); setCustomAnimal(''); }
+  };
+
+  return (
+    <div className="space-y-5">
+      {errors.length > 0 && (
+        <div className="rounded-2xl bg-rose-50 border-2 border-rose-200 p-3 flex items-start gap-2">
+          <AlertCircle className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
+          <div className="text-xs text-rose-900">
+            <div className="font-extrabold mb-0.5">Fix before Next:</div>
+            <ul className="list-disc pl-4 space-y-0.5">
+              {errors.map((e, i) => <li key={i}>{e}</li>)}
+            </ul>
+          </div>
+        </div>
+      )}
+
+      <div className="rounded-2xl bg-gradient-to-br from-lime-50 to-white border-2 border-lime-200 p-4 flex items-start gap-3">
+        <div className="h-10 w-10 rounded-xl bg-lime-600 text-white flex items-center justify-center shadow-md shrink-0">
+          <FlaskConical className="h-5 w-5" />
+        </div>
+        <div className="flex-1">
+          <h3 className="font-extrabold text-lime-900 text-sm">Agri Product Profile</h3>
+          <p className="text-xs text-lime-800 font-semibold mt-0.5 leading-relaxed">
+            Specifications, target crops/pests, certifications. Sab optional hai — jitna maaloom ho bharo.
+          </p>
+        </div>
+      </div>
+
+      {/* Manufacturer Info */}
+      <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-4">
+        <SectionHeader icon={Package} title="Manufacturer Info" desc="Brand, manufacturer, origin" />
+        <div className="grid sm:grid-cols-3 gap-4">
+          <Input label="Brand" value={profile.brand}
+            onChange={(e) => onChange({ brand: e.target.value })}
+            placeholder="e.g. Engro, Fauji, Ali Akbar" />
+          <Input label="Manufacturer" value={profile.manufacturer}
+            onChange={(e) => onChange({ manufacturer: e.target.value })}
+            placeholder="Manufacturer name" />
+          <Input label="Country of Origin" value={profile.countryOfOrigin}
+            onChange={(e) => onChange({ countryOfOrigin: e.target.value })}
+            placeholder="Pakistan, China, USA" />
+        </div>
+      </section>
+
+      {/* Chemical Specs */}
+      {(showNPK || showActiveIngredient) && (
+        <section className="rounded-2xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-white p-5 space-y-4">
+          <SectionHeader icon={Beaker} title="Chemical Specifications" desc="NPK, active ingredient, concentration" tone="blue" />
+          <div className="grid sm:grid-cols-2 gap-4">
+            {showNPK && (
+              <Input label="NPK Ratio" value={profile.npkRatio}
+                onChange={(e) => onChange({ npkRatio: e.target.value })}
+                placeholder="e.g. 20-20-20, 46-0-0 (Urea)"
+                hint="Nitrogen-Phosphorus-Potassium" />
+            )}
+            {showActiveIngredient && (
+              <Input label="Active Ingredient" value={profile.activeIngredient}
+                onChange={(e) => onChange({ activeIngredient: e.target.value })}
+                placeholder="e.g. Imidacloprid, Glyphosate"
+                hint="Main chemical component" />
+            )}
+            <Input label="Concentration" value={profile.concentration}
+              onChange={(e) => onChange({ concentration: e.target.value })}
+              placeholder="e.g. 70% WP, 200g/L, 10% EC" />
+            <Input label="Pack Size" value={profile.packSize}
+              onChange={(e) => onChange({ packSize: e.target.value })}
+              placeholder="e.g. 50, 100, 500" />
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-1.5">Pack Unit</label>
+              <select
+                className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-blue-500"
+                value={profile.packUnit}
+                onChange={(e) => onChange({ packUnit: e.target.value })}
+              >
+                <option value="">-- Unit --</option>
+                {['kg', 'gram', 'liter', 'ml', 'bag', 'packet', 'pcs', 'ton'].map((u) => (
+                  <option key={u} value={u}>{u}</option>
+                ))}
+              </select>
+            </div>
+            <Input label="Bags per Ton" type="number" value={profile.bagsPerTon}
+              onChange={(e) => onChange({ bagsPerTon: e.target.value === '' ? '' : Number(e.target.value) })}
+              placeholder="e.g. 20 bags of 50kg" />
+          </div>
+        </section>
+      )}
+
+      {/* Application Info */}
+      <section className="rounded-2xl border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-white p-5 space-y-4">
+        <SectionHeader icon={Info} title="Application Info" desc="Rate, method, interval" tone="amber" />
+        <div className="grid sm:grid-cols-3 gap-4">
+          <Input label="Application Rate" value={profile.applicationRate}
+            onChange={(e) => onChange({ applicationRate: e.target.value })}
+            placeholder="e.g. 2 bags/acre, 500ml/acre" />
+          <Input label="Application Method" value={profile.applicationMethod}
+            onChange={(e) => onChange({ applicationMethod: e.target.value })}
+            placeholder="Broadcast, Spray, Drip" />
+          <Input label="Application Interval" value={profile.applicationInterval}
+            onChange={(e) => onChange({ applicationInterval: e.target.value })}
+            placeholder="Every 15 days, 3 times/season" />
+        </div>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-1.5">Season</label>
+            <select
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-amber-500"
+              value={profile.season}
+              onChange={(e) => onChange({ season: e.target.value as SeasonType })}
+            >
+              <option value="">-- Season --</option>
+              {SEASONS.map((s) => (<option key={s.value} value={s.value}>{s.emoji} {s.label}</option>))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-1.5">Crop Stage</label>
+            <select
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-amber-500"
+              value={profile.cropStage}
+              onChange={(e) => onChange({ cropStage: e.target.value })}
+            >
+              <option value="">-- Stage --</option>
+              {CROP_STAGES.map((s) => (<option key={s} value={s}>{s}</option>))}
+            </select>
+          </div>
+        </div>
+      </section>
+
+      {/* Target Crops */}
+      {showCrops && (
+        <section className="rounded-2xl border-2 border-green-200 bg-gradient-to-br from-green-50 to-white p-5 space-y-4">
+          <SectionHeader icon={Sprout} title="Target Crops" desc="Kis kis fasal ke liye hai" tone="lime" />
+          <div className="flex flex-wrap gap-2">
+            {COMMON_CROPS.map((crop) => {
+              const active = profile.targetCrops.includes(crop);
+              return (
+                <button key={crop} type="button" onClick={() => onToggleCrop(crop)}
+                  className={['px-3 py-1.5 rounded-lg text-xs font-extrabold border-2 transition',
+                    active ? 'border-green-600 bg-green-100 text-green-800 shadow-sm'
+                      : 'border-slate-200 bg-white text-slate-600 hover:border-green-400'].join(' ')}>
+                  {active && '✓ '}{crop}
+                </button>
+              );
+            })}
+            {profile.targetCrops.filter((c) => !COMMON_CROPS.includes(c)).map((crop) => (
+              <button key={crop} type="button" onClick={() => onToggleCrop(crop)}
+                className="px-3 py-1.5 rounded-lg text-xs font-extrabold border-2 border-green-600 bg-green-100 text-green-800 shadow-sm">
+                ✓ {crop} ×
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <input
+              value={customCrop}
+              onChange={(e) => setCustomCrop(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomCrop())}
+              placeholder="Add custom crop..."
+              className="h-10 flex-1 rounded-lg border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-green-500"
+            />
+            <button type="button" onClick={addCustomCrop} disabled={!customCrop.trim()}
+              className="px-4 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-extrabold disabled:opacity-50">
+              <Plus className="h-4 w-4" />
+            </button>
+          </div>
+        </section>
+      )}
+
+      {/* Target Pests */}
+      {showPests && (
+        <section className="rounded-2xl border-2 border-rose-200 bg-gradient-to-br from-rose-50 to-white p-5 space-y-4">
+          <SectionHeader icon={Bug} title="Target Pests" desc="Kis kis keera maar ke liye" tone="amber" />
+          <div className="flex flex-wrap gap-2">
+            {COMMON_PESTS.map((pest) => {
+              const active = profile.targetPests.includes(pest);
+              return (
+                <button key={pest} type="button" onClick={() => onTogglePest(pest)}
+                  className={['px-3 py-1.5 rounded-lg text-xs font-extrabold border-2 transition',
+                    active ? 'border-rose-600 bg-rose-100 text-rose-800 shadow-sm'
+                      : 'border-slate-200 bg-white text-slate-600 hover:border-rose-400'].join(' ')}>
+                  {active && '✓ '}{pest}
+                </button>
+              );
+            })}
+            {profile.targetPests.filter((p) => !COMMON_PESTS.includes(p)).map((pest) => (
+              <button key={pest} type="button" onClick={() => onTogglePest(pest)}
+                className="px-3 py-1.5 rounded-lg text-xs font-extrabold border-2 border-rose-600 bg-rose-100 text-rose-800 shadow-sm">
+                ✓ {pest} ×
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <input
+              value={customPest}
+              onChange={(e) => setCustomPest(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomPest())}
+              placeholder="Add custom pest..."
+              className="h-10 flex-1 rounded-lg border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-rose-500"
+            />
+            <button type="button" onClick={addCustomPest} disabled={!customPest.trim()}
+              className="px-4 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-sm font-extrabold disabled:opacity-50">
+              <Plus className="h-4 w-4" />
+            </button>
+          </div>
+        </section>
+      )}
+
+      {/* Target Animals */}
+      {showAnimals && (
+        <section className="rounded-2xl border-2 border-violet-200 bg-gradient-to-br from-violet-50 to-white p-5 space-y-4">
+          <SectionHeader icon={Beef} title="Target Animals" desc="Kis janwar ke liye hai" tone="lime" />
+          <div className="flex flex-wrap gap-2">
+            {COMMON_ANIMALS.map((animal) => {
+              const active = profile.targetAnimals.includes(animal);
+              return (
+                <button key={animal} type="button" onClick={() => onToggleAnimal(animal)}
+                  className={['px-3 py-1.5 rounded-lg text-xs font-extrabold border-2 transition',
+                    active ? 'border-violet-600 bg-violet-100 text-violet-800 shadow-sm'
+                      : 'border-slate-200 bg-white text-slate-600 hover:border-violet-400'].join(' ')}>
+                  {active && '✓ '}{animal}
+                </button>
+              );
+            })}
+            {profile.targetAnimals.filter((a) => !COMMON_ANIMALS.includes(a)).map((animal) => (
+              <button key={animal} type="button" onClick={() => onToggleAnimal(animal)}
+                className="px-3 py-1.5 rounded-lg text-xs font-extrabold border-2 border-violet-600 bg-violet-100 text-violet-800 shadow-sm">
+                ✓ {animal} ×
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <input
+              value={customAnimal}
+              onChange={(e) => setCustomAnimal(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomAnimal())}
+              placeholder="Add custom animal..."
+              className="h-10 flex-1 rounded-lg border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-violet-500"
+            />
+            <button type="button" onClick={addCustomAnimal} disabled={!customAnimal.trim()}
+              className="px-4 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-sm font-extrabold disabled:opacity-50">
+              <Plus className="h-4 w-4" />
+            </button>
+          </div>
+        </section>
+      )}
+
+      {/* Suitable For */}
+      <section className="rounded-2xl border-2 border-cyan-200 bg-gradient-to-br from-cyan-50 to-white p-5 space-y-3">
+        <SectionHeader icon={Info} title="Suitable For" desc="Farming methods" tone="sky" />
+        <div className="flex flex-wrap gap-2">
+          {SUITABLE_FOR.map((item) => {
+            const active = profile.suitableFor.includes(item);
+            return (
+              <button key={item} type="button" onClick={() => onToggleSuitableFor(item)}
+                className={['px-3 py-1.5 rounded-lg text-xs font-extrabold border-2 transition',
+                  active ? 'border-cyan-600 bg-cyan-100 text-cyan-800 shadow-sm'
+                    : 'border-slate-200 bg-white text-slate-600 hover:border-cyan-400'].join(' ')}>
+                {active && '✓ '}{item}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Certifications */}
+      <section className="rounded-2xl border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-5 space-y-4">
+        <SectionHeader icon={ShieldCheck} title="Certifications" desc="Organic + govt registration" tone="emerald" />
+        <label className={['flex items-center gap-3 cursor-pointer p-3 rounded-xl transition border-2',
+          profile.isOrganic ? 'border-emerald-600 bg-emerald-100' : 'border-slate-200 hover:border-emerald-400'].join(' ')}>
+          <input type="checkbox" checked={profile.isOrganic}
+            onChange={(e) => onChange({ isOrganic: e.target.checked })} className="h-5 w-5 rounded" />
+          <Leaf className={['h-5 w-5', profile.isOrganic ? 'text-emerald-600' : 'text-slate-400'].join(' ')} />
+          <div className="flex-1">
+            <div className="font-extrabold text-slate-900 text-sm">Organic Product</div>
+            <div className="text-xs text-slate-500 font-semibold">Certified organic input</div>
+          </div>
+        </label>
+        {profile.isOrganic && (
+          <Input label="Organic Certificate Number" value={profile.organicCertNumber}
+            onChange={(e) => onChange({ organicCertNumber: e.target.value })}
+            placeholder="e.g. ORG-2024-001" leftIcon={<Award className="h-4 w-4 text-slate-400" />} />
+        )}
+        <div className="grid sm:grid-cols-2 gap-4">
+          <Input label="Govt Reg Number" value={profile.govtRegNumber}
+            onChange={(e) => onChange({ govtRegNumber: e.target.value })}
+            placeholder="e.g. REG-2024-789" leftIcon={<Award className="h-4 w-4 text-slate-400" />} />
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-1.5">Govt Reg Expiry</label>
+            <input
+              type="date"
+              value={profile.govtRegExpiry}
+              onChange={(e) => onChange({ govtRegExpiry: e.target.value })}
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-emerald-500"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Storage & Shelf Life */}
+      <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-4">
+        <SectionHeader icon={Calendar} title="Storage & Shelf Life" desc="Shelf life, storage instructions" />
+        <div className="grid sm:grid-cols-3 gap-4">
+          <Input label="Shelf Life (months)" type="number" value={profile.shelfLifeMonths}
+            onChange={(e) => onChange({ shelfLifeMonths: e.target.value === '' ? '' : Number(e.target.value) })}
+            placeholder="24" />
+          <Input label="Storage Temperature" value={profile.storageTemp}
+            onChange={(e) => onChange({ storageTemp: e.target.value })}
+            placeholder="Cool & dry, < 30°C" />
+          <Input label="Pack Size" value={profile.packSize}
+            onChange={(e) => onChange({ packSize: e.target.value })}
+            placeholder="50kg, 1L, 500g" />
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-slate-700 mb-1.5">Storage Instructions</label>
+          <textarea
+            rows={2}
+            value={profile.storageInstructions}
+            onChange={(e) => onChange({ storageInstructions: e.target.value })}
+            placeholder="Keep away from direct sunlight, moisture..."
+            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-slate-500"
+          />
+        </div>
+      </section>
+
+      {/* Long Description + Usage */}
+      <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-4">
+        <SectionHeader icon={Info} title="Detailed Info" desc="Long description & usage instructions" />
+        <div>
+          <label className="block text-sm font-bold text-slate-700 mb-1.5">Long Description (catalog)</label>
+          <textarea
+            rows={3}
+            value={profile.descriptionLong}
+            onChange={(e) => onChange({ descriptionLong: e.target.value })}
+            placeholder="Detailed product description for catalog and customer..."
+            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-lime-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-slate-700 mb-1.5">Usage Instructions</label>
+          <textarea
+            rows={3}
+            value={profile.usageInstructions}
+            onChange={(e) => onChange({ usageInstructions: e.target.value })}
+            placeholder="Apply 2 bags per acre at sowing time. Water immediately after application..."
+            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-lime-500"
+          />
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function SectionHeader({ icon: Icon, title, desc, tone = 'slate' }: any) {
+  const tones: Record<string, string> = {
+    slate: 'from-slate-500 to-slate-700',
+    emerald: 'from-emerald-500 to-emerald-700',
+    lime: 'from-lime-500 to-green-700',
+    sky: 'from-sky-500 to-cyan-700',
+    blue: 'from-blue-500 to-blue-700',
+    amber: 'from-amber-500 to-orange-700',
+  };
+  return (
+    <div className="flex items-center gap-3 pb-2 border-b-2 border-slate-100">
+      <div className={['h-10 w-10 rounded-xl text-white flex items-center justify-center shadow-md bg-gradient-to-br',
+        tones[tone] ?? tones.slate].join(' ')}>
+        <Icon className="h-5 w-5" />
+      </div>
+      <div>
+        <h3 className="font-extrabold text-slate-900 text-base leading-tight">{title}</h3>
+        <p className="text-xs text-slate-500 font-semibold">{desc}</p>
+      </div>
+    </div>
+  );
+}

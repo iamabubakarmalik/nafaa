@@ -1,0 +1,2 @@
+// Barrel for sales
+export {};

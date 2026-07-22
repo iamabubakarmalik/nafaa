@@ -1,0 +1,2 @@
+// Marketplace module: wishlist
+export {};

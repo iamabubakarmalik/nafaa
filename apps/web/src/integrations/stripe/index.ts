@@ -1,0 +1,2 @@
+// Stripe payments integration
+export {};

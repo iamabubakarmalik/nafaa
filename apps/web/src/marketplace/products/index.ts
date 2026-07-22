@@ -1,0 +1,2 @@
+// Marketplace module: products
+export {};

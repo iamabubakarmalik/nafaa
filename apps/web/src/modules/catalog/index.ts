@@ -1,0 +1,2 @@
+// Barrel for catalog
+export {};

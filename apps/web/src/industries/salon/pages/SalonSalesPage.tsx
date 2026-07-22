@@ -1,0 +1,507 @@
+import { useState, useMemo, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
+import {
+  Receipt, TrendingUp, Wallet, CalendarDays, Scissors,
+  Search, X, Calendar, Package, User, Phone,
+  Banknote, CreditCard, Smartphone, Building2, Zap,
+  Eye, Download, RefreshCw, Award, ArrowRight,
+  Clock, Star, Timer, Users, Sparkles, BarChart3,
+  Lock, Unlock, EyeOff, Shield, CalendarRange, Heart,
+} from 'lucide-react';
+import {
+  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
+  PieChart, Pie, Cell, Legend,
+} from 'recharts';
+import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import { appointmentsApi, type AppointmentStatus } from '../api/appointments.api';
+import { formatPKR } from '@core/lib/format';
+import { Button } from '@core/ui/Button';
+import { useSalesPrivacy } from '@modules/sales/sales/hooks/useSalesPrivacy';
+import { SalesPrivacyModal } from '@modules/sales/sales/components/SalesPrivacyModal';
+import { HiddenAmount } from '@modules/sales/sales/components/HiddenAmount';
+import { toast } from 'sonner';
+
+const formatDate = (v: string) =>
+  new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(v));
+
+const paymentConfig: Record<string, { label: string; icon: any; color: string; bg: string; hex: string }> = {
+  CASH: { label: 'Cash', icon: Banknote, color: '#16a34a', bg: 'bg-emerald-50 text-emerald-700 border-emerald-200', hex: '#10b981' },
+  CARD: { label: 'Card', icon: CreditCard, color: '#2563eb', bg: 'bg-blue-50 text-blue-700 border-blue-200', hex: '#3b82f6' },
+  JAZZCASH: { label: 'JazzCash', icon: Smartphone, color: '#f97316', bg: 'bg-orange-50 text-orange-700 border-orange-200', hex: '#f97316' },
+  EASYPAISA: { label: 'EasyPaisa', icon: Zap, color: '#22c55e', bg: 'bg-green-50 text-green-700 border-green-200', hex: '#22c55e' },
+  BANK_TRANSFER: { label: 'Bank', icon: Building2, color: '#7c3aed', bg: 'bg-violet-50 text-violet-700 border-violet-200', hex: '#8b5cf6' },
+};
+
+const STATUS_CONFIG: Record<AppointmentStatus, { label: string; color: string; bg: string }> = {
+  DRAFT: { label: 'Draft', color: 'text-slate-700', bg: 'bg-slate-100' },
+  CONFIRMED: { label: 'Confirmed', color: 'text-blue-700', bg: 'bg-blue-100' },
+  ARRIVED: { label: 'Arrived', color: 'text-cyan-700', bg: 'bg-cyan-100' },
+  IN_PROGRESS: { label: 'In Progress', color: 'text-amber-700', bg: 'bg-amber-100' },
+  COMPLETED: { label: 'Completed', color: 'text-emerald-700', bg: 'bg-emerald-100' },
+  NO_SHOW: { label: 'No Show', color: 'text-orange-700', bg: 'bg-orange-100' },
+  CANCELLED: { label: 'Cancelled', color: 'text-rose-700', bg: 'bg-rose-100' },
+  RESCHEDULED: { label: 'Rescheduled', color: 'text-violet-700', bg: 'bg-violet-100' },
+};
+
+type View = 'appointments' | 'sales';
+type DateFilter = 'all' | 'today' | 'yesterday' | 'week' | 'month' | 'year' | 'custom';
+
+export default function SalonSalesPage() {
+  const privacy = useSalesPrivacy();
+  const [view, setView] = useState<View>('appointments');
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [dateFilter, setDateFilter] = useState<DateFilter>('today');
+  const [customStart, setCustomStart] = useState('');
+  const [customEnd, setCustomEnd] = useState('');
+  const [paymentFilter, setPaymentFilter] = useState<PaymentMethod | 'all'>('all');
+  const [privacyModal, setPrivacyModal] = useState<'unlock' | 'setup' | 'disable' | null>(null);
+
+  useEffect(() => {
+    if (privacy.isLocked && !privacyModal) setPrivacyModal('unlock');
+  }, [privacy.isLocked, privacyModal]);
+
+  const { data: appointments = [], isLoading: aptLoading, refetch: refetchApts, isRefetching: refetchingApts } = useQuery({
+    queryKey: ['salon-appointments-list'],
+    queryFn: () => appointmentsApi.list({}),
+    enabled: !privacy.isLocked && view === 'appointments',
+    refetchInterval: 60_000,
+  });
+
+  const { data: sales = [], isLoading: salesLoading, refetch: refetchSales, isRefetching: refetchingSales } = useQuery({
+    queryKey: ['sales-list'],
+    queryFn: () => salesApi.list(),
+    enabled: !privacy.isLocked && view === 'sales',
+  });
+
+  const { data: summary } = useQuery({
+    queryKey: ['sales-summary'],
+    queryFn: () => salesApi.summary(),
+    enabled: !privacy.isLocked,
+  });
+
+  const hideAmounts = privacy.hideStats;
+  const showValue = (v: string) => hideAmounts ? '••••••' : v;
+
+  const getDateRange = (): [Date, Date] => {
+    const now = new Date();
+    let start = new Date();
+    let end = new Date();
+    if (dateFilter === 'today') start.setHours(0, 0, 0, 0);
+    else if (dateFilter === 'yesterday') { start.setDate(now.getDate() - 1); start.setHours(0, 0, 0, 0); end = new Date(start); end.setHours(23, 59, 59, 999); }
+    else if (dateFilter === 'week') start.setDate(now.getDate() - 7);
+    else if (dateFilter === 'month') start.setMonth(now.getMonth() - 1);
+    else if (dateFilter === 'year') start.setFullYear(now.getFullYear() - 1);
+    else if (dateFilter === 'custom') {
+      if (customStart) { start = new Date(customStart); start.setHours(0, 0, 0, 0); }
+      if (customEnd) { end = new Date(customEnd); end.setHours(23, 59, 59, 999); }
+    }
+    else if (dateFilter === 'all') start = new Date(0);
+    return [start, end];
+  };
+
+  const aptStats = useMemo(() => {
+    const total = appointments.length;
+    const completed = appointments.filter((a) => a.status === 'COMPLETED').length;
+    const confirmed = appointments.filter((a) => a.status === 'CONFIRMED').length;
+    const inProgress = appointments.filter((a) => a.status === 'IN_PROGRESS' || a.status === 'ARRIVED').length;
+    const revenue = appointments.filter((a) => a.status === 'COMPLETED').reduce((s, a) => s + a.total, 0);
+    return { total, completed, confirmed, inProgress, revenue };
+  }, [appointments]);
+
+  const filteredAppointments = useMemo(() => {
+    let list = [...appointments];
+    if (statusFilter !== 'all') list = list.filter((a) => a.status === statusFilter);
+    const q = search.toLowerCase().trim();
+    if (q) {
+      list = list.filter((a) =>
+        a.appointmentNumber?.toLowerCase().includes(q) ||
+        a.customerName?.toLowerCase().includes(q) ||
+        a.customerPhone?.toLowerCase().includes(q),
+      );
+    }
+    const [start, end] = getDateRange();
+    list = list.filter((a) => {
+      const d = new Date(a.scheduledStart);
+      return d >= start && d <= end;
+    });
+    return list.sort((a, b) => new Date(b.scheduledStart).getTime() - new Date(a.scheduledStart).getTime());
+  }, [appointments, search, statusFilter, dateFilter, customStart, customEnd]);
+
+  const filteredSales = useMemo(() => {
+    let list = [...sales];
+    if (paymentFilter !== 'all') list = list.filter((s) => s.paymentMethod === paymentFilter);
+    const q = search.toLowerCase().trim();
+    if (q) {
+      list = list.filter((s) =>
+        s.saleNumber.toLowerCase().includes(q) ||
+        s.customer?.name?.toLowerCase().includes(q) ||
+        s.customer?.phone?.toLowerCase().includes(q),
+      );
+    }
+    const [start, end] = getDateRange();
+    list = list.filter((s) => {
+      const d = new Date(s.soldAt);
+      return d >= start && d <= end;
+    });
+    return list.sort((a, b) => new Date(b.soldAt).getTime() - new Date(a.soldAt).getTime());
+  }, [sales, search, paymentFilter, dateFilter, customStart, customEnd]);
+
+  const statusBreakdown = useMemo(() => {
+    return Object.entries(STATUS_CONFIG).map(([status, cfg]) => ({
+      status: cfg.label,
+      count: appointments.filter((a) => a.status === status).length,
+    })).filter((s) => s.count > 0);
+  }, [appointments]);
+
+  const exportCSV = () => {
+    const list = view === 'appointments' ? filteredAppointments : filteredSales;
+    if (list.length === 0) return;
+    const headers = view === 'appointments'
+      ? ['Appointment #', 'Date', 'Customer', 'Phone', 'Services', 'Status', 'Total', 'Paid']
+      : ['Sale #', 'Date', 'Customer', 'Phone', 'Items', 'Payment', 'Total', 'Paid', 'Credit'];
+    const rows = view === 'appointments'
+      ? filteredAppointments.map((a) => [a.appointmentNumber, new Date(a.scheduledStart).toLocaleString('en-PK'), a.customerName || 'Walk-in', a.customerPhone || '', a.services?.length || 0, a.status, a.total.toFixed(2), a.paidAmount.toFixed(2)])
+      : filteredSales.map((s) => [s.saleNumber, new Date(s.soldAt).toLocaleString('en-PK'), s.customer?.name || 'Walk-in', s.customer?.phone || '', s.items.length, paymentConfig[s.paymentMethod]?.label || s.paymentMethod, s.total.toFixed(2), s.paidAmount.toFixed(2), s.creditAmount.toFixed(2)]);
+    const csv = [headers, ...rows].map((r) => r.map((c) => `"${c}"`).join(',')).join('\n');
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `salon-${view}-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('Exported');
+  };
+
+  if (privacy.isLocked) {
+    return (
+      <>
+        {privacyModal && <SalesPrivacyModal mode={privacyModal} onClose={() => setPrivacyModal(null)} />}
+        <div className="min-h-[70vh] flex items-center justify-center">
+          <div className="max-w-md w-full text-center">
+            <div className="h-24 w-24 rounded-3xl bg-gradient-to-br from-pink-600 to-rose-700 mx-auto flex items-center justify-center shadow-xl shadow-pink-500/30">
+              <Lock className="h-12 w-12 text-white" />
+            </div>
+            <h2 className="mt-6 text-3xl font-extrabold text-slate-900">🔒 Sales Locked</h2>
+            <p className="mt-2 text-slate-600 font-semibold">Salon sales data password protected hai. Owner only.</p>
+            <Button size="lg" className="mt-6 bg-gradient-to-r from-pink-600 to-rose-700" onClick={() => setPrivacyModal('unlock')}>
+              <Unlock className="h-5 w-5" /> Unlock with Password
+            </Button>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      {privacyModal && <SalesPrivacyModal mode={privacyModal} onClose={() => setPrivacyModal(null)} />}
+
+      <div className="space-y-6">
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-pink-900 to-rose-700 text-white p-6 sm:p-8 shadow-2xl">
+          <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-pink-400/20 blur-3xl" />
+          <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-rose-400/15 blur-3xl" />
+          <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur px-3 py-1 text-xs font-semibold">
+                <Scissors className="h-3.5 w-3.5 text-amber-300" />
+                Salon Sales & Appointments
+                {privacy.isEnabled && (<><span className="text-white/40">•</span><Shield className="h-3 w-3 text-emerald-300" /><span className="text-emerald-300">Protected</span></>)}
+              </div>
+              <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">Salon History</h1>
+              <p className="mt-2 text-sm text-white/80">Appointments, services, commissions — sab record</p>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <button onClick={privacy.toggleHideStats} className={`inline-flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold backdrop-blur border ${hideAmounts ? 'bg-amber-500/30 border-amber-300/40' : 'bg-white/10 hover:bg-white/20 border-white/20'}`}>
+                {hideAmounts ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                <span className="hidden sm:inline">{hideAmounts ? 'Show $' : 'Hide $'}</span>
+              </button>
+              {privacy.isEnabled ? (
+                <>
+                  <button onClick={privacy.lock} className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-3 py-2.5 text-sm font-bold border border-white/20">
+                    <Lock className="h-4 w-4" /> Lock
+                  </button>
+                  <button onClick={() => setPrivacyModal('disable')} className="inline-flex items-center gap-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 px-3 py-2.5 text-sm font-bold border border-rose-300/30">
+                    <Shield className="h-4 w-4" /><span className="hidden sm:inline">Disable</span>
+                  </button>
+                </>
+              ) : (
+                <button onClick={() => setPrivacyModal('setup')} className="inline-flex items-center gap-2 rounded-xl bg-pink-500/30 hover:bg-pink-500/50 px-3 py-2.5 text-sm font-bold border border-pink-300/40">
+                  <Shield className="h-4 w-4" /><span className="hidden sm:inline">Enable Privacy</span>
+                </button>
+              )}
+              <button onClick={() => view === 'appointments' ? refetchApts() : refetchSales()} disabled={refetchingApts || refetchingSales} className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-4 py-2.5 text-sm font-bold border border-white/20 disabled:opacity-50">
+                <RefreshCw className={`h-4 w-4 ${(refetchingApts || refetchingSales) ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">Refresh</span>
+              </button>
+              <Link to="/pos"><Button className="bg-white text-slate-900 hover:bg-slate-100"><Scissors className="h-4 w-4" /> New Appointment</Button></Link>
+            </div>
+          </div>
+        </section>
+
+        <div className="flex gap-2">
+          <button onClick={() => setView('appointments')} className={`px-5 py-3 rounded-xl text-sm font-extrabold transition inline-flex items-center gap-2 ${view === 'appointments' ? 'bg-pink-600 text-white shadow-md' : 'bg-white border-2 border-slate-200 text-slate-700'}`}>
+            <Calendar className="h-4 w-4" /> Appointments ({appointments.length})
+          </button>
+          <button onClick={() => setView('sales')} className={`px-5 py-3 rounded-xl text-sm font-extrabold transition inline-flex items-center gap-2 ${view === 'sales' ? 'bg-pink-600 text-white shadow-md' : 'bg-white border-2 border-slate-200 text-slate-700'}`}>
+            <Receipt className="h-4 w-4" /> All Sales ({sales.length})
+          </button>
+        </div>
+
+        {view === 'appointments' ? (
+          <section className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            <StatCard label="Total Appointments" value={String(aptStats.total)} sub={`${aptStats.completed} completed`} icon={Calendar} color="pink" />
+            <StatCard label="Confirmed" value={String(aptStats.confirmed)} sub="Ready to serve" icon={Clock} color="blue" />
+            <StatCard label="In Progress" value={String(aptStats.inProgress)} sub="Being served now" icon={Timer} color="amber" isHighlight />
+            <StatCard label="Total Revenue" value={showValue(formatPKR(aptStats.revenue))} sub="From completed" icon={Wallet} color="emerald" />
+          </section>
+        ) : (
+          <section className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            <StatCard label="Aaj ki Sales" value={showValue(formatPKR(summary?.todaySales ?? 0))} sub={`${summary?.todayOrders ?? 0} orders`} icon={TrendingUp} color="emerald" />
+            <StatCard label="Aaj ka Profit" value={showValue(formatPKR(summary?.todayProfit ?? 0))} sub="Today's earning" icon={Award} color="blue" isHighlight />
+            <StatCard label="Is Mahine" value={showValue(formatPKR(summary?.monthSales ?? 0))} sub="Monthly total" icon={CalendarDays} color="violet" />
+            <StatCard label="Total Revenue" value={showValue(formatPKR(summary?.totalSales ?? 0))} sub={`${summary?.totalOrders ?? 0} orders`} icon={Wallet} color="amber" />
+          </section>
+        )}
+
+        {view === 'appointments' && !hideAmounts && statusBreakdown.length > 0 && (
+          <section className="rounded-3xl bg-white border border-slate-200 shadow-sm p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div><h3 className="text-lg font-bold text-slate-900">Appointment Status Breakdown</h3><p className="text-xs text-slate-500">Current pipeline</p></div>
+              <BarChart3 className="h-5 w-5 text-pink-500" />
+            </div>
+            <div className="h-[260px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={statusBreakdown}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis dataKey="status" stroke="#64748b" fontSize={11} />
+                  <YAxis stroke="#64748b" fontSize={11} />
+                  <Tooltip contentStyle={{ borderRadius: 12, border: '2px solid #e2e8f0' }} />
+                  <Bar dataKey="count" fill="#db2777" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </section>
+        )}
+
+        <section className="rounded-3xl bg-white border border-slate-200 shadow-sm p-4 space-y-3">
+          <div className="flex gap-2 flex-wrap">
+            <div className="relative flex-1 min-w-[240px]">
+              <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={view === 'appointments' ? 'Search appointment #, customer...' : 'Search sale #, customer...'} className="h-11 w-full rounded-xl border-2 border-slate-200 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-pink-500" />
+              {search && <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2"><X className="h-4 w-4 text-slate-400" /></button>}
+            </div>
+            {(view === 'appointments' ? filteredAppointments : filteredSales).length > 0 && (
+              <button onClick={exportCSV} className="h-11 px-4 rounded-xl border-2 border-slate-200 bg-white hover:border-slate-300 font-bold text-sm text-slate-700 inline-flex items-center gap-2">
+                <Download className="h-4 w-4" /><span className="hidden sm:inline">Export</span>
+              </button>
+            )}
+          </div>
+
+          <div>
+            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1.5 block inline-flex items-center gap-1"><CalendarRange className="h-3 w-3" />Date Range</label>
+            <div className="flex gap-1.5 overflow-x-auto pb-1">
+              {([
+                { v: 'today', l: 'Today' }, { v: 'yesterday', l: 'Yesterday' },
+                { v: 'week', l: 'Last 7 Days' }, { v: 'month', l: 'Last 30 Days' },
+                { v: 'year', l: 'Last Year' }, { v: 'all', l: 'All Time' },
+                { v: 'custom', l: '📅 Custom Range' },
+              ] as { v: DateFilter; l: string }[]).map((d) => (
+                <button key={d.v} onClick={() => setDateFilter(d.v)} className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ${dateFilter === d.v ? 'bg-pink-600 text-white shadow' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
+                  {d.l}
+                </button>
+              ))}
+            </div>
+            {dateFilter === 'custom' && (
+              <div className="mt-2 grid grid-cols-2 gap-2 rounded-xl bg-pink-50 border-2 border-pink-200 p-3">
+                <div>
+                  <label className="text-[10px] uppercase font-extrabold text-pink-700 mb-1 block">From Date</label>
+                  <input type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)} className="h-10 w-full rounded-lg border-2 border-pink-300 bg-white px-3 text-sm font-bold focus:outline-none focus:border-pink-500" />
+                </div>
+                <div>
+                  <label className="text-[10px] uppercase font-extrabold text-pink-700 mb-1 block">To Date</label>
+                  <input type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)} className="h-10 w-full rounded-lg border-2 border-pink-300 bg-white px-3 text-sm font-bold focus:outline-none focus:border-pink-500" />
+                </div>
+                {customStart && customEnd && (
+                  <div className="col-span-2 text-xs font-bold text-pink-800 inline-flex items-center gap-1">
+                    <Calendar className="h-3 w-3" />
+                    Showing {new Date(customStart).toLocaleDateString('en-PK')} to {new Date(customEnd).toLocaleDateString('en-PK')}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {view === 'appointments' && (
+            <div>
+              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1.5 block">Status</label>
+              <div className="flex gap-1.5 overflow-x-auto pb-1">
+                <button onClick={() => setStatusFilter('all')} className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold inline-flex items-center gap-1 ${statusFilter === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700'}`}>
+                  <Sparkles className="h-3 w-3" /> All Status
+                </button>
+                {Object.entries(STATUS_CONFIG).map(([status, cfg]) => (
+                  <button key={status} onClick={() => setStatusFilter(status)} className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ${statusFilter === status ? 'bg-pink-600 text-white' : 'bg-slate-100 text-slate-700'}`}>
+                    {cfg.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {view === 'sales' && (
+            <div>
+              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1.5 block">Payment Method</label>
+              <div className="flex gap-1.5 overflow-x-auto pb-1">
+                <button onClick={() => setPaymentFilter('all')} className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ${paymentFilter === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700'}`}>All Payments</button>
+                {Object.entries(paymentConfig).map(([k, cfg]) => (
+                  <button key={k} onClick={() => setPaymentFilter(k as PaymentMethod)} className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold inline-flex items-center gap-1 ${paymentFilter === k ? cfg.bg + ' border-2' : 'bg-slate-100 text-slate-700'}`}>
+                    <cfg.icon className="h-3 w-3" style={{ color: paymentFilter === k ? cfg.color : undefined }} />{cfg.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+
+        {view === 'appointments' ? (
+          <section className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+            {aptLoading ? (
+              <div className="p-6 space-y-2">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-32 rounded-xl bg-slate-100 animate-pulse" />)}</div>
+            ) : filteredAppointments.length === 0 ? (
+              <div className="p-12 text-center">
+                <Calendar className="h-16 w-16 text-slate-400 mx-auto mb-3" />
+                <p className="font-extrabold text-slate-700 text-lg">No appointments found</p>
+                <p className="text-xs text-slate-500 mt-1">Try different filters or date range</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {filteredAppointments.map((apt) => {
+                  const cfg = STATUS_CONFIG[apt.status];
+                  return (
+                    <Link key={apt.id} to={`/salon/appointments/${apt.id}`} className="block px-5 py-4 hover:bg-pink-50/50 transition group">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                          <div className={`h-12 w-12 rounded-2xl ${cfg.bg} ${cfg.color} flex items-center justify-center shrink-0`}>
+                            <Scissors className="h-5 w-5" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-mono font-extrabold text-slate-900">{apt.appointmentNumber}</span>
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${cfg.bg} ${cfg.color}`}>{cfg.label}</span>
+                              {apt.customerRating && (
+                                <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-extrabold inline-flex items-center gap-1">
+                                  <Star className="h-2.5 w-2.5 fill-current" />{apt.customerRating}
+                                </span>
+                              )}
+                            </div>
+                            <div className="mt-1 text-xs text-slate-600 font-semibold flex items-center gap-2 flex-wrap">
+                              <User className="h-3 w-3" />{apt.customerName || 'Walk-in'}
+                              {apt.customerPhone && <><span>•</span><Phone className="h-3 w-3" />{apt.customerPhone}</>}
+                              <span>•</span><Package className="h-3 w-3" />{apt.services?.length || 0} services
+                              {(apt as any).numberOfGuests && <><span>•</span><Users className="h-3 w-3" />{(apt as any).numberOfGuests} guests</>}
+                            </div>
+                            <div className="mt-1 text-[10px] text-slate-500 font-bold inline-flex items-center gap-1">
+                              <Clock className="h-2.5 w-2.5" />{formatDate(apt.scheduledStart)}
+                            </div>
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              {apt.services?.slice(0, 3).map((s: any, i: number) => (
+                                <span key={i} className="px-1.5 py-0.5 rounded bg-pink-100 text-pink-700 text-[10px] font-extrabold">
+                                  {s.serviceName}
+                                  {s.staffName && ` • ${s.staffName}`}
+                                </span>
+                              ))}
+                              {(apt.services?.length || 0) > 3 && (
+                                <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 text-[10px] font-extrabold">+{(apt.services?.length || 0) - 3}</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className="text-2xl font-extrabold text-emerald-700 tabular-nums"><HiddenAmount value={formatPKR(apt.total)} hidden={hideAmounts} /></div>
+                          {apt.total > apt.paidAmount && (
+                            <div className="text-[10px] text-amber-700 font-extrabold mt-0.5">Due: <HiddenAmount value={formatPKR(apt.total - apt.paidAmount)} hidden={hideAmounts} /></div>
+                          )}
+                          <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-extrabold text-pink-600 group-hover:text-pink-700">
+                            <Eye className="h-3 w-3" />View <ArrowRight className="h-3 w-3" />
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        ) : (
+          <section className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+            {salesLoading ? (
+              <div className="p-6 space-y-2">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-24 rounded-xl bg-slate-100 animate-pulse" />)}</div>
+            ) : filteredSales.length === 0 ? (
+              <div className="p-12 text-center"><Receipt className="h-16 w-16 text-slate-400 mx-auto mb-3" /><p className="font-extrabold text-slate-700 text-lg">No sales found</p></div>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {filteredSales.map((sale) => {
+                  const PayIcon = paymentConfig[sale.paymentMethod]?.icon || CreditCard;
+                  const payColor = paymentConfig[sale.paymentMethod]?.color || '#64748b';
+                  return (
+                    <Link key={sale.id} to={`/sales/${sale.id}/receipt`} className="block px-5 py-4 hover:bg-slate-50 transition group">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                          <div className="h-12 w-12 rounded-2xl flex items-center justify-center shrink-0" style={{ backgroundColor: payColor + '20' }}>
+                            <PayIcon className="h-5 w-5" style={{ color: payColor }} />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-mono font-extrabold text-slate-900">{sale.saleNumber}</span>
+                              {sale.status === 'VOIDED' && <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-extrabold">VOIDED</span>}
+                            </div>
+                            <div className="mt-1 text-xs text-slate-600 font-semibold flex items-center gap-2 flex-wrap">
+                              <User className="h-3 w-3" />{sale.customer?.name || 'Walk-in'}
+                              <span>•</span><Package className="h-3 w-3" />{sale.items.length} items
+                            </div>
+                            <div className="mt-1 text-[10px] text-slate-500 inline-flex items-center gap-1"><Calendar className="h-2.5 w-2.5" />{formatDate(sale.soldAt)}</div>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className="text-2xl font-extrabold text-emerald-700 tabular-nums"><HiddenAmount value={formatPKR(sale.total)} hidden={hideAmounts} /></div>
+                          {sale.creditAmount > 0 && <div className="text-[10px] text-amber-700 font-extrabold mt-0.5">Udhaar: <HiddenAmount value={formatPKR(sale.creditAmount)} hidden={hideAmounts} /></div>}
+                          <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-extrabold text-pink-600 group-hover:text-pink-700"><Eye className="h-3 w-3" />Receipt<ArrowRight className="h-3 w-3" /></div>
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        )}
+      </div>
+    </>
+  );
+}
+
+function StatCard({ label, value, sub, icon: Icon, color, isHighlight }: any) {
+  const colors: Record<string, string> = {
+    pink: 'from-pink-500 to-rose-600 shadow-pink-500/30',
+    emerald: 'from-emerald-500 to-green-600 shadow-emerald-500/30',
+    blue: 'from-blue-500 to-blue-700 shadow-blue-500/30',
+    violet: 'from-violet-500 to-purple-600 shadow-violet-500/30',
+    amber: 'from-amber-500 to-orange-600 shadow-amber-500/30',
+  };
+  return (
+    <div className={`rounded-2xl border-2 p-5 shadow-sm hover:shadow-md transition ${isHighlight ? 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-300' : 'bg-white border-slate-200'}`}>
+      <div className="flex items-center justify-between">
+        <div className="min-w-0">
+          <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
+          <div className="mt-2 text-2xl font-extrabold text-slate-900 tabular-nums truncate">{value}</div>
+          <div className="text-xs text-slate-600 font-semibold mt-1">{sub}</div>
+        </div>
+        <div className={`h-12 w-12 rounded-2xl bg-gradient-to-br ${colors[color]} text-white flex items-center justify-center shadow-lg shrink-0`}>
+          <Icon className="h-6 w-6" />
+        </div>
+      </div>
+    </div>
+  );
+}

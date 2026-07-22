@@ -1,0 +1,1021 @@
+import { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
+import {
+  Cake, Cookie, Search, X, Star, Heart, ShoppingBag, Plus,
+  Sparkles, TrendingUp, Clock, Timer, Snowflake, ChefHat,
+  MessageCircle, Package, ArrowRight, Info, Calendar,
+  AlertTriangle, Award, Zap, Filter,
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { formatPKR, formatPKRFull } from '@core/lib/format';
+import { Button } from '@core/ui/Button';
+import { bakeryProductsApi } from '../api/products.api';
+import { CATEGORIES, FLAVORS, SIZES, OCCASIONS } from '../api/constants';
+import { useAuthStore } from '@core/stores/auth.store';
+import { useCatalogCart } from '@modules/catalog/hooks/useCatalogCart';
+import { useWishlist } from '@modules/catalog/hooks/useWishlist';
+import { CatalogCartDrawer } from '@modules/catalog/components/CatalogCartDrawer';
+
+const DIETARY_FILTERS = [
+  { value: 'all', label: 'All', emoji: '🍰' },
+  { value: 'eggless', label: 'Eggless', emoji: '🥚' },
+  { value: 'vegan', label: 'Vegan', emoji: '🌱' },
+  { value: 'sugar-free', label: 'Sugar-Free', emoji: '🍬' },
+  { value: 'halal', label: 'Halal', emoji: '☪️' },
+];
+
+const TAG_FILTERS = [
+  { value: 'all', label: 'All Items', color: 'bg-slate-600' },
+  { value: 'featured', label: '⭐ Featured', color: 'bg-amber-600' },
+  { value: 'popular', label: '🔥 Popular', color: 'bg-red-600' },
+  { value: 'best', label: '🏆 Best Sellers', color: 'bg-rose-600' },
+  { value: 'new', label: '✨ New Arrival', color: 'bg-emerald-600' },
+  { value: 'seasonal', label: '🌸 Seasonal', color: 'bg-fuchsia-600' },
+];
+
+export default function BakeryCatalogPage() {
+  const tenant = useAuthStore((s) => s.tenant);
+  const cart = useCatalogCart();
+  const wishlist = useWishlist();
+
+  const [search, setSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [tagFilter, setTagFilter] = useState<string>('all');
+  const [dietaryFilter, setDietaryFilter] = useState<string>('all');
+  const [showCart, setShowCart] = useState(false);
+  const [detailProduct, setDetailProduct] = useState<any>(null);
+  const [customCakePicker, setCustomCakePicker] = useState<any>(null);
+
+  const { data: profiles = [], isLoading } = useQuery({
+    queryKey: ['bakery-catalog', categoryFilter, tagFilter, dietaryFilter],
+    queryFn: () => bakeryProductsApi.list({
+      category: categoryFilter === 'all' ? undefined : categoryFilter,
+      featured: tagFilter === 'featured' ? true : undefined,
+      popular: tagFilter === 'popular' ? true : undefined,
+      bestSeller: tagFilter === 'best' ? true : undefined,
+      newArrival: tagFilter === 'new' ? true : undefined,
+      seasonal: tagFilter === 'seasonal' ? true : undefined,
+      eggless: dietaryFilter === 'eggless' ? true : undefined,
+      vegan: dietaryFilter === 'vegan' ? true : undefined,
+      sugarFree: dietaryFilter === 'sugar-free' ? true : undefined,
+      halal: dietaryFilter === 'halal' ? true : undefined,
+    }),
+  });
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return profiles;
+    const q = search.toLowerCase().trim();
+    return profiles.filter((p: any) =>
+      p.product?.name?.toLowerCase().includes(q) ||
+      p.product?.sku?.toLowerCase().includes(q) ||
+      p.category?.toLowerCase().includes(q)
+    );
+  }, [profiles, search]);
+
+  const featured = useMemo(() => profiles.filter((p: any) => p.isFeatured).slice(0, 6), [profiles]);
+  const bestSellers = useMemo(() => profiles.filter((p: any) => p.isBestSeller).slice(0, 6), [profiles]);
+  const newArrivals = useMemo(() => profiles.filter((p: any) => p.isNewArrival).slice(0, 6), [profiles]);
+
+  const shopSettings = (tenant as any)?.settings ?? {};
+  const shopWhatsapp = shopSettings.shopWhatsapp || shopSettings.shopPhone || (tenant as any)?.phone;
+
+  const getMinPrice = (profile: any): number => {
+    const prices = [
+      profile.pricePerPiece, profile.pricePerSlice, profile.pricePerPound,
+      profile.pricePerKg, profile.pricePerDozen, profile.pricePerBox, profile.pricePerTray,
+    ].map((x) => Number(x || 0)).filter((x) => x > 0);
+    if (prices.length === 0) return Number(profile.product?.price || 0);
+    return Math.min(...prices);
+  };
+
+  const getPriceOptions = (profile: any) => [
+    { key: 'kg', price: profile.pricePerKg, label: 'Per Kg', emoji: '⚖️' },
+    { key: 'pound', price: profile.pricePerPound, label: 'Per Pound', emoji: '⚖️' },
+    { key: 'piece', price: profile.pricePerPiece, label: 'Per Piece', emoji: '🎂' },
+    { key: 'dozen', price: profile.pricePerDozen, label: 'Per Dozen', emoji: '📦' },
+    { key: 'slice', price: profile.pricePerSlice, label: 'Per Slice', emoji: '🍰' },
+    { key: 'box', price: profile.pricePerBox, label: 'Per Box', emoji: '📦' },
+    { key: 'tray', price: profile.pricePerTray, label: 'Per Tray', emoji: '🍱' },
+  ].filter((o) => o.price && Number(o.price) > 0);
+
+  const handleProductClick = (profile: any) => {
+    if (profile.isCakeCustomizable) {
+      setCustomCakePicker(profile);
+      return;
+    }
+    const priceOptions = getPriceOptions(profile);
+    if (priceOptions.length > 1) {
+      setDetailProduct(profile);
+      return;
+    }
+    const opt = priceOptions[0];
+    if (!opt) {
+      cart.addItem({
+        productId: profile.productId,
+        name: profile.product?.name || 'Item',
+        image: profile.product?.images?.[0]?.url || profile.imageUrls?.[0],
+        price: Number(profile.product?.price || 0),
+        unit: profile.product?.unit || 'pcs',
+        quantity: 1,
+      });
+      toast.success(`${profile.product?.name} added`);
+      return;
+    }
+    cart.addItem({
+      productId: profile.productId,
+      name: `${profile.product?.name} (${opt.label})`,
+      image: profile.product?.images?.[0]?.url || profile.imageUrls?.[0],
+      price: Number(opt.price),
+      unit: opt.label,
+      quantity: 1,
+    });
+    toast.success(`${profile.product?.name} added`);
+  };
+
+  return (
+    <>
+      {/* HERO */}
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-pink-900 to-fuchsia-700 text-white p-6 sm:p-8 shadow-2xl mb-6">
+        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-pink-400/20 blur-3xl" />
+        <div className="absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-fuchsia-400/15 blur-3xl" />
+
+        <div className="relative flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
+              <Cake className="h-3.5 w-3.5 text-amber-300" />
+              {tenant?.name || 'Bakery'}
+            </div>
+            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">Freshly Baked Delights 🍰</h1>
+            <p className="mt-2 text-sm text-white/85 max-w-xl">
+              {profiles.length} items • Custom cakes • Eggless/vegan options • Daily fresh
+            </p>
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            <Link to="/bakery/cake-orders/new">
+              <button className="inline-flex items-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white px-4 py-2.5 text-sm font-extrabold shadow-lg transition">
+                <Cake className="h-4 w-4" />
+                Custom Cake Order
+              </button>
+            </Link>
+            <button
+              onClick={() => setShowCart(true)}
+              className="relative inline-flex items-center gap-2 rounded-xl bg-white text-pink-900 px-4 py-2.5 text-sm font-extrabold shadow-lg"
+            >
+              <ShoppingBag className="h-4 w-4" />
+              Cart
+              {cart.totalItems > 0 && (
+                <span className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white text-[10px] font-extrabold flex items-center justify-center shadow-lg ring-2 ring-white">
+                  {cart.totalItems.toFixed(0)}
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* SEARCH + FILTERS */}
+      <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-4 space-y-3 mb-6">
+        <div className="relative">
+          <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            className="h-12 w-full rounded-xl border-2 border-slate-200 bg-white pl-10 pr-10 text-sm font-semibold focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-200"
+            placeholder="Search cakes, pastries, bread, mithai..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          {search && (
+            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2">
+              <X className="h-4 w-4 text-slate-400" />
+            </button>
+          )}
+        </div>
+
+        {/* Category chips */}
+        <div>
+          <div className="text-[10px] uppercase font-extrabold text-slate-600 mb-1.5">Categories</div>
+          <div className="flex gap-1.5 overflow-x-auto pb-1">
+            <button
+              onClick={() => setCategoryFilter('all')}
+              className={[
+                'shrink-0 px-3 h-9 rounded-lg text-xs font-extrabold transition',
+                categoryFilter === 'all' ? 'bg-pink-600 text-white shadow' : 'bg-slate-100 text-slate-700 hover:bg-slate-200',
+              ].join(' ')}
+            >
+              All ({profiles.length})
+            </button>
+            {CATEGORIES.slice(0, 20).map((c) => (
+              <button
+                key={c.value}
+                onClick={() => setCategoryFilter(c.value)}
+                className={[
+                  'shrink-0 px-3 h-9 rounded-lg text-xs font-extrabold transition inline-flex items-center gap-1',
+                  categoryFilter === c.value ? 'bg-pink-600 text-white shadow' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50',
+                ].join(' ')}
+              >
+                {c.emoji} {c.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Tag filters */}
+        <div>
+          <div className="text-[10px] uppercase font-extrabold text-slate-600 mb-1.5">Filter</div>
+          <div className="flex gap-1.5 flex-wrap">
+            {TAG_FILTERS.map((t) => (
+              <button
+                key={t.value}
+                onClick={() => setTagFilter(t.value)}
+                className={[
+                  'px-3 py-1.5 rounded-lg text-xs font-extrabold transition',
+                  tagFilter === t.value ? t.color + ' text-white shadow' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50',
+                ].join(' ')}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Dietary filters */}
+        <div>
+          <div className="text-[10px] uppercase font-extrabold text-slate-600 mb-1.5">Dietary</div>
+          <div className="flex gap-1.5 flex-wrap">
+            {DIETARY_FILTERS.map((d) => (
+              <button
+                key={d.value}
+                onClick={() => setDietaryFilter(d.value)}
+                className={[
+                  'px-3 py-1.5 rounded-lg text-xs font-extrabold transition inline-flex items-center gap-1',
+                  dietaryFilter === d.value ? 'bg-emerald-600 text-white shadow' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50',
+                ].join(' ')}
+              >
+                {d.emoji} {d.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FEATURED SECTION */}
+      {featured.length > 0 && !search && categoryFilter === 'all' && tagFilter === 'all' && dietaryFilter === 'all' && (
+        <section className="rounded-3xl bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 border-2 border-amber-200 p-5 mb-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-md">
+              <Star className="h-4 w-4 fill-white" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-amber-900 text-lg">Featured Items</h3>
+              <p className="text-[11px] text-amber-700 font-bold">Chef's signature creations</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {featured.map((profile: any) => (
+              <BakeryCard
+                key={profile.id}
+                profile={profile}
+                compact
+                onClick={() => handleProductClick(profile)}
+                onDetail={() => setDetailProduct(profile)}
+                wishlist={wishlist}
+                minPrice={getMinPrice(profile)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* BEST SELLERS */}
+      {bestSellers.length > 0 && !search && categoryFilter === 'all' && tagFilter === 'all' && dietaryFilter === 'all' && (
+        <section className="rounded-3xl bg-gradient-to-br from-rose-50 to-pink-50 border-2 border-rose-200 p-5 mb-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 text-white flex items-center justify-center shadow-md">
+              <TrendingUp className="h-4 w-4" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-rose-900 text-lg">Best Sellers</h3>
+              <p className="text-[11px] text-rose-700 font-bold">Customer favorites</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {bestSellers.map((profile: any) => (
+              <BakeryCard
+                key={profile.id}
+                profile={profile}
+                compact
+                onClick={() => handleProductClick(profile)}
+                onDetail={() => setDetailProduct(profile)}
+                wishlist={wishlist}
+                minPrice={getMinPrice(profile)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* NEW ARRIVALS */}
+      {newArrivals.length > 0 && !search && categoryFilter === 'all' && tagFilter === 'all' && dietaryFilter === 'all' && (
+        <section className="rounded-3xl bg-gradient-to-br from-emerald-50 to-green-50 border-2 border-emerald-200 p-5 mb-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white flex items-center justify-center shadow-md">
+              <Sparkles className="h-4 w-4" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-emerald-900 text-lg">New Arrivals</h3>
+              <p className="text-[11px] text-emerald-700 font-bold">Fresh from the oven</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {newArrivals.map((profile: any) => (
+              <BakeryCard
+                key={profile.id}
+                profile={profile}
+                compact
+                onClick={() => handleProductClick(profile)}
+                onDetail={() => setDetailProduct(profile)}
+                wishlist={wishlist}
+                minPrice={getMinPrice(profile)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ALL PRODUCTS */}
+      <section className="mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-extrabold text-slate-900">
+            {categoryFilter === 'all' ? 'Full Menu' : CATEGORIES.find((c) => c.value === categoryFilter)?.label || 'Items'}
+          </h3>
+          <div className="text-xs text-slate-500 font-bold">{filtered.length} items</div>
+        </div>
+
+        {isLoading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="aspect-square rounded-2xl bg-slate-100 animate-pulse" />
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="rounded-3xl bg-white border-2 border-dashed border-slate-200 p-16 text-center">
+            <Cake className="h-16 w-16 text-slate-300 mx-auto mb-3" />
+            <p className="font-extrabold text-slate-700">No items found</p>
+            <p className="text-sm text-slate-500 font-semibold mt-1">Try different search or filter</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+            {filtered.map((profile: any) => (
+              <BakeryCard
+                key={profile.id}
+                profile={profile}
+                onClick={() => handleProductClick(profile)}
+                onDetail={() => setDetailProduct(profile)}
+                wishlist={wishlist}
+                minPrice={getMinPrice(profile)}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Floating cart button (mobile) */}
+      {cart.totalItems > 0 && (
+        <button
+          onClick={() => setShowCart(true)}
+          className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-5 py-3 rounded-full bg-gradient-to-br from-pink-600 to-fuchsia-700 text-white shadow-2xl hover:scale-105 transition-transform lg:hidden"
+        >
+          <ShoppingBag className="h-5 w-5" />
+          <span className="font-extrabold">{cart.totalItems.toFixed(0)} items</span>
+          <span className="font-extrabold tabular-nums">{formatPKR(cart.subtotal)}</span>
+        </button>
+      )}
+
+      {/* Cart Drawer */}
+      <CatalogCartDrawer
+        cart={cart}
+        isOpen={showCart}
+        onClose={() => setShowCart(false)}
+        shopName={tenant?.name}
+        shopPhone={shopWhatsapp}
+        themeColor="#ec4899"
+      />
+
+      {/* Detail Modal */}
+      {detailProduct && (
+        <BakeryDetailModal
+          profile={detailProduct}
+          onClose={() => setDetailProduct(null)}
+          onAdd={(opt: any) => {
+            cart.addItem({
+              productId: detailProduct.productId,
+              name: opt ? `${detailProduct.product?.name} (${opt.label})` : detailProduct.product?.name,
+              image: detailProduct.product?.images?.[0]?.url || detailProduct.imageUrls?.[0],
+              price: opt ? Number(opt.price) : Number(detailProduct.product?.price || 0),
+              unit: opt ? opt.label : (detailProduct.product?.unit || 'pcs'),
+              quantity: 1,
+            });
+            toast.success(`${detailProduct.product?.name} added`);
+            setDetailProduct(null);
+          }}
+          onCustomize={() => {
+            setCustomCakePicker(detailProduct);
+            setDetailProduct(null);
+          }}
+          wishlist={wishlist}
+          priceOptions={getPriceOptions(detailProduct)}
+        />
+      )}
+
+      {/* Custom Cake Picker */}
+      {customCakePicker && (
+        <CustomCakeModal
+          profile={customCakePicker}
+          onClose={() => setCustomCakePicker(null)}
+          onAddToCart={(config: any) => {
+            const basePrice = config.selectedPrice ? Number(config.selectedPrice) : Number(customCakePicker.product?.price || 0);
+            const modifiers: any[] = [];
+            if (config.flavor) modifiers.push({ name: `Flavor: ${config.flavor}`, priceAdjustment: 0 });
+            if (config.messageOnCake) modifiers.push({ name: `Message: "${config.messageOnCake}"`, priceAdjustment: 0 });
+            if (config.hasPhotoOnCake) modifiers.push({ name: 'Photo cake', priceAdjustment: 500 });
+            cart.addItem({
+              productId: customCakePicker.productId,
+              name: `${customCakePicker.product?.name} (Custom)`,
+              image: customCakePicker.product?.images?.[0]?.url || customCakePicker.imageUrls?.[0],
+              price: basePrice,
+              unit: config.selectedUnit || 'piece',
+              quantity: 1,
+              notes: `${config.occasion || ''} ${config.eventDate ? '• ' + config.eventDate : ''}`.trim() || undefined,
+              modifiers: modifiers.length > 0 ? modifiers : undefined,
+            });
+            toast.success('Custom cake added! Details will be sent with your order.');
+            setCustomCakePicker(null);
+          }}
+          shopPhone={shopWhatsapp}
+          shopName={tenant?.name}
+        />
+      )}
+    </>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PRODUCT CARD
+// ═══════════════════════════════════════════════════════════════
+function BakeryCard({ profile, compact = false, onClick, onDetail, wishlist, minPrice }: any) {
+  const p = profile.product;
+  const category = CATEGORIES.find((c) => c.value === profile.category);
+  const inWishlist = wishlist.has(p?.id);
+  const image = p?.images?.[0]?.url || profile.imageUrls?.[0];
+
+  return (
+    <div className="group relative rounded-2xl bg-white border-2 border-slate-200 overflow-hidden hover:border-pink-400 hover:shadow-xl hover:-translate-y-0.5 transition-all">
+      <div className="aspect-square bg-gradient-to-br from-pink-100 via-fuchsia-100 to-purple-100 relative cursor-pointer overflow-hidden" onClick={onDetail}>
+        {image ? (
+          <img src={image} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-5xl">
+            {category?.emoji || '🎂'}
+          </div>
+        )}
+
+        {/* Marketing badges */}
+        <div className="absolute top-1.5 left-1.5 flex flex-col gap-1">
+          {profile.isFeatured && (
+            <span className="px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-extrabold shadow inline-flex items-center gap-0.5">
+              <Star className="h-2 w-2 fill-white" /> FT
+            </span>
+          )}
+          {profile.isBestSeller && (
+            <span className="px-1.5 py-0.5 rounded-md bg-rose-500 text-white text-[9px] font-extrabold shadow inline-flex items-center gap-0.5">
+              <TrendingUp className="h-2 w-2" /> BEST
+            </span>
+          )}
+          {profile.isNewArrival && (
+            <span className="px-1.5 py-0.5 rounded-md bg-emerald-500 text-white text-[9px] font-extrabold shadow inline-flex items-center gap-0.5">
+              <Sparkles className="h-2 w-2" /> NEW
+            </span>
+          )}
+          {profile.isSeasonalItem && (
+            <span className="px-1.5 py-0.5 rounded-md bg-fuchsia-500 text-white text-[9px] font-extrabold shadow">
+              🌸 {profile.seasonName || 'Season'}
+            </span>
+          )}
+        </div>
+
+        {/* Dietary badges */}
+        <div className="absolute top-1.5 right-1.5 flex flex-col gap-1">
+          <button
+            onClick={(e) => { e.stopPropagation(); wishlist.toggle(p?.id); }}
+            className={[
+              'h-7 w-7 rounded-full flex items-center justify-center shadow transition',
+              inWishlist ? 'bg-rose-500 text-white' : 'bg-white/95 backdrop-blur text-slate-600 hover:text-rose-500',
+            ].join(' ')}
+          >
+            <Heart className={`h-3.5 w-3.5 ${inWishlist ? 'fill-current' : ''}`} />
+          </button>
+          {profile.isEggless && (
+            <span className="h-6 w-6 rounded-full bg-emerald-500/90 backdrop-blur text-white flex items-center justify-center text-[10px] shadow" title="Eggless">🥚</span>
+          )}
+          {profile.isVegan && (
+            <span className="h-6 w-6 rounded-full bg-green-600/90 backdrop-blur text-white flex items-center justify-center text-[10px] shadow" title="Vegan">🌱</span>
+          )}
+        </div>
+
+        {/* Customizable badge */}
+        {profile.isCakeCustomizable && (
+          <div className="absolute bottom-1.5 left-1.5">
+            <span className="px-1.5 py-0.5 rounded-md bg-violet-600 text-white text-[9px] font-extrabold shadow inline-flex items-center gap-0.5">
+              <Sparkles className="h-2 w-2" /> CUSTOMIZABLE
+            </span>
+          </div>
+        )}
+
+        {/* Prep time */}
+        {profile.prepTimeHours && (
+          <div className="absolute bottom-1.5 right-1.5">
+            <span className="px-1.5 py-0.5 rounded-md bg-slate-900/80 backdrop-blur text-white text-[9px] font-extrabold shadow inline-flex items-center gap-0.5">
+              <Clock className="h-2 w-2" /> {profile.prepTimeHours}h
+            </span>
+          </div>
+        )}
+      </div>
+
+      <div className="p-2.5">
+        {category && (
+          <div className="text-[9px] uppercase font-extrabold text-pink-600 truncate">
+            {category.emoji} {category.label}
+          </div>
+        )}
+        <h4 className={[
+          'font-extrabold text-slate-900 leading-tight',
+          compact ? 'text-xs line-clamp-2 min-h-[2rem]' : 'text-sm line-clamp-2 min-h-[2.25rem]',
+        ].join(' ')}>
+          {p?.name}
+        </h4>
+        <div className="mt-1 flex items-end justify-between">
+          <div className={`font-extrabold text-emerald-700 tabular-nums ${compact ? 'text-sm' : 'text-base'}`}>
+            {formatPKR(minPrice)}
+          </div>
+          <button
+            onClick={onClick}
+            className="h-7 w-7 rounded-lg bg-pink-600 hover:bg-pink-700 text-white flex items-center justify-center shadow-sm transition group-hover:scale-110"
+            title={profile.isCakeCustomizable ? 'Customize' : 'Add to cart'}
+          >
+            {profile.isCakeCustomizable ? <Sparkles className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DETAIL MODAL
+// ═══════════════════════════════════════════════════════════════
+function BakeryDetailModal({ profile, onClose, onAdd, onCustomize, wishlist, priceOptions }: any) {
+  const p = profile.product;
+  const image = p?.images?.[0]?.url || profile.imageUrls?.[0];
+  const inWishlist = wishlist.has(p?.id);
+  const category = CATEGORIES.find((c) => c.value === profile.category);
+  const [selectedOpt, setSelectedOpt] = useState(priceOptions[0] || null);
+
+  return (
+    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div className="w-full sm:max-w-2xl bg-white sm:rounded-3xl rounded-t-3xl shadow-2xl max-h-[95vh] overflow-auto animate-in slide-in-from-bottom duration-300">
+        <div className="relative">
+          {image ? (
+            <img src={image} alt="" className="w-full aspect-square object-cover" />
+          ) : (
+            <div className="w-full aspect-square bg-gradient-to-br from-pink-100 to-fuchsia-100 flex items-center justify-center">
+              <span className="text-9xl">{category?.emoji || '🎂'}</span>
+            </div>
+          )}
+          <button onClick={onClose} className="absolute top-3 right-3 h-10 w-10 rounded-full bg-white/95 backdrop-blur hover:bg-white text-slate-700 flex items-center justify-center shadow-lg">
+            <X className="h-5 w-5" />
+          </button>
+          <button
+            onClick={() => wishlist.toggle(p?.id)}
+            className={[
+              'absolute top-3 left-3 h-10 w-10 rounded-full flex items-center justify-center shadow-lg transition',
+              inWishlist ? 'bg-rose-500 text-white' : 'bg-white/95 backdrop-blur text-slate-700 hover:bg-white',
+            ].join(' ')}
+          >
+            <Heart className={`h-5 w-5 ${inWishlist ? 'fill-current' : ''}`} />
+          </button>
+        </div>
+
+        <div className="p-5 space-y-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              {category && (
+                <div className="text-xs uppercase font-extrabold text-pink-600">
+                  {category.emoji} {category.label}
+                </div>
+              )}
+              <h2 className="text-2xl font-extrabold text-slate-900 mt-1">{p?.name}</h2>
+              <div className="mt-2 flex flex-wrap gap-1">
+                {profile.isFeatured && <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-extrabold">⭐ Featured</span>}
+                {profile.isBestSeller && <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-extrabold">🏆 Best Seller</span>}
+                {profile.isEggless && <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-extrabold">🥚 Eggless</span>}
+                {profile.isVegan && <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[10px] font-extrabold">🌱 Vegan</span>}
+                {profile.isSugarFree && <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-extrabold">🍬 Sugar-Free</span>}
+                {profile.isHalal && <span className="px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 text-[10px] font-extrabold">☪️ Halal</span>}
+              </div>
+            </div>
+          </div>
+
+          {(profile.descriptionLong || p?.description) && (
+            <div className="rounded-xl bg-slate-50 border border-slate-200 p-3">
+              <p className="text-sm text-slate-700 leading-relaxed">{profile.descriptionLong || p?.description}</p>
+            </div>
+          )}
+
+          {/* Price options */}
+          {priceOptions.length > 1 && (
+            <div>
+              <div className="text-[10px] uppercase font-extrabold text-slate-600 mb-2">Select Size / Unit</div>
+              <div className="grid grid-cols-2 gap-2">
+                {priceOptions.map((opt: any) => {
+                  const active = selectedOpt?.key === opt.key;
+                  return (
+                    <button
+                      key={opt.key}
+                      onClick={() => setSelectedOpt(opt)}
+                      className={[
+                        'p-3 rounded-xl border-2 text-left transition',
+                        active ? 'border-pink-500 bg-pink-50 shadow-md ring-2 ring-pink-200' : 'border-slate-200 bg-white hover:border-pink-300',
+                      ].join(' ')}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-lg">{opt.emoji}</span>
+                          <span className="text-xs font-extrabold text-slate-900">{opt.label}</span>
+                        </div>
+                        <div className={`text-sm font-extrabold tabular-nums ${active ? 'text-pink-700' : 'text-emerald-700'}`}>
+                          {formatPKR(Number(opt.price))}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Info grid */}
+          <div className="grid grid-cols-3 gap-2 text-xs">
+            {profile.prepTimeHours && (
+              <div className="rounded-lg bg-amber-50 border border-amber-200 p-2 text-center">
+                <Clock className="h-4 w-4 text-amber-700 mx-auto mb-0.5" />
+                <div className="font-extrabold text-amber-900">{profile.prepTimeHours}h</div>
+                <div className="text-[9px] text-amber-700 font-bold uppercase">Prep</div>
+              </div>
+            )}
+            {profile.advanceOrderHours && (
+              <div className="rounded-lg bg-blue-50 border border-blue-200 p-2 text-center">
+                <Calendar className="h-4 w-4 text-blue-700 mx-auto mb-0.5" />
+                <div className="font-extrabold text-blue-900">{profile.advanceOrderHours}h</div>
+                <div className="text-[9px] text-blue-700 font-bold uppercase">Advance</div>
+              </div>
+            )}
+            {profile.shelfLifeDays && (
+              <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-2 text-center">
+                <Timer className="h-4 w-4 text-emerald-700 mx-auto mb-0.5" />
+                <div className="font-extrabold text-emerald-900">{profile.shelfLifeDays}d</div>
+                <div className="text-[9px] text-emerald-700 font-bold uppercase">Shelf Life</div>
+              </div>
+            )}
+          </div>
+
+          {/* Refrigeration warning */}
+          {profile.requiresRefrigeration && (
+            <div className="rounded-xl bg-cyan-50 border-2 border-cyan-200 p-3 text-xs flex items-start gap-2">
+              <Snowflake className="h-4 w-4 text-cyan-700 shrink-0 mt-0.5" />
+              <div>
+                <strong className="text-cyan-900">Refrigeration required</strong>
+                <div className="text-cyan-800 font-semibold mt-0.5">Store in fridge immediately after purchase</div>
+              </div>
+            </div>
+          )}
+
+          {/* Allergens */}
+          {profile.allergens?.length > 0 && (
+            <div className="rounded-xl bg-amber-50 border-2 border-amber-200 p-3 text-xs">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" />
+                <div>
+                  <strong className="text-amber-900">Allergen Warning</strong>
+                  <div className="text-amber-800 font-semibold mt-0.5">
+                    Contains: {profile.allergens.join(', ')}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Ingredients */}
+          {profile.ingredientList && (
+            <div>
+              <div className="text-[10px] uppercase font-extrabold text-slate-600 mb-1">Ingredients</div>
+              <p className="text-xs text-slate-700 leading-relaxed">{profile.ingredientList}</p>
+            </div>
+          )}
+
+          {/* Serving suggestions */}
+          {profile.servingSuggestions && (
+            <div className="rounded-xl bg-pink-50 border border-pink-200 p-3">
+              <div className="text-[10px] uppercase font-extrabold text-pink-700 mb-1">Serving Suggestion</div>
+              <p className="text-xs text-slate-700 leading-relaxed">{profile.servingSuggestions}</p>
+            </div>
+          )}
+
+          {/* Action buttons */}
+          <div className="grid grid-cols-2 gap-2 pt-3 border-t-2 border-slate-100">
+            {profile.isCakeCustomizable && (
+              <Button
+                variant="secondary"
+                onClick={onCustomize}
+              >
+                <Sparkles className="h-4 w-4" /> Customize
+              </Button>
+            )}
+            <Button
+              size="lg"
+              className={profile.isCakeCustomizable ? 'bg-gradient-to-r from-pink-600 to-fuchsia-700' : 'col-span-2 bg-gradient-to-r from-pink-600 to-fuchsia-700'}
+              onClick={() => onAdd(selectedOpt)}
+            >
+              <Plus className="h-5 w-5" /> Add to Cart
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CUSTOM CAKE MODAL
+// ═══════════════════════════════════════════════════════════════
+function CustomCakeModal({ profile, onClose, onAddToCart, shopPhone, shopName }: any) {
+  const [selectedFlavor, setSelectedFlavor] = useState<string>(profile.defaultFlavor || '');
+  const [selectedSize, setSelectedSize] = useState<string>(profile.defaultSize || '');
+  const [selectedUnit, setSelectedUnit] = useState<string>('piece');
+  const [selectedPrice, setSelectedPrice] = useState<number>(0);
+  const [messageOnCake, setMessageOnCake] = useState('');
+  const [hasPhotoOnCake, setHasPhotoOnCake] = useState(false);
+  const [occasion, setOccasion] = useState('');
+  const [eventDate, setEventDate] = useState('');
+  const [notes, setNotes] = useState('');
+
+  const priceOptions = [
+    { key: 'kg', price: profile.pricePerKg, label: 'Per Kg', emoji: '⚖️' },
+    { key: 'pound', price: profile.pricePerPound, label: 'Per Pound', emoji: '⚖️' },
+    { key: 'piece', price: profile.pricePerPiece, label: 'Per Piece', emoji: '🎂' },
+  ].filter((o) => o.price && Number(o.price) > 0);
+
+  const p = profile.product;
+  const image = p?.images?.[0]?.url || profile.imageUrls?.[0];
+
+  const inquireCustomCake = () => {
+    if (!shopPhone) return toast.error('Shop phone not configured');
+    const phoneClean = shopPhone.replace(/[^0-9]/g, '');
+    const cleanPhone = phoneClean.startsWith('92') ? phoneClean : phoneClean.startsWith('0') ? '92' + phoneClean.slice(1) : '92' + phoneClean;
+
+    const lines = [
+      '🎂 *CUSTOM CAKE INQUIRY*',
+      '',
+      `🍰 Product: *${p?.name}*`,
+      selectedFlavor ? `🎨 Flavor: ${selectedFlavor}` : '',
+      selectedSize ? `📏 Size: ${selectedSize}` : '',
+      selectedPrice > 0 ? `💰 Estimated: ${formatPKR(selectedPrice)}` : '',
+      '',
+      occasion ? `🎉 Occasion: ${occasion}` : '',
+      eventDate ? `📅 Event Date: ${eventDate}` : '',
+      '',
+      messageOnCake ? `✍️ Message on Cake: "${messageOnCake}"` : '',
+      hasPhotoOnCake ? '📸 Photo cake requested' : '',
+      '',
+      notes ? `📝 Notes: ${notes}` : '',
+      '',
+      'Please confirm design and final quote. Shukriya!',
+      shopName ? `— To ${shopName}` : '',
+    ].filter(Boolean);
+
+    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(lines.join('\n'))}`, '_blank');
+    toast.success('Custom cake inquiry sent!');
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div className="w-full sm:max-w-2xl bg-white sm:rounded-3xl rounded-t-3xl shadow-2xl max-h-[95vh] overflow-auto">
+        <div className="sticky top-0 z-10 px-5 py-4 bg-gradient-to-br from-pink-600 to-fuchsia-700 text-white flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="text-[10px] uppercase font-extrabold text-white/80">Customize Cake</div>
+              <h3 className="font-extrabold text-lg truncate">{p?.name}</h3>
+            </div>
+          </div>
+          <button onClick={onClose} className="h-9 w-9 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="p-5 space-y-4">
+          {image && (
+            <div className="rounded-2xl overflow-hidden">
+              <img src={image} alt="" className="w-full h-48 object-cover" />
+            </div>
+          )}
+
+          {/* Size / Unit */}
+          {priceOptions.length > 0 && profile.allowsSizeChoice && (
+            <div>
+              <label className="block text-xs font-extrabold text-slate-700 mb-2">Choose Size *</label>
+              <div className="grid grid-cols-3 gap-2">
+                {priceOptions.map((opt: any) => {
+                  const active = selectedUnit === opt.key;
+                  return (
+                    <button
+                      key={opt.key}
+                      onClick={() => { setSelectedUnit(opt.key); setSelectedPrice(Number(opt.price)); }}
+                      className={[
+                        'p-3 rounded-xl border-2 text-center transition',
+                        active ? 'border-pink-500 bg-pink-50 shadow-md ring-2 ring-pink-200' : 'border-slate-200 bg-white hover:border-pink-300',
+                      ].join(' ')}
+                    >
+                      <div className="text-xl mb-0.5">{opt.emoji}</div>
+                      <div className="text-[10px] font-extrabold text-slate-900">{opt.label}</div>
+                      <div className={`text-xs font-extrabold tabular-nums mt-1 ${active ? 'text-pink-700' : 'text-emerald-700'}`}>
+                        {formatPKR(Number(opt.price))}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Flavor */}
+          {profile.allowsFlavorChoice && (
+            <div>
+              <label className="block text-xs font-extrabold text-slate-700 mb-2">Flavor *</label>
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                {FLAVORS.slice(0, 12).map((f) => {
+                  const active = selectedFlavor === f.value;
+                  return (
+                    <button
+                      key={f.value}
+                      onClick={() => setSelectedFlavor(f.value)}
+                      className={[
+                        'p-2 rounded-xl border-2 transition text-center',
+                        active ? 'border-pink-500 shadow-md ring-2 ring-pink-200 scale-105' : 'border-slate-200 hover:border-pink-300',
+                      ].join(' ')}
+                    >
+                      <div className={`aspect-square bg-gradient-to-br ${f.color} rounded-lg flex items-center justify-center mb-1`}>
+                        <span className="text-xl">{f.emoji}</span>
+                      </div>
+                      <div className="text-[9px] font-extrabold text-slate-900 truncate">{f.label}</div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Occasion */}
+          <div>
+            <label className="block text-xs font-extrabold text-slate-700 mb-2">Occasion</label>
+            <div className="flex flex-wrap gap-1.5">
+              {OCCASIONS.slice(0, 10).map((o) => {
+                const active = occasion === o.value;
+                return (
+                  <button
+                    key={o.value}
+                    onClick={() => setOccasion(o.value)}
+                    className={[
+                      'px-3 py-1.5 rounded-lg border-2 text-xs font-extrabold transition',
+                      active ? 'border-pink-500 bg-pink-50 text-pink-700 shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-pink-300',
+                    ].join(' ')}
+                  >
+                    {o.emoji} {o.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Message on cake */}
+          {profile.allowsMessageOnCake && (
+            <div>
+              <label className="block text-xs font-extrabold text-slate-700 mb-2">
+                Message on Cake ✍️
+                <span className="text-[10px] text-slate-500 font-semibold ml-1">(e.g. "Happy Birthday Ali")</span>
+              </label>
+              <input
+                type="text"
+                maxLength={50}
+                value={messageOnCake}
+                onChange={(e) => setMessageOnCake(e.target.value)}
+                placeholder="Write your custom message here"
+                className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-pink-500"
+              />
+              <div className="text-[10px] text-slate-500 font-semibold text-right mt-0.5">{messageOnCake.length}/50</div>
+            </div>
+          )}
+
+          {/* Photo cake */}
+          {profile.allowsPhotoOnCake && (
+            <button
+              onClick={() => setHasPhotoOnCake(!hasPhotoOnCake)}
+              className={[
+                'w-full p-3 rounded-xl border-2 flex items-center gap-3 transition',
+                hasPhotoOnCake ? 'bg-gradient-to-r from-pink-500 to-fuchsia-600 border-pink-500 text-white shadow-md' : 'bg-white border-slate-200 hover:border-pink-300',
+              ].join(' ')}
+            >
+              <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${hasPhotoOnCake ? 'bg-white/20' : 'bg-pink-100'}`}>
+                📸
+              </div>
+              <div className="flex-1 text-left">
+                <div className={`font-extrabold text-sm ${hasPhotoOnCake ? 'text-white' : 'text-slate-900'}`}>
+                  Photo Cake
+                </div>
+                <div className={`text-[10px] font-semibold ${hasPhotoOnCake ? 'text-white/85' : 'text-slate-500'}`}>
+                  Edible photo printing (+Rs 500 typical)
+                </div>
+              </div>
+              {hasPhotoOnCake && <span className="text-white">✓</span>}
+            </button>
+          )}
+
+          {/* Event date */}
+          <div>
+            <label className="block text-xs font-extrabold text-slate-700 mb-2">
+              Delivery / Event Date
+              {profile.advanceOrderHours && (
+                <span className="text-[10px] text-amber-700 font-bold ml-1">(min {profile.advanceOrderHours}h advance)</span>
+              )}
+            </label>
+            <input
+              type="datetime-local"
+              value={eventDate}
+              onChange={(e) => setEventDate(e.target.value)}
+              className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-pink-500"
+            />
+          </div>
+
+          {/* Additional notes */}
+          <div>
+            <label className="block text-xs font-extrabold text-slate-700 mb-2">Additional Instructions</label>
+            <textarea
+              rows={2}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Design preferences, allergies, decorations, colors..."
+              className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-pink-500 resize-none"
+            />
+          </div>
+
+          {/* Info box */}
+          <div className="rounded-xl bg-amber-50 border-2 border-amber-200 p-3 text-xs flex items-start gap-2">
+            <Info className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" />
+            <div className="text-amber-900">
+              <strong>Note:</strong> Custom cakes require advance notice.
+              Final price and design confirmation will be sent via WhatsApp after your inquiry.
+            </div>
+          </div>
+        </div>
+
+        {/* Sticky footer */}
+        <div className="sticky bottom-0 z-10 bg-white border-t-2 border-slate-200 p-4 grid grid-cols-2 gap-2">
+          <Button
+            variant="secondary"
+            onClick={() => onAddToCart({
+              flavor: selectedFlavor,
+              size: selectedSize,
+              selectedUnit,
+              selectedPrice,
+              messageOnCake,
+              hasPhotoOnCake,
+              occasion,
+              eventDate,
+              notes,
+            })}
+          >
+            <Plus className="h-4 w-4" /> Add to Cart
+          </Button>
+          <Button
+            className="bg-gradient-to-r from-green-500 to-green-600"
+            onClick={inquireCustomCake}
+            disabled={!shopPhone}
+          >
+            <MessageCircle className="h-4 w-4" /> Inquire on WhatsApp
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}

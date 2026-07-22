@@ -1,0 +1,77 @@
+{
+  "common": {
+    "save": "محفوظ کریں",
+    "cancel": "منسوخ",
+    "delete": "حذف",
+    "edit": "ترمیم",
+    "loading": "لوڈ ہو رہا ہے...",
+    "search": "تلاش...",
+    "back": "واپس",
+    "yes": "ہاں",
+    "no": "نہیں",
+    "confirm": "تصدیق کریں",
+    "close": "بند کریں",
+    "refresh": "ریفریش",
+    "viewAll": "سب دیکھیں"
+  },
+  "nav": {
+    "dashboard": "ڈیش بورڈ",
+    "pos": "پی او ایس",
+    "products": "مصنوعات",
+    "customers": "گاہک",
+    "sales": "سیلز",
+    "reports": "رپورٹس",
+    "settings": "ترتیبات",
+    "notifications": "اطلاعات",
+    "profile": "پروفائل",
+    "logout": "لاگ آؤٹ"
+  },
+  "theme": {
+    "title": "ظاہری شکل",
+    "light": "روشن",
+    "dark": "تاریک",
+    "system": "سسٹم"
+  },
+  "language": {
+    "title": "زبان",
+    "english": "English",
+    "urdu": "اردو"
+  },
+  "notifications": {
+    "title": "اطلاعات",
+    "unread": "{{count}} غیر پڑھی",
+    "allCaughtUp": "سب پڑھ لی",
+    "markAllRead": "سب پڑھی نشان زد کریں",
+    "noNotifications": "کوئی اطلاعات نہیں",
+    "empty": "آپ کی اطلاعات یہاں نظر آئیں گی",
+    "viewAll": "تمام اطلاعات دیکھیں",
+    "filters": {
+      "all": "تمام",
+      "unread": "غیر پڑھی",
+      "sales": "سیلز",
+      "inventory": "انوینٹری",
+      "alerts": "الرٹس"
+    },
+    "groups": {
+      "today": "آج",
+      "yesterday": "کل",
+      "thisWeek": "اس ہفتے",
+      "earlier": "پہلے"
+    },
+    "soundOn": "آواز آن",
+    "soundOff": "خاموش"
+  },
+  "profile": {
+    "title": "میرا پروفائل",
+    "editProfile": "پروفائل ترمیم کریں",
+    "accountInfo": "اکاؤنٹ کی معلومات",
+    "businessInfo": "کاروبار کی معلومات",
+    "security": "سیکیورٹی",
+    "changePassword": "پاس ورڈ تبدیل کریں",
+    "fullName": "پورا نام",
+    "email": "ای میل",
+    "phone": "فون",
+    "role": "کردار",
+    "memberSince": "ممبر بنے"
+  }
+}

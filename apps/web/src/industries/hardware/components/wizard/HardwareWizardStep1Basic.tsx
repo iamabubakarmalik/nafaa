@@ -1,0 +1,449 @@
+import { useQuery } from '@tanstack/react-query';
+import {
+  Package, DollarSign, Image as ImageIcon, Sparkles, Star, Eye,
+  TrendingUp, Hash, AlertCircle, Percent, Tag, Award, Zap, Truck,
+  ShieldCheck, Barcode as BarcodeIcon,
+} from 'lucide-react';
+import { Input } from '@core/ui/Input';
+import { UploadDropzone } from '@core/components/uploads';
+import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
+import { brandsApi } from '@modules/inventory/brands/api/brands.api';
+import { tagsApi } from '@modules/inventory/tags/api/tags.api';
+import { hardwareBrandsApi } from '../../api/brands.api';
+import { formatPKRFull } from '@core/lib/format';
+import type { HardwareWizardBasic, CategoryType } from '../../hooks/useHardwareWizard';
+
+interface Props {
+  basic: HardwareWizardBasic;
+  onChange: (patch: Partial<HardwareWizardBasic>) => void;
+  onToggleTag: (id: string) => void;
+  errors: string[];
+}
+
+const CATEGORY_TYPES: { value: CategoryType; label: string; emoji: string; group: string }[] = [
+  { value: 'CEMENT', label: 'Cement', emoji: '🧱', group: 'Building' },
+  { value: 'STEEL_REBAR', label: 'Steel Rebar', emoji: '🔩', group: 'Steel' },
+  { value: 'STEEL_SHEET', label: 'Steel Sheet', emoji: '⚙️', group: 'Steel' },
+  { value: 'STEEL_PIPE', label: 'Steel Pipe', emoji: '🔧', group: 'Steel' },
+  { value: 'BRICKS', label: 'Bricks', emoji: '🧱', group: 'Building' },
+  { value: 'BLOCKS', label: 'Blocks', emoji: '🟫', group: 'Building' },
+  { value: 'SAND', label: 'Sand', emoji: '🏖️', group: 'Aggregates' },
+  { value: 'GRAVEL', label: 'Gravel', emoji: '🪨', group: 'Aggregates' },
+  { value: 'CRUSH', label: 'Crush', emoji: '⛰️', group: 'Aggregates' },
+  { value: 'TILES_FLOOR', label: 'Floor Tiles', emoji: '🟦', group: 'Tiles' },
+  { value: 'TILES_WALL', label: 'Wall Tiles', emoji: '🟩', group: 'Tiles' },
+  { value: 'MARBLE', label: 'Marble', emoji: '⬜', group: 'Tiles' },
+  { value: 'GRANITE', label: 'Granite', emoji: '⬛', group: 'Tiles' },
+  { value: 'SANITARY_WARE', label: 'Sanitary', emoji: '🚽', group: 'Plumbing' },
+  { value: 'PLUMBING_PIPE', label: 'Plumbing Pipe', emoji: '🔵', group: 'Plumbing' },
+  { value: 'PLUMBING_FITTING', label: 'Plumbing Fitting', emoji: '🔗', group: 'Plumbing' },
+  { value: 'ELECTRIC_WIRE', label: 'Electric Wire', emoji: '⚡', group: 'Electric' },
+  { value: 'ELECTRIC_SWITCH', label: 'Switches', emoji: '🔌', group: 'Electric' },
+  { value: 'ELECTRIC_CONDUIT', label: 'Conduits', emoji: '🔦', group: 'Electric' },
+  { value: 'PAINT', label: 'Paint', emoji: '🎨', group: 'Paint' },
+  { value: 'PRIMER', label: 'Primer', emoji: '🖌️', group: 'Paint' },
+  { value: 'THINNER', label: 'Thinner', emoji: '🧴', group: 'Paint' },
+  { value: 'WOOD_LUMBER', label: 'Wood/Lumber', emoji: '🪵', group: 'Wood' },
+  { value: 'PLYWOOD', label: 'Plywood', emoji: '📋', group: 'Wood' },
+  { value: 'MDF', label: 'MDF', emoji: '📄', group: 'Wood' },
+  { value: 'HARDWARE_TOOL', label: 'Tools', emoji: '🔨', group: 'Tools' },
+  { value: 'POWER_TOOL', label: 'Power Tools', emoji: '🪚', group: 'Tools' },
+  { value: 'HAND_TOOL', label: 'Hand Tools', emoji: '🔧', group: 'Tools' },
+  { value: 'FASTENER', label: 'Fasteners', emoji: '🔩', group: 'Tools' },
+  { value: 'ADHESIVE', label: 'Adhesive', emoji: '🧴', group: 'Chemicals' },
+  { value: 'WATERPROOFING', label: 'Waterproofing', emoji: '💧', group: 'Chemicals' },
+  { value: 'INSULATION', label: 'Insulation', emoji: '🧊', group: 'Chemicals' },
+  { value: 'DOOR', label: 'Doors', emoji: '🚪', group: 'Fixtures' },
+  { value: 'WINDOW', label: 'Windows', emoji: '🪟', group: 'Fixtures' },
+  { value: 'GLASS', label: 'Glass', emoji: '🪞', group: 'Fixtures' },
+  { value: 'ALUMINUM', label: 'Aluminum', emoji: '🥈', group: 'Metal' },
+  { value: 'IRON_FABRICATION', label: 'Iron Fab', emoji: '⚒️', group: 'Metal' },
+  { value: 'ROOFING', label: 'Roofing', emoji: '🏠', group: 'Fixtures' },
+  { value: 'SAFETY_EQUIPMENT', label: 'Safety', emoji: '🦺', group: 'Safety' },
+  { value: 'OTHER', label: 'Other', emoji: '📦', group: 'Other' },
+];
+
+const UNIT_PRESETS = [
+  { value: 'bag', label: 'Bag', hint: '🛍️' },
+  { value: 'ton', label: 'Ton', hint: '⚖️' },
+  { value: 'kg', label: 'KG', hint: '⚖️' },
+  { value: 'pcs', label: 'Piece', hint: '🔢' },
+  { value: 'bundle', label: 'Bundle', hint: '📦' },
+  { value: 'meter', label: 'Meter', hint: '📏' },
+  { value: 'feet', label: 'Feet', hint: '📏' },
+  { value: 'sqft', label: 'Sq Ft', hint: '📐' },
+  { value: 'sqm', label: 'Sq M', hint: '📐' },
+  { value: 'cft', label: 'Cu Ft', hint: '📦' },
+  { value: 'liter', label: 'Liter', hint: '🥛' },
+  { value: 'gallon', label: 'Gallon', hint: '🪣' },
+  { value: 'sheet', label: 'Sheet', hint: '📄' },
+  { value: 'box', label: 'Box', hint: '📦' },
+  { value: 'trip', label: 'Trip', hint: '🚚' },
+];
+
+export function HardwareWizardStep1Basic({ basic, onChange, onToggleTag, errors }: Props) {
+  const { data: categories = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list });
+  const { data: brands = [] } = useQuery({ queryKey: ['brands'], queryFn: () => brandsApi.list() });
+  const { data: allTags = [] } = useQuery({ queryKey: ['tags'], queryFn: tagsApi.list });
+  const { data: hardwareBrands = [] } = useQuery({
+    queryKey: ['hardware-brands-for-wizard'],
+    queryFn: () => hardwareBrandsApi.list({ active: true }),
+  });
+
+  const cost = Number(basic.costPrice || 0);
+  const sale = Number(basic.salePrice || 0);
+  const profit = sale - cost;
+  const margin = sale > 0 ? (profit / sale) * 100 : 0;
+  const isLoss = cost > 0 && sale > 0 && profit < 0;
+
+  // Group category types
+  const groupedCategories = CATEGORY_TYPES.reduce((acc, c) => {
+    if (!acc[c.group]) acc[c.group] = [];
+    acc[c.group].push(c);
+    return acc;
+  }, {} as Record<string, typeof CATEGORY_TYPES>);
+
+  return (
+    <div className="space-y-5">
+      {errors.length > 0 && (
+        <div className="rounded-2xl bg-rose-50 border-2 border-rose-200 p-3 flex items-start gap-2">
+          <AlertCircle className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
+          <div className="text-xs text-rose-900">
+            <div className="font-extrabold mb-0.5">Fix these before Next:</div>
+            <ul className="list-disc pl-4 space-y-0.5">
+              {errors.map((e, i) => <li key={i}>{e}</li>)}
+            </ul>
+          </div>
+        </div>
+      )}
+
+      {/* Category Type Selector */}
+      <section className="rounded-2xl border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-white p-5 space-y-4">
+        <SectionHeader icon={Package} title="Category Type *" desc="Ye kis cheez ka product hai? — Step 2 specs isi se dependent hain" tone="amber" />
+        <div className="space-y-3">
+          {Object.entries(groupedCategories).map(([group, items]) => (
+            <div key={group}>
+              <div className="text-[10px] uppercase font-extrabold text-slate-600 mb-1.5">{group}</div>
+              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-1.5">
+                {items.map((c) => {
+                  const active = basic.categoryType === c.value;
+                  return (
+                    <button
+                      key={c.value} type="button"
+                      onClick={() => onChange({ categoryType: c.value })}
+                      className={[
+                        'p-2 rounded-lg border-2 text-center transition',
+                        active
+                          ? 'border-amber-600 bg-amber-600 text-white shadow-md'
+                          : 'border-slate-200 bg-white text-slate-700 hover:border-amber-400',
+                      ].join(' ')}
+                    >
+                      <div className="text-lg">{c.emoji}</div>
+                      <div className="text-[9px] font-extrabold mt-0.5">{c.label}</div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Identity */}
+      <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-4">
+        <SectionHeader icon={Package} title="Product Identity" desc="Naam, brand, SKU" />
+        <Input
+          label="Product Name *"
+          value={basic.name}
+          onChange={(e) => onChange({ name: e.target.value })}
+          placeholder="e.g. Fauji Cement OPC 50kg, Amreli Rebar 12mm"
+          hint="POS aur receipt par dikhega"
+        />
+        <div>
+          <label className="block text-sm font-bold text-slate-700 mb-1.5">Description</label>
+          <textarea
+            rows={2}
+            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
+            value={basic.description}
+            onChange={(e) => onChange({ description: e.target.value })}
+            placeholder="Product specifications, uses..."
+          />
+        </div>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-1.5">Category</label>
+            <select
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm focus:outline-none focus:border-amber-500"
+              value={basic.categoryId}
+              onChange={(e) => onChange({ categoryId: e.target.value })}
+            >
+              <option value="">Select category</option>
+              {categories.map((c: any) => (<option key={c.id} value={c.id}>{c.name}</option>))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-1.5">Hardware Brand (Fauji/Lucky/DG etc)</label>
+            <select
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm focus:outline-none focus:border-amber-500"
+              value={basic.hardwareBrandId}
+              onChange={(e) => onChange({ hardwareBrandId: e.target.value })}
+            >
+              <option value="">Select hardware brand</option>
+              {hardwareBrands.map((b) => (
+                <option key={b.id} value={b.id}>{b.name} ({b.tier})</option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-1.5">Generic Brand</label>
+            <select
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm focus:outline-none focus:border-amber-500"
+              value={basic.brandId}
+              onChange={(e) => onChange({ brandId: e.target.value })}
+            >
+              <option value="">Select brand</option>
+              {brands.map((b) => (<option key={b.id} value={b.id}>{b.name}</option>))}
+            </select>
+          </div>
+          <Input
+            label="SKU"
+            value={basic.sku}
+            onChange={(e) => onChange({ sku: e.target.value })}
+            placeholder="FAUJI-OPC-50"
+            leftIcon={<Hash className="h-4 w-4 text-slate-400" />}
+          />
+        </div>
+        <Input
+          label="Barcode"
+          value={basic.barcode}
+          onChange={(e) => onChange({ barcode: e.target.value })}
+          placeholder="Scan or type"
+          leftIcon={<BarcodeIcon className="h-4 w-4 text-slate-400" />}
+        />
+
+        <div>
+          <label className="block text-sm font-bold text-slate-700 mb-2">Selling Unit *</label>
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+            {UNIT_PRESETS.map((u) => {
+              const active = basic.unit === u.value;
+              return (
+                <button
+                  key={u.value} type="button"
+                  onClick={() => onChange({ unit: u.value })}
+                  className={[
+                    'h-16 rounded-xl border-2 text-xs font-extrabold transition flex flex-col items-center justify-center gap-1',
+                    active
+                      ? 'border-amber-600 bg-amber-600 text-white shadow-md'
+                      : 'border-slate-200 bg-white text-slate-700 hover:border-amber-400',
+                  ].join(' ')}
+                >
+                  <span className="text-lg">{u.hint}</span>
+                  <span>{u.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section className="rounded-2xl border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-5 space-y-4">
+        <SectionHeader icon={DollarSign} title={`Base Pricing (per ${basic.unit || 'unit'})`}
+          desc="Step 3 mein aap bulk tier pricing add kar sakte ho" tone="emerald" />
+        <div className="grid sm:grid-cols-3 gap-4">
+          <Input
+            label="Cost (PKR)"
+            type="number" step="0.01"
+            value={basic.costPrice}
+            onChange={(e) => onChange({ costPrice: e.target.value === '' ? '' : Number(e.target.value) })}
+            placeholder="0"
+            hint="Purchase rate"
+          />
+          <Input
+            label="Retail Sale (PKR) *"
+            type="number" step="0.01"
+            value={basic.salePrice}
+            onChange={(e) => onChange({ salePrice: e.target.value === '' ? '' : Number(e.target.value) })}
+            placeholder="0"
+            hint="Walk-in customer rate"
+          />
+          <Input
+            label="Wholesale (PKR)"
+            type="number" step="0.01"
+            value={basic.wholesalePrice}
+            onChange={(e) => onChange({ wholesalePrice: e.target.value === '' ? '' : Number(e.target.value) })}
+            placeholder="Optional"
+            hint="B2B / contractor rate"
+          />
+        </div>
+
+        {sale > 0 && cost > 0 && (
+          <div className={[
+            'rounded-xl border-2 p-3 flex items-center justify-between',
+            isLoss ? 'bg-rose-50 border-rose-300'
+              : margin >= 15 ? 'bg-emerald-50 border-emerald-300'
+              : 'bg-amber-50 border-amber-300',
+          ].join(' ')}>
+            <div className="flex items-center gap-2">
+              <TrendingUp className={['h-5 w-5',
+                isLoss ? 'text-rose-700' : margin >= 15 ? 'text-emerald-700' : 'text-amber-700'].join(' ')} />
+              <div>
+                <div className={['text-[10px] uppercase tracking-wider font-extrabold',
+                  isLoss ? 'text-rose-700' : margin >= 15 ? 'text-emerald-700' : 'text-amber-700'].join(' ')}>
+                  {isLoss ? '⚠️ Loss Alert' : `Profit per ${basic.unit || 'unit'}`}
+                </div>
+                <div className={['text-lg font-extrabold tabular-nums leading-tight',
+                  isLoss ? 'text-rose-900' : 'text-slate-900'].join(' ')}>
+                  {formatPKRFull(profit)}
+                </div>
+              </div>
+            </div>
+            <div className={['text-2xl font-extrabold tabular-nums',
+              isLoss ? 'text-rose-700' : margin >= 15 ? 'text-emerald-700' : 'text-amber-700'].join(' ')}>
+              {margin.toFixed(1)}%
+            </div>
+          </div>
+        )}
+
+        <Input
+          label="Tax Rate (%)"
+          type="number" step="0.01"
+          value={basic.taxRate}
+          onChange={(e) => onChange({ taxRate: e.target.value === '' ? '' : Number(e.target.value) })}
+          placeholder="0"
+          hint="GST/sales tax"
+          leftIcon={<Percent className="h-4 w-4 text-slate-400" />}
+        />
+      </section>
+
+      {/* Stock */}
+      <section className="rounded-2xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-white p-5 space-y-4">
+        <SectionHeader icon={Package} title="Initial Stock" desc="Ab kitna stock hai godown mein?" tone="blue" />
+        <div className="grid sm:grid-cols-2 gap-4">
+          <Input
+            label={`Current Stock (${basic.unit || 'units'})`}
+            type="number" step="0.01"
+            value={basic.initialStock}
+            onChange={(e) => onChange({ initialStock: e.target.value === '' ? '' : Number(e.target.value) })}
+            placeholder="0"
+          />
+          <Input
+            label="Low Stock Alert"
+            type="number" step="1"
+            value={basic.lowStockAlert}
+            onChange={(e) => onChange({ lowStockAlert: e.target.value === '' ? '' : Number(e.target.value) })}
+            placeholder="10"
+            hint="Neeche is se → alert"
+          />
+        </div>
+      </section>
+
+      {/* Product Flags */}
+      <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-3">
+        <SectionHeader icon={Sparkles} title="Product Flags" desc="Featured, best seller, delivery requirements" />
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+          {[
+            { key: 'isActive', label: 'Active', icon: Eye, tone: 'emerald' },
+            { key: 'isFeatured', label: 'Featured', icon: Star, tone: 'amber' },
+            { key: 'isBestSeller', label: 'Best Seller', icon: TrendingUp, tone: 'emerald' },
+            { key: 'isFastMoving', label: 'Fast Moving', icon: Zap, tone: 'red' },
+            { key: 'requiresTruck', label: 'Needs Truck', icon: Truck, tone: 'slate' },
+            { key: 'hasIsoCertification', label: 'ISO Certified', icon: ShieldCheck, tone: 'blue' },
+          ].map((flag) => {
+            const active = (basic as any)[flag.key];
+            const Icon = flag.icon;
+            return (
+              <label key={flag.key} className={[
+                'flex items-center gap-3 cursor-pointer p-3 rounded-xl transition border-2',
+                active ? `border-${flag.tone}-500 bg-${flag.tone}-50` : 'border-transparent hover:border-slate-200 hover:bg-slate-50',
+              ].join(' ')}>
+                <input type="checkbox" checked={active}
+                  onChange={(e) => onChange({ [flag.key]: e.target.checked } as any)}
+                  className="h-5 w-5 rounded" />
+                <Icon className={`h-5 w-5 ${active ? `text-${flag.tone}-600` : 'text-slate-400'}`} />
+                <span className="text-sm font-extrabold text-slate-900">{flag.label}</span>
+              </label>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Tags */}
+      {allTags.length > 0 && (
+        <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-3">
+          <SectionHeader icon={Tag} title="Tags" desc="Organize products" />
+          <div className="flex flex-wrap gap-2">
+            {allTags.map((t) => {
+              const active = basic.tagIds?.includes(t.id);
+              return (
+                <button key={t.id} type="button" onClick={() => onToggleTag(t.id)}
+                  className={['inline-flex items-center gap-2 px-3 py-1.5 rounded-full border-2 text-sm font-bold transition',
+                    active ? 'shadow-sm' : 'opacity-60 hover:opacity-100'].join(' ')}
+                  style={{
+                    backgroundColor: active ? `${t.color}20` : '#fff',
+                    borderColor: active ? t.color : '#e2e8f0',
+                    color: active ? t.color : '#475569',
+                  }}>
+                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: t.color }} />
+                  {t.name}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* Images */}
+      <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-3">
+        <SectionHeader icon={ImageIcon} title="Product Images" desc="Pehla image primary" />
+        <UploadDropzone
+          purpose="product-image"
+          maxFiles={10}
+          onUploaded={(records) => {
+            onChange({ imageUrls: [...(basic.imageUrls ?? []), ...records.map((r) => r.url)] });
+          }}
+          hint="Drop up to 10 images"
+        />
+        {basic.imageUrls.length > 0 && (
+          <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+            {basic.imageUrls.map((url, idx) => (
+              <div key={url + idx} className="relative group aspect-square rounded-xl overflow-hidden border-2 border-slate-200">
+                <img src={url} alt={`hw-${idx}`} className="w-full h-full object-cover" />
+                {idx === 0 && (
+                  <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-amber-600 text-white text-[9px] font-extrabold">PRIMARY</div>
+                )}
+                <button
+                  onClick={() => onChange({ imageUrls: basic.imageUrls.filter((_, i) => i !== idx) })}
+                  className="absolute top-1 right-1 h-6 w-6 rounded-full bg-slate-900/80 hover:bg-rose-600 text-white opacity-0 group-hover:opacity-100 transition flex items-center justify-center"
+                >×</button>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function SectionHeader({ icon: Icon, title, desc, tone = 'slate' }: any) {
+  const tones: Record<string, string> = {
+    slate: 'from-slate-500 to-slate-700',
+    emerald: 'from-emerald-500 to-emerald-700',
+    amber: 'from-amber-500 to-orange-700',
+    blue: 'from-blue-500 to-blue-700',
+  };
+  return (
+    <div className="flex items-center gap-3 pb-2 border-b-2 border-slate-100">
+      <div className={['h-10 w-10 rounded-xl text-white flex items-center justify-center shadow-md bg-gradient-to-br',
+        tones[tone] ?? tones.slate].join(' ')}>
+        <Icon className="h-5 w-5" />
+      </div>
+      <div>
+        <h3 className="font-extrabold text-slate-900 text-base leading-tight">{title}</h3>
+        <p className="text-xs text-slate-500 font-semibold">{desc}</p>
+      </div>
+    </div>
+  );
+}

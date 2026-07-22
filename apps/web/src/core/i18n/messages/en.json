@@ -1,0 +1,77 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "loading": "Loading...",
+    "search": "Search...",
+    "back": "Back",
+    "yes": "Yes",
+    "no": "No",
+    "confirm": "Confirm",
+    "close": "Close",
+    "refresh": "Refresh",
+    "viewAll": "View all"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "pos": "POS",
+    "products": "Products",
+    "customers": "Customers",
+    "sales": "Sales",
+    "reports": "Reports",
+    "settings": "Settings",
+    "notifications": "Notifications",
+    "profile": "Profile",
+    "logout": "Logout"
+  },
+  "theme": {
+    "title": "Appearance",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "language": {
+    "title": "Language",
+    "english": "English",
+    "urdu": "اردو"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "unread": "{{count}} unread",
+    "allCaughtUp": "All caught up",
+    "markAllRead": "Mark all read",
+    "noNotifications": "No notifications",
+    "empty": "Your notifications will appear here",
+    "viewAll": "View all notifications",
+    "filters": {
+      "all": "All",
+      "unread": "Unread",
+      "sales": "Sales",
+      "inventory": "Inventory",
+      "alerts": "Alerts"
+    },
+    "groups": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "thisWeek": "This Week",
+      "earlier": "Earlier"
+    },
+    "soundOn": "Sound On",
+    "soundOff": "Muted"
+  },
+  "profile": {
+    "title": "My Profile",
+    "editProfile": "Edit Profile",
+    "accountInfo": "Account Information",
+    "businessInfo": "Business Info",
+    "security": "Security",
+    "changePassword": "Change Password",
+    "fullName": "Full Name",
+    "email": "Email",
+    "phone": "Phone",
+    "role": "Role",
+    "memberSince": "Member Since"
+  }
+}
