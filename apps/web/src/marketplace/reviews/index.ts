@@ -1,2 +1,0 @@
-// Marketplace module: reviews
-export {};

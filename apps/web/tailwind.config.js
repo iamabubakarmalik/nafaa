@@ -5,33 +5,108 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Brand — Pakistan Emerald
         brand: {
-          50: '#f0fdf6',
-          100: '#dcfce9',
-          200: '#bbf7d3',
-          300: '#86efb1',
-          400: '#4ade87',
-          500: '#22c562',
-          600: '#16a34a',
-          700: '#15803d',
-          800: '#166534',
-          900: '#14532d',
-          950: '#052e16',
+          50: '#ecfdf5',
+          100: '#d1fae5',
+          200: '#a7f3d0',
+          300: '#6ee7b7',
+          400: '#34d399',
+          500: '#10b981',
+          600: '#059669',
+          700: '#047857',
+          800: '#065f46',
+          900: '#064e3b',
+          950: '#022c22',
         },
+        // Accent — Warm Amber (Pakistan gold vibe)
         accent: {
+          50: '#fffbeb',
+          100: '#fef3c7',
+          200: '#fde68a',
+          300: '#fcd34d',
           400: '#fbbf24',
           500: '#f59e0b',
           600: '#d97706',
+          700: '#b45309',
+          800: '#92400e',
+          900: '#78350f',
+        },
+        // Rose — for danger, urgent, negative
+        rose: {
+          50: '#fff1f2',
+          500: '#f43f5e',
+          600: '#e11d48',
+          700: '#be123c',
+        },
+        // Info blue
+        info: {
+          50: '#eff6ff',
+          500: '#3b82f6',
+          600: '#2563eb',
+          700: '#1d4ed8',
+        },
+        // Success + warning shortcuts
+        success: {
+          50: '#f0fdf4',
+          500: '#22c55e',
+          600: '#16a34a',
+          700: '#15803d',
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        urdu: ['Noto Nastaliq Urdu', 'serif'],
+        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        urdu: ['"Noto Nastaliq Urdu"', 'serif'],
+        mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+        display: ['Inter', 'system-ui', 'sans-serif'],
+      },
+      fontSize: {
+        '2xs': ['0.6875rem', { lineHeight: '1rem' }],
       },
       boxShadow: {
-        soft: '0 10px 40px -10px rgba(0, 0, 0, 0.15)',
+        'soft': '0 4px 20px -6px rgba(15, 23, 42, 0.1)',
+        'soft-lg': '0 10px 40px -10px rgba(15, 23, 42, 0.15)',
+        'soft-xl': '0 20px 60px -12px rgba(15, 23, 42, 0.2)',
+        'brand': '0 8px 24px -6px rgba(16, 185, 129, 0.35)',
+        'brand-lg': '0 12px 40px -8px rgba(16, 185, 129, 0.4)',
+        'inset-soft': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)',
+      },
+      backgroundImage: {
+        'brand-gradient': 'linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%)',
+        'sunset-gradient': 'linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%)',
+        'sky-gradient': 'linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)',
+        'mesh-emerald': 'radial-gradient(at 20% 20%, #10b981 0px, transparent 50%), radial-gradient(at 80% 80%, #f59e0b 0px, transparent 50%)',
+      },
+      borderRadius: {
+        'xs': '0.25rem',
+        '4xl': '2rem',
+      },
+      animation: {
+        'fade-in': 'fadeIn 0.2s ease-out',
+        'slide-up': 'slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+        'slide-down': 'slideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+        'scale-in': 'scaleIn 0.15s ease-out',
+        'shimmer': 'shimmer 1.5s ease-in-out infinite',
+        'pulse-soft': 'pulseSoft 2s ease-in-out infinite',
+        'bounce-in': 'bounceIn 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+        'wiggle': 'wiggle 0.5s ease-in-out',
+      },
+      keyframes: {
+        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+        slideUp: { '0%': { transform: 'translateY(8px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
+        slideDown: { '0%': { transform: 'translateY(-8px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
+        scaleIn: { '0%': { transform: 'scale(0.95)', opacity: '0' }, '100%': { transform: 'scale(1)', opacity: '1' } },
+        shimmer: { '0%': { backgroundPosition: '-200% 0' }, '100%': { backgroundPosition: '200% 0' } },
+        pulseSoft: { '0%,100%': { opacity: '1' }, '50%': { opacity: '0.7' } },
+        bounceIn: { '0%': { transform: 'scale(0.3)', opacity: '0' }, '50%': { transform: 'scale(1.05)' }, '100%': { transform: 'scale(1)', opacity: '1' } },
+        wiggle: { '0%,100%': { transform: 'rotate(0deg)' }, '25%': { transform: 'rotate(-3deg)' }, '75%': { transform: 'rotate(3deg)' } },
+      },
+      backdropBlur: {
+        xs: '2px',
       },
     },
   },
-  plugins: [],
+  plugins: [
+    require('tailwindcss-animate'),
+  ],
 };

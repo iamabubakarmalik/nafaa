@@ -13,7 +13,6 @@ export default defineConfig({
       '@modules': path.resolve(__dirname, './src/modules'),
       '@industries': path.resolve(__dirname, './src/industries'),
       '@integrations': path.resolve(__dirname, './src/integrations'),
-      '@marketplace': path.resolve(__dirname, './src/marketplace'),
     },
   },
   server: {

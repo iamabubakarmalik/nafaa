@@ -4,6 +4,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PrismaModule } from '../../prisma/prisma.module';
 import { SmsModule } from '../../modules/sms/sms.module';
 import { EmailModule } from '../../modules/email/email.module';
+import { CustomerGoogleStrategy } from './strategies/customer-google.strategy';
 import { MarketplaceAuthController } from './auth.controller';
 import { MarketplaceAuthService } from './auth.service';
 import { CustomerAuthGuard } from '../_shared/guards/customer-auth.guard';
@@ -25,7 +26,7 @@ import { CustomerAuthGuard } from '../_shared/guards/customer-auth.guard';
     }),
   ],
   controllers: [MarketplaceAuthController],
-  providers: [MarketplaceAuthService, CustomerAuthGuard],
+  providers: [MarketplaceAuthService, CustomerGoogleStrategy, CustomerAuthGuard],
   exports: [MarketplaceAuthService, JwtModule],
 })
 export class MarketplaceAuthModule {}

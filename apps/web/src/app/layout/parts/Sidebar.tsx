@@ -104,6 +104,7 @@ const coreNavGroups: NavGroup[] = [
     color: '#8b5cf6',
     order: 88,
     items: [
+      { to: '/marketplace/settings', label: 'Publish Settings', icon: Globe, permission: PERMISSIONS.SETTINGS_VIEW },
       { to: '/marketplace/dashboard', label: 'Marketplace Dashboard', icon: Store, comingSoon: true },
       { to: '/marketplace/orders', label: 'Customer Orders', icon: ShoppingCart, comingSoon: true },
       { to: '/marketplace/storefront', label: 'My Storefront', icon: Globe, comingSoon: true },

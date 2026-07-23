@@ -87,6 +87,7 @@ import { AdminModule } from './admin/admin.module';
 
 // ─── Marketplace ──────────────────────────────────────────
 import { MarketplaceModule } from './marketplace/marketplace.module';
+import { PublishingModule } from './marketplace/publishing/publishing.module';
 
 // ─── Integrations ─────────────────────────────────────────
 import { StripeModule } from './integrations/stripe/stripe.module';
@@ -195,6 +196,7 @@ import { AiAssistantModule } from './marketplace/ai-assistant/ai-assistant.modul
     IndustriesModule,
     AdminModule,
     MarketplaceModule,
+    PublishingModule,
 
     // ─── Integrations ───
     StripeModule,

@@ -1,28 +1,44 @@
 import {
-  Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Req, UseGuards,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  Req,
+  Res,
+  UseGuards,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import type { Request } from 'express';
+import { ConfigService } from '@nestjs/config';
+import type { Request, Response } from 'express';
+import { MarketplaceAuthService } from './auth.service';
 import { Public } from '../../modules/auth/decorators/public.decorator';
 import { CustomerAuthGuard } from '../_shared/guards/customer-auth.guard';
 import { GetCustomer } from '../_shared/decorators/get-customer.decorator';
-import { MarketplaceAuthService } from './auth.service';
 import { AuthenticatedCustomer } from './interfaces/customer-jwt.interface';
-import { ChangePasswordDto } from './dto/change-password.dto';
-import { LoginCustomerDto } from './dto/login-customer.dto';
-import { RefreshTokenDto } from './dto/refresh-token.dto';
-import { RegisterCustomerDto } from './dto/register-customer.dto';
-import { ResetPasswordDto } from './dto/reset-password.dto';
 import { SendOtpDto } from './dto/send-otp.dto';
-import { SetPasswordDto } from './dto/set-password.dto';
+import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { RegisterCustomerDto } from './dto/register-customer.dto';
+import { LoginCustomerDto } from './dto/login-customer.dto';
 import { SocialLoginDto } from './dto/social-login.dto';
 import { UpdateCustomerProfileDto } from './dto/update-profile.dto';
-import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { SetPasswordDto } from './dto/set-password.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @ApiTags('Marketplace / Auth')
 @Controller('marketplace/auth')
 export class MarketplaceAuthController {
-  constructor(private readonly svc: MarketplaceAuthService) {}
+  constructor(
+    private readonly svc: MarketplaceAuthService,
+    private readonly config: ConfigService,
+  ) {}
 
   // ─── OTP FLOW ───
   @Public()
@@ -48,7 +64,7 @@ export class MarketplaceAuthController {
   @Public()
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Register customer with password (phone must be verified beforehand)' })
+  @ApiOperation({ summary: 'Register customer with password' })
   register(@Body() dto: RegisterCustomerDto, @Req() req: Request) {
     return this.svc.registerWithPassword(dto, {
       userAgent: req.headers['user-agent'],
@@ -67,11 +83,11 @@ export class MarketplaceAuthController {
     });
   }
 
-  // ─── SOCIAL ───
+  // ─── SOCIAL (id_token flow — mobile apps) ───
   @Public()
   @Post('social')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Login with Google / Facebook / Apple' })
+  @ApiOperation({ summary: 'Login with Google / Facebook / Apple (id_token)' })
   social(@Body() dto: SocialLoginDto, @Req() req: Request) {
     return this.svc.socialLogin(dto, {
       userAgent: req.headers['user-agent'],
@@ -135,7 +151,7 @@ export class MarketplaceAuthController {
     return this.svc.resetPasswordWithOtp(dto.phone, dto.code, dto.newPassword);
   }
 
-  // ─── SESSIONS / SECURITY ───
+  // ─── SESSIONS ───
   @UseGuards(CustomerAuthGuard)
   @ApiBearerAuth()
   @Get('sessions')
@@ -164,5 +180,43 @@ export class MarketplaceAuthController {
   @HttpCode(HttpStatus.OK)
   deleteAccount(@GetCustomer() c: AuthenticatedCustomer, @Body() body: { reason?: string }) {
     return this.svc.deleteAccount(c.sub, body?.reason);
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // GOOGLE OAUTH REDIRECT FLOW (web)
+  // ═══════════════════════════════════════════════════════════
+
+  @Public()
+  @Get('google')
+  @UseGuards(AuthGuard('customer-google'))
+  @ApiOperation({ summary: 'Initiate Google OAuth flow' })
+  googleLogin() {
+    // Passport handles the redirect to Google
+  }
+
+  @Public()
+  @Get('google/callback')
+  @UseGuards(AuthGuard('customer-google'))
+  @ApiOperation({ summary: 'Google OAuth callback' })
+  async googleCallback(@Req() req: Request & { user: any }, @Res() res: Response) {
+    const marketplaceUrl =
+      this.config.get<string>('MARKETPLACE_URL') ?? 'http://localhost:5175';
+
+    try {
+      const result = await this.svc.handleGoogleCallback(req.user, {
+        userAgent: req.headers['user-agent'],
+        ip: req.ip,
+      });
+
+      const redirectUrl =
+        `${marketplaceUrl}/auth/google/success` +
+        `?access=${encodeURIComponent(result.tokens.accessToken)}` +
+        `&refresh=${encodeURIComponent(result.tokens.refreshToken)}` +
+        `&isNew=${result.isNewUser ? 1 : 0}`;
+      return res.redirect(redirectUrl);
+    } catch (err: any) {
+      const msg = encodeURIComponent(err?.message || 'Google login failed');
+      return res.redirect(`${marketplaceUrl}/auth/google/error?message=${msg}`);
+    }
   }
 }

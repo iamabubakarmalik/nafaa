@@ -8,6 +8,10 @@ import { useLocaleStore } from '@core/stores/locale.store';
 // ─── Notifications ─────────────────────────────────────────────
 import NotificationsPage from '@modules/notifications/NotificationsPage';
 
+
+// ─── Marketplace Publishing ────────────────────────────────────
+import MarketplaceSettingsPage from '@modules/organization/marketplace-settings/pages/MarketplaceSettingsPage';
+
 // ─── Auth ──────────────────────────────────────────────────────
 import LoginPage from '@modules/auth/pages/LoginPage';
 import RegisterPage from '@modules/auth/pages/RegisterPage';
@@ -490,6 +494,9 @@ export default function App() {
 
                   {/* ── Settings & System ────────────────────────── */}
                   <Route path="/settings" element={secure(PERMISSIONS.SETTINGS_VIEW, <SettingsPage />)} />
+
+                  {/* ── Marketplace Publishing ─────────────────── */}
+                  <Route path="/marketplace/settings" element={secure(PERMISSIONS.SETTINGS_VIEW, <MarketplaceSettingsPage />)} />
                   <Route path="/barcode-labels" element={secure(PERMISSIONS.BARCODE_LABELS_VIEW, <BarcodeLabelsPage />)} />
                   <Route path="/shops" element={secure(PERMISSIONS.SHOPS_VIEW, <ShopsPage />)} />
                   <Route path="/activity-log" element={secure(PERMISSIONS.ACTIVITY_VIEW, <ActivityLogPage />)} />

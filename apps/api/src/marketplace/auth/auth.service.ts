@@ -50,7 +50,6 @@ export class MarketplaceAuthService {
   async sendOtp(dto: SendOtpDto) {
     const phone = normalizePkPhone(dto.phone);
 
-    // Throttle
     const recent = await this.prisma.customerOtpCode.findFirst({
       where: {
         phone,
@@ -66,7 +65,6 @@ export class MarketplaceAuthService {
       throw new BadRequestException(`Please wait ${waitSec}s before requesting a new code`);
     }
 
-    // Business rule per purpose
     if (dto.purpose === CustomerOtpPurpose.LOGIN) {
       const existing = await this.prisma.marketplaceCustomer.findUnique({ where: { phone } });
       if (!existing) throw new NotFoundException('Aap ka account nahi mila — pehle register karain');
@@ -131,13 +129,11 @@ export class MarketplaceAuthService {
       throw new BadRequestException('Ghalat code');
     }
 
-    // Mark verified
     await this.prisma.customerOtpCode.update({
       where: { id: otp.id },
       data: { verifiedAt: new Date() },
     });
 
-    // Dispatch per purpose
     if (dto.purpose === CustomerOtpPurpose.LOGIN) {
       return this.loginAfterOtp(phone, meta);
     }
@@ -195,7 +191,6 @@ export class MarketplaceAuthService {
       if (referrer) referredById = referrer.id;
     }
 
-    // Unique referral code
     let referralCode = generateCustomerReferralCode(data.fullName);
     for (let i = 0; i < 5; i++) {
       const dup = await this.prisma.marketplaceCustomer.findUnique({ where: { referralCode } });
@@ -217,14 +212,13 @@ export class MarketplaceAuthService {
       },
     });
 
-    // Referrer bonus (optional — 100 loyalty points)
     if (referredById) {
       await this.prisma.customerWalletTxn.create({
         data: {
           customerId: referredById,
           type: 'REFERRAL_BONUS',
           amount: 100,
-          balanceAfter: 0, // will be recomputed
+          balanceAfter: 0,
           reason: `Referred ${data.fullName}`,
           referenceType: 'REFERRAL',
           referenceId: customer.id,
@@ -321,11 +315,10 @@ export class MarketplaceAuthService {
   }
 
   // ═══════════════════════════════════════════════════════════
-  // SOCIAL LOGIN
+  // SOCIAL LOGIN (id_token flow)
   // ═══════════════════════════════════════════════════════════
 
   async socialLogin(dto: SocialLoginDto, meta?: { userAgent?: string; ip?: string }) {
-    // For now only Google is fully implemented via tokeninfo
     if (dto.provider !== 'GOOGLE') {
       throw new BadRequestException(`${dto.provider} login abhi support nahi karta`);
     }
@@ -357,7 +350,7 @@ export class MarketplaceAuthService {
       }
       customer = await this.prisma.marketplaceCustomer.create({
         data: {
-          phone: `pending_${crypto.randomBytes(6).toString('hex')}`, // customer must set later
+          phone: `pending_${crypto.randomBytes(6).toString('hex')}`,
           fullName: payload.name ?? email.split('@')[0],
           email,
           emailVerified: true,
@@ -382,6 +375,85 @@ export class MarketplaceAuthService {
     });
 
     return this.buildAuthResponse(customer.id, meta);
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // GOOGLE OAUTH REDIRECT FLOW (passport-google-oauth20)
+  // ═══════════════════════════════════════════════════════════
+
+  async handleGoogleCallback(
+    profile: {
+      googleId: string;
+      email: string;
+      emailVerified: boolean;
+      fullName: string;
+      avatarUrl?: string;
+    },
+    meta?: { userAgent?: string; ip?: string },
+  ) {
+    let customer = await this.prisma.marketplaceCustomer.findFirst({
+      where: {
+        OR: [
+          { googleId: profile.googleId },
+          { email: profile.email.toLowerCase() },
+        ],
+      },
+    });
+
+    let isNewUser = false;
+
+    if (!customer) {
+      isNewUser = true;
+      const placeholderPhone = `pending_${crypto.randomBytes(6).toString('hex')}`;
+
+      let referralCode = generateCustomerReferralCode(profile.fullName);
+      for (let i = 0; i < 5; i++) {
+        const dup = await this.prisma.marketplaceCustomer.findUnique({ where: { referralCode } });
+        if (!dup) break;
+        referralCode = generateCustomerReferralCode(profile.fullName);
+      }
+
+      customer = await this.prisma.marketplaceCustomer.create({
+        data: {
+          googleId: profile.googleId,
+          email: profile.email.toLowerCase(),
+          phone: placeholderPhone,
+          fullName: profile.fullName,
+          avatarUrl: profile.avatarUrl,
+          emailVerified: profile.emailVerified,
+          emailVerifiedAt: profile.emailVerified ? new Date() : null,
+          authProvider: MarketplaceAuthProvider.GOOGLE,
+          referralCode,
+          language: 'ur',
+          isActive: true,
+          lastActiveAt: new Date(),
+          registeredIp: meta?.ip,
+        },
+      });
+    } else {
+      if (!customer.googleId) {
+        customer = await this.prisma.marketplaceCustomer.update({
+          where: { id: customer.id },
+          data: {
+            googleId: profile.googleId,
+            avatarUrl: customer.avatarUrl || profile.avatarUrl,
+            emailVerified: true,
+            emailVerifiedAt: customer.emailVerifiedAt ?? new Date(),
+            authProvider: MarketplaceAuthProvider.GOOGLE,
+            lastLoginAt: new Date(),
+            lastActiveAt: new Date(),
+          },
+        });
+      } else {
+        customer = await this.prisma.marketplaceCustomer.update({
+          where: { id: customer.id },
+          data: { lastLoginAt: new Date(), lastActiveAt: new Date() },
+        });
+      }
+    }
+
+    const auth = await this.buildAuthResponse(customer.id, meta);
+    return { ...auth, isNewUser };
   }
 
   // ═══════════════════════════════════════════════════════════
