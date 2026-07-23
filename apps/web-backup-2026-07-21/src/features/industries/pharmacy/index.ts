@@ -1,1 +1,0 @@
-export { PharmacyPack } from './PharmacyPack';

@@ -1,1 +1,0 @@
-export { RestaurantPack } from './RestaurantPack';

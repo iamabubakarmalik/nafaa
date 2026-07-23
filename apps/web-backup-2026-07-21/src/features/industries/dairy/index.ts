@@ -1,1 +1,0 @@
-export { DairyPack } from './DairyPack';

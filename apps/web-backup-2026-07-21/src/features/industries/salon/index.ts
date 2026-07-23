@@ -1,1 +1,0 @@
-export { SalonPack } from './SalonPack';

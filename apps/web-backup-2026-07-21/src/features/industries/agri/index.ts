@@ -1,1 +1,0 @@
-export { AgriPack } from './AgriPack';

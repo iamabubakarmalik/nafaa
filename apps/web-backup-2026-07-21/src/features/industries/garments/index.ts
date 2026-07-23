@@ -1,1 +1,0 @@
-export { GarmentsPack } from './GarmentsPack';
