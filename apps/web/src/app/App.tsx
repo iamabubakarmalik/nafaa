@@ -8,9 +8,34 @@ import { useLocaleStore } from '@core/stores/locale.store';
 // ─── Notifications ─────────────────────────────────────────────
 import NotificationsPage from '@modules/notifications/NotificationsPage';
 
-
 // ─── Marketplace Publishing ────────────────────────────────────
 import MarketplaceSettingsPage from '@modules/organization/marketplace-settings/pages/MarketplaceSettingsPage';
+
+// Marketplace Suite
+import MarketplaceDashboardPage from '../marketplace/dashboard/MarketplaceDashboardPage';
+import ShopProfilePage from '../marketplace/shop-profile/ShopProfilePage';
+import MarketplaceProductsPage from '../marketplace/products/MarketplaceProductsPage';
+import MarketplaceProductDetailPage from '../marketplace/products/MarketplaceProductDetailPage';
+import MarketplaceOrdersPage from '../marketplace/orders/MarketplaceOrdersPage';
+import MarketplaceReviewsPage from '../marketplace/reviews/MarketplaceReviewsPage';
+import MarketplaceMessagesPage from '../marketplace/messages/MarketplaceMessagesPage';
+import MarketplaceBargainsPage from '../marketplace/bargains/MarketplaceBargainsPage';
+import MarketplaceGroupBuysPage from '../marketplace/group-buys/MarketplaceGroupBuysPage';
+import MarketplaceAuctionsPage from '../marketplace/auctions/MarketplaceAuctionsPage';
+import MarketplaceLiveShopPage from '../marketplace/live-shop/MarketplaceLiveShopPage';
+import MarketplacePromotionsPage from '../marketplace/promotions/MarketplacePromotionsPage';
+import MarketplaceDeliveryPage from '../marketplace/delivery/MarketplaceDeliveryPage';
+import MarketplaceAnalyticsPage from '../marketplace/analytics/MarketplaceAnalyticsPage';
+import CouponsAdvancedPage from '../marketplace/coupons-advanced/CouponsAdvancedPage';
+import SalesFunnelPage from '../marketplace/sales-funnel/SalesFunnelPage';
+import CustomerSegmentationPage from '../marketplace/customer-segmentation/CustomerSegmentationPage';
+import LoyaltyRewardsPage from '../marketplace/loyalty/LoyaltyRewardsPage';
+import RiderTrackingPage from '../marketplace/rider-tracking/RiderTrackingPage';
+import AiRecommendationsPage from '../marketplace/ai-recommendations/AiRecommendationsPage';
+import MultiShopManagerPage from '../marketplace/multi-shop/MultiShopManagerPage';
+import NotificationCenterPage from '../marketplace/notifications/NotificationCenterPage';
+import SettingsHubPage from '../marketplace/settings-hub/SettingsHubPage';
+
 
 // ─── Auth ──────────────────────────────────────────────────────
 import LoginPage from '@modules/auth/pages/LoginPage';
@@ -497,6 +522,33 @@ export default function App() {
 
                   {/* ── Marketplace Publishing ─────────────────── */}
                   <Route path="/marketplace/settings" element={secure(PERMISSIONS.SETTINGS_VIEW, <MarketplaceSettingsPage />)} />
+
+                  {/* ═══ Marketplace Full Suite ═══════════════════ */}
+                  <Route path="/marketplace" element={secure(PERMISSIONS.SETTINGS_VIEW, <MarketplaceDashboardPage />)} />
+                  <Route path="/marketplace/dashboard" element={secure(PERMISSIONS.SETTINGS_VIEW, <MarketplaceDashboardPage />)} />
+                  <Route path="/marketplace/shop-profile" element={secure(PERMISSIONS.SETTINGS_VIEW, <ShopProfilePage />)} />
+                  <Route path="/marketplace/products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <MarketplaceProductsPage />)} />
+                  <Route path="/marketplace/products/:productId" element={secure(PERMISSIONS.PRODUCTS_EDIT, <MarketplaceProductDetailPage />)} />
+                  <Route path="/marketplace/orders" element={secure(PERMISSIONS.SALES_VIEW, <MarketplaceOrdersPage />)} />
+                  <Route path="/marketplace/reviews" element={secure(PERMISSIONS.SETTINGS_VIEW, <MarketplaceReviewsPage />)} />
+                  <Route path="/marketplace/messages" element={secure(PERMISSIONS.SETTINGS_VIEW, <MarketplaceMessagesPage />)} />
+                  <Route path="/marketplace/bargains" element={secure(PERMISSIONS.SETTINGS_VIEW, <MarketplaceBargainsPage />)} />
+                  <Route path="/marketplace/group-buys" element={secure(PERMISSIONS.SETTINGS_VIEW, <MarketplaceGroupBuysPage />)} />
+                  <Route path="/marketplace/auctions" element={secure(PERMISSIONS.SETTINGS_VIEW, <MarketplaceAuctionsPage />)} />
+                  <Route path="/marketplace/live-shop" element={secure(PERMISSIONS.SETTINGS_VIEW, <MarketplaceLiveShopPage />)} />
+                  <Route path="/marketplace/promotions" element={secure(PERMISSIONS.SETTINGS_VIEW, <MarketplacePromotionsPage />)} />
+                  <Route path="/marketplace/delivery" element={secure(PERMISSIONS.SETTINGS_VIEW, <MarketplaceDeliveryPage />)} />
+                  <Route path="/marketplace/analytics" element={secure(PERMISSIONS.REPORTS_VIEW, <MarketplaceAnalyticsPage />)} />
+                  <Route path="/marketplace/coupons-advanced" element={secure(PERMISSIONS.SETTINGS_VIEW, <CouponsAdvancedPage />)} />
+                  <Route path="/marketplace/sales-funnel" element={secure(PERMISSIONS.REPORTS_VIEW, <SalesFunnelPage />)} />
+                  <Route path="/marketplace/segments" element={secure(PERMISSIONS.SETTINGS_VIEW, <CustomerSegmentationPage />)} />
+                  <Route path="/marketplace/loyalty" element={secure(PERMISSIONS.SETTINGS_VIEW, <LoyaltyRewardsPage />)} />
+                  <Route path="/marketplace/rider-tracking" element={secure(PERMISSIONS.SETTINGS_VIEW, <RiderTrackingPage />)} />
+                  <Route path="/marketplace/ai-insights" element={secure(PERMISSIONS.SETTINGS_VIEW, <AiRecommendationsPage />)} />
+                  <Route path="/marketplace/multi-shop" element={secure(PERMISSIONS.SETTINGS_VIEW, <MultiShopManagerPage />)} />
+                  <Route path="/marketplace/notifications" element={secure(PERMISSIONS.SETTINGS_VIEW, <NotificationCenterPage />)} />
+                  <Route path="/marketplace/settings-hub" element={secure(PERMISSIONS.SETTINGS_VIEW, <SettingsHubPage />)} />                                    
+
                   <Route path="/barcode-labels" element={secure(PERMISSIONS.BARCODE_LABELS_VIEW, <BarcodeLabelsPage />)} />
                   <Route path="/shops" element={secure(PERMISSIONS.SHOPS_VIEW, <ShopsPage />)} />
                   <Route path="/activity-log" element={secure(PERMISSIONS.ACTIVITY_VIEW, <ActivityLogPage />)} />

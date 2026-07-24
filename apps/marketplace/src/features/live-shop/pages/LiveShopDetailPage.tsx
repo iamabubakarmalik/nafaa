@@ -1,221 +1,269 @@
-import { useState, useRef, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
+import { useState, useEffect, useRef } from 'react';
 import {
-  ArrowLeft, Send, Heart, Eye, ShoppingBag,
-  MessageCircle, Share2, Radio,
+  ArrowLeft, Send, Users, Video, Heart, Share2,
+  ShoppingBag, Store, X,
 } from 'lucide-react';
 import { liveShopApi } from '../api/live-shop.api';
-import { useJoinRoom, useSocketEvent } from '@lib/realtime/useSocket';
-import { Avatar } from '@shared/ui/Avatar';
-import { SkeletonCard } from '@shared/ui/Skeleton';
-import { cn } from '@lib/cn';
-
-const REACTIONS = ['❤️', '😍', '🔥', '👏', '😂', '💰'];
+import { useAddToCart } from '@/features/cart/hooks/useCart';
+import { useAuthStore } from '@/stores/auth.store';
+import { Button, Card, Input, Badge, Avatar, EmptyState } from '@/ui';
+import { formatPrice, timeAgo } from '@/lib/format';
+import { useJoinRoom, useSocketEvent } from '@/lib/useSocket';
+import { toast } from 'sonner';
+import { cn } from '@/lib/cn';
 
 export default function LiveShopDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const qc = useQueryClient();
+  const customer = useAuthStore((s) => s.customer);
+  const addToCart = useAddToCart();
+  const chatRef = useRef<HTMLDivElement>(null);
   const [message, setMessage] = useState('');
-  const [floatingReactions, setFloatingReactions] = useState<{ id: number; emoji: string }[]>([]);
-  const messagesRef = useRef<HTMLDivElement>(null);
+  const [viewerCount, setViewerCount] = useState(0);
 
-  const { data: ls, isLoading, refetch } = useQuery({
+  useJoinRoom('live-shop', id);
+  useSocketEvent('live-shop:message', () => {
+    qc.invalidateQueries({ queryKey: ['live-shop', id] });
+  });
+  useSocketEvent('live-shop:viewer-count', (data: any) => {
+    setViewerCount(data.count);
+  });
+
+  const { data: live, isLoading } = useQuery({
     queryKey: ['live-shop', id],
     queryFn: () => liveShopApi.detail(id!),
     enabled: !!id,
-    refetchInterval: 3000,
+    refetchInterval: (query) => (query.state.data?.isLive ? 5000 : false),
+  });
+
+  const joinMutation = useMutation({
+    mutationFn: () => liveShopApi.join(id!),
   });
 
   useEffect(() => {
-    if (id) {
-      liveShopApi.join(id).catch(() => {});
-      return () => {
-        liveShopApi.leave(id).catch(() => {});
-      };
+    if (live?.isLive && customer && !live.isJoined) {
+      joinMutation.mutate();
     }
-  }, [id]);
-
-  // Real-time updates
-  useJoinRoom('live-shop', id);
-  useSocketEvent('live-shop:message', () => refetch(), [id]);
-  useSocketEvent('live-shop:viewer-count', () => refetch(), [id]);
-  useSocketEvent('live-shop:ended', () => {
-    toast.info('Live show ended');
-    refetch();
-  }, [id]);
-
-  const sendMessageMutation = useMutation({
-    mutationFn: (m: string) => liveShopApi.sendMessage(id!, m),
-    onSuccess: () => { setMessage(''); refetch(); },
-  });
-
-  const reactMutation = useMutation({
-    mutationFn: (emoji: string) => liveShopApi.react(id!, emoji),
-  });
-
-  const handleReact = (emoji: string) => {
-    reactMutation.mutate(emoji);
-    const newId = Date.now();
-    setFloatingReactions((prev) => [...prev, { id: newId, emoji }]);
-    setTimeout(() => {
-      setFloatingReactions((prev) => prev.filter((r) => r.id !== newId));
-    }, 2000);
-  };
+  }, [live?.isLive, live?.isJoined, customer]);
 
   useEffect(() => {
-    messagesRef.current?.scrollTo({ top: messagesRef.current.scrollHeight, behavior: 'smooth' });
-  }, [ls?.messages]);
+    return () => {
+      if (id) liveShopApi.leave(id).catch(() => {});
+    };
+  }, [id]);
 
-  if (isLoading || !ls) return <SkeletonCard />;
+  useEffect(() => {
+    if (chatRef.current) {
+      chatRef.current.scrollTop = chatRef.current.scrollHeight;
+    }
+  }, [live?.recentMessages?.length]);
+
+  useEffect(() => {
+    if (live?.currentViewerCount) setViewerCount(live.currentViewerCount);
+  }, [live?.currentViewerCount]);
+
+  const sendMutation = useMutation({
+    mutationFn: (msg: string) => liveShopApi.sendMessage(id!, msg),
+    onSuccess: () => {
+      setMessage('');
+      qc.invalidateQueries({ queryKey: ['live-shop', id] });
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
+  });
+
+  if (isLoading) return <div className="skeleton h-screen rounded-3xl" />;
+  if (!live) return <EmptyState icon={Video} title="Stream not found" />;
+
+  const shop = live.shopProfile;
 
   return (
-    <div className="fixed inset-0 bg-slate-950 flex flex-col">
-      {/* Video area */}
-      <div className="relative flex-1 flex items-center justify-center bg-gradient-to-br from-rose-900 via-pink-900 to-purple-900 overflow-hidden">
-        {ls.streamUrl ? (
-          <video
-            src={ls.streamUrl}
-            autoPlay
-            playsInline
-            muted={false}
-            controls={false}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="text-center text-white/80">
-            <Radio className="h-16 w-16 mx-auto mb-3 opacity-50 animate-pulse-soft" />
-            <div className="font-black text-lg">Stream loading...</div>
-          </div>
-        )}
+    <>
+      <Helmet><title>{live.title} — Live | Nafaa Bazaar</title></Helmet>
 
-        {/* Top overlay */}
-        <div className="absolute top-0 inset-x-0 p-4 bg-gradient-to-b from-black/70 to-transparent flex items-center gap-3">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr,380px] gap-4">
+        {/* LEFT: Video + Products */}
+        <div className="space-y-4">
           <button
-            onClick={() => navigate(-1)}
-            className="h-10 w-10 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center text-white"
+            onClick={() => navigate('/live')}
+            className="inline-flex items-center gap-1 text-sm text-content-muted hover:text-content font-bold"
           >
             <ArrowLeft className="h-4 w-4" />
+            All live shows
           </button>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <div className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-black shadow flex items-center gap-1">
-                <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
-                LIVE
+
+          {/* Video area */}
+          <Card className="overflow-hidden bg-black aspect-video relative">
+            {live.streamUrl ? (
+              <video src={live.streamUrl} controls autoPlay muted className="h-full w-full" />
+            ) : live.coverImageUrl ? (
+              <img src={live.coverImageUrl} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-rose-600 to-red-800">
+                <Video className="h-20 w-20 text-white/50" />
               </div>
-              <div className="text-white font-extrabold text-sm truncate">{ls.title}</div>
+            )}
+
+            {/* Overlay */}
+            <div className="absolute top-4 left-4 flex gap-2">
+              {live.isLive && (
+                <Badge variant="danger" size="lg" className="shadow-lg">
+                  <span className="h-2 w-2 rounded-full bg-white animate-pulse-soft" />
+                  LIVE
+                </Badge>
+              )}
+              <Badge variant="glass" size="lg" className="backdrop-blur-md text-white">
+                <Users className="h-3.5 w-3.5" />
+                {viewerCount || live.currentViewerCount || 0} watching
+              </Badge>
             </div>
-            <div className="text-white/70 text-[11px] font-bold truncate flex items-center gap-2 mt-0.5">
-              <Avatar src={ls.shop?.marketplaceProfile?.logoUrl} name={ls.shop?.marketplaceProfile?.publicName} size="xs" />
-              {ls.shop?.marketplaceProfile?.publicName}
-              <span>•</span>
-              <span className="flex items-center gap-1">
-                <Eye className="h-3 w-3" />
-                {ls.currentViewerCount || 0} watching
-              </span>
+
+            <button className="absolute top-4 right-4 h-10 w-10 rounded-full bg-black/50 backdrop-blur-md text-white flex items-center justify-center hover:bg-black/70 transition">
+              <Share2 className="h-4 w-4" />
+            </button>
+          </Card>
+
+          {/* Info */}
+          <Card className="p-4">
+            <div className="flex items-start gap-3">
+              {shop?.logoUrl && (
+                <Link to={`/shops/${shop.slug}`}>
+                  <img src={shop.logoUrl} alt="" className="h-12 w-12 rounded-xl object-cover" />
+                </Link>
+              )}
+              <div className="flex-1 min-w-0">
+                <h1 className="text-lg md:text-xl font-black line-clamp-2">{live.title}</h1>
+                <Link
+                  to={`/shops/${shop?.slug}`}
+                  className="text-sm text-content-muted hover:text-brand-600 font-bold flex items-center gap-1 mt-1"
+                >
+                  <Store className="h-3.5 w-3.5" />
+                  {shop?.publicName}
+                </Link>
+              </div>
             </div>
-          </div>
-          <button
-            onClick={() => {
-              navigator.clipboard.writeText(window.location.href);
-              toast.success('Link copy ho gaya');
-            }}
-            className="h-10 w-10 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center text-white"
-          >
-            <Share2 className="h-4 w-4" />
-          </button>
+            {live.description && (
+              <p className="text-sm text-content-muted mt-3">{live.description}</p>
+            )}
+          </Card>
+
+          {/* Featured products */}
+          {live.featuredProducts?.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="font-black text-lg flex items-center gap-2">
+                <ShoppingBag className="h-5 w-5 text-brand-600" />
+                Featured products
+                <Badge variant="brand" size="md">{live.featuredProducts.length}</Badge>
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {live.featuredProducts.map((p: any) => (
+                  <Card key={p.productId} className="overflow-hidden card-hover">
+                    <Link to={`/products/${p.productId}`}>
+                      <div className="aspect-square bg-surface-muted">
+                        {p.publicImages?.[0] && (
+                          <img src={p.publicImages[0]} alt="" className="h-full w-full object-cover" />
+                        )}
+                      </div>
+                    </Link>
+                    <div className="p-3">
+                      <div className="text-xs font-bold line-clamp-1">{p.publicName}</div>
+                      <div className="font-black text-brand-600 text-sm mt-1">
+                        {formatPrice(p.publicPrice)}
+                      </div>
+                      <Button
+                        variant="gradient"
+                        size="xs"
+                        fullWidth
+                        className="mt-2"
+                        onClick={() => addToCart.mutate({ productId: p.productId, quantity: 1 })}
+                      >
+                        Add to cart
+                      </Button>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Featured product overlay */}
-        {ls.featuredProduct && (
-          <div className="absolute bottom-32 left-4 right-4 max-w-sm p-3 rounded-2xl bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md shadow-lg border border-white/20 flex items-center gap-3">
-            <img
-              src={ls.featuredProduct.imageUrl}
-              alt=""
-              className="h-14 w-14 rounded-xl object-cover shrink-0"
-            />
-            <div className="flex-1 min-w-0">
-              <div className="text-[9px] font-extrabold uppercase tracking-widest text-brand-600">
-                Featured Now
-              </div>
-              <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">
-                {ls.featuredProduct.name}
-              </div>
-              <div className="text-sm font-black text-brand-700 dark:text-brand-400">
-                Rs {Number(ls.featuredProduct.price).toFixed(0)}
-              </div>
+        {/* RIGHT: Live chat */}
+        <div className="lg:sticky lg:top-24 lg:self-start lg:h-[calc(100vh-8rem)]">
+          <Card className="flex flex-col h-full max-h-[600px] lg:max-h-none overflow-hidden">
+            <div className="px-4 py-3 border-b border-border bg-surface-muted/50 flex items-center justify-between">
+              <div className="font-black text-sm">Live chat</div>
+              <Badge variant="danger" size="sm">
+                <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse-soft" />
+                {viewerCount} viewers
+              </Badge>
             </div>
-            <button
-              onClick={() => navigate(`/products/${ls.featuredProduct.productId}`)}
-              className="h-10 w-10 rounded-full bg-brand-600 text-white flex items-center justify-center shadow"
-            >
-              <ShoppingBag className="h-4 w-4" />
-            </button>
-          </div>
-        )}
 
-        {/* Floating reactions */}
-        {floatingReactions.map((r) => (
-          <div
-            key={r.id}
-            className="absolute bottom-32 right-8 text-4xl pointer-events-none animate-slide-up"
-            style={{ animation: 'slideUp 2s ease-out forwards' }}
-          >
-            {r.emoji}
-          </div>
-        ))}
-
-        {/* Right side reactions */}
-        <div className="absolute right-3 bottom-32 flex flex-col gap-2">
-          {REACTIONS.map((r) => (
-            <button
-              key={r}
-              onClick={() => handleReact(r)}
-              className="h-10 w-10 rounded-full bg-white/20 backdrop-blur flex items-center justify-center hover:bg-white/40 transition text-xl active:scale-125"
-            >
-              {r}
-            </button>
-          ))}
-        </div>
-
-        {/* Live chat overlay */}
-        <div
-          ref={messagesRef}
-          className="absolute bottom-16 left-4 right-16 max-h-48 overflow-y-auto space-y-1 no-scrollbar"
-        >
-          {(ls.messages || []).slice(-10).map((m: any) => (
-            <div key={m.id} className="flex items-start gap-2 animate-slide-up">
-              <Avatar name={m.customer?.fullName} size="xs" />
-              <div className="flex-1 min-w-0 bg-black/50 backdrop-blur rounded-lg px-2 py-1">
-                <div className="text-[10px] font-extrabold text-brand-300">
-                  {m.customer?.fullName?.split(' ')[0] || 'User'}
+            <div ref={chatRef} className="flex-1 overflow-y-auto p-3 space-y-2 min-h-0">
+              {live.recentMessages?.length ? (
+                live.recentMessages.map((m: any) => (
+                  <div key={m.id} className="flex gap-2">
+                    <Avatar name={m.customer?.fullName} src={m.customer?.avatarUrl} size="xs" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-xs font-black text-content">
+                          {m.customer?.fullName?.split(' ')[0] || 'Anonymous'}
+                        </span>
+                        <span className="text-3xs text-content-subtle">{timeAgo(m.createdAt)}</span>
+                      </div>
+                      <div className="text-sm text-content-muted break-words">{m.message}</div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-content-muted text-sm">
+                  Be the first to say hi 👋
                 </div>
-                <div className="text-xs text-white truncate">{m.body}</div>
-              </div>
+              )}
             </div>
-          ))}
-        </div>
 
-        {/* Bottom chat input */}
-        <div className="absolute bottom-0 inset-x-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
-          <div className="flex items-center gap-2 max-w-2xl mx-auto">
-            <input
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && message.trim() && sendMessageMutation.mutate(message)}
-              placeholder="Comment likhein..."
-              className="flex-1 h-11 px-4 rounded-full bg-white/20 backdrop-blur border border-white/30 text-white placeholder:text-white/60 text-sm font-semibold focus:outline-none focus:bg-white/30"
-            />
-            <button
-              onClick={() => message.trim() && sendMessageMutation.mutate(message)}
-              className="h-11 w-11 rounded-full bg-gradient-to-br from-rose-500 to-pink-600 text-white flex items-center justify-center shadow-lg hover:scale-105 transition"
-            >
-              <Send className="h-4 w-4" />
-            </button>
-          </div>
+            {live.isLive && customer ? (
+              <div className="border-t border-border p-3">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (message.trim()) sendMutation.mutate(message.trim());
+                  }}
+                  className="flex gap-2"
+                >
+                  <input
+                    type="text"
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Type a message..."
+                    maxLength={500}
+                    className="flex-1 h-10 px-4 rounded-full bg-surface-muted border border-border text-sm focus:outline-none focus:border-brand-500"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!message.trim() || sendMutation.isPending}
+                    className="h-10 w-10 rounded-full bg-brand-600 hover:bg-brand-700 text-white flex items-center justify-center disabled:opacity-50 transition"
+                  >
+                    <Send className="h-4 w-4" />
+                  </button>
+                </form>
+              </div>
+            ) : !customer && live.isLive ? (
+              <div className="border-t border-border p-3">
+                <Button variant="gradient" size="sm" fullWidth onClick={() => navigate('/login')}>
+                  Login to chat
+                </Button>
+              </div>
+            ) : (
+              <div className="border-t border-border p-3 text-center text-xs text-content-muted">
+                Chat closed
+              </div>
+            )}
+          </Card>
         </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -1,249 +1,177 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
-import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, Heart, AlertCircle, Store } from 'lucide-react';
-import { cartApi } from '../api/cart.api';
-import { Button } from '@shared/ui/Button';
-import { EmptyState } from '@shared/ui/EmptyState';
-import { SkeletonCard } from '@shared/ui/Skeleton';
-import { Badge } from '@shared/ui/Badge';
+import { Link, useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
+import { ShoppingBag, Store, ArrowRight, Bike, AlertTriangle, Trash2 } from 'lucide-react';
+import { useCart, useClearShopCart } from '../hooks/useCart';
+import { CartLineRow } from '../components/CartLineRow';
+import { Button, Card, Badge, EmptyState } from '@/ui';
+import { formatPrice, formatDuration } from '@/lib/format';
+import { cn } from '@/lib/cn';
 
 export default function CartPage() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const { data: cart, isLoading } = useQuery({
-    queryKey: ['market-cart'],
-    queryFn: cartApi.get,
-  });
-
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['market-cart'] });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ lineId, quantity }: { lineId: string; quantity: number }) =>
-      cartApi.updateLine(lineId, { quantity }),
-    onSuccess: invalidate,
-  });
-
-  const removeMutation = useMutation({
-    mutationFn: (lineId: string) => cartApi.removeLine(lineId),
-    onSuccess: () => { invalidate(); toast.success('Item hata diya'); },
-  });
-
-  const moveWishMutation = useMutation({
-    mutationFn: (lineId: string) => cartApi.moveToWishlist(lineId),
-    onSuccess: () => { invalidate(); toast.success('Wishlist mein add ho gaya ❤️'); },
-  });
-
-  const clearMutation = useMutation({
-    mutationFn: () => cartApi.clear(),
-    onSuccess: () => { invalidate(); toast.success('Cart clear ho gaya'); },
-  });
+  const { data: cart, isLoading } = useCart();
+  const clearShop = useClearShopCart();
 
   if (isLoading) {
     return (
-      <div className="space-y-3">
-        <SkeletonCard />
-        <SkeletonCard />
+      <div className="max-w-4xl mx-auto space-y-4">
+        <div className="skeleton h-8 w-40" />
+        <div className="skeleton h-96 rounded-3xl" />
       </div>
     );
   }
 
-  if (!cart?.shopGroups?.length) {
+  if (!cart || cart.shopGroups.length === 0) {
     return (
-      <EmptyState
-        emoji="🛒"
-        title="Cart khaali hai"
-        description="Kuch products add karein aur khareedari shuru karein"
-        size="lg"
-        action={
-          <Button variant="primary" size="lg" onClick={() => navigate('/')}>
-            Shopping Start Karein
-          </Button>
-        }
-      />
+      <div className="max-w-2xl mx-auto">
+        <EmptyState
+          icon={ShoppingBag}
+          title="Your cart is empty"
+          description="Discover amazing products from shops near you"
+          action={
+            <Button variant="gradient" size="lg" onClick={() => navigate('/')}>
+              Start shopping
+            </Button>
+          }
+        />
+      </div>
     );
   }
+
+  const isMultiShop = cart.shopGroups.length > 1;
+  const anyBlocked = cart.shopGroups.some((g) => !g.meetsMinOrder);
 
   return (
-    <div className="pb-32">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-            <ShoppingBag className="h-6 w-6 text-brand-600" />
-            Cart
-          </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            {cart.totalItems} items · {cart.shopGroups.length} shops
-          </p>
-        </div>
-        <button
-          onClick={() => confirm('Poora cart clear karna hai?') && clearMutation.mutate()}
-          className="text-xs font-extrabold text-rose-600 hover:text-rose-700 flex items-center gap-1"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-          Clear All
-        </button>
-      </div>
+    <>
+      <Helmet><title>Cart ({cart.totalItems}) — Nafaa Bazaar</title></Helmet>
 
-      {/* Shop Groups */}
-      <div className="space-y-4">
-        {cart.shopGroups.map((group: any) => (
-          <div
-            key={group.shopId}
-            className="rounded-2xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 overflow-hidden shadow-soft"
-          >
-            {/* Shop Header */}
-            <div className="p-3 bg-gradient-to-r from-brand-50 to-emerald-50 dark:from-brand-950/30 dark:to-emerald-950/30 border-b border-slate-100 dark:border-neutral-800 flex items-center gap-3">
-              {group.shop?.logoUrl ? (
-                <img src={group.shop.logoUrl} alt="" className="h-10 w-10 rounded-xl object-cover" />
-              ) : (
-                <div className="h-10 w-10 rounded-xl bg-brand-100 dark:bg-brand-900/40 flex items-center justify-center">
-                  <Store className="h-5 w-5 text-brand-700 dark:text-brand-400" />
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">
-                  {group.shop?.publicName || 'Shop'}
-                </div>
-                <div className="text-[11px] text-slate-500 dark:text-slate-400">
-                  {group.itemCount} items · {group.shop?.estimatedDeliveryMinutes ? `${group.shop.estimatedDeliveryMinutes} min delivery` : ''}
-                </div>
+      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-[1fr,400px] gap-6">
+        {/* LEFT: Cart items */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl md:text-3xl font-black text-content flex items-center gap-2">
+              <ShoppingBag className="h-7 w-7 text-brand-600" />
+              Cart
+              <Badge variant="brand" size="lg">{cart.totalItems} items</Badge>
+            </h1>
+          </div>
+
+          {isMultiShop && (
+            <Card className="p-3 bg-info/10 border-info/30 flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 text-info shrink-0 mt-0.5" />
+              <div className="text-xs text-content">
+                <strong>Multi-shop order:</strong> Items from {cart.shopGroups.length} shops will be delivered separately, each with its own delivery fee.
               </div>
-              {group.shop?.isOpen === false && (
-                <Badge variant="danger" size="xs">Closed</Badge>
-              )}
-            </div>
+            </Card>
+          )}
 
-            {/* Lines */}
-            <div className="divide-y divide-slate-100 dark:divide-neutral-800">
-              {group.lines.map((line: any) => (
-                <div key={line.id} className="p-3 flex gap-3">
-                  <div className="h-20 w-20 rounded-xl bg-slate-100 dark:bg-neutral-800 overflow-hidden shrink-0">
-                    {line.imageUrl ? (
-                      <img src={line.imageUrl} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-2xl opacity-30">📦</div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-extrabold text-sm text-slate-900 dark:text-white line-clamp-2 leading-tight">
-                      {line.productName}
+          {cart.shopGroups.map((group) => (
+            <Card key={group.shopId} className="overflow-hidden">
+              {/* Shop header */}
+              <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-border bg-surface-muted/50">
+                <Link to={`/shops/${group.shop?.slug || group.shopId}`} className="flex items-center gap-3 min-w-0 flex-1">
+                  {group.shop?.logoUrl ? (
+                    <img src={group.shop.logoUrl} alt="" className="h-10 w-10 rounded-xl object-cover" />
+                  ) : (
+                    <div className="h-10 w-10 rounded-xl bg-gradient-brand flex items-center justify-center text-white font-black shrink-0">
+                      <Store className="h-5 w-5" />
                     </div>
-                    {line.variantName && (
-                      <div className="text-[11px] text-slate-500 mt-0.5">{line.variantName}</div>
-                    )}
-                    {line.bargainId && (
-                      <Badge variant="brand" size="xs" className="mt-1">💰 Bargain Deal</Badge>
-                    )}
-                    {line.priceChanged && (
-                      <Badge variant="warning" size="xs" className="mt-1">
-                        <AlertCircle className="h-2.5 w-2.5" />
-                        Price changed
-                      </Badge>
-                    )}
-                    {!line.stillAvailable && (
-                      <Badge variant="danger" size="xs" className="mt-1">Out of Stock</Badge>
-                    )}
-                    <div className="mt-1.5 flex items-baseline gap-1.5">
-                      <span className="font-black text-brand-700 dark:text-brand-400 text-base">
-                        Rs {Number(line.unitPrice).toFixed(0)}
-                      </span>
-                      {line.compareAtPrice && (
-                        <span className="text-[10px] text-slate-400 line-through">
-                          Rs {Number(line.compareAtPrice).toFixed(0)}
-                        </span>
+                  )}
+                  <div className="min-w-0">
+                    <div className="font-black text-content text-sm md:text-base truncate">
+                      {group.shop?.publicName || 'Shop'}
+                    </div>
+                    <div className="text-2xs text-content-muted flex items-center gap-2">
+                      <span>{group.itemCount} items</span>
+                      {group.shop?.estimatedDeliveryMinutes && (
+                        <>
+                          <span>·</span>
+                          <span className="flex items-center gap-0.5">
+                            <Bike className="h-3 w-3" />
+                            {formatDuration(group.shop.estimatedDeliveryMinutes)}
+                          </span>
+                        </>
                       )}
                     </div>
-
-                    {/* Actions */}
-                    <div className="mt-2 flex items-center gap-2">
-                      <div className="flex items-center border-2 border-slate-200 dark:border-neutral-700 rounded-full">
-                        <button
-                          onClick={() => updateMutation.mutate({ lineId: line.id, quantity: line.quantity - 1 })}
-                          className="h-7 w-7 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-neutral-800 rounded-l-full transition"
-                        >
-                          <Minus className="h-3 w-3" />
-                        </button>
-                        <span className="w-8 text-center font-black text-sm tabular-nums">{line.quantity}</span>
-                        <button
-                          onClick={() => updateMutation.mutate({ lineId: line.id, quantity: line.quantity + 1 })}
-                          className="h-7 w-7 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-neutral-800 rounded-r-full transition"
-                        >
-                          <Plus className="h-3 w-3" />
-                        </button>
-                      </div>
-                      <button
-                        onClick={() => moveWishMutation.mutate(line.id)}
-                        className="h-7 w-7 rounded-full bg-slate-100 dark:bg-neutral-800 hover:bg-rose-100 dark:hover:bg-rose-900/30 flex items-center justify-center transition group"
-                        title="Wishlist"
-                      >
-                        <Heart className="h-3.5 w-3.5 text-slate-500 group-hover:text-rose-500" />
-                      </button>
-                      <button
-                        onClick={() => removeMutation.mutate(line.id)}
-                        className="h-7 w-7 rounded-full bg-slate-100 dark:bg-neutral-800 hover:bg-rose-100 dark:hover:bg-rose-900/30 flex items-center justify-center transition group ml-auto"
-                        title="Remove"
-                      >
-                        <Trash2 className="h-3.5 w-3.5 text-slate-500 group-hover:text-rose-500" />
-                      </button>
-                      <div className="text-right">
-                        <div className="text-xs font-extrabold text-slate-900 dark:text-white">
-                          Rs {Number(line.lineTotal).toFixed(0)}
-                        </div>
-                      </div>
-                    </div>
                   </div>
+                </Link>
+                <button
+                  onClick={() => clearShop.mutate(group.shopId)}
+                  className="text-xs font-bold text-danger hover:underline flex items-center gap-1 shrink-0"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Clear
+                </button>
+              </div>
+
+              {/* Lines */}
+              <div className="px-5 divide-y divide-border">
+                {group.lines.map((line) => <CartLineRow key={line.id} line={line} />)}
+              </div>
+
+              {/* Shop subtotal */}
+              <div className="px-5 py-4 border-t border-border bg-surface-muted/30 space-y-2">
+                {!group.meetsMinOrder && (
+                  <div className="flex items-center gap-2 text-xs text-danger font-bold">
+                    <AlertTriangle className="h-3.5 w-3.5" />
+                    Add {formatPrice(group.minOrderAmount - group.subtotal)} more to meet min order
+                  </div>
+                )}
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-content-muted">Subtotal</span>
+                  <span className="font-bold">{formatPrice(group.subtotal)}</span>
                 </div>
-              ))}
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-content-muted">Delivery fee</span>
+                  <span className="font-bold">{group.deliveryFee === 0 ? 'FREE' : formatPrice(group.deliveryFee)}</span>
+                </div>
+                <div className="flex items-center justify-between text-base font-black pt-2 border-t border-border">
+                  <span>Shop total</span>
+                  <span className="text-brand-600">{formatPrice(group.shopTotal)}</span>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+
+        {/* RIGHT: Order summary */}
+        <div className="lg:sticky lg:top-24 lg:self-start">
+          <Card className="p-5 space-y-4">
+            <h3 className="font-black text-lg">Order summary</h3>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-content-muted">Items ({cart.totalItems})</span>
+                <span className="font-bold">{formatPrice(cart.subtotal)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-content-muted">Delivery ({cart.shopGroups.length} shop{cart.shopGroups.length > 1 ? 's' : ''})</span>
+                <span className="font-bold">{formatPrice(cart.totalDeliveryFee)}</span>
+              </div>
+              <div className="flex justify-between text-lg font-black pt-3 border-t border-border">
+                <span>Total</span>
+                <span className="gradient-text">{formatPrice(cart.grandTotal)}</span>
+              </div>
             </div>
 
-            {/* Shop Footer */}
-            <div className="p-3 bg-slate-50 dark:bg-neutral-900/50 border-t border-slate-100 dark:border-neutral-800 space-y-1">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-600 dark:text-slate-400">Subtotal</span>
-                <span className="font-extrabold text-slate-900 dark:text-white">Rs {group.subtotal.toFixed(0)}</span>
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-600 dark:text-slate-400">Delivery</span>
-                <span className="font-extrabold text-slate-900 dark:text-white">
-                  {group.deliveryFee > 0 ? `Rs ${group.deliveryFee.toFixed(0)}` : 'FREE'}
-                </span>
-              </div>
-              {!group.meetsMinOrder && (
-                <div className="mt-2 p-2 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-[11px] font-bold text-amber-800 dark:text-amber-400 flex items-center gap-1.5">
-                  <AlertCircle className="h-3 w-3 shrink-0" />
-                  Min order Rs {group.minOrderAmount} — abhi Rs {(group.minOrderAmount - group.subtotal).toFixed(0)} kam
-                </div>
-              )}
-              <div className="pt-1 border-t border-slate-200 dark:border-neutral-700 flex items-center justify-between">
-                <span className="text-xs font-extrabold text-slate-700 dark:text-slate-300">Shop Total</span>
-                <span className="text-base font-black text-brand-700 dark:text-brand-400">Rs {group.shopTotal.toFixed(0)}</span>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+            <Button
+              variant="gradient"
+              size="lg"
+              fullWidth
+              disabled={anyBlocked}
+              rightIcon={<ArrowRight className="h-5 w-5" />}
+              onClick={() => navigate('/checkout')}
+            >
+              {anyBlocked ? 'Fix minimum order first' : 'Proceed to checkout'}
+            </Button>
 
-      {/* Sticky Checkout Bar */}
-      <div className="fixed bottom-20 inset-x-0 z-30 bg-white dark:bg-neutral-950 border-t-2 border-slate-100 dark:border-neutral-800 shadow-soft-xl">
-        <div className="max-w-6xl mx-auto p-4 flex items-center gap-3">
-          <div className="flex-1">
-            <div className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Grand Total</div>
-            <div className="text-2xl font-black bg-gradient-to-r from-brand-600 to-emerald-700 bg-clip-text text-transparent">
-              Rs {cart.grandTotal.toFixed(0)}
+            <div className="pt-3 border-t border-border text-2xs text-content-muted space-y-1">
+              <div>🔒 Secure checkout</div>
+              <div>🚚 Fast delivery from local shops</div>
+              <div>💬 Bargain-enabled items save more</div>
             </div>
-          </div>
-          <Button
-            variant="gradient"
-            size="lg"
-            onClick={() => navigate('/checkout')}
-            rightIcon={<ArrowRight className="h-5 w-5" />}
-          >
-            Checkout
-          </Button>
+          </Card>
         </div>
       </div>
-    </div>
+    </>
   );
 }

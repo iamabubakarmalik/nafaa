@@ -1,173 +1,188 @@
 import { useState, useRef, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { useMutation } from '@tanstack/react-query';
+import { Phone, ArrowLeft, RefreshCw } from 'lucide-react';
+import { authApi, OtpPurpose } from '../api/auth.api';
+import { useAuthStore } from '@/stores/auth.store';
+import { Button, Card } from '@/ui';
 import { toast } from 'sonner';
-import { ShieldCheck, ArrowLeft, RotateCw, Sparkles } from 'lucide-react';
-import { marketAuthApi } from '../api/auth.api';
-import { useCustomerAuthStore } from '@/stores/customerAuth.store';
-import { Button } from '@shared/ui/Button';
+import { cn } from '@/lib/cn';
+
+const OTP_LENGTH = 6;
+const RESEND_TIMEOUT = 60;
 
 export default function VerifyOtpPage() {
-  const location = useLocation();
   const navigate = useNavigate();
-  const setSession = useCustomerAuthStore((s) => s.setSession);
-  const { phone, purpose, fullName, devCode } = location.state || {};
-  const [code, setCode] = useState(['', '', '', '', '', '']);
-  const [timeLeft, setTimeLeft] = useState(60);
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const location = useLocation();
+  const setSession = useAuthStore((s) => s.setSession);
+
+  const state = (location.state || {}) as any;
+  const phone: string = state.phone;
+  const purpose: OtpPurpose = state.purpose || 'LOGIN';
+  const fullName: string | undefined = state.fullName;
+  const referralCode: string | undefined = state.referralCode;
+  const from = state.from || '/';
+
+  const [digits, setDigits] = useState<string[]>(new Array(OTP_LENGTH).fill(''));
+  const [resendIn, setResendIn] = useState(RESEND_TIMEOUT);
+  const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
     if (!phone) navigate('/login');
-    inputRefs.current[0]?.focus();
-  }, [phone, navigate]);
+    else inputsRef.current[0]?.focus();
+  }, [phone]);
 
   useEffect(() => {
-    if (timeLeft > 0) {
-      const t = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(t);
-    }
-  }, [timeLeft]);
+    if (resendIn <= 0) return;
+    const t = setInterval(() => setResendIn((r) => r - 1), 1000);
+    return () => clearInterval(t);
+  }, [resendIn]);
 
   const verifyMutation = useMutation({
-    mutationFn: () =>
-      marketAuthApi.verifyOtp({
-        phone, code: code.join(''), purpose,
-        ...(fullName ? { fullName } : {}),
-      }),
-    onSuccess: (data: any) => {
-      if (data?.customer && data?.tokens) {
-        setSession(data.customer, data.tokens.accessToken);
-        toast.success('Login successful! 🎉');
-        navigate('/market', { replace: true });
+    mutationFn: () => authApi.verifyOtp({
+      phone,
+      code: digits.join(''),
+      purpose,
+      fullName,
+      referralCode,
+    }),
+    onSuccess: (data) => {
+      // For LOGIN and REGISTER → response contains tokens
+      if (data.tokens?.accessToken) {
+        setSession(data.customer, data.tokens);
+        toast.success(`Welcome, ${data.customer.fullName}! 🎉`);
+        navigate(from, { replace: true });
+      } else {
+        // For VERIFY_PHONE or others
+        toast.success('Verified ✅');
+        navigate(from, { replace: true });
       }
     },
-    onError: (err: any) => {
-      toast.error(err?.response?.data?.message || 'Ghalat OTP');
-      setCode(['', '', '', '', '', '']);
-      inputRefs.current[0]?.focus();
+    onError: (e: any) => {
+      toast.error(e?.response?.data?.message || 'Invalid OTP');
+      setDigits(new Array(OTP_LENGTH).fill(''));
+      inputsRef.current[0]?.focus();
     },
   });
 
   const resendMutation = useMutation({
-    mutationFn: () => marketAuthApi.sendOtp(phone, purpose),
-    onSuccess: () => {
-      toast.success('New OTP bhej diya!');
-      setTimeLeft(60);
+    mutationFn: () => authApi.sendOtp({ phone, purpose }),
+    onSuccess: (r) => {
+      toast.success('New OTP sent 📱');
+      if (r.devCode) toast.info(`Dev OTP: ${r.devCode}`);
+      setResendIn(RESEND_TIMEOUT);
+      setDigits(new Array(OTP_LENGTH).fill(''));
+      inputsRef.current[0]?.focus();
     },
   });
 
-  const handleChange = (index: number, val: string) => {
-    if (val.length > 1) {
-      // Paste handling
-      const pasted = val.slice(0, 6).split('');
-      const newCode = [...code];
-      pasted.forEach((c, i) => {
-        if (index + i < 6 && /\d/.test(c)) newCode[index + i] = c;
-      });
-      setCode(newCode);
-      const nextEmpty = newCode.findIndex((c) => !c);
-      inputRefs.current[nextEmpty !== -1 ? nextEmpty : 5]?.focus();
-      return;
-    }
+  const handleChange = (i: number, val: string) => {
     if (!/^\d?$/.test(val)) return;
-    const newCode = [...code];
-    newCode[index] = val;
-    setCode(newCode);
-    if (val && index < 5) inputRefs.current[index + 1]?.focus();
-    if (index === 5 && val && newCode.every((c) => c)) {
-      // Auto submit
+    const next = [...digits];
+    next[i] = val;
+    setDigits(next);
+    if (val && i < OTP_LENGTH - 1) inputsRef.current[i + 1]?.focus();
+    if (val && i === OTP_LENGTH - 1 && next.every((d) => d)) {
       setTimeout(() => verifyMutation.mutate(), 100);
     }
   };
 
-  const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === 'Backspace' && !code[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
+  const handleKeyDown = (i: number, e: React.KeyboardEvent) => {
+    if (e.key === 'Backspace' && !digits[i] && i > 0) {
+      inputsRef.current[i - 1]?.focus();
     }
   };
 
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const paste = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, OTP_LENGTH);
+    const next = paste.split('').concat(new Array(OTP_LENGTH - paste.length).fill(''));
+    setDigits(next);
+    inputsRef.current[Math.min(paste.length, OTP_LENGTH - 1)]?.focus();
+    if (next.every((d) => d)) setTimeout(() => verifyMutation.mutate(), 100);
+  };
+
+  const maskedPhone = phone?.replace(/(\+92|0)(\d{3})(\d+)(\d{2})/, '$1$2****$4');
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-brand-50 to-emerald-50 flex flex-col">
-      <header className="p-4">
-        <button
-          onClick={() => navigate(-1)}
-          className="h-10 w-10 rounded-xl bg-white shadow-sm border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition"
-        >
-          <ArrowLeft className="h-5 w-5 text-slate-700" />
-        </button>
-      </header>
+    <>
+      <Helmet><title>Verify OTP — Nafaa Bazaar</title></Helmet>
 
-      <div className="flex-1 flex items-center justify-center p-4 pb-20">
+      <div className="min-h-screen-dvh flex items-center justify-center bg-gradient-mesh p-4">
+        <div className="fixed inset-0 -z-10 overflow-hidden">
+          <div className="absolute top-1/4 -left-32 h-96 w-96 rounded-full bg-brand-500/20 blur-3xl" />
+        </div>
+
         <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <div className="mx-auto h-20 w-20 rounded-3xl bg-gradient-to-br from-brand-500 via-brand-600 to-emerald-700 flex items-center justify-center shadow-brand-lg mb-4">
-              <ShieldCheck className="h-10 w-10 text-white" />
-            </div>
-            <h1 className="text-3xl font-black text-slate-900">Verify OTP</h1>
-            <p className="text-slate-500 text-sm mt-2">
-              6-digit code aap ke <span className="font-extrabold text-slate-800">{phone}</span> pe bhej diya hai
-            </p>
-            {devCode && (
-              <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-amber-100 text-amber-800 px-3 py-1 text-xs font-extrabold">
-                <Sparkles className="h-3 w-3" />
-                DEV: {devCode}
-              </div>
-            )}
-          </div>
+          <button
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-1 text-sm text-content-muted hover:text-content font-bold mb-4"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </button>
 
-          <div className="rounded-3xl bg-white shadow-soft-xl p-6 border border-slate-100">
-            {/* OTP Boxes */}
-            <div className="flex justify-center gap-2 mb-6">
-              {code.map((digit, i) => (
+          <Card className="p-6 md:p-8 shadow-soft-lg space-y-6">
+            <div className="text-center">
+              <div className="h-16 w-16 mx-auto rounded-3xl bg-gradient-brand flex items-center justify-center shadow-brand mb-4">
+                <Phone className="h-7 w-7 text-white" />
+              </div>
+              <h1 className="text-2xl md:text-3xl font-black">Verify your phone</h1>
+              <p className="text-sm text-content-muted mt-2">We sent a 6-digit code to</p>
+              <p className="text-sm font-black text-content mt-1">{maskedPhone}</p>
+            </div>
+
+            <div className="flex justify-center gap-2 md:gap-3" onPaste={handlePaste}>
+              {digits.map((d, i) => (
                 <input
                   key={i}
-                  ref={(el) => { inputRefs.current[i] = el; }}
-                  type="text"
+                  ref={(el) => { inputsRef.current[i] = el; }}
+                  type="tel"
                   inputMode="numeric"
-                  maxLength={i === 0 ? 6 : 1}
-                  value={digit}
+                  maxLength={1}
+                  value={d}
                   onChange={(e) => handleChange(i, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(i, e)}
-                  className="w-12 h-14 sm:w-14 sm:h-16 rounded-2xl border-2 border-slate-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/20 outline-none text-center text-2xl font-black text-brand-700 transition"
+                  className={cn(
+                    'h-14 w-11 md:h-16 md:w-14 text-center text-2xl font-black rounded-2xl border-2 bg-surface',
+                    'focus:outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 transition',
+                    d ? 'border-brand-500' : 'border-border',
+                  )}
                 />
               ))}
             </div>
 
             <Button
-              onClick={() => verifyMutation.mutate()}
               variant="gradient"
-              size="xl"
+              size="lg"
               fullWidth
+              disabled={digits.some((d) => !d)}
               loading={verifyMutation.isPending}
-              disabled={code.some((c) => !c)}
+              onClick={() => verifyMutation.mutate()}
             >
-              Verify OTP
+              Verify & continue
             </Button>
 
-            {/* Resend */}
-            <div className="mt-5 text-center">
-              {timeLeft > 0 ? (
-                <p className="text-sm text-slate-500">
-                  Resend in <span className="font-extrabold text-slate-800 tabular-nums">{timeLeft}s</span>
+            <div className="text-center">
+              {resendIn > 0 ? (
+                <p className="text-xs text-content-muted">
+                  Resend code in <span className="font-black text-content">{resendIn}s</span>
                 </p>
               ) : (
                 <button
                   onClick={() => resendMutation.mutate()}
                   disabled={resendMutation.isPending}
-                  className="inline-flex items-center gap-1.5 text-sm font-extrabold text-brand-700 hover:text-brand-800 transition"
+                  className="text-sm font-black text-brand-600 dark:text-brand-400 hover:underline inline-flex items-center gap-1"
                 >
-                  <RotateCw className="h-3.5 w-3.5" />
-                  Resend OTP
+                  <RefreshCw className={cn('h-3.5 w-3.5', resendMutation.isPending && 'animate-spin')} />
+                  Resend code
                 </button>
               )}
             </div>
-          </div>
-
-          <p className="text-center text-xs text-slate-500 mt-6">
-            OTP nahi mila? Spam folder check karein ya wait karein — kabhi kabhi SMS late aata hai.
-          </p>
+          </Card>
         </div>
       </div>
-    </div>
+    </>
   );
 }

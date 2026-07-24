@@ -6,24 +6,26 @@ import {
   ArrowRightLeft, Download, Database, RotateCcw, Award, Percent, TrendingUp, Gift, Gauge, Hash, UserCircle, LifeBuoy, ScrollText, Eye,
   UserCog, CheckCircle2, Wallet2,
   BookmarkPlus, ChevronDown, ChevronRight, ShieldCheck, CreditCard, Bell, Building2, Truck,
-  Search, X, Star, StarOff, PanelLeftClose,
-  Store, Megaphone, MessageCircle, Brain, GraduationCap, Bike, Globe, Lock,
+  Search, X, Star, StarOff, PanelLeftClose, Settings,
+  Store, Megaphone, MessageCircle, Brain, GraduationCap, Bike, Globe, Trophy, Navigation, Zap,
 } from 'lucide-react';
 import { Logo } from '@core/components/brand/Logo';
 import { hasPermission, PERMISSIONS, type PermissionKey } from '@core/lib/permissions';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import type { IndustryNavGroup, IndustryNavItem } from '@industries/_shared/types/industry-pack';
+import { useWorkspaceStore, WORKSPACES } from '@core/stores/workspace.store';
 
 const SIDEBAR_SCROLL_KEY = 'nafaa-sidebar-scroll';
-const SIDEBAR_GROUPS_KEY = 'nafaa-sidebar-groups-v5';
-const SIDEBAR_FAVORITES_KEY = 'nafaa-sidebar-favorites-v3';
+const SIDEBAR_GROUPS_KEY = 'nafaa-sidebar-groups-v6';
+const SIDEBAR_FAVORITES_KEY = 'nafaa-sidebar-favorites-v4';
 
 type NavItem = {
   to: string;
   label: string;
   icon: any;
   permission?: PermissionKey;
-  comingSoon?: boolean;
+  badge?: string;
+  hot?: boolean;
 };
 
 type NavGroup = {
@@ -36,16 +38,15 @@ type NavGroup = {
   order?: number;
 };
 
-const DEFAULT_FAVORITES = ['/dashboard', '/pos', '/sales', '/customers', '/products', '/khata'];
-
 // ═══════════════════════════════════════════════════════════════
-// CORE nav groups — only pages that actually exist as routes
-// Coming Soon items are visually disabled (no route, no click)
+// POS WORKSPACE — Business operations
 // ═══════════════════════════════════════════════════════════════
-const coreNavGroups: NavGroup[] = [
+const posNavGroups: NavGroup[] = [
   {
     label: 'Overview',
     icon: LayoutDashboard,
+    emoji: '📊',
+    color: '#10b981',
     defaultOpen: true,
     order: 0,
     items: [
@@ -58,12 +59,14 @@ const coreNavGroups: NavGroup[] = [
   {
     label: 'Sales & Orders',
     icon: ShoppingCart,
+    emoji: '🛒',
+    color: '#059669',
     defaultOpen: true,
     order: 5,
     items: [
-      { to: '/pos', label: 'POS Counter', icon: ShoppingCart, permission: PERMISSIONS.POS_USE },
+      { to: '/pos', label: 'POS Counter', icon: ShoppingCart, permission: PERMISSIONS.POS_USE, hot: true },
       { to: '/sales', label: 'Sales History', icon: Receipt, permission: PERMISSIONS.SALES_VIEW },
-      { to: '/bookings', label: 'Bookings / Advance', icon: BookmarkPlus, permission: PERMISSIONS.SALES_VIEW },
+      { to: '/bookings', label: 'Bookings', icon: BookmarkPlus, permission: PERMISSIONS.SALES_VIEW },
       { to: '/returns', label: 'Returns', icon: RotateCcw, permission: PERMISSIONS.RETURNS_VIEW },
       { to: '/customers', label: 'Customers', icon: Users, permission: PERMISSIONS.CUSTOMERS_VIEW },
       { to: '/khata', label: 'Khata (Udhaar)', icon: BookOpen, permission: PERMISSIONS.KHATA_VIEW },
@@ -75,6 +78,8 @@ const coreNavGroups: NavGroup[] = [
   {
     label: 'Inventory',
     icon: Package,
+    emoji: '📦',
+    color: '#0891b2',
     defaultOpen: true,
     order: 10,
     items: [
@@ -92,69 +97,11 @@ const coreNavGroups: NavGroup[] = [
       { to: '/barcode-labels', label: 'Barcode Labels', icon: ScanLine, permission: PERMISSIONS.BARCODE_LABELS_VIEW },
     ],
   },
-  // ── Industry groups get injected here (order 20-89) ────────
-
-  // ═══════════════════════════════════════════════════════════
-  // COMING SOON MODULES — disabled, elegant grey style
-  // ═══════════════════════════════════════════════════════════
-  {
-    label: 'Marketplace',
-    icon: Store,
-    emoji: '🛍️',
-    color: '#8b5cf6',
-    order: 88,
-    items: [
-      { to: '/marketplace/settings', label: 'Publish Settings', icon: Globe, permission: PERMISSIONS.SETTINGS_VIEW },
-      { to: '/marketplace/dashboard', label: 'Marketplace Dashboard', icon: Store, comingSoon: true },
-      { to: '/marketplace/orders', label: 'Customer Orders', icon: ShoppingCart, comingSoon: true },
-      { to: '/marketplace/storefront', label: 'My Storefront', icon: Globe, comingSoon: true },
-    ],
-  },
-  {
-    label: 'Delivery',
-    icon: Bike,
-    emoji: '🚚',
-    color: '#f97316',
-    order: 89,
-    items: [
-      { to: '/delivery/active', label: 'Active Deliveries', icon: Bike, comingSoon: true },
-      { to: '/delivery/riders', label: 'Riders', icon: Users, comingSoon: true },
-      { to: '/delivery/zones', label: 'Delivery Zones', icon: Globe, comingSoon: true },
-    ],
-  },
-  {
-    label: 'Marketing',
-    icon: Megaphone,
-    emoji: '📣',
-    color: '#ec4899',
-    order: 91,
-    items: [
-      { to: '/messaging/hub', label: 'Messaging Hub', icon: MessageCircle, comingSoon: true },
-      { to: '/messaging/campaigns', label: 'Campaigns', icon: Megaphone, comingSoon: true },
-      { to: '/promotions/coupons', label: 'Coupons', icon: Percent, comingSoon: true },
-      { to: '/promotions/flash-sales', label: 'Flash Sales', icon: Sparkles, comingSoon: true },
-    ],
-  },
-  {
-    label: 'AI & Insights',
-    icon: Brain,
-    emoji: '🧠',
-    color: '#06b6d4',
-    order: 92,
-    items: [
-      { to: '/analytics/ai-insights', label: 'AI Insights', icon: Brain, comingSoon: true },
-      { to: '/analytics/forecast', label: 'Sales Forecast', icon: TrendingUp, comingSoon: true },
-      { to: '/analytics/segments', label: 'Customer Segments', icon: Users, comingSoon: true },
-      { to: '/ai-assistant', label: 'AI Assistant', icon: Sparkles, comingSoon: true },
-    ],
-  },
-
-  // ═══════════════════════════════════════════════════════════
-  // ACTIVE — Staff, Finance, System
-  // ═══════════════════════════════════════════════════════════
   {
     label: 'Staff & Team',
     icon: UserCog,
+    emoji: '👥',
+    color: '#8b5cf6',
     order: 93,
     items: [
       { to: '/staff', label: 'All Staff', icon: UserCog, permission: PERMISSIONS.STAFF_VIEW },
@@ -166,6 +113,8 @@ const coreNavGroups: NavGroup[] = [
   {
     label: 'Finance',
     icon: Wallet,
+    emoji: '💰',
+    color: '#f59e0b',
     order: 95,
     items: [
       { to: '/expenses', label: 'Expenses', icon: Wallet, permission: PERMISSIONS.EXPENSES_VIEW },
@@ -176,19 +125,10 @@ const coreNavGroups: NavGroup[] = [
     ],
   },
   {
-    label: 'Learn & Grow',
-    icon: GraduationCap,
-    emoji: '🎓',
-    color: '#84cc16',
-    order: 98,
-    items: [
-      { to: '/learn/tutorials', label: 'Tutorials', icon: GraduationCap, comingSoon: true },
-      { to: '/learn/best-practices', label: 'Best Practices', icon: Sparkles, comingSoon: true },
-    ],
-  },
-  {
     label: 'System',
     icon: SettingsIcon,
+    emoji: '⚙️',
+    color: '#64748b',
     order: 100,
     items: [
       { to: '/notifications', label: 'Notifications', icon: Bell },
@@ -200,6 +140,110 @@ const coreNavGroups: NavGroup[] = [
       { to: '/profile', label: 'My Profile', icon: UserCircle },
       { to: '/help', label: 'Help', icon: LifeBuoy },
       { to: '/legal', label: 'Terms & Privacy', icon: ScrollText },
+    ],
+  },
+];
+
+// ═══════════════════════════════════════════════════════════════
+// MARKETPLACE WORKSPACE — Public storefront
+// ═══════════════════════════════════════════════════════════════
+const marketplaceNavGroups: NavGroup[] = [
+  {
+    label: 'Overview',
+    icon: LayoutDashboard,
+    emoji: '🎯',
+    color: '#a855f7',
+    defaultOpen: true,
+    order: 0,
+    items: [
+      { to: '/marketplace/dashboard', label: 'Dashboard', icon: LayoutDashboard, permission: PERMISSIONS.SETTINGS_VIEW, hot: true },
+      { to: '/marketplace/analytics', label: 'Analytics', icon: BarChart3, permission: PERMISSIONS.REPORTS_VIEW },
+      { to: '/marketplace/sales-funnel', label: 'Sales Funnel', icon: TrendingUp, permission: PERMISSIONS.REPORTS_VIEW },
+      { to: '/marketplace/ai-insights', label: 'AI Insights', icon: Brain, permission: PERMISSIONS.SETTINGS_VIEW, badge: 'AI' },
+    ],
+  },
+  {
+    label: 'Storefront',
+    icon: Store,
+    emoji: '🏪',
+    color: '#ec4899',
+    defaultOpen: true,
+    order: 5,
+    items: [
+      { to: '/marketplace/shop-profile', label: 'Shop Profile', icon: Store, permission: PERMISSIONS.SETTINGS_VIEW },
+      { to: '/marketplace/products', label: 'Products', icon: Package, permission: PERMISSIONS.PRODUCTS_VIEW },
+      { to: '/marketplace/settings', label: 'Publish Settings', icon: Globe, permission: PERMISSIONS.SETTINGS_VIEW },
+    ],
+  },
+  {
+    label: 'Orders & Fulfillment',
+    icon: ShoppingCart,
+    emoji: '📦',
+    color: '#f97316',
+    defaultOpen: true,
+    order: 10,
+    items: [
+      { to: '/marketplace/orders', label: 'Orders', icon: ShoppingCart, permission: PERMISSIONS.SALES_VIEW, hot: true },
+      { to: '/marketplace/delivery', label: 'Delivery', icon: Bike, permission: PERMISSIONS.SETTINGS_VIEW },
+      { to: '/marketplace/rider-tracking', label: 'Rider Tracking', icon: Navigation, permission: PERMISSIONS.SETTINGS_VIEW, badge: 'LIVE' },
+    ],
+  },
+  {
+    label: 'Customer Engagement',
+    icon: MessageCircle,
+    emoji: '💬',
+    color: '#3b82f6',
+    order: 15,
+    items: [
+      { to: '/marketplace/reviews', label: 'Reviews', icon: Star, permission: PERMISSIONS.SETTINGS_VIEW },
+      { to: '/marketplace/messages', label: 'Messages', icon: MessageCircle, permission: PERMISSIONS.SETTINGS_VIEW },
+      { to: '/marketplace/bargains', label: 'Bargains', icon: MessageCircle, permission: PERMISSIONS.SETTINGS_VIEW },
+      { to: '/marketplace/segments', label: 'Customer Segments', icon: Users, permission: PERMISSIONS.SETTINGS_VIEW },
+    ],
+  },
+  {
+    label: 'Sales Boosters',
+    icon: Zap,
+    emoji: '⚡',
+    color: '#eab308',
+    order: 20,
+    items: [
+      { to: '/marketplace/group-buys', label: 'Group Buys', icon: Users, permission: PERMISSIONS.SETTINGS_VIEW },
+      { to: '/marketplace/auctions', label: 'Auctions', icon: Sparkles, permission: PERMISSIONS.SETTINGS_VIEW },
+      { to: '/marketplace/live-shop', label: 'Live Shop', icon: Sparkles, permission: PERMISSIONS.SETTINGS_VIEW, badge: 'NEW' },
+    ],
+  },
+  {
+    label: 'Marketing',
+    icon: Megaphone,
+    emoji: '📣',
+    color: '#dc2626',
+    order: 25,
+    items: [
+      { to: '/marketplace/promotions', label: 'Promotions', icon: Megaphone, permission: PERMISSIONS.SETTINGS_VIEW },
+      { to: '/marketplace/coupons-advanced', label: 'Coupons Advanced', icon: Tag, permission: PERMISSIONS.SETTINGS_VIEW },
+      { to: '/marketplace/loyalty', label: 'Loyalty & Rewards', icon: Trophy, permission: PERMISSIONS.SETTINGS_VIEW },
+    ],
+  },
+  {
+    label: 'Multi-Shop',
+    icon: Building2,
+    emoji: '🏢',
+    color: '#06b6d4',
+    order: 90,
+    items: [
+      { to: '/marketplace/multi-shop', label: 'Multi-Shop Manager', icon: Building2, permission: PERMISSIONS.SETTINGS_VIEW },
+    ],
+  },
+  {
+    label: 'System',
+    icon: SettingsIcon,
+    emoji: '⚙️',
+    color: '#64748b',
+    order: 100,
+    items: [
+      { to: '/marketplace/notifications', label: 'Notifications', icon: Bell, permission: PERMISSIONS.SETTINGS_VIEW },
+      { to: '/marketplace/settings-hub', label: 'Settings Hub', icon: Settings, permission: PERMISSIONS.SETTINGS_VIEW },
     ],
   },
 ];
@@ -246,7 +290,7 @@ const loadFavorites = (): string[] => {
     const raw = localStorage.getItem(SIDEBAR_FAVORITES_KEY);
     if (raw) return JSON.parse(raw);
   } catch {}
-  return DEFAULT_FAVORITES;
+  return ['/dashboard', '/pos', '/sales', '/customers', '/products', '/khata'];
 };
 const saveFavorites = (favs: string[]) => {
   try { localStorage.setItem(SIDEBAR_FAVORITES_KEY, JSON.stringify(favs)); } catch {}
@@ -261,13 +305,19 @@ export const Sidebar = memo(function Sidebar({
   const [favoritePaths, setFavoritePaths] = useState<string[]>(() => loadFavorites());
 
   const industry = useCurrentIndustry();
+  const { activeWorkspace } = useWorkspaceStore();
+  const workspace = WORKSPACES[activeWorkspace];
+  const isMarketplace = activeWorkspace === 'marketplace';
 
   const allGroups = useMemo<NavGroup[]>(() => {
+    if (isMarketplace) {
+      return [...marketplaceNavGroups].sort((a, b) => (a.order ?? 100) - (b.order ?? 100));
+    }
     const industryGroups = industry?.navGroups?.map(fromIndustryGroup) ?? [];
-    return [...coreNavGroups, ...industryGroups].sort(
+    return [...posNavGroups, ...industryGroups].sort(
       (a, b) => (a.order ?? 100) - (b.order ?? 100),
     );
-  }, [industry]);
+  }, [industry, isMarketplace]);
 
   const allItemsByPath = useMemo(() => {
     const map = new Map<string, NavItem>();
@@ -280,8 +330,6 @@ export const Sidebar = memo(function Sidebar({
       .map((group) => ({
         ...group,
         items: group.items.filter((item) => {
-          // Coming soon items always show (they're informational)
-          if (item.comingSoon) return true;
           return item.permission ? hasPermission(role, permissions, item.permission) : true;
         }),
       }))
@@ -290,7 +338,7 @@ export const Sidebar = memo(function Sidebar({
 
   const visiblePathSet = useMemo(() => {
     const set = new Set<string>();
-    for (const g of filteredGroups) for (const item of g.items) if (!item.comingSoon) set.add(item.to);
+    for (const g of filteredGroups) for (const item of g.items) set.add(item.to);
     return set;
   }, [filteredGroups]);
 
@@ -354,30 +402,44 @@ export const Sidebar = memo(function Sidebar({
   useEffect(() => {
     const nav = navRef.current;
     if (!nav) return;
-    const saved = sessionStorage.getItem(SIDEBAR_SCROLL_KEY);
+    const saved = sessionStorage.getItem(`${SIDEBAR_SCROLL_KEY}-${activeWorkspace}`);
     if (saved) nav.scrollTop = Number(saved);
-    const handleScroll = () => sessionStorage.setItem(SIDEBAR_SCROLL_KEY, String(nav.scrollTop));
+    const handleScroll = () => sessionStorage.setItem(`${SIDEBAR_SCROLL_KEY}-${activeWorkspace}`, String(nav.scrollTop));
     nav.addEventListener('scroll', handleScroll, { passive: true });
     return () => nav.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [activeWorkspace]);
+
+  const headerGradient = isMarketplace
+    ? 'linear-gradient(135deg, #a855f7 0%, #ec4899 50%, #f43f5e 100%)'
+    : industry?.themeColor
+      ? `linear-gradient(135deg, ${industry.themeColor} 0%, ${industry.themeColor}cc 50%, ${industry.themeColor}99 100%)`
+      : 'linear-gradient(135deg, #16a34a 0%, #059669 50%, #047857 100%)';
 
   return (
     <>
-      {/* ─── HEADER — Brand card ─── */}
+      {/* ═══ HEADER — Workspace-themed brand card ═══ */}
       <div className="px-4 pt-4 pb-3 shrink-0">
         <div
-          className="relative rounded-2xl p-3 shadow-xl overflow-hidden"
-          style={{
-            background: industry?.themeColor
-              ? `linear-gradient(135deg, ${industry.themeColor} 0%, ${industry.themeColor}cc 50%, ${industry.themeColor}99 100%)`
-              : 'linear-gradient(135deg, #16a34a 0%, #059669 50%, #047857 100%)',
-          }}
+          className="relative rounded-2xl p-3 shadow-xl overflow-hidden transition-all duration-500"
+          style={{ background: headerGradient }}
         >
           <div className="absolute -top-8 -right-8 h-24 w-24 rounded-full bg-white/10 blur-2xl" />
           <div className="absolute -bottom-8 -left-8 h-20 w-20 rounded-full bg-amber-400/20 blur-2xl" />
+
+          {/* Workspace badge */}
+          <div className="relative flex items-center gap-2 mb-2">
+            <span className="text-[9px] uppercase tracking-widest font-black text-white/80 flex items-center gap-1">
+              <Sparkles className="h-2 w-2" />
+              {workspace.shortLabel}
+            </span>
+            <span className="text-lg leading-none">{workspace.emoji}</span>
+          </div>
+
           <div className="relative flex items-center gap-3">
-            <div className="h-11 w-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center shadow-inner ring-1 ring-white/25 shrink-0">
-              {industry?.emoji ? (
+            <div className="h-11 w-11 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center shadow-inner ring-1 ring-white/25 shrink-0">
+              {isMarketplace ? (
+                <Store className="h-6 w-6 text-white" />
+              ) : industry?.emoji ? (
                 <span className="text-2xl leading-none">{industry.emoji}</span>
               ) : (
                 <Logo size={26} />
@@ -388,11 +450,11 @@ export const Sidebar = memo(function Sidebar({
                 {tenantName || 'My Store'}
               </div>
               <div className="flex items-center gap-1.5 mt-1">
-                {industry ? (
+                {!isMarketplace && industry ? (
                   <span className="px-1.5 py-0.5 rounded-md bg-white/20 backdrop-blur text-[9px] font-extrabold text-white uppercase tracking-wider">
                     {industry.emoji} {industry.shortName ?? industry.name}
                   </span>
-                ) : businessType ? (
+                ) : !isMarketplace && businessType ? (
                   <span className="px-1.5 py-0.5 rounded-md bg-white/20 backdrop-blur text-[9px] font-extrabold text-white uppercase tracking-wider">
                     {businessType.replace(/_/g, ' ')}
                   </span>
@@ -415,15 +477,19 @@ export const Sidebar = memo(function Sidebar({
         </div>
       </div>
 
-      {/* ─── SEARCH + CONTROLS ─── */}
+      {/* ═══ SEARCH + CONTROLS ═══ */}
       <div className="px-4 pb-3 shrink-0 space-y-2">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search menu..."
-            className="h-10 w-full rounded-xl bg-slate-800/70 border border-slate-700/70 pl-10 pr-9 text-sm font-semibold text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/25 transition"
+            placeholder={`Search ${workspace.shortLabel.toLowerCase()}...`}
+            className={`h-10 w-full rounded-xl bg-slate-800/70 border border-slate-700/70 pl-10 pr-9 text-sm font-semibold text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 transition ${
+              isMarketplace
+                ? 'focus:border-purple-500 focus:ring-purple-500/25'
+                : 'focus:border-emerald-500 focus:ring-emerald-500/25'
+            }`}
           />
           {search && (
             <button
@@ -456,7 +522,7 @@ export const Sidebar = memo(function Sidebar({
         )}
       </div>
 
-      {/* ─── NAV ─── */}
+      {/* ═══ NAV ═══ */}
       <nav
         ref={navRef}
         className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 pb-3 space-y-4 scrollbar-thin"
@@ -482,6 +548,7 @@ export const Sidebar = memo(function Sidebar({
                   isFavorite={true}
                   isFav={isFavorite(item.to)}
                   onToggleFav={(e) => toggleFavorite(item.to, e)}
+                  isMarketplace={isMarketplace}
                 />
               ))}
             </div>
@@ -493,7 +560,6 @@ export const Sidebar = memo(function Sidebar({
           const isOpen = isGroupOpen(group);
           const GroupIcon = group.icon;
           const accent = group.color;
-          const allComingSoon = group.items.every((it) => it.comingSoon);
 
           return (
             <div key={group.label}>
@@ -515,11 +581,6 @@ export const Sidebar = memo(function Sidebar({
                 >
                   {group.label}
                 </span>
-                {allComingSoon && (
-                  <span className="text-[8px] font-extrabold px-1.5 py-0.5 rounded-md bg-slate-800 text-slate-500 uppercase tracking-wider">
-                    Soon
-                  </span>
-                )}
                 <span className="text-[10px] font-extrabold text-slate-600 group-hover/header:text-slate-400">
                   {group.items.length}
                 </span>
@@ -538,6 +599,7 @@ export const Sidebar = memo(function Sidebar({
                       onItemClick={onItemClick}
                       isFav={isFavorite(item.to)}
                       onToggleFav={(e) => toggleFavorite(item.to, e)}
+                      isMarketplace={isMarketplace}
                     />
                   ))}
                 </div>
@@ -563,18 +625,25 @@ export const Sidebar = memo(function Sidebar({
         )}
       </nav>
 
-      {/* ─── FOOTER ─── */}
+      {/* ═══ FOOTER ═══ */}
       <div className="px-4 py-3 border-t border-slate-800/70 shrink-0 space-y-2">
-        <div className="rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/25 p-2.5">
+        <div
+          className={`rounded-xl p-2.5 border ${
+            isMarketplace
+              ? 'bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-500/25'
+              : 'bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-500/25'
+          }`}
+        >
           <div className="flex items-start gap-2">
-            <Sparkles className="h-3.5 w-3.5 text-amber-400 shrink-0 mt-0.5" />
+            <Sparkles className={`h-3.5 w-3.5 shrink-0 mt-0.5 ${isMarketplace ? 'text-purple-400' : 'text-amber-400'}`} />
             <p className="text-[11px] text-slate-300 leading-snug">
-              <span className="font-extrabold text-amber-300">Tip:</span> Click ⭐ to add favorites
+              <span className={`font-extrabold ${isMarketplace ? 'text-purple-300' : 'text-amber-300'}`}>Tip:</span>{' '}
+              {isMarketplace ? 'Switch to POS anytime ⌘⇧W' : 'Click ⭐ to add favorites'}
             </p>
           </div>
         </div>
         <div className="flex items-center justify-between px-1 text-[10px] font-bold text-slate-500">
-          <span>Nafaa POS</span>
+          <span>Nafaa · {workspace.shortLabel}</span>
           <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-[9px] text-slate-400">
             ⌘B toggle
           </kbd>
@@ -585,39 +654,26 @@ export const Sidebar = memo(function Sidebar({
 });
 
 // ═══════════════════════════════════════════════════════════════
-// NavItemLink — handles both active links AND coming-soon items
+// NavItemLink — workspace-aware active styling
 // ═══════════════════════════════════════════════════════════════
 function NavItemLink({
-  item, onItemClick, isFavorite, isFav, onToggleFav,
+  item, onItemClick, isFavorite, isFav, onToggleFav, isMarketplace,
 }: {
   item: NavItem;
   onItemClick?: () => void;
   isFavorite?: boolean;
   isFav: boolean;
   onToggleFav: (e: React.MouseEvent) => void;
+  isMarketplace?: boolean;
 }) {
   const Icon = item.icon;
 
-  // ─── COMING SOON ITEM — Elegant disabled style ───
-  if (item.comingSoon) {
-    return (
-      <div
-        className="group/item relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-bold text-slate-500 cursor-not-allowed select-none opacity-75 hover:opacity-100 transition"
-        title="Coming soon — is feature pe kaam ho raha hai"
-      >
-        <div className="relative shrink-0">
-          <Icon className="h-4 w-4 text-slate-600" />
-        </div>
-        <span className="truncate flex-1 text-slate-500">{item.label}</span>
-        <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 uppercase tracking-wider shrink-0 border border-slate-700/50">
-          Soon
-        </span>
-        <Lock className="h-3 w-3 text-slate-600 shrink-0" />
-      </div>
-    );
-  }
+  const activeGradient = isMarketplace
+    ? 'bg-gradient-to-r from-purple-600 to-pink-600 shadow-purple-900/50'
+    : 'bg-gradient-to-r from-emerald-600 to-teal-600 shadow-emerald-900/50';
 
-  // ─── ACTIVE LINK ───
+  const activeRing = isMarketplace ? 'ring-purple-400/50' : 'ring-emerald-400/50';
+
   return (
     <NavLink
       to={item.to}
@@ -627,20 +683,38 @@ function NavItemLink({
         [
           'group/item relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-bold transition-all duration-150',
           isActive
-            ? isFavorite
-              ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-900/50 ring-1 ring-emerald-400/50'
-              : 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-900/50'
+            ? `${activeGradient} text-white shadow-lg ${isFavorite ? `ring-1 ${activeRing}` : ''}`
             : isFavorite
               ? 'text-slate-200 hover:bg-slate-800 hover:text-white hover:translate-x-0.5'
               : 'text-slate-400 hover:bg-slate-800/70 hover:text-white hover:translate-x-0.5',
         ].join(' ')
       }
     >
-      <Icon className="h-4 w-4 shrink-0" />
+      <div className="relative shrink-0">
+        <Icon className="h-4 w-4" />
+        {item.hot && (
+          <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-amber-400 animate-pulse ring-2 ring-slate-900" />
+        )}
+      </div>
       <span className="truncate flex-1">{item.label}</span>
+      {item.badge && (
+        <span
+          className={`text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider shrink-0 ${
+            item.badge === 'LIVE'
+              ? 'bg-rose-500 text-white animate-pulse'
+              : item.badge === 'NEW'
+                ? 'bg-emerald-500 text-white'
+                : item.badge === 'AI'
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                  : 'bg-amber-500 text-white'
+          }`}
+        >
+          {item.badge}
+        </span>
+      )}
       <button
         onClick={onToggleFav}
-        className={`h-5 w-5 rounded-md flex items-center justify-center transition ${
+        className={`h-5 w-5 rounded-md flex items-center justify-center transition shrink-0 ${
           isFav
             ? 'opacity-100 text-amber-400 hover:text-amber-300 hover:bg-amber-500/10'
             : 'opacity-0 group-hover/item:opacity-100 text-slate-500 hover:text-amber-400 hover:bg-slate-700/50'

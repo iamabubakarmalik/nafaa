@@ -5,24 +5,24 @@ import {
   ScanLine, BookOpen, ClipboardCheck, AlertTriangle,
   ArrowRightLeft, Download, Database, RotateCcw, Award, Percent, TrendingUp, Gift, Gauge, Hash, UserCircle, LifeBuoy, ScrollText, Eye,
   UserCog, CheckCircle2, Wallet2,
-  BookmarkPlus, ChevronDown, ChevronRight, ShieldCheck, CreditCard, Bell, Building2, Truck, Cake, Calendar, Cookie, ChefHat, Wheat, Timer, ShoppingBag,
-  Search, X, Star, StarOff, PanelLeftClose, LogIn, Dumbbell, Flame, Pill, TestTube, Syringe, Stethoscope, Target
-} from 'lucide-react';
+  BookmarkPlus, ChevronDown, ChevronRight, ShieldCheck, CreditCard, Bell, Building2, Truck,
+  Search, X, Star, StarOff, PanelLeftClose,Settings,
+  Store, Megaphone, MessageCircle, Brain, GraduationCap, Bike, Globe, Lock, Trophy, Navigation} from 'lucide-react';
 import { Logo } from '@core/components/brand/Logo';
 import { hasPermission, PERMISSIONS, type PermissionKey } from '@core/lib/permissions';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import type { IndustryNavGroup, IndustryNavItem } from '@industries/_shared/types/industry-pack';
 
 const SIDEBAR_SCROLL_KEY = 'nafaa-sidebar-scroll';
-const SIDEBAR_GROUPS_KEY = 'nafaa-sidebar-groups-v4';
-const SIDEBAR_FAVORITES_KEY = 'nafaa-sidebar-favorites-v2';
+const SIDEBAR_GROUPS_KEY = 'nafaa-sidebar-groups-v5';
+const SIDEBAR_FAVORITES_KEY = 'nafaa-sidebar-favorites-v3';
 
 type NavItem = {
   to: string;
   label: string;
   icon: any;
   permission?: PermissionKey;
-  badge?: string;
+  comingSoon?: boolean;
 };
 
 type NavGroup = {
@@ -38,8 +38,8 @@ type NavGroup = {
 const DEFAULT_FAVORITES = ['/dashboard', '/pos', '/sales', '/customers', '/products', '/khata'];
 
 // ═══════════════════════════════════════════════════════════════
-// CORE nav groups — visible to EVERY tenant, regardless of industry
-// Industry-specific groups come from IndustryPack.navGroups
+// CORE nav groups — only pages that actually exist as routes
+// Coming Soon items are visually disabled (no route, no click)
 // ═══════════════════════════════════════════════════════════════
 const coreNavGroups: NavGroup[] = [
   {
@@ -62,7 +62,7 @@ const coreNavGroups: NavGroup[] = [
     items: [
       { to: '/pos', label: 'POS Counter', icon: ShoppingCart, permission: PERMISSIONS.POS_USE },
       { to: '/sales', label: 'Sales History', icon: Receipt, permission: PERMISSIONS.SALES_VIEW },
-      { to: '/bookings', label: 'Bookings / Advance', icon: BookmarkPlus, permission: PERMISSIONS.SALES_VIEW, badge: 'NEW' },
+      { to: '/bookings', label: 'Bookings / Advance', icon: BookmarkPlus, permission: PERMISSIONS.SALES_VIEW },
       { to: '/returns', label: 'Returns', icon: RotateCcw, permission: PERMISSIONS.RETURNS_VIEW },
       { to: '/customers', label: 'Customers', icon: Users, permission: PERMISSIONS.CUSTOMERS_VIEW },
       { to: '/khata', label: 'Khata (Udhaar)', icon: BookOpen, permission: PERMISSIONS.KHATA_VIEW },
@@ -92,10 +92,92 @@ const coreNavGroups: NavGroup[] = [
     ],
   },
   // ── Industry groups get injected here (order 20-89) ────────
+
+    // ═══════════════════════════════════════════════════════════
+  // COMING SOON MODULES — disabled, elegant grey style
+  // ═══════════════════════════════════════════════════════════
+  {
+    label: 'Marketplace',
+    icon: Store,
+    emoji: '🛍️',
+    color: '#8b5cf6',
+    order: 88,
+    defaultOpen: true,
+    items: [
+      { to: '/marketplace/dashboard',    label: 'Dashboard',    icon: LayoutDashboard, permission: PERMISSIONS.SETTINGS_VIEW },
+      { to: '/marketplace/shop-profile', label: 'Shop Profile', icon: Store,           permission: PERMISSIONS.SETTINGS_VIEW },
+      { to: '/marketplace/products',     label: 'Products',     icon: Package,         permission: PERMISSIONS.PRODUCTS_VIEW },
+      { to: '/marketplace/orders',       label: 'Orders',       icon: ShoppingCart,    permission: PERMISSIONS.SALES_VIEW },
+      { to: '/marketplace/reviews',      label: 'Reviews',      icon: Star,            permission: PERMISSIONS.SETTINGS_VIEW },
+      { to: '/marketplace/messages',     label: 'Messages',     icon: MessageCircle,   permission: PERMISSIONS.SETTINGS_VIEW },
+      { to: '/marketplace/bargains',     label: 'Bargains',     icon: MessageCircle,   permission: PERMISSIONS.SETTINGS_VIEW },
+      { to: '/marketplace/group-buys',   label: 'Group Buys',   icon: Users,           permission: PERMISSIONS.SETTINGS_VIEW },
+      { to: '/marketplace/auctions',     label: 'Auctions',     icon: Sparkles,        permission: PERMISSIONS.SETTINGS_VIEW },
+      { to: '/marketplace/live-shop',    label: 'Live Shop',    icon: Sparkles,        permission: PERMISSIONS.SETTINGS_VIEW },
+      { to: '/marketplace/promotions',   label: 'Promotions',   icon: Megaphone,       permission: PERMISSIONS.SETTINGS_VIEW },
+      { to: '/marketplace/delivery',     label: 'Delivery',     icon: Bike,            permission: PERMISSIONS.SETTINGS_VIEW },
+      { to: '/marketplace/analytics',    label: 'Analytics',    icon: BarChart3,       permission: PERMISSIONS.REPORTS_VIEW },
+      { to: '/marketplace/coupons-advanced', label: 'Coupons Advanced', icon: Tag, permission: PERMISSIONS.SETTINGS_VIEW },
+      { to: '/marketplace/sales-funnel',      label: 'Sales Funnel',      icon: BarChart3, permission: PERMISSIONS.REPORTS_VIEW },
+      { to: '/marketplace/segments',          label: 'Customer Segments', icon: Users, permission: PERMISSIONS.SETTINGS_VIEW },
+      { to: '/marketplace/loyalty',          label: 'Loyalty & Rewards', icon: Trophy, permission: PERMISSIONS.SETTINGS_VIEW },
+      { to: '/marketplace/rider-tracking',   label: 'Rider Tracking',    icon: Navigation, permission: PERMISSIONS.SETTINGS_VIEW },
+      { to: '/marketplace/ai-insights',      label: 'AI Insights',       icon: Brain, permission: PERMISSIONS.SETTINGS_VIEW },
+      { to: '/marketplace/multi-shop',       label: 'Multi-Shop Manager', icon: Building2, permission: PERMISSIONS.SETTINGS_VIEW },
+      { to: '/marketplace/notifications',    label: 'Notifications',      icon: Bell, permission: PERMISSIONS.SETTINGS_VIEW },
+      { to: '/marketplace/settings-hub',     label: 'Settings Hub',       icon: Settings, permission: PERMISSIONS.SETTINGS_VIEW },
+
+
+      { to: '/marketplace/settings',     label: 'Publish Settings', icon: Globe,       permission: PERMISSIONS.SETTINGS_VIEW },
+    ],
+  },
+
+  {
+    label: 'Delivery',
+    icon: Bike,
+    emoji: '🚚',
+    color: '#f97316',
+    order: 89,
+    items: [
+      { to: '/delivery/active', label: 'Active Deliveries', icon: Bike, comingSoon: true },
+      { to: '/delivery/riders', label: 'Riders', icon: Users, comingSoon: true },
+      { to: '/delivery/zones', label: 'Delivery Zones', icon: Globe, comingSoon: true },
+    ],
+  },
+  {
+    label: 'Marketing',
+    icon: Megaphone,
+    emoji: '📣',
+    color: '#ec4899',
+    order: 91,
+    items: [
+      { to: '/messaging/hub', label: 'Messaging Hub', icon: MessageCircle, comingSoon: true },
+      { to: '/messaging/campaigns', label: 'Campaigns', icon: Megaphone, comingSoon: true },
+      { to: '/promotions/coupons', label: 'Coupons', icon: Percent, comingSoon: true },
+      { to: '/promotions/flash-sales', label: 'Flash Sales', icon: Sparkles, comingSoon: true },
+    ],
+  },
+  {
+    label: 'AI & Insights',
+    icon: Brain,
+    emoji: '🧠',
+    color: '#06b6d4',
+    order: 92,
+    items: [
+      { to: '/analytics/ai-insights', label: 'AI Insights', icon: Brain, comingSoon: true },
+      { to: '/analytics/forecast', label: 'Sales Forecast', icon: TrendingUp, comingSoon: true },
+      { to: '/analytics/segments', label: 'Customer Segments', icon: Users, comingSoon: true },
+      { to: '/ai-assistant', label: 'AI Assistant', icon: Sparkles, comingSoon: true },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // ACTIVE — Staff, Finance, System
+  // ═══════════════════════════════════════════════════════════
   {
     label: 'Staff & Team',
     icon: UserCog,
-    order: 90,
+    order: 93,
     items: [
       { to: '/staff', label: 'All Staff', icon: UserCog, permission: PERMISSIONS.STAFF_VIEW },
       { to: '/staff/attendance', label: 'Attendance', icon: CheckCircle2, permission: PERMISSIONS.STAFF_VIEW },
@@ -116,6 +198,17 @@ const coreNavGroups: NavGroup[] = [
     ],
   },
   {
+    label: 'Learn & Grow',
+    icon: GraduationCap,
+    emoji: '🎓',
+    color: '#84cc16',
+    order: 98,
+    items: [
+      { to: '/learn/tutorials', label: 'Tutorials', icon: GraduationCap, comingSoon: true },
+      { to: '/learn/best-practices', label: 'Best Practices', icon: Sparkles, comingSoon: true },
+    ],
+  },
+  {
     label: 'System',
     icon: SettingsIcon,
     order: 100,
@@ -125,7 +218,6 @@ const coreNavGroups: NavGroup[] = [
       { to: '/exports', label: 'Exports', icon: Download, permission: PERMISSIONS.EXPORTS_VIEW },
       { to: '/backup', label: 'Backup', icon: Database, permission: PERMISSIONS.BACKUP_MANAGE },
       { to: '/activity-log', label: 'Activity Log', icon: Activity, permission: PERMISSIONS.ACTIVITY_VIEW },
-      { to: '/receipt-settings', label: 'Receipt Settings', icon: ScanLine, permission: PERMISSIONS.SETTINGS_VIEW, badge: 'NEW' },
       { to: '/settings', label: 'Settings', icon: SettingsIcon, permission: PERMISSIONS.SETTINGS_VIEW },
       { to: '/profile', label: 'My Profile', icon: UserCircle },
       { to: '/help', label: 'Help', icon: LifeBuoy },
@@ -134,7 +226,6 @@ const coreNavGroups: NavGroup[] = [
   },
 ];
 
-// Convert IndustryPack nav group → local NavGroup shape
 function fromIndustryGroup(g: IndustryNavGroup): NavGroup {
   return {
     label: g.label,
@@ -148,7 +239,6 @@ function fromIndustryGroup(g: IndustryNavGroup): NavGroup {
       label: it.label,
       icon: it.icon ?? LayoutDashboard,
       permission: it.permission as PermissionKey | undefined,
-      badge: it.badge,
     })),
   };
 }
@@ -192,10 +282,8 @@ export const Sidebar = memo(function Sidebar({
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => loadGroupState());
   const [favoritePaths, setFavoritePaths] = useState<string[]>(() => loadFavorites());
 
-  // ── Active industry pack (auto-detected from tenant) ─────
   const industry = useCurrentIndustry();
 
-  // ── Combined nav groups (core + industry) sorted by order ─
   const allGroups = useMemo<NavGroup[]>(() => {
     const industryGroups = industry?.navGroups?.map(fromIndustryGroup) ?? [];
     return [...coreNavGroups, ...industryGroups].sort(
@@ -203,28 +291,28 @@ export const Sidebar = memo(function Sidebar({
     );
   }, [industry]);
 
-  // ── Flat map for lookup ───────────────────────────────────
   const allItemsByPath = useMemo(() => {
     const map = new Map<string, NavItem>();
     for (const group of allGroups) for (const item of group.items) map.set(item.to, item);
     return map;
   }, [allGroups]);
 
-  // ── Permission filter ─────────────────────────────────────
   const filteredGroups = useMemo(() => {
     return allGroups
       .map((group) => ({
         ...group,
-        items: group.items.filter((item) =>
-          item.permission ? hasPermission(role, permissions, item.permission) : true,
-        ),
+        items: group.items.filter((item) => {
+          // Coming soon items always show (they're informational)
+          if (item.comingSoon) return true;
+          return item.permission ? hasPermission(role, permissions, item.permission) : true;
+        }),
       }))
       .filter((group) => group.items.length > 0);
   }, [allGroups, role, permissions]);
 
   const visiblePathSet = useMemo(() => {
     const set = new Set<string>();
-    for (const g of filteredGroups) for (const item of g.items) set.add(item.to);
+    for (const g of filteredGroups) for (const item of g.items) if (!item.comingSoon) set.add(item.to);
     return set;
   }, [filteredGroups]);
 
@@ -357,7 +445,7 @@ export const Sidebar = memo(function Sidebar({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search menu..."
-            className="h-10 w-full rounded-xl bg-slate-800/70 border border-slate-700/70 pl-10 pr-9 text-sm font-semibold text-white placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 transition"
+            className="h-10 w-full rounded-xl bg-slate-800/70 border border-slate-700/70 pl-10 pr-9 text-sm font-semibold text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/25 transition"
           />
           {search && (
             <button
@@ -393,7 +481,7 @@ export const Sidebar = memo(function Sidebar({
       {/* ─── NAV ─── */}
       <nav
         ref={navRef}
-        className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 pb-3 space-y-4"
+        className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 pb-3 space-y-4 scrollbar-thin"
       >
         {/* FAVORITES */}
         {searchedFavorites.length > 0 && (
@@ -401,7 +489,7 @@ export const Sidebar = memo(function Sidebar({
             <div className="px-2 mb-2 flex items-center gap-1.5">
               <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
               <span className="text-[10px] uppercase tracking-widest text-amber-400 font-extrabold">
-                My Favorites
+                Favorites
               </span>
               <span className="text-[10px] font-extrabold text-slate-600 ml-auto">
                 {searchedFavorites.length}
@@ -427,6 +515,8 @@ export const Sidebar = memo(function Sidebar({
           const isOpen = isGroupOpen(group);
           const GroupIcon = group.icon;
           const accent = group.color;
+          const allComingSoon = group.items.every((it) => it.comingSoon);
+
           return (
             <div key={group.label}>
               <button
@@ -447,6 +537,11 @@ export const Sidebar = memo(function Sidebar({
                 >
                   {group.label}
                 </span>
+                {allComingSoon && (
+                  <span className="text-[8px] font-extrabold px-1.5 py-0.5 rounded-md bg-slate-800 text-slate-500 uppercase tracking-wider">
+                    Soon
+                  </span>
+                )}
                 <span className="text-[10px] font-extrabold text-slate-600 group-hover/header:text-slate-400">
                   {group.items.length}
                 </span>
@@ -482,7 +577,7 @@ export const Sidebar = memo(function Sidebar({
             <div className="text-xs text-slate-500 mt-1 font-semibold">Try different keywords</div>
             <button
               onClick={() => setSearch('')}
-              className="mt-3 text-xs font-extrabold text-brand-400 hover:text-brand-300 underline"
+              className="mt-3 text-xs font-extrabold text-emerald-400 hover:text-emerald-300 underline"
             >
               Clear search
             </button>
@@ -511,6 +606,9 @@ export const Sidebar = memo(function Sidebar({
   );
 });
 
+// ═══════════════════════════════════════════════════════════════
+// NavItemLink — handles both active links AND coming-soon items
+// ═══════════════════════════════════════════════════════════════
 function NavItemLink({
   item, onItemClick, isFavorite, isFav, onToggleFav,
 }: {
@@ -521,6 +619,27 @@ function NavItemLink({
   onToggleFav: (e: React.MouseEvent) => void;
 }) {
   const Icon = item.icon;
+
+  // ─── COMING SOON ITEM — Elegant disabled style ───
+  if (item.comingSoon) {
+    return (
+      <div
+        className="group/item relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-bold text-slate-500 cursor-not-allowed select-none opacity-75 hover:opacity-100 transition"
+        title="Coming soon — is feature pe kaam ho raha hai"
+      >
+        <div className="relative shrink-0">
+          <Icon className="h-4 w-4 text-slate-600" />
+        </div>
+        <span className="truncate flex-1 text-slate-500">{item.label}</span>
+        <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 uppercase tracking-wider shrink-0 border border-slate-700/50">
+          Soon
+        </span>
+        <Lock className="h-3 w-3 text-slate-600 shrink-0" />
+      </div>
+    );
+  }
+
+  // ─── ACTIVE LINK ───
   return (
     <NavLink
       to={item.to}
@@ -531,8 +650,8 @@ function NavItemLink({
           'group/item relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-bold transition-all duration-150',
           isActive
             ? isFavorite
-              ? 'bg-gradient-to-r from-brand-600 to-emerald-600 text-white shadow-lg shadow-brand-900/50 ring-1 ring-brand-400/50'
-              : 'bg-gradient-to-r from-brand-600 to-emerald-600 text-white shadow-lg shadow-brand-900/50'
+              ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-900/50 ring-1 ring-emerald-400/50'
+              : 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-900/50'
             : isFavorite
               ? 'text-slate-200 hover:bg-slate-800 hover:text-white hover:translate-x-0.5'
               : 'text-slate-400 hover:bg-slate-800/70 hover:text-white hover:translate-x-0.5',
@@ -541,11 +660,6 @@ function NavItemLink({
     >
       <Icon className="h-4 w-4 shrink-0" />
       <span className="truncate flex-1">{item.label}</span>
-      {item.badge && (
-        <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-full bg-amber-500 text-white shrink-0 shadow ring-1 ring-amber-300/40">
-          {item.badge}
-        </span>
-      )}
       <button
         onClick={onToggleFav}
         className={`h-5 w-5 rounded-md flex items-center justify-center transition ${

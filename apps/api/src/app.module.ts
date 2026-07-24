@@ -195,8 +195,8 @@ import { AiAssistantModule } from './marketplace/ai-assistant/ai-assistant.modul
     // ─── Industries + Admin + Marketplace ───
     IndustriesModule,
     AdminModule,
-    MarketplaceModule,
     PublishingModule,
+    MarketplaceModule,
 
     // ─── Integrations ───
     StripeModule,

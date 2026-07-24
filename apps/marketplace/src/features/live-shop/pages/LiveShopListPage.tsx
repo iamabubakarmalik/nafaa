@@ -1,121 +1,131 @@
 import { useQuery } from '@tanstack/react-query';
-import { NavLink } from 'react-router-dom';
-import { Radio, Eye, Clock, Heart, Play } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
+import { Video, Users, Clock, Sparkles } from 'lucide-react';
 import { liveShopApi } from '../api/live-shop.api';
-import { EmptyState } from '@shared/ui/EmptyState';
-import { SkeletonCard } from '@shared/ui/Skeleton';
+import { Card, Badge, EmptyState } from '@/ui';
+import { timeAgo } from '@/lib/format';
 
-export default function LiveShopListPage() {
-  const { data: live, isLoading: liveLoading } = useQuery({
-    queryKey: ['market-live-now'],
-    queryFn: () => liveShopApi.live(),
-    refetchInterval: 15_000,
-  });
-
-  const { data: upcoming } = useQuery({
-    queryKey: ['market-live-upcoming'],
-    queryFn: () => liveShopApi.upcoming(),
-  });
-
+function LiveCard({ live }: { live: any }) {
   return (
-    <div className="pb-20 space-y-6">
-      <div>
-        <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-          <Radio className="h-6 w-6 text-rose-600 animate-pulse-soft" />
-          Live Shopping
-        </h1>
-        <p className="text-xs text-slate-500 mt-0.5">Video pe products dekho, live pucho, khareedo</p>
-      </div>
+    <Link to={`/live/${live.id}`} className="relative rounded-3xl overflow-hidden group border border-border shadow-soft-lg block card-hover">
+      <div className="aspect-[4/5] relative bg-gradient-to-br from-rose-500 to-danger">
+        {live.coverImageUrl && (
+          <img src={live.coverImageUrl} alt="" className="h-full w-full object-cover" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
 
-      {/* Live now */}
-      <section>
-        <h2 className="text-sm font-extrabold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
-          Live Abhi
-        </h2>
-        {liveLoading ? (
-          <div className="grid grid-cols-2 gap-3">
-            <SkeletonCard /><SkeletonCard />
+        {live.isLive ? (
+          <div className="absolute top-3 left-3 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-danger text-white text-2xs font-black shadow-lg">
+            <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse-soft" />
+            LIVE
           </div>
-        ) : !live?.items?.length ? (
-          <EmptyState emoji="📺" title="Koi live nahi abhi" description="Baad mein wapas aayen" size="sm" />
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {live.items.map((ls: any) => <LiveCard key={ls.id} liveShop={ls} isLive />)}
+          <div className="absolute top-3 left-3 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-black/60 text-white text-2xs font-black backdrop-blur-sm">
+            <Clock className="h-3 w-3" />
+            SOON
           </div>
         )}
-      </section>
 
-      {/* Upcoming */}
-      {upcoming?.items?.length > 0 && (
-        <section>
-          <h2 className="text-sm font-extrabold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
-            <Clock className="h-4 w-4 text-brand-600" />
-            Aane Wali Live Shows
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {upcoming.items.map((ls: any) => <LiveCard key={ls.id} liveShop={ls} />)}
+        <div className="absolute top-3 right-3 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-black/60 text-white text-2xs font-bold backdrop-blur-sm">
+          <Users className="h-3 w-3" />
+          {live.peakViewerCount || 0}
+        </div>
+
+        <div className="absolute bottom-4 inset-x-4 text-white">
+          <div className="flex items-center gap-2 mb-2">
+            {live.shopProfile?.logoUrl && (
+              <img src={live.shopProfile.logoUrl} alt="" className="h-8 w-8 rounded-full object-cover ring-2 ring-white" />
+            )}
+            <div className="text-xs font-black">{live.shopProfile?.publicName}</div>
           </div>
-        </section>
-      )}
-    </div>
+          <div className="text-base font-black line-clamp-2">{live.title}</div>
+          {live.isStartingSoon && !live.isLive && (
+            <div className="mt-1 text-2xs bg-accent-500 text-white px-2 py-0.5 rounded-full inline-block font-black">
+              Starting soon
+            </div>
+          )}
+        </div>
+      </div>
+    </Link>
   );
 }
 
-function LiveCard({ liveShop: ls, isLive }: { liveShop: any; isLive?: boolean }) {
+export default function LiveShopListPage() {
+  const { data, isLoading } = useQuery({
+    queryKey: ['live-shops'],
+    queryFn: () => liveShopApi.list({ limit: 50 }),
+  });
+
+  const liveNow = data?.items?.filter((l: any) => l.isLive) || [];
+  const upcoming = data?.items?.filter((l: any) => !l.isLive) || [];
+
   return (
-    <NavLink
-      to={`/live/${ls.id}`}
-      className="group relative rounded-2xl overflow-hidden bg-slate-900 shadow-soft-lg hover:scale-[1.02] transition-transform"
-    >
-      <div className="aspect-[9/16] relative">
-        {ls.thumbnailUrl ? (
-          <img src={ls.thumbnailUrl} className="w-full h-full object-cover" alt="" />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-rose-600 via-pink-600 to-purple-700 flex items-center justify-center">
-            <Radio className="h-12 w-12 text-white/50" />
-          </div>
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+    <>
+      <Helmet><title>Live Shops — Nafaa Bazaar</title></Helmet>
 
-        {isLive && (
-          <div className="absolute top-2 left-2 px-2 py-1 rounded-full bg-rose-500 text-white text-[10px] font-black shadow flex items-center gap-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
-            LIVE
-          </div>
-        )}
-
-        {isLive && (
-          <div className="absolute top-2 right-2 px-2 py-1 rounded-full bg-black/50 backdrop-blur text-white text-[10px] font-black flex items-center gap-1">
-            <Eye className="h-2.5 w-2.5" />
-            {ls.peakViewerCount || ls.currentViewerCount || 0}
-          </div>
-        )}
-
-        {!isLive && ls.scheduledAt && (
-          <div className="absolute top-2 right-2 px-2 py-1 rounded-full bg-brand-500 text-white text-[10px] font-black shadow flex items-center gap-1">
-            <Clock className="h-2.5 w-2.5" />
-            {new Date(ls.scheduledAt).toLocaleString('en-PK', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-          </div>
-        )}
-
-        <div className="absolute bottom-2 left-2 right-2 text-white">
-          <div className="font-extrabold text-sm line-clamp-2 leading-tight">
-            {ls.title}
-          </div>
-          <div className="text-[10px] font-bold opacity-80 mt-0.5 truncate">
-            {ls.shop?.marketplaceProfile?.publicName}
-          </div>
-        </div>
-
-        {isLive && (
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition">
-            <div className="h-14 w-14 rounded-full bg-white/95 backdrop-blur flex items-center justify-center shadow-lg">
-              <Play className="h-6 w-6 text-rose-600 fill-rose-600" />
+      <div className="space-y-6">
+        {/* Hero */}
+        <Card className="p-5 md:p-6 bg-gradient-to-br from-rose-500 via-red-500 to-pink-600 text-white border-0 relative overflow-hidden">
+          <div className="absolute top-0 right-0 h-40 w-40 rounded-full bg-white/10 blur-3xl -translate-y-1/4 translate-x-1/4" />
+          <div className="relative z-10 max-w-2xl">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur border border-white/20 px-3 py-1 text-xs font-black mb-3">
+              <Video className="h-3.5 w-3.5" />
+              <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse-soft" />
+              Live streaming
             </div>
+            <h1 className="text-2xl md:text-4xl font-black leading-tight mb-2">
+              Live Shopping
+            </h1>
+            <p className="text-white/90 text-sm md:text-base">
+              Watch shop hosts showcase products live. Chat, ask, and buy in real-time!
+            </p>
           </div>
+        </Card>
+
+        {isLoading ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="skeleton aspect-[4/5] rounded-3xl" />
+            ))}
+          </div>
+        ) : (
+          <>
+            {liveNow.length > 0 && (
+              <div className="space-y-3">
+                <h2 className="text-lg md:text-xl font-black text-content flex items-center gap-2">
+                  <span className="h-3 w-3 rounded-full bg-danger animate-pulse-soft" />
+                  Live Now
+                  <Badge variant="danger" size="lg">{liveNow.length}</Badge>
+                </h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {liveNow.map((l: any) => <LiveCard key={l.id} live={l} />)}
+                </div>
+              </div>
+            )}
+
+            {upcoming.length > 0 && (
+              <div className="space-y-3">
+                <h2 className="text-lg md:text-xl font-black text-content flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-accent-500" />
+                  Upcoming
+                </h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {upcoming.map((l: any) => <LiveCard key={l.id} live={l} />)}
+                </div>
+              </div>
+            )}
+
+            {!liveNow.length && !upcoming.length && (
+              <EmptyState
+                icon={Video}
+                title="No live shows right now"
+                description="Follow shops to get notified when they go live"
+              />
+            )}
+          </>
         )}
       </div>
-    </NavLink>
+    </>
   );
 }

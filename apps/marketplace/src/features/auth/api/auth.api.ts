@@ -1,80 +1,104 @@
-import { marketplaceClient } from '@api/marketplace-client';
-import type { MarketplaceCustomer } from '@app-types/customer.types';
+import { marketplaceClient, unwrap } from '@/api/client';
+import type { MarketplaceCustomer } from '@/types';
 
-const unwrap = <T>(r: any): T => (r?.data?.data !== undefined ? r.data.data : r?.data);
-
-export interface RegisterPayload {
-  fullName: string;
-  email: string;
-  phone?: string;
-  password: string;
-  referralCode?: string;
-}
-
-export interface LoginPayload {
-  email?: string;
-  phone?: string;
-  password: string;
-}
+export type OtpPurpose = 'LOGIN' | 'REGISTER' | 'VERIFY_PHONE' | 'RESET_PASSWORD';
 
 export interface AuthResponse {
   customer: MarketplaceCustomer;
   tokens: {
     accessToken: string;
     refreshToken: string;
+    accessTokenExpiresIn?: number;
+    refreshTokenExpiresIn?: number;
   };
   isNewUser?: boolean;
 }
 
-export const marketAuthApi = {
-  // ─── EMAIL + PASSWORD ───
+export interface RegisterPayload {
+  fullName: string;
+  phone: string;
+  email?: string;
+  password: string;
+  referralCode?: string;
+  language?: 'ur' | 'en';
+}
+
+export interface LoginPayload {
+  phone?: string;
+  email?: string;
+  password: string;
+}
+
+export interface SendOtpPayload {
+  phone: string;
+  purpose: OtpPurpose;
+}
+
+export interface VerifyOtpPayload {
+  phone: string;
+  code: string;
+  purpose: OtpPurpose;
+  fullName?: string;
+  referralCode?: string;
+}
+
+const authBase = () => (marketplaceClient.defaults.baseURL || '').replace(/\/$/, '');
+
+export const authApi = {
+  // ─── OTP FLOW ───
+  sendOtp: (payload: SendOtpPayload) =>
+    marketplaceClient.post('/auth/otp/send', payload).then(unwrap<{
+      success: boolean; message: string; expiresIn: number; devCode?: string;
+    }>),
+
+  verifyOtp: (payload: VerifyOtpPayload) =>
+    marketplaceClient.post('/auth/otp/verify', payload).then(unwrap<AuthResponse>),
+
+  // ─── PASSWORD FLOW ───
   register: (payload: RegisterPayload) =>
-    marketplaceClient.post('/auth/register', payload).then((r) => unwrap<AuthResponse>(r)),
+    marketplaceClient.post('/auth/register', payload).then(unwrap<AuthResponse>),
 
   login: (payload: LoginPayload) =>
-    marketplaceClient.post('/auth/login', payload).then((r) => unwrap<AuthResponse>(r)),
+    marketplaceClient.post('/auth/login', payload).then(unwrap<AuthResponse>),
 
-  // ─── OTP (Phone) ───
-  sendOtp: (phone: string, purpose: 'LOGIN' | 'REGISTER' | 'RESET_PASSWORD') =>
-    marketplaceClient.post('/auth/otp/send', { phone, purpose }).then(unwrap),
+  // ─── SOCIAL (id_token — mobile) ───
+  socialLogin: (payload: { provider: 'GOOGLE' | 'FACEBOOK' | 'APPLE'; idToken: string; referralCode?: string }) =>
+    marketplaceClient.post('/auth/social', payload).then(unwrap<AuthResponse>),
 
-  verifyOtp: (data: { phone: string; code: string; purpose: string; fullName?: string }) =>
-    marketplaceClient.post('/auth/otp/verify', data).then((r) => unwrap<AuthResponse>(r)),
+  // ─── GOOGLE OAUTH (redirect flow — web) ───
+  googleLoginUrl: () => `${authBase()}/auth/google`,
 
-  // ─── PASSWORD RESET ───
-  forgotPassword: (email: string) =>
-    marketplaceClient.post('/auth/forgot-password', { email }).then(unwrap),
+  // ─── TOKENS ───
+  refresh: (refreshToken: string) =>
+    marketplaceClient.post('/auth/refresh', { refreshToken }).then(unwrap<AuthResponse>),
 
-  resetPassword: (token: string, newPassword: string) =>
-    marketplaceClient.post('/auth/reset-password', { token, newPassword }).then(unwrap),
+  logout: (refreshToken?: string) =>
+    marketplaceClient.post('/auth/logout', { refreshToken }).then(unwrap),
 
   // ─── PROFILE ───
-  me: () => marketplaceClient.get('/auth/me').then((r) => unwrap<MarketplaceCustomer>(r)),
+  me: () => marketplaceClient.get('/auth/me').then(unwrap<MarketplaceCustomer>),
 
   updateProfile: (data: any) =>
-    marketplaceClient.patch('/auth/me', data).then((r) => unwrap<MarketplaceCustomer>(r)),
+    marketplaceClient.patch('/auth/me', data).then(unwrap<MarketplaceCustomer>),
 
-  // ─── GOOGLE OAUTH ───
-  googleLoginUrl: () => {
-    const baseUrl = (marketplaceClient.defaults.baseURL || '').replace(/\/$/, '');
-    return `${baseUrl}/auth/google`;
-  },
+  // ─── PASSWORD ───
+  setPassword: (newPassword: string) =>
+    marketplaceClient.post('/auth/password/set', { newPassword }).then(unwrap),
 
-  completeGoogleSignup: (tempToken: string) =>
-    marketplaceClient
-      .post('/auth/google/complete-signup', { tempToken })
-      .then((r) => unwrap<AuthResponse>(r)),
+  changePassword: (currentPassword: string, newPassword: string) =>
+    marketplaceClient.post('/auth/password/change', { currentPassword, newPassword }).then(unwrap),
 
-  // ─── EMAIL VERIFY ───
-  sendVerifyEmail: () =>
-    marketplaceClient.post('/auth/verify-email/send').then(unwrap) as Promise<{
-      success: boolean; message: string; alreadyVerified?: boolean; devCode?: string;
-    }>,
+  resetPassword: (phone: string, code: string, newPassword: string) =>
+    marketplaceClient.post('/auth/password/reset', { phone, code, newPassword }).then(unwrap),
 
-  confirmVerifyEmail: (code: string) =>
-    marketplaceClient.post('/auth/verify-email/confirm', { code }).then(unwrap),
+  // ─── SESSIONS ───
+  sessions: () => marketplaceClient.get('/auth/sessions').then(unwrap<any[]>),
 
-  // ─── LOGOUT ───
-  logout: (refreshToken: string) =>
-    marketplaceClient.post('/auth/logout', { refreshToken }).then(unwrap),
+  revokeSession: (sessionId: string) =>
+    marketplaceClient.delete(`/auth/sessions/${sessionId}`).then(unwrap),
+
+  loginHistory: () => marketplaceClient.get('/auth/login-history').then(unwrap<any[]>),
+
+  deleteAccount: (reason?: string) =>
+    marketplaceClient.delete('/auth/me', { data: { reason } }).then(unwrap),
 };

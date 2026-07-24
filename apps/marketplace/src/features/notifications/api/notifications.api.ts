@@ -1,10 +1,31 @@
-import { marketplaceClient } from '@api/marketplace-client';
-const unwrap = <T>(r: any): T => (r?.data?.data !== undefined ? r.data.data : r?.data);
+import { marketplaceClient, unwrap } from '@/api/client';
+import type { Notification } from '@/types';
 
 export const notificationsApi = {
-  list: (params?: any) => marketplaceClient.get('/notifications', { params }).then(unwrap<any>),
-  count: () => marketplaceClient.get('/notifications/count').then(unwrap<{ unread: number }>),
-  markRead: (id: string) => marketplaceClient.post(`/notifications/${id}/read`).then(unwrap),
-  markAllRead: () => marketplaceClient.post('/notifications/read-all').then(unwrap),
-  delete: (id: string) => marketplaceClient.delete(`/notifications/${id}`).then(unwrap),
+  list: (params: { type?: string; onlyUnread?: boolean; limit?: number; offset?: number }) =>
+    marketplaceClient.get('/notifications', { params }).then(unwrap<{
+      items: Notification[]; total: number; unreadCount: number;
+      unreadByType: Record<string, number>;
+    }>),
+
+  unreadCount: () =>
+    marketplaceClient.get('/notifications/unread-count').then(unwrap<{ count: number }>),
+
+  markRead: (id: string) =>
+    marketplaceClient.patch(`/notifications/${id}/read`).then(unwrap),
+
+  markAllRead: (type?: string) =>
+    marketplaceClient.post('/notifications/mark-all-read', { type }).then(unwrap),
+
+  delete: (id: string) =>
+    marketplaceClient.delete(`/notifications/${id}`).then(unwrap),
+
+  clearAll: (opts?: { onlyRead?: boolean; type?: string }) =>
+    marketplaceClient.delete('/notifications', { data: opts }).then(unwrap),
+
+  preferences: () =>
+    marketplaceClient.get('/notifications/preferences').then(unwrap<any>),
+
+  updatePreferences: (prefs: any) =>
+    marketplaceClient.patch('/notifications/preferences', prefs).then(unwrap),
 };

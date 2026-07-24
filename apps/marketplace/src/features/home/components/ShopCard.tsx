@@ -1,115 +1,155 @@
-import { NavLink } from 'react-router-dom';
-import { Star, Clock, MapPin, Sparkles, Zap } from 'lucide-react';
-import { Badge } from '@shared/ui/Badge';
+import { Link } from 'react-router-dom';
+import { Star, Clock, MapPin, Zap, ShieldCheck, Users, Bike } from 'lucide-react';
+import { Badge } from '@/ui';
+import { formatDistance, formatDuration } from '@/lib/format';
+import { cn } from '@/lib/cn';
+import type { Shop } from '@/types';
 
-const VERIFY_CONFIG = {
-  BRONZE:   { emoji: '🥉', label: 'Bronze',   bg: 'bg-amber-100 text-amber-800' },
-  SILVER:   { emoji: '🥈', label: 'Silver',   bg: 'bg-slate-200 text-slate-700' },
-  GOLD:     { emoji: '🥇', label: 'Gold',     bg: 'bg-yellow-100 text-yellow-800' },
-  PLATINUM: { emoji: '💎', label: 'Platinum', bg: 'bg-cyan-100 text-cyan-800' },
+interface ShopCardProps {
+  shop: Shop;
+  variant?: 'default' | 'compact' | 'featured';
+  className?: string;
+}
+
+const verificationBadges: Record<string, { label: string; color: string; icon?: any }> = {
+  GOLD:     { label: 'Gold',     color: 'bg-amber-500/90 text-white' },
+  PLATINUM: { label: 'Platinum', color: 'bg-slate-800 text-white' },
+  SILVER:   { label: 'Silver',   color: 'bg-slate-400 text-white' },
+  BRONZE:   { label: 'Bronze',   color: 'bg-orange-600 text-white' },
 };
 
-export function ShopCard({ shop }: { shop: any }) {
-  const verify = VERIFY_CONFIG[shop.verificationLevel as keyof typeof VERIFY_CONFIG];
-  return (
-    <NavLink
-      to={`/market/shops/${shop.slug}`}
-      className="group flex-shrink-0 w-64 rounded-2xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-soft hover:shadow-soft-lg hover:-translate-y-1 transition-all overflow-hidden"
-    >
-      {/* Cover */}
-      <div className="relative h-32 bg-gradient-to-br from-brand-100 via-emerald-100 to-teal-100 dark:from-brand-900/30 dark:via-emerald-900/30 dark:to-teal-900/30 overflow-hidden">
-        {shop.coverUrl ? (
-          <img
-            src={shop.coverUrl}
-            alt=""
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-5xl opacity-30">
-            🏪
-          </div>
-        )}
-        {/* Verify badge */}
-        {verify && (
-          <span className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-extrabold ${verify.bg} shadow`}>
-            {verify.emoji} {verify.label}
-          </span>
-        )}
-        {/* Distance */}
-        {shop.distanceKm != null && (
-          <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded-full bg-white/95 dark:bg-neutral-900/95 backdrop-blur text-[10px] font-extrabold text-slate-800 dark:text-white shadow flex items-center gap-1">
-            <MapPin className="h-2.5 w-2.5" />
-            {shop.distanceKm.toFixed(1)} km
-          </span>
-        )}
-        {/* Special badges */}
-        {(shop.bargainEnabled || shop.groupBuyEnabled) && (
-          <div className="absolute bottom-2 right-2 flex gap-1">
-            {shop.bargainEnabled && (
-              <span className="px-1.5 py-0.5 rounded-md bg-purple-500 text-white text-[9px] font-extrabold shadow">
-                💰 Bargain
-              </span>
-            )}
-            {shop.groupBuyEnabled && (
-              <span className="px-1.5 py-0.5 rounded-md bg-orange-500 text-white text-[9px] font-extrabold shadow">
-                👥 Group
-              </span>
-            )}
-          </div>
-        )}
-      </div>
+export function ShopCard({ shop, variant = 'default', className }: ShopCardProps) {
+  const link = `/shops/${shop.slug || shop.shopId}`;
+  const badge = verificationBadges[shop.verificationLevel];
+  const isCompact = variant === 'compact';
+  const isFeatured = variant === 'featured';
 
-      {/* Info */}
-      <div className="p-3">
-        <div className="flex items-start gap-2 mb-2">
-          {shop.logoUrl && (
-            <img
-              src={shop.logoUrl}
-              alt=""
-              className="h-10 w-10 rounded-xl object-cover border-2 border-white dark:border-neutral-800 shadow-md -mt-6"
-            />
-          )}
-          <div className="flex-1 min-w-0">
-            <h3 className="font-extrabold text-slate-900 dark:text-white text-sm truncate leading-tight">
-              {shop.publicName}
-            </h3>
-            {shop.tagline && (
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
-                {shop.tagline}
-              </p>
+  const isOpen = shop.currentlyOpen ?? shop.isOpen;
+  const showFreeDelivery = shop.freeDeliveryAbove && Number(shop.freeDeliveryAbove) > 0;
+
+  return (
+    <Link
+      to={link}
+      className={cn(
+        'group relative block bg-surface rounded-3xl border border-border overflow-hidden card-hover',
+        isFeatured && 'shadow-soft-lg',
+        className,
+      )}
+    >
+      {/* Cover / Logo Header */}
+      <div className={cn('relative overflow-hidden bg-gradient-brand', isCompact ? 'h-24' : 'h-32')}>
+        {shop.coverUrl && (
+          <img src={shop.coverUrl} alt={shop.publicName} className="h-full w-full object-cover" loading="lazy" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+
+        {/* Top-left: Verification badge */}
+        {badge && (
+          <div className={cn('absolute top-2.5 left-2.5 flex items-center gap-1 px-2 py-1 rounded-full text-2xs font-black shadow-lg', badge.color)}>
+            <ShieldCheck className="h-3 w-3" />
+            {badge.label}
+          </div>
+        )}
+
+        {/* Top-right: Open/Closed */}
+        <div className={cn(
+          'absolute top-2.5 right-2.5 flex items-center gap-1 px-2 py-1 rounded-full text-2xs font-black shadow',
+          isOpen ? 'bg-emerald-500/90 text-white' : 'bg-slate-800/80 text-white',
+        )}>
+          <span className={cn('h-1.5 w-1.5 rounded-full', isOpen ? 'bg-white animate-pulse-soft' : 'bg-white/60')} />
+          {isOpen ? 'Open' : 'Closed'}
+        </div>
+
+        {/* Logo */}
+        <div className="absolute -bottom-6 left-4">
+          <div className="h-14 w-14 rounded-2xl bg-surface p-1 shadow-lg ring-2 ring-surface">
+            {shop.logoUrl ? (
+              <img src={shop.logoUrl} alt="" className="h-full w-full rounded-xl object-cover" />
+            ) : (
+              <div className="h-full w-full rounded-xl bg-gradient-brand flex items-center justify-center text-white font-black text-lg">
+                {shop.publicName?.[0] ?? '?'}
+              </div>
             )}
           </div>
         </div>
+      </div>
 
-        <div className="flex items-center justify-between text-[11px]">
-          <div className="flex items-center gap-1">
-            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-            <span className="font-extrabold text-slate-800 dark:text-white">
-              {shop.ratingAverage?.toFixed(1) || '—'}
-            </span>
-            <span className="text-slate-500 dark:text-slate-400">
-              ({shop.ratingCount || 0})
-            </span>
-          </div>
-          {shop.estimatedDeliveryMinutes && (
-            <div className="flex items-center gap-1 text-slate-600 dark:text-slate-400">
-              <Clock className="h-3 w-3" />
-              <span className="font-bold">{shop.estimatedDeliveryMinutes} min</span>
+      {/* Body */}
+      <div className={cn('px-4 pt-8 pb-4', isCompact && 'pb-3')}>
+        <div className="flex items-start justify-between gap-2 mb-1">
+          <h3 className="font-black text-content text-sm md:text-base leading-tight line-clamp-1">
+            {shop.publicName}
+          </h3>
+          {shop.ratingCount > 0 && (
+            <div className="flex items-center gap-0.5 shrink-0 text-2xs font-black text-content">
+              <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+              <span>{shop.ratingAverage.toFixed(1)}</span>
+              <span className="text-content-subtle font-medium">({shop.ratingCount})</span>
             </div>
           )}
         </div>
 
-        {shop.deliveryFee != null && (
-          <div className="mt-2 pt-2 border-t border-slate-100 dark:border-neutral-800 flex items-center justify-between text-[10px]">
-            <span className="text-slate-500 dark:text-slate-400 font-bold">
-              Delivery {shop.deliveryFee > 0 ? `PKR ${shop.deliveryFee}` : 'FREE'}
-            </span>
-            {shop.currentlyOpen === false && (
-              <span className="text-rose-600 font-extrabold">🔒 Closed</span>
-            )}
-          </div>
+        {shop.tagline && !isCompact && (
+          <p className="text-xs text-content-muted line-clamp-1 mb-2">{shop.tagline}</p>
         )}
+
+        {/* Meta row: Distance, delivery time */}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-2xs font-semibold text-content-subtle mb-2.5">
+          {shop.distanceKm != null && (
+            <div className="inline-flex items-center gap-1">
+              <MapPin className="h-3 w-3" />
+              {formatDistance(shop.distanceKm)}
+            </div>
+          )}
+          {shop.estimatedDeliveryMinutes && (
+            <div className="inline-flex items-center gap-1">
+              <Bike className="h-3 w-3" />
+              {formatDuration(shop.estimatedDeliveryMinutes)}
+            </div>
+          )}
+          {shop.followerCount > 100 && (
+            <div className="inline-flex items-center gap-1">
+              <Users className="h-3 w-3" />
+              {shop.followerCount > 1000 ? `${(shop.followerCount / 1000).toFixed(1)}k` : shop.followerCount}
+            </div>
+          )}
+        </div>
+
+        {/* Bottom badges */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          {showFreeDelivery && (
+            <Badge variant="brand" size="sm">
+              <Zap className="h-2.5 w-2.5" />
+              Free delivery
+            </Badge>
+          )}
+          {shop.bargainEnabled && (
+            <Badge variant="accent" size="sm">Bargain</Badge>
+          )}
+          {shop.groupBuyEnabled && (
+            <Badge variant="info" size="sm">Group Buy</Badge>
+          )}
+          {shop.liveShopEnabled && (
+            <Badge variant="danger" size="sm">
+              <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse-soft" />
+              Live
+            </Badge>
+          )}
+        </div>
       </div>
-    </NavLink>
+    </Link>
+  );
+}
+
+export function ShopCardSkeleton() {
+  return (
+    <div className="bg-surface rounded-3xl border border-border overflow-hidden">
+      <div className="h-32 skeleton" />
+      <div className="px-4 pt-8 pb-4 space-y-2">
+        <div className="skeleton h-4 w-3/4" />
+        <div className="skeleton h-3 w-1/2" />
+        <div className="skeleton h-6 w-24 mt-2" />
+      </div>
+    </div>
   );
 }

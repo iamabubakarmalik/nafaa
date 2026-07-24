@@ -1,131 +1,189 @@
-import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { Link, useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import {
-  MapPin, Wallet, Gift, Heart, Package, HelpCircle,
-  LogOut, ChevronRight, Star, Sparkles, Share2,
+  User, MapPin, CreditCard, Wallet, Gift, Bell, ShieldCheck,
+  MessageCircle, LogOut, ChevronRight, Star, Package, Heart,
+  Sparkles, Users, HelpCircle, Award, Globe,
+  Trophy, Eye, Tag,
 } from 'lucide-react';
-import { useCustomerAuthStore } from '@/stores/customerAuth.store';
+import { useAuthStore } from '@/stores/auth.store';
 import { profileApi } from '../api/profile.api';
-import { Avatar } from '@shared/ui/Avatar';
-import { Badge } from '@shared/ui/Badge';
+import { ordersApi } from '@/features/orders/api/orders.api';
+import { Avatar, Card, Button, Badge } from '@/ui';
+import { formatPrice } from '@/lib/format';
+import { toast } from 'sonner';
 
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const customer = useCustomerAuthStore((s) => s.customer);
-  const logout = useCustomerAuthStore((s) => s.logout);
+  const customer = useAuthStore((s) => s.customer);
+  const logout = useAuthStore((s) => s.logout);
 
-  const { data: wallet } = useQuery({
-    queryKey: ['market-wallet'],
-    queryFn: profileApi.wallet,
-    enabled: !!customer,
-  });
+  const { data: wallet } = useQuery({ queryKey: ['wallet'], queryFn: profileApi.wallet });
+  const { data: stats } = useQuery({ queryKey: ['order-stats'], queryFn: ordersApi.stats });
+  const { data: referrals } = useQuery({ queryKey: ['referrals'], queryFn: profileApi.referrals });
 
-  if (!customer) {
-    navigate('/login');
-    return null;
-  }
+  if (!customer) return null;
 
-  const menuItems = [
-    { icon: MapPin,   label: 'Addresses',      to: '/profile/addresses',   color: 'text-brand-600' },
-    { icon: Package,  label: 'My Orders',      to: '/orders',              color: 'text-blue-600' },
-    { icon: Heart,    label: 'Wishlist',       to: '/wishlist',            color: 'text-rose-600' },
-    { icon: Star,     label: 'My Reviews',     to: '/profile/reviews',     color: 'text-amber-600' },
-    { icon: Gift,     label: 'Refer & Earn',   to: '/profile/referrals',   color: 'text-purple-600', badge: 'Earn Rs 100' },
-    { icon: HelpCircle, label: 'Help & Support', to: '/support',            color: 'text-slate-600' },
+  const handleLogout = () => {
+    logout();
+    toast.success('Logged out');
+    navigate('/');
+  };
+
+  const menuSections: Array<{
+    title: string;
+    items: Array<{
+      icon: any;
+      label: string;
+      to: string;
+      badge?: string;
+      value?: string;
+    }>;
+  }> = [
+    {
+      title: 'Orders & shopping',
+      items: [
+        { icon: Package, label: 'My Orders', to: '/orders', badge: stats?.totalOrders?.toString() },
+        { icon: Heart, label: 'Wishlist', to: '/wishlist' },
+        { icon: Star, label: 'My Reviews', to: '/profile/reviews' },
+        { icon: Heart, label: 'Followed shops', to: '/profile/followed-shops' },
+        { icon: Eye, label: 'Recently viewed', to: '/profile/recently-viewed' },
+        { icon: MessageCircle, label: 'Messages', to: '/messages' },
+        { icon: Gift, label: 'Gift cards', to: '/gift-cards' },
+        { icon: Tag, label: 'Deals & offers', to: '/deals' },
+        { icon: 'GitCompare' as any, label: 'Compare', to: '/compare' },
+      ],
+    },
+    {
+      title: 'Payments & rewards',
+      items: [
+        { icon: Wallet, label: 'Wallet', to: '/profile/wallet', value: wallet ? formatPrice(wallet.balance) : undefined },
+        { icon: Sparkles, label: 'Loyalty points', to: '/profile/loyalty', value: wallet ? `${wallet.loyaltyPoints} pts` : undefined },
+        { icon: Award, label: 'Loyalty tiers', to: '/profile/loyalty' },
+        { icon: Trophy, label: 'Achievements', to: '/profile/achievements' },
+        { icon: CreditCard, label: 'Saved cards', to: '/profile/cards' },
+        { icon: Gift, label: 'Referral program', to: '/profile/referrals', badge: referrals ? `${referrals.totalReferrals}` : undefined },
+      ],
+    },
+    {
+      title: 'Account',
+      items: [
+        { icon: MapPin, label: 'Addresses', to: '/profile/addresses' },
+        { icon: Bell, label: 'Notification settings', to: '/profile/notifications' },
+        { icon: 'BellRing' as any, label: 'Price alerts', to: '/profile/price-alerts' },
+        { icon: 'PackageCheck' as any, label: 'Restock alerts', to: '/profile/restock-alerts' },
+        { icon: Globe, label: 'Language & region', to: '/profile/language' },
+        { icon: ShieldCheck, label: 'Privacy & security', to: '/profile/security' },
+        { icon: 'Download' as any, label: 'Export my data', to: '/profile/data-export' },
+      ],
+    },
+    {
+      title: 'Support',
+      items: [
+        { icon: MessageCircle, label: 'Help center', to: '/support' },
+        { icon: HelpCircle, label: 'About Nafaa', to: '/about' },
+      ],
+    },
   ];
 
   return (
-    <div className="space-y-4 pb-8">
-      {/* Profile Header */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 via-emerald-700 to-teal-800 p-5 text-white shadow-brand-lg">
-        <div className="absolute -top-8 -right-8 h-32 w-32 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute -bottom-8 -left-8 h-32 w-32 rounded-full bg-amber-400/20 blur-3xl" />
-        <div className="relative flex items-center gap-4">
-          <Avatar src={customer.avatarUrl} name={customer.fullName} size="xl" ring />
-          <div className="flex-1 min-w-0">
-            <div className="font-black text-xl truncate">{customer.fullName}</div>
-            <div className="text-sm text-white/80 truncate">{customer.phone}</div>
-            <button className="mt-2 inline-flex items-center gap-1 text-[11px] font-extrabold bg-white/20 backdrop-blur px-2.5 py-1 rounded-full">
-              <Sparkles className="h-3 w-3" />
-              Edit Profile
-            </button>
-          </div>
-        </div>
-      </div>
+    <>
+      <Helmet><title>My Profile — Nafaa Bazaar</title></Helmet>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-2xl bg-gradient-to-br from-brand-50 to-emerald-50 dark:from-brand-950/30 dark:to-emerald-950/30 border border-brand-200 dark:border-brand-800 p-4">
-          <Wallet className="h-5 w-5 text-brand-600 mb-2" />
-          <div className="text-[10px] font-extrabold text-brand-700 dark:text-brand-400 uppercase tracking-widest">Wallet</div>
-          <div className="text-2xl font-black text-slate-900 dark:text-white">
-            Rs {wallet?.balance?.toFixed(0) || 0}
-          </div>
-        </div>
-        <div className="rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border border-amber-200 dark:border-amber-800 p-4">
-          <Star className="h-5 w-5 text-amber-600 mb-2" />
-          <div className="text-[10px] font-extrabold text-amber-700 dark:text-amber-400 uppercase tracking-widest">Points</div>
-          <div className="text-2xl font-black text-slate-900 dark:text-white">
-            {wallet?.loyaltyPoints || 0}
-          </div>
-          <div className="text-[10px] text-slate-500 font-bold">= Rs {wallet?.loyaltyValue?.toFixed(0) || 0}</div>
-        </div>
-      </div>
-
-      {/* Referral Card */}
-      <div className="rounded-2xl bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500 p-5 text-white shadow-lg">
-        <div className="flex items-start justify-between">
-          <div>
-            <div className="text-[10px] font-extrabold uppercase tracking-widest opacity-90">Refer & Earn</div>
-            <div className="text-lg font-black mt-1">Rs 100 for each friend! 🎁</div>
-            <div className="mt-2 inline-flex items-center gap-2 bg-white/20 backdrop-blur px-3 py-1.5 rounded-full">
-              <code className="text-sm font-black">{customer.referralCode}</code>
-              <button onClick={() => {
-                navigator.clipboard.writeText(customer.referralCode);
-              }}>
-                <Share2 className="h-3 w-3" />
-              </button>
+      <div className="max-w-3xl mx-auto space-y-5">
+        {/* Profile header */}
+        <Card className="p-5 md:p-6 bg-gradient-brand text-white border-0 relative overflow-hidden">
+          <div className="absolute top-0 right-0 h-40 w-40 rounded-full bg-white/10 blur-3xl -translate-y-1/4 translate-x-1/4" />
+          <div className="relative z-10 flex items-center gap-4">
+            <Avatar src={customer.avatarUrl} name={customer.fullName} size="xl" ring />
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl md:text-2xl font-black truncate">{customer.fullName}</h1>
+              <p className="text-brand-50 text-sm truncate">{customer.phone}</p>
+              {customer.email && (
+                <p className="text-brand-50 text-xs truncate">{customer.email}</p>
+              )}
             </div>
+            <Button
+              variant="glass"
+              size="sm"
+              onClick={() => navigate('/profile/edit')}
+            >
+              Edit
+            </Button>
           </div>
+        </Card>
+
+        {/* Stats grid */}
+        {stats && (
+          <div className="grid grid-cols-3 gap-3">
+            <Card className="p-3 text-center">
+              <Package className="h-5 w-5 text-brand-600 mx-auto mb-1" />
+              <div className="text-lg font-black">{stats.totalOrders}</div>
+              <div className="text-2xs text-content-muted font-bold">Orders</div>
+            </Card>
+            <Card className="p-3 text-center">
+              <Award className="h-5 w-5 text-accent-500 mx-auto mb-1" />
+              <div className="text-lg font-black">{wallet?.loyaltyPoints || 0}</div>
+              <div className="text-2xs text-content-muted font-bold">Points</div>
+            </Card>
+            <Card className="p-3 text-center">
+              <Wallet className="h-5 w-5 text-emerald-600 mx-auto mb-1" />
+              <div className="text-lg font-black tabular-nums">
+                {wallet ? formatPrice(wallet.balance).replace('PKR ', '') : '0'}
+              </div>
+              <div className="text-2xs text-content-muted font-bold">Wallet</div>
+            </Card>
+          </div>
+        )}
+
+        {/* Menu sections */}
+        {menuSections.map((section) => (
+          <div key={section.title}>
+            <div className="text-2xs font-black text-content-subtle uppercase tracking-wider mb-2 px-1">
+              {section.title}
+            </div>
+            <Card className="divide-y divide-border overflow-hidden">
+              {section.items.map((item) => (
+                <Link
+                  key={item.label}
+                  to={item.to}
+                  className="flex items-center gap-3 p-4 hover:bg-surface-muted transition group"
+                >
+                  <div className="h-10 w-10 rounded-xl bg-surface-muted group-hover:bg-brand-100 dark:group-hover:bg-brand-900/40 flex items-center justify-center transition">
+                    <item.icon className="h-4 w-4 text-content-muted group-hover:text-brand-600 transition" />
+                  </div>
+                  <div className="flex-1 font-bold text-sm">{item.label}</div>
+                  {item.value && (
+                    <span className="text-xs font-bold text-brand-600">{item.value}</span>
+                  )}
+                  {item.badge && (
+                    <Badge variant="brand" size="sm">{item.badge}</Badge>
+                  )}
+                  <ChevronRight className="h-4 w-4 text-content-subtle" />
+                </Link>
+              ))}
+            </Card>
+          </div>
+        ))}
+
+        {/* Logout */}
+        <Button
+          variant="ghost"
+          fullWidth
+          size="lg"
+          onClick={handleLogout}
+          leftIcon={<LogOut className="h-4 w-4" />}
+          className="text-danger hover:bg-danger/10"
+        >
+          Logout
+        </Button>
+
+        {/* Version */}
+        <div className="text-center text-2xs text-content-subtle pb-8">
+          Nafaa Bazaar v1.0.0 · Made in Pakistan 🇵🇰
         </div>
       </div>
-
-      {/* Menu */}
-      <div className="rounded-2xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-soft overflow-hidden">
-        {menuItems.map((item, i) => {
-          const Icon = item.icon;
-          return (
-            <button
-              key={item.to}
-              onClick={() => navigate(item.to)}
-              className={`w-full p-4 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-neutral-800 transition ${i > 0 ? 'border-t border-slate-100 dark:border-neutral-800' : ''}`}
-            >
-              <div className={`h-10 w-10 rounded-xl bg-slate-100 dark:bg-neutral-800 flex items-center justify-center ${item.color}`}>
-                <Icon className="h-5 w-5" />
-              </div>
-              <div className="flex-1 text-left font-extrabold text-sm text-slate-900 dark:text-white">
-                {item.label}
-              </div>
-              {item.badge && <Badge variant="accent" size="xs">{item.badge}</Badge>}
-              <ChevronRight className="h-4 w-4 text-slate-400" />
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Logout */}
-      <button
-        onClick={() => {
-          if (confirm('Logout karna hai?')) {
-            logout();
-            navigate('/');
-          }
-        }}
-        className="w-full p-4 rounded-2xl bg-white dark:bg-neutral-900 border border-rose-200 dark:border-rose-900/50 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-rose-600 font-extrabold flex items-center justify-center gap-2 transition"
-      >
-        <LogOut className="h-4 w-4" />
-        Logout
-      </button>
-    </div>
+    </>
   );
 }

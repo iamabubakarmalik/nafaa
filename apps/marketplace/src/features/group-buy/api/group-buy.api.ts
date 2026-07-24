@@ -1,12 +1,28 @@
-import { marketplaceClient } from '@api/marketplace-client';
-const unwrap = <T>(r: any): T => (r?.data?.data !== undefined ? r.data.data : r?.data);
+import { marketplaceClient, unwrap } from '@/api/client';
+
+export interface ListGroupBuysParams {
+  shopId?: string;
+  category?: string;
+  city?: string;
+  limit?: number;
+  offset?: number;
+}
 
 export const groupBuyApi = {
-  list: (params?: any) => marketplaceClient.get('/group-buys', { params }).then(unwrap<any>),
-  active: () => marketplaceClient.get('/group-buys/active').then(unwrap<any>),
-  detail: (id: string) => marketplaceClient.get(`/group-buys/${id}`).then(unwrap<any>),
-  join: (id: string, quantity: number) =>
+  list: (params: ListGroupBuysParams = {}) =>
+    marketplaceClient.get('/group-buys', { params }).then(unwrap<{
+      items: any[]; total: number;
+    }>),
+
+  detail: (id: string) =>
+    marketplaceClient.get(`/group-buys/${id}`).then(unwrap<any>),
+
+  join: (id: string, quantity = 1) =>
     marketplaceClient.post(`/group-buys/${id}/join`, { quantity }).then(unwrap<any>),
-  leave: (id: string) => marketplaceClient.post(`/group-buys/${id}/leave`).then(unwrap<any>),
-  myParticipations: () => marketplaceClient.get('/group-buys/my-participations').then(unwrap<any>),
+
+  leave: (id: string) =>
+    marketplaceClient.post(`/group-buys/${id}/leave`).then(unwrap),
+
+  mine: (limit = 20, offset = 0) =>
+    marketplaceClient.get('/group-buys/my', { params: { limit, offset } }).then(unwrap<any>),
 };

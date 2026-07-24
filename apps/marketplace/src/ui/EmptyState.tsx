@@ -1,39 +1,87 @@
-import { ReactNode } from 'react';
-import { cn } from '@lib/cn';
+import { LucideIcon } from 'lucide-react';
+import { cn } from '@/lib/cn';
+
+interface EmptyStateAction {
+  label: string;
+  onClick?: () => void;
+  href?: string;
+  variant?: 'primary' | 'secondary';
+}
 
 interface EmptyStateProps {
-  icon?: any;
+  icon?: LucideIcon;
   emoji?: string;
   title: string;
   description?: string;
-  action?: ReactNode;
-  size?: 'sm' | 'md' | 'lg';
+  action?: React.ReactNode;
+  suggestedActions?: EmptyStateAction[];
   className?: string;
+  size?: 'sm' | 'md' | 'lg';
 }
 
 export function EmptyState({
-  icon: Icon, emoji, title, description, action, size = 'md', className,
+  icon: Icon,
+  emoji,
+  title,
+  description,
+  action,
+  suggestedActions,
+  className,
+  size = 'md',
 }: EmptyStateProps) {
   const sizes = {
-    sm: { wrap: 'py-8', iconWrap: 'h-14 w-14', icon: 'h-6 w-6', emoji: 'text-3xl', title: 'text-base', desc: 'text-xs' },
-    md: { wrap: 'py-12', iconWrap: 'h-20 w-20', icon: 'h-9 w-9', emoji: 'text-5xl', title: 'text-lg', desc: 'text-sm' },
-    lg: { wrap: 'py-20', iconWrap: 'h-28 w-28', icon: 'h-12 w-12', emoji: 'text-6xl', title: 'text-2xl', desc: 'text-base' },
-  }[size];
+    sm: 'py-8 px-3',
+    md: 'py-16 px-4',
+    lg: 'py-24 px-6',
+  };
 
   return (
-    <div className={cn('flex flex-col items-center justify-center text-center px-6', sizes.wrap, className)}>
+    <div className={cn('flex flex-col items-center justify-center text-center', sizes[size], className)}>
       {emoji ? (
-        <div className={cn('mb-4 grayscale-[10%]', sizes.emoji)}>{emoji}</div>
-      ) : Icon ? (
-        <div className={cn('mb-4 rounded-3xl bg-slate-100 dark:bg-neutral-800 flex items-center justify-center', sizes.iconWrap)}>
-          <Icon className={cn('text-slate-400 dark:text-slate-500', sizes.icon)} />
+        <div className="text-6xl mb-3 animate-bounce-soft">{emoji}</div>
+      ) : Icon && (
+        <div className="h-16 w-16 rounded-3xl bg-brand-100 dark:bg-brand-900/40 flex items-center justify-center mb-4">
+          <Icon className="h-8 w-8 text-brand-600 dark:text-brand-400" />
         </div>
-      ) : null}
-      <h3 className={cn('font-extrabold text-slate-900 dark:text-white', sizes.title)}>{title}</h3>
-      {description && (
-        <p className={cn('mt-1.5 max-w-sm text-slate-500 dark:text-slate-400', sizes.desc)}>{description}</p>
       )}
-      {action && <div className="mt-5">{action}</div>}
+      <h3 className="text-lg font-bold text-content">{title}</h3>
+      {description && (
+        <p className="text-sm text-content-muted mt-1.5 max-w-xs">{description}</p>
+      )}
+      {action && <div className="mt-6">{action}</div>}
+      {suggestedActions && (
+        <div className="mt-6 flex flex-wrap justify-center gap-2">
+          {suggestedActions.map((a, i) => (
+            a.href ? (
+              <a
+                key={i}
+                href={a.href}
+                className={cn(
+                  'h-10 px-4 rounded-xl text-sm font-black transition inline-flex items-center',
+                  a.variant === 'primary'
+                    ? 'bg-gradient-brand text-white shadow-brand hover:opacity-90'
+                    : 'bg-surface border border-border text-content hover:bg-surface-muted',
+                )}
+              >
+                {a.label}
+              </a>
+            ) : (
+              <button
+                key={i}
+                onClick={a.onClick}
+                className={cn(
+                  'h-10 px-4 rounded-xl text-sm font-black transition',
+                  a.variant === 'primary'
+                    ? 'bg-gradient-brand text-white shadow-brand hover:opacity-90'
+                    : 'bg-surface border border-border text-content hover:bg-surface-muted',
+                )}
+              >
+                {a.label}
+              </button>
+            )
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,123 +1,239 @@
 import { useQuery } from '@tanstack/react-query';
-import { NavLink } from 'react-router-dom';
-import { Gavel, Clock, TrendingUp, Users, Flame } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
+import { useState } from 'react';
+import { Zap, Clock, TrendingUp, Users, Package } from 'lucide-react';
 import { auctionApi } from '../api/auction.api';
-import { EmptyState } from '@shared/ui/EmptyState';
-import { SkeletonCard } from '@shared/ui/Skeleton';
+import { Card, Badge, EmptyState } from '@/ui';
+import { formatPrice } from '@/lib/format';
+import { useCountdown, formatCountdown } from '@/hooks/useCountdown';
+import { cn } from '@/lib/cn';
 
-export default function AuctionListPage() {
-  const { data, isLoading } = useQuery({
-    queryKey: ['market-auctions'],
-    queryFn: () => auctionApi.active(),
-    refetchInterval: 5000,
-  });
+function AuctionCard({ a }: { a: any }) {
+  const cd = useCountdown(a.endsAt);
+  const isEndingSoon = !cd.expired && cd.total < 60 * 60 * 1000;
+  const isLive = a.status === 'LIVE';
 
   return (
-    <div className="pb-20 space-y-4">
-      <div>
-        <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-          <Gavel className="h-6 w-6 text-rose-600" />
-          Live Auctions
-        </h1>
-        <p className="text-xs text-slate-500 mt-0.5">Live bidding — sab se ooncha wins!</p>
-      </div>
-
-      <div className="p-4 rounded-2xl bg-gradient-to-br from-rose-100 via-red-50 to-orange-50 dark:from-rose-950/30 dark:via-red-950/20 dark:to-orange-950/20 border border-rose-200 dark:border-rose-800">
-        <div className="flex items-start gap-3">
-          <div className="text-2xl">🔨</div>
-          <div>
-            <div className="font-extrabold text-sm text-rose-900 dark:text-rose-300">
-              Auction kaise chalta hai?
-            </div>
-            <p className="text-xs text-rose-700 dark:text-rose-400 mt-1 leading-relaxed">
-              Real-time bidding — sab se ooncha bid dene wala jeetta hai. Bids automatic update hote hain!
-            </p>
+    <Link to={`/auctions/${a.id}`}>
+      <Card className="overflow-hidden hover:shadow-soft-lg transition group card-hover">
+        <div className="aspect-[4/3] bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-950/30 dark:to-orange-950/30 relative">
+          {a.imageUrls?.[0] && (
+            <img src={a.imageUrls[0]} alt="" className="h-full w-full object-cover group-hover:scale-105 transition-transform" />
+          )}
+          <div className="absolute top-2 left-2">
+            {isLive ? (
+              <Badge variant="danger" size="md" className="shadow-md">
+                <Zap className="h-3 w-3" />
+                LIVE
+              </Badge>
+            ) : (
+              <Badge variant="warning" size="md" className="shadow-md">
+                <Clock className="h-3 w-3" />
+                SOON
+              </Badge>
+            )}
           </div>
+          {isEndingSoon && isLive && (
+            <div className="absolute top-2 right-2 animate-pulse-soft">
+              <Badge variant="danger" size="md" className="shadow-md">
+                🔥 Ending soon
+              </Badge>
+            </div>
+          )}
         </div>
-      </div>
 
-      {isLoading ? (
-        <div className="grid grid-cols-2 gap-3">
-          <SkeletonCard /><SkeletonCard />
+        <div className="p-3 space-y-2">
+          <h3 className="font-black text-sm line-clamp-2 min-h-[2.5rem]">{a.title}</h3>
+
+          {isLive ? (
+            <>
+              <div>
+                <div className="text-2xs text-content-muted font-bold uppercase">Current bid</div>
+                <div className="text-lg font-black gradient-text-accent">
+                  {formatPrice(a.currentPrice)}
+                </div>
+              </div>
+              <div className="flex items-center justify-between text-2xs">
+                <span className="text-content-muted font-bold flex items-center gap-0.5">
+                  <TrendingUp className="h-3 w-3" />
+                  {a.bidCount} bids
+                </span>
+                {!cd.expired && (
+                  <span className={cn(
+                    'font-black tabular-nums',
+                    isEndingSoon ? 'text-danger animate-pulse' : 'text-accent-600',
+                  )}>
+                    ⏱ {formatCountdown(cd)}
+                  </span>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              <div>
+                <div className="text-2xs text-content-muted font-bold uppercase">Starting from</div>
+                <div className="text-lg font-black text-content">
+                  {formatPrice(a.startingPrice)}
+                </div>
+              </div>
+              <div className="text-2xs text-content-muted font-bold">
+                Starts {new Date(a.startsAt).toLocaleString('en-PK', {
+                  weekday: 'short', hour: 'numeric', minute: 'numeric',
+                })}
+              </div>
+            </>
+          )}
         </div>
-      ) : !data?.items?.length ? (
-        <EmptyState
-          emoji="🔨"
-          title="Koi live auction nahi"
-          description="Baad mein wapas aayen"
-          size="lg"
-        />
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {data.items.map((a: any) => <AuctionCard key={a.id} auction={a} />)}
-        </div>
-      )}
-    </div>
+      </Card>
+    </Link>
   );
 }
 
-function AuctionCard({ auction: a }: { auction: any }) {
-  const timeLeft = Math.max(0, new Date(a.endsAt).getTime() - Date.now());
-  const minutesLeft = Math.floor(timeLeft / 60000);
-  const isHot = minutesLeft < 10;
+export default function AuctionListPage() {
+  const [tab, setTab] = useState<'live' | 'scheduled' | 'my-bids' | 'my-wins'>('live');
+
+  const { data: liveData, isLoading: loadingLive } = useQuery({
+    queryKey: ['auctions', 'live'],
+    queryFn: () => auctionApi.list({ status: 'LIVE', limit: 50 }),
+    enabled: tab === 'live',
+  });
+
+  const { data: scheduledData } = useQuery({
+    queryKey: ['auctions', 'scheduled'],
+    queryFn: () => auctionApi.list({ status: 'SCHEDULED', limit: 50 }),
+    enabled: tab === 'scheduled',
+  });
+
+  const { data: myBidsData } = useQuery({
+    queryKey: ['my-bids'],
+    queryFn: () => auctionApi.myBids(),
+    enabled: tab === 'my-bids',
+  });
+
+  const { data: myWinsData } = useQuery({
+    queryKey: ['my-wins'],
+    queryFn: () => auctionApi.myWins(),
+    enabled: tab === 'my-wins',
+  });
+
+  const currentData = tab === 'live' ? liveData
+    : tab === 'scheduled' ? scheduledData
+    : null;
 
   return (
-    <NavLink
-      to={`/auctions/${a.id}`}
-      className="group rounded-2xl overflow-hidden bg-white dark:bg-neutral-900 border border-rose-200 dark:border-rose-800 shadow-soft hover:shadow-soft-lg hover:-translate-y-1 transition-all"
-    >
-      <div className="relative aspect-square bg-slate-100 dark:bg-neutral-800 overflow-hidden">
-        {a.product?.marketplaceProfile?.publicImages?.[0] ? (
-          <img
-            src={a.product.marketplaceProfile.publicImages[0]}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform"
-            alt=""
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-5xl opacity-30">🔨</div>
-        )}
-        <div className="absolute top-2 left-2 px-2 py-1 rounded-full bg-rose-500 text-white text-[10px] font-black shadow flex items-center gap-1">
-          <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
-          LIVE
+    <>
+      <Helmet><title>Auctions — Nafaa Bazaar</title></Helmet>
+
+      <div className="space-y-5">
+        {/* Hero */}
+        <Card className="p-5 md:p-6 bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 text-white border-0 relative overflow-hidden">
+          <div className="absolute top-0 right-0 h-40 w-40 rounded-full bg-white/10 blur-3xl -translate-y-1/4 translate-x-1/4" />
+          <div className="relative z-10 max-w-2xl">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur border border-white/20 px-3 py-1 text-xs font-black mb-3">
+              <Zap className="h-3.5 w-3.5 fill-current" />
+              Live Bidding
+            </div>
+            <h1 className="text-2xl md:text-4xl font-black leading-tight mb-2">
+              Auctions
+            </h1>
+            <p className="text-white/90 text-sm md:text-base">
+              Bid on unique items. Highest bidder wins!
+            </p>
+          </div>
+        </Card>
+
+        {/* Tabs */}
+        <div className="flex gap-2 overflow-x-auto no-scrollbar border-b border-border">
+          {([
+            { key: 'live', label: '🔴 Live now' },
+            { key: 'scheduled', label: '⏰ Upcoming' },
+            { key: 'my-bids', label: '💰 My bids' },
+            { key: 'my-wins', label: '🏆 My wins' },
+          ] as const).map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={cn(
+                'shrink-0 px-4 py-3 text-sm font-black border-b-2 transition',
+                tab === t.key
+                  ? 'border-accent-500 text-accent-600 dark:text-accent-400'
+                  : 'border-transparent text-content-muted hover:text-content',
+              )}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
-        {isHot && (
-          <div className="absolute top-2 right-2 px-2 py-1 rounded-full bg-orange-500 text-white text-[10px] font-black shadow flex items-center gap-1 animate-pulse-soft">
-            <Flame className="h-2.5 w-2.5" />
-            HOT
+
+        {/* List */}
+        {(tab === 'live' || tab === 'scheduled') && (
+          <>
+            {loadingLive ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="skeleton aspect-[4/5] rounded-3xl" />
+                ))}
+              </div>
+            ) : !currentData?.items.length ? (
+              <EmptyState
+                icon={Zap}
+                title={tab === 'live' ? 'No live auctions right now' : 'No upcoming auctions'}
+                description="Check back later for new items"
+              />
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {currentData.items.map((a: any) => <AuctionCard key={a.id} a={a} />)}
+              </div>
+            )}
+          </>
+        )}
+
+        {tab === 'my-bids' && (
+          <div className="space-y-3">
+            {myBidsData?.items?.length ? (
+              myBidsData.items.map((b: any) => (
+                <Link key={b.id} to={`/auctions/${b.auction.id}`}>
+                  <Card className="p-4 hover:shadow-soft-lg transition">
+                    <div className="flex items-center gap-3">
+                      {b.auction.imageUrls?.[0] && (
+                        <img src={b.auction.imageUrls[0]} alt="" className="h-16 w-16 rounded-xl object-cover shrink-0" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="font-black text-sm line-clamp-1">{b.auction.title}</div>
+                        <div className="text-2xs text-content-muted mt-0.5">
+                          Your bid: <span className="font-black text-accent-600">{formatPrice(b.amount)}</span>
+                        </div>
+                        <div className="flex items-center gap-1 mt-1">
+                          {b.isWinning ? (
+                            <Badge variant="success" size="sm">🏆 Winning</Badge>
+                          ) : b.isCurrentHighest ? (
+                            <Badge variant="brand" size="sm">Highest</Badge>
+                          ) : (
+                            <Badge variant="warning" size="sm">Outbid</Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                </Link>
+              ))
+            ) : (
+              <EmptyState icon={TrendingUp} title="No bids yet" description="Bid on auctions to see them here" />
+            )}
+          </div>
+        )}
+
+        {tab === 'my-wins' && (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {myWinsData?.items?.length ? (
+              myWinsData.items.map((a: any) => <AuctionCard key={a.id} a={a} />)
+            ) : (
+              <EmptyState icon={Package} title="No wins yet" description="Keep bidding to win!" />
+            )}
           </div>
         )}
       </div>
-
-      <div className="p-3">
-        <h3 className="font-extrabold text-slate-900 dark:text-white text-sm line-clamp-2 leading-tight min-h-[2.5rem]">
-          {a.product?.marketplaceProfile?.publicName}
-        </h3>
-
-        <div className="mt-2 flex items-baseline justify-between">
-          <div>
-            <div className="text-[9px] font-extrabold uppercase tracking-widest text-slate-500">
-              Current Bid
-            </div>
-            <div className="text-lg font-black text-rose-700 dark:text-rose-400">
-              Rs {Number(a.currentBid || a.startingPrice).toFixed(0)}
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="text-[9px] font-extrabold uppercase tracking-widest text-slate-500">
-              Bids
-            </div>
-            <div className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-1">
-              <TrendingUp className="h-3 w-3 text-rose-600" />
-              {a.bidCount || 0}
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-2 flex items-center justify-center gap-1 text-[11px] font-extrabold text-rose-700 dark:text-rose-400">
-          <Clock className="h-3 w-3" />
-          {minutesLeft > 60 ? `${Math.floor(minutesLeft / 60)}h ${minutesLeft % 60}m` : `${minutesLeft}m`} left
-        </div>
-      </div>
-    </NavLink>
+    </>
   );
 }

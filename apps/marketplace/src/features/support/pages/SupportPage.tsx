@@ -1,286 +1,247 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { Link, useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
+import { useState } from 'react';
 import {
-  MessageCircle, Plus, Phone, Mail, MessageSquare, HelpCircle,
-  ChevronRight, Clock, CheckCircle2, X, Send,
+  MessageCircle, Phone, Mail, Package, CreditCard, Truck,
+  User, HelpCircle, Send, Plus, ChevronRight, Clock,
 } from 'lucide-react';
 import { supportApi } from '../api/support.api';
-import { Button } from '@shared/ui/Button';
-import { Input } from '@shared/ui/Input';
-import { Textarea } from '@shared/ui/Textarea';
-import { Modal } from '@shared/ui/Modal';
-import { EmptyState } from '@shared/ui/EmptyState';
-import { SkeletonCard } from '@shared/ui/Skeleton';
-import { Badge } from '@shared/ui/Badge';
-import { cn } from '@lib/cn';
+import { Button, Card, Input, Badge, EmptyState } from '@/ui';
+import { timeAgo } from '@/lib/format';
+import { toast } from 'sonner';
+import { cn } from '@/lib/cn';
 
-const FAQ_ITEMS = [
-  {
-    q: 'Order kaise track karain?',
-    a: 'Orders tab pe jaen aur active order pe click karein — real-time tracking milegi.',
-  },
-  {
-    q: 'Refund kitne din mein milta hai?',
-    a: 'JazzCash/Easypaisa/Card mein 3-5 din, COD orders mein wallet mein 24 hours.',
-  },
-  {
-    q: 'Bargain kaise karain?',
-    a: 'Product pe "Bargain" badge dekhen → offer bhejen → shop owner accept/counter karega.',
-  },
-  {
-    q: 'Group Buy kya hai?',
-    a: 'Multiple customers milkar khareedain — minimum quantity puri hone pe sab ko discount milta hai.',
-  },
-  {
-    q: 'Delivery kitni jaldi aati hai?',
-    a: 'Shop ke area pe depend karta hai — nazdeek dukanein 30 min mein deliver karti hain.',
-  },
-  {
-    q: 'Payment safe hai?',
-    a: 'Bilkul! 256-bit encryption, JazzCash/Easypaisa verified, COD option bhi hai.',
-  },
-];
-
-const STATUS_CONFIG: Record<string, { color: any; icon: any; label: string }> = {
-  OPEN:        { color: 'warning', icon: Clock,        label: 'Open' },
-  IN_PROGRESS: { color: 'info',    icon: MessageCircle, label: 'In Progress' },
-  RESOLVED:    { color: 'success', icon: CheckCircle2, label: 'Resolved' },
-  CLOSED:      { color: 'default', icon: X,            label: 'Closed' },
+const CATEGORY_ICONS: Record<string, any> = {
+  ORDER: Package, PAYMENT: CreditCard, DELIVERY: Truck,
+  PRODUCT: Package, ACCOUNT: User, OTHER: HelpCircle,
 };
 
 export default function SupportPage() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const [modalOpen, setModalOpen] = useState(false);
-  const [formData, setFormData] = useState({ subject: '', message: '', category: 'OTHER' });
-  const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+  const qc = useQueryClient();
+  const [showNewTicket, setShowNewTicket] = useState(false);
+  const [form, setForm] = useState({
+    subject: '',
+    category: 'ORDER',
+    message: '',
+    priority: 'MEDIUM' as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
+  });
 
-  const { data: tickets, isLoading } = useQuery({
-    queryKey: ['market-support-tickets'],
-    queryFn: supportApi.listTickets,
+  const { data: home } = useQuery({ queryKey: ['support-home'], queryFn: supportApi.home });
+  const { data: tickets } = useQuery({
+    queryKey: ['support-tickets'],
+    queryFn: () => supportApi.listTickets({ limit: 20 }),
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: any) => supportApi.createTicket(data),
-    onSuccess: (data: any) => {
-      toast.success('Ticket create ho gaya! 💬', {
-        description: 'Team jaldi hi reply karegi',
-      });
-      queryClient.invalidateQueries({ queryKey: ['market-support-tickets'] });
-      setModalOpen(false);
-      setFormData({ subject: '', message: '', category: 'OTHER' });
-      navigate(`/support/${data.id}`);
+    mutationFn: () => supportApi.createTicket(form),
+    onSuccess: (t: any) => {
+      qc.invalidateQueries({ queryKey: ['support-tickets'] });
+      qc.invalidateQueries({ queryKey: ['support-home'] });
+      toast.success('Ticket created!');
+      setShowNewTicket(false);
+      setForm({ subject: '', category: 'ORDER', message: '', priority: 'MEDIUM' });
     },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
   });
 
   return (
-    <div className="pb-8 space-y-4">
-      <div className="flex items-center justify-between">
+    <>
+      <Helmet><title>Help & Support — Nafaa Bazaar</title></Helmet>
+
+      <div className="max-w-3xl mx-auto space-y-5">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-            <MessageCircle className="h-6 w-6 text-brand-600" />
+          <h1 className="text-2xl md:text-3xl font-black text-content flex items-center gap-2">
+            <MessageCircle className="h-7 w-7 text-brand-600" />
             Help & Support
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">Hum aap ki madad ke liye hazir hain</p>
+          <p className="text-sm text-content-muted mt-0.5">
+            Get help with orders, payments, and account
+          </p>
         </div>
-      </div>
 
-      {/* Quick Contact Cards */}
-      <div className="grid grid-cols-2 gap-3">
-        <a
-          href="tel:+92-3-1111-NAFAA"
-          className="p-4 rounded-2xl bg-gradient-to-br from-brand-500 to-emerald-600 text-white shadow-brand hover:shadow-brand-lg transition-all"
-        >
-          <Phone className="h-6 w-6 mb-2" />
-          <div className="font-extrabold text-sm">Call Us</div>
-          <div className="text-[10px] opacity-90 font-bold mt-0.5">24/7 Support</div>
-        </a>
-        <a
-          href="https://wa.me/923001111000"
-          target="_blank"
-          rel="noreferrer"
-          className="p-4 rounded-2xl bg-gradient-to-br from-green-500 to-green-600 text-white shadow-md hover:shadow-lg transition-all"
-        >
-          <MessageSquare className="h-6 w-6 mb-2" />
-          <div className="font-extrabold text-sm">WhatsApp</div>
-          <div className="text-[10px] opacity-90 font-bold mt-0.5">Quick response</div>
-        </a>
-      </div>
-
-      {/* Create Ticket CTA */}
-      <div className="p-4 rounded-2xl bg-white dark:bg-neutral-900 border-2 border-dashed border-brand-300 dark:border-brand-800">
-        <div className="flex items-center gap-3">
-          <div className="h-11 w-11 rounded-xl bg-brand-100 dark:bg-brand-900/40 flex items-center justify-center shrink-0">
-            <MessageCircle className="h-5 w-5 text-brand-700 dark:text-brand-400" />
-          </div>
-          <div className="flex-1">
-            <div className="font-extrabold text-sm text-slate-900 dark:text-white">
-              Ticket Banayen
-            </div>
-            <div className="text-[11px] text-slate-500 mt-0.5">
-              Detailed issue ke liye ticket create karein
-            </div>
-          </div>
-          <Button
-            variant="gradient"
-            size="sm"
-            onClick={() => setModalOpen(true)}
-            leftIcon={<Plus className="h-3.5 w-3.5" />}
-          >
-            New
-          </Button>
-        </div>
-      </div>
-
-      {/* My Tickets */}
-      <section>
-        <h2 className="text-sm font-extrabold text-slate-900 dark:text-white mb-2">
-          🎫 My Tickets
-        </h2>
-        {isLoading ? (
-          <SkeletonCard />
-        ) : !tickets?.length ? (
-          <div className="text-center py-6 text-xs text-slate-500 font-bold">
-            Koi ticket nahi banaya abhi
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {tickets.map((t: any) => {
-              const cfg = STATUS_CONFIG[t.status] || STATUS_CONFIG.OPEN;
-              const StatusIcon = cfg.icon;
+        {/* Contact methods */}
+        {home?.contactMethods && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {home.contactMethods.map((c: any) => {
+              const icons: Record<string, any> = {
+                chat: MessageCircle, phone: Phone, whatsapp: MessageCircle, email: Mail,
+              };
+              const Icon = icons[c.type] || MessageCircle;
+              const isLink = c.value && (c.type === 'phone' || c.type === 'whatsapp' || c.type === 'email');
+              const href = c.type === 'phone' ? `tel:${c.value}`
+                : c.type === 'whatsapp' ? `https://wa.me/${c.value.replace(/\D/g, '')}`
+                  : c.type === 'email' ? `mailto:${c.value}` : undefined;
+              const Wrapper: any = isLink ? 'a' : 'div';
               return (
-                <button
-                  key={t.id}
-                  onClick={() => navigate(`/support/${t.id}`)}
-                  className="w-full p-3 rounded-2xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-soft hover:shadow-soft-lg transition text-left flex items-center gap-3"
+                <Wrapper
+                  key={c.type}
+                  href={href}
+                  target={c.type === 'whatsapp' ? '_blank' : undefined}
+                  rel="noreferrer"
+                  className="block"
                 >
-                  <div className="h-10 w-10 rounded-xl bg-brand-100 dark:bg-brand-900/40 flex items-center justify-center shrink-0">
-                    <StatusIcon className="h-4 w-4 text-brand-700 dark:text-brand-400" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-extrabold text-sm text-slate-900 dark:text-white truncate">
-                        {t.subject}
-                      </span>
-                      <Badge variant={cfg.color} size="xs">{cfg.label}</Badge>
+                  <Card className="p-3 text-center hover:shadow-soft-lg transition cursor-pointer">
+                    <div className="h-11 w-11 mx-auto rounded-xl bg-gradient-brand flex items-center justify-center mb-2">
+                      <Icon className="h-5 w-5 text-white" />
                     </div>
-                    <div className="text-[11px] text-slate-500 mt-0.5">
-                      #{t.ticketNumber} · {new Date(t.createdAt).toLocaleDateString('en-PK')}
-                    </div>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-slate-400 shrink-0" />
-                </button>
+                    <div className="text-2xs font-black">{c.label}</div>
+                    {c.value && <div className="text-3xs text-content-muted mt-0.5 truncate">{c.value}</div>}
+                  </Card>
+                </Wrapper>
               );
             })}
           </div>
         )}
-      </section>
 
-      {/* FAQs */}
-      <section>
-        <h2 className="text-sm font-extrabold text-slate-900 dark:text-white mb-2 flex items-center gap-1.5">
-          <HelpCircle className="h-4 w-4 text-brand-600" />
-          Aksar Poochay Jane Wale Sawaal
-        </h2>
-        <div className="space-y-2">
-          {FAQ_ITEMS.map((item, i) => (
-            <button
-              key={i}
-              onClick={() => setExpandedFaq(expandedFaq === i ? null : i)}
-              className="w-full p-4 rounded-2xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 hover:border-brand-300 transition text-left"
-            >
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-extrabold text-sm text-slate-900 dark:text-white">
-                  {item.q}
-                </span>
-                <ChevronRight
-                  className={cn(
-                    'h-4 w-4 text-slate-400 transition shrink-0',
-                    expandedFaq === i && 'rotate-90',
-                  )}
-                />
+        {/* Create ticket button */}
+        {!showNewTicket && (
+          <Button
+            variant="gradient"
+            size="lg"
+            fullWidth
+            leftIcon={<Plus className="h-5 w-5" />}
+            onClick={() => setShowNewTicket(true)}
+          >
+            Create new ticket
+          </Button>
+        )}
+
+        {/* New ticket form */}
+        {showNewTicket && (
+          <Card className="p-5 space-y-4 animate-slide-down">
+            <h3 className="font-black text-lg">New support ticket</h3>
+
+            {/* Category */}
+            <div>
+              <div className="text-xs font-black text-content-muted uppercase tracking-wider mb-2">
+                Category
               </div>
-              {expandedFaq === i && (
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed animate-slide-down">
-                  {item.a}
-                </p>
-              )}
-            </button>
-          ))}
-        </div>
-      </section>
+              <div className="grid grid-cols-3 gap-2">
+                {['ORDER', 'PAYMENT', 'DELIVERY', 'PRODUCT', 'ACCOUNT', 'OTHER'].map((c) => {
+                  const Icon = CATEGORY_ICONS[c];
+                  const active = form.category === c;
+                  return (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setForm({ ...form, category: c })}
+                      className={cn(
+                        'h-16 rounded-xl border-2 flex flex-col items-center justify-center gap-1 transition',
+                        active
+                          ? 'border-brand-600 bg-brand-50 dark:bg-brand-950/40'
+                          : 'border-border bg-surface hover:border-brand-300',
+                      )}
+                    >
+                      <Icon className={cn('h-4 w-4', active ? 'text-brand-600' : 'text-content-muted')} />
+                      <span className={cn('text-2xs font-black', active ? 'text-brand-600' : 'text-content-muted')}>
+                        {c}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
-      {/* Email fallback */}
-      <div className="p-4 rounded-2xl bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 text-center">
-        <Mail className="h-5 w-5 text-brand-600 mx-auto mb-1.5" />
-        <div className="text-xs font-extrabold text-slate-900 dark:text-white">Email us</div>
-        <a
-          href="mailto:support@nafaa.pk"
-          className="text-xs font-bold text-brand-700 dark:text-brand-400 hover:underline"
-        >
-          support@nafaa.pk
-        </a>
-      </div>
+            <Input
+              label="Subject"
+              placeholder="Brief summary of your issue"
+              value={form.subject}
+              onChange={(e) => setForm({ ...form, subject: e.target.value })}
+            />
 
-      {/* New Ticket Modal */}
-      <Modal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title="Naya Ticket Banayen"
-        size="md"
-        footer={
-          <>
-            <Button variant="outline" onClick={() => setModalOpen(false)}>Cancel</Button>
-            <Button
-              variant="gradient"
-              loading={createMutation.isPending}
-              leftIcon={<Send className="h-4 w-4" />}
-              onClick={() => {
-                if (formData.subject.trim().length < 5) return toast.error('Subject 5+ characters');
-                if (formData.message.trim().length < 20) return toast.error('Message 20+ characters');
-                createMutation.mutate(formData);
-              }}
-            >
-              Submit
-            </Button>
-          </>
-        }
-      >
-        <div className="space-y-3">
+            <div>
+              <label className="block text-sm font-bold text-content mb-1.5">Message</label>
+              <textarea
+                placeholder="Describe your issue in detail..."
+                value={form.message}
+                onChange={(e) => setForm({ ...form, message: e.target.value })}
+                rows={5}
+                className="w-full px-4 py-3 rounded-2xl border border-border bg-surface text-sm focus:outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 resize-none"
+              />
+            </div>
+
+            <div>
+              <div className="text-xs font-black text-content-muted uppercase tracking-wider mb-2">
+                Priority
+              </div>
+              <div className="flex gap-2">
+                {(['LOW', 'MEDIUM', 'HIGH', 'URGENT'] as const).map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setForm({ ...form, priority: p })}
+                    className={cn(
+                      'flex-1 h-10 rounded-xl border-2 text-2xs font-black transition',
+                      form.priority === p
+                        ? 'border-brand-600 bg-brand-50 dark:bg-brand-950/40 text-brand-700'
+                        : 'border-border bg-surface',
+                    )}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Button variant="ghost" size="lg" fullWidth onClick={() => setShowNewTicket(false)}>
+                Cancel
+              </Button>
+              <Button
+                variant="gradient"
+                size="lg"
+                fullWidth
+                disabled={!form.subject || !form.message}
+                loading={createMutation.isPending}
+                onClick={() => createMutation.mutate()}
+                leftIcon={<Send className="h-4 w-4" />}
+              >
+                Submit
+              </Button>
+            </div>
+          </Card>
+        )}
+
+        {/* Existing tickets */}
+        {tickets && tickets.items?.length > 0 && (
           <div>
-            <label className="text-sm font-bold text-slate-700 mb-1.5 block">Category</label>
-            <select
-              value={formData.category}
-              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              className="w-full h-11 px-3 rounded-xl border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm font-bold focus:outline-none focus:border-brand-500"
-            >
-              <option value="ORDER">Order Issue</option>
-              <option value="DELIVERY">Delivery Problem</option>
-              <option value="PAYMENT">Payment Issue</option>
-              <option value="REFUND">Refund Request</option>
-              <option value="ACCOUNT">Account Issue</option>
-              <option value="OTHER">Other</option>
-            </select>
+            <h3 className="text-xs font-black text-content-subtle uppercase tracking-wider mb-2 px-1">
+              My tickets ({tickets.counts?.all || tickets.items.length})
+            </h3>
+            <div className="space-y-2">
+              {tickets.items.map((t: any) => (
+                <Link key={t.id} to={`/support/tickets/${t.id}`}>
+                  <Card className="p-4 hover:shadow-soft-lg transition">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-2xs font-black text-content-subtle">#{t.ticketNumber}</span>
+                          <Badge
+                            variant={t.status === 'RESOLVED' ? 'success' : t.status === 'CLOSED' ? 'default' : 'info'}
+                            size="sm"
+                          >
+                            {t.status}
+                          </Badge>
+                          {t.priority === 'HIGH' && <Badge variant="warning" size="sm">HIGH</Badge>}
+                          {t.priority === 'URGENT' && <Badge variant="danger" size="sm">URGENT</Badge>}
+                        </div>
+                        <div className="font-black text-content text-sm">{t.subject}</div>
+                        <div className="text-2xs text-content-muted mt-1 flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {timeAgo(t.createdAt)} · {t._count?.messages || 0} messages
+                        </div>
+                      </div>
+                      <ChevronRight className="h-5 w-5 text-content-subtle" />
+                    </div>
+                  </Card>
+                </Link>
+              ))}
+            </div>
           </div>
-          <Input
-            label="Subject"
-            placeholder="Kya masla hai?"
-            value={formData.subject}
-            onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-            required
-          />
-          <Textarea
-            label="Details"
-            placeholder="Pura issue detail mein likhein..."
-            rows={5}
-            value={formData.message}
-            onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-            required
-          />
-        </div>
-      </Modal>
-    </div>
+        )}
+      </div>
+    </>
   );
 }

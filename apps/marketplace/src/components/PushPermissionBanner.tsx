@@ -1,85 +1,129 @@
 import { useEffect, useState } from 'react';
-import { Bell, X } from 'lucide-react';
+import { Bell, X, Zap } from 'lucide-react';
+import { Card } from '@/ui';
+import { profileApi } from '@/features/profile/api/profile.api';
+import { useAuthStore } from '@/stores/auth.store';
 import { toast } from 'sonner';
-import { Button } from '@shared/ui/Button';
-import { isPushSupported, getNotificationPermission, requestPushPermission } from '@lib/push/webPush';
-import { useCustomerAuthStore } from '@stores/customerAuth.store';
 
-const DISMISSED_KEY = 'nafaa_push_dismissed';
+const DISMISSED_KEY = 'push-permission-dismissed-at';
+const DISMISS_DAYS = 3;
+const VAPID_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+
+function urlBase64ToUint8Array(base64String: string): ArrayBuffer {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = window.atob(base64);
+  const buffer = new ArrayBuffer(raw.length);
+  const view = new Uint8Array(buffer);
+  for (let i = 0; i < raw.length; ++i) view[i] = raw.charCodeAt(i);
+  return buffer;
+}
 
 export function PushPermissionBanner() {
-  const isAuth = useCustomerAuthStore((s) => s.isAuthenticated);
+  const isAuth = useAuthStore((s) => s.isAuthenticated);
   const [show, setShow] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!isAuth) return;
-    (async () => {
-      const supported = await isPushSupported();
-      if (!supported) return;
-      const perm = await getNotificationPermission();
-      if (perm !== 'default') return;
+    if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
+    if (Notification.permission !== 'default') return;
 
-      const dismissed = localStorage.getItem(DISMISSED_KEY);
-      if (dismissed) {
-        const days = (Date.now() - Number(dismissed)) / (1000 * 60 * 60 * 24);
-        if (days < 3) return;
-      }
-
-      setTimeout(() => setShow(true), 15_000); // show after 15s of activity
-    })();
-  }, [isAuth]);
-
-  const enable = async () => {
-    const ok = await requestPushPermission();
-    if (ok) {
-      toast.success('Notifications enable ho gaye 🔔');
-      setShow(false);
-    } else {
-      toast.error('Permission nahi mili');
+    const dismissedAt = localStorage.getItem(DISMISSED_KEY);
+    if (dismissedAt) {
+      const daysSince = (Date.now() - Number(dismissedAt)) / (1000 * 60 * 60 * 24);
+      if (daysSince < DISMISS_DAYS) return;
     }
-  };
+
+    const t = setTimeout(() => setShow(true), 30000);
+    return () => clearTimeout(t);
+  }, [isAuth]);
 
   const dismiss = () => {
     setShow(false);
     localStorage.setItem(DISMISSED_KEY, String(Date.now()));
   };
 
+  const enable = async () => {
+    if (!VAPID_KEY) {
+      toast.error('Push notifications not configured');
+      return;
+    }
+    setLoading(true);
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        toast.info('You can enable notifications later from settings');
+        dismiss();
+        return;
+      }
+
+      const registration = await navigator.serviceWorker.ready;
+      const existingSub = await registration.pushManager.getSubscription();
+      const sub = existingSub || await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_KEY),
+      });
+
+      const platform = /iPhone|iPad|iPod/i.test(navigator.userAgent) ? 'ios'
+        : /Android/i.test(navigator.userAgent) ? 'android' : 'web';
+
+      await profileApi.registerPushToken({
+        token: JSON.stringify(sub),
+        platform,
+        deviceInfo: { userAgent: navigator.userAgent },
+      });
+
+      toast.success('Notifications enabled! 🔔');
+      setShow(false);
+    } catch (e: any) {
+      toast.error('Failed to enable notifications');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!show) return null;
 
   return (
-    <div className="fixed top-20 left-4 right-4 z-40 max-w-md mx-auto animate-slide-down">
-      <div className="rounded-2xl bg-white dark:bg-neutral-900 border border-amber-300 dark:border-amber-800 shadow-soft-lg p-4 relative">
+    <div className="fixed top-20 left-4 right-4 lg:top-24 lg:left-auto lg:right-6 lg:max-w-sm z-40 animate-slide-down">
+      <Card className="p-4 bg-gradient-to-br from-accent-500 to-orange-600 text-white border-0 shadow-2xl relative overflow-hidden">
         <button
           onClick={dismiss}
-          className="absolute top-2 right-2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-neutral-800 flex items-center justify-center"
+          className="absolute top-2 right-2 h-7 w-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition"
         >
-          <X className="h-4 w-4 text-slate-400" />
+          <X className="h-3.5 w-3.5" />
         </button>
-        <div className="flex items-start gap-3">
-          <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0">
-            <Bell className="h-5 w-5 text-white" />
+
+        <div className="flex items-start gap-3 pr-6">
+          <div className="h-11 w-11 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center shrink-0 animate-bounce-soft">
+            <Bell className="h-5 w-5" />
           </div>
-          <div className="flex-1 min-w-0">
-            <div className="font-extrabold text-sm text-slate-900 dark:text-white">
-              Notifications enable karein
-            </div>
-            <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Order updates, deals, aur bargain replies fauran mile
-            </div>
-            <div className="mt-3 flex items-center gap-2">
-              <Button size="sm" variant="gradient" onClick={enable}>
-                Enable
-              </Button>
-              <button
-                onClick={dismiss}
-                className="text-xs font-bold text-slate-500 hover:text-slate-700"
-              >
-                Baad mein
-              </button>
+          <div className="flex-1">
+            <div className="font-black text-base">Stay updated</div>
+            <div className="text-xs opacity-90 mt-0.5">
+              Get instant notifications for orders, deals, and messages
             </div>
           </div>
         </div>
-      </div>
+
+        <div className="flex gap-2 mt-3">
+          <button
+            onClick={dismiss}
+            className="flex-1 h-10 rounded-xl bg-white/15 hover:bg-white/25 text-white text-sm font-bold transition"
+          >
+            Later
+          </button>
+          <button
+            onClick={enable}
+            disabled={loading}
+            className="flex-1 h-10 rounded-xl bg-white text-accent-700 hover:bg-accent-50 text-sm font-black transition flex items-center justify-center gap-1.5 disabled:opacity-50"
+          >
+            <Zap className="h-4 w-4" />
+            {loading ? 'Enabling...' : 'Enable'}
+          </button>
+        </div>
+      </Card>
     </div>
   );
 }

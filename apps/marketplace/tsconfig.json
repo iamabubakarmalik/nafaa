@@ -15,17 +15,7 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "paths": {
-      "@/*": ["./src/*"],
-      "@shared/ui/*": ["./src/ui/*"],
-      "@shared/ui": ["./src/ui"],
-      "@lib/*": ["./src/lib/*"],
-      "@stores/*": ["./src/stores/*"],
-      "@api/*": ["./src/api/*"],
-      "@app-types/*": ["./src/types/*"],
-      "@components/*": ["./src/components/*"],
-      "@pages/*": ["./src/pages/*"],
-      "@layout/*": ["./src/layout/*"],
-      "@features/*": ["./src/features/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src"]

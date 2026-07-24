@@ -1,11 +1,26 @@
-import { marketplaceClient } from '@api/marketplace-client';
-const unwrap = <T>(r: any): T => (r?.data?.data !== undefined ? r.data.data : r?.data);
+import { marketplaceClient, unwrap } from '@/api/client';
+
+export interface PlaceBidPayload {
+  amount: number;
+  isAutoBid?: boolean;
+  maxAutoBid?: number;
+}
 
 export const auctionApi = {
-  list: (params?: any) => marketplaceClient.get('/auctions', { params }).then(unwrap<any>),
-  active: () => marketplaceClient.get('/auctions/live').then(unwrap<any>),
-  detail: (id: string) => marketplaceClient.get(`/auctions/${id}`).then(unwrap<any>),
-  bid: (id: string, amount: number) =>
-    marketplaceClient.post(`/auctions/${id}/bid`, { amount }).then(unwrap<any>),
-  myBids: () => marketplaceClient.get('/auctions/my-bids').then(unwrap<any>),
+  list: (params: { shopId?: string; status?: string; limit?: number; offset?: number } = {}) =>
+    marketplaceClient.get('/auctions', { params }).then(unwrap<{
+      items: any[]; total: number;
+    }>),
+
+  detail: (id: string) =>
+    marketplaceClient.get(`/auctions/${id}`).then(unwrap<any>),
+
+  bid: (id: string, payload: PlaceBidPayload) =>
+    marketplaceClient.post(`/auctions/${id}/bid`, payload).then(unwrap<any>),
+
+  myBids: (limit = 20, offset = 0) =>
+    marketplaceClient.get('/auctions/my/bids', { params: { limit, offset } }).then(unwrap<any>),
+
+  myWins: () =>
+    marketplaceClient.get('/auctions/my/wins').then(unwrap<any>),
 };

@@ -1,17 +1,39 @@
-import { marketplaceClient } from '@api/marketplace-client';
-const unwrap = <T>(r: any): T => (r?.data?.data !== undefined ? r.data.data : r?.data);
+import { marketplaceClient, unwrap } from '@/api/client';
+
+export interface StartBargainPayload {
+  productId: string;
+  variantId?: string;
+  offerPrice: number;
+  quantity?: number;
+  message?: string;
+}
+
+export interface CounterOfferPayload {
+  offerPrice: number;
+  message?: string;
+}
 
 export const bargainApi = {
-  list: (params?: any) => marketplaceClient.get('/bargains', { params }).then(unwrap<any>),
-  detail: (id: string) => marketplaceClient.get(`/bargains/${id}`).then(unwrap<any>),
-  create: (data: { productId: string; offerPrice: number; quantity: number; message?: string }) =>
-    marketplaceClient.post('/bargains', data).then(unwrap<any>),
-  counter: (id: string, counterPrice: number, message?: string) =>
-    marketplaceClient.post(`/bargains/${id}/counter`, { counterPrice, message }).then(unwrap<any>),
-  accept: (id: string) => marketplaceClient.post(`/bargains/${id}/accept`).then(unwrap<any>),
+  start: (payload: StartBargainPayload) =>
+    marketplaceClient.post('/bargain', payload).then(unwrap<any>),
+
+  list: (status?: string[], limit = 20, offset = 0) =>
+    marketplaceClient
+      .get('/bargain', { params: { status: status?.join(','), limit, offset } })
+      .then(unwrap<{ items: any[]; total: number; counts: Record<string, number> }>),
+
+  detail: (id: string) =>
+    marketplaceClient.get(`/bargain/${id}`).then(unwrap<any>),
+
+  counter: (id: string, payload: CounterOfferPayload) =>
+    marketplaceClient.post(`/bargain/${id}/counter`, payload).then(unwrap<any>),
+
+  accept: (id: string) =>
+    marketplaceClient.post(`/bargain/${id}/accept`).then(unwrap<any>),
+
   reject: (id: string, reason?: string) =>
-    marketplaceClient.post(`/bargains/${id}/reject`, { reason }).then(unwrap<any>),
-  sendMessage: (id: string, message: string) =>
-    marketplaceClient.post(`/bargains/${id}/messages`, { message }).then(unwrap<any>),
-  addToCart: (id: string) => marketplaceClient.post(`/bargains/${id}/add-to-cart`).then(unwrap<any>),
+    marketplaceClient.post(`/bargain/${id}/reject`, { reason }).then(unwrap),
+
+  cancel: (id: string) =>
+    marketplaceClient.post(`/bargain/${id}/cancel`).then(unwrap),
 };
