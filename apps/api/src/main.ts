@@ -79,6 +79,7 @@ async function bootstrap() {
     'https://app.nafaa.pk',
     'https://admin.nafaa.pk',
     'https://marketing.nafaa.pk',
+    'https://bazaar.nafaa.pk',
     'https://api.nafaa.pk',
     // Vercel preview URLs (Vercel auto-generates preview deployments)
     /^https:\/\/.*\.vercel\.app$/,
