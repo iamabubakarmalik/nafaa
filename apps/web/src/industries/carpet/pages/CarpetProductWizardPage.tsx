@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft, ArrowRight, Save, CheckCircle2, Sparkles, Layers,
-  Plus, ExternalLink, AlertTriangle, Trash2, Eye,
+  Plus, AlertTriangle, Trash2, Eye,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@core/ui/Button';
@@ -36,16 +36,12 @@ export default function CarpetProductWizardPage() {
     setDraftDirect,
   } = useCarpetWizard({ autoLoadDraft: !editId });
 
-  // ─── Edit-mode hydration ─────────────────────────────
+  // ─── Edit mode hydration ─────────────────────────────
   const editQuery = useQuery({
     queryKey: ['carpet-wizard-edit', editId],
     queryFn: async () => {
-      // Silently heal orphan rolls before loading so they appear
-      // under a variant instead of "No variant" bucket
       const healed = await healOrphanCarpetRolls(editId!);
-      if (healed > 0) {
-        console.info(`[carpet] Healed ${healed} orphan roll(s)`);
-      }
+      if (healed > 0) console.info(`[carpet] Healed ${healed} orphan roll(s)`);
       return loadCarpetProductForEdit(editId!);
     },
     enabled: isEditMode,
@@ -72,9 +68,7 @@ export default function CarpetProductWizardPage() {
 
   const saveMutation = useMutation({
     mutationFn: () =>
-      isEditMode && editId
-        ? updateCarpetWizard(editId, draft)
-        : saveCarpetWizard(draft),
+      isEditMode && editId ? updateCarpetWizard(editId, draft) : saveCarpetWizard(draft),
     onSuccess: (result) => {
       setSavedResult(result);
       queryClient.invalidateQueries({ queryKey: ['products'] });
@@ -82,20 +76,18 @@ export default function CarpetProductWizardPage() {
       queryClient.invalidateQueries({ queryKey: ['product-variants', editId] });
       queryClient.invalidateQueries({ queryKey: ['carpet-rolls'] });
       queryClient.invalidateQueries({ queryKey: ['carpet-rolls-for-product', editId] });
-      queryClient.invalidateQueries({ queryKey: ['carpet-rolls-summary'] });
       queryClient.invalidateQueries({ queryKey: ['carpet-cut-pieces'] });
       queryClient.invalidateQueries({ queryKey: ['carpet-cut-pieces-for-product', editId] });
-      queryClient.invalidateQueries({ queryKey: ['carpet-product-summary'] });
       forceRefreshProducts().catch(() => {});
       toast.success(
         isEditMode
-          ? `${result.productName} updated — ${result.rollCount} new roll(s), ${result.pieceCount} new piece(s)`
-          : `${result.productName} created — ${result.rollCount} rolls, ${result.pieceCount} pieces`,
+          ? `${result.productName} update ho gaya — ${result.rollCount} naye roll, ${result.pieceCount} naye piece`
+          : `${result.productName} ban gaya — ${result.rollCount} rolls, ${result.pieceCount} pieces`,
       );
       if (!isEditMode) reset();
     },
     onError: (e: any) => {
-      toast.error(e?.response?.data?.message || 'Failed to save carpet product');
+      toast.error(e?.response?.data?.message || 'Save fail hua');
     },
   });
 
@@ -107,9 +99,7 @@ export default function CarpetProductWizardPage() {
   const canGoNext = currentValidation.valid && draft.step < 3;
   const canSave = validation.step1.valid && validation.step2.valid && validation.step3.valid;
 
-  // ═══════════════════════════════════════════════════════════
-  // EDIT-MODE LOADING
-  // ═══════════════════════════════════════════════════════════
+  // ═══ EDIT LOADING ═══
   if (isEditMode && editQuery.isLoading) {
     return (
       <div className="flex items-center justify-center py-24">
@@ -122,24 +112,22 @@ export default function CarpetProductWizardPage() {
     );
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // SUCCESS SCREEN
-  // ═══════════════════════════════════════════════════════════
+  // ═══ SUCCESS SCREEN ═══
   if (savedResult) {
     return (
-      <div className="max-w-2xl mx-auto py-12 space-y-6">
-        <div className="rounded-3xl bg-gradient-to-br from-emerald-50 to-green-50 border-2 border-emerald-300 p-8 text-center shadow-xl">
+      <div className="max-w-2xl mx-auto py-12 space-y-6 px-4">
+        <div className="rounded-3xl bg-gradient-to-br from-emerald-50 to-green-50 border-2 border-emerald-300 p-6 sm:p-8 text-center shadow-xl">
           <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white flex items-center justify-center shadow-xl mx-auto mb-4">
             <CheckCircle2 className="h-10 w-10" />
           </div>
-          <h1 className="text-3xl font-extrabold text-emerald-900">
-            {isEditMode ? 'Product Updated!' : 'Product Created!'}
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-emerald-900">
+            {isEditMode ? 'Product Update Ho Gaya! ✅' : 'Product Ban Gaya! 🎉'}
           </h1>
-          <p className="text-emerald-800 font-semibold mt-1">
+          <p className="text-emerald-800 font-semibold mt-1 text-sm sm:text-base">
             <strong>{savedResult.productName}</strong> {isEditMode ? 'ki changes save ho gayi hain' : 'aur uski poori inventory ready hai'}
           </p>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mt-6">
             <SuccessStat label="Variants" value={savedResult.variantCount} />
             <SuccessStat label="Rolls" value={savedResult.rollCount} />
             <SuccessStat label="Pieces" value={savedResult.pieceCount} />
@@ -154,47 +142,45 @@ export default function CarpetProductWizardPage() {
               reset();
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
-            className="rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white p-5 flex flex-col items-center gap-2 shadow-md transition"
+            className="rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white p-4 sm:p-5 flex flex-col items-center gap-2 shadow-md transition active:scale-95"
           >
             <Plus className="h-6 w-6" />
-            <div className="font-extrabold">Add Another Product</div>
-            <div className="text-xs opacity-90 font-semibold">Wizard reset ho jayega</div>
+            <div className="font-extrabold text-sm sm:text-base">Add Another</div>
+            <div className="text-[10px] sm:text-xs opacity-90 font-semibold">Wizard reset</div>
           </button>
           <button
             onClick={() => navigate(`/carpet-products/${savedResult.productId}`)}
-            className="rounded-2xl bg-white border-2 border-slate-200 hover:border-emerald-400 hover:shadow-md p-5 flex flex-col items-center gap-2 transition"
+            className="rounded-2xl bg-white border-2 border-slate-200 hover:border-emerald-400 hover:shadow-md p-4 sm:p-5 flex flex-col items-center gap-2 transition active:scale-95"
           >
             <Eye className="h-6 w-6 text-emerald-600" />
-            <div className="font-extrabold text-slate-900">View Product</div>
-            <div className="text-xs text-slate-500 font-semibold">Full carpet detail page</div>
+            <div className="font-extrabold text-slate-900 text-sm sm:text-base">View Product</div>
+            <div className="text-[10px] sm:text-xs text-slate-500 font-semibold">Full detail page</div>
           </button>
           <button
             onClick={() => navigate('/carpet-rolls')}
-            className="rounded-2xl bg-white border-2 border-slate-200 hover:border-emerald-400 hover:shadow-md p-5 flex flex-col items-center gap-2 transition"
+            className="rounded-2xl bg-white border-2 border-slate-200 hover:border-emerald-400 hover:shadow-md p-4 sm:p-5 flex flex-col items-center gap-2 transition active:scale-95"
           >
             <Layers className="h-6 w-6 text-emerald-600" />
-            <div className="font-extrabold text-slate-900">View All Rolls</div>
-            <div className="text-xs text-slate-500 font-semibold">Rolls page pe jayen</div>
+            <div className="font-extrabold text-slate-900 text-sm sm:text-base">View Rolls</div>
+            <div className="text-[10px] sm:text-xs text-slate-500 font-semibold">Rolls inventory</div>
           </button>
         </div>
       </div>
     );
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // WIZARD
-  // ═══════════════════════════════════════════════════════════
+  // ═══ WIZARD ═══
   return (
-    <div className="space-y-5 pb-24">
+    <div className="space-y-4 sm:space-y-5 pb-28">
       {draftRestored && (
         <div className="rounded-2xl bg-blue-50 border-2 border-blue-200 p-3 flex items-center gap-3 flex-wrap">
           <Sparkles className="h-4 w-4 text-blue-700" />
           <div className="text-xs text-blue-900 flex-1 min-w-0">
-            <strong>Draft restored</strong> — aap ne pichli bar jo values type ki thi, wo waapas load ho gayi hain
+            <strong>Draft restore ho gaya</strong> — aap ki pichli values wapas load ho gayi hain
           </div>
           <button
             onClick={() => { if (confirm('Draft delete kar ke naya start karein?')) reset(); }}
-            className="px-3 py-1 rounded-lg bg-white hover:bg-rose-50 text-rose-700 text-xs font-extrabold inline-flex items-center gap-1 border-2 border-rose-200"
+            className="px-3 py-1 rounded-lg bg-white hover:bg-rose-50 text-rose-700 text-xs font-extrabold inline-flex items-center gap-1 border-2 border-rose-200 active:scale-95 transition"
           >
             <Trash2 className="h-3 w-3" /> Fresh Start
           </button>
@@ -210,7 +196,8 @@ export default function CarpetProductWizardPage() {
         </button>
       </div>
 
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 text-white p-6 shadow-2xl">
+      {/* HERO */}
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 text-white p-5 sm:p-6 shadow-2xl">
         <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-emerald-400/20 blur-3xl" />
         <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-amber-400/15 blur-3xl" />
         <div className="relative">
@@ -218,10 +205,10 @@ export default function CarpetProductWizardPage() {
             <Layers className="h-3.5 w-3.5 text-amber-300" />
             Carpet Product Wizard
           </div>
-          <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">
-            {isEditMode ? `Editing: ${draft.basic.name || 'Product'}` : 'Add New Carpet Product'}
+          <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight">
+            {isEditMode ? `Editing: ${draft.basic.name || 'Product'}` : 'Naya Carpet Product'}
           </h1>
-          <p className="mt-2 text-sm text-white/80 max-w-xl">
+          <p className="mt-2 text-xs sm:text-sm text-white/80 max-w-xl">
             Ek page mein — product, colors aur stock (rolls / pieces / ft) sab. Prices auto-fill, no refresh.
           </p>
         </div>
@@ -238,7 +225,7 @@ export default function CarpetProductWizardPage() {
         }}
       />
 
-      <div className="grid xl:grid-cols-[1fr_360px] gap-5 items-start">
+      <div className="grid xl:grid-cols-[1fr_360px] gap-4 sm:gap-5 items-start">
         <div className="min-w-0">
           {draft.step === 1 && (
             <CarpetWizardStep1Basic
@@ -284,17 +271,18 @@ export default function CarpetProductWizardPage() {
         <CarpetWizardSummary draft={draft} stats={stats} allValid={canSave} />
       </div>
 
+      {/* Sticky footer */}
       <div className="fixed bottom-0 left-0 right-0 z-30 border-t-2 border-slate-200 bg-white/95 backdrop-blur px-4 py-3 lg:pl-[300px]">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 flex-wrap">
           <button
             onClick={prevStep}
             disabled={draft.step === 1}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-extrabold transition disabled:opacity-40"
+            className="inline-flex items-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-extrabold transition disabled:opacity-40 active:scale-95"
           >
             <ArrowLeft className="h-4 w-4" /> Back
           </button>
 
-          <div className="text-xs font-extrabold text-slate-500 hidden sm:block">
+          <div className="text-[10px] sm:text-xs font-extrabold text-slate-500 hidden sm:block">
             Step {draft.step} of 3
             {!currentValidation.valid && (
               <span className="ml-2 inline-flex items-center gap-1 text-rose-700">
@@ -308,7 +296,7 @@ export default function CarpetProductWizardPage() {
             <button
               onClick={nextStep}
               disabled={!canGoNext}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white text-sm font-extrabold shadow-md disabled:opacity-50 transition"
+              className="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white text-xs sm:text-sm font-extrabold shadow-md disabled:opacity-50 transition active:scale-95"
             >
               Next <ArrowRight className="h-4 w-4" />
             </button>
@@ -320,7 +308,10 @@ export default function CarpetProductWizardPage() {
               className="bg-gradient-to-r from-emerald-600 to-emerald-700"
             >
               <Save className="h-4 w-4" />
-              {isEditMode ? 'Update Product' : `Save Everything (${stats.rollCount} rolls, ${stats.pieceCount} pieces)`}
+              <span className="hidden sm:inline">
+                {isEditMode ? 'Update Product' : `Save (${stats.rollCount} rolls, ${stats.pieceCount} pieces)`}
+              </span>
+              <span className="sm:hidden">{isEditMode ? 'Update' : 'Save'}</span>
             </Button>
           )}
         </div>
@@ -331,13 +322,9 @@ export default function CarpetProductWizardPage() {
 
 function SuccessStat({ label, value }: { label: string; value: number | string }) {
   return (
-    <div className="rounded-xl bg-white border-2 border-emerald-200 p-3">
-      <div className="text-[10px] uppercase tracking-wider font-extrabold text-emerald-700">
-        {label}
-      </div>
-      <div className="text-2xl font-extrabold text-emerald-900 tabular-nums mt-0.5">
-        {value}
-      </div>
+    <div className="rounded-xl bg-white border-2 border-emerald-200 p-2 sm:p-3">
+      <div className="text-[10px] uppercase tracking-wider font-extrabold text-emerald-700">{label}</div>
+      <div className="text-xl sm:text-2xl font-extrabold text-emerald-900 tabular-nums mt-0.5">{value}</div>
     </div>
   );
 }

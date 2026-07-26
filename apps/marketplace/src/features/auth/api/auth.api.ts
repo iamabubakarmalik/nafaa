@@ -1,7 +1,7 @@
 import { marketplaceClient, unwrap } from '@/api/client';
 import type { MarketplaceCustomer } from '@/types';
 
-export type OtpPurpose = 'LOGIN' | 'REGISTER' | 'VERIFY_PHONE' | 'RESET_PASSWORD';
+export type OtpPurpose = 'LOGIN' | 'REGISTER' | 'VERIFY_PHONE' | 'RESET_PASSWORD' | 'VERIFY_EMAIL';
 
 export interface AuthResponse {
   customer: MarketplaceCustomer;
@@ -42,6 +42,16 @@ export interface VerifyOtpPayload {
   referralCode?: string;
 }
 
+export interface ActiveSession {
+  id: string;
+  deviceName: string;
+  location: string;
+  ipAddress?: string | null;
+  lastUsedAt: string;
+  createdAt: string;
+  expiresAt: string;
+}
+
 const authBase = () => (marketplaceClient.defaults.baseURL || '').replace(/\/$/, '');
 
 export const authApi = {
@@ -78,8 +88,19 @@ export const authApi = {
   // ─── PROFILE ───
   me: () => marketplaceClient.get('/auth/me').then(unwrap<MarketplaceCustomer>),
 
-  updateProfile: (data: any) =>
-    marketplaceClient.patch('/auth/me', data).then(unwrap<MarketplaceCustomer>),
+  updateProfile: (data: {
+    fullName?: string;
+    displayName?: string;
+    email?: string;
+    avatarUrl?: string;
+    dateOfBirth?: string;
+    gender?: string;
+    language?: 'ur' | 'en';
+    marketingEmails?: boolean;
+    marketingSms?: boolean;
+    marketingPush?: boolean;
+    marketingWhatsapp?: boolean;
+  }) => marketplaceClient.patch('/auth/me', data).then(unwrap<MarketplaceCustomer>),
 
   // ─── PASSWORD ───
   setPassword: (newPassword: string) =>
@@ -91,8 +112,23 @@ export const authApi = {
   resetPassword: (phone: string, code: string, newPassword: string) =>
     marketplaceClient.post('/auth/password/reset', { phone, code, newPassword }).then(unwrap),
 
+  // ─── EMAIL VERIFY ───
+  sendVerifyEmail: () =>
+    marketplaceClient.post('/auth/verify-email/send').then(unwrap<{
+      success: boolean;
+      message: string;
+      alreadyVerified?: boolean;
+      devCode?: string;
+    }>),
+
+  confirmVerifyEmail: (code: string) =>
+    marketplaceClient.post('/auth/verify-email/confirm', { code }).then(unwrap<{
+      success: boolean;
+      message: string;
+    }>),
+
   // ─── SESSIONS ───
-  sessions: () => marketplaceClient.get('/auth/sessions').then(unwrap<any[]>),
+  sessions: () => marketplaceClient.get('/auth/sessions').then(unwrap<ActiveSession[]>),
 
   revokeSession: (sessionId: string) =>
     marketplaceClient.delete(`/auth/sessions/${sessionId}`).then(unwrap),

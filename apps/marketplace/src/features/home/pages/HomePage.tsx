@@ -26,7 +26,7 @@ export default function HomePage() {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['discover', lat, lng, city],
-    queryFn: () => homeApi.discover({ lat: lat ?? undefined, lng: lng ?? undefined, city: city ?? undefined }),
+    queryFn: () => homeApi.discover({ lat: lat ?? undefined, lng: lng ?? undefined, city: city ?? undefined, radiusKm: 50 }),
     staleTime: 60_000,
   });
 

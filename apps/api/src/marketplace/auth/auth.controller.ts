@@ -31,6 +31,8 @@ import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { SetPasswordDto } from './dto/set-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { VerifyCustomerEmailDto } from './dto/verify-email.dto';
+import { ForgotCustomerPasswordDto } from './dto/forgot-password.dto';
 
 @ApiTags('Marketplace / Auth')
 @Controller('marketplace/auth')
@@ -218,5 +220,42 @@ export class MarketplaceAuthController {
       const msg = encodeURIComponent(err?.message || 'Google login failed');
       return res.redirect(`${marketplaceUrl}/auth/google/error?message=${msg}`);
     }
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // EMAIL VERIFICATION
+  // ═══════════════════════════════════════════════════════════
+
+  @UseGuards(CustomerAuthGuard)
+  @ApiBearerAuth()
+  @Post('verify-email/send')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Send verification code to email' })
+  sendVerifyEmail(@GetCustomer() c: AuthenticatedCustomer) {
+    return this.svc.sendVerifyEmailOtp(c.sub);
+  }
+
+  @UseGuards(CustomerAuthGuard)
+  @ApiBearerAuth()
+  @Post('verify-email/confirm')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Confirm email with OTP' })
+  confirmVerifyEmail(
+    @GetCustomer() c: AuthenticatedCustomer,
+    @Body() dto: VerifyCustomerEmailDto,
+  ) {
+    return this.svc.confirmVerifyEmail(c.sub, dto.code);
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // FORGOT PASSWORD
+  // ═══════════════════════════════════════════════════════════
+
+  @Public()
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Send OTP for password reset (email or phone)' })
+  forgotPassword(@Body() dto: ForgotCustomerPasswordDto) {
+    return this.svc.forgotPassword({ email: dto.email, phone: dto.phone });
   }
 }

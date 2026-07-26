@@ -4,7 +4,7 @@ import {
   Layers, Plus, Trash2, Minus, Search, X, Package, Building2,
   Calendar, AlertTriangle, ArrowRight, Eye, CalendarDays, Wallet,
   TrendingUp, Crown, Star, Award, BarChart3, Receipt, Scissors,
-  ChevronDown, ChevronUp, CheckCircle2, Activity, Ruler,
+  ChevronDown, ChevronUp, CheckCircle2, Activity, Ruler, Sparkles,
 } from 'lucide-react';
 import {
   ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell,
@@ -19,13 +19,10 @@ import { useAuthStore } from '@core/stores/auth.store';
 import { usePurchasesData } from '@modules/purchasing/purchases/hooks/usePurchasesData';
 import {
   PurchasesHero, TabSwitcher, PurchaseStatCard, ComparisonCard,
-  formatDate, formatQty, formatPercent, PAYMENT_COLORS,
+  formatDate, formatQty, PAYMENT_COLORS,
 } from '@modules/purchasing/purchases/components/PurchasesShared';
 import {
-  PurchaseRollsInput,
-  rollsToPayload,
-  calculateRollsTotal,
-  type PurchaseRoll,
+  PurchaseRollsInput, rollsToPayload, calculateRollsTotal, type PurchaseRoll,
 } from '@industries/carpet/components/PurchaseRollsInput';
 
 const CARPET_UNITS = new Set(['sqft', 'sqm', 'sqyd']);
@@ -66,6 +63,7 @@ export default function CarpetPurchasesV2() {
   const [cost, setCost] = useState('');
   const [cart, setCart] = useState<CartLine[]>([]);
   const [historySearch, setHistorySearch] = useState('');
+  const [historyFilter, setHistoryFilter] = useState<'all' | 'pending' | 'due'>('all');
 
   const filteredProducts = useMemo(() => {
     const q = productSearch.toLowerCase().trim();
@@ -80,13 +78,18 @@ export default function CarpetPurchasesV2() {
   const isSelectedCarpet = selectedProduct ? CARPET_UNITS.has(selectedProduct.unit) : false;
 
   const filteredPurchases = useMemo(() => {
+    let list = purchases;
+    if (historyFilter === 'pending') list = list.filter((p: any) => p.status === 'PENDING');
+    if (historyFilter === 'due') list = list.filter((p: any) => Number(p.total) > Number(p.paidAmount));
     const q = historySearch.toLowerCase().trim();
-    if (!q) return purchases;
-    return purchases.filter((p: any) =>
-      p.purchaseNumber.toLowerCase().includes(q) ||
-      p.supplier?.name?.toLowerCase().includes(q)
-    );
-  }, [purchases, historySearch]);
+    if (q) {
+      list = list.filter((p: any) =>
+        p.purchaseNumber.toLowerCase().includes(q) ||
+        p.supplier?.name?.toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [purchases, historySearch, historyFilter]);
 
   const subtotal = cart.reduce((s, l) => s + l.quantity * l.costPrice, 0);
   const discountValue = Number(discount || 0);
@@ -138,33 +141,20 @@ export default function CarpetPurchasesV2() {
     setCart((prev) => {
       const existing = prev.find((l) => l.productId === product.id);
       if (existing) {
-        if (isCarpet) {
-          toast.error('Carpet product already added — uske rolls update karein');
-          return prev;
-        }
+        if (isCarpet) { toast.error('Carpet already added — uske rolls update karein'); return prev; }
         return prev.map((l) =>
-          l.productId === product.id
-            ? { ...l, quantity: l.quantity + quantity, costPrice }
-            : l,
+          l.productId === product.id ? { ...l, quantity: l.quantity + quantity, costPrice } : l,
         );
       }
-      return [
-        ...prev,
-        {
-          productId: product.id,
-          name: product.name,
-          unit: product.unit,
-          quantity: isCarpet ? 0 : quantity,
-          costPrice,
-          isCarpet,
-          rolls: [],
-          expanded: isCarpet,
-        },
-      ];
+      return [...prev, {
+        productId: product.id, name: product.name, unit: product.unit,
+        quantity: isCarpet ? 0 : quantity, costPrice, isCarpet,
+        rolls: [], expanded: isCarpet,
+      }];
     });
 
     setSelectedProductId(''); setProductSearch(''); setQty('1'); setCost('');
-    toast.success(`${product.name} added${isCarpet ? ' — neeche rolls add karein' : ''}`);
+    toast.success(`${product.name} added${isCarpet ? ' — neeche rolls add karein' : ''}`, { duration: 1200 });
   };
 
   const removeLine = (productId: string) => setCart((prev) => prev.filter((l) => l.productId !== productId));
@@ -220,7 +210,7 @@ export default function CarpetPurchasesV2() {
   const growthVsLastMonth = summary?.growthVsLastMonth ?? 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 pb-24 sm:pb-6">
       <PurchasesHero
         gradient="from-slate-950 via-emerald-900 to-teal-800"
         emoji="🧶"
@@ -232,9 +222,9 @@ export default function CarpetPurchasesV2() {
         isRefetching={isRefetching}
         extraActions={
           <Link to="/carpet-rolls">
-            <button className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-4 py-2.5 text-sm font-bold transition backdrop-blur">
+            <button className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-bold transition backdrop-blur active:scale-95">
               <Layers className="h-4 w-4" />
-              All Rolls
+              <span className="hidden sm:inline">All Rolls</span>
             </button>
           </Link>
         }
@@ -242,116 +232,80 @@ export default function CarpetPurchasesV2() {
 
       <TabSwitcher tabs={TABS} active={tab} onChange={setTab} color="emerald" />
 
-      <section className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <PurchaseStatCard
-          label="Aaj ki Purchases"
-          value={formatPKR(summary?.todayPurchases ?? 0)}
-          sub={`${summary?.todayCount ?? 0} orders`}
-          icon={TrendingUp}
-          color="emerald"
-          trend={growthVsYesterday}
-        />
-        <PurchaseStatCard
-          label="Is Mahine"
-          value={formatPKR(summary?.monthPurchases ?? 0)}
-          sub={`${summary?.monthCount ?? 0} orders`}
-          icon={CalendarDays}
-          color="violet"
-          trend={growthVsLastMonth}
-        />
-        <PurchaseStatCard
-          label="Total Lifetime"
-          value={formatPKR(summary?.totalPurchases ?? 0)}
-          sub={`${summary?.totalCount ?? 0} purchases`}
-          icon={Wallet}
-          color="amber"
-        />
-        <PurchaseStatCard
-          label="Outstanding Due"
-          value={formatPKR(summary?.outstandingDue ?? 0)}
-          sub={`${summary?.suppliersWithDue ?? 0} suppliers`}
-          icon={AlertTriangle}
-          color="rose"
-          isAlert={(summary?.outstandingDue ?? 0) > 0}
-        />
+      <section className="grid grid-cols-2 xl:grid-cols-4 gap-2 sm:gap-4">
+        <PurchaseStatCard label="Aaj ki Purchases" value={formatPKR(summary?.todayPurchases ?? 0)}
+          sub={`${summary?.todayCount ?? 0} orders`} icon={TrendingUp} color="emerald" trend={growthVsYesterday} />
+        <PurchaseStatCard label="Is Mahine" value={formatPKR(summary?.monthPurchases ?? 0)}
+          sub={`${summary?.monthCount ?? 0} orders`} icon={CalendarDays} color="violet" trend={growthVsLastMonth} />
+        <PurchaseStatCard label="Total Lifetime" value={formatPKR(summary?.totalPurchases ?? 0)}
+          sub={`${summary?.totalCount ?? 0} purchases`} icon={Wallet} color="amber" />
+        <PurchaseStatCard label="Outstanding Due" value={formatPKR(summary?.outstandingDue ?? 0)}
+          sub={`${summary?.suppliersWithDue ?? 0} suppliers`} icon={AlertTriangle} color="rose"
+          isAlert={(summary?.outstandingDue ?? 0) > 0} />
       </section>
 
       {tab === 'create' && (
-        <section className="grid xl:grid-cols-[1.2fr_1fr] gap-6">
-          <div className="rounded-3xl bg-white border border-slate-200 shadow-sm p-6 space-y-5">
+        <section className="grid xl:grid-cols-[1.2fr_1fr] gap-4 sm:gap-6">
+          <div className="rounded-2xl sm:rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-4 sm:p-6 space-y-4 sm:space-y-5">
             <div className="flex items-center gap-3">
-              <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white flex items-center justify-center shadow-lg shadow-emerald-500/30">
+              <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white flex items-center justify-center shadow-lg shrink-0">
                 <Layers className="h-5 w-5" />
               </div>
-              <div>
-                <h3 className="text-xl font-bold text-slate-900">New Carpet Purchase</h3>
-                <p className="text-sm text-slate-500">Rolls add karein — auto-creation ke saath</p>
+              <div className="min-w-0">
+                <h3 className="text-lg sm:text-xl font-bold text-slate-900">New Carpet Purchase</h3>
+                <p className="text-xs sm:text-sm text-slate-500">Rolls add karein — auto-creation ke saath</p>
               </div>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">Supplier *</label>
-                <select
-                  value={supplierId}
-                  onChange={(e) => setSupplierId(e.target.value)}
-                  className="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
-                >
-                  <option value="">Select supplier...</option>
-                  {suppliers.map((s) => (
-                    <option key={s.id} value={s.id}>{s.name}</option>
-                  ))}
+                <label className="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5">Supplier *</label>
+                <select value={supplierId} onChange={(e) => setSupplierId(e.target.value)}
+                  className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 sm:px-4 text-sm font-bold focus:outline-none focus:border-emerald-500">
+                  <option value="">Supplier chuno...</option>
+                  {suppliers.map((s) => (<option key={s.id} value={s.id}>{s.name}</option>))}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">Payment Method</label>
-                <select
-                  value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-                  className="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
-                >
+                <label className="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5">Payment</label>
+                <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
+                  className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 sm:px-4 text-sm font-bold focus:outline-none focus:border-emerald-500">
                   <option value="CASH">💵 Cash</option>
                   <option value="JAZZCASH">📱 JazzCash</option>
                   <option value="EASYPAISA">⚡ EasyPaisa</option>
                   <option value="CARD">💳 Card</option>
-                  <option value="BANK_TRANSFER">🏦 Bank Transfer</option>
+                  <option value="BANK_TRANSFER">🏦 Bank</option>
                 </select>
               </div>
             </div>
 
-            <div className="rounded-2xl border-2 border-emerald-200 bg-emerald-50/30 p-4 space-y-3">
+            <div className="rounded-2xl border-2 border-emerald-200 bg-emerald-50/30 p-3 sm:p-4 space-y-3">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Add Carpet or Accessory</label>
+                <label className="block text-[10px] sm:text-xs font-extrabold text-slate-700 mb-1.5 uppercase tracking-wider">Add Carpet or Accessory</label>
                 <div className="relative">
                   <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    value={productSearch}
-                    onChange={(e) => { setProductSearch(e.target.value); setSelectedProductId(''); }}
-                    placeholder="Search carpet design or product..."
-                    className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
-                  />
+                  <input type="text" value={productSearch} onChange={(e) => { setProductSearch(e.target.value); setSelectedProductId(''); }}
+                    placeholder="Design ya product dhundo..."
+                    className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white pl-10 pr-10 text-sm font-semibold focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200" />
                   {productSearch && (
-                    <button onClick={() => { setProductSearch(''); setSelectedProductId(''); }} className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <button onClick={() => { setProductSearch(''); setSelectedProductId(''); }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-lg hover:bg-slate-100 flex items-center justify-center">
                       <X className="h-4 w-4 text-slate-400" />
                     </button>
                   )}
                 </div>
                 {productSearch && !selectedProductId && filteredProducts.length > 0 && (
-                  <div className="mt-2 max-h-[220px] overflow-y-auto rounded-xl border border-slate-200 bg-white divide-y divide-slate-100">
+                  <div className="mt-2 max-h-[280px] overflow-y-auto rounded-xl border-2 border-slate-200 bg-white divide-y divide-slate-100">
                     {filteredProducts.map((p) => {
                       const isCarpet = CARPET_UNITS.has(p.unit);
                       return (
-                        <button
-                          key={p.id}
-                          type="button"
+                        <button key={p.id} type="button"
                           onClick={() => { setSelectedProductId(p.id); setProductSearch(p.name); setCost(String(p.costPrice || '')); }}
-                          className="w-full px-3 py-2.5 text-left hover:bg-emerald-50 transition"
-                        >
+                          className="w-full px-3 py-2.5 text-left hover:bg-emerald-50 transition active:scale-[0.99]">
                           <div className="flex items-center gap-2">
                             <div className="font-bold text-sm text-slate-900 truncate flex-1">{p.name}</div>
                             {isCarpet && (
-                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-emerald-100 text-emerald-700">
+                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-emerald-100 text-emerald-700 shrink-0">
                                 <Layers className="h-2.5 w-2.5" /> CARPET
                               </span>
                             )}
@@ -369,40 +323,37 @@ export default function CarpetPurchasesV2() {
 
               {selectedProduct && (
                 <>
-                  <div className="rounded-xl bg-white border border-emerald-200 p-3">
+                  <div className="rounded-xl bg-white border-2 border-emerald-200 p-3">
                     <div className="flex items-center gap-2">
-                      <div className="font-bold text-sm text-slate-900 flex-1">{selectedProduct.name}</div>
+                      <div className="font-extrabold text-sm text-slate-900 flex-1">{selectedProduct.name}</div>
                       {isSelectedCarpet && (
-                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-emerald-100 text-emerald-700">
+                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-emerald-100 text-emerald-700 shrink-0">
                           <Layers className="h-2.5 w-2.5" /> CARPET
                         </span>
                       )}
                     </div>
-                    <div className="text-xs text-slate-500 mt-0.5">
-                      Current stock: <span className="font-bold text-emerald-700">{formatQty(selectedProduct.stock)} {selectedProduct.unit}</span>
+                    <div className="text-xs text-slate-500 mt-0.5 font-bold">
+                      Current stock: <span className="text-emerald-700">{formatQty(selectedProduct.stock)} {selectedProduct.unit}</span>
                     </div>
                     {isSelectedCarpet && (
-                      <div className="mt-2 text-[10px] text-emerald-800 font-bold bg-emerald-50 border border-emerald-200 rounded-lg px-2 py-1">
-                        💡 Carpet add karne ke baad neeche roll-by-roll details enter karein (width × length)
+                      <div className="mt-2 text-[10px] text-emerald-800 font-bold bg-emerald-50 border border-emerald-200 rounded-lg px-2 py-1 flex items-start gap-1">
+                        <Sparkles className="h-3 w-3 shrink-0 mt-0.5 text-amber-500" />
+                        <span>Carpet add karne ke baad neeche roll-by-roll dimensions enter karein</span>
                       </div>
                     )}
                   </div>
                   {isSelectedCarpet ? (
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2">
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-600 mb-1">Default Cost / sqft (PKR) *</label>
-                        <input
-                          type="number"
-                          step="0.01"
-                          value={cost}
-                          onChange={(e) => setCost(e.target.value)}
+                        <label className="block text-[10px] font-extrabold text-slate-600 mb-1 uppercase">Default Cost / sqft (PKR) *</label>
+                        <input type="number" step="0.01" value={cost} onChange={(e) => setCost(e.target.value)}
+                          onFocus={(e) => e.target.select()}
                           placeholder="72"
-                          className="h-10 w-full rounded-lg border-2 border-emerald-300 bg-emerald-50/50 px-3 text-sm font-bold"
-                        />
+                          className="h-11 w-full rounded-lg border-2 border-emerald-300 bg-emerald-50/50 px-3 text-base font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
                         <div className="text-[9px] text-emerald-700 font-bold mt-0.5">Rolls mein override kar saktay hain</div>
                       </div>
                       <div className="flex items-end">
-                        <Button onClick={addToCart} className="w-full bg-emerald-600 hover:bg-emerald-700">
+                        <Button onClick={addToCart} className="w-full h-11 bg-gradient-to-r from-emerald-600 to-teal-700 whitespace-nowrap">
                           <Plus className="h-4 w-4" /> Add & Enter Rolls
                         </Button>
                       </div>
@@ -410,16 +361,20 @@ export default function CarpetPurchasesV2() {
                   ) : (
                     <div className="grid grid-cols-3 gap-2">
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-600 mb-1">Qty * ({selectedProduct.unit})</label>
-                        <input type="number" step="0.01" value={qty} onChange={(e) => setQty(e.target.value)} className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm font-bold" />
+                        <label className="block text-[10px] font-extrabold text-slate-600 mb-1 uppercase">Qty *</label>
+                        <input type="number" step="0.01" value={qty} onChange={(e) => setQty(e.target.value)}
+                          onFocus={(e) => e.target.select()}
+                          className="h-11 w-full rounded-lg border-2 border-slate-200 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
                       </div>
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-600 mb-1">Cost (PKR) *</label>
-                        <input type="number" step="0.01" value={cost} onChange={(e) => setCost(e.target.value)} className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm font-bold" />
+                        <label className="block text-[10px] font-extrabold text-slate-600 mb-1 uppercase">Cost *</label>
+                        <input type="number" step="0.01" value={cost} onChange={(e) => setCost(e.target.value)}
+                          onFocus={(e) => e.target.select()}
+                          className="h-11 w-full rounded-lg border-2 border-slate-200 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
                       </div>
                       <div className="flex items-end">
-                        <Button onClick={addToCart} variant="secondary" className="w-full">
-                          <Plus className="h-4 w-4" /> Add
+                        <Button onClick={addToCart} variant="secondary" className="w-full h-11">
+                          <Plus className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
@@ -428,70 +383,72 @@ export default function CarpetPurchasesV2() {
               )}
             </div>
 
-            {/* Cart summary chip */}
             {cart.length > 0 && totalRolls > 0 && (
-              <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 flex items-center gap-3 text-xs">
-                <Layers className="h-4 w-4 text-emerald-700" />
-                <div className="font-bold text-emerald-800">
-                  {totalRolls} rolls will be auto-created
+              <div className="rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 border-2 border-emerald-300 p-3 flex items-center gap-3 text-xs sm:text-sm flex-wrap">
+                <Layers className="h-4 w-4 text-emerald-700 shrink-0" />
+                <div className="font-extrabold text-emerald-800">
+                  <strong>{totalRolls}</strong> rolls auto-create honge
                 </div>
                 <span className="text-emerald-400">•</span>
-                <div className="font-bold text-emerald-800 inline-flex items-center gap-1">
+                <div className="font-extrabold text-emerald-800 inline-flex items-center gap-1">
                   <Ruler className="h-3 w-3" />
-                  {totalSqft.toFixed(2)} sqft total
+                  <strong>{totalSqft.toFixed(2)}</strong> sqft total
                 </div>
               </div>
             )}
 
-            <div className="space-y-3 max-h-[500px] overflow-y-auto">
+            <div className="space-y-2 max-h-[500px] overflow-y-auto">
               {cart.length === 0 ? (
-                <div className="rounded-xl border-2 border-dashed border-slate-200 p-8 text-center">
+                <div className="rounded-2xl border-4 border-dashed border-slate-200 p-6 sm:p-8 text-center">
                   <Layers className="h-12 w-12 text-slate-300 mx-auto mb-2" />
-                  <div className="text-sm font-bold text-slate-700">Cart empty</div>
+                  <div className="text-sm font-extrabold text-slate-700">Cart khaali hai</div>
+                  <div className="text-xs text-slate-500 font-semibold mt-1">Upar se carpet ya accessory add karo</div>
                 </div>
               ) : (
                 cart.map((line) => (
-                  <div key={line.productId} className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+                  <div key={line.productId} className="rounded-2xl border-2 border-slate-200 bg-white overflow-hidden">
                     <div className="p-3">
-                      <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <div className="font-bold text-slate-900 truncate">{line.name}</div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <div className="font-extrabold text-slate-900 truncate text-sm">{line.name}</div>
                             {line.isCarpet && (
                               <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-emerald-100 text-emerald-700">
                                 <Layers className="h-2.5 w-2.5" /> CARPET
                               </span>
                             )}
                           </div>
-                          <div className="text-xs text-slate-500">
+                          <div className="text-xs text-slate-500 font-bold">
                             {formatPKR(line.costPrice)} × {formatQty(line.quantity)} {line.unit}
                           </div>
                           {line.isCarpet && line.rolls.length > 0 && (
-                            <div className="text-[10px] text-emerald-700 font-bold mt-0.5">
+                            <div className="text-[10px] text-emerald-700 font-extrabold mt-0.5">
                               {line.rolls.length} roll{line.rolls.length !== 1 ? 's' : ''} • {calculateRollsTotal(line.rolls).toFixed(2)} sqft
                             </div>
                           )}
                         </div>
-                        <div className="font-extrabold text-emerald-700 shrink-0 tabular-nums">
+                        <div className="font-extrabold text-emerald-700 shrink-0 tabular-nums text-sm sm:text-base">
                           {formatPKR(line.costPrice * line.quantity)}
                         </div>
                       </div>
 
-                      <div className="mt-2 flex items-center justify-between gap-2">
+                      <div className="mt-2 flex items-center justify-between gap-2 flex-wrap">
                         {line.isCarpet ? (
                           <div className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 rounded-lg px-2 py-1">
                             <Layers className="h-3 w-3 text-emerald-700" />
-                            <span className="text-[10px] font-bold text-emerald-800">
+                            <span className="text-[10px] font-extrabold text-emerald-800">
                               Auto: {formatQty(line.quantity)} {line.unit} from rolls
                             </span>
                           </div>
                         ) : (
-                          <div className="inline-flex items-center gap-1.5 bg-slate-50 rounded-lg p-1">
-                            <button onClick={() => updateQty(line.productId, -1)} className="h-7 w-7 rounded-md bg-white border border-slate-200 flex items-center justify-center">
+                          <div className="inline-flex items-center gap-1.5 bg-slate-50 rounded-xl p-1 border-2 border-slate-200">
+                            <button onClick={() => updateQty(line.productId, -1)}
+                              className="h-8 w-8 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 active:scale-95 flex items-center justify-center transition">
                               <Minus className="h-3 w-3" />
                             </button>
-                            <span className="w-12 text-center font-bold text-sm">{formatQty(line.quantity)}</span>
-                            <button onClick={() => updateQty(line.productId, 1)} className="h-7 w-7 rounded-md bg-emerald-600 text-white flex items-center justify-center">
+                            <span className="w-12 text-center font-extrabold text-sm tabular-nums">{formatQty(line.quantity)}</span>
+                            <button onClick={() => updateQty(line.productId, 1)}
+                              className="h-8 w-8 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white flex items-center justify-center transition">
                               <Plus className="h-3 w-3" />
                             </button>
                           </div>
@@ -499,16 +456,15 @@ export default function CarpetPurchasesV2() {
 
                         <div className="flex items-center gap-1.5">
                           {line.isCarpet && (
-                            <button
-                              onClick={() => updateLine(line.productId, { expanded: !line.expanded })}
-                              className="inline-flex items-center gap-1 h-7 px-2 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-[11px] font-bold"
-                            >
+                            <button onClick={() => updateLine(line.productId, { expanded: !line.expanded })}
+                              className="inline-flex items-center gap-1 h-8 px-2 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-[11px] font-extrabold active:scale-95 transition">
                               <Layers className="h-3 w-3" />
                               {line.rolls.length > 0 ? `${line.rolls.length} rolls` : 'Add rolls'}
                               {line.expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
                             </button>
                           )}
-                          <button onClick={() => removeLine(line.productId)} className="h-7 w-7 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
+                          <button onClick={() => removeLine(line.productId)}
+                            className="h-8 w-8 rounded-lg bg-rose-50 hover:bg-rose-100 active:scale-95 text-rose-600 flex items-center justify-center transition">
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
                         </div>
@@ -516,7 +472,7 @@ export default function CarpetPurchasesV2() {
                     </div>
 
                     {line.isCarpet && line.expanded && (
-                      <div className="border-t border-slate-200 p-3">
+                      <div className="border-t-2 border-slate-100 p-3 bg-emerald-50/30">
                         <PurchaseRollsInput
                           productId={line.productId}
                           productName={line.name}
@@ -532,8 +488,8 @@ export default function CarpetPurchasesV2() {
             </div>
 
             {!cartValidation.valid && cart.length > 0 && (
-              <div className="rounded-xl bg-rose-50 border-2 border-rose-200 p-3 space-y-1">
-                <div className="flex items-center gap-2 text-sm font-bold text-rose-900">
+              <div className="rounded-xl bg-rose-50 border-2 border-rose-300 p-3 space-y-1">
+                <div className="flex items-center gap-2 text-sm font-extrabold text-rose-900">
                   <AlertTriangle className="h-4 w-4" /> Cart mein issues hain
                 </div>
                 {cartValidation.issues.map((issue, i) => (
@@ -542,13 +498,13 @@ export default function CarpetPurchasesV2() {
               </div>
             )}
 
-            <div className="grid sm:grid-cols-3 gap-3">
+            <div className="grid sm:grid-cols-3 gap-2 sm:gap-3">
               <Input label="Discount (PKR)" type="number" placeholder="0" value={discount} onChange={(e) => setDiscount(e.target.value)} />
               <Input label="Paid Amount" type="number" placeholder={String(total)} value={paidAmount} onChange={(e) => setPaidAmount(e.target.value)} />
               <Input label="Notes" placeholder="Optional" value={notes} onChange={(e) => setNotes(e.target.value)} />
             </div>
 
-            <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-200 p-4 space-y-2">
+            <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-200 p-3 sm:p-4 space-y-1.5">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-slate-600 font-bold">Subtotal</span>
                 <span className="font-bold text-slate-900 tabular-nums">{formatPKR(subtotal)}</span>
@@ -560,68 +516,64 @@ export default function CarpetPurchasesV2() {
                 </div>
               )}
               <div className="flex items-center justify-between pt-2 border-t-2 border-emerald-200">
-                <span className="text-lg font-extrabold text-slate-900">Total</span>
-                <span className="text-3xl font-extrabold text-emerald-700 tabular-nums">{formatPKR(total)}</span>
+                <span className="text-base sm:text-lg font-extrabold text-slate-900">Total</span>
+                <span className="text-2xl sm:text-3xl font-extrabold text-emerald-700 tabular-nums">{formatPKR(total)}</span>
               </div>
             </div>
 
-            <Button
-              className="w-full bg-gradient-to-r from-emerald-600 to-teal-700 shadow-lg shadow-emerald-500/30"
-              size="lg"
-              onClick={handleSave}
-              loading={createMutation.isPending}
-              disabled={cart.length === 0 || !supplierId || !cartValidation.valid}
-            >
+            <Button className="hidden sm:flex w-full bg-gradient-to-r from-emerald-600 to-teal-700 shadow-lg" size="lg"
+              onClick={handleSave} loading={createMutation.isPending}
+              disabled={cart.length === 0 || !supplierId || !cartValidation.valid}>
               <CheckCircle2 className="h-4 w-4" />
-              Save Purchase • {totalRolls > 0 && `Create ${totalRolls} Rolls`}
+              Save Purchase {totalRolls > 0 && `• Create ${totalRolls} Rolls`}
             </Button>
           </div>
 
           <div className="space-y-4">
-            <div className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+            <div className="rounded-2xl sm:rounded-3xl bg-white border-2 border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-4 sm:px-5 py-3 sm:py-4 border-b-2 border-slate-100 flex items-center justify-between">
                 <div>
-                  <h3 className="font-bold text-slate-900">Recent Purchases</h3>
-                  <p className="text-xs text-slate-500">Latest 5</p>
+                  <h3 className="font-extrabold text-slate-900 text-sm sm:text-base">Recent Purchases</h3>
+                  <p className="text-[10px] sm:text-xs text-slate-500 font-bold">Latest 5</p>
                 </div>
-                <button onClick={() => setTab('history')} className="text-xs font-bold text-emerald-600 hover:underline inline-flex items-center gap-1">
+                <button onClick={() => setTab('history')} className="text-xs font-extrabold text-emerald-600 hover:underline inline-flex items-center gap-1">
                   All <ArrowRight className="h-3 w-3" />
                 </button>
               </div>
               <div className="divide-y divide-slate-100">
                 {summary?.recentPurchases?.length ? (
                   summary.recentPurchases.map((p: any) => (
-                    <Link key={p.id} to={`/purchases/${p.id}`} className="block px-5 py-3 hover:bg-slate-50 transition">
+                    <Link key={p.id} to={`/purchases/${p.id}`} className="block px-4 sm:px-5 py-3 hover:bg-slate-50 transition">
                       <div className="flex items-center justify-between gap-2">
                         <div className="min-w-0">
-                          <div className="font-bold text-slate-900 font-mono text-xs">{p.purchaseNumber}</div>
+                          <div className="font-extrabold text-slate-900 font-mono text-xs">{p.purchaseNumber}</div>
                           <div className="text-[11px] text-slate-500 font-semibold truncate">{p.supplierName}</div>
                         </div>
                         <div className="text-right shrink-0">
                           <div className="font-extrabold text-emerald-700 text-sm tabular-nums">{formatPKR(p.total)}</div>
-                          <div className="text-[10px] text-slate-500">{formatDate(p.purchasedAt)}</div>
+                          <div className="text-[10px] text-slate-500 font-bold">{formatDate(p.purchasedAt)}</div>
                         </div>
                       </div>
                     </Link>
                   ))
                 ) : (
-                  <div className="px-5 py-12 text-center text-sm text-slate-500">No purchases yet</div>
+                  <div className="px-5 py-8 text-center text-sm text-slate-500 font-semibold">No purchases yet</div>
                 )}
               </div>
             </div>
 
-            <Link to="/carpet-rolls" className="block rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white p-5 shadow-lg shadow-emerald-500/30 hover:shadow-xl transition">
+            <Link to="/carpet-rolls" className="block rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white p-4 sm:p-5 shadow-lg hover:shadow-xl active:scale-95 transition">
               <div className="flex items-center gap-3 mb-3">
-                <div className="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center">
+                <div className="h-11 w-11 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
                   <Layers className="h-6 w-6" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/80">Roll Manager</div>
-                  <h3 className="text-lg font-bold">View All Rolls</h3>
+                  <h3 className="text-base sm:text-lg font-extrabold">View All Rolls</h3>
                 </div>
               </div>
-              <div className="text-xs opacity-90 flex items-center justify-between">
-                <span>Track cuts, leftovers, remaining sqft</span>
+              <div className="text-xs opacity-90 flex items-center justify-between font-bold">
+                <span>Track cuts, leftovers, sqft</span>
                 <ArrowRight className="h-4 w-4" />
               </div>
             </Link>
@@ -631,16 +583,18 @@ export default function CarpetPurchasesV2() {
 
       {tab === 'analytics' && (
         <>
-          <section className="grid lg:grid-cols-[1.5fr_1fr] gap-6">
-            <div className="rounded-3xl bg-white border border-slate-200 shadow-sm p-6">
-              <div className="flex items-center justify-between mb-5">
+          <section className="grid lg:grid-cols-[1.5fr_1fr] gap-4 sm:gap-6">
+            <div className="rounded-2xl sm:rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900">7-Day Carpet Purchases</h3>
-                  <p className="text-xs text-slate-500">Roll purchase spending</p>
+                  <h3 className="text-base sm:text-lg font-extrabold text-slate-900">7-Day Purchases</h3>
+                  <p className="text-xs text-slate-500 font-bold">Roll purchase spending</p>
                 </div>
-                <BarChart3 className="h-5 w-5 text-emerald-500" />
+                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white flex items-center justify-center shadow-md">
+                  <BarChart3 className="h-5 w-5" />
+                </div>
               </div>
-              <div className="h-[260px]">
+              <div className="h-[240px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={trendData}>
                     <defs>
@@ -659,21 +613,19 @@ export default function CarpetPurchasesV2() {
               </div>
             </div>
 
-            <div className="rounded-3xl bg-white border border-slate-200 shadow-sm p-6">
-              <h3 className="text-lg font-bold text-slate-900 mb-4">Payment Methods</h3>
+            <div className="rounded-2xl sm:rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-extrabold text-slate-900 mb-4">Payment Methods</h3>
               {summary?.paymentBreakdown?.length ? (
-                <div className="h-[260px]">
+                <div className="h-[240px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie
-                        data={summary.paymentBreakdown.map((p: any) => ({ name: p.paymentMethod, value: p.total }))}
+                      <Pie data={summary.paymentBreakdown.map((p: any) => ({ name: p.paymentMethod, value: p.total }))}
                         cx="50%" cy="45%" outerRadius={80} innerRadius={40} dataKey="value"
                         label={(entry: any) => {
                           const total = summary.paymentBreakdown.reduce((s: number, p: any) => s + p.total, 0);
                           return total > 0 ? `${((entry.value / total) * 100).toFixed(0)}%` : '0%';
                         }}
-                        labelLine={false}
-                      >
+                        labelLine={false}>
                         {summary.paymentBreakdown.map((p: any) => (
                           <Cell key={p.paymentMethod} fill={PAYMENT_COLORS[p.paymentMethod] || '#64748b'} />
                         ))}
@@ -684,14 +636,14 @@ export default function CarpetPurchasesV2() {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <div className="h-[260px] flex items-center justify-center text-sm text-slate-500">No payment data</div>
+                <div className="h-[240px] flex items-center justify-center text-sm text-slate-500 font-bold">No data</div>
               )}
             </div>
           </section>
 
-          <section className="grid lg:grid-cols-2 gap-6">
-            <div className="rounded-3xl bg-white border-2 border-emerald-200 shadow-sm overflow-hidden">
-              <div className="px-5 py-4 bg-gradient-to-r from-emerald-50 to-teal-50 border-b-2 border-emerald-200">
+          <section className="grid lg:grid-cols-2 gap-4 sm:gap-6">
+            <div className="rounded-2xl sm:rounded-3xl bg-white border-2 border-emerald-200 shadow-sm overflow-hidden">
+              <div className="px-4 sm:px-5 py-3 sm:py-4 bg-gradient-to-r from-emerald-50 to-teal-50 border-b-2 border-emerald-200">
                 <div className="flex items-center gap-2">
                   <Crown className="h-5 w-5 text-amber-500" />
                   <h3 className="font-extrabold text-emerald-900">Top Roll Suppliers</h3>
@@ -702,13 +654,14 @@ export default function CarpetPurchasesV2() {
                   summary.topSuppliers.map((ts: any, idx: number) => {
                     const rankColors = ['bg-amber-500', 'bg-slate-400', 'bg-orange-600', 'bg-violet-500', 'bg-blue-500'];
                     return (
-                      <Link key={ts.supplierId} to={`/suppliers/${ts.supplierId}`} className="px-5 py-3 flex items-center gap-3 hover:bg-slate-50 transition">
+                      <Link key={ts.supplierId} to={`/suppliers/${ts.supplierId}`}
+                        className="px-4 sm:px-5 py-3 flex items-center gap-3 hover:bg-slate-50 transition active:scale-[0.99]">
                         <div className={`h-9 w-9 rounded-lg ${rankColors[idx]} text-white font-extrabold flex items-center justify-center text-sm shrink-0`}>
                           {idx < 3 ? <Crown className="h-4 w-4" /> : idx + 1}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <div className="font-bold text-slate-900 text-sm truncate">{ts.supplier?.name}</div>
-                          <div className="text-[11px] text-slate-500 font-semibold">{ts.orderCount} orders</div>
+                          <div className="font-extrabold text-slate-900 text-sm truncate">{ts.supplier?.name}</div>
+                          <div className="text-[11px] text-slate-500 font-bold">{ts.orderCount} orders</div>
                         </div>
                         <div className="font-extrabold text-emerald-700 text-sm tabular-nums">{formatPKR(ts.totalSpent)}</div>
                       </Link>
@@ -718,8 +671,8 @@ export default function CarpetPurchasesV2() {
               </div>
             </div>
 
-            <div className="rounded-3xl bg-white border-2 border-violet-200 shadow-sm overflow-hidden">
-              <div className="px-5 py-4 bg-gradient-to-r from-violet-50 to-purple-50 border-b-2 border-violet-200">
+            <div className="rounded-2xl sm:rounded-3xl bg-white border-2 border-violet-200 shadow-sm overflow-hidden">
+              <div className="px-4 sm:px-5 py-3 sm:py-4 bg-gradient-to-r from-violet-50 to-purple-50 border-b-2 border-violet-200">
                 <div className="flex items-center gap-2">
                   <Award className="h-5 w-5 text-violet-600" />
                   <h3 className="font-extrabold text-violet-900">Most Purchased Designs</h3>
@@ -730,13 +683,13 @@ export default function CarpetPurchasesV2() {
                   summary.topProducts.map((tp: any, idx: number) => {
                     const rankColors = ['bg-amber-500', 'bg-slate-400', 'bg-orange-600', 'bg-violet-500', 'bg-blue-500'];
                     return (
-                      <div key={tp.productId} className="px-5 py-3 flex items-center gap-3">
+                      <div key={tp.productId} className="px-4 sm:px-5 py-3 flex items-center gap-3">
                         <div className={`h-9 w-9 rounded-lg ${rankColors[idx]} text-white font-extrabold flex items-center justify-center text-sm shrink-0`}>
                           {idx < 3 ? <Star className="h-4 w-4 fill-white" /> : idx + 1}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <div className="font-bold text-slate-900 text-sm truncate">{tp.product?.name}</div>
-                          <div className="text-[11px] text-slate-500 font-semibold">
+                          <div className="font-extrabold text-slate-900 text-sm truncate">{tp.product?.name}</div>
+                          <div className="text-[11px] text-slate-500 font-bold">
                             {formatQty(tp.quantityPurchased)} {tp.product?.unit} • {tp.orderCount} orders
                           </div>
                         </div>
@@ -750,84 +703,86 @@ export default function CarpetPurchasesV2() {
           </section>
 
           <section className="grid sm:grid-cols-2 gap-4">
-            <ComparisonCard
-              title="Today vs Yesterday"
-              currentLabel="Today"
-              currentValue={summary?.todayPurchases ?? 0}
-              previousLabel="Yesterday"
-              previousValue={summary?.yesterdayPurchases ?? 0}
-              growth={growthVsYesterday}
-              icon={CalendarDays}
-              themeColor="emerald"
-            />
-            <ComparisonCard
-              title="This Month vs Last Month"
-              currentLabel="This Month"
-              currentValue={summary?.monthPurchases ?? 0}
-              previousLabel="Last Month"
-              previousValue={summary?.lastMonthPurchases ?? 0}
-              growth={growthVsLastMonth}
-              icon={Activity}
-              themeColor="emerald"
-            />
+            <ComparisonCard title="Today vs Yesterday" currentLabel="Today" currentValue={summary?.todayPurchases ?? 0}
+              previousLabel="Yesterday" previousValue={summary?.yesterdayPurchases ?? 0}
+              growth={growthVsYesterday} icon={CalendarDays} themeColor="emerald" />
+            <ComparisonCard title="This Month vs Last Month" currentLabel="This Month" currentValue={summary?.monthPurchases ?? 0}
+              previousLabel="Last Month" previousValue={summary?.lastMonthPurchases ?? 0}
+              growth={growthVsLastMonth} icon={Activity} themeColor="emerald" />
           </section>
         </>
       )}
 
       {tab === 'history' && (
-        <section className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-5 border-b border-slate-100 space-y-3">
+        <section className="rounded-2xl sm:rounded-3xl bg-white border-2 border-slate-200 shadow-sm overflow-hidden">
+          <div className="px-4 sm:px-6 py-4 sm:py-5 border-b-2 border-slate-100 space-y-3">
             <div>
-              <h3 className="text-xl font-bold text-slate-900">All Carpet Purchases</h3>
-              <p className="text-sm text-slate-500">{filteredPurchases.length} of {purchases.length} purchases</p>
+              <h3 className="text-lg sm:text-xl font-extrabold text-slate-900">All Carpet Purchases</h3>
+              <p className="text-xs sm:text-sm text-slate-500 font-bold">{filteredPurchases.length} of {purchases.length}</p>
             </div>
             <div className="relative">
-              <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                value={historySearch}
-                onChange={(e) => setHistorySearch(e.target.value)}
-                placeholder="Search purchase # or supplier..."
-                className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
-              />
+              <Search className="h-5 w-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input value={historySearch} onChange={(e) => setHistorySearch(e.target.value)}
+                placeholder="Purchase # ya supplier..."
+                className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white pl-11 pr-10 text-sm font-semibold focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200" />
+              {historySearch && (
+                <button onClick={() => setHistorySearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-lg hover:bg-slate-100 flex items-center justify-center">
+                  <X className="h-4 w-4 text-slate-400" />
+                </button>
+              )}
+            </div>
+            <div className="flex gap-1 bg-slate-100 rounded-xl p-1 w-fit">
+              {[
+                { v: 'all' as const, l: 'Sab' },
+                { v: 'pending' as const, l: 'Pending' },
+                { v: 'due' as const, l: 'Due' },
+              ].map((o) => (
+                <button key={o.v} onClick={() => setHistoryFilter(o.v)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition active:scale-95 ${
+                    historyFilter === o.v ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                  }`}>
+                  {o.l}
+                </button>
+              ))}
             </div>
           </div>
 
           {filteredPurchases.length === 0 ? (
             <div className="p-12 text-center">
               <Layers className="h-16 w-16 text-slate-300 mx-auto mb-3" />
-              <h4 className="font-bold text-slate-900">No purchases yet</h4>
+              <h4 className="font-extrabold text-slate-900">No purchases yet</h4>
             </div>
           ) : (
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y-2 divide-slate-100">
               {filteredPurchases.map((p: any) => {
                 const balance = Math.max(p.total - p.paidAmount, 0);
                 const rollCount = p.carpetRolls?.length ?? 0;
                 return (
-                  <Link key={p.id} to={`/purchases/${p.id}`} className="block px-6 py-4 hover:bg-slate-50 transition group">
+                  <Link key={p.id} to={`/purchases/${p.id}`} className="block px-4 sm:px-6 py-3 sm:py-4 hover:bg-slate-50 transition group">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-start gap-3 min-w-0 flex-1">
-                        <div className="h-12 w-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                        <div className="h-11 w-11 sm:h-12 sm:w-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
                           <Layers className="h-5 w-5" />
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-extrabold text-slate-900 font-mono text-sm">{p.purchaseNumber}</span>
+                            <span className="font-extrabold text-slate-900 font-mono text-xs sm:text-sm">{p.purchaseNumber}</span>
                             {rollCount > 0 && (
-                              <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-extrabold inline-flex items-center gap-1">
+                              <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[9px] font-extrabold inline-flex items-center gap-1">
                                 <Layers className="h-2.5 w-2.5" /> {rollCount} ROLLS
                               </span>
                             )}
                             {balance > 0 && (
-                              <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-extrabold">
+                              <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[9px] font-extrabold">
                                 Due {formatPKR(balance)}
                               </span>
                             )}
                           </div>
                           <div className="flex items-center gap-2 mt-1 text-xs">
                             <Building2 className="h-3 w-3 text-slate-400" />
-                            <span className="font-semibold text-slate-700">{p.supplier?.name || '—'}</span>
+                            <span className="font-bold text-slate-700 truncate">{p.supplier?.name || '—'}</span>
                           </div>
-                          <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-500">
+                          <div className="flex items-center gap-3 mt-1.5 text-[11px] text-slate-500 font-bold flex-wrap">
                             <span className="inline-flex items-center gap-1">
                               <Calendar className="h-3 w-3" />
                               {formatDate(p.purchasedAt)}
@@ -840,9 +795,9 @@ export default function CarpetPurchasesV2() {
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="text-2xl font-extrabold text-emerald-700 tabular-nums">{formatPKR(p.total)}</div>
-                        <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-600">
-                          <Eye className="h-3 w-3" /> Details <ArrowRight className="h-3 w-3" />
+                        <div className="text-lg sm:text-2xl font-extrabold text-emerald-700 tabular-nums">{formatPKR(p.total)}</div>
+                        <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-600 group-hover:text-emerald-700">
+                          <Eye className="h-3 w-3" /> View <ArrowRight className="h-3 w-3" />
                         </div>
                       </div>
                     </div>
@@ -852,6 +807,18 @@ export default function CarpetPurchasesV2() {
             </div>
           )}
         </section>
+      )}
+
+      {/* Mobile sticky save button */}
+      {tab === 'create' && cart.length > 0 && (
+        <div className="sm:hidden fixed bottom-4 inset-x-4 z-30">
+          <Button className="w-full h-14 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 shadow-2xl"
+            onClick={handleSave} loading={createMutation.isPending}
+            disabled={cart.length === 0 || !supplierId || !cartValidation.valid}>
+            <CheckCircle2 className="h-5 w-5" />
+            Save Purchase • {formatPKR(total)}
+          </Button>
+        </div>
       )}
     </div>
   );

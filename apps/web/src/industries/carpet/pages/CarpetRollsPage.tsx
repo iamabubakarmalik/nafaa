@@ -281,6 +281,11 @@ export default function CarpetRollsPage() {
                 <Scissors className="h-4 w-4" /> Cut Pieces
               </Button>
             </Link>
+            <Link to="/carpet-products/new">
+              <Button variant="secondary" className="bg-white/15 backdrop-blur text-white hover:bg-white/25 border border-white/20">
+                <Sparkles className="h-4 w-4" /> New Product
+              </Button>
+            </Link>
             <Link to="/carpet-bulk-import">
               <Button variant="secondary" className="bg-white/15 backdrop-blur text-white hover:bg-white/25 border border-white/20">
                 <FileSpreadsheet className="h-4 w-4" /> Bulk Import
@@ -579,6 +584,16 @@ export default function CarpetRollsPage() {
           }}
         />
       )}
+
+      {/* Mobile FAB — Quick add roll */}
+      <button
+        onClick={() => setShowAddModal(true)}
+        className="lg:hidden fixed bottom-4 right-4 z-30 h-14 w-14 rounded-full bg-gradient-to-br from-emerald-600 to-emerald-700 text-white shadow-2xl active:scale-95 flex items-center justify-center transition"
+        title="Add Roll (FAB)"
+        data-testid="FAB_CARPET_ROLLS"
+      >
+        <Plus className="h-6 w-6" />
+      </button>
     </div>
   );
 }

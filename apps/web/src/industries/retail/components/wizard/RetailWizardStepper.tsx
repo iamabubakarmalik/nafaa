@@ -12,15 +12,15 @@ interface Props {
 }
 
 const STEPS = [
-  { id: 1, label: 'Basic Info', desc: 'Product & pricing', icon: Package },
-  { id: 2, label: 'Multi-Units', desc: 'Piece/Dozen/Carton', icon: Layers },
-  { id: 3, label: 'Stock Entry', desc: 'Variants & batches', icon: ShoppingBag },
+  { id: 1, label: 'Basic Info', shortLbl: 'Info', desc: 'Naam & rate', icon: Package },
+  { id: 2, label: 'Multi-Units', shortLbl: 'Units', desc: 'Dozen/carton', icon: Layers },
+  { id: 3, label: 'Stock Entry', shortLbl: 'Stock', desc: 'Kitna maal', icon: ShoppingBag },
 ] as const;
 
 export function RetailWizardStepper({ currentStep, stepValidation, onStepClick }: Props) {
   return (
     <div className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-2 overflow-x-auto">
-      <div className="flex items-center gap-2 min-w-max">
+      <div className="flex items-center gap-1.5 min-w-max sm:min-w-0 sm:justify-between">
         {STEPS.map((s, idx) => {
           const isActive = currentStep === s.id;
           const isPast = currentStep > s.id;
@@ -29,14 +29,14 @@ export function RetailWizardStepper({ currentStep, stepValidation, onStepClick }
           const Icon = s.icon;
 
           return (
-            <div key={s.id} className="flex items-center gap-2">
+            <div key={s.id} className="flex items-center gap-1.5 flex-1">
               <button
                 type="button"
                 onClick={() => onStepClick?.(s.id as WizardStep)}
                 className={[
-                  'group flex items-center gap-3 px-4 py-3 rounded-2xl transition-all',
+                  'flex-1 flex items-center gap-2.5 sm:gap-3 px-3 sm:px-4 py-2.5 rounded-2xl transition-all min-w-[120px] sm:min-w-0',
                   isActive
-                    ? 'bg-gradient-to-br from-sky-600 to-cyan-700 text-white shadow-md shadow-sky-500/40'
+                    ? 'bg-gradient-to-br from-sky-600 to-cyan-700 text-white shadow-md shadow-sky-500/40 scale-[1.02]'
                     : isPast
                       ? 'bg-sky-50 text-sky-800 hover:bg-sky-100 border-2 border-sky-200'
                       : 'bg-slate-50 text-slate-500 border-2 border-transparent hover:bg-slate-100',
@@ -50,25 +50,26 @@ export function RetailWizardStepper({ currentStep, stepValidation, onStepClick }
                 ].join(' ')}>
                   {isPast && isComplete ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
                 </div>
-                <div className="text-left">
+                <div className="text-left min-w-0">
                   <div className={[
                     'text-[10px] uppercase tracking-wider font-extrabold',
                     isActive ? 'text-white/90' : isPast ? 'text-sky-700' : 'text-slate-500',
                   ].join(' ')}>
                     Step {s.id}
                   </div>
-                  <div className="text-sm font-extrabold leading-tight">{s.label}</div>
-                  <div className={[
-                    'text-[10px] font-bold leading-tight mt-0.5',
-                    isActive ? 'text-white/80' : 'text-slate-500',
-                  ].join(' ')}>
-                    {s.desc}
+                  <div className="text-sm font-extrabold leading-tight">
+                    <span className="sm:hidden">{s.shortLbl}</span>
+                    <span className="hidden sm:inline">{s.label}</span>
                   </div>
+                  <div className={[
+                    'text-[10px] font-bold leading-tight hidden sm:block',
+                    isActive ? 'text-white/80' : 'text-slate-500',
+                  ].join(' ')}>{s.desc}</div>
                 </div>
               </button>
 
               {idx < STEPS.length - 1 && (
-                <div className={['h-0.5 w-8 rounded-full transition',
+                <div className={['h-1 w-4 sm:w-6 rounded-full transition',
                   currentStep > s.id ? 'bg-sky-500' : 'bg-slate-200'].join(' ')} />
               )}
             </div>

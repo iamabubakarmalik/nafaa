@@ -1,12 +1,11 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import {
-  Receipt, TrendingUp, Wallet, Layers, Scissors,
-  Search, X, Calendar, Package, User, Ruler,
-  Banknote, CreditCard, Smartphone, Building2, Zap,
-  Eye, Download, RefreshCw, ArrowRight,
-  Wrench, Clock, BarChart3, Lock, Unlock, EyeOff, Shield, CalendarRange,
+  Receipt, TrendingUp, Wallet, Layers, Scissors, Search, X, Calendar,
+  Package, User, Ruler, Banknote, CreditCard, Smartphone, Building2, Zap,
+  Eye, Download, RefreshCw, ArrowRight, Wrench, Clock, BarChart3,
+  Lock, Unlock, EyeOff, Shield, CalendarRange, MapPin,
 } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
@@ -44,15 +43,25 @@ export default function CarpetSalesPage() {
   const privacy = useSalesPrivacy();
   const [view, setView] = useState<View>('rolls');
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [dateFilter, setDateFilter] = useState<DateFilter>('month');
   const [customStart, setCustomStart] = useState('');
   const [customEnd, setCustomEnd] = useState('');
   const [paymentFilter, setPaymentFilter] = useState<PaymentMethod | 'all'>('all');
   const [privacyModal, setPrivacyModal] = useState<'unlock' | 'setup' | 'disable' | null>(null);
+  const [visibleCount, setVisibleCount] = useState(50);
+  const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (privacy.isLocked && !privacyModal) setPrivacyModal('unlock');
   }, [privacy.isLocked, privacyModal]);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 200);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  useEffect(() => { setVisibleCount(50); }, [debouncedSearch, view, dateFilter, paymentFilter]);
 
   const { data: sales = [], isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['sales-list'],
@@ -63,7 +72,7 @@ export default function CarpetSalesPage() {
   const hideAmounts = privacy.hideStats;
   const showValue = (v: string) => hideAmounts ? '••••••' : v;
 
-  const getDateRange = (): [Date, Date] => {
+  const getDateRange = useCallback((): [Date, Date] => {
     const now = new Date();
     let start = new Date();
     let end = new Date();
@@ -78,7 +87,7 @@ export default function CarpetSalesPage() {
     }
     else if (dateFilter === 'all') start = new Date(0);
     return [start, end];
-  };
+  }, [dateFilter, customStart, customEnd]);
 
   const rollSales = useMemo(() => sales.filter((s) => s.items.some((it: any) => parseCarpetNote(it.note).type === 'roll')), [sales]);
   const pieceSales = useMemo(() => sales.filter((s) => s.items.some((it: any) => parseCarpetNote(it.note).type === 'cut-piece')), [sales]);
@@ -103,7 +112,7 @@ export default function CarpetSalesPage() {
     const [start, end] = getDateRange();
     list = list.filter((s) => { const d = new Date(s.soldAt); return d >= start && d <= end; });
     if (paymentFilter !== 'all') list = list.filter((s) => s.paymentMethod === paymentFilter);
-    const q = search.toLowerCase().trim();
+    const q = debouncedSearch.toLowerCase().trim();
     if (q) {
       list = list.filter((s) =>
         s.saleNumber.toLowerCase().includes(q) ||
@@ -113,7 +122,18 @@ export default function CarpetSalesPage() {
       );
     }
     return list.sort((a, b) => new Date(b.soldAt).getTime() - new Date(a.soldAt).getTime());
-  }, [sales, rollSales, pieceSales, serviceSales, view, dateFilter, customStart, customEnd, paymentFilter, search]);
+  }, [sales, rollSales, pieceSales, serviceSales, view, paymentFilter, debouncedSearch, getDateRange]);
+
+  const visible = filteredList.slice(0, visibleCount);
+  const hasMore = filteredList.length > visibleCount;
+
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    if (!hasMore) return;
+    const t = e.currentTarget;
+    if ((t.scrollTop + t.clientHeight) / t.scrollHeight > 0.85) {
+      setVisibleCount((c) => c + 30);
+    }
+  }, [hasMore]);
 
   const sqftTrend = useMemo(() => {
     const buckets: Record<string, { date: string; label: string; sqft: number }> = {};
@@ -134,13 +154,20 @@ export default function CarpetSalesPage() {
   }, [sales]);
 
   const exportCSV = () => {
-    if (filteredList.length === 0) return;
-    const headers = ['Sale #', 'Date', 'Customer', 'Phone', 'Product', 'Type', 'Reference', 'Dimensions', 'Sqft', 'Rate', 'Total'];
+    if (filteredList.length === 0) return toast.error('No data');
+    const headers = ['Sale #', 'Date', 'Customer', 'Phone', 'Product', 'Type', 'Reference', 'Dimensions', 'Qty', 'Unit', 'Rate', 'Total'];
     const rows: any[] = [];
     filteredList.forEach((s) => {
       s.items.forEach((it: any) => {
         const carpet = parseCarpetNote(it.note);
-        rows.push([s.saleNumber, new Date(s.soldAt).toLocaleString('en-PK'), s.customer?.name || 'Walk-in', s.customer?.phone || '', it.product.name, carpet.type || 'accessory', carpet.reference || '', carpet.dimensions || '', it.quantity.toFixed(2), it.price.toFixed(2), it.total.toFixed(2)]);
+        rows.push([
+          s.saleNumber, new Date(s.soldAt).toLocaleString('en-PK'),
+          s.customer?.name || 'Walk-in', s.customer?.phone || '',
+          it.product.name, carpet.type || 'accessory',
+          carpet.reference || '', carpet.dimensions || '',
+          it.quantity.toFixed(2), it.product.unit,
+          it.price.toFixed(2), it.total.toFixed(2),
+        ]);
       });
     });
     const csv = [headers, ...rows].map((r) => r.map((c: any) => `"${c}"`).join(',')).join('\n');
@@ -158,12 +185,12 @@ export default function CarpetSalesPage() {
     return (
       <>
         {privacyModal && <SalesPrivacyModal mode={privacyModal} onClose={() => setPrivacyModal(null)} />}
-        <div className="min-h-[70vh] flex items-center justify-center">
+        <div className="min-h-[70vh] flex items-center justify-center px-4">
           <div className="max-w-md w-full text-center">
             <div className="h-24 w-24 rounded-3xl bg-gradient-to-br from-emerald-600 to-teal-700 mx-auto flex items-center justify-center shadow-xl shadow-emerald-500/30">
               <Lock className="h-12 w-12 text-white" />
             </div>
-            <h2 className="mt-6 text-3xl font-extrabold text-slate-900">🔒 Sales Locked</h2>
+            <h2 className="mt-6 text-2xl sm:text-3xl font-extrabold text-slate-900">🔒 Sales Locked</h2>
             <p className="mt-2 text-slate-600 font-semibold">Carpet sales data password protected hai.</p>
             <Button size="lg" className="mt-6 bg-gradient-to-r from-emerald-600 to-teal-700" onClick={() => setPrivacyModal('unlock')}>
               <Unlock className="h-5 w-5" /> Unlock with Password
@@ -178,75 +205,88 @@ export default function CarpetSalesPage() {
     <>
       {privacyModal && <SalesPrivacyModal mode={privacyModal} onClose={() => setPrivacyModal(null)} />}
 
-      <div className="space-y-6">
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-teal-700 text-white p-6 sm:p-8 shadow-2xl">
+      <div className="space-y-4 sm:space-y-6">
+        {/* HERO */}
+        <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-teal-700 text-white p-4 sm:p-6 lg:p-8 shadow-2xl">
           <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-emerald-400/20 blur-3xl" />
           <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-amber-400/15 blur-3xl" />
-          <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur px-3 py-1 text-xs font-semibold">
+          <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sm:gap-5">
+            <div className="min-w-0">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur px-3 py-1 text-xs font-semibold flex-wrap">
                 <Layers className="h-3.5 w-3.5 text-amber-300" />
-                Carpet Sales & Roll Traceability
-                {privacy.isEnabled && (<><span className="text-white/40">•</span><Shield className="h-3 w-3 text-emerald-300" /><span className="text-emerald-300">Protected</span></>)}
+                Carpet Sales & Traceability
+                {privacy.isEnabled && (
+                  <>
+                    <span className="text-white/40">•</span>
+                    <Shield className="h-3 w-3 text-emerald-300" />
+                    <span className="text-emerald-300">Protected</span>
+                  </>
+                )}
               </div>
-              <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">Carpet Cut Certificates</h1>
-              <p className="mt-2 text-sm text-white/80">Har roll cut, har piece, har service — full traceability</p>
+              <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight">🧶 Carpet Cut Certificates</h1>
+              <p className="mt-2 text-xs sm:text-sm text-white/80">Har roll cut, har piece, har service — full traceability</p>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
-              <button onClick={privacy.toggleHideStats} className={`inline-flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold backdrop-blur border ${hideAmounts ? 'bg-amber-500/30 border-amber-300/40' : 'bg-white/10 border-white/20'}`}>
-                {hideAmounts ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}<span className="hidden sm:inline">{hideAmounts ? 'Show' : 'Hide'}</span>
+              <button onClick={privacy.toggleHideStats}
+                className={`inline-flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs sm:text-sm font-bold backdrop-blur border transition active:scale-95 ${
+                  hideAmounts ? 'bg-amber-500/30 border-amber-300/40' : 'bg-white/10 border-white/20'
+                }`}>
+                {hideAmounts ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                <span className="hidden sm:inline">{hideAmounts ? 'Show' : 'Hide'}</span>
               </button>
               {privacy.isEnabled ? (
-                <>
-                  <button onClick={privacy.lock} className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-3 py-2.5 text-sm font-bold border border-white/20">
-                    <Lock className="h-4 w-4" /> Lock
-                  </button>
-                  <button onClick={() => setPrivacyModal('disable')} className="inline-flex items-center gap-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 px-3 py-2.5 text-sm font-bold border border-rose-300/30">
-                    <Shield className="h-4 w-4" /><span className="hidden sm:inline">Disable</span>
-                  </button>
-                </>
+                <button onClick={privacy.lock}
+                  className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-3 py-2.5 text-xs sm:text-sm font-bold border border-white/20 active:scale-95">
+                  <Lock className="h-4 w-4" /><span className="hidden sm:inline">Lock</span>
+                </button>
               ) : (
-                <button onClick={() => setPrivacyModal('setup')} className="inline-flex items-center gap-2 rounded-xl bg-emerald-500/30 hover:bg-emerald-500/50 px-3 py-2.5 text-sm font-bold border border-emerald-300/40">
+                <button onClick={() => setPrivacyModal('setup')}
+                  className="inline-flex items-center gap-2 rounded-xl bg-emerald-500/30 hover:bg-emerald-500/50 px-3 py-2.5 text-xs sm:text-sm font-bold border border-emerald-300/40 active:scale-95">
                   <Shield className="h-4 w-4" /><span className="hidden sm:inline">Enable Privacy</span>
                 </button>
               )}
-              <button onClick={() => refetch()} disabled={isRefetching} className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-4 py-2.5 text-sm font-bold border border-white/20 disabled:opacity-50">
+              <button onClick={() => refetch()} disabled={isRefetching}
+                className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-3 py-2.5 text-xs sm:text-sm font-bold border border-white/20 disabled:opacity-50 active:scale-95">
                 <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} /><span className="hidden sm:inline">Refresh</span>
               </button>
-              <Link to="/pos"><Button className="bg-white text-slate-900 hover:bg-slate-100"><Layers className="h-4 w-4" /> New Sale</Button></Link>
+              <Link to="/pos">
+                <Button className="bg-white text-slate-900 hover:bg-slate-100">
+                  <Layers className="h-4 w-4" /> New Sale
+                </Button>
+              </Link>
             </div>
           </div>
         </section>
 
-        <div className="flex gap-2 flex-wrap">
-          <button onClick={() => setView('rolls')} className={`px-5 py-3 rounded-xl text-sm font-extrabold inline-flex items-center gap-2 ${view === 'rolls' ? 'bg-emerald-600 text-white shadow-md' : 'bg-white border-2 border-slate-200 text-slate-700'}`}>
-            <Layers className="h-4 w-4" /> Roll Cuts ({rollSales.length})
-          </button>
-          <button onClick={() => setView('pieces')} className={`px-5 py-3 rounded-xl text-sm font-extrabold inline-flex items-center gap-2 ${view === 'pieces' ? 'bg-emerald-600 text-white shadow-md' : 'bg-white border-2 border-slate-200 text-slate-700'}`}>
-            <Scissors className="h-4 w-4" /> Cut Pieces ({pieceSales.length})
-          </button>
-          <button onClick={() => setView('services')} className={`px-5 py-3 rounded-xl text-sm font-extrabold inline-flex items-center gap-2 ${view === 'services' ? 'bg-emerald-600 text-white shadow-md' : 'bg-white border-2 border-slate-200 text-slate-700'}`}>
-            <Wrench className="h-4 w-4" /> Services ({serviceSales.length})
-          </button>
-          <button onClick={() => setView('all')} className={`px-5 py-3 rounded-xl text-sm font-extrabold inline-flex items-center gap-2 ${view === 'all' ? 'bg-emerald-600 text-white shadow-md' : 'bg-white border-2 border-slate-200 text-slate-700'}`}>
-            <Receipt className="h-4 w-4" /> All ({sales.length})
-          </button>
+        {/* View Tabs */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <TabBtn active={view === 'rolls'} onClick={() => setView('rolls')} icon={Layers} label="Roll Cuts" shortLabel="Rolls" count={rollSales.length} color="emerald" />
+          <TabBtn active={view === 'pieces'} onClick={() => setView('pieces')} icon={Scissors} label="Cut Pieces" shortLabel="Pieces" count={pieceSales.length} color="violet" />
+          <TabBtn active={view === 'services'} onClick={() => setView('services')} icon={Wrench} label="Services" shortLabel="Services" count={serviceSales.length} color="orange" />
+          <TabBtn active={view === 'all'} onClick={() => setView('all')} icon={Receipt} label="All" shortLabel="All" count={sales.length} color="slate" />
         </div>
 
-        <section className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        {/* Stats */}
+        <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <StatCard label="Total Sqft Sold" value={`${carpetStats.totalSqft.toFixed(0)} sqft`} sub={`${carpetStats.rollCuts} roll cuts`} icon={Ruler} color="emerald" />
           <StatCard label="Cut Pieces Sold" value={String(carpetStats.pieceSold)} sub="From inventory" icon={Scissors} color="violet" />
-          <StatCard label="Service Revenue" value={showValue(formatPKR(carpetStats.servicesTotal))} sub="Installation, glue, etc." icon={Wrench} color="amber" />
+          <StatCard label="Service Revenue" value={showValue(formatPKR(carpetStats.servicesTotal))} sub="Installation, glue" icon={Wrench} color="amber" />
           <StatCard label="Carpet Revenue" value={showValue(formatPKR(carpetStats.carpetRevenue))} sub="From sqft sales" icon={Wallet} color="blue" />
         </section>
 
+        {/* Chart */}
         {!hideAmounts && (
-          <section className="rounded-3xl bg-white border border-slate-200 shadow-sm p-6">
+          <section className="rounded-2xl sm:rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-4 sm:p-6">
             <div className="flex items-center justify-between mb-4">
-              <div><h3 className="text-lg font-bold text-slate-900">Last 7 Days — Sqft Sold</h3><p className="text-xs text-slate-500">Daily carpet cut volume</p></div>
-              <BarChart3 className="h-5 w-5 text-emerald-500" />
+              <div>
+                <h3 className="text-base sm:text-lg font-extrabold text-slate-900">7-Day Sqft Sold</h3>
+                <p className="text-xs text-slate-500 font-bold">Daily carpet cut volume</p>
+              </div>
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white flex items-center justify-center shadow-md">
+                <BarChart3 className="h-5 w-5" />
+              </div>
             </div>
-            <div className="h-[260px]">
+            <div className="h-[220px] sm:h-[260px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={sqftTrend}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
@@ -260,26 +300,43 @@ export default function CarpetSalesPage() {
           </section>
         )}
 
-        <section className="rounded-3xl bg-white border border-slate-200 shadow-sm p-4 space-y-3">
+        {/* Filters */}
+        <section className="rounded-2xl sm:rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-3 sm:p-4 space-y-3">
           <div className="flex gap-2 flex-wrap">
             <div className="relative flex-1 min-w-[240px]">
-              <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search sale #, roll #, piece code, customer..." className="h-11 w-full rounded-xl border-2 border-slate-200 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-emerald-500" />
-              {search && <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2"><X className="h-4 w-4 text-slate-400" /></button>}
+              <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input value={search} onChange={(e) => setSearch(e.target.value)}
+                placeholder="Sale #, roll #, piece code, customer..."
+                className="h-12 w-full rounded-xl border-2 border-slate-200 pl-11 pr-11 text-sm font-semibold focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition" />
+              {search && (
+                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 flex items-center justify-center active:scale-95">
+                  <X className="h-4 w-4 text-slate-400" />
+                </button>
+              )}
             </div>
-            {filteredList.length > 0 && <button onClick={exportCSV} className="h-11 px-4 rounded-xl border-2 border-slate-200 bg-white hover:border-slate-300 font-bold text-sm text-slate-700 inline-flex items-center gap-2"><Download className="h-4 w-4" /><span className="hidden sm:inline">Export</span></button>}
+            {filteredList.length > 0 && (
+              <button onClick={exportCSV}
+                className="h-12 px-4 rounded-xl border-2 border-slate-200 bg-white hover:border-emerald-300 font-extrabold text-sm text-slate-700 inline-flex items-center gap-2 transition active:scale-95">
+                <Download className="h-4 w-4" /><span className="hidden sm:inline">Export</span>
+              </button>
+            )}
           </div>
 
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1.5 inline-flex items-center gap-1"><CalendarRange className="h-3 w-3" />Date Range</label>
+            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1.5 inline-flex items-center gap-1">
+              <CalendarRange className="h-3 w-3" />Date Range
+            </label>
             <div className="flex gap-1.5 overflow-x-auto pb-1">
               {([
                 { v: 'today', l: 'Today' }, { v: 'yesterday', l: 'Yesterday' },
-                { v: 'week', l: 'Last 7 Days' }, { v: 'month', l: 'Last 30 Days' },
-                { v: 'year', l: 'Last Year' }, { v: 'all', l: 'All Time' },
-                { v: 'custom', l: '📅 Custom Range' },
+                { v: 'week', l: '7 Days' }, { v: 'month', l: '30 Days' },
+                { v: 'year', l: 'This Year' }, { v: 'all', l: 'All Time' },
+                { v: 'custom', l: '📅 Custom' },
               ] as { v: DateFilter; l: string }[]).map((d) => (
-                <button key={d.v} onClick={() => setDateFilter(d.v)} className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ${dateFilter === d.v ? 'bg-emerald-600 text-white shadow' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
+                <button key={d.v} onClick={() => setDateFilter(d.v)}
+                  className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition active:scale-95 ${
+                    dateFilter === d.v ? 'bg-emerald-600 text-white shadow' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  }`}>
                   {d.l}
                 </button>
               ))}
@@ -287,18 +344,15 @@ export default function CarpetSalesPage() {
             {dateFilter === 'custom' && (
               <div className="mt-2 grid grid-cols-2 gap-2 rounded-xl bg-emerald-50 border-2 border-emerald-200 p-3">
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">From Date</label>
-                  <input type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)} className="h-10 w-full rounded-lg border-2 border-emerald-300 bg-white px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
+                  <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">From</label>
+                  <input type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)}
+                    className="h-10 w-full rounded-lg border-2 border-emerald-300 bg-white px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">To Date</label>
-                  <input type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)} className="h-10 w-full rounded-lg border-2 border-emerald-300 bg-white px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
+                  <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">To</label>
+                  <input type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)}
+                    className="h-10 w-full rounded-lg border-2 border-emerald-300 bg-white px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
                 </div>
-                {customStart && customEnd && (
-                  <div className="col-span-2 text-xs font-bold text-emerald-800 inline-flex items-center gap-1"><Calendar className="h-3 w-3" />
-                    Showing {new Date(customStart).toLocaleDateString('en-PK')} to {new Date(customEnd).toLocaleDateString('en-PK')}
-                  </div>
-                )}
               </div>
             )}
           </div>
@@ -306,74 +360,53 @@ export default function CarpetSalesPage() {
           <div>
             <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1.5 block">Payment Method</label>
             <div className="flex gap-1.5 overflow-x-auto pb-1">
-              <button onClick={() => setPaymentFilter('all')} className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ${paymentFilter === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700'}`}>All Payments</button>
+              <button onClick={() => setPaymentFilter('all')}
+                className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition active:scale-95 ${
+                  paymentFilter === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700'
+                }`}>
+                All Payments
+              </button>
               {Object.entries(paymentConfig).map(([k, cfg]) => (
-                <button key={k} onClick={() => setPaymentFilter(k as PaymentMethod)} className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold inline-flex items-center gap-1 ${paymentFilter === k ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-700'}`}>
+                <button key={k} onClick={() => setPaymentFilter(k as PaymentMethod)}
+                  className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold inline-flex items-center gap-1 transition active:scale-95 ${
+                    paymentFilter === k ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-700'
+                  }`}>
                   <cfg.icon className="h-3 w-3" />{cfg.label}
                 </button>
               ))}
             </div>
           </div>
+
+          <div className="text-xs font-extrabold text-slate-500 text-right">
+            Showing {filteredList.length} sales
+          </div>
         </section>
 
-        <section className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+        {/* Sales List — virtualized */}
+        <section className="rounded-2xl sm:rounded-3xl bg-white border-2 border-slate-200 shadow-sm overflow-hidden">
           {isLoading ? (
-            <div className="p-6 space-y-2">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-32 rounded-xl bg-slate-100 animate-pulse" />)}</div>
+            <div className="p-6 space-y-2">
+              {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-32 rounded-xl bg-slate-100 animate-pulse" />)}
+            </div>
           ) : filteredList.length === 0 ? (
-            <div className="p-12 text-center"><Layers className="h-16 w-16 text-slate-400 mx-auto mb-3" /><p className="font-extrabold text-slate-700 text-lg">No carpet sales found</p><p className="text-xs text-slate-500 mt-1">Try different date range or filters</p></div>
+            <div className="p-12 text-center">
+              <Layers className="h-16 w-16 text-slate-300 mx-auto mb-3" />
+              <p className="font-extrabold text-slate-700 text-lg">No carpet sales found</p>
+              <p className="text-xs text-slate-500 mt-1">Try different filters or date range</p>
+            </div>
           ) : (
-            <div className="divide-y divide-slate-100">
-              {filteredList.map((sale) => {
-                const carpetItems = sale.items.filter((it: any) => parseCarpetNote(it.note).type !== null || ['sqft', 'sqm', 'sqyd'].includes(it.product.unit));
-                const totalSqft = sale.items.reduce((sum: number, it: any) => ['sqft', 'sqm', 'sqyd'].includes(it.product.unit) ? sum + Number(it.quantity || 0) : sum, 0);
-                const PayIcon = paymentConfig[sale.paymentMethod]?.icon || CreditCard;
-                return (
-                  <Link key={sale.id} to={`/sales/${sale.id}/receipt`} className="block px-5 py-4 hover:bg-emerald-50/50 transition group">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-start gap-3 flex-1 min-w-0">
-                        <div className="h-12 w-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0"><Layers className="h-5 w-5" /></div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-mono font-extrabold text-slate-900">{sale.saleNumber}</span>
-                            {sale.status === 'VOIDED' && <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-extrabold">VOIDED</span>}
-                            {totalSqft > 0 && <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-extrabold inline-flex items-center gap-1"><Ruler className="h-2.5 w-2.5" />{totalSqft.toFixed(2)} sqft</span>}
-                            {(sale.serviceCharges ?? 0) > 0 && <span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[10px] font-extrabold inline-flex items-center gap-1"><Wrench className="h-2.5 w-2.5" />Services +<HiddenAmount value={formatPKR(sale.serviceCharges ?? 0)} hidden={hideAmounts} /></span>}
-                          </div>
-                          <div className="mt-1 text-xs text-slate-600 font-semibold flex items-center gap-2 flex-wrap">
-                            <User className="h-3 w-3" />{sale.customer?.name || 'Walk-in'}
-                            {sale.customer?.phone && <><span>•</span><span>{sale.customer.phone}</span></>}
-                          </div>
-                          <div className="mt-1 text-[10px] text-slate-500 inline-flex items-center gap-1"><Clock className="h-2.5 w-2.5" />{formatDate(sale.soldAt)}</div>
-                          <div className="mt-2 space-y-1">
-                            {carpetItems.slice(0, 3).map((it: any) => {
-                              const carpet = parseCarpetNote(it.note);
-                              return (
-                                <div key={it.id} className={`pl-3 border-l-2 ${carpet.type === 'roll' ? 'border-emerald-300' : carpet.type === 'cut-piece' ? 'border-violet-300' : 'border-slate-200'}`}>
-                                  <div className="flex items-center gap-2 flex-wrap text-xs">
-                                    {carpet.type === 'roll' && <Layers className="h-3 w-3 text-emerald-600" />}
-                                    {carpet.type === 'cut-piece' && <Scissors className="h-3 w-3 text-violet-600" />}
-                                    <span className="font-extrabold text-slate-900">{it.product.name}</span>
-                                    {carpet.reference && <span className="font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px]">{carpet.type === 'roll' ? 'Roll' : 'Piece'}: {carpet.reference}</span>}
-                                    {carpet.dimensions && <span className="text-[10px] font-bold text-slate-600 inline-flex items-center gap-0.5"><Ruler className="h-2.5 w-2.5" />{carpet.dimensions}</span>}
-                                    <span className="text-[10px] font-bold text-emerald-700">{it.quantity.toFixed(2)} {it.product.unit} × {formatPKR(it.price)}</span>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                            {carpetItems.length > 3 && <div className="text-[10px] font-bold text-slate-500 pl-3">+{carpetItems.length - 3} more items</div>}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <div className="text-2xl font-extrabold text-emerald-700 tabular-nums"><HiddenAmount value={formatPKR(sale.total)} hidden={hideAmounts} /></div>
-                        <div className="text-[10px] text-slate-500 inline-flex items-center justify-end gap-1 mt-0.5"><PayIcon className="h-2.5 w-2.5" />{paymentConfig[sale.paymentMethod]?.label}</div>
-                        {sale.creditAmount > 0 && <div className="text-[10px] text-amber-700 font-extrabold mt-0.5">Udhaar: <HiddenAmount value={formatPKR(sale.creditAmount)} hidden={hideAmounts} /></div>}
-                        <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-600 group-hover:text-emerald-700"><Eye className="h-3 w-3" /> Certificate <ArrowRight className="h-3 w-3" /></div>
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
+            <div ref={listRef} onScroll={handleScroll} className="max-h-[calc(100vh-400px)] overflow-y-auto divide-y divide-slate-100">
+              {visible.map((sale) => (
+                <SaleRow key={sale.id} sale={sale} hideAmounts={hideAmounts} />
+              ))}
+              {hasMore && (
+                <div className="p-3 text-center">
+                  <button onClick={() => setVisibleCount((c) => c + 30)}
+                    className="px-4 py-2 rounded-lg bg-white border-2 border-slate-200 hover:border-emerald-400 text-xs font-extrabold text-slate-700 active:scale-95 transition">
+                    Show {Math.min(30, filteredList.length - visibleCount)} more ({visibleCount}/{filteredList.length})
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </section>
@@ -382,23 +415,144 @@ export default function CarpetSalesPage() {
   );
 }
 
-function StatCard({ label, value, sub, icon: Icon, color }: any) {
+
+function TabBtn({ active, onClick, icon: Icon, label, shortLabel, count, color }: any) {
   const colors: Record<string, string> = {
-    emerald: 'from-emerald-500 to-green-600', blue: 'from-blue-500 to-blue-700',
-    violet: 'from-violet-500 to-purple-600', amber: 'from-amber-500 to-orange-600',
+    emerald: 'bg-emerald-600 text-white shadow-md',
+    violet: 'bg-violet-600 text-white shadow-md',
+    orange: 'bg-orange-600 text-white shadow-md',
+    slate: 'bg-slate-800 text-white shadow-md',
   };
   return (
-    <div className="rounded-2xl border-2 border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition">
-      <div className="flex items-center justify-between">
+    <button onClick={onClick}
+      className={`px-4 py-3 rounded-xl text-sm font-extrabold inline-flex items-center justify-center gap-2 transition active:scale-95 ${
+        active ? colors[color] : 'bg-white border-2 border-slate-200 text-slate-700 hover:border-slate-300'
+      }`}>
+      <Icon className="h-4 w-4" />
+      <span className="hidden sm:inline">{label}</span>
+      <span className="sm:hidden">{shortLabel}</span>
+      <span className={`px-1.5 rounded-md text-[10px] ${active ? 'bg-white/25' : 'bg-slate-200'}`}>
+        {count}
+      </span>
+    </button>
+  );
+}
+
+function StatCard({ label, value, sub, icon: Icon, color }: any) {
+  const colors: Record<string, string> = {
+    emerald: 'from-emerald-500 to-green-600',
+    blue: 'from-blue-500 to-blue-700',
+    violet: 'from-violet-500 to-purple-600',
+    amber: 'from-amber-500 to-orange-600',
+  };
+  return (
+    <div className="rounded-2xl border-2 border-slate-200 bg-white p-4 sm:p-5 shadow-sm hover:shadow-md transition">
+      <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 tabular-nums truncate">{value}</div>
-          <div className="text-xs text-slate-600 font-semibold mt-1">{sub}</div>
+          <div className="text-[10px] sm:text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
+          <div className="mt-1.5 text-lg sm:text-2xl font-extrabold text-slate-900 tabular-nums truncate">{value}</div>
+          <div className="text-[10px] sm:text-xs text-slate-600 font-semibold mt-0.5 truncate">{sub}</div>
         </div>
-        <div className={`h-12 w-12 rounded-2xl bg-gradient-to-br ${colors[color]} text-white flex items-center justify-center shadow-lg shrink-0`}>
-          <Icon className="h-6 w-6" />
+        <div className={`h-11 w-11 sm:h-12 sm:w-12 rounded-2xl bg-gradient-to-br ${colors[color]} text-white flex items-center justify-center shadow-lg shrink-0`}>
+          <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
         </div>
       </div>
     </div>
+  );
+}
+
+function SaleRow({ sale, hideAmounts }: { sale: any; hideAmounts: boolean }) {
+  const carpetItems = sale.items.filter((it: any) => parseCarpetNote(it.note).type !== null || ['sqft', 'sqm', 'sqyd'].includes(it.product.unit));
+  const totalSqft = sale.items.reduce((sum: number, it: any) =>
+    ['sqft', 'sqm', 'sqyd'].includes(it.product.unit) ? sum + Number(it.quantity || 0) : sum, 0);
+  const PayIcon = paymentConfig[sale.paymentMethod]?.icon || CreditCard;
+
+  return (
+    <Link to={`/sales/${sale.id}/receipt`} className="block px-4 sm:px-5 py-3 sm:py-4 hover:bg-emerald-50/50 transition group">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start gap-3 flex-1 min-w-0">
+          <div className="h-11 w-11 sm:h-12 sm:w-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+            <Layers className="h-5 w-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-mono font-extrabold text-sm text-slate-900">{sale.saleNumber}</span>
+              {sale.status === 'VOIDED' && (
+                <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-extrabold">VOIDED</span>
+              )}
+              {totalSqft > 0 && (
+                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-extrabold inline-flex items-center gap-1">
+                  <Ruler className="h-2.5 w-2.5" />{totalSqft.toFixed(2)} sqft
+                </span>
+              )}
+              {(sale.serviceCharges ?? 0) > 0 && (
+                <span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[10px] font-extrabold inline-flex items-center gap-1">
+                  <Wrench className="h-2.5 w-2.5" />Services
+                </span>
+              )}
+            </div>
+            <div className="mt-1 text-xs text-slate-600 font-semibold flex items-center gap-2 flex-wrap">
+              <User className="h-3 w-3" />{sale.customer?.name || 'Walk-in'}
+              {sale.customer?.phone && (<><span>•</span><span>{sale.customer.phone}</span></>)}
+            </div>
+            <div className="mt-1 text-[10px] text-slate-500 inline-flex items-center gap-1">
+              <Clock className="h-2.5 w-2.5" />{formatDate(sale.soldAt)}
+            </div>
+            <div className="mt-2 space-y-1">
+              {carpetItems.slice(0, 3).map((it: any) => {
+                const carpet = parseCarpetNote(it.note);
+                return (
+                  <div key={it.id} className={`pl-3 border-l-2 ${
+                    carpet.type === 'roll' ? 'border-emerald-300'
+                      : carpet.type === 'cut-piece' ? 'border-violet-300'
+                      : 'border-slate-200'
+                  }`}>
+                    <div className="flex items-center gap-2 flex-wrap text-xs">
+                      {carpet.type === 'roll' && <Layers className="h-3 w-3 text-emerald-600" />}
+                      {carpet.type === 'cut-piece' && <Scissors className="h-3 w-3 text-violet-600" />}
+                      <span className="font-extrabold text-slate-900">{it.product.name}</span>
+                      {carpet.reference && (
+                        <span className="font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px]">
+                          {carpet.type === 'roll' ? 'Roll' : 'Piece'}: {carpet.reference}
+                        </span>
+                      )}
+                      {carpet.dimensions && (
+                        <span className="text-[10px] font-bold text-slate-600 inline-flex items-center gap-0.5">
+                          <Ruler className="h-2.5 w-2.5" />{carpet.dimensions}
+                        </span>
+                      )}
+                      <span className="text-[10px] font-bold text-emerald-700">
+                        {it.quantity.toFixed(2)} {it.product.unit} × {formatPKR(it.price)}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+              {carpetItems.length > 3 && (
+                <div className="text-[10px] font-bold text-slate-500 pl-3">
+                  +{carpetItems.length - 3} more items
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+        <div className="text-right shrink-0">
+          <div className="text-xl sm:text-2xl font-extrabold text-emerald-700 tabular-nums">
+            <HiddenAmount value={formatPKR(sale.total)} hidden={hideAmounts} />
+          </div>
+          <div className="text-[10px] text-slate-500 inline-flex items-center justify-end gap-1 mt-0.5">
+            <PayIcon className="h-2.5 w-2.5" />{paymentConfig[sale.paymentMethod]?.label}
+          </div>
+          {sale.creditAmount > 0 && (
+            <div className="text-[10px] text-amber-700 font-extrabold mt-0.5">
+              Udhaar: <HiddenAmount value={formatPKR(sale.creditAmount)} hidden={hideAmounts} />
+            </div>
+          )}
+          <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-600 group-hover:text-emerald-700">
+            <Eye className="h-3 w-3" /> Certificate <ArrowRight className="h-3 w-3" />
+          </div>
+        </div>
+      </div>
+    </Link>
   );
 }

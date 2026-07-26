@@ -4,7 +4,7 @@ import {
   ShoppingCart, Plus, Trash2, Minus, Search, X, Package, Building2,
   Calendar, AlertTriangle, ArrowRight, Eye, CalendarDays, Wallet,
   TrendingUp, Crown, Star, Award, BarChart3, Receipt, RefreshCw,
-  CheckCircle2, Activity, Boxes,
+  CheckCircle2, Activity, Boxes, Filter,
 } from 'lucide-react';
 import {
   ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell,
@@ -56,6 +56,7 @@ export default function RetailPurchasesV2() {
   const [cost, setCost] = useState('');
   const [cart, setCart] = useState<CartLine[]>([]);
   const [historySearch, setHistorySearch] = useState('');
+  const [historyFilter, setHistoryFilter] = useState<'all' | 'pending' | 'due'>('all');
 
   const lowStockProducts = useMemo(() => {
     return products
@@ -68,24 +69,31 @@ export default function RetailPurchasesV2() {
     if (!q) return products.slice(0, 30);
     return products.filter((p) =>
       p.name.toLowerCase().includes(q) ||
-      (p.sku || '').toLowerCase().includes(q)
-    ).slice(0, 20);
+      (p.sku || '').toLowerCase().includes(q) ||
+      (p.barcode || '').toLowerCase().includes(q)
+    ).slice(0, 30);
   }, [products, productSearch]);
 
   const selectedProduct = products.find((p) => p.id === selectedProductId);
 
   const filteredPurchases = useMemo(() => {
+    let list = purchases;
+    if (historyFilter === 'pending') list = list.filter((p: any) => p.status === 'PENDING');
+    if (historyFilter === 'due') list = list.filter((p: any) => Number(p.total) > Number(p.paidAmount));
     const q = historySearch.toLowerCase().trim();
-    if (!q) return purchases;
-    return purchases.filter((p: any) =>
-      p.purchaseNumber.toLowerCase().includes(q) ||
-      p.supplier?.name?.toLowerCase().includes(q)
-    );
-  }, [purchases, historySearch]);
+    if (q) {
+      list = list.filter((p: any) =>
+        p.purchaseNumber.toLowerCase().includes(q) ||
+        p.supplier?.name?.toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [purchases, historySearch, historyFilter]);
 
   const subtotal = cart.reduce((s, l) => s + l.quantity * l.costPrice, 0);
   const discountValue = Number(discount || 0);
   const total = Math.max(subtotal - discountValue, 0);
+  const cartCount = cart.length;
 
   const trendData = useMemo(() => {
     if (!summary?.salesTrend7Days) return [];
@@ -129,7 +137,7 @@ export default function RetailPurchasesV2() {
     if (!prodOverride) {
       setSelectedProductId(''); setProductSearch(''); setQty('1'); setCost('');
     }
-    toast.success('Added to cart');
+    toast.success('Cart me add ho gaya', { duration: 900 });
   };
 
   const addLowStockToCart = (product: any) => {
@@ -172,7 +180,7 @@ export default function RetailPurchasesV2() {
   const growthVsLastMonth = summary?.growthVsLastMonth ?? 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 pb-24 sm:pb-6">
       <PurchasesHero
         gradient="from-slate-950 via-sky-900 to-cyan-700"
         emoji="🛒"
@@ -184,9 +192,10 @@ export default function RetailPurchasesV2() {
         isRefetching={isRefetching}
         extraActions={
           lowStockProducts.length > 0 && (
-            <button onClick={() => setTab('reorder')} className="inline-flex items-center gap-2 rounded-xl bg-amber-500/30 hover:bg-amber-500/50 px-4 py-2.5 text-sm font-bold transition backdrop-blur border border-amber-300/40">
+            <button onClick={() => setTab('reorder')} className="inline-flex items-center gap-2 rounded-xl bg-amber-500/30 hover:bg-amber-500/50 px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-bold transition backdrop-blur border border-amber-300/40 active:scale-95">
               <AlertTriangle className="h-4 w-4" />
-              {lowStockProducts.length} low stock
+              <span className="hidden sm:inline">{lowStockProducts.length} low stock</span>
+              <span className="sm:hidden">{lowStockProducts.length}</span>
             </button>
           )
         }
@@ -194,7 +203,7 @@ export default function RetailPurchasesV2() {
 
       <TabSwitcher tabs={TABS} active={tab} onChange={setTab} color="sky" />
 
-      <section className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <section className="grid grid-cols-2 xl:grid-cols-4 gap-2 sm:gap-4">
         <PurchaseStatCard label="Aaj ki Purchases" value={formatPKR(summary?.todayPurchases ?? 0)} sub={`${summary?.todayCount ?? 0} orders`} icon={TrendingUp} color="sky" trend={growthVsYesterday} />
         <PurchaseStatCard label="Is Mahine" value={formatPKR(summary?.monthPurchases ?? 0)} sub={`${summary?.monthCount ?? 0} orders`} icon={CalendarDays} color="violet" trend={growthVsLastMonth} />
         <PurchaseStatCard label="Total Lifetime" value={formatPKR(summary?.totalPurchases ?? 0)} sub={`${summary?.totalCount ?? 0} purchases`} icon={Wallet} color="amber" />
@@ -202,29 +211,29 @@ export default function RetailPurchasesV2() {
       </section>
 
       {tab === 'create' && (
-        <section className="grid xl:grid-cols-[1.2fr_1fr] gap-6">
-          <div className="rounded-3xl bg-white border border-slate-200 shadow-sm p-6 space-y-5">
+        <section className="grid xl:grid-cols-[1.2fr_1fr] gap-4 sm:gap-6">
+          <div className="rounded-2xl sm:rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-4 sm:p-6 space-y-4 sm:space-y-5">
             <div className="flex items-center gap-3">
-              <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-sky-500 to-cyan-700 text-white flex items-center justify-center shadow-lg shadow-sky-500/30">
+              <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-sky-500 to-cyan-700 text-white flex items-center justify-center shadow-lg shadow-sky-500/30 shrink-0">
                 <ShoppingCart className="h-5 w-5" />
               </div>
-              <div>
-                <h3 className="text-xl font-bold text-slate-900">New Retail Purchase</h3>
-                <p className="text-sm text-slate-500">Bulk stocking, multi-unit products</p>
+              <div className="min-w-0">
+                <h3 className="text-lg sm:text-xl font-bold text-slate-900">New Retail Purchase</h3>
+                <p className="text-xs sm:text-sm text-slate-500">Bulk stocking, multi-unit products</p>
               </div>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">Supplier *</label>
-                <select value={supplierId} onChange={(e) => setSupplierId(e.target.value)} className="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-sky-500/30">
+                <label className="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5">Supplier *</label>
+                <select value={supplierId} onChange={(e) => setSupplierId(e.target.value)} className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 sm:px-4 text-sm font-bold focus:outline-none focus:border-sky-500">
                   <option value="">Select supplier...</option>
                   {suppliers.map((s) => (<option key={s.id} value={s.id}>{s.name}</option>))}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">Payment Method</label>
-                <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)} className="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-sky-500/30">
+                <label className="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5">Payment Method</label>
+                <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)} className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 sm:px-4 text-sm font-bold focus:outline-none focus:border-sky-500">
                   <option value="CASH">💵 Cash</option>
                   <option value="JAZZCASH">📱 JazzCash</option>
                   <option value="EASYPAISA">⚡ EasyPaisa</option>
@@ -234,25 +243,25 @@ export default function RetailPurchasesV2() {
               </div>
             </div>
 
-            <div className="rounded-2xl border-2 border-sky-200 bg-sky-50/30 p-4 space-y-3">
+            <div className="rounded-2xl border-2 border-sky-200 bg-sky-50/40 p-3 sm:p-4 space-y-3">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Add Product</label>
+                <label className="block text-[10px] sm:text-xs font-extrabold text-slate-700 mb-1.5 uppercase tracking-wider">Add Product</label>
                 <div className="relative">
                   <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input type="text" value={productSearch} onChange={(e) => { setProductSearch(e.target.value); setSelectedProductId(''); }} placeholder="Search product..." className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30" />
-                  {productSearch && (<button onClick={() => { setProductSearch(''); setSelectedProductId(''); }} className="absolute right-3 top-1/2 -translate-y-1/2"><X className="h-4 w-4 text-slate-400" /></button>)}
+                  <input type="text" value={productSearch} onChange={(e) => { setProductSearch(e.target.value); setSelectedProductId(''); }} placeholder="Product dhundo (naam, SKU, barcode)..." className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white pl-10 pr-10 text-sm font-semibold focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200" />
+                  {productSearch && (<button onClick={() => { setProductSearch(''); setSelectedProductId(''); }} className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-lg hover:bg-slate-100 flex items-center justify-center"><X className="h-4 w-4 text-slate-400" /></button>)}
                 </div>
                 {productSearch && !selectedProductId && filteredProducts.length > 0 && (
-                  <div className="mt-2 max-h-[220px] overflow-y-auto rounded-xl border border-slate-200 bg-white divide-y divide-slate-100">
+                  <div className="mt-2 max-h-[280px] overflow-y-auto rounded-xl border-2 border-slate-200 bg-white divide-y divide-slate-100">
                     {filteredProducts.map((p) => {
                       const isLow = p.stock <= p.lowStockAlert;
                       return (
-                        <button key={p.id} type="button" onClick={() => { setSelectedProductId(p.id); setProductSearch(p.name); setCost(String(p.costPrice || '')); }} className="w-full px-3 py-2.5 text-left hover:bg-sky-50 transition">
+                        <button key={p.id} type="button" onClick={() => { setSelectedProductId(p.id); setProductSearch(p.name); setCost(String(p.costPrice || '')); }} className="w-full px-3 py-2.5 text-left hover:bg-sky-50 transition active:scale-[0.99]">
                           <div className="flex items-center gap-2">
                             <div className="font-bold text-sm text-slate-900 truncate flex-1">{p.name}</div>
-                            {isLow && (<span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-amber-100 text-amber-700"><AlertTriangle className="h-2.5 w-2.5" /> LOW</span>)}
+                            {isLow && (<span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-amber-100 text-amber-700 shrink-0"><AlertTriangle className="h-2.5 w-2.5" /> LOW</span>)}
                           </div>
-                          <div className="text-[10px] text-slate-500 font-mono">
+                          <div className="text-[10px] text-slate-500 font-mono mt-0.5">
                             Stock: <span className={`font-bold ${isLow ? 'text-amber-700' : 'text-emerald-700'}`}>{formatQty(p.stock)} {p.unit}</span>
                             {p.costPrice > 0 && <> • Cost: <span className="font-bold">{formatPKR(p.costPrice)}</span></>}
                           </div>
@@ -265,21 +274,27 @@ export default function RetailPurchasesV2() {
 
               {selectedProduct && (
                 <>
-                  <div className="rounded-xl bg-white border border-sky-200 p-3">
-                    <div className="font-bold text-sm text-slate-900">{selectedProduct.name}</div>
-                    <div className="text-xs text-slate-500 mt-0.5">Current stock: <span className="font-bold text-emerald-700">{formatQty(selectedProduct.stock)} {selectedProduct.unit}</span></div>
+                  <div className="rounded-xl bg-white border-2 border-sky-200 p-3">
+                    <div className="font-extrabold text-sm text-slate-900">{selectedProduct.name}</div>
+                    <div className="text-xs text-slate-500 mt-0.5 font-bold">
+                      Current stock: <span className="text-emerald-700">{formatQty(selectedProduct.stock)} {selectedProduct.unit}</span>
+                    </div>
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Qty * ({selectedProduct.unit})</label>
-                      <input type="number" step="0.01" value={qty} onChange={(e) => setQty(e.target.value)} className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm font-bold" />
+                      <label className="block text-[10px] font-extrabold text-slate-600 mb-1 uppercase">Qty *</label>
+                      <input type="number" step="0.01" value={qty} onChange={(e) => setQty(e.target.value)}
+                        onFocus={(e) => e.target.select()}
+                        className="h-11 w-full rounded-lg border-2 border-slate-200 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-sky-500" />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Cost/unit *</label>
-                      <input type="number" step="0.01" value={cost} onChange={(e) => setCost(e.target.value)} className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm font-bold" />
+                      <label className="block text-[10px] font-extrabold text-slate-600 mb-1 uppercase">Cost *</label>
+                      <input type="number" step="0.01" value={cost} onChange={(e) => setCost(e.target.value)}
+                        onFocus={(e) => e.target.select()}
+                        className="h-11 w-full rounded-lg border-2 border-slate-200 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-sky-500" />
                     </div>
                     <div className="flex items-end">
-                      <Button onClick={() => addToCart()} className="w-full bg-sky-600 hover:bg-sky-700">
+                      <Button onClick={() => addToCart()} className="w-full bg-gradient-to-r from-sky-600 to-cyan-700">
                         <Plus className="h-4 w-4" /> Add
                       </Button>
                     </div>
@@ -288,32 +303,37 @@ export default function RetailPurchasesV2() {
               )}
             </div>
 
+            {/* Cart lines */}
             <div className="space-y-2 max-h-[400px] overflow-y-auto">
               {cart.length === 0 ? (
-                <div className="rounded-xl border-2 border-dashed border-slate-200 p-8 text-center">
+                <div className="rounded-2xl border-4 border-dashed border-slate-200 p-6 sm:p-8 text-center">
                   <ShoppingCart className="h-12 w-12 text-slate-300 mx-auto mb-2" />
-                  <div className="text-sm font-bold text-slate-700">Cart empty</div>
-                  <button onClick={() => setTab('reorder')} className="mt-2 text-xs font-bold text-sky-600 hover:underline">
-                    Or check smart reorder suggestions
+                  <div className="text-sm font-extrabold text-slate-700">Cart khaali hai</div>
+                  <button onClick={() => setTab('reorder')} className="mt-2 text-xs font-extrabold text-sky-600 hover:underline">
+                    Smart reorder suggestions dekho →
                   </button>
                 </div>
               ) : (
                 cart.map((line) => (
-                  <div key={line.productId} className="rounded-xl border border-slate-200 bg-white p-3">
+                  <div key={line.productId} className="rounded-2xl border-2 border-slate-200 bg-white p-3">
                     <div className="flex items-center justify-between gap-3">
                       <div className="min-w-0 flex-1">
-                        <div className="font-bold text-slate-900 truncate">{line.name}</div>
-                        <div className="text-xs text-slate-500">{formatPKR(line.costPrice)} × {formatQty(line.quantity)} {line.unit}</div>
+                        <div className="font-extrabold text-slate-900 truncate text-sm">{line.name}</div>
+                        <div className="text-xs text-slate-500 font-bold">{formatPKR(line.costPrice)} × {formatQty(line.quantity)} {line.unit}</div>
                       </div>
                       <div className="font-extrabold text-sky-700 shrink-0 tabular-nums">{formatPKR(line.costPrice * line.quantity)}</div>
                     </div>
                     <div className="mt-2 flex items-center justify-between gap-2">
-                      <div className="inline-flex items-center gap-1.5 bg-slate-50 rounded-lg p-1">
-                        <button onClick={() => updateQty(line.productId, -1)} className="h-7 w-7 rounded-md bg-white border border-slate-200 flex items-center justify-center"><Minus className="h-3 w-3" /></button>
-                        <span className="w-12 text-center font-bold text-sm">{formatQty(line.quantity)}</span>
-                        <button onClick={() => updateQty(line.productId, 1)} className="h-7 w-7 rounded-md bg-sky-600 text-white flex items-center justify-center"><Plus className="h-3 w-3" /></button>
+                      <div className="inline-flex items-center gap-1.5 bg-slate-50 rounded-xl p-1 border-2 border-slate-200">
+                        <button onClick={() => updateQty(line.productId, -1)} className="h-8 w-8 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 active:scale-95 flex items-center justify-center transition">
+                          <Minus className="h-3 w-3" />
+                        </button>
+                        <span className="w-12 text-center font-extrabold text-sm tabular-nums">{formatQty(line.quantity)}</span>
+                        <button onClick={() => updateQty(line.productId, 1)} className="h-8 w-8 rounded-lg bg-sky-600 hover:bg-sky-700 active:scale-95 text-white flex items-center justify-center transition">
+                          <Plus className="h-3 w-3" />
+                        </button>
                       </div>
-                      <button onClick={() => removeLine(line.productId)} className="h-7 w-7 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
+                      <button onClick={() => removeLine(line.productId)} className="h-8 w-8 rounded-lg bg-rose-50 hover:bg-rose-100 active:scale-95 text-rose-600 flex items-center justify-center transition">
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
@@ -322,13 +342,13 @@ export default function RetailPurchasesV2() {
               )}
             </div>
 
-            <div className="grid sm:grid-cols-3 gap-3">
+            <div className="grid sm:grid-cols-3 gap-2 sm:gap-3">
               <Input label="Discount (PKR)" type="number" placeholder="0" value={discount} onChange={(e) => setDiscount(e.target.value)} />
               <Input label="Paid Amount" type="number" placeholder={String(total)} value={paidAmount} onChange={(e) => setPaidAmount(e.target.value)} />
               <Input label="Notes" placeholder="Optional" value={notes} onChange={(e) => setNotes(e.target.value)} />
             </div>
 
-            <div className="rounded-2xl bg-gradient-to-br from-sky-50 to-cyan-50 border-2 border-sky-200 p-4 space-y-2">
+            <div className="rounded-2xl bg-gradient-to-br from-sky-50 to-cyan-50 border-2 border-sky-200 p-3 sm:p-4 space-y-1.5">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-slate-600 font-bold">Subtotal</span>
                 <span className="font-bold text-slate-900 tabular-nums">{formatPKR(subtotal)}</span>
@@ -340,61 +360,63 @@ export default function RetailPurchasesV2() {
                 </div>
               )}
               <div className="flex items-center justify-between pt-2 border-t-2 border-sky-200">
-                <span className="text-lg font-extrabold text-slate-900">Total</span>
-                <span className="text-3xl font-extrabold text-sky-700 tabular-nums">{formatPKR(total)}</span>
+                <span className="text-base sm:text-lg font-extrabold text-slate-900">Total</span>
+                <span className="text-2xl sm:text-3xl font-extrabold text-sky-700 tabular-nums">{formatPKR(total)}</span>
               </div>
             </div>
 
-            <Button className="w-full bg-gradient-to-r from-sky-600 to-cyan-700 shadow-lg shadow-sky-500/30" size="lg" onClick={handleSave} loading={createMutation.isPending} disabled={cart.length === 0 || !supplierId}>
+            {/* Desktop save button */}
+            <Button className="hidden sm:flex w-full bg-gradient-to-r from-sky-600 to-cyan-700 shadow-lg shadow-sky-500/30" size="lg" onClick={handleSave} loading={createMutation.isPending} disabled={cart.length === 0 || !supplierId}>
               <CheckCircle2 className="h-4 w-4" /> Save Purchase • {formatPKR(total)}
             </Button>
           </div>
 
+          {/* Sidebar */}
           <div className="space-y-4">
-            <div className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+            <div className="rounded-2xl sm:rounded-3xl bg-white border-2 border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-4 sm:px-5 py-3 sm:py-4 border-b-2 border-slate-100 flex items-center justify-between">
                 <div>
-                  <h3 className="font-bold text-slate-900">Recent Purchases</h3>
-                  <p className="text-xs text-slate-500">Latest 5</p>
+                  <h3 className="font-extrabold text-slate-900 text-sm sm:text-base">Recent Purchases</h3>
+                  <p className="text-[10px] sm:text-xs text-slate-500 font-bold">Latest 5</p>
                 </div>
-                <button onClick={() => setTab('history')} className="text-xs font-bold text-sky-600 hover:underline inline-flex items-center gap-1">
+                <button onClick={() => setTab('history')} className="text-xs font-extrabold text-sky-600 hover:underline inline-flex items-center gap-1">
                   All <ArrowRight className="h-3 w-3" />
                 </button>
               </div>
               <div className="divide-y divide-slate-100">
                 {summary?.recentPurchases?.length ? (
-                  summary.recentPurchases.map((p: any) => (
-                    <Link key={p.id} to={`/purchases/${p.id}`} className="block px-5 py-3 hover:bg-slate-50 transition">
+                  summary.recentPurchases.slice(0, 5).map((p: any) => (
+                    <Link key={p.id} to={`/purchases/${p.id}`} className="block px-4 sm:px-5 py-3 hover:bg-slate-50 transition">
                       <div className="flex items-center justify-between gap-2">
                         <div className="min-w-0">
-                          <div className="font-bold text-slate-900 font-mono text-xs">{p.purchaseNumber}</div>
+                          <div className="font-extrabold text-slate-900 font-mono text-xs">{p.purchaseNumber}</div>
                           <div className="text-[11px] text-slate-500 font-semibold truncate">{p.supplierName}</div>
                         </div>
                         <div className="text-right shrink-0">
                           <div className="font-extrabold text-sky-700 text-sm tabular-nums">{formatPKR(p.total)}</div>
-                          <div className="text-[10px] text-slate-500">{formatDate(p.purchasedAt)}</div>
+                          <div className="text-[10px] text-slate-500 font-bold">{formatDate(p.purchasedAt)}</div>
                         </div>
                       </div>
                     </Link>
                   ))
                 ) : (
-                  <div className="px-5 py-12 text-center text-sm text-slate-500">No purchases yet</div>
+                  <div className="px-5 py-8 text-center text-sm text-slate-500 font-semibold">No purchases yet</div>
                 )}
               </div>
             </div>
 
             {lowStockProducts.length > 0 && (
-              <button onClick={() => setTab('reorder')} className="w-full block rounded-3xl bg-gradient-to-br from-amber-500 to-orange-600 text-white p-5 shadow-lg shadow-amber-500/30 hover:shadow-xl transition text-left">
+              <button onClick={() => setTab('reorder')} className="w-full block rounded-2xl sm:rounded-3xl bg-gradient-to-br from-amber-500 to-orange-600 text-white p-4 sm:p-5 shadow-lg shadow-amber-500/30 hover:shadow-xl active:scale-95 transition text-left">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center">
+                  <div className="h-11 w-11 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
                     <AlertTriangle className="h-6 w-6" />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/80">Smart Reorder</div>
-                    <h3 className="text-lg font-bold">{lowStockProducts.length} items low</h3>
+                    <h3 className="text-base sm:text-lg font-extrabold">{lowStockProducts.length} items low</h3>
                   </div>
                 </div>
-                <div className="text-xs opacity-90 flex items-center justify-between">
+                <div className="text-xs opacity-90 flex items-center justify-between font-bold">
                   <span>AI-suggested reorder quantities</span>
                   <ArrowRight className="h-4 w-4" />
                 </div>
@@ -405,47 +427,47 @@ export default function RetailPurchasesV2() {
       )}
 
       {tab === 'reorder' && (
-        <section className="rounded-3xl bg-white border border-slate-200 shadow-sm p-6 space-y-4">
+        <section className="rounded-2xl sm:rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-4 sm:p-6 space-y-4">
           <div className="flex items-center gap-3">
-            <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-lg shadow-amber-500/30">
+            <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-lg shadow-amber-500/30 shrink-0">
               <RefreshCw className="h-5 w-5" />
             </div>
-            <div>
-              <h3 className="text-xl font-bold text-slate-900">Smart Reorder Suggestions</h3>
-              <p className="text-sm text-slate-500">Auto-detected low stock — one-click add to purchase cart</p>
+            <div className="min-w-0">
+              <h3 className="text-lg sm:text-xl font-bold text-slate-900">Smart Reorder</h3>
+              <p className="text-xs sm:text-sm text-slate-500">Low stock detected — one-click add to cart</p>
             </div>
           </div>
 
           {lowStockProducts.length === 0 ? (
-            <div className="rounded-2xl border-2 border-dashed border-emerald-200 p-12 text-center bg-emerald-50/30">
+            <div className="rounded-2xl border-4 border-dashed border-emerald-200 p-12 text-center bg-emerald-50/30">
               <CheckCircle2 className="h-16 w-16 text-emerald-500 mx-auto mb-3" />
-              <h4 className="text-lg font-extrabold text-emerald-900">All stock healthy! 🎉</h4>
+              <h4 className="text-lg font-extrabold text-emerald-900">Alhamdulillah! Sab stock sahi 🎉</h4>
               <p className="text-sm text-emerald-700 mt-1 font-semibold">Koi product low stock par nahi hai</p>
             </div>
           ) : (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {lowStockProducts.map((p) => {
                 const isOut = p.stock === 0;
                 const suggestedQty = Math.max(p.lowStockAlert * 3 - p.stock, p.lowStockAlert);
                 const inCart = cart.find((l) => l.productId === p.id);
                 return (
-                  <div key={p.id} className={`rounded-2xl border-2 p-4 ${isOut ? 'border-rose-300 bg-rose-50/50' : 'border-amber-300 bg-amber-50/50'}`}>
+                  <div key={p.id} className={`rounded-2xl border-2 p-3 sm:p-4 ${isOut ? 'border-rose-300 bg-rose-50/50' : 'border-amber-300 bg-amber-50/50'}`}>
                     <div className="flex items-start gap-3 mb-2">
-                      <div className="h-10 w-10 rounded-xl bg-white overflow-hidden flex items-center justify-center shrink-0">
+                      <div className="h-10 w-10 rounded-xl bg-white overflow-hidden flex items-center justify-center shrink-0 border border-slate-200">
                         {p.images?.[0]?.url ? (
-                          <img src={p.images[0].url} alt="" className="h-full w-full object-cover" />
+                          <img src={p.images[0].url} alt="" loading="lazy" className="h-full w-full object-cover" />
                         ) : (
                           <Package className="h-4 w-4 text-slate-400" />
                         )}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="font-bold text-slate-900 text-sm truncate">{p.name}</div>
+                        <div className="font-extrabold text-slate-900 text-sm truncate">{p.name}</div>
                         <div className="text-[10px] text-slate-500 font-mono">{p.sku || '—'}</div>
                       </div>
                       {isOut ? (
-                        <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-rose-600 text-white">OUT</span>
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-rose-600 text-white shrink-0">OUT</span>
                       ) : (
-                        <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-amber-500 text-white">LOW</span>
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-amber-500 text-white shrink-0">LOW</span>
                       )}
                     </div>
 
@@ -465,18 +487,16 @@ export default function RetailPurchasesV2() {
                     </div>
 
                     <div className="text-[10px] text-slate-600 font-semibold mb-2">
-                      Cost: <span className="font-bold text-slate-900">{formatPKR(p.costPrice || p.price * 0.7)}</span> / {p.unit}
+                      Cost: <span className="font-extrabold text-slate-900">{formatPKR(p.costPrice || p.price * 0.7)}</span> / {p.unit}
                     </div>
 
                     {inCart ? (
                       <div className="text-center py-2 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-extrabold inline-flex items-center justify-center gap-1 w-full">
-                        <CheckCircle2 className="h-3 w-3" />
-                        In cart ({formatQty(inCart.quantity)})
+                        <CheckCircle2 className="h-3 w-3" /> Cart me ({formatQty(inCart.quantity)})
                       </div>
                     ) : (
-                      <button onClick={() => addLowStockToCart(p)} className="w-full h-9 rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 text-white text-xs font-extrabold inline-flex items-center justify-center gap-1">
-                        <Plus className="h-3 w-3" />
-                        Add {formatQty(suggestedQty)} to Cart
+                      <button onClick={() => addLowStockToCart(p)} className="w-full h-10 rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 active:scale-95 text-white text-xs font-extrabold inline-flex items-center justify-center gap-1 transition">
+                        <Plus className="h-3 w-3" /> Add {formatQty(suggestedQty)} {p.unit}
                       </button>
                     )}
                   </div>
@@ -489,16 +509,18 @@ export default function RetailPurchasesV2() {
 
       {tab === 'analytics' && (
         <>
-          <section className="grid lg:grid-cols-[1.5fr_1fr] gap-6">
-            <div className="rounded-3xl bg-white border border-slate-200 shadow-sm p-6">
-              <div className="flex items-center justify-between mb-5">
+          <section className="grid lg:grid-cols-[1.5fr_1fr] gap-4 sm:gap-6">
+            <div className="rounded-2xl sm:rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900">7-Day Retail Purchases</h3>
-                  <p className="text-xs text-slate-500">Daily bulk stocking</p>
+                  <h3 className="text-base sm:text-lg font-extrabold text-slate-900">7-Day Purchases</h3>
+                  <p className="text-xs text-slate-500 font-bold">Daily bulk stocking</p>
                 </div>
-                <BarChart3 className="h-5 w-5 text-sky-500" />
+                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-sky-500 to-cyan-700 text-white flex items-center justify-center shadow-md shrink-0">
+                  <BarChart3 className="h-5 w-5" />
+                </div>
               </div>
-              <div className="h-[260px]">
+              <div className="h-[240px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={trendData}>
                     <defs>
@@ -517,18 +539,23 @@ export default function RetailPurchasesV2() {
               </div>
             </div>
 
-            <div className="rounded-3xl bg-white border border-slate-200 shadow-sm p-6">
-              <h3 className="text-lg font-bold text-slate-900 mb-4">Payment Methods</h3>
+            <div className="rounded-2xl sm:rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-base sm:text-lg font-extrabold text-slate-900">Payment Methods</h3>
+                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-700 text-white flex items-center justify-center shadow-md shrink-0">
+                  <Wallet className="h-5 w-5" />
+                </div>
+              </div>
               {summary?.paymentBreakdown?.length ? (
-                <div className="h-[260px]">
+                <div className="h-[240px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
                         data={summary.paymentBreakdown.map((p: any) => ({ name: p.paymentMethod, value: p.total }))}
-                        cx="50%" cy="45%" outerRadius={80} innerRadius={40} dataKey="value"
+                        cx="50%" cy="45%" outerRadius={80} innerRadius={45} dataKey="value"
                         label={(entry: any) => {
                           const total = summary.paymentBreakdown.reduce((s: number, p: any) => s + p.total, 0);
-                          return total > 0 ? `${((entry.value / total) * 100).toFixed(0)}%` : '0%';
+                          return total > 0 ? `${((entry.value / total) * 100).toFixed(0)}%` : '';
                         }}
                         labelLine={false}
                       >
@@ -537,19 +564,22 @@ export default function RetailPurchasesV2() {
                         ))}
                       </Pie>
                       <Tooltip formatter={(value: any) => formatPKR(Number(value))} contentStyle={{ borderRadius: 12 }} />
-                      <Legend wrapperStyle={{ fontSize: 10, paddingTop: 12 }} iconType="circle" />
+                      <Legend wrapperStyle={{ fontSize: 10, paddingTop: 8 }} iconType="circle" />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <div className="h-[260px] flex items-center justify-center text-sm text-slate-500">No payment data</div>
+                <div className="h-[240px] flex flex-col items-center justify-center gap-2">
+                  <Wallet className="h-10 w-10 text-slate-300" />
+                  <p className="text-sm font-extrabold text-slate-500">No data</p>
+                </div>
               )}
             </div>
           </section>
 
-          <section className="grid lg:grid-cols-2 gap-6">
-            <div className="rounded-3xl bg-white border-2 border-sky-200 shadow-sm overflow-hidden">
-              <div className="px-5 py-4 bg-gradient-to-r from-sky-50 to-cyan-50 border-b-2 border-sky-200">
+          <section className="grid lg:grid-cols-2 gap-4 sm:gap-6">
+            <div className="rounded-2xl sm:rounded-3xl bg-white border-2 border-sky-200 shadow-sm overflow-hidden">
+              <div className="px-4 sm:px-5 py-3 sm:py-4 bg-gradient-to-r from-sky-50 to-cyan-50 border-b-2 border-sky-200">
                 <div className="flex items-center gap-2">
                   <Crown className="h-5 w-5 text-amber-500" />
                   <h3 className="font-extrabold text-sky-900">Top Suppliers</h3>
@@ -560,27 +590,27 @@ export default function RetailPurchasesV2() {
                   summary.topSuppliers.map((ts: any, idx: number) => {
                     const rankColors = ['bg-amber-500', 'bg-slate-400', 'bg-orange-600', 'bg-violet-500', 'bg-blue-500'];
                     return (
-                      <Link key={ts.supplierId} to={`/suppliers/${ts.supplierId}`} className="px-5 py-3 flex items-center gap-3 hover:bg-slate-50 transition">
+                      <Link key={ts.supplierId} to={`/suppliers/${ts.supplierId}`} className="px-4 sm:px-5 py-3 flex items-center gap-3 hover:bg-slate-50 transition active:scale-[0.99]">
                         <div className={`h-9 w-9 rounded-lg ${rankColors[idx]} text-white font-extrabold flex items-center justify-center text-sm shrink-0`}>
                           {idx < 3 ? <Crown className="h-4 w-4" /> : idx + 1}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <div className="font-bold text-slate-900 text-sm truncate">{ts.supplier?.name}</div>
-                          <div className="text-[11px] text-slate-500 font-semibold">{ts.orderCount} orders</div>
+                          <div className="font-extrabold text-slate-900 text-sm truncate">{ts.supplier?.name}</div>
+                          <div className="text-[11px] text-slate-500 font-bold">{ts.orderCount} orders</div>
                         </div>
                         <div className="font-extrabold text-sky-700 text-sm tabular-nums">{formatPKR(ts.totalSpent)}</div>
                       </Link>
                     );
                   })
-                ) : <div className="px-5 py-12 text-center text-sm text-slate-500">No suppliers yet</div>}
+                ) : <div className="px-5 py-12 text-center text-sm text-slate-500 font-semibold">No suppliers yet</div>}
               </div>
             </div>
 
-            <div className="rounded-3xl bg-white border-2 border-violet-200 shadow-sm overflow-hidden">
-              <div className="px-5 py-4 bg-gradient-to-r from-violet-50 to-purple-50 border-b-2 border-violet-200">
+            <div className="rounded-2xl sm:rounded-3xl bg-white border-2 border-violet-200 shadow-sm overflow-hidden">
+              <div className="px-4 sm:px-5 py-3 sm:py-4 bg-gradient-to-r from-violet-50 to-purple-50 border-b-2 border-violet-200">
                 <div className="flex items-center gap-2">
                   <Award className="h-5 w-5 text-violet-600" />
-                  <h3 className="font-extrabold text-violet-900">Most Purchased Products</h3>
+                  <h3 className="font-extrabold text-violet-900">Most Purchased</h3>
                 </div>
               </div>
               <div className="divide-y divide-slate-100">
@@ -588,13 +618,13 @@ export default function RetailPurchasesV2() {
                   summary.topProducts.map((tp: any, idx: number) => {
                     const rankColors = ['bg-amber-500', 'bg-slate-400', 'bg-orange-600', 'bg-violet-500', 'bg-blue-500'];
                     return (
-                      <div key={tp.productId} className="px-5 py-3 flex items-center gap-3">
+                      <div key={tp.productId} className="px-4 sm:px-5 py-3 flex items-center gap-3">
                         <div className={`h-9 w-9 rounded-lg ${rankColors[idx]} text-white font-extrabold flex items-center justify-center text-sm shrink-0`}>
                           {idx < 3 ? <Star className="h-4 w-4 fill-white" /> : idx + 1}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <div className="font-bold text-slate-900 text-sm truncate">{tp.product?.name}</div>
-                          <div className="text-[11px] text-slate-500 font-semibold">
+                          <div className="font-extrabold text-slate-900 text-sm truncate">{tp.product?.name}</div>
+                          <div className="text-[11px] text-slate-500 font-bold">
                             {formatQty(tp.quantityPurchased)} {tp.product?.unit} • {tp.orderCount} orders
                           </div>
                         </div>
@@ -602,93 +632,97 @@ export default function RetailPurchasesV2() {
                       </div>
                     );
                   })
-                ) : <div className="px-5 py-12 text-center text-sm text-slate-500">No data</div>}
+                ) : <div className="px-5 py-12 text-center text-sm text-slate-500 font-semibold">No data</div>}
               </div>
             </div>
           </section>
 
           <section className="grid sm:grid-cols-2 gap-4">
-            <ComparisonCard
-              title="Today vs Yesterday"
-              currentLabel="Today"
-              currentValue={summary?.todayPurchases ?? 0}
-              previousLabel="Yesterday"
-              previousValue={summary?.yesterdayPurchases ?? 0}
-              growth={growthVsYesterday}
-              icon={CalendarDays}
-              themeColor="sky"
-            />
-            <ComparisonCard
-              title="This Month vs Last Month"
-              currentLabel="This Month"
-              currentValue={summary?.monthPurchases ?? 0}
-              previousLabel="Last Month"
-              previousValue={summary?.lastMonthPurchases ?? 0}
-              growth={growthVsLastMonth}
-              icon={Activity}
-              themeColor="sky"
-            />
+            <ComparisonCard title="Today vs Yesterday" currentLabel="Today" currentValue={summary?.todayPurchases ?? 0}
+              previousLabel="Yesterday" previousValue={summary?.yesterdayPurchases ?? 0}
+              growth={growthVsYesterday} icon={CalendarDays} themeColor="sky" />
+            <ComparisonCard title="This Month vs Last Month" currentLabel="This Month" currentValue={summary?.monthPurchases ?? 0}
+              previousLabel="Last Month" previousValue={summary?.lastMonthPurchases ?? 0}
+              growth={growthVsLastMonth} icon={Activity} themeColor="sky" />
           </section>
         </>
       )}
 
       {tab === 'history' && (
-        <section className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-5 border-b border-slate-100 space-y-3">
+        <section className="rounded-2xl sm:rounded-3xl bg-white border-2 border-slate-200 shadow-sm overflow-hidden">
+          <div className="px-4 sm:px-6 py-4 sm:py-5 border-b-2 border-slate-100 space-y-3">
             <div>
-              <h3 className="text-xl font-bold text-slate-900">All Retail Purchases</h3>
-              <p className="text-sm text-slate-500">{filteredPurchases.length} of {purchases.length} purchases</p>
+              <h3 className="text-lg sm:text-xl font-extrabold text-slate-900">All Purchases</h3>
+              <p className="text-xs sm:text-sm text-slate-500 font-bold">{filteredPurchases.length} of {purchases.length} purchases</p>
             </div>
             <div className="relative">
-              <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="h-5 w-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 value={historySearch}
                 onChange={(e) => setHistorySearch(e.target.value)}
-                placeholder="Search purchase # or supplier..."
-                className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30"
+                placeholder="Purchase # ya supplier..."
+                className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white pl-11 pr-10 text-sm font-semibold focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200"
               />
               {historySearch && (
-                <button onClick={() => setHistorySearch('')} className="absolute right-3 top-1/2 -translate-y-1/2">
+                <button onClick={() => setHistorySearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-lg hover:bg-slate-100 flex items-center justify-center">
                   <X className="h-4 w-4 text-slate-400" />
                 </button>
               )}
+            </div>
+            <div className="flex gap-1 bg-slate-100 rounded-xl p-1 w-fit">
+              {[
+                { v: 'all' as const, l: 'Sab' },
+                { v: 'pending' as const, l: 'Pending' },
+                { v: 'due' as const, l: 'Due Baqi' },
+              ].map((o) => (
+                <button
+                  key={o.v}
+                  onClick={() => setHistoryFilter(o.v)}
+                  className={[
+                    'px-3 py-1.5 rounded-lg text-xs font-extrabold transition',
+                    historyFilter === o.v ? 'bg-sky-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900',
+                  ].join(' ')}
+                >
+                  {o.l}
+                </button>
+              ))}
             </div>
           </div>
 
           {filteredPurchases.length === 0 ? (
             <div className="p-12 text-center">
               <ShoppingCart className="h-16 w-16 text-slate-300 mx-auto mb-3" />
-              <h4 className="font-bold text-slate-900">No purchases yet</h4>
+              <h4 className="font-extrabold text-slate-900">Koi purchase nahi</h4>
             </div>
           ) : (
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y-2 divide-slate-100">
               {filteredPurchases.map((p: any) => {
                 const balance = Math.max(p.total - p.paidAmount, 0);
                 return (
-                  <Link key={p.id} to={`/purchases/${p.id}`} className="block px-6 py-4 hover:bg-slate-50 transition group">
+                  <Link key={p.id} to={`/purchases/${p.id}`} className="block px-4 sm:px-6 py-3 sm:py-4 hover:bg-slate-50 transition group">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-start gap-3 min-w-0 flex-1">
-                        <div className="h-12 w-12 rounded-2xl bg-sky-100 text-sky-700 flex items-center justify-center shrink-0">
+                        <div className="h-11 w-11 sm:h-12 sm:w-12 rounded-2xl bg-sky-100 text-sky-700 flex items-center justify-center shrink-0">
                           <ShoppingCart className="h-5 w-5" />
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-extrabold text-slate-900 font-mono text-sm">{p.purchaseNumber}</span>
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                            <span className="font-extrabold text-slate-900 font-mono text-xs sm:text-sm">{p.purchaseNumber}</span>
+                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase ${
                               p.status === 'RECEIVED' ? 'bg-emerald-100 text-emerald-700' :
                               p.status === 'PENDING' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'
                             }`}>{p.status}</span>
                             {balance > 0 && (
-                              <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-extrabold">
+                              <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[9px] font-extrabold">
                                 Due {formatPKR(balance)}
                               </span>
                             )}
                           </div>
                           <div className="flex items-center gap-2 mt-1 text-xs">
                             <Building2 className="h-3 w-3 text-slate-400" />
-                            <span className="font-semibold text-slate-700">{p.supplier?.name || '—'}</span>
+                            <span className="font-bold text-slate-700 truncate">{p.supplier?.name || '—'}</span>
                           </div>
-                          <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-500">
+                          <div className="flex items-center gap-3 mt-1.5 text-[11px] text-slate-500 font-bold flex-wrap">
                             <span className="inline-flex items-center gap-1">
                               <Calendar className="h-3 w-3" />
                               {formatDate(p.purchasedAt)}
@@ -714,13 +748,13 @@ export default function RetailPurchasesV2() {
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="text-2xl font-extrabold text-sky-700 tabular-nums">{formatPKR(p.total)}</div>
-                        <div className="text-[10px] text-slate-500 mt-1">
-                          Paid: <span className="font-extrabold text-emerald-700">{formatPKR(p.paidAmount)}</span>
+                        <div className="text-lg sm:text-2xl font-extrabold text-sky-700 tabular-nums">{formatPKR(p.total)}</div>
+                        <div className="text-[10px] text-slate-500 mt-1 font-bold">
+                          Paid: <span className="text-emerald-700 font-extrabold">{formatPKR(p.paidAmount)}</span>
                         </div>
                         <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-extrabold text-sky-600 group-hover:text-sky-700">
                           <Eye className="h-3 w-3" />
-                          Details
+                          Dekho
                           <ArrowRight className="h-3 w-3" />
                         </div>
                       </div>
@@ -731,6 +765,20 @@ export default function RetailPurchasesV2() {
             </div>
           )}
         </section>
+      )}
+
+      {/* Mobile sticky save button */}
+      {tab === 'create' && cart.length > 0 && (
+        <div className="sm:hidden fixed bottom-4 inset-x-4 z-30">
+          <Button
+            className="w-full h-14 rounded-2xl bg-gradient-to-r from-sky-600 to-cyan-700 shadow-2xl"
+            onClick={handleSave}
+            loading={createMutation.isPending}
+            disabled={cart.length === 0 || !supplierId}
+          >
+            <CheckCircle2 className="h-5 w-5" /> Save Purchase • {formatPKR(total)}
+          </Button>
+        </div>
       )}
     </div>
   );

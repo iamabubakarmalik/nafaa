@@ -1,3 +1,4 @@
+import { apiClient } from '@core/api/client';
 import { db, type OfflineCustomer } from './db';
 import { customersApi, type Customer, type CustomerDetail } from '@modules/customers/customers/api/customers.api';
 import { queueGenericMutation } from './syncEngine';
@@ -66,7 +67,12 @@ export const offlineCustomersApi = {
         return {
           items: fresh.slice(startIdx, startIdx + limit).map(toCustomer),
           meta: { page, limit, total: fresh.length, totalPages: Math.ceil(fresh.length / limit) },
-        };
+          recordPayment: (id: string, data: { amount: number; note?: string }) =>
+    (customersApi as any).recordPayment
+      ? (customersApi as any).recordPayment(id, data)
+      : apiClient.post(`/customers/${id}/payments`, data).then((r: any) => r.data?.data ?? r.data),
+
+};
       } catch {}
     }
 

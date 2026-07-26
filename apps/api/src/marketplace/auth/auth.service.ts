@@ -725,4 +725,152 @@ export class MarketplaceAuthService {
     const { passwordHash, ...rest } = customer as any;
     return { ...rest, hasPassword: !!passwordHash };
   }
+
+  // ═══════════════════════════════════════════════════════════
+  // EMAIL VERIFICATION (NEW)
+  // ═══════════════════════════════════════════════════════════
+
+  async sendVerifyEmailOtp(customerId: string) {
+    const customer = await this.prisma.marketplaceCustomer.findUnique({
+      where: { id: customerId },
+    });
+    if (!customer) throw new NotFoundException('Customer not found');
+    if (!customer.email)
+      throw new BadRequestException('Pehle email set karain');
+    if (customer.emailVerified)
+      return { success: true, message: 'Email already verified', alreadyVerified: true };
+
+    // Throttle 60 sec
+    const recent = await this.prisma.customerOtpCode.findFirst({
+      where: {
+        phone: customer.phone,
+        purpose: 'VERIFY_EMAIL' as any,
+        createdAt: { gt: new Date(Date.now() - 60 * 1000) },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (recent) {
+      const waitSec = Math.ceil(
+        (recent.createdAt.getTime() + 60 * 1000 - Date.now()) / 1000,
+      );
+      throw new BadRequestException(
+        `Please wait ${waitSec}s before requesting a new code`,
+      );
+    }
+
+    const code = generateOtp(6);
+    await this.prisma.customerOtpCode.create({
+      data: {
+        phone: customer.phone,
+        code,
+        purpose: 'VERIFY_EMAIL' as any,
+        expiresAt: addMinutes(new Date(), 10),
+        maxAttempts: OTP_MAX_ATTEMPTS,
+      },
+    });
+
+    // Send via EmailService (async)
+    const appUrl =
+      this.config.get<string>('MARKETPLACE_URL') || 'http://localhost:5175';
+    this.email
+      .send({
+        toEmail: customer.email,
+        toName: customer.fullName,
+        templateSlug: 'customer-verify-email',
+        variables: {
+          name: customer.fullName,
+          code,
+          appUrl,
+          verifyUrl: `${appUrl}/verify-email?code=${code}&email=${encodeURIComponent(customer.email)}`,
+        },
+      })
+      .catch((e: any) =>
+        this.logger.warn(`Email send failed: ${e.message}`),
+      );
+
+    this.logger.log(`📧 Verify-email OTP for ${customer.email}: ${code}`);
+
+    return {
+      success: true,
+      message: 'OTP code aap ke email par bhej diya gaya',
+      devCode: process.env.NODE_ENV !== 'production' ? code : undefined,
+    };
+  }
+
+  async confirmVerifyEmail(customerId: string, code: string) {
+    const customer = await this.prisma.marketplaceCustomer.findUnique({
+      where: { id: customerId },
+    });
+    if (!customer) throw new NotFoundException();
+
+    if (customer.emailVerified)
+      return { success: true, message: 'Email already verified' };
+
+    const otp = await this.prisma.customerOtpCode.findFirst({
+      where: {
+        phone: customer.phone,
+        code,
+        purpose: 'VERIFY_EMAIL' as any,
+        verifiedAt: null,
+        expiresAt: { gt: new Date() },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!otp) throw new BadRequestException('Invalid ya expired OTP');
+
+    await this.prisma.$transaction([
+      this.prisma.customerOtpCode.update({
+        where: { id: otp.id },
+        data: { verifiedAt: new Date() },
+      }),
+      this.prisma.marketplaceCustomer.update({
+        where: { id: customer.id },
+        data: {
+          emailVerified: true,
+          emailVerifiedAt: new Date(),
+          isEmailVerified: true,
+        },
+      }),
+    ]);
+
+    return { success: true, message: 'Email successfully verified! ✅' };
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // FORGOT PASSWORD (send OTP for RESET_PASSWORD purpose)
+  // ═══════════════════════════════════════════════════════════
+
+  async forgotPassword(input: { email?: string; phone?: string }) {
+    if (!input.email && !input.phone) {
+      throw new BadRequestException('Email ya phone chahiye');
+    }
+
+    let customer;
+    if (input.phone) {
+      const phone = normalizePkPhone(input.phone);
+      customer = await this.prisma.marketplaceCustomer.findUnique({
+        where: { phone },
+      });
+    } else {
+      customer = await this.prisma.marketplaceCustomer.findUnique({
+        where: { email: input.email!.toLowerCase() },
+      });
+    }
+
+    // Don't leak — return success even if not found
+    if (!customer) {
+      return {
+        success: true,
+        message: 'Agar aap ka account hai, code bhej diya gaya',
+      };
+    }
+
+    // Send OTP via SMS (works for both phone/email flow)
+    return this.sendOtp({
+      phone: customer.phone,
+      purpose: 'RESET_PASSWORD' as any,
+    });
+  }
+
 }

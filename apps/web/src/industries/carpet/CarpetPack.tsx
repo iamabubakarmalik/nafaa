@@ -1,7 +1,6 @@
-import { Layers, Scissors, BarChart3, Download, Sparkles } from 'lucide-react';
+import { Layers, Scissors, BarChart3, Download, Sparkles, RefreshCw } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
-// Existing pages (already in your project)
 import CarpetRollsPage from './pages/CarpetRollsPage';
 import CarpetCutPiecesPage from './pages/CarpetCutPiecesPage';
 import CarpetRollDetailPage from './pages/CarpetRollDetailPage';
@@ -10,23 +9,15 @@ import CarpetBulkImportPage from './pages/CarpetBulkImportPage';
 import CarpetProductWizardPage from './pages/CarpetProductWizardPage';
 import CarpetProductDetailPage from './pages/CarpetProductDetailPage';
 
-// POS extensions
-import { CarpetPosHeaderActions } from './components/pos-extensions/CarpetPosHeaderActions';
-import { CarpetPosSearchExtension } from './components/pos-extensions/CarpetPosSearchExtension';
-import { carpetProductClickRouter } from './components/pos-extensions/carpetProductClickRouter';
-
-// Sales & Receipt extensions
-import { CarpetSaleItemBadge } from './sales-extensions/CarpetSaleItemBadge';
-import { CarpetReceiptItemDetails } from './receipt-extensions/CarpetReceiptItemDetails';
-import { carpetWhatsappLines } from './receipt-extensions/carpetWhatsappLines';
-import { CarpetTotalsExtension } from './receipt-extensions/CarpetTotalsExtension';
-
-
-
 /**
  * Carpet / Flooring industry pack.
- * Highest priority (90) — beats Mobile / Restaurant / Retail if a tenant
- * happens to match multiple.
+ *
+ * Sidebar mein SIRF carpet-specific features dikhate hain.
+ * "+ Add Carpet Product" duplicate ho raha tha — hata diya.
+ * Products page ka "+ Add" button industry-aware hook se
+ * automatically /carpet-products/new pe redirect karega.
+ *
+ * Priority 90 — beats Mobile / Restaurant / Retail if tenant matches multiple.
  */
 export const CarpetPack: IndustryPack = {
   id: 'carpet',
@@ -41,7 +32,6 @@ export const CarpetPack: IndustryPack = {
   matches: (tenant) => {
     if (!tenant) return false;
     const type = (tenant.businessType ?? '').toUpperCase();
-    // ── Business type has FINAL say ───────────────────────
     if (type) {
       return (
         type.includes('CARPET') ||
@@ -49,75 +39,57 @@ export const CarpetPack: IndustryPack = {
         type.includes('MATTING')
       );
     }
-    // ── Fallback: only when businessType is missing entirely ─
     const features = (tenant.businessFeatures ?? {}) as Record<string, boolean>;
     return features.carpetRolls === true;
   },
 
   navGroups: [
     {
-      label: 'Carpet Industry',
-      icon: Layers,
+      label: 'Carpet Extras',
+      icon: Sparkles,
       emoji: '🧶',
       color: '#059669',
       order: 20,
       items: [
-        { to: '/carpet-products/new', label: '+ Add Carpet Product', icon: Sparkles, badge: 'FAST' },
-        { to: '/carpet-rolls', label: 'Carpet Rolls', icon: Layers, badge: 'NEW' },
-        { to: '/carpet-cut-pieces', label: 'Cut Pieces', icon: Scissors },
-        { to: '/carpet-reports', label: 'Carpet Reports', icon: BarChart3 },
-        { to: '/carpet-bulk-import', label: 'Bulk Import', icon: Download },
+        { to: '/carpet-rolls',       label: 'Carpet Rolls',    icon: Layers, badge: 'NEW' },
+        { to: '/carpet-cut-pieces',  label: 'Cut Pieces',      icon: Scissors },
+        { to: '/carpet-reports',     label: 'Carpet Reports',  icon: BarChart3 },
+        { to: '/carpet-bulk-import', label: 'Bulk Import',     icon: Download },
       ],
     },
   ],
 
   routes: [
-    // ✅ VERY IMPORTANT — wizard routes FIRST
-    { path: '/carpet-products/new', element: CarpetProductWizardPage },
+    // Wizard routes FIRST (very important - so /:id/edit isn't swallowed)
+    { path: '/carpet-products/new',      element: CarpetProductWizardPage },
     { path: '/carpet-products/:id/edit', element: CarpetProductWizardPage },
-    // View / detail page — comes AFTER edit so /:id/edit isn\'t swallowed
-    { path: '/carpet-products/:id', element: CarpetProductDetailPage },
+    { path: '/carpet-products/:id',      element: CarpetProductDetailPage },
 
-    // existing routes
-    { path: '/carpet-rolls', element: CarpetRollsPage },
-    { path: '/carpet-rolls/:id', element: CarpetRollDetailPage },
-    { path: '/carpet-cut-pieces', element: CarpetCutPiecesPage },
-    { path: '/carpet-reports', element: CarpetReportsPage },
-    { path: '/carpet-bulk-import', element: CarpetBulkImportPage },
+    // Carpet feature pages
+    { path: '/carpet-rolls',        element: CarpetRollsPage },
+    { path: '/carpet-rolls/:id',    element: CarpetRollDetailPage },
+    { path: '/carpet-cut-pieces',   element: CarpetCutPiecesPage },
+    { path: '/carpet-reports',      element: CarpetReportsPage },
+    { path: '/carpet-bulk-import',  element: CarpetBulkImportPage },
   ],
 
-  pos: {
-    headerActions: CarpetPosHeaderActions,
-    searchExtension: CarpetPosSearchExtension,
-    productClickRouter: carpetProductClickRouter,
-  },
-
-  sales: {
-    saleItemBadge: CarpetSaleItemBadge,
-  },
-
-  receipt: {
-    itemDetails: CarpetReceiptItemDetails,
-    totalsExtension: CarpetTotalsExtension,
-    whatsappLines: carpetWhatsappLines,
-  },
 
   productForm: {
     defaultUnit: 'sqft',
     unitOptions: [
       { value: 'sqft', label: 'Square Feet (sqft)', hint: '📐', group: 'Area' },
-      { value: 'sqm', label: 'Square Meter (sqm)', hint: '📐', group: 'Area' },
+      { value: 'sqm',  label: 'Square Meter (sqm)', hint: '📐', group: 'Area' },
       { value: 'sqyd', label: 'Square Yard (sqyd)', hint: '📐', group: 'Area' },
-      { value: 'ft', label: 'Running Feet', hint: '📏', group: 'Length' },
-      { value: 'm', label: 'Running Meter', hint: '📏', group: 'Length' },
-      { value: 'pcs', label: 'Pieces', hint: '🔢', group: 'Count' },
-      { value: 'roll', label: 'Full Roll', hint: '🧻', group: 'Count' },
+      { value: 'ft',   label: 'Running Feet',       hint: '📏', group: 'Length' },
+      { value: 'm',    label: 'Running Meter',      hint: '📏', group: 'Length' },
+      { value: 'pcs',  label: 'Pieces',             hint: '🔢', group: 'Count' },
+      { value: 'roll', label: 'Full Roll',          hint: '🧻', group: 'Count' },
     ],
   },
 
   featureFlags: [
-    { key: 'carpetRolls', label: 'Roll Tracking', description: 'Per-roll length + width + sqft', defaultEnabled: true },
-    { key: 'carpetCutPieces', label: 'Cut Pieces', description: 'Track leftover pieces separately', defaultEnabled: true },
+    { key: 'carpetRolls',     label: 'Roll Tracking',    description: 'Per-roll length + width + sqft', defaultEnabled: true },
+    { key: 'carpetCutPieces', label: 'Cut Pieces',       description: 'Track leftover pieces separately', defaultEnabled: true },
     { key: 'lengthWidthCalc', label: 'L × W Calculator', description: 'Interactive dimension picker in POS', defaultEnabled: true },
   ],
 };

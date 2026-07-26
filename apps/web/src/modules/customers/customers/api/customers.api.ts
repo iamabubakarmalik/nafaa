@@ -156,4 +156,7 @@ export const customersApi = {
 
   remove: (id: string) =>
     apiClient.delete<{ data: { message: string } }>(`/customers/${id}`).then(unwrap),
+  recordPayment: (id: string, data: { amount: number; note?: string }) =>
+    apiClient.post(`/customers/${id}/payments`, data).then((r: any) => r.data?.data ?? r.data),
+
 };

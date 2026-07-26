@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
+import { 
   ArrowLeft, ArrowRight, Save, CheckCircle2, Sparkles, ShoppingBag,
   Plus, AlertTriangle, Trash2, Eye, Edit3,
 } from 'lucide-react';
@@ -69,12 +69,34 @@ export default function RetailProductWizardPage() {
   }, [isEdit, existingProduct, editLoaded, updateBasic]);
 
   const saveMutation = useMutation({
-    mutationFn: () => saveRetailWizard(draft),
+    mutationFn: () => {
+      // On edit: if SKU/barcode unchanged from existing product, don't resend them
+      // to avoid false "already exists" errors from unique constraint.
+      let payload = draft;
+      if (isEdit && existingProduct) {
+        const same = (a?: string | null, b?: string | null) => (a ?? '') === (b ?? '');
+        if (same(draft.basic.sku, existingProduct.sku) || same(draft.basic.barcode, existingProduct.barcode)) {
+          payload = {
+            ...draft,
+            basic: {
+              ...draft.basic,
+              sku: same(draft.basic.sku, existingProduct.sku) ? '' : draft.basic.sku,
+              barcode: same(draft.basic.barcode, existingProduct.barcode) ? '' : draft.basic.barcode,
+            },
+          };
+        }
+      }
+      return saveRetailWizard(payload);
+    },
     onSuccess: (result) => {
       setSavedResult(result);
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['retail-products'] });
+      queryClient.invalidateQueries({ queryKey: ['product'] });
       queryClient.invalidateQueries({ queryKey: ['product-units'] });
       queryClient.invalidateQueries({ queryKey: ['product-batches'] });
+      queryClient.invalidateQueries({ queryKey: ['product-variants'] });
+      queryClient.invalidateQueries({ queryKey: ['product-images'] });
       forceRefreshProducts().catch(() => {});
       toast.success(`${result.productName} ${isEdit ? 'updated' : 'created'} — ${result.unitCount} units, ${result.variantCount} variants`);
       if (!isEdit) reset();

@@ -1,0 +1,214 @@
+import { useState, useMemo } from 'react';
+import {
+  X, Banknote, CreditCard, Smartphone, Zap, Building2,
+  Check, Calculator, ArrowRight,
+} from 'lucide-react';
+import { formatPKR } from '@core/lib/format';
+import { BigNumpad } from './BigNumpad';
+import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
+
+interface Props {
+  total: number;
+  itemCount: number;
+  onConfirm: (data: { paymentMethod: PaymentMethod; paidAmount: number; change: number }) => void;
+  onClose: () => void;
+  loading?: boolean;
+}
+
+const METHODS: { value: PaymentMethod; label: string; icon: any; color: string }[] = [
+  { value: 'CASH', label: 'Cash', icon: Banknote, color: 'from-emerald-500 to-green-600' },
+  { value: 'CARD', label: 'Card', icon: CreditCard, color: 'from-blue-500 to-blue-700' },
+  { value: 'JAZZCASH', label: 'JazzCash', icon: Smartphone, color: 'from-orange-500 to-red-600' },
+  { value: 'EASYPAISA', label: 'EasyPaisa', icon: Zap, color: 'from-green-500 to-emerald-600' },
+  { value: 'BANK_TRANSFER', label: 'Bank', icon: Building2, color: 'from-violet-500 to-purple-700' },
+];
+
+const NOTE_PRESETS = [50, 100, 500, 1000, 5000];
+
+export function RetailQuickCash({ total, itemCount, onConfirm, onClose, loading }: Props) {
+  const [method, setMethod] = useState<PaymentMethod>('CASH');
+  const [paidStr, setPaidStr] = useState('');
+  const [showNumpad, setShowNumpad] = useState(false);
+
+  const paid = Number(paidStr) || 0;
+  const change = Math.max(paid - total, 0);
+  const short = Math.max(total - paid, 0);
+
+  const suggestions = useMemo(() => {
+    const s = new Set<number>();
+    s.add(total);
+    NOTE_PRESETS.forEach((note) => {
+      const rounded = Math.ceil(total / note) * note;
+      if (rounded > total && rounded <= total + 5000) s.add(rounded);
+    });
+    return Array.from(s).sort((a, b) => a - b).slice(0, 6);
+  }, [total]);
+
+  return (
+    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3">
+      <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col">
+        <div className="px-6 py-5 bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 text-white shrink-0">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <div className="text-xs uppercase font-extrabold text-white/70 tracking-wider">
+                {itemCount} items • Total dena hai
+              </div>
+              <div className="text-5xl font-extrabold tabular-nums leading-none mt-1">
+                {formatPKR(total)}
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="h-12 w-12 rounded-2xl bg-white/15 hover:bg-white/25 active:scale-95 flex items-center justify-center shrink-0 transition"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div>
+            <div className="text-sm font-extrabold text-slate-700 mb-2 uppercase tracking-wide">
+              Kaise paisay milay?
+            </div>
+            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+              {METHODS.map((m) => {
+                const Icon = m.icon;
+                const active = method === m.value;
+                return (
+                  <button
+                    key={m.value}
+                    onClick={() => setMethod(m.value)}
+                    className={[
+                      'h-[80px] rounded-2xl border-4 transition-all flex flex-col items-center justify-center gap-1 active:scale-95',
+                      active
+                        ? `border-transparent bg-gradient-to-br ${m.color} text-white shadow-lg scale-105`
+                        : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 shadow-sm',
+                    ].join(' ')}
+                  >
+                    <Icon className="h-7 w-7" />
+                    <span className="text-xs font-extrabold">{m.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {method === 'CASH' && (
+            <>
+              <div>
+                <div className="text-sm font-extrabold text-slate-700 mb-2 uppercase tracking-wide">
+                  Kitne paisay diye customer ne?
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {suggestions.map((s) => {
+                    const active = paid === s;
+                    const isExact = s === total;
+                    return (
+                      <button
+                        key={s}
+                        onClick={() => setPaidStr(String(s))}
+                        className={[
+                          'h-[72px] rounded-2xl border-4 font-extrabold tabular-nums transition-all active:scale-95',
+                          active
+                            ? 'border-emerald-600 bg-emerald-600 text-white shadow-lg shadow-emerald-500/40'
+                            : isExact
+                              ? 'border-emerald-300 bg-emerald-50 text-emerald-800 hover:border-emerald-500'
+                              : 'border-slate-200 bg-white text-slate-800 hover:border-emerald-400 shadow-sm',
+                        ].join(' ')}
+                      >
+                        <div className="text-xl leading-none">{formatPKR(s)}</div>
+                        {isExact && (
+                          <div className={['text-[10px] font-extrabold uppercase mt-0.5', active ? 'text-emerald-100' : 'text-emerald-600'].join(' ')}>
+                            Poore paisay
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowNumpad(!showNumpad)}
+                className="w-full h-14 rounded-2xl bg-slate-100 hover:bg-slate-200 active:scale-[0.98] font-extrabold text-slate-700 text-base transition inline-flex items-center justify-center gap-2 border-2 border-slate-200"
+              >
+                <Calculator className="h-5 w-5" />
+                {showNumpad ? 'Numpad chupao' : 'Apna amount likhein'}
+              </button>
+
+              {showNumpad && (
+                <BigNumpad
+                  value={paidStr}
+                  onChange={setPaidStr}
+                  onConfirm={() => setShowNumpad(false)}
+                  allowDecimal={false}
+                  confirmLabel="Set"
+                  size="md"
+                />
+              )}
+
+              {paid > 0 && (
+                <div className={[
+                  'rounded-3xl p-4 border-4',
+                  short > 0
+                    ? 'bg-rose-50 border-rose-400'
+                    : 'bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-400',
+                ].join(' ')}>
+                  {short > 0 ? (
+                    <div className="text-center">
+                      <div className="text-xs uppercase font-extrabold text-rose-700 tracking-wider">Kam paisay</div>
+                      <div className="text-4xl font-extrabold text-rose-700 tabular-nums mt-1">
+                        {formatPKR(short)} kam
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center">
+                      <div className="text-xs uppercase font-extrabold text-amber-800 tracking-wider">
+                        Wapis dena hai (Change)
+                      </div>
+                      <div className="text-5xl font-extrabold text-amber-700 tabular-nums leading-none mt-1">
+                        {formatPKR(change)}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        <div className="p-4 border-t-4 border-slate-100 bg-slate-50 shrink-0">
+          <button
+            onClick={() => onConfirm({
+              paymentMethod: method,
+              paidAmount: method === 'CASH' ? (paid || total) : total,
+              change: method === 'CASH' ? change : 0,
+            })}
+            disabled={loading || (method === 'CASH' && paid > 0 && short > 0)}
+            className={[
+              'w-full h-[76px] rounded-2xl font-extrabold text-2xl text-white shadow-xl transition-all',
+              'bg-gradient-to-r from-emerald-600 to-green-600',
+              'hover:from-emerald-700 hover:to-green-700 active:scale-[0.98]',
+              'disabled:opacity-50 disabled:cursor-not-allowed',
+              'inline-flex items-center justify-center gap-3',
+            ].join(' ')}
+          >
+            {loading ? (
+              <>
+                <div className="h-7 w-7 rounded-full border-4 border-white/30 border-t-white animate-spin" />
+                Sale ho rahi hai...
+              </>
+            ) : (
+              <>
+                <Check className="h-8 w-8" />
+                Sale Complete
+                <ArrowRight className="h-7 w-7" />
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

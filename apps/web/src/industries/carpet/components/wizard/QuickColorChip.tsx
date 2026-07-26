@@ -18,7 +18,7 @@ export function QuickColorChip({ name, hex, active, onClick, size = 'md' }: Prop
       type="button"
       onClick={onClick}
       className={[
-        'inline-flex items-center rounded-lg border-2 font-extrabold transition-all',
+        'inline-flex items-center rounded-lg border-2 font-extrabold transition-all active:scale-95',
         sizeClasses,
         active
           ? 'border-emerald-600 bg-emerald-50 text-emerald-900 shadow-sm ring-2 ring-emerald-200'

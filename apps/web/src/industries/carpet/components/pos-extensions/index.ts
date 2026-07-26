@@ -8,10 +8,6 @@
  * the "canonical carpet POS pieces" in one place.
  */
 
-// UI pieces that the POS shell mounts through IndustryPack slots
-export { CarpetPosHeaderActions } from './CarpetPosHeaderActions';
-export { CarpetPosSearchExtension } from './CarpetPosSearchExtension';
-export { carpetProductClickRouter } from './carpetProductClickRouter';
 
 // Modal / picker components — re-exported from their current locations.
 // When we move them fully into the pack, only this barrel needs to change,

@@ -57,7 +57,7 @@ import OnboardingPage from '@modules/onboarding/pages/OnboardingPage';
 // ─── Catalog / Products ────────────────────────────────────────
 import BrandsPage from '@modules/inventory/brands/pages/BrandsPage';
 import TagsPage from '@modules/inventory/tags/pages/TagsPage';
-import ProductsListPage from '@modules/inventory/products/pages/ProductsListPage';
+import ProductsListGate from '@modules/inventory/products/pages/ProductsListGate';
 import ProductBulkImportPage from '@modules/inventory/products/pages/ProductBulkImportPage';
 import ProductFormPage from '@modules/inventory/products/pages/ProductFormPage';
 import ProductFormGate from '@modules/inventory/products/pages/ProductFormGate';
@@ -153,7 +153,7 @@ import CarpetReportsPage from '@industries/carpet/pages/CarpetReportsPage';
 import CarpetBulkImportPage from '@industries/carpet/pages/CarpetBulkImportPage';
 
 // ─── Retail Industry ───────────────────────────────────────────
-import RetailDashboardPage from '@industries/retail/pages/RetailDashboardPage';
+import RetailDashboardPage from '@/industries/retail/pages/RetailDashboard1';
 import CombosPage from '@industries/retail/pages/CombosPage';
 import ComboFormPage from '@industries/retail/pages/ComboFormPage';
 import DamageLogPage from '@industries/retail/pages/DamageLogPage';
@@ -463,7 +463,7 @@ export default function App() {
                   <Route path="/products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <ProductFormGate />)} />
                   <Route path="/products/:id/imei" element={secure(PERMISSIONS.PRODUCTS_EDIT, <ImeiInventoryPage />)} />
                   <Route path="/products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ProductViewGate />)} />
-                  <Route path="/products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ProductsListPage />)} />
+                  <Route path="/products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ProductsListGate />)} />
 
                   <Route path="/catalog" element={secure(PERMISSIONS.PRODUCTS_VIEW, <CatalogGate />)} />
                   <Route path="/brands" element={secure(PERMISSIONS.BRANDS_VIEW, <BrandsPage />)} />

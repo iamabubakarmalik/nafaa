@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import PosPage from './PosPage';
 
+const RetailPosPage = lazy(() => import('@industries/retail/pages/RetailPosPage'));
 const RestaurantPosPage = lazy(() => import('@industries/restaurant/pages/RestaurantPosPage'));
 const MobilePosPage = lazy(() => import('@industries/mobile/pages/MobilePosPage'));
 const CarpetPosPage = lazy(() => import('@industries/carpet/pages/CarpetPosPage'));
@@ -50,6 +51,9 @@ export default function PosGate() {
   if (industry?.id === 'bookstore') return <Suspense fallback={<Loader />}><BookstorePosPage /></Suspense>;
   if (industry?.id === 'salon') return <Suspense fallback={<Loader />}><SalonPosPage /></Suspense>;
   if (industry?.id === 'hotel') return <Suspense fallback={<Loader />}><HotelPosPage /></Suspense>;
+  if (industry?.id === 'retail') return <Suspense fallback={<Loader />}><RetailPosPage /></Suspense>;
 
   return <PosPage />;
+
 }
+

@@ -2,10 +2,10 @@ import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useMutation } from '@tanstack/react-query';
-import { Phone, ArrowLeft, RefreshCw } from 'lucide-react';
-import { authApi, OtpPurpose } from '../api/auth.api';
+import { Phone, ArrowLeft, RefreshCw, Lock, ArrowRight } from 'lucide-react';
+import { authApi } from '../api/auth.api';
 import { useAuthStore } from '@/stores/auth.store';
-import { Button, Card } from '@/ui';
+import { Button, Card, Input } from '@/ui';
 import { toast } from 'sonner';
 import { cn } from '@/lib/cn';
 
@@ -18,19 +18,26 @@ export default function VerifyOtpPage() {
   const setSession = useAuthStore((s) => s.setSession);
 
   const state = (location.state || {}) as any;
-  const phone: string = state.phone;
-  const purpose: OtpPurpose = state.purpose || 'LOGIN';
-  const fullName: string | undefined = state.fullName;
-  const referralCode: string | undefined = state.referralCode;
+  const phone = state.phone;
+  const purpose = state.purpose || 'LOGIN';
+  const fullName = state.fullName;
+  const referralCode = state.referralCode;
   const from = state.from || '/';
+  const isReset = state.isReset || purpose === 'RESET_PASSWORD';
 
   const [digits, setDigits] = useState<string[]>(new Array(OTP_LENGTH).fill(''));
   const [resendIn, setResendIn] = useState(RESEND_TIMEOUT);
+  const [verifiedForReset, setVerifiedForReset] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
-    if (!phone) navigate('/login');
-    else inputsRef.current[0]?.focus();
+    if (!phone) {
+      navigate('/login');
+      return;
+    }
+    inputsRef.current[0]?.focus();
   }, [phone]);
 
   useEffect(() => {
@@ -40,22 +47,26 @@ export default function VerifyOtpPage() {
   }, [resendIn]);
 
   const verifyMutation = useMutation({
-    mutationFn: () => authApi.verifyOtp({
-      phone,
-      code: digits.join(''),
-      purpose,
-      fullName,
-      referralCode,
-    }),
-    onSuccess: (data) => {
-      // For LOGIN and REGISTER → response contains tokens
-      if (data.tokens?.accessToken) {
+    mutationFn: () => {
+      const code = digits.join('');
+      return authApi.verifyOtp({
+        phone,
+        code,
+        purpose,
+        fullName,
+        referralCode,
+      });
+    },
+    onSuccess: (data: any) => {
+      if (isReset) {
+        setVerifiedForReset(true);
+        toast.success('Code verified! Set your new password');
+        return;
+      }
+      // Regular login/register flow
+      if (data.customer && data.tokens) {
         setSession(data.customer, data.tokens);
         toast.success(`Welcome, ${data.customer.fullName}! 🎉`);
-        navigate(from, { replace: true });
-      } else {
-        // For VERIFY_PHONE or others
-        toast.success('Verified ✅');
         navigate(from, { replace: true });
       }
     },
@@ -68,13 +79,26 @@ export default function VerifyOtpPage() {
 
   const resendMutation = useMutation({
     mutationFn: () => authApi.sendOtp({ phone, purpose }),
-    onSuccess: (r) => {
-      toast.success('New OTP sent 📱');
-      if (r.devCode) toast.info(`Dev OTP: ${r.devCode}`);
+    onSuccess: (r: any) => {
+      toast.success('New OTP sent! 📱');
+      if (r?.devCode) {
+        toast.info(`Dev OTP: ${r.devCode}`, { duration: 10000 });
+      }
       setResendIn(RESEND_TIMEOUT);
       setDigits(new Array(OTP_LENGTH).fill(''));
       inputsRef.current[0]?.focus();
     },
+  });
+
+  const resetPasswordMutation = useMutation({
+    mutationFn: () =>
+      authApi.resetPassword(phone, digits.join(''), newPassword),
+    onSuccess: () => {
+      toast.success('Password reset! You can now login 🎉');
+      navigate('/login', { replace: true });
+    },
+    onError: (e: any) =>
+      toast.error(e?.response?.data?.message || 'Reset failed'),
   });
 
   const handleChange = (i: number, val: string) => {
@@ -96,18 +120,111 @@ export default function VerifyOtpPage() {
 
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const paste = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, OTP_LENGTH);
-    const next = paste.split('').concat(new Array(OTP_LENGTH - paste.length).fill(''));
+    const paste = e.clipboardData
+      .getData('text')
+      .replace(/\D/g, '')
+      .slice(0, OTP_LENGTH);
+    const next = paste
+      .split('')
+      .concat(new Array(OTP_LENGTH - paste.length).fill(''));
     setDigits(next);
     inputsRef.current[Math.min(paste.length, OTP_LENGTH - 1)]?.focus();
     if (next.every((d) => d)) setTimeout(() => verifyMutation.mutate(), 100);
   };
 
-  const maskedPhone = phone?.replace(/(\+92|0)(\d{3})(\d+)(\d{2})/, '$1$2****$4');
+  const maskedPhone = phone?.replace(
+    /(\+92|0)(\d{3})(\d+)(\d{2})/,
+    '$1$2****$4',
+  );
+
+  // Reset password step
+  if (verifiedForReset) {
+    return (
+      <>
+        <Helmet>
+          <title>Set new password — Nafaa Bazaar</title>
+        </Helmet>
+        <div className="min-h-screen-dvh flex items-center justify-center bg-gradient-mesh p-4">
+          <div className="w-full max-w-md">
+            <Card className="p-6 md:p-8 shadow-soft-lg space-y-5">
+              <div className="text-center">
+                <div className="h-16 w-16 mx-auto rounded-3xl bg-gradient-brand flex items-center justify-center shadow-brand mb-4">
+                  <Lock className="h-7 w-7 text-white" />
+                </div>
+                <h1 className="text-2xl font-black">Set new password</h1>
+                <p className="text-sm text-content-muted mt-2">
+                  Choose a strong password
+                </p>
+              </div>
+
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (newPassword !== confirmPassword) {
+                    toast.error('Passwords do not match');
+                    return;
+                  }
+                  if (newPassword.length < 6) {
+                    toast.error('Password must be at least 6 characters');
+                    return;
+                  }
+                  resetPasswordMutation.mutate();
+                }}
+                className="space-y-4"
+              >
+                <Input
+                  label="New password"
+                  type="password"
+                  placeholder="At least 6 characters"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  leftIcon={<Lock className="h-4 w-4" />}
+                  inputSize="lg"
+                  required
+                />
+                <Input
+                  label="Confirm password"
+                  type="password"
+                  placeholder="Same password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  leftIcon={<Lock className="h-4 w-4" />}
+                  inputSize="lg"
+                  error={
+                    confirmPassword && newPassword !== confirmPassword
+                      ? 'Passwords do not match'
+                      : undefined
+                  }
+                  required
+                />
+                <Button
+                  type="submit"
+                  variant="gradient"
+                  size="lg"
+                  fullWidth
+                  loading={resetPasswordMutation.isPending}
+                  disabled={
+                    !newPassword ||
+                    newPassword !== confirmPassword ||
+                    newPassword.length < 6
+                  }
+                  rightIcon={<ArrowRight className="h-5 w-5" />}
+                >
+                  Reset password
+                </Button>
+              </form>
+            </Card>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
-      <Helmet><title>Verify OTP — Nafaa Bazaar</title></Helmet>
+      <Helmet>
+        <title>Verify OTP — Nafaa Bazaar</title>
+      </Helmet>
 
       <div className="min-h-screen-dvh flex items-center justify-center bg-gradient-mesh p-4">
         <div className="fixed inset-0 -z-10 overflow-hidden">
@@ -128,16 +245,27 @@ export default function VerifyOtpPage() {
               <div className="h-16 w-16 mx-auto rounded-3xl bg-gradient-brand flex items-center justify-center shadow-brand mb-4">
                 <Phone className="h-7 w-7 text-white" />
               </div>
-              <h1 className="text-2xl md:text-3xl font-black">Verify your phone</h1>
-              <p className="text-sm text-content-muted mt-2">We sent a 6-digit code to</p>
-              <p className="text-sm font-black text-content mt-1">{maskedPhone}</p>
+              <h1 className="text-2xl md:text-3xl font-black">
+                {isReset ? 'Verify OTP to reset' : 'Verify your phone'}
+              </h1>
+              <p className="text-sm text-content-muted mt-2">
+                We sent a 6-digit code to
+              </p>
+              <p className="text-sm font-black text-content mt-1">
+                {maskedPhone}
+              </p>
             </div>
 
-            <div className="flex justify-center gap-2 md:gap-3" onPaste={handlePaste}>
+            <div
+              className="flex justify-center gap-2 md:gap-3"
+              onPaste={handlePaste}
+            >
               {digits.map((d, i) => (
                 <input
                   key={i}
-                  ref={(el) => { inputsRef.current[i] = el; }}
+                  ref={(el) => {
+                    inputsRef.current[i] = el;
+                  }}
                   type="tel"
                   inputMode="numeric"
                   maxLength={1}
@@ -167,7 +295,8 @@ export default function VerifyOtpPage() {
             <div className="text-center">
               {resendIn > 0 ? (
                 <p className="text-xs text-content-muted">
-                  Resend code in <span className="font-black text-content">{resendIn}s</span>
+                  Resend code in{' '}
+                  <span className="font-black text-content">{resendIn}s</span>
                 </p>
               ) : (
                 <button
@@ -175,10 +304,19 @@ export default function VerifyOtpPage() {
                   disabled={resendMutation.isPending}
                   className="text-sm font-black text-brand-600 dark:text-brand-400 hover:underline inline-flex items-center gap-1"
                 >
-                  <RefreshCw className={cn('h-3.5 w-3.5', resendMutation.isPending && 'animate-spin')} />
+                  <RefreshCw
+                    className={cn(
+                      'h-3.5 w-3.5',
+                      resendMutation.isPending && 'animate-spin',
+                    )}
+                  />
                   Resend code
                 </button>
               )}
+            </div>
+
+            <div className="text-center text-2xs text-content-muted">
+              Didn't get the code? Check your SMS and spam folder
             </div>
           </Card>
         </div>

@@ -58,13 +58,13 @@ interface StatCardProps {
   icon: any;
   color: string;
   isHighlight?: boolean;
+  onClick?: () => void;
 }
 
-export function CustomerStatCard({ label, value, sub, icon: Icon, color, isHighlight }: StatCardProps) {
-  return (
-    <div className={`rounded-2xl border-2 p-5 shadow-sm ${
+export function CustomerStatCard({ label, value, sub, icon: Icon, color, isHighlight, onClick}: StatCardProps) {
+  return (<div className={`rounded-2xl border-2 p-5 shadow-sm ${
       isHighlight ? 'bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-300' : 'bg-white border-slate-200'
-    }`}>
+    }`} onClick={onClick} style={{ cursor: onClick ? 'pointer' : undefined }}>
       <div className="flex items-center justify-between">
         <div>
           <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>

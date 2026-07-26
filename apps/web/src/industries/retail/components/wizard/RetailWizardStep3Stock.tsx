@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import {
-  ShoppingBag, Plus, Trash2, AlertCircle, Info, ToggleLeft, ToggleRight,
-  Boxes, Package, Calendar, MapPin, Hash, DollarSign,
-  Copy, AlertTriangle,
+  ShoppingBag, Plus, Trash2, AlertCircle, ToggleLeft, ToggleRight,
+  Boxes, Package, Calendar, MapPin, AlertTriangle, Sparkles,
+  CheckCircle2, Info,
 } from 'lucide-react';
 import { Input } from '@core/ui/Input';
 import { formatPKRFull } from '@core/lib/format';
@@ -29,6 +29,14 @@ interface Props {
   errors: string[];
 }
 
+const QUICK_STOCK = [10, 25, 50, 100, 200, 500];
+const VARIANT_PRESETS = [
+  { group: 'Flavor', items: ['Chocolate', 'Vanilla', 'Strawberry', 'Mango'] },
+  { group: 'Size', items: ['Small', 'Medium', 'Large', 'Extra Large'] },
+  { group: 'Pack', items: ['100g', '250g', '500g', '1kg'] },
+  { group: 'Color', items: ['Red', 'Blue', 'Green', 'Black'] },
+];
+
 export function RetailWizardStep3Stock({
   basic, hasVariants, onToggleVariants, trackBatches, onToggleBatches,
   variants, batches, stock,
@@ -36,43 +44,49 @@ export function RetailWizardStep3Stock({
   onAddBatch, onUpdateBatch, onRemoveBatch,
   onUpdateStock, errors,
 }: Props) {
-  const [customVariantName, setCustomVariantName] = useState('');
+  const [vName, setVName] = useState('');
+  const U = basic.baseUnit || 'pcs';
+  const sale = Number(basic.salePrice || 0);
 
-  const addCustomVariant = () => {
-    const name = customVariantName.trim();
-    if (!name) return;
-    onAddVariant({
-      name,
-      stock: 0,
-      lowStockAlert: 5,
-    });
-    setCustomVariantName('');
+  const addVariant = (name: string) => {
+    const n = name.trim();
+    if (!n) return;
+    if (variants.some((v) => v.name.toLowerCase() === n.toLowerCase())) return;
+    onAddVariant({ name: n, stock: 0, lowStockAlert: 5 });
+    setVName('');
   };
+
+  const totalVariantStock = variants.reduce((a, v) => a + Number(v.stock || 0), 0);
+  const totalBatchQty = batches.reduce((a, b) => a + Number(b.quantity || 0), 0);
+  const displayStock = hasVariants ? totalVariantStock : trackBatches ? totalBatchQty : Number(stock.currentStock || 0);
+  const stockValue = displayStock * sale;
 
   return (
     <div className="space-y-5">
       {errors.length > 0 && (
-        <div className="rounded-2xl bg-rose-50 border-2 border-rose-200 p-3 flex items-start gap-2">
-          <AlertCircle className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
-          <div className="text-xs text-rose-900">
-            <div className="font-extrabold mb-0.5">Fix before saving:</div>
-            <ul className="list-disc pl-4 space-y-0.5">
+        <div className="rounded-2xl bg-rose-50 border-2 border-rose-300 p-4 flex items-start gap-2.5">
+          <AlertCircle className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
+          <div className="text-sm text-rose-900">
+            <div className="font-extrabold mb-1">Save se pehle ye theek karein:</div>
+            <ul className="list-disc pl-4 space-y-0.5 font-semibold">
               {errors.slice(0, 6).map((e, i) => <li key={i}>{e}</li>)}
-              {errors.length > 6 && <li>...and {errors.length - 6} more</li>}
+              {errors.length > 6 && <li>...aur {errors.length - 6} aur</li>}
             </ul>
           </div>
         </div>
       )}
 
+      {/* Header info */}
       <div className="rounded-2xl bg-gradient-to-br from-sky-50 to-white border-2 border-sky-200 p-4 flex items-start gap-3">
-        <div className="h-10 w-10 rounded-xl bg-sky-600 text-white flex items-center justify-center shadow-md shrink-0">
+        <div className="h-11 w-11 rounded-xl bg-sky-600 text-white flex items-center justify-center shadow-md shrink-0">
           <ShoppingBag className="h-5 w-5" />
         </div>
-        <div className="flex-1">
-          <h3 className="font-extrabold text-sky-900 text-sm">Stock Entry</h3>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-extrabold text-sky-900">Stock ki entry — 3 tareeqay</h3>
           <p className="text-xs text-sky-800 font-semibold mt-0.5 leading-relaxed">
-            Simple stock, variants (flavors/sizes), ya batches (expiry). Zyada kirana products ke liye sirf
-            <strong> Simple Stock</strong> kaafi hai.
+            <strong>Simple:</strong> Ek ginti likho (zyadatar kirana). {' '}
+            <strong>Variants:</strong> alag alag flavor/size ka apna stock. {' '}
+            <strong>Batches:</strong> expiry wale (medicine, dairy).
           </p>
         </div>
       </div>
@@ -80,121 +94,147 @@ export function RetailWizardStep3Stock({
       {/* Toggles */}
       <section className="grid sm:grid-cols-2 gap-3">
         <button type="button" onClick={() => onToggleVariants(!hasVariants)}
-          className={[
-            'rounded-2xl border-2 p-4 text-left transition',
-            hasVariants ? 'border-violet-500 bg-violet-50' : 'border-slate-200 bg-white hover:border-violet-300',
-          ].join(' ')}>
+          className={['rounded-2xl border-2 p-4 text-left transition', hasVariants ? 'border-violet-500 bg-violet-50 shadow-md' : 'border-slate-200 bg-white hover:border-violet-300'].join(' ')}>
           <div className="flex items-center gap-3">
-            <div className={[
-              'h-10 w-10 rounded-xl flex items-center justify-center shrink-0',
-              hasVariants ? 'bg-violet-500 text-white' : 'bg-violet-100 text-violet-700',
-            ].join(' ')}>
+            <div className={['h-11 w-11 rounded-xl flex items-center justify-center shrink-0', hasVariants ? 'bg-violet-500 text-white' : 'bg-violet-100 text-violet-700'].join(' ')}>
               <Boxes className="h-5 w-5" />
             </div>
             <div className="flex-1">
-              <div className="font-extrabold text-slate-900 text-sm">Variants (Flavor/Size)</div>
-              <div className="text-[11px] text-slate-600 font-semibold">Chocolate/Vanilla, Small/Large</div>
+              <div className="font-extrabold text-slate-900 text-sm">Variants (flavor/size)</div>
+              <div className="text-[11px] text-slate-600 font-semibold">Chocolate/Vanilla, S/M/L</div>
             </div>
-            {hasVariants ? <ToggleRight className="h-5 w-5 text-violet-600" /> : <ToggleLeft className="h-5 w-5 text-slate-400" />}
+            {hasVariants ? <ToggleRight className="h-6 w-6 text-violet-600" /> : <ToggleLeft className="h-6 w-6 text-slate-400" />}
           </div>
         </button>
 
         <button type="button" onClick={() => onToggleBatches(!trackBatches)}
-          className={[
-            'rounded-2xl border-2 p-4 text-left transition',
-            trackBatches ? 'border-amber-500 bg-amber-50' : 'border-slate-200 bg-white hover:border-amber-300',
-          ].join(' ')}>
+          className={['rounded-2xl border-2 p-4 text-left transition', trackBatches ? 'border-amber-500 bg-amber-50 shadow-md' : 'border-slate-200 bg-white hover:border-amber-300'].join(' ')}>
           <div className="flex items-center gap-3">
-            <div className={[
-              'h-10 w-10 rounded-xl flex items-center justify-center shrink-0',
-              trackBatches ? 'bg-amber-500 text-white' : 'bg-amber-100 text-amber-700',
-            ].join(' ')}>
+            <div className={['h-11 w-11 rounded-xl flex items-center justify-center shrink-0', trackBatches ? 'bg-amber-500 text-white' : 'bg-amber-100 text-amber-700'].join(' ')}>
               <Calendar className="h-5 w-5" />
             </div>
             <div className="flex-1">
               <div className="font-extrabold text-slate-900 text-sm">Batches / Expiry</div>
-              <div className="text-[11px] text-slate-600 font-semibold">Perishable goods, medicine</div>
+              <div className="text-[11px] text-slate-600 font-semibold">Dawai, dairy, kharaab hone wale</div>
             </div>
-            {trackBatches ? <ToggleRight className="h-5 w-5 text-amber-600" /> : <ToggleLeft className="h-5 w-5 text-slate-400" />}
+            {trackBatches ? <ToggleRight className="h-6 w-6 text-amber-600" /> : <ToggleLeft className="h-6 w-6 text-slate-400" />}
           </div>
         </button>
       </section>
 
-      {/* Simple stock (when no variants & no batches) */}
+      {/* SIMPLE STOCK */}
       {!hasVariants && !trackBatches && (
-        <section className="rounded-2xl border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-5 space-y-4">
+        <section className="rounded-2xl border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 to-white p-5 space-y-4">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md">
+            <div className="h-11 w-11 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md">
               <Package className="h-5 w-5" />
             </div>
             <div>
               <h3 className="font-extrabold text-emerald-900 text-base">Simple Stock</h3>
-              <p className="text-xs text-emerald-700 font-semibold">Ek entry — quick add</p>
+              <p className="text-xs text-emerald-700 font-semibold">Ek ginti kaafi hai</p>
             </div>
           </div>
 
-          <div className="grid sm:grid-cols-3 gap-4">
-            <Input label={`Current Stock (${basic.baseUnit || 'units'})`} type="number" step="0.01"
+          <div>
+            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-1.5">
+              Abhi kitna maal hai? ({U})
+            </label>
+            <input
+              type="number" step="0.01" inputMode="decimal"
               value={stock.currentStock}
               onChange={(e) => onUpdateStock({ currentStock: Number(e.target.value || 0) })}
-              hint="Kitna abhi hai" />
-            <Input label="Low Stock Alert" type="number" step="1"
-              value={stock.lowStockAlert}
-              onChange={(e) => onUpdateStock({ lowStockAlert: Number(e.target.value || 0) })}
-              hint="Neeche is se → alert" />
-            <Input label="Rack / Location" value={stock.rackNumber}
-              onChange={(e) => onUpdateStock({ rackNumber: e.target.value })}
-              placeholder="Rack-A, Shelf-3"
-              leftIcon={<MapPin className="h-4 w-4 text-slate-400" />} />
+              className="h-16 w-full rounded-2xl border-2 border-emerald-400 bg-white px-4 text-center text-3xl font-extrabold tabular-nums text-emerald-900 focus:outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-200"
+            />
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {QUICK_STOCK.map((q) => (
+                <button key={q} type="button" onClick={() => onUpdateStock({ currentStock: Number(stock.currentStock || 0) + q })}
+                  className="px-3 py-1.5 rounded-xl bg-white border-2 border-emerald-200 hover:border-emerald-400 text-emerald-800 text-xs font-extrabold">
+                  +{q}
+                </button>
+              ))}
+              <button type="button" onClick={() => onUpdateStock({ currentStock: 0 })}
+                className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-extrabold">
+                Reset
+              </button>
+            </div>
           </div>
 
-          {stock.currentStock > 0 && Number(basic.salePrice || 0) > 0 && (
-            <div className="rounded-xl bg-white border-2 border-emerald-200 p-3 flex items-center justify-between">
-              <div>
-                <div className="text-[10px] uppercase tracking-wider font-extrabold text-emerald-700">Stock Value</div>
-                <div className="text-lg font-extrabold text-emerald-900 tabular-nums">
-                  {formatPKRFull(stock.currentStock * Number(basic.salePrice || 0))}
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500">Units</div>
-                <div className="text-lg font-extrabold text-emerald-700 tabular-nums">
-                  {stock.currentStock} {basic.baseUnit}
-                </div>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-1.5">
+                Kam ka alert
+              </label>
+              <input type="number" step="1" value={stock.lowStockAlert}
+                onChange={(e) => onUpdateStock({ lowStockAlert: Number(e.target.value || 0) })}
+                className="h-12 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
+              <p className="text-[11px] text-slate-500 font-bold mt-1">Neeche is se → warning</p>
+            </div>
+            <div>
+              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-1.5">
+                Rack / Location <span className="text-slate-400 normal-case font-bold">(optional)</span>
+              </label>
+              <div className="relative">
+                <MapPin className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input value={stock.rackNumber} onChange={(e) => onUpdateStock({ rackNumber: e.target.value })}
+                  placeholder="Rack-A, Shelf-3"
+                  className="h-12 w-full rounded-xl border-2 border-slate-200 pl-10 pr-3 text-sm font-bold focus:outline-none focus:border-sky-500" />
               </div>
             </div>
-          )}
+          </div>
         </section>
       )}
 
-      {/* Variants */}
+      {/* VARIANTS */}
       {hasVariants && (
-        <section className="rounded-2xl border-2 border-violet-200 bg-gradient-to-br from-violet-50 to-white p-5 space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-violet-600 text-white flex items-center justify-center shadow-md">
+        <section className="rounded-2xl border-2 border-violet-300 bg-gradient-to-br from-violet-50 to-white p-5 space-y-4">
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="h-11 w-11 rounded-xl bg-violet-600 text-white flex items-center justify-center shadow-md shrink-0">
               <Boxes className="h-5 w-5" />
             </div>
             <div className="flex-1">
               <h3 className="font-extrabold text-violet-900 text-base">Variants</h3>
-              <p className="text-xs text-violet-700 font-semibold">Alag names/sizes, alag stock</p>
+              <p className="text-xs text-violet-700 font-semibold">Alag naam, alag stock</p>
             </div>
-            <span className="px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[10px] font-extrabold">
-              {variants.length}
+            <span className="px-2.5 py-1 rounded-lg bg-violet-100 text-violet-800 text-[10px] font-extrabold">
+              {variants.length} variants • total {totalVariantStock} {U}
             </span>
           </div>
 
+          {/* Presets */}
+          <div className="rounded-xl bg-white border-2 border-violet-200 p-3 space-y-2">
+            <div className="text-[10px] uppercase tracking-wider font-extrabold text-violet-700 flex items-center gap-1">
+              <Sparkles className="h-3 w-3 text-amber-500" /> Aam variants — click karke add
+            </div>
+            {VARIANT_PRESETS.map((grp) => (
+              <div key={grp.group} className="flex items-center gap-2 flex-wrap">
+                <span className="text-[10px] font-extrabold uppercase text-slate-500 min-w-[45px]">{grp.group}:</span>
+                {grp.items.map((it) => {
+                  const ex = variants.some((v) => v.name.toLowerCase() === it.toLowerCase());
+                  return (
+                    <button key={it} type="button" disabled={ex} onClick={() => addVariant(it)}
+                      className={['px-2.5 py-1 rounded-lg border-2 text-[11px] font-extrabold transition disabled:opacity-40 disabled:cursor-not-allowed',
+                        ex ? 'border-emerald-300 bg-emerald-50 text-emerald-800' : 'border-slate-200 bg-white text-slate-700 hover:border-violet-400'].join(' ')}>
+                      {ex ? '✓ ' : '+ '}{it}
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+
+          {/* Custom */}
           <div className="grid sm:grid-cols-[1fr_auto] gap-2 items-end">
-            <Input label="Variant Name" value={customVariantName}
-              onChange={(e) => setCustomVariantName(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && addCustomVariant()}
-              placeholder="e.g. Chocolate, 500ml, Large" />
-            <button type="button" onClick={addCustomVariant}
-              disabled={!customVariantName.trim()}
+            <Input label="Ya apna variant likhein" value={vName}
+              onChange={(e) => setVName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && addVariant(vName)}
+              placeholder="e.g. 250ml Pepsi" />
+            <button type="button" onClick={() => addVariant(vName)} disabled={!vName.trim()}
               className="h-11 px-5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-extrabold text-sm inline-flex items-center gap-1 disabled:opacity-50 shadow-md">
-              <Plus className="h-4 w-4" /> Add Variant
+              <Plus className="h-4 w-4" /> Add
             </button>
           </div>
 
+          {/* List */}
           {variants.length > 0 ? (
             <div className="space-y-2">
               {variants.map((v) => (
@@ -203,50 +243,39 @@ export function RetailWizardStep3Stock({
                     <div className="h-10 w-10 rounded-lg bg-violet-100 text-violet-700 flex items-center justify-center shrink-0">
                       <Boxes className="h-5 w-5" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <input value={v.name}
-                        onChange={(e) => onUpdateVariant(v.tempId, { name: e.target.value })}
-                        className="w-full text-sm font-extrabold text-slate-900 bg-transparent focus:outline-none focus:bg-slate-50 rounded px-1" />
-                    </div>
+                    <input value={v.name} onChange={(e) => onUpdateVariant(v.tempId, { name: e.target.value })}
+                      className="flex-1 min-w-0 text-sm font-extrabold text-slate-900 bg-transparent focus:outline-none focus:bg-slate-50 rounded px-1" />
                     <button type="button" onClick={() => onRemoveVariant(v.tempId)}
-                      className="h-8 w-8 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                      className="h-9 w-9 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div>
+                      <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1">Stock ({U})</label>
+                      <input type="number" step="0.01" value={v.stock}
+                        onChange={(e) => onUpdateVariant(v.tempId, { stock: Number(e.target.value || 0) })}
+                        className="h-10 w-full rounded-lg border-2 border-slate-200 px-2 text-sm font-extrabold tabular-nums focus:outline-none focus:border-sky-500" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-extrabold text-emerald-700 uppercase mb-1">Rate override</label>
+                      <input type="number" step="0.01" value={v.priceOverride ?? ''}
+                        onChange={(e) => onUpdateVariant(v.tempId, { priceOverride: e.target.value === '' ? undefined : Number(e.target.value) })}
+                        placeholder={String(sale)}
+                        className="h-10 w-full rounded-lg border-2 border-emerald-200 px-2 text-sm font-bold tabular-nums focus:outline-none focus:border-emerald-500" />
+                    </div>
                     <div>
                       <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1">SKU</label>
-                      <input value={v.sku ?? ''}
-                        onChange={(e) => onUpdateVariant(v.tempId, { sku: e.target.value })}
+                      <input value={v.sku ?? ''} onChange={(e) => onUpdateVariant(v.tempId, { sku: e.target.value })}
                         placeholder="Optional"
-                        className="h-9 w-full rounded-lg border-2 border-slate-200 px-2 text-xs font-mono font-bold focus:outline-none focus:border-violet-500" />
+                        className="h-10 w-full rounded-lg border-2 border-slate-200 px-2 text-xs font-mono font-bold focus:outline-none focus:border-sky-500" />
                     </div>
                     <div>
                       <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1">Barcode</label>
-                      <input value={v.barcode ?? ''}
-                        onChange={(e) => onUpdateVariant(v.tempId, { barcode: e.target.value })}
+                      <input value={v.barcode ?? ''} onChange={(e) => onUpdateVariant(v.tempId, { barcode: e.target.value })}
                         placeholder="Optional"
-                        className="h-9 w-full rounded-lg border-2 border-slate-200 px-2 text-xs font-mono font-bold focus:outline-none focus:border-violet-500" />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1">Price Override</label>
-                      <input type="number" step="0.01" value={v.priceOverride ?? ''}
-                        onChange={(e) => onUpdateVariant(v.tempId, { priceOverride: e.target.value === '' ? undefined : Number(e.target.value) })}
-                        placeholder={String(basic.salePrice || 0)}
-                        className="h-9 w-full rounded-lg border-2 border-emerald-200 px-2 text-xs font-bold tabular-nums focus:outline-none focus:border-emerald-500" />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1">Stock</label>
-                      <input type="number" step="0.01" value={v.stock}
-                        onChange={(e) => onUpdateVariant(v.tempId, { stock: Number(e.target.value || 0) })}
-                        className="h-9 w-full rounded-lg border-2 border-slate-200 px-2 text-xs font-bold tabular-nums focus:outline-none focus:border-sky-500" />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1">Low Alert</label>
-                      <input type="number" step="1" value={v.lowStockAlert}
-                        onChange={(e) => onUpdateVariant(v.tempId, { lowStockAlert: Number(e.target.value || 0) })}
-                        className="h-9 w-full rounded-lg border-2 border-slate-200 px-2 text-xs font-bold tabular-nums focus:outline-none focus:border-amber-500" />
+                        className="h-10 w-full rounded-lg border-2 border-slate-200 px-2 text-xs font-mono font-bold focus:outline-none focus:border-sky-500" />
                     </div>
                   </div>
                 </div>
@@ -254,100 +283,130 @@ export function RetailWizardStep3Stock({
             </div>
           ) : (
             <div className="rounded-xl border-2 border-dashed border-violet-300 bg-white p-6 text-center">
-              <Boxes className="h-8 w-8 text-violet-400 mx-auto mb-2" />
-              <div className="text-sm font-extrabold text-slate-700">No variants added</div>
-              <div className="text-xs text-slate-500 font-semibold mt-1">Add karo ya switch off</div>
+              <Boxes className="h-10 w-10 text-violet-400 mx-auto mb-2" />
+              <div className="text-sm font-extrabold text-slate-700">Abhi koi variant nahi</div>
+              <div className="text-xs text-slate-500 font-semibold mt-1">Upar se preset click karo ya custom likho</div>
             </div>
           )}
         </section>
       )}
 
-      {/* Batches */}
+      {/* BATCHES */}
       {trackBatches && (
-        <section className="rounded-2xl border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-white p-5 space-y-4">
+        <section className="rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-white p-5 space-y-4">
           <div className="flex items-center gap-3 flex-wrap">
-            <div className="h-10 w-10 rounded-xl bg-amber-600 text-white flex items-center justify-center shadow-md">
+            <div className="h-11 w-11 rounded-xl bg-amber-600 text-white flex items-center justify-center shadow-md">
               <Calendar className="h-5 w-5" />
             </div>
             <div className="flex-1">
-              <h3 className="font-extrabold text-amber-900 text-base">Batches / Expiry Tracking</h3>
-              <p className="text-xs text-amber-700 font-semibold">Perishable goods manage karo</p>
+              <h3 className="font-extrabold text-amber-900 text-base">Batches / Expiry</h3>
+              <p className="text-xs text-amber-700 font-semibold">Har batch ki expiry track karo</p>
             </div>
             <button type="button" onClick={() => onAddBatch(null)}
-              className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-extrabold inline-flex items-center gap-1 shadow-sm">
-              <Plus className="h-3.5 w-3.5" /> Add Batch
+              className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-extrabold inline-flex items-center gap-1 shadow-md">
+              <Plus className="h-4 w-4" /> Batch Add
             </button>
           </div>
 
           {batches.length > 0 ? (
-            <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-              <table className="w-full text-xs">
-                <thead className="bg-slate-50">
-                  <tr>
-                    <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">Batch #</th>
-                    <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">Mfg Date</th>
-                    <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">Expiry</th>
-                    <th className="px-2 py-2 text-right font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">Qty</th>
-                    <th className="px-2 py-2 text-right font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">Cost</th>
-                    <th className="px-2 py-2"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {batches.map((b) => {
-                    const isExpiringSoon = b.expiryDate && new Date(b.expiryDate).getTime() - Date.now() < 30 * 24 * 60 * 60 * 1000;
-                    return (
-                      <tr key={b.tempId} className="hover:bg-slate-50/50">
-                        <td className="px-2 py-1.5">
-                          <input value={b.batchNumber}
-                            onChange={(e) => onUpdateBatch(b.tempId, { batchNumber: e.target.value })}
-                            className="w-24 h-8 rounded-lg border-2 border-slate-200 px-2 text-xs font-mono font-bold focus:outline-none focus:border-amber-500" />
-                        </td>
-                        <td className="px-2 py-1.5">
-                          <input type="date" value={b.manufactureDate ?? ''}
-                            onChange={(e) => onUpdateBatch(b.tempId, { manufactureDate: e.target.value })}
-                            className="w-32 h-8 rounded-lg border-2 border-slate-200 px-2 text-xs font-bold focus:outline-none focus:border-amber-500" />
-                        </td>
-                        <td className="px-2 py-1.5">
-                          <div className="flex items-center gap-1">
-                            <input type="date" value={b.expiryDate ?? ''}
-                              onChange={(e) => onUpdateBatch(b.tempId, { expiryDate: e.target.value })}
-                              className={[
-                                'w-32 h-8 rounded-lg border-2 px-2 text-xs font-bold focus:outline-none',
-                                isExpiringSoon ? 'border-rose-300 bg-rose-50 text-rose-900 focus:border-rose-500'
-                                  : 'border-slate-200 focus:border-amber-500',
-                              ].join(' ')} />
-                            {isExpiringSoon && <AlertTriangle className="h-3.5 w-3.5 text-rose-600" />}
-                          </div>
-                        </td>
-                        <td className="px-2 py-1.5">
+            <div className="space-y-2">
+              {batches.map((b) => {
+                const days = b.expiryDate ? (new Date(b.expiryDate).getTime() - Date.now()) / 86400000 : null;
+                const expired = days !== null && days < 0;
+                const soon = days !== null && days >= 0 && days <= 30;
+                return (
+                  <div key={b.tempId} className={['rounded-xl border-2 p-3 space-y-2',
+                    expired ? 'border-rose-300 bg-rose-50' : soon ? 'border-amber-300 bg-amber-50' : 'border-slate-200 bg-white'].join(' ')}>
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 items-end">
+                      <div className="sm:col-span-2">
+                        <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1">Batch Number</label>
+                        <input value={b.batchNumber} onChange={(e) => onUpdateBatch(b.tempId, { batchNumber: e.target.value })}
+                          placeholder="BATCH-001"
+                          className="h-10 w-full rounded-lg border-2 border-slate-200 px-2 text-sm font-mono font-bold focus:outline-none focus:border-amber-500" />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1">Mfg Date</label>
+                        <input type="date" value={b.manufactureDate ?? ''}
+                          onChange={(e) => onUpdateBatch(b.tempId, { manufactureDate: e.target.value })}
+                          className="h-10 w-full rounded-lg border-2 border-slate-200 px-2 text-xs font-bold focus:outline-none focus:border-amber-500" />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1 items-center gap-1">
+                          Expiry {expired && <AlertTriangle className="h-3 w-3 text-rose-600" />}
+                        </label>
+                        <input type="date" value={b.expiryDate ?? ''}
+                          onChange={(e) => onUpdateBatch(b.tempId, { expiryDate: e.target.value })}
+                          className={['h-10 w-full rounded-lg border-2 px-2 text-xs font-bold focus:outline-none',
+                            expired ? 'border-rose-400 bg-white text-rose-800 focus:border-rose-600'
+                              : soon ? 'border-amber-400 bg-white text-amber-800 focus:border-amber-600'
+                              : 'border-slate-200 focus:border-amber-500'].join(' ')} />
+                      </div>
+                      <div className="grid grid-cols-2 gap-1 sm:col-span-5 sm:grid-cols-3">
+                        <div>
+                          <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1">Qty ({U})</label>
                           <input type="number" step="0.01" value={b.quantity}
                             onChange={(e) => onUpdateBatch(b.tempId, { quantity: Number(e.target.value || 0) })}
-                            className="w-20 h-8 rounded-lg border-2 border-slate-200 px-2 text-xs font-bold tabular-nums text-right focus:outline-none focus:border-amber-500" />
-                        </td>
-                        <td className="px-2 py-1.5">
+                            className="h-10 w-full rounded-lg border-2 border-slate-200 px-2 text-sm font-extrabold tabular-nums text-right focus:outline-none focus:border-amber-500" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1">Cost</label>
                           <input type="number" step="0.01" value={b.costPrice}
                             onChange={(e) => onUpdateBatch(b.tempId, { costPrice: Number(e.target.value || 0) })}
-                            className="w-24 h-8 rounded-lg border-2 border-slate-200 px-2 text-xs font-bold tabular-nums text-right focus:outline-none focus:border-amber-500" />
-                        </td>
-                        <td className="px-2 py-1.5">
+                            className="h-10 w-full rounded-lg border-2 border-slate-200 px-2 text-sm font-bold tabular-nums text-right focus:outline-none focus:border-amber-500" />
+                        </div>
+                        <div className="flex items-end">
                           <button type="button" onClick={() => onRemoveBatch(b.tempId)}
-                            className="h-7 w-7 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
-                            <Trash2 className="h-3 w-3" />
+                            className="h-10 w-full rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center gap-1 text-xs font-extrabold">
+                            <Trash2 className="h-3.5 w-3.5" /> Hataao
                           </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                        </div>
+                      </div>
+                    </div>
+                    {expired && (
+                      <div className="text-xs font-extrabold text-rose-800 flex items-center gap-1">
+                        <AlertTriangle className="h-3.5 w-3.5" /> Ye batch expire ho chuki hai
+                      </div>
+                    )}
+                    {soon && !expired && (
+                      <div className="text-xs font-extrabold text-amber-800 flex items-center gap-1">
+                        <Info className="h-3.5 w-3.5" /> {Math.floor(days!)} din me expire hogi
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <div className="rounded-xl border-2 border-dashed border-amber-300 bg-white p-6 text-center">
-              <Calendar className="h-8 w-8 text-amber-400 mx-auto mb-2" />
-              <div className="text-sm font-extrabold text-slate-700">No batches yet</div>
-              <div className="text-xs text-slate-500 font-semibold mt-1">Add Batch button click karo</div>
+              <Calendar className="h-10 w-10 text-amber-400 mx-auto mb-2" />
+              <div className="text-sm font-extrabold text-slate-700">Koi batch nahi</div>
+              <div className="text-xs text-slate-500 font-semibold mt-1">"Batch Add" button dabao</div>
             </div>
           )}
+        </section>
+      )}
+
+      {/* Live stock summary */}
+      {displayStock > 0 && sale > 0 && (
+        <section className="rounded-2xl bg-gradient-to-br from-slate-950 to-emerald-900 text-white p-5 shadow-xl">
+          <div className="flex items-center gap-2 mb-3">
+            <CheckCircle2 className="h-4 w-4 text-emerald-300" />
+            <span className="text-[10px] uppercase font-extrabold tracking-wider text-emerald-300">Total stock preview</span>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <div className="text-[10px] uppercase font-extrabold text-white/60">Kul stock</div>
+              <div className="text-3xl font-extrabold tabular-nums text-white leading-none mt-1">
+                {displayStock} <span className="text-sm text-white/60">{U}</span>
+              </div>
+            </div>
+            <div>
+              <div className="text-[10px] uppercase font-extrabold text-white/60">Stock value</div>
+              <div className="text-3xl font-extrabold tabular-nums text-emerald-300 leading-none mt-1">
+                {formatPKRFull(stockValue)}
+              </div>
+            </div>
+          </div>
         </section>
       )}
     </div>

@@ -4,6 +4,22 @@ import { productBatchesApi } from '@modules/inventory/products/api/product-batch
 import { productUnitsApi } from './product-units.api';
 import type { RetailWizardDraft } from '../hooks/useRetailWizard';
 
+
+/**
+ * On edit: strip SKU/barcode if unchanged from original, so backend
+ * unique constraint doesn't false-fire on the product's own values.
+ */
+function cleanUniqueFields<T extends { sku?: string | null; barcode?: string | null }>(
+  payload: T,
+  original?: { sku?: string | null; barcode?: string | null } | null,
+): T {
+  if (!original) return payload;
+  const out: T = { ...payload };
+  if ((out.sku ?? '') === (original.sku ?? '')) delete (out as any).sku;
+  if ((out.barcode ?? '') === (original.barcode ?? '')) delete (out as any).barcode;
+  return out;
+}
+
 export interface RetailWizardSaveResult {
   productId: string;
   productName: string;

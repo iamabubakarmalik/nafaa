@@ -1,10 +1,4 @@
 import type { IndustryPlugin } from '@industries/_shared/types/section.types';
-import { CarpetInventorySection } from './sections/CarpetInventorySection';
-import { CarpetVariantsBanner } from './sections/CarpetVariantsBanner';
-import { CarpetVariantExtraPanel } from './sections/CarpetVariantExtraPanel';
-import { CarpetHeaderActionBar } from './sections/CarpetHeaderActionBar';
-import { CarpetAdminStockBlock } from './sections/CarpetAdminStockBlock';
-import { CarpetCustomerStockBlock } from './sections/CarpetCustomerStockBlock';
 
 const CARPET_UNITS = ['sqft', 'sqm', 'sqyd'];
 
@@ -19,11 +13,6 @@ export const carpetPlugin: IndustryPlugin = {
       features?.lengthWidthCalc === true;
     return isCarpetBusiness && CARPET_UNITS.includes(unit);
   },
-  InventorySection: CarpetInventorySection,
-  VariantsBanner: CarpetVariantsBanner,
-  VariantExtraPanel: CarpetVariantExtraPanel,
-  HeaderActionBar: CarpetHeaderActionBar,
-  AdminStockBlock: CarpetAdminStockBlock,
-  CustomerStockBlock: CarpetCustomerStockBlock,
+
 };
 export { CarpetPack } from './CarpetPack';

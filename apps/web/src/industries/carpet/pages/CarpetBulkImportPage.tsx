@@ -625,7 +625,7 @@ export default function CarpetBulkImportPage() {
 
       {/* STEP 2: PREVIEW */}
       {step === 'preview' && preview && (
-        <div className="space-y-4">
+        <div className="space-y-4 pb-20 sm:pb-4" data-testid="sticky-preview-action-bar">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <PreviewKpi label="Total Rows" value={preview.totalRows} icon={FileSpreadsheet} tone="slate" />
             <PreviewKpi label="Valid" value={preview.validCount} icon={CheckCircle2} tone="emerald" />
