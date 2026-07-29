@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Copy, Check, Facebook, Twitter, Link as LinkIcon } from 'lucide-react';
+import { X, Copy, Check, Link as LinkIcon } from 'lucide-react';
 import { Card, Button } from '@/ui';
 import { toast } from 'sonner';
 
