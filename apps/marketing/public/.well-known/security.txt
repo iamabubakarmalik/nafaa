@@ -1,0 +1,8 @@
+Contact: mailto:security@nafaa.pk
+Contact: https://nafaa.pk/security
+Expires: 2027-12-31T23:59:59.000Z
+Preferred-Languages: en, ur
+Canonical: https://nafaa.pk/.well-known/security.txt
+Policy: https://nafaa.pk/security
+Acknowledgments: https://nafaa.pk/security#acknowledgments
+Hiring: https://nafaa.pk/careers

@@ -1,0 +1,20 @@
+/* TEAM */
+Founder: Abubakar Malik
+Location: Gujranwala, Pakistan
+Contact: hello [at] nafaa.pk
+
+/* SITE */
+Standards: HTML5, CSS3, TypeScript
+Components: React 19, Next.js 15
+Framework: Next.js App Router
+Language: English & اردو
+Built in: Pakistan 🇵🇰
+Doctype: HTML5
+IDE: VS Code, Cursor
+
+/* THANKS */
+To every Pakistani shopkeeper who shared their pain — this platform is for you.
+To the FBR IRIS team for the sandbox environment.
+To the Raast team at SBP for building free instant payments.
+
+Made with ❤️ in Gujranwala, Lahore, and Islamabad.

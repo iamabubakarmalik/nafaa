@@ -1,175 +1,77 @@
-import Link from 'next/link';
-import { Search, Book, Video, MessageCircle, Mail, ArrowRight } from 'lucide-react';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
-import { Container } from '@/components/ui/Container';
-import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
-import { buildMetadata } from '@/lib/seo';
+import { MessageCircle, Mail, ArrowRight, BookOpen } from 'lucide-react';
+import { Header } from '@/components/layout/Header/Header';
+import { Footer } from '@/components/layout/Footer/Footer';
+import { FloatingWhatsApp } from '@/components/layout/Footer/FloatingWhatsApp';
+import { CTA } from '@/components/home/CTA';
+import { Container } from '@/components/primitives/Container';
+import { Section } from '@/components/primitives/Section';
+import { Eyebrow } from '@/components/primitives/Eyebrow';
+import { Badge } from '@/components/primitives/Badge';
+import { GradientText } from '@/components/primitives/GradientText';
+import { AuroraBackground } from '@/components/primitives/AuroraBackground';
+import { GridBackground } from '@/components/primitives/GridBackground';
+import { NoiseTexture } from '@/components/primitives/NoiseTexture';
+import { buildMetadata } from '@/lib/seo/metadata';
 
 export const metadata = buildMetadata({
-  title: 'Help Center — Get Support & Learn',
-  description: 'Browse guides, tutorials, and FAQs. Get instant help from our support team via WhatsApp, email, or phone.',
+  title: 'Help center — guides, tutorials & 24/7 support',
+  description: 'Get help with Nafaa: setup guides, feature tutorials, troubleshooting, and 24/7 support via WhatsApp and email in English and Urdu.',
   path: '/help',
 });
 
 const categories = [
-  {
-    icon: '🚀',
-    title: 'Getting Started',
-    desc: 'Setup, first sale, basics',
-    articles: [
-      'How to create your account',
-      'Adding your first products',
-      'Making your first sale',
-      'Setting up your shop profile',
-    ],
-  },
-  {
-    icon: '🛒',
-    title: 'POS & Sales',
-    desc: 'Daily counter operations',
-    articles: [
-      'How to use the POS',
-      'Processing returns',
-      'Applying discounts',
-      'Multi-payment methods',
-    ],
-  },
-  {
-    icon: '📦',
-    title: 'Inventory',
-    desc: 'Stock & products',
-    articles: [
-      'Bulk import products',
-      'Stock adjustments',
-      'Low stock alerts',
-      'Multi-shop transfers',
-    ],
-  },
-  {
-    icon: '👥',
-    title: 'Customers & Khata',
-    desc: 'Customer management',
-    articles: [
-      'Adding customers',
-      'Digital khata book',
-      'WhatsApp reminders',
-      'Loyalty points setup',
-    ],
-  },
-  {
-    icon: '💰',
-    title: 'Billing & Plans',
-    desc: 'Subscription & payments',
-    articles: [
-      'Choosing the right plan',
-      'Payment methods',
-      'Upgrading/downgrading',
-      'Refunds & cancellation',
-    ],
-  },
-  {
-    icon: '⚙️',
-    title: 'Settings & Team',
-    desc: 'Configuration',
-    articles: [
-      'Adding team members',
-      'Role permissions',
-      'Tax setup',
-      'Receipt customization',
-    ],
-  },
+  { emoji: '🚀', title: 'Getting started', articles: ['Create your account and first shop', 'Import products from Excel', 'Make your first sale', 'Set up your receipt branding'] },
+  { emoji: '🛒', title: 'POS and sales', articles: ['Barcode scanning setup', 'Split and partial payments', 'Returns and refunds', 'Offline mode explained'] },
+  { emoji: '📦', title: 'Inventory', articles: ['Bulk product import', 'Batch and expiry setup', 'Low-stock alerts', 'Stock transfers between shops'] },
+  { emoji: '👥', title: 'Customers and khata', articles: ['Add customers with phone numbers', 'Configure WhatsApp reminders', 'Set credit limits', 'Export khata statements'] },
+  { emoji: '🏛️', title: 'FBR compliance', articles: ['Register your POS ID', 'Sandbox vs production', 'Configure submission mode', 'Read FBR reports'] },
+  { emoji: '🔌', title: 'Integrations', articles: ['Connect Foodpanda', 'Connect Daraz', 'Set up JazzCash', 'Enable Raast payments'] },
+  { emoji: '🏢', title: 'Multi-shop', articles: ['Open a new branch', 'Transfer stock between shops', 'Per-shop pricing', 'Manager roles and access'] },
+  { emoji: '💳', title: 'Billing and plans', articles: ['Choose the right plan', 'Pay via JazzCash or bank', 'Upgrade or downgrade', '30-day refund process'] },
 ];
 
 export default function HelpPage() {
   return (
     <>
       <Header />
-      <main>
-        {/* Hero with search */}
-        <section className="relative pt-20 pb-12 overflow-hidden">
-          <div className="absolute inset-0 bg-grid-pattern opacity-50 dark:opacity-30 pointer-events-none" />
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 h-96 w-[800px] bg-brand-500/20 rounded-full blur-3xl" />
+      <main className="flex-1">
+        <section className="relative overflow-hidden pt-16 pb-14">
+          <AuroraBackground variant="brand" intensity="base" />
+          <GridBackground className="mask-fade-bottom" />
+          <NoiseTexture />
           <Container className="relative text-center">
-            <Badge variant="gradient">💬 Help Center</Badge>
-            <h1 className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight">
-              <span className="gradient-text">How can we help?</span>
+            <Badge variant="brand" size="md" pulse>💬 Help center</Badge>
+            <h1 className="mt-8 font-display font-extrabold text-4xl sm:text-5xl lg:text-6xl xl:text-7xl leading-[1.05] tracking-tight max-w-4xl mx-auto">
+              <GradientText variant="brand">How can we help you today?</GradientText>
             </h1>
-            <p className="mt-5 text-lg lg:text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-              Browse guides, watch tutorials, or contact our support team
+            <p className="mt-6 text-lg lg:text-xl text-ink-600 dark:text-ink-300 max-w-2xl mx-auto">
+              Guides for every feature, or talk to a real human in English or اردو — 24/7.
             </p>
 
-            <div className="mt-8 max-w-2xl mx-auto relative">
-              <Search className="h-5 w-5 text-slate-400 absolute left-5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Search for guides, tutorials, FAQs..."
-                className="h-14 w-full rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 pl-14 pr-5 text-base shadow-lg focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-              />
+            <div className="mt-8 flex flex-wrap gap-3 justify-center">
+              <a href="https://wa.me/923241772933" target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 h-12 px-6 rounded-xl bg-[#25d366] hover:bg-[#20b358] text-white font-bold text-sm shadow-lg transition">
+                <MessageCircle className="h-4 w-4" /> WhatsApp support
+              </a>
+              <a href="mailto:help@nafaa.pk"
+                className="inline-flex items-center gap-2 h-12 px-6 rounded-xl bg-white dark:bg-ink-800 ring-1 ring-inset ring-ink-200 dark:ring-ink-700 font-bold text-sm hover:ring-brand-400 transition">
+                <Mail className="h-4 w-4" /> help@nafaa.pk
+              </a>
             </div>
           </Container>
         </section>
 
-        {/* Quick contact options */}
-        <section className="py-8">
+        <Section variant="default" spacing="lg">
           <Container>
-            <div className="grid sm:grid-cols-3 gap-4 max-w-3xl mx-auto">
-              <a
-                href="https://wa.me/923001234567"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-2xl bg-gradient-to-br from-green-500 to-green-600 text-white p-5 hover:shadow-xl transition-all"
-              >
-                <MessageCircle className="h-7 w-7 mb-3" />
-                <div className="font-bold">WhatsApp</div>
-                <div className="text-sm text-white/80">Instant support</div>
-              </a>
-              <a
-                href="mailto:support@nafaa.pk"
-                className="rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white p-5 hover:shadow-xl transition-all"
-              >
-                <Mail className="h-7 w-7 mb-3" />
-                <div className="font-bold">Email</div>
-                <div className="text-sm text-white/80">support@nafaa.pk</div>
-              </a>
-              <Link
-                href="/contact"
-                className="rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 text-white p-5 hover:shadow-xl transition-all"
-              >
-                <Video className="h-7 w-7 mb-3" />
-                <div className="font-bold">Book Demo</div>
-                <div className="text-sm text-white/80">1-on-1 walkthrough</div>
-              </Link>
-            </div>
-          </Container>
-        </section>
-
-        {/* Categories */}
-        <section className="py-12 lg:py-16">
-          <Container>
-            <div className="text-center mb-12">
-              <Book className="h-10 w-10 mx-auto text-brand-600 mb-3" />
-              <h2 className="text-3xl font-extrabold">Browse by Category</h2>
-            </div>
-
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
               {categories.map((cat) => (
-                <div
-                  key={cat.title}
-                  className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-xl transition-all"
-                >
-                  <div className="text-4xl mb-3">{cat.icon}</div>
-                  <h3 className="font-extrabold text-lg">{cat.title}</h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{cat.desc}</p>
-
-                  <ul className="mt-5 space-y-2.5">
+                <div key={cat.title} className="rounded-2xl bg-white dark:bg-ink-800 p-6 ring-1 ring-inset ring-ink-100 dark:ring-ink-700/60 hover:shadow-card-hover transition-all">
+                  <div className="text-3xl mb-3">{cat.emoji}</div>
+                  <h3 className="font-display font-bold">{cat.title}</h3>
+                  <ul className="mt-4 space-y-2">
                     {cat.articles.map((a) => (
                       <li key={a}>
-                        <a
-                          href="#"
-                          className="text-sm text-slate-700 dark:text-slate-300 hover:text-brand-600 dark:hover:text-brand-400 inline-flex items-center gap-1.5 group"
-                        >
+                        <a href="#" className="group text-sm text-ink-600 dark:text-ink-300 hover:text-brand-600 dark:hover:text-brand-400 inline-flex items-center gap-1.5 transition-colors">
                           <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                           {a}
                         </a>
@@ -180,29 +82,12 @@ export default function HelpPage() {
               ))}
             </div>
           </Container>
-        </section>
+        </Section>
 
-        {/* Still need help */}
-        <section className="py-16 bg-slate-50 dark:bg-slate-950/50 border-t border-slate-200 dark:border-slate-800">
-          <Container>
-            <div className="max-w-3xl mx-auto text-center">
-              <h2 className="text-3xl lg:text-4xl font-extrabold">Still need help?</h2>
-              <p className="mt-4 text-lg text-slate-600 dark:text-slate-400">
-                Our support team is available 24/7 for Pro and Enterprise customers
-              </p>
-              <div className="mt-8 flex flex-wrap gap-3 justify-center">
-                <Button size="lg" href="/contact">
-                  Contact Support
-                </Button>
-                <Button size="lg" variant="secondary" href="/blog">
-                  Read Blog
-                </Button>
-              </div>
-            </div>
-          </Container>
-        </section>
+        <CTA />
       </main>
       <Footer />
+      <FloatingWhatsApp />
     </>
   );
 }

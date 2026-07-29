@@ -1,98 +1,48 @@
 import { LegalLayout } from '@/components/legal/LegalLayout';
-import { buildMetadata } from '@/lib/seo';
+import { buildMetadata } from '@/lib/seo/metadata';
 
 export const metadata = buildMetadata({
-  title: 'Privacy Policy',
-  description: 'Nafaa Privacy Policy — How we collect, use, and protect your data.',
+  title: 'Privacy policy',
+  description: 'How Nafaa collects, uses, and protects your data. Bank-grade privacy for Pakistani businesses.',
   path: '/privacy',
 });
 
 export default function PrivacyPage() {
   return (
-    <LegalLayout title="Privacy Policy" subtitle="Your privacy matters to us" lastUpdated="May 8, 2026">
-      <h2>1. Introduction</h2>
-      <p>
-        Nafaa Technologies ("we", "our", "us") respects your privacy. This Privacy Policy explains how we collect, use,
-        store, and protect information when you use our services.
-      </p>
+    <LegalLayout title="Privacy Policy" subtitle="Your data is sacred. Here is exactly how we treat it." lastUpdated="July 1, 2026">
+      <h2>1. What we collect</h2>
+      <p><strong>You provide:</strong> name, email, phone, business details, and the business data you enter (products, customers, sales).</p>
+      <p><strong>Automatically:</strong> device information, IP address, and anonymized usage analytics to improve the product.</p>
 
-      <h2>2. Information We Collect</h2>
-      <h3>2.1 Information You Provide</h3>
+      <h2>2. How we use it</h2>
       <ul>
-        <li>Name, email address, phone number</li>
-        <li>Shop name, address, and business details</li>
-        <li>Payment and billing information</li>
-        <li>Customer and product data you enter into the system</li>
+        <li>Provide and improve Nafaa services</li>
+        <li>Process your transactions and send receipts</li>
+        <li>Provide customer support in English and Urdu</li>
+        <li>Meet FBR and other legal compliance requirements</li>
       </ul>
 
-      <h3>2.2 Information Collected Automatically</h3>
+      <h2>3. What we never do</h2>
       <ul>
-        <li>IP address, device information, browser type</li>
-        <li>Usage patterns and analytics</li>
-        <li>Cookies and similar tracking technologies</li>
+        <li>Sell your data — ever, to anyone</li>
+        <li>Use your business data to train AI models</li>
+        <li>Share customer khata or sales data with third parties</li>
       </ul>
 
-      <h2>3. How We Use Your Information</h2>
-      <p>We use your information to:</p>
+      <h2>4. Security</h2>
+      <p>256-bit encryption in transit and at rest, ISO 27001 certified infrastructure, daily automated backups, and strict role-based access. See our <a href="/security">security page</a> for details.</p>
+
+      <h2>5. Your rights</h2>
       <ul>
-        <li>Provide, maintain, and improve our services</li>
-        <li>Process transactions and send invoices</li>
-        <li>Send service updates and notifications</li>
-        <li>Provide customer support</li>
-        <li>Detect and prevent fraud</li>
-        <li>Comply with legal obligations</li>
-      </ul>
-
-      <h2>4. Data Sharing</h2>
-      <p>We do <strong>not</strong> sell your personal data. We may share data with:</p>
-      <ul>
-        <li><strong>Service providers:</strong> Hosting, payment processors (Stripe, JazzCash, EasyPaisa), email/SMS providers</li>
-        <li><strong>Legal compliance:</strong> When required by law or court order</li>
-        <li><strong>Business transfers:</strong> In case of merger or acquisition</li>
-      </ul>
-
-      <h2>5. Data Security</h2>
-      <p>
-        We use bank-grade encryption (SSL/TLS), secure data centers, regular backups, and strict access controls.
-        However, no system is 100% secure — we strive for the best.
-      </p>
-
-      <h2>6. Data Retention</h2>
-      <p>
-        We retain your data as long as your account is active. You can request deletion at any time by contacting{' '}
-        <a href="mailto:privacy@nafaa.pk">privacy@nafaa.pk</a>.
-      </p>
-
-      <h2>7. Your Rights</h2>
-      <ul>
-        <li>Access your data</li>
+        <li>Export all your data anytime (Excel, PDF, JSON)</li>
         <li>Correct inaccurate information</li>
-        <li>Delete your data ("right to be forgotten")</li>
-        <li>Export your data (data portability)</li>
-        <li>Opt out of marketing emails</li>
+        <li>Request complete deletion via privacy@nafaa.pk</li>
+        <li>Opt out of marketing communications</li>
       </ul>
 
-      <h2>8. Children's Privacy</h2>
-      <p>Our services are not intended for users under 18. We do not knowingly collect data from minors.</p>
-
-      <h2>9. International Data Transfers</h2>
-      <p>
-        Your data is primarily stored in Pakistan. Some service providers (like cloud hosting) may store data in other
-        countries with adequate data protection laws.
-      </p>
-
-      <h2>10. Updates to This Policy</h2>
-      <p>
-        We may update this policy from time to time. Material changes will be notified via email or a prominent notice
-        on our website.
-      </p>
-
-      <h2>11. Contact Us</h2>
-      <p>
-        For privacy questions: <a href="mailto:privacy@nafaa.pk">privacy@nafaa.pk</a>
-        <br />
-        Postal address: Nafaa Technologies, Lahore, Pakistan
-      </p>
+      <h2>6. Contact</h2>
+      <p>Privacy questions: <a href="mailto:privacy@nafaa.pk">privacy@nafaa.pk</a><br/>
+      Nafaa Technologies, Citi Housing Phase 1, Gujranwala, Pakistan</p>
     </LegalLayout>
   );
 }

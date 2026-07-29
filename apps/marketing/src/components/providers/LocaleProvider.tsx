@@ -12,6 +12,7 @@ interface LocaleContextValue {
   setLocale: (l: Locale) => void;
   t: (key: string, vars?: Record<string, string | number>) => string;
   dir: 'ltr' | 'rtl';
+  isRtl: boolean;
 }
 
 const LocaleContext = createContext<LocaleContextValue | null>(null);
@@ -22,23 +23,33 @@ function getNested(obj: any, path: string): any {
 
 export function LocaleProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>(defaultLocale);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const stored = (typeof window !== 'undefined' && localStorage.getItem('nafaa-locale')) as Locale | null;
+    setMounted(true);
+    const stored =
+      (typeof window !== 'undefined' && localStorage.getItem('nafaa-locale')) as Locale | null;
     if (stored && (stored === 'en' || stored === 'ur')) {
       setLocaleState(stored);
+    } else {
+      // Detect browser preference
+      const browser = navigator.language.toLowerCase();
+      if (browser.startsWith('ur')) setLocaleState('ur');
     }
   }, []);
 
   useEffect(() => {
+    if (!mounted) return;
     document.documentElement.lang = locale;
     document.documentElement.dir = localeDirs[locale];
     document.body.dir = localeDirs[locale];
-  }, [locale]);
+  }, [locale, mounted]);
 
   const setLocale = (l: Locale) => {
     setLocaleState(l);
-    if (typeof window !== 'undefined') localStorage.setItem('nafaa-locale', l);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('nafaa-locale', l);
+    }
   };
 
   const t = (key: string, vars?: Record<string, string | number>) => {
@@ -53,7 +64,9 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <LocaleContext.Provider value={{ locale, setLocale, t, dir: localeDirs[locale] }}>
+    <LocaleContext.Provider
+      value={{ locale, setLocale, t, dir: localeDirs[locale], isRtl: locale === 'ur' }}
+    >
       {children}
     </LocaleContext.Provider>
   );

@@ -1,88 +1,202 @@
 {
+  "meta": {
+    "title": "Nafaa — Pakistan's #1 Complete Business Platform",
+    "description": "The all-in-one platform for Pakistani businesses: modern POS, unified marketplace, integrations, multi-shop, FBR compliance, digital khata, and AI-powered insights. Trusted across Pakistan."
+  },
   "nav": {
-    "home": "Home",
-    "features": "Features",
-    "pricing": "Pricing",
+    "product": "Product",
     "industries": "Industries",
-    "about": "About",
+    "integrations": "Integrations",
+    "marketplace": "Marketplace",
+    "solutions": "Solutions",
+    "pricing": "Pricing",
+    "resources": "Resources",
+    "company": "Company",
     "blog": "Blog",
+    "help": "Help Center",
     "contact": "Contact",
-    "login": "Login",
-    "signup": "Start Free Trial"
+    "download": "Download",
+    "login": "Sign in",
+    "signup": "Start free trial",
+    "search": "Search everything",
+    "commandK": "Quick search"
   },
-  "hero": {
-    "badge": "Pakistan's #1 Retail Software",
-    "title": "Run Your Shop Smarter, Sell Faster, Profit More",
-    "subtitle": "Nafaa is the all-in-one POS, inventory, and accounting platform built for Pakistan's shopkeepers. Trusted by thousands of bakeries, kiryana stores, mobile shops, and pharmacies across Pakistan.",
-    "cta_primary": "Start 7-Day Free Trial",
-    "cta_secondary": "Watch Demo (2 min)",
-    "trust": "Trusted by 5,000+ Pakistani businesses",
-    "no_cc": "No credit card required • Setup in 5 minutes"
-  },
-  "stats": {
-    "shops": "Active Shops",
-    "transactions": "Daily Transactions",
-    "uptime": "System Uptime",
-    "support": "Customer Support"
-  },
-  "features": {
-    "title": "Everything Your Shop Needs",
-    "subtitle": "From POS to profit reports — Nafaa handles it all",
-    "items": {
-      "pos": {
-        "title": "Lightning-Fast POS",
-        "desc": "Process sales in seconds with barcode scanning, multi-payment support, and instant receipts."
-      },
-      "inventory": {
-        "title": "Smart Inventory",
-        "desc": "Auto-track stock, low-stock alerts, multi-shop transfers, and waste reduction."
-      },
-      "khata": {
-        "title": "Digital Khata",
-        "desc": "Replace your paper khata with digital ledgers. Track udhaar, send reminders via WhatsApp."
-      },
-      "reports": {
-        "title": "Real-Time Reports",
-        "desc": "See sales, profit, and trends live. Export to Excel/PDF anytime."
-      },
-      "multishop": {
-        "title": "Multi-Shop Ready",
-        "desc": "Manage 1, 5, or 50 branches from one dashboard with role-based access."
-      },
-      "offline": {
-        "title": "Works Offline",
-        "desc": "No internet? No problem. Continue selling — data syncs when online."
+  "mega": {
+    "product": {
+      "title": "One platform for every part of your business",
+      "subtitle": "From counter to boardroom, Nafaa runs your entire operation.",
+      "features": {
+        "pos": { "title": "Point of Sale", "desc": "Blazing-fast checkout with barcode, dual display, and offline mode." },
+        "inventory": { "title": "Smart Inventory", "desc": "Batches, expiries, variants, IMEI, and multi-unit tracking." },
+        "khata": { "title": "Digital Khata", "desc": "Replace the paper register with automated WhatsApp reminders." },
+        "multishop": { "title": "Multi-Shop", "desc": "Run one shop or a hundred from a single command center." },
+        "fbr": { "title": "FBR Integration", "desc": "Real-time invoice reporting to Pakistan's Federal Board of Revenue." },
+        "bookings": { "title": "Bookings & Advances", "desc": "Reserve stock, take deposits, and convert to sales seamlessly." },
+        "loyalty": { "title": "Loyalty & Rewards", "desc": "Tiered points, cashback, and referral programs that convert." },
+        "analytics": { "title": "Business Intelligence", "desc": "Live dashboards, profit reports, and predictive insights." },
+        "ai": { "title": "AI Assistant", "desc": "Ask questions in plain language and get instant answers." },
+        "fraud": { "title": "Fraud Detection", "desc": "Device fingerprinting and risk scoring on every transaction." }
       }
+    },
+    "industries": {
+      "title": "Purpose-built for your industry",
+      "subtitle": "Eighteen industries, each with dedicated workflows and reports."
+    },
+    "integrations": {
+      "title": "Connect everything you already use",
+      "subtitle": "Sales channels, couriers, payments, tax authorities, and accounting."
+    },
+    "resources": {
+      "title": "Learn, build, and grow",
+      "subtitle": "Guides, case studies, API docs, and a community of Pakistani entrepreneurs."
     }
   },
-  "industries": {
-    "title": "Built for Every Pakistani Business",
-    "subtitle": "Specialized features for your industry"
+  "hero": {
+    "eyebrow": "Pakistan's #1 Business Operating System",
+    "titleLine1": "Run your entire business",
+    "titleLine2": "on one intelligent platform",
+    "subtitle": "Nafaa is the operating system for modern Pakistani businesses — point of sale, marketplace, integrations, and AI, all working together. Trusted by shops, restaurants, salons, and enterprises across every province.",
+    "ctaPrimary": "Start free trial",
+    "ctaSecondary": "Watch demo",
+    "trust": "Trusted by businesses across Pakistan",
+    "noCard": "No credit card required",
+    "quickSetup": "Set up in under 5 minutes",
+    "greetingMorning": "Good morning",
+    "greetingAfternoon": "Good afternoon",
+    "greetingEvening": "Good evening",
+    "geoWelcome": "Welcome from {city}"
   },
-  "pricing": {
-    "title": "Simple, Transparent Pricing",
-    "subtitle": "Choose the plan that fits your business. Cancel anytime.",
-    "monthly": "Monthly",
-    "yearly": "Yearly (Save 15%)",
-    "per_month": "/month",
-    "popular": "MOST POPULAR",
-    "cta": "Get Started"
+  "stats": {
+    "title": "Powering Pakistani commerce, in real time",
+    "subtitle": "Live numbers from businesses running on Nafaa",
+    "shops": "Active shops",
+    "cities": "Cities served",
+    "transactions": "Transactions processed",
+    "uptime": "System uptime",
+    "industries": "Industries covered",
+    "integrations": "Live integrations"
+  },
+  "features": {
+    "eyebrow": "The complete toolkit",
+    "title": "Everything your business needs, nothing it doesn't",
+    "subtitle": "Purpose-built for Pakistani businesses — from a corner shop in Multan to a nationwide chain."
+  },
+  "industries": {
+    "eyebrow": "Built for how you actually work",
+    "title": "One platform, eighteen industries",
+    "subtitle": "Every industry has its quirks. We built the workflows for each one.",
+    "viewAll": "View all industries"
+  },
+  "integrations": {
+    "eyebrow": "Plays well with everything",
+    "title": "Connect the tools you already trust",
+    "subtitle": "Sales channels, couriers, payments, and government portals — all in one place.",
+    "categories": {
+      "sales": "Sales channels",
+      "courier": "Couriers & delivery",
+      "payment": "Payments",
+      "government": "Government & tax",
+      "accounting": "Accounting",
+      "messaging": "Messaging"
+    }
+  },
+  "marketplace": {
+    "eyebrow": "Nafaa Bazaar",
+    "title": "Sell everywhere your customers shop",
+    "subtitle": "List your products on Pakistan's fastest-growing marketplace — bargaining, group buys, live shopping, and auctions built in.",
+    "cta": "Visit Nafaa Bazaar"
   },
   "testimonials": {
-    "title": "Loved by Shopkeepers Across Pakistan",
-    "subtitle": "Real stories from real businesses"
+    "eyebrow": "Loved across Pakistan",
+    "title": "Real stories from real businesses",
+    "subtitle": "Owners, managers, and cashiers who made the switch."
+  },
+  "pricing": {
+    "eyebrow": "Simple, transparent pricing",
+    "title": "Pick the plan that fits your business",
+    "subtitle": "Start free. Upgrade when you grow. Cancel anytime.",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "save": "Save 20%",
+    "popular": "Most popular",
+    "perMonth": "per month",
+    "cta": "Get started",
+    "guarantee": "30-day money-back guarantee — no questions asked"
+  },
+  "faq": {
+    "eyebrow": "Frequently asked",
+    "title": "Everything you need to know",
+    "subtitle": "Answers to the questions our team hears most often."
   },
   "cta": {
-    "title": "Ready to Grow Your Business?",
-    "subtitle": "Join 5,000+ Pakistani shops already using Nafaa",
-    "button": "Start Free Trial Now"
+    "eyebrow": "Ready when you are",
+    "title": "Start running your business on Nafaa today",
+    "subtitle": "Join thousands of Pakistani businesses growing faster with the country's most complete platform.",
+    "button": "Start your free trial",
+    "secondary": "Talk to sales"
   },
   "footer": {
-    "tagline": "Pakistan's #1 retail OS — built with ❤️ in Lahore",
+    "tagline": "The complete operating system for modern Pakistani businesses.",
     "product": "Product",
-    "company": "Company",
+    "industries": "Industries",
+    "integrations": "Integrations",
+    "marketplace": "Marketplace",
     "resources": "Resources",
+    "company": "Company",
     "legal": "Legal",
-    "copyright": "© {year} Nafaa Technologies. All rights reserved."
+    "contact": "Get in touch",
+    "newsletterTitle": "The best of Nafaa, monthly",
+    "newsletterSubtitle": "Product updates, growth guides, and Pakistani business insights.",
+    "newsletterPlaceholder": "you@company.pk",
+    "newsletterCta": "Subscribe",
+    "copyright": "© {year} Nafaa Technologies. All rights reserved.",
+    "madeIn": "Designed and built in Pakistan",
+    "status": "All systems operational",
+    "trustBadges": {
+      "fbr": "FBR Compliant",
+      "iso": "ISO 27001",
+      "pci": "PCI DSS",
+      "gdpr": "GDPR Ready"
+    }
+  },
+  "common": {
+    "learnMore": "Learn more",
+    "getStarted": "Get started",
+    "readMore": "Read more",
+    "viewAll": "View all",
+    "explore": "Explore",
+    "seeHow": "See how",
+    "requestDemo": "Request a demo",
+    "talkToSales": "Talk to sales",
+    "backToTop": "Back to top",
+    "loading": "Loading",
+    "search": "Search",
+    "close": "Close",
+    "menu": "Menu",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "next": "Next",
+    "previous": "Previous",
+    "language": "Language",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System"
+  },
+  "cities": {
+    "karachi": "Karachi",
+    "lahore": "Lahore",
+    "islamabad": "Islamabad",
+    "rawalpindi": "Rawalpindi",
+    "faisalabad": "Faisalabad",
+    "multan": "Multan",
+    "peshawar": "Peshawar",
+    "quetta": "Quetta",
+    "gujranwala": "Gujranwala",
+    "sialkot": "Sialkot",
+    "hyderabad": "Hyderabad",
+    "bahawalpur": "Bahawalpur",
+    "sargodha": "Sargodha",
+    "sukkur": "Sukkur"
   }
 }

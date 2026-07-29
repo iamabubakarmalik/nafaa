@@ -1,0 +1,30 @@
+export const marketplaceContent = {
+  heroTitleEn: 'Nafaa Bazaar — Pakistan\'s fastest-growing marketplace',
+  heroTitleUr: 'نفع بازار — پاکستان کا تیزی سے بڑھتا بازار',
+  heroSubtitleEn: 'List your products, reach millions of Pakistani buyers, and grow beyond your physical shop. Bargaining, group buys, live shopping, and auctions — all built in.',
+  heroSubtitleUr: 'اپنی مصنوعات درج کریں، لاکھوں پاکستانی خریداروں تک پہنچیں، اور اپنی جسمانی دکان سے آگے بڑھیں۔',
+  directAnswerEn: 'Nafaa Bazaar is Pakistan\'s next-generation marketplace, built for both sellers and buyers. Sellers list products directly from their Nafaa POS with automatic inventory sync. Buyers enjoy unique features like real-time bargaining, group buys, live shopping streams, and auctions — all in Urdu and English.',
+  directAnswerUr: 'نفع بازار پاکستان کا اگلی نسل کا بازار ہے، فروخت کنندگان اور خریداروں دونوں کے لیے بنایا گیا۔',
+  sellerBenefits: [
+    { icon: 'Zap', titleEn: 'One-click listing', titleUr: 'ایک کلک لسٹنگ', descEn: 'List products directly from Nafaa POS. No duplicate data entry ever.', descUr: 'نفع پی او ایس سے براہ راست پروڈکٹس درج کریں۔' },
+    { icon: 'RefreshCw', titleEn: 'Auto inventory sync', titleUr: 'خودکار انوینٹری ہم آہنگی', descEn: 'When stock sells offline, Bazaar updates. When Bazaar sells, POS updates.', descUr: 'اسٹاک آف لائن بکے تو بازار اپ ڈیٹ۔' },
+    { icon: 'Users', titleEn: 'Millions of buyers', titleUr: 'لاکھوں خریدار', descEn: 'Reach customers across every Pakistani city, from Karachi to Peshawar.', descUr: 'ہر پاکستانی شہر کے گاہکوں تک۔' },
+    { icon: 'MessageSquare', titleEn: 'Real-time bargaining', titleUr: 'حقیقی وقت سودے بازی', descEn: 'Pakistani buyers love to bargain. Nafaa Bazaar is the only platform that supports it natively.', descUr: 'پاکستانی خریدار سودے بازی پسند کرتے ہیں۔' },
+    { icon: 'Video', titleEn: 'Live shopping streams', titleUr: 'لائیو شاپنگ اسٹریمز', descEn: 'Go live from your shop. Showcase products. Sell in real time with instant checkout.', descUr: 'اپنی دکان سے لائیو جائیں۔' },
+    { icon: 'Gavel', titleEn: 'Auctions built in', titleUr: 'نیلامی شامل', descEn: 'Perfect for collectibles, rare items, and limited stock. Buyers bid, you win.', descUr: 'نادر آئٹمز کے لیے بہترین۔' },
+  ],
+  buyerFeatures: [
+    { icon: 'Search', titleEn: 'Smart search in Urdu', titleUr: 'اردو میں سمارٹ تلاش', descEn: 'Search "کریانہ" or "kiryana" — Bazaar understands both.', descUr: '"کریانہ" یا "kiryana" لکھیں — بازار دونوں سمجھتا ہے۔' },
+    { icon: 'MapPin', titleEn: 'Local shops first', titleUr: 'مقامی دکانیں پہلے', descEn: 'See sellers in your city before nationwide. Faster delivery, lower cost.', descUr: 'ملک بھر سے پہلے اپنے شہر کے فروخت کنندگان دیکھیں۔' },
+    { icon: 'Users', titleEn: 'Group buys', titleUr: 'اجتماعی خریداری', descEn: 'Team up with friends and neighbors for bulk discounts.', descUr: 'دوستوں اور پڑوسیوں کے ساتھ بلک ڈسکاؤنٹس۔' },
+    { icon: 'Shield', titleEn: 'Verified sellers', titleUr: 'تصدیق شدہ فروخت کنندگان', descEn: 'Every seller runs on Nafaa POS. Real businesses, verified identities.', descUr: 'ہر فروخت کنندہ نفع پر چلتا ہے۔' },
+    { icon: 'Truck', titleEn: 'Fast delivery', titleUr: 'تیز ڈیلیوری', descEn: 'TCS, Leopards, PostEx, or in-city same-day delivery.', descUr: 'ٹی سی ایس، لیپرڈز، پوسٹ ایکس، یا اسی دن۔' },
+    { icon: 'CreditCard', titleEn: 'Every payment method', titleUr: 'ہر ادائیگی طریقہ', descEn: 'JazzCash, Easypaisa, Raast, cards, and cash on delivery.', descUr: 'جاز کیش، ایزی پیسہ، راست، کارڈز، سی او ڈی۔' },
+  ],
+  stats: [
+    { valueEn: '120K+', valueUr: '۱۲۰ ہزار+', labelEn: 'active listings', labelUr: 'فعال درج' },
+    { valueEn: '8K+', valueUr: '۸ ہزار+', labelEn: 'verified sellers', labelUr: 'تصدیق شدہ فروخت کنندگان' },
+    { valueEn: '47 cities', valueUr: '۴۷ شہر', labelEn: 'nationwide coverage', labelUr: 'ملک گیر' },
+    { valueEn: '4.8/5', valueUr: '۴.۸/۵', labelEn: 'seller satisfaction', labelUr: 'اطمینان' },
+  ],
+};

@@ -1,128 +1,111 @@
-import { Heart, Zap, Users, GraduationCap, MapPin, Briefcase } from 'lucide-react';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
-import { Container } from '@/components/ui/Container';
-import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
+import { Heart, Zap, GraduationCap, MapPin, Briefcase, ArrowRight, Globe } from 'lucide-react';
+import { Header } from '@/components/layout/Header/Header';
+import { Footer } from '@/components/layout/Footer/Footer';
+import { FloatingWhatsApp } from '@/components/layout/Footer/FloatingWhatsApp';
 import { CTA } from '@/components/home/CTA';
-import { buildMetadata } from '@/lib/seo';
+import { Container } from '@/components/primitives/Container';
+import { Section } from '@/components/primitives/Section';
+import { Eyebrow } from '@/components/primitives/Eyebrow';
+import { Badge } from '@/components/primitives/Badge';
+import { GradientText } from '@/components/primitives/GradientText';
+import { AuroraBackground } from '@/components/primitives/AuroraBackground';
+import { GridBackground } from '@/components/primitives/GridBackground';
+import { NoiseTexture } from '@/components/primitives/NoiseTexture';
+import { buildMetadata } from '@/lib/seo/metadata';
 
 export const metadata = buildMetadata({
-  title: 'Careers — Join Pakistan\'s Fastest Growing Retail Tech',
-  description: 'Build the future of Pakistani retail with us. Open positions for engineers, designers, sales, and support roles.',
+  title: 'Careers — build Pakistan\'s business OS with us',
+  description: 'Join the team building the platform that powers Pakistani commerce. Engineering, design, sales, and support roles in Gujranwala, Lahore, and remote.',
   path: '/careers',
 });
 
-const benefits = [
-  { icon: Heart, title: 'Health Insurance', desc: 'Full medical coverage for you and family' },
-  { icon: Zap, title: 'Latest Equipment', desc: 'MacBook Pro, monitor, and ergonomic setup' },
-  { icon: GraduationCap, title: 'Learning Budget', desc: 'Rs 50,000/year for courses and conferences' },
-  { icon: Users, title: 'Flexible Hours', desc: 'Hybrid work — office or remote, your choice' },
+const perks = [
+  { icon: Heart, title: 'Health coverage', desc: 'Full medical for you and your family' },
+  { icon: Zap, title: 'Top equipment', desc: 'MacBook, monitor, and ergonomic setup' },
+  { icon: GraduationCap, title: 'Learning budget', desc: 'Rs 100K yearly for courses and books' },
+  { icon: Globe, title: 'Hybrid work', desc: 'Office, remote, or both — your choice' },
 ];
 
 const jobs = [
-  { title: 'Senior Backend Engineer', team: 'Engineering', location: 'Lahore / Remote', type: 'Full-time' },
-  { title: 'Mobile Developer (React Native)', team: 'Engineering', location: 'Lahore / Remote', type: 'Full-time' },
+  { title: 'Senior Full-Stack Engineer', team: 'Engineering', location: 'Gujranwala / Remote', type: 'Full-time' },
+  { title: 'React Native Developer', team: 'Engineering', location: 'Lahore / Remote', type: 'Full-time' },
   { title: 'Product Designer', team: 'Design', location: 'Lahore', type: 'Full-time' },
-  { title: 'Customer Success Manager', team: 'Customer Success', location: 'Karachi', type: 'Full-time' },
-  { title: 'Sales Executive', team: 'Sales', location: 'Multiple Cities', type: 'Full-time' },
-  { title: 'Content Writer (Urdu/English)', team: 'Marketing', location: 'Remote', type: 'Part-time' },
+  { title: 'Urdu Content Writer', team: 'Marketing', location: 'Remote', type: 'Part-time' },
+  { title: 'Customer Success (Urdu)', team: 'Support', location: 'Gujranwala', type: 'Full-time' },
+  { title: 'Sales Executive', team: 'Sales', location: 'Karachi / Lahore', type: 'Full-time' },
 ];
 
 export default function CareersPage() {
   return (
     <>
       <Header />
-      <main>
-        <section className="relative pt-20 pb-12 overflow-hidden">
-          <div className="absolute inset-0 bg-grid-pattern opacity-50 dark:opacity-30 pointer-events-none" />
+      <main className="flex-1">
+        <section className="relative overflow-hidden pt-16 pb-16">
+          <AuroraBackground variant="aurora" intensity="base" />
+          <GridBackground className="mask-fade-bottom" />
+          <NoiseTexture />
           <Container className="relative text-center">
-            <Badge variant="gradient">💼 We're Hiring</Badge>
-            <h1 className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight">
-              <span className="gradient-text">Build the Future of Pakistani Retail</span>
+            <Badge variant="aurora" size="md" pulse>💼 We\'re hiring</Badge>
+            <h1 className="mt-8 font-display font-extrabold text-4xl sm:text-5xl lg:text-6xl xl:text-7xl leading-[1.05] tracking-tight max-w-4xl mx-auto text-balance">
+              <GradientText variant="aurora">Build the platform Pakistan runs on</GradientText>
             </h1>
-            <p className="mt-5 text-lg lg:text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-              Join a team that's empowering 5,000+ shops across Pakistan with world-class technology
+            <p className="mt-6 text-lg lg:text-xl text-ink-600 dark:text-ink-300 max-w-2xl mx-auto">
+              Small team, massive impact. Your code will run in thousands of shops across 47 cities — and you\'ll meet the people whose lives it changes.
             </p>
           </Container>
         </section>
 
-        {/* Benefits */}
-        <section className="py-12 lg:py-20">
+        <Section variant="default" spacing="md">
           <Container>
-            <div className="text-center mb-12">
-              <Badge variant="brand">✨ Perks & Benefits</Badge>
-              <h2 className="mt-5 text-3xl sm:text-4xl font-extrabold">Why Work at Nafaa?</h2>
-            </div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {benefits.map((b) => {
-                const Icon = b.icon;
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {perks.map((p) => {
+                const Icon = p.icon;
                 return (
-                  <div
-                    key={b.title}
-                    className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 text-center hover:shadow-xl transition-all"
-                  >
-                    <div className="inline-flex h-14 w-14 rounded-2xl bg-gradient-to-br from-brand-500 to-emerald-600 items-center justify-center shadow-lg">
-                      <Icon className="h-7 w-7 text-white" />
+                  <div key={p.title} className="rounded-2xl bg-white dark:bg-ink-800 p-6 text-center ring-1 ring-inset ring-ink-100 dark:ring-ink-700/60 hover:-translate-y-1 hover:shadow-card-hover transition-all">
+                    <div className="h-12 w-12 mx-auto rounded-xl bg-gradient-brand flex items-center justify-center text-white shadow-lg">
+                      <Icon className="h-6 w-6" />
                     </div>
-                    <h3 className="mt-5 font-extrabold">{b.title}</h3>
-                    <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">{b.desc}</p>
+                    <h3 className="mt-4 font-display font-bold">{p.title}</h3>
+                    <p className="mt-2 text-sm text-ink-600 dark:text-ink-300">{p.desc}</p>
                   </div>
                 );
               })}
             </div>
           </Container>
-        </section>
+        </Section>
 
-        {/* Open positions */}
-        <section className="py-12 lg:py-20 bg-slate-50 dark:bg-slate-950/50">
-          <Container>
-            <div className="text-center mb-12">
-              <Badge variant="accent">📢 Open Positions</Badge>
-              <h2 className="mt-5 text-3xl sm:text-4xl font-extrabold">Available Roles</h2>
-              <p className="mt-3 text-slate-600 dark:text-slate-400">{jobs.length} positions open</p>
-            </div>
-            <div className="max-w-3xl mx-auto space-y-3">
+        <Section variant="subtle" spacing="lg">
+          <Container size="md">
+            <Eyebrow variant="brand">Open roles</Eyebrow>
+            <h2 className="mt-4 font-display font-extrabold text-3xl lg:text-4xl mb-8">{jobs.length} positions open</h2>
+            <div className="space-y-3">
               {jobs.map((j) => (
-                <div
-                  key={j.title}
-                  className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 hover:border-brand-300 dark:hover:border-brand-700 transition-all"
-                >
-                  <div className="flex items-center justify-between gap-4 flex-wrap">
-                    <div>
-                      <h3 className="font-extrabold text-lg">{j.title}</h3>
-                      <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-slate-500">
-                        <span className="flex items-center gap-1">
-                          <Briefcase className="h-3 w-3" />
-                          {j.team}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />
-                          {j.location}
-                        </span>
-                        <span className="px-2 py-0.5 rounded-full bg-brand-100 dark:bg-brand-950/40 text-brand-700 dark:text-brand-300 font-bold">
-                          {j.type}
-                        </span>
-                      </div>
+                <div key={j.title} className="flex items-center justify-between gap-4 flex-wrap rounded-2xl bg-white dark:bg-ink-800 p-6 ring-1 ring-inset ring-ink-100 dark:ring-ink-700/60 hover:ring-brand-400 transition-all">
+                  <div>
+                    <h3 className="font-display font-bold text-lg">{j.title}</h3>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-3 text-xs text-ink-500">
+                      <span className="flex items-center gap-1"><Briefcase className="h-3.5 w-3.5" />{j.team}</span>
+                      <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{j.location}</span>
+                      <Badge variant="brand" size="xs">{j.type}</Badge>
                     </div>
-                    <Button size="sm" href="mailto:careers@nafaa.pk">
-                      Apply Now
-                    </Button>
                   </div>
+                  <a href={`mailto:careers@nafaa.pk?subject=Application: ${encodeURIComponent(j.title)}`}
+                    className="inline-flex items-center gap-2 h-11 px-5 rounded-xl bg-gradient-brand text-white font-bold text-sm shadow-brand-glow hover:-translate-y-0.5 transition-all">
+                    Apply <ArrowRight className="h-4 w-4" />
+                  </a>
                 </div>
               ))}
             </div>
-
-            <div className="mt-12 text-center text-sm text-slate-500">
-              Don't see a role that fits? Email us at{' '}
-              <a href="mailto:careers@nafaa.pk" className="text-brand-600 font-bold">careers@nafaa.pk</a>
-            </div>
+            <p className="mt-8 text-center text-sm text-ink-500">
+              No role fits? Email <a href="mailto:careers@nafaa.pk" className="text-brand-600 font-bold hover:underline">careers@nafaa.pk</a> — exceptional people always get a reply.
+            </p>
           </Container>
-        </section>
+        </Section>
 
         <CTA />
       </main>
       <Footer />
+      <FloatingWhatsApp />
     </>
   );
 }

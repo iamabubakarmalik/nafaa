@@ -12,29 +12,26 @@ export function ThemeToggle() {
   useEffect(() => setMounted(true), []);
 
   if (!mounted) {
-    return <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800" />;
+    return <div className="h-10 w-10 rounded-xl bg-ink-100 dark:bg-ink-800" />;
   }
 
-  const cycle = () => {
-    if (theme === 'light') setTheme('dark');
-    else if (theme === 'dark') setTheme('system');
-    else setTheme('light');
-  };
+  const next = theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light';
 
   return (
     <button
-      onClick={cycle}
-      className={cn(
-        'relative h-10 w-10 rounded-xl flex items-center justify-center transition-all',
-        'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700',
-        'text-slate-700 dark:text-slate-200',
-      )}
+      onClick={() => setTheme(next)}
       aria-label="Toggle theme"
-      title={`Theme: ${theme}`}
+      className={cn(
+        'relative h-10 w-10 rounded-xl flex items-center justify-center',
+        'bg-ink-100/70 dark:bg-ink-800/70 hover:bg-ink-200 dark:hover:bg-ink-700',
+        'text-ink-700 dark:text-ink-200',
+        'transition-all duration-300',
+        'ring-1 ring-inset ring-ink-200/50 dark:ring-ink-700/50',
+      )}
     >
-      {theme === 'light' && <Sun className="h-5 w-5" />}
-      {theme === 'dark' && <Moon className="h-5 w-5" />}
-      {theme === 'system' && <Monitor className="h-5 w-5" />}
+      {theme === 'light' && <Sun className="h-4 w-4" />}
+      {theme === 'dark' && <Moon className="h-4 w-4" />}
+      {theme === 'system' && <Monitor className="h-4 w-4" />}
     </button>
   );
 }

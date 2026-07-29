@@ -1,78 +1,104 @@
-import { Handshake, Award, TrendingUp, Users } from 'lucide-react';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
-import { Container } from '@/components/ui/Container';
-import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
+import { Handshake, TrendingUp, Award, Users, ArrowRight } from 'lucide-react';
+import { Header } from '@/components/layout/Header/Header';
+import { Footer } from '@/components/layout/Footer/Footer';
+import { FloatingWhatsApp } from '@/components/layout/Footer/FloatingWhatsApp';
 import { CTA } from '@/components/home/CTA';
-import { buildMetadata } from '@/lib/seo';
+import { Container } from '@/components/primitives/Container';
+import { Section } from '@/components/primitives/Section';
+import { Eyebrow } from '@/components/primitives/Eyebrow';
+import { Badge } from '@/components/primitives/Badge';
+import { Button } from '@/components/primitives/Button';
+import { GradientText } from '@/components/primitives/GradientText';
+import { AuroraBackground } from '@/components/primitives/AuroraBackground';
+import { GridBackground } from '@/components/primitives/GridBackground';
+import { NoiseTexture } from '@/components/primitives/NoiseTexture';
+import { buildMetadata } from '@/lib/seo/metadata';
 
 export const metadata = buildMetadata({
-  title: 'Partner Program — Earn 30% Commission',
-  description: 'Join Nafaa Partner Program. Earn 30% recurring commission. Help Pakistani shops while building your business.',
+  title: 'Partner program — earn 30% recurring commission',
+  description: 'Join the Nafaa partner program. Accountants, consultants, and agencies earn 30% recurring commission helping Pakistani businesses go digital.',
   path: '/partners',
 });
 
 const benefits = [
-  { icon: TrendingUp, title: '30% Recurring', desc: 'Earn 30% commission on every customer, every month — forever' },
-  { icon: Award, title: 'Top Tier Tools', desc: 'Marketing materials, dashboards, real-time analytics' },
-  { icon: Users, title: 'Dedicated Support', desc: 'Personal partner manager + priority support' },
-  { icon: Handshake, title: 'Co-Marketing', desc: 'Joint webinars, case studies, content collaboration' },
+  { icon: TrendingUp, title: '30% recurring, forever', desc: 'Earn thirty percent of every payment from every customer you refer — every month, for as long as they stay.' },
+  { icon: Award, title: 'Full partner toolkit', desc: 'Marketing materials, demo accounts, co-branded landing pages, and sales training included.' },
+  { icon: Users, title: 'Dedicated partner manager', desc: 'A named human who answers your calls, helps close deals, and resolves anything fast.' },
+  { icon: Handshake, title: 'Co-marketing', desc: 'Joint webinars, case studies, and events. We promote you while you promote us.' },
 ];
+
+const ideal = ['Accountants with shop-owner clients', 'Business consultants and advisors', 'IT shops and computer stores', 'Industry associations and trade bodies', 'YouTubers and content creators', 'Banking relationship managers'];
 
 export default function PartnersPage() {
   return (
     <>
       <Header />
-      <main>
-        <section className="relative pt-20 pb-12 overflow-hidden">
-          <div className="absolute inset-0 bg-grid-pattern opacity-50 dark:opacity-30 pointer-events-none" />
+      <main className="flex-1">
+        <section className="relative overflow-hidden pt-16 pb-16">
+          <AuroraBackground variant="aurora" intensity="base" />
+          <GridBackground className="mask-fade-bottom" />
+          <NoiseTexture />
           <Container className="relative text-center">
-            <Badge variant="gradient">🤝 Partner Program</Badge>
-            <h1 className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight">
-              <span className="gradient-text">Earn 30% Recurring Commission</span>
+            <Badge variant="aurora" size="md" pulse>🤝 Partner program</Badge>
+            <h1 className="mt-8 font-display font-extrabold text-4xl sm:text-5xl lg:text-6xl xl:text-7xl leading-[1.05] tracking-tight max-w-4xl mx-auto text-balance">
+              <GradientText variant="aurora">Earn 30% forever, helping Pakistan digitize</GradientText>
             </h1>
-            <p className="mt-5 text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-              Help Pakistani shopkeepers grow — and grow your own business in the process
+            <p className="mt-6 text-lg lg:text-xl text-ink-600 dark:text-ink-300 max-w-2xl mx-auto">
+              You know the shopkeepers. We built the platform. Together we both grow.
             </p>
-            <Button size="xl" href="mailto:partners@nafaa.pk" className="mt-8">
-              Become a Partner
-            </Button>
-          </Container>
-        </section>
-
-        <section className="py-12 lg:py-20">
-          <Container>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {benefits.map((b) => {
-                const Icon = b.icon;
-                return (
-                  <div key={b.title} className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 hover:shadow-xl transition-all">
-                    <div className="inline-flex h-14 w-14 rounded-2xl bg-gradient-to-br from-brand-500 to-emerald-600 items-center justify-center shadow-lg">
-                      <Icon className="h-7 w-7 text-white" />
-                    </div>
-                    <h3 className="mt-5 text-lg font-extrabold">{b.title}</h3>
-                    <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">{b.desc}</p>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="mt-16 max-w-3xl mx-auto rounded-3xl bg-gradient-to-br from-brand-600 to-emerald-700 text-white p-10 lg:p-14 text-center">
-              <h2 className="text-3xl lg:text-4xl font-extrabold">Ready to Partner with Us?</h2>
-              <p className="mt-5 text-lg text-white/90">
-                Whether you're a consultant, agency, accountant, or business mentor — we'd love to work with you.
-              </p>
-              <Button size="lg" className="mt-8 !bg-white !text-brand-700 hover:!bg-slate-100" href="mailto:partners@nafaa.pk">
-                Get in Touch
+            <div className="mt-10">
+              <Button size="xl" variant="aurora" href="mailto:partnerships@nafaa.pk?subject=Partner%20Application" rightIcon={<ArrowRight className="h-5 w-5" />}>
+                Become a partner
               </Button>
             </div>
           </Container>
         </section>
 
+        <Section variant="default" spacing="lg">
+          <Container>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {benefits.map((b) => {
+                const Icon = b.icon;
+                return (
+                  <div key={b.title} className="rounded-2xl bg-white dark:bg-ink-800 p-6 ring-1 ring-inset ring-ink-100 dark:ring-ink-700/60 hover:-translate-y-1 hover:shadow-card-hover transition-all">
+                    <div className="h-12 w-12 rounded-xl bg-gradient-aurora flex items-center justify-center text-white shadow-lg">
+                      <Icon className="h-6 w-6" />
+                    </div>
+                    <h3 className="mt-4 font-display font-bold">{b.title}</h3>
+                    <p className="mt-2 text-sm text-ink-600 dark:text-ink-300 leading-relaxed">{b.desc}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </Container>
+        </Section>
+
+        <Section variant="subtle" spacing="lg">
+          <Container size="md">
+            <Eyebrow variant="brand">Who thrives here</Eyebrow>
+            <h2 className="mt-4 font-display font-extrabold text-3xl lg:text-4xl mb-8">Perfect partners</h2>
+            <div className="grid sm:grid-cols-2 gap-3">
+              {ideal.map((i) => (
+                <div key={i} className="flex items-center gap-3 rounded-xl bg-white dark:bg-ink-800 p-4 ring-1 ring-inset ring-ink-100 dark:ring-ink-700/60">
+                  <span className="h-2 w-2 rounded-full bg-gradient-aurora shrink-0" />
+                  <span className="font-semibold text-sm">{i}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-10 rounded-3xl bg-gradient-to-br from-aurora-purple to-aurora-pink p-10 text-white text-center shadow-aurora-glow">
+              <h3 className="font-display font-extrabold text-2xl lg:text-3xl">Ready to earn together?</h3>
+              <p className="mt-3 text-white/90 max-w-xl mx-auto">Email us with a short intro about your network. We respond within one business day with onboarding details.</p>
+              <Button className="mt-6 !bg-white !text-aurora-purple hover:!bg-white/95" href="mailto:partnerships@nafaa.pk?subject=Partner%20Application">
+                partnerships@nafaa.pk
+              </Button>
+            </div>
+          </Container>
+        </Section>
+
         <CTA />
       </main>
       <Footer />
+      <FloatingWhatsApp />
     </>
   );
 }

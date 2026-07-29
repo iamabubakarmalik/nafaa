@@ -1,34 +1,51 @@
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
-import { Hero } from '@/components/home/Hero';
-import { Stats } from '@/components/home/Stats';
-import { Features } from '@/components/home/Features';
-import { Industries } from '@/components/home/Industries';
+import { Header } from '@/components/layout/Header/Header';
+import { Footer } from '@/components/layout/Footer/Footer';
+import { FloatingWhatsApp } from '@/components/layout/Footer/FloatingWhatsApp';
+import { Hero } from '@/components/home/Hero/Hero';
+import { LiveActivityTicker } from '@/components/home/LiveActivityTicker';
+import { TrustBar } from '@/components/features/TrustBar';
+import { LiveStats } from '@/components/home/LiveStats';
+import { LiveNumbersBar } from '@/components/features/LiveNumbersBar';
+import { FeatureShowcase } from '@/components/home/FeatureShowcase';
+import { IndustriesGrid } from '@/components/home/IndustriesGrid';
+import { PakistanMap } from '@/components/features/PakistanMap';
+import { IntegrationsWall } from '@/components/home/IntegrationsWall';
+import { LiveBazaarPreview } from '@/components/features/LiveBazaarPreview';
+import { MarketplacePreview } from '@/components/home/MarketplacePreview';
+import { VideoTestimonialWall } from '@/components/features/VideoTestimonialWall';
 import { Testimonials } from '@/components/home/Testimonials';
-import { FAQ } from '@/components/home/FAQ';
+import { DeepFAQ } from '@/components/home/DeepFAQ';
 import { CTA } from '@/components/home/CTA';
-import { buildMetadata } from '@/lib/seo';
+import { buildMetadata } from '@/lib/seo/metadata';
+
 
 export const metadata = buildMetadata({
-  title: "Pakistan's #1 POS & Inventory Software for Shops",
-  description:
-    "Run your shop smarter with Nafaa — Pakistan's all-in-one POS, inventory, and accounting software. 7-day free trial, no credit card required. Trusted by 5,000+ businesses.",
+  description: "The all-in-one platform for Pakistani businesses: modern POS, unified marketplace, thirty-plus integrations, multi-shop, FBR compliance, digital khata, and AI-powered insights.",
 });
 
 export default function HomePage() {
   return (
     <>
       <Header />
-      <main>
+      <main className="flex-1">
         <Hero />
-        <Stats />
-        <Features />
-        <Industries />
+        <LiveActivityTicker />
+        <TrustBar />
+        <LiveStats />
+        <LiveNumbersBar />
+        <FeatureShowcase />
+        <IndustriesGrid />
+        <PakistanMap />
+        <IntegrationsWall />
+        <LiveBazaarPreview />
+        <MarketplacePreview />
+        <VideoTestimonialWall />
         <Testimonials />
-        <FAQ />
+        <DeepFAQ />
         <CTA />
       </main>
       <Footer />
+      <FloatingWhatsApp />
     </>
   );
 }

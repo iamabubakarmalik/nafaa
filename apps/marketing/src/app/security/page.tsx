@@ -1,104 +1,84 @@
-import { Lock, Shield, Database, Eye, Server, FileCheck } from 'lucide-react';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
-import { Container } from '@/components/ui/Container';
-import { Badge } from '@/components/ui/Badge';
+import { Lock, Shield, Database, Eye, Server, FileCheck, Mail } from 'lucide-react';
+import { Header } from '@/components/layout/Header/Header';
+import { Footer } from '@/components/layout/Footer/Footer';
+import { FloatingWhatsApp } from '@/components/layout/Footer/FloatingWhatsApp';
 import { CTA } from '@/components/home/CTA';
-import { buildMetadata } from '@/lib/seo';
+import { Container } from '@/components/primitives/Container';
+import { Section } from '@/components/primitives/Section';
+import { Badge } from '@/components/primitives/Badge';
+import { GradientText } from '@/components/primitives/GradientText';
+import { AuroraBackground } from '@/components/primitives/AuroraBackground';
+import { GridBackground } from '@/components/primitives/GridBackground';
+import { NoiseTexture } from '@/components/primitives/NoiseTexture';
+import { buildMetadata } from '@/lib/seo/metadata';
 
 export const metadata = buildMetadata({
-  title: 'Security — Bank-Grade Protection',
-  description: 'Learn how Nafaa protects your business data with bank-grade encryption, secure infrastructure, and best practices.',
+  title: 'Security — bank-grade protection for your business data',
+  description: 'How Nafaa protects Pakistani businesses: 256-bit encryption, ISO 27001 infrastructure, daily backups, audit logs, and responsible disclosure.',
   path: '/security',
 });
 
-const features = [
-  {
-    icon: Lock,
-    title: 'SSL/TLS Encryption',
-    desc: 'All data transmitted between your device and our servers is encrypted using industry-standard 256-bit SSL/TLS.',
-  },
-  {
-    icon: Database,
-    title: 'Encrypted Database',
-    desc: 'Your data is encrypted at rest using AES-256 encryption. Even if accessed, the data is unreadable.',
-  },
-  {
-    icon: Shield,
-    title: 'Secure Authentication',
-    desc: 'JWT tokens, bcrypt password hashing, optional 2FA, session management, and brute-force protection.',
-  },
-  {
-    icon: Server,
-    title: 'Reliable Infrastructure',
-    desc: 'Hosted on enterprise-grade cloud infrastructure with 99.9% uptime SLA, redundancy, and DDoS protection.',
-  },
-  {
-    icon: Eye,
-    title: 'Audit Logs',
-    desc: 'Every action is logged with user, timestamp, and IP. Full audit trail for accountability.',
-  },
-  {
-    icon: FileCheck,
-    title: 'Daily Backups',
-    desc: 'Automated daily backups with point-in-time recovery. Manual export available anytime.',
-  },
+const items = [
+  { icon: Lock, title: '256-bit encryption everywhere', desc: 'Data encrypted in transit (TLS 1.3) and at rest (AES-256). Even if intercepted, it is unreadable.' },
+  { icon: Database, title: 'Daily automated backups', desc: 'Point-in-time recovery across redundant regions. Export your complete data anytime — it is yours.' },
+  { icon: Shield, title: 'Hardened authentication', desc: 'Bcrypt password hashing, optional 2FA, session management, and brute-force protection on every account.' },
+  { icon: Server, title: 'ISO 27001 infrastructure', desc: 'Enterprise-grade cloud with redundancy, DDoS protection, and 99.99% uptime SLA.' },
+  { icon: Eye, title: 'Complete audit logs', desc: 'Every action recorded with user, timestamp, and IP. Know exactly who did what, when, from where.' },
+  { icon: FileCheck, title: 'PCI DSS compliant payments', desc: 'Card data never touches our servers — handled by certified payment processors only.' },
 ];
 
 export default function SecurityPage() {
   return (
     <>
       <Header />
-      <main>
-        <section className="relative pt-20 pb-12 overflow-hidden">
-          <div className="absolute inset-0 bg-grid-pattern opacity-50 dark:opacity-30 pointer-events-none" />
+      <main className="flex-1">
+        <section className="relative overflow-hidden pt-16 pb-14">
+          <AuroraBackground variant="brand" intensity="base" />
+          <GridBackground className="mask-fade-bottom" />
+          <NoiseTexture />
           <Container className="relative text-center">
-            <Badge variant="brand">🔒 Security First</Badge>
-            <h1 className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight">
-              <span className="gradient-text">Your Data, Fortified</span>
+            <Badge variant="brand" size="md">🔒 Security first</Badge>
+            <h1 className="mt-8 font-display font-extrabold text-4xl sm:text-5xl lg:text-6xl xl:text-7xl leading-[1.05] tracking-tight max-w-4xl mx-auto">
+              <GradientText variant="brand">Your data, fortified like a bank</GradientText>
             </h1>
-            <p className="mt-5 text-lg lg:text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-              Bank-grade security. Built from the ground up to protect Pakistani businesses.
+            <p className="mt-6 text-lg lg:text-xl text-ink-600 dark:text-ink-300 max-w-2xl mx-auto">
+              Your sales, your khata, your customers — protected with the same standards banks use.
             </p>
           </Container>
         </section>
 
-        <section className="py-12 lg:py-20">
+        <Section variant="default" spacing="lg">
           <Container>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {features.map((f) => {
-                const Icon = f.icon;
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {items.map((it) => {
+                const Icon = it.icon;
                 return (
-                  <div
-                    key={f.title}
-                    className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6"
-                  >
-                    <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-brand-500 to-emerald-600 flex items-center justify-center shadow-lg">
-                      <Icon className="h-7 w-7 text-white" />
+                  <div key={it.title} className="rounded-2xl bg-white dark:bg-ink-800 p-7 ring-1 ring-inset ring-ink-100 dark:ring-ink-700/60 hover:-translate-y-1 hover:shadow-card-hover transition-all">
+                    <div className="h-12 w-12 rounded-xl bg-gradient-brand flex items-center justify-center text-white shadow-lg">
+                      <Icon className="h-6 w-6" />
                     </div>
-                    <h3 className="mt-5 text-lg font-extrabold">{f.title}</h3>
-                    <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{f.desc}</p>
+                    <h3 className="mt-4 font-display font-bold text-lg">{it.title}</h3>
+                    <p className="mt-2 text-sm text-ink-600 dark:text-ink-300 leading-relaxed">{it.desc}</p>
                   </div>
                 );
               })}
             </div>
 
-            <div className="mt-16 max-w-3xl mx-auto rounded-3xl bg-gradient-to-br from-slate-900 to-slate-950 text-white p-10 lg:p-14">
-              <h2 className="text-2xl lg:text-3xl font-extrabold">Report a Security Issue</h2>
-              <p className="mt-4 text-slate-300 leading-relaxed">
-                Found a vulnerability? We appreciate responsible disclosure. Please email{' '}
-                <a href="mailto:security@nafaa.pk" className="text-brand-400 font-bold underline">
-                  security@nafaa.pk
-                </a>{' '}
-                with details. We respond within 24 hours and reward valid reports.
+            <div className="mt-12 rounded-3xl bg-ink-950 text-white p-10 lg:p-12">
+              <h2 className="font-display font-extrabold text-2xl lg:text-3xl">Found a vulnerability?</h2>
+              <p className="mt-4 text-ink-300 leading-relaxed max-w-2xl">
+                We appreciate responsible disclosure and reward valid reports. Email details to{' '}
+                <a href="mailto:security@nafaa.pk" className="text-brand-400 font-bold hover:underline">security@nafaa.pk</a>{' '}
+                — we respond within 24 hours.
               </p>
             </div>
           </Container>
-        </section>
+        </Section>
 
         <CTA />
       </main>
       <Footer />
+      <FloatingWhatsApp />
     </>
   );
 }
