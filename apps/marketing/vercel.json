@@ -5,7 +5,7 @@
   "installCommand": "pnpm install --frozen-lockfile",
   "regions": ["sin1", "bom1"],
   "crons": [
-    { "path": "/api/health", "schedule": "*/30 * * * *" }
+    { "path": "/api/health", "schedule": "0 0 * * *" }
   ],
   "headers": [
     {
