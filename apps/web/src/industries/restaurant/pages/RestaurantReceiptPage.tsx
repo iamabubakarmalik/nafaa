@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { salesApi } from '@modules/sales/sales/api/sales.api';
 import { ordersApi } from '../api/orders.api';
 import { formatPKR } from '@core/lib/format';
+import { FbrReceiptBadge } from '@integrations/fbr';
 
 const MODE_ICON: Record<string, any> = {
   DINE_IN: Utensils, TAKEAWAY: ShoppingBag, DELIVERY: Bike,
@@ -140,6 +141,10 @@ export default function RestaurantReceiptPage() {
               <div className="text-xs text-white/90">Print receipt or send via WhatsApp</div>
             </div>
             <Link to="/pos" className="text-xs font-extrabold underline">→ New Order</Link>
+
+            <FbrReceiptBadge saleId={sale?.id} variant="thermal" />
+
+          
           </div>
         )}
 

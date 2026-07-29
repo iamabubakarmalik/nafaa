@@ -6,12 +6,15 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { CreateSaleDto } from './dto/create-sale.dto';
 import { DiscountsService } from '../discounts/discounts.service';
+import { FbrService } from '../../../integrations/fbr/fbr.service';
+import { NotificationsService } from '../../notifications/notifications.service';
 
 @Injectable()
 export class SalesService {
-  constructor(
-    private readonly prisma: PrismaService,
+  constructor(private readonly prisma: PrismaService,
     private readonly discounts: DiscountsService,
+    private readonly notifications: NotificationsService,
+    private readonly fbr: FbrService,
   ) {}
 
   async create(user: AuthenticatedUser, dto: CreateSaleDto) {
@@ -270,7 +273,7 @@ export class SalesService {
       where: { tenantId: user.tenantId, shopId: dto.shopId, status: 'OPEN' },
     });
 
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       let customer = null;
       if (dto.customerId) {
         customer = await tx.customer.findFirst({
@@ -511,13 +514,25 @@ export class SalesService {
 
       return sale;
     });
+
+    // 🔔 Sale notification (async, non-blocking, fire-and-forget)
+    this.notifications.create({
+      tenantId: user.tenantId,
+      type: 'NEW_SALE' as any,
+      title: '💰 Sale Complete',
+      message: `${saleNumber} · Rs ${(result as any).total ?? total} · ${dto.items.length} items`,
+      link: `/sales/${(result as any).id}/receipt`,
+      metadata: { saleId: (result as any).id, total, itemCount: dto.items.length },
+    }).catch(() => null);
+
+    return result;
   }
 
   async findAll(user: AuthenticatedUser, shopId?: string) {
     return this.prisma.sale.findMany({
       where: {
         tenantId: user.tenantId,
-        ...(shopId && { shopId }),
+        ...(shopId && shopId !== 'all' ? { shopId } : {}),
       },
       include: {
         customer: true,
@@ -531,7 +546,7 @@ export class SalesService {
         },
       },
       orderBy: { soldAt: 'desc' },
-      take: 50,
+      take: 200,
     });
   }
 
@@ -816,6 +831,12 @@ export class SalesService {
       }
 
       return tx.sale.update({ where: { id }, data: { status: 'VOIDED' } });
+    }).then((result) => {
+      // FBR cancellation (non-blocking)
+      void this.fbr
+        .cancelInvoice(user.tenantId, id, reason ?? 'Sale voided')
+        .catch(() => undefined);
+      return result;
     });
   }
 }

@@ -11,6 +11,12 @@ import NotificationsPage from '@modules/notifications/NotificationsPage';
 // ─── Marketplace Publishing ────────────────────────────────────
 import MarketplaceSettingsPage from '@modules/organization/marketplace-settings/pages/MarketplaceSettingsPage';
 
+// ─── Integrations Hub ──────────────────────────────────────────
+import IntegrationHubPage from '@integrations/pages/IntegrationHubPage';
+
+// ─── FBR Tax Integration ───────────────────────────────────────
+import { FbrSetupPage, FbrInvoicesPage, FbrReportsPage, FbrAnalyticsPage, FbrSetupWizard } from '@integrations/fbr';
+
 // Marketplace Suite
 import MarketplaceDashboardPage from '../marketplace/dashboard/MarketplaceDashboardPage';
 import ShopProfilePage from '../marketplace/shop-profile/ShopProfilePage';
@@ -522,6 +528,20 @@ export default function App() {
 
                   {/* ── Marketplace Publishing ─────────────────── */}
                   <Route path="/marketplace/settings" element={secure(PERMISSIONS.SETTINGS_VIEW, <MarketplaceSettingsPage />)} />
+
+                  {/* ── Integrations Hub ─────────────────────── */}
+                  <Route path="/integrations" element={<IntegrationHubPage />} />
+
+                  {/* ── FBR Tax ─────────────────────────────── */}
+                  <Route path="/fbr" element={<FbrSetupPage />} />
+                  <Route path="/fbr/setup" element={<FbrSetupPage />} />
+                  <Route path="/fbr/invoices" element={<FbrInvoicesPage />} />
+                  <Route path="/fbr/reports" element={<FbrReportsPage />} />
+                  <Route path="/fbr/analytics" element={<FbrAnalyticsPage />} />
+                  <Route path="/fbr/wizard" element={<FbrSetupWizard />} />
+                  <Route path="/integrations/orders" element={<IntegrationHubPage defaultTab="orders" />} />
+                  <Route path="/integrations/shipments" element={<IntegrationHubPage defaultTab="shipments" />} />
+                  <Route path="/integrations/logs" element={<IntegrationHubPage defaultTab="logs" />} />
 
                   {/* ═══ Marketplace Full Suite ═══════════════════ */}
                   <Route path="/marketplace" element={secure(PERMISSIONS.SETTINGS_VIEW, <MarketplaceDashboardPage />)} />

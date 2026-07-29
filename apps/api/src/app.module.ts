@@ -112,6 +112,14 @@ import { EmergencyDeliveryModule } from './marketplace/emergency-delivery/emerge
 import { FbrModule } from './integrations/fbr/fbr.module';
 import { PostExModule } from './integrations/courier/postex/postex.module';
 import { WhatsappModule } from './integrations/whatsapp/whatsapp.module';
+// ─── Integration Framework ─────────────────────────────────
+import { IntegrationCoreModule } from './integrations/core/integration.module';
+import { CustomWebsiteModule } from './integrations/channels/custom-website/custom-website.module';
+import { FoodpandaModule } from './integrations/channels/foodpanda/foodpanda.module';
+import { DarazModule } from './integrations/channels/daraz/daraz.module';
+import { TcsModule } from './integrations/courier/tcs/tcs.module';
+import { LeopardsModule } from './integrations/courier/leopards/leopards.module';
+
 // ─── Batch E: Cart Recovery + Try Before Buy + B2B + Prayer + AI ────
 import { CartRecoveryModule } from './marketplace/cart-recovery/cart-recovery.module';
 import { TryBeforeBuyModule } from './marketplace/try-before-buy/try-before-buy.module';
@@ -221,6 +229,14 @@ import { AiAssistantModule } from './marketplace/ai-assistant/ai-assistant.modul
     FbrModule,
     PostExModule,
     WhatsappModule,
+
+    // ─── Integration Framework ───
+    IntegrationCoreModule,
+    CustomWebsiteModule,
+    FoodpandaModule,
+    DarazModule,
+    TcsModule,
+    LeopardsModule,
 
     // ─── Batch E ───
     CartRecoveryModule,

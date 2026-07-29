@@ -16,6 +16,7 @@ import { roomsApi } from '../api/rooms.api';
 import { bookingsApi, type BookingSource, type MealPlan } from '../api/bookings.api';
 import { guestsApi } from '../api/guests.api';
 import { differenceInDays } from 'date-fns';
+import { FbrModeIndicator } from '@integrations/fbr/components/FbrModeIndicator';
 
 type Screen = 'rooms' | 'guest' | 'summary';
 
@@ -460,6 +461,10 @@ export default function HotelPosPage() {
 
       <section className="rounded-2xl bg-white border-2 border-slate-200 p-5 space-y-3">
         <h3 className="font-extrabold text-slate-900">Charges & Payment</h3>
+
+        {/* FBR mode indicator — shows only if FBR enabled */}
+        <FbrModeIndicator saleTotal={grandTotal} className="mb-2" />
+        
         <div className="grid grid-cols-3 gap-2">
           <div>
             <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Tax %</label>

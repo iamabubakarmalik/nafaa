@@ -17,6 +17,7 @@ import { appointmentsApi } from '../api/appointments.api';
 import { salonCustomerProfilesApi } from '../api/customer-profiles.api';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import { FbrModeIndicator } from '@integrations/fbr/components/FbrModeIndicator';
 
 type Screen = 'customer' | 'services' | 'schedule' | 'checkout';
 
@@ -663,6 +664,7 @@ export default function SalonPosPage() {
               </div>
               <div className="pt-2 border-t border-pink-200 flex justify-between text-lg">
                 <span className="font-extrabold text-pink-900">Amount</span>
+                <FbrModeIndicator saleTotal={total} className="mb-2" />
                 <span className="font-extrabold text-emerald-700 tabular-nums">{formatPKR(total)}</span>
               </div>
             </div>

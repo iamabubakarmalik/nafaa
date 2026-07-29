@@ -18,6 +18,7 @@ import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { dairyCustomersApi } from '../api/customers.api';
 import { routesApi as dairyRoutesApi } from '../api/routes.api';
 import { useSharedPosCart, cartLineId } from '@modules/pos/hooks/useSharedPosCart';
+import { FbrModeIndicator } from '@integrations/fbr/components/FbrModeIndicator';
 
 type SlotMode = 'MORNING' | 'EVENING' | 'BOTH';
 type SaleType = 'WALK_IN' | 'SUBSCRIBER' | 'ROUTE_DELIVERY' | 'BULK';
@@ -491,6 +492,7 @@ export default function DairyPosPage() {
                 )}
                 <div className="pt-1 mt-1 border-t border-white/20 flex justify-between items-center">
                   <span className="text-sm font-extrabold text-emerald-300">TOTAL</span>
+                  <FbrModeIndicator saleTotal={total} className="mb-2" />
                   <span className="text-2xl font-extrabold text-emerald-300 tabular-nums">{formatPKR(total)}</span>
                 </div>
                 {credit > 0 && (

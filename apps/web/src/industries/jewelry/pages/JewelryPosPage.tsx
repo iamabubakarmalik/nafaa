@@ -17,6 +17,7 @@ import { jewelryProductsApi } from '../api/products.api';
 import { metalRatesApi } from '../api/metal-rates.api';
 import { useSharedPosCart, cartLineId } from '@modules/pos/hooks/useSharedPosCart';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
+import { FbrModeIndicator } from '@integrations/fbr/components/FbrModeIndicator';
 
 const METAL_ICONS: Record<string, string> = {
   GOLD: '🥇', SILVER: '🥈', PLATINUM: '💠',
@@ -626,6 +627,7 @@ export default function JewelryPosPage() {
                 {exchange > 0 && <div className="flex justify-between text-violet-300"><span>Exchange</span><span className="font-bold tabular-nums">-{formatPKR(exchange)}</span></div>}
                 <div className="pt-1 mt-1 border-t border-white/20 flex justify-between items-center">
                   <span className="text-sm font-extrabold text-emerald-300">TOTAL</span>
+                  <FbrModeIndicator saleTotal={total} className="mb-2" />
                   <span className="text-2xl font-extrabold text-emerald-300 tabular-nums">{formatPKR(total)}</span>
                 </div>
               </div>

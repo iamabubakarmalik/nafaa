@@ -14,6 +14,7 @@ import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { useSharedPosCart } from '@modules/pos/hooks/useSharedPosCart';
 import { catalogApi } from '../api/catalog.api';
+import { FbrModeIndicator } from '@integrations/fbr/components/FbrModeIndicator';
 
 const CATEGORIES = [
   { value: 'all', label: 'All', emoji: '🛠️' },
@@ -332,6 +333,7 @@ export default function ServicesBizPosPage() {
                 {Number(globalDiscount) > 0 && <div className="flex justify-between text-rose-300"><span>Discount</span><span className="font-bold tabular-nums">-{formatPKR(Number(globalDiscount))}</span></div>}
                 <div className="pt-1 mt-1 border-t border-white/20 flex justify-between items-center">
                   <span className="text-sm font-extrabold text-emerald-300">TOTAL</span>
+                  <FbrModeIndicator saleTotal={total} className="mb-2" />
                   <span className="text-2xl font-extrabold text-emerald-300 tabular-nums">{formatPKR(total)}</span>
                 </div>
                 {credit > 0 && <div className="flex justify-between text-amber-300 pt-1 border-t border-white/20 mt-1"><span className="font-extrabold">Udhaar</span><span className="font-extrabold tabular-nums">{formatPKR(credit)}</span></div>}

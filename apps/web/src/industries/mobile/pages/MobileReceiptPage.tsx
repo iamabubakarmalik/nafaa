@@ -8,6 +8,7 @@ import {
 import { toast } from 'sonner';
 import { salesApi } from '@modules/sales/sales/api/sales.api';
 import { formatPKR } from '@core/lib/format';
+import { FbrReceiptBadge } from '@integrations/fbr';
 
 const PTA_LABELS: Record<string, string> = {
   APPROVED: 'PTA Approved', NON_PTA: 'Non-PTA', PATCH: 'PTA Patched',
@@ -126,6 +127,10 @@ export default function MobileReceiptPage() {
               <div className="text-xs text-white/90">Print warranty invoice or send via WhatsApp</div>
             </div>
             <Link to="/pos" className="text-xs font-extrabold underline">→ New Sale</Link>
+
+            <FbrReceiptBadge saleId={sale?.id} variant="thermal" />
+
+          
           </div>
         )}
 

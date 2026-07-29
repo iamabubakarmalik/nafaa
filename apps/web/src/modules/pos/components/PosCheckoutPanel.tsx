@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import type { CartItem, SaleMode } from './pos-types';
 import type { PaymentMethod, ServiceChargeItem } from '@modules/sales/sales/api/sales.api';
 import { ServiceChargesPanel } from './ServiceChargesPanel';
+import { FbrModeIndicator } from '@integrations/fbr/components/FbrModeIndicator';
 
 const paymentMethodConfig: Record<PaymentMethod, { label: string; icon: any; color: string; activeBg: string }> = {
   CASH:          { label: 'Cash',      icon: Banknote,   color: '#16a34a', activeBg: 'bg-emerald-50 border-emerald-500 ring-2 ring-emerald-200' },
@@ -211,6 +212,7 @@ export function PosCheckoutPanel({
         : 'bg-gradient-to-br from-slate-950 to-brand-900'
       }`}>
         <div className="flex items-center justify-between text-xs">
+        <FbrModeIndicator saleTotal={total} />
           <span className="text-white/70 font-semibold">Subtotal</span>
           <span className="font-bold tabular-nums">{formatPKR(subtotal)}</span>
         </div>

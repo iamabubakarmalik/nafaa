@@ -7,7 +7,7 @@ import {
   UserCog, CheckCircle2, Wallet2,
   BookmarkPlus, ChevronDown, ChevronRight, ShieldCheck, CreditCard, Bell, Building2, Truck,
   Search, X, Star, StarOff, PanelLeftClose, Settings,
-  Store, Megaphone, MessageCircle, Brain, Bike, Globe, Trophy, Navigation, Zap,
+  Store, Megaphone, MessageCircle, Brain, Bike, Globe, Trophy, Navigation, Zap,FileText, Shield,
   Command, Clock,
 } from 'lucide-react';
 import { Logo } from '@core/components/brand/Logo';
@@ -111,6 +111,11 @@ const posNavGroups: NavGroup[] = [
     label: 'System', icon: SettingsIcon, emoji: '⚙️', color: '#64748b', order: 100,
     items: [
       { to: '/notifications', label: 'Notifications', icon: Bell },
+      { to: '/integrations', label: 'Integrations', icon: Zap },
+      { to: '/fbr', label: 'FBR Setup', icon: Shield, badge: 'NEW' },
+      { to: '/fbr/invoices', label: 'FBR Invoices', icon: FileText },
+      { to: '/fbr/reports', label: 'Monthly Reports', icon: TrendingUp },
+      { to: '/fbr/analytics', label: 'Analytics', icon: BarChart3 },
       { to: '/shops', label: 'Shops / Branches', icon: Building2, permission: PERMISSIONS.SHOPS_VIEW },
       { to: '/exports', label: 'Exports', icon: Download, permission: PERMISSIONS.EXPORTS_VIEW },
       { to: '/backup', label: 'Backup', icon: Database, permission: PERMISSIONS.BACKUP_MANAGE },

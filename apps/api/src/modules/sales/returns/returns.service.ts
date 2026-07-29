@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { FbrService } from '../../../integrations/fbr/fbr.service';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { CreateReturnDto } from './dto/create-return.dto';
@@ -15,6 +16,7 @@ export class ReturnsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notifications: NotificationsService,
+    private readonly fbr: FbrService
   ) {}
 
   // ════════════════════════════════════════════════════════
@@ -527,6 +529,7 @@ export class ReturnsService {
       link: '/returns',
     });
 
+    void this.fbr.submitCreditNote(user.tenantId, result.id).catch(() => undefined);
     return result;
   }
 

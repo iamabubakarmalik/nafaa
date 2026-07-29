@@ -221,4 +221,34 @@ export class SchedulerService {
     }
     if (orders.length > 0) this.logger.log(`⭐ Sent ${orders.length} review reminders`);
   }
+
+  // ═══════════════════════════════════════════════════════════
+  // Every 15 minutes — auto-sync active integrations
+  // ═══════════════════════════════════════════════════════════
+  @Cron('*/15 * * * *')
+  async syncIntegrations() {
+    const activeIntegrations = await this.prisma.integration.findMany({
+      where: { isActive: true, autoSyncEnabled: true, status: 'CONNECTED' },
+    });
+
+    for (const integration of activeIntegrations) {
+      const lastSync = integration.lastSyncAt ?? new Date(0);
+      const nextSync = new Date(lastSync.getTime() + integration.syncIntervalMin * 60 * 1000);
+      if (nextSync > new Date()) continue; // not time yet
+
+      try {
+        if (integration.type === 'FOODPANDA') {
+          // Dynamically import to avoid circular deps
+          const { FoodpandaService } = await import('../../integrations/channels/foodpanda/foodpanda.service.js');
+          // Would inject service in real impl — for now log
+          this.logger.log(`🍔 Foodpanda sync queued for tenant ${integration.tenantId}`);
+        } else if (integration.type === 'DARAZ') {
+          this.logger.log(`🛒 Daraz sync queued for tenant ${integration.tenantId}`);
+        }
+      } catch (e: any) {
+        this.logger.error(`Integration sync failed: ${e.message}`);
+      }
+    }
+  }
+
 }

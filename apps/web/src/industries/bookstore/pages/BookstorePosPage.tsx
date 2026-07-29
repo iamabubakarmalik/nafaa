@@ -15,6 +15,7 @@ import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { useSharedPosCart, cartLineId } from '@modules/pos/hooks/useSharedPosCart';
+import { FbrModeIndicator } from '@integrations/fbr/components/FbrModeIndicator';
 
 type TabType = 'books' | 'stationery' | 'art' | 'all';
 
@@ -403,6 +404,7 @@ export default function BookstorePosPage() {
                 )}
                 <div className="pt-1 mt-1 border-t border-white/20 flex justify-between items-center">
                   <span className="text-sm font-extrabold text-amber-300">TOTAL</span>
+                  <FbrModeIndicator saleTotal={total} className="mb-2" />
                   <span className="text-2xl font-extrabold text-amber-300 tabular-nums">{formatPKR(total)}</span>
                 </div>
                 {credit > 0 && (

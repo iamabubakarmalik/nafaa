@@ -17,6 +17,7 @@ import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { meatProductsApi } from '../api/products.api';
 import { useSharedPosCart, cartLineId } from '@modules/pos/hooks/useSharedPosCart';
+import { FbrModeIndicator } from '@integrations/fbr/components/FbrModeIndicator';
 
 const ANIMAL_EMOJI: Record<string, string> = {
   BEEF: '🐄', MUTTON: '🐑', GOAT: '🐐', LAMB: '🐏',
@@ -450,6 +451,7 @@ export default function MeatPosPage() {
                 )}
                 <div className="pt-1 mt-1 border-t border-white/20 flex justify-between items-center">
                   <span className="text-sm font-extrabold text-emerald-300">TOTAL</span>
+                  <FbrModeIndicator saleTotal={total} className="mb-2" />
                   <span className="text-2xl font-extrabold text-emerald-300 tabular-nums">{formatPKR(total)}</span>
                 </div>
                 {credit > 0 && (

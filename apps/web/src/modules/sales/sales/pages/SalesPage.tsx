@@ -24,6 +24,7 @@ import { SalesPrivacyModal } from '../components/SalesPrivacyModal';
 import { HiddenAmount } from '../components/HiddenAmount';
 import { IndustrySlot } from '@industries/_shared/components/IndustrySlot';
 import { toast } from 'sonner';
+import { FbrSaleButton } from '@integrations/fbr';
 
 const formatDate = (value: string) =>
   new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));

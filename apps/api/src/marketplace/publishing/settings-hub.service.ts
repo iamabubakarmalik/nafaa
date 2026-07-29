@@ -29,7 +29,7 @@ export class SettingsHubService {
         postex:    { enabled: postexConfig?.isActive || false,   isConnected: !!postexConfig?.apiKey },
         leopards:  { enabled: leopardsConfig?.isActive || false, isConnected: !!leopardsConfig?.apiKey },
         whatsapp:  { enabled: whatsappConfig?.isActive || false, isConnected: !!whatsappConfig?.accessToken, phoneNumberId: whatsappConfig?.phoneNumberId },
-        fbr:       { enabled: fbrConfig?.isActive || false,      isConnected: !!fbrConfig?.apiToken,       ntn: fbrConfig?.ntn },
+        fbr:       { enabled: fbrConfig?.isEnabled || false,     isConnected: !!fbrConfig?.apiToken,       ntn: fbrConfig?.ntn },
       },
       taxConfig: config.taxConfig || {
         enableTax: false,

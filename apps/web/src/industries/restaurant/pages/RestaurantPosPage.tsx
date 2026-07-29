@@ -20,6 +20,7 @@ import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { RestaurantModifierPicker } from '@industries/restaurant/pos-extensions/RestaurantModifierPicker';
 import { useSharedPosCart, cartLineId } from '@modules/pos/hooks/useSharedPosCart';
+import { FbrModeIndicator } from '@integrations/fbr/components/FbrModeIndicator';
 
 const MODES: { value: OrderMode; label: string; icon: any; gradient: string; desc: string }[] = [
   { value: 'DINE_IN', label: 'Dine-in', icon: Utensils, gradient: 'from-emerald-500 to-green-700', desc: 'Guest bench pe hain' },
@@ -751,6 +752,7 @@ export default function RestaurantPosPage() {
               )}
               <div className="pt-1 mt-1 border-t border-white/20 flex justify-between items-center">
                 <span className="text-sm font-extrabold text-emerald-300">TOTAL</span>
+                <FbrModeIndicator saleTotal={total} className="mb-2" />
                 <span className="text-2xl font-extrabold text-emerald-300 tabular-nums">{formatPKR(total)}</span>
               </div>
             </div>

@@ -20,6 +20,7 @@ import { RetailUnitPicker, RetailQuickCash, type RetailUnitOption } from '../com
 import { productUnitsApi } from '../api/product-units.api';
 import { combosApi, type ProductCombo } from '../api/combos.api';
 import { quickKeysApi, type QuickKey } from '../api/quick-keys.api';
+import { FbrModeIndicator } from '@integrations/fbr/components/FbrModeIndicator';
 
 const HIDE_PRICES_KEY = 'nafaa.retail-pos.hide-prices';
 const AUTO_CLOSE_KEY = 'nafaa.retail-pos.auto-close-success';
@@ -1317,7 +1318,9 @@ function CartPanel({
               <div className="text-[10px] sm:text-xs uppercase font-extrabold text-white/80 tracking-wider">
                 Paisay lein <span className="hidden sm:inline">(F9)</span>
               </div>
-              <div className="text-2xl sm:text-3xl tabular-nums leading-none mt-0.5">{formatPKR(total)}</div>
+              {/* FBR mode indicator — shows only if FBR enabled */}
+          <FbrModeIndicator saleTotal={total} className="mb-2" />
+          <div className="text-2xl sm:text-3xl tabular-nums leading-none mt-0.5">{formatPKR(total)}</div>
             </div>
             <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-white/20 flex items-center justify-center">
               <ArrowRight className="h-6 w-6 sm:h-8 sm:w-8" />

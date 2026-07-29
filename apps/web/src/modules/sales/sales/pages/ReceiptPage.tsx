@@ -15,6 +15,7 @@ import { IndustrySlot } from '@industries/_shared/components/IndustrySlot';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import { ordersApi } from '@industries/restaurant/api/orders.api';
 import { formatPKR } from '@core/lib/format';
+import { FbrReceiptBadge } from '@integrations/fbr';
 
 type CarpetNoteInfo = {
   type: 'roll' | 'cut-piece' | null;
@@ -308,6 +309,10 @@ export default function ReceiptPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-8 flex items-center justify-center">
         <div className="inline-block h-10 w-10 rounded-full border-4 border-emerald-200 border-t-emerald-600 animate-spin" />
+
+        {id && <FbrReceiptBadge saleId={id} variant="thermal" />}
+
+      
       </div>
     );
   }

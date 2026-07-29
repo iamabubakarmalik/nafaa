@@ -5,6 +5,7 @@ import { Printer, ArrowLeft, MessageCircle, X, Dumbbell, MapPin, Phone, Calendar
 import { toast } from 'sonner';
 import { salesApi } from '@modules/sales/sales/api/sales.api';
 import { formatPKR } from '@core/lib/format';
+import { FbrReceiptBadge } from '@integrations/fbr';
 
 type Format = 'a4' | 'thermal80' | 'thermal58';
 
@@ -76,6 +77,10 @@ export default function GymReceiptPage() {
             <CheckCircle2 className="h-6 w-6" />
             <div className="flex-1"><div className="font-extrabold">Sale Complete! 💪</div><div className="text-xs">Print or WhatsApp</div></div>
             <Link to="/pos" className="text-xs font-extrabold underline">→ New Sale</Link>
+
+            <FbrReceiptBadge saleId={sale?.id} variant="thermal" />
+
+          
           </div>
         )}
 

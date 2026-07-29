@@ -19,6 +19,7 @@ import { CarpetCutPiecePicker } from '@/industries/carpet/components/pos-extensi
 import { carpetRollsApi } from '../api/carpet-rolls.api';
 import { carpetCutPiecesApi, type CarpetCutPiece } from '../api/carpet-cut-pieces.api';
 import { useSharedPosCart, cartLineId } from '@modules/pos/hooks/useSharedPosCart';
+import { FbrModeIndicator } from '@integrations/fbr/components/FbrModeIndicator';
 
 const VIEW_KEY = 'nafaa.carpet-pos.view';
 const HIDE_KEY = 'nafaa.carpet-pos.hide-prices';
@@ -1090,7 +1091,9 @@ function CartPanel(props: any) {
                 <span className="font-bold tabular-nums">-{formatPKR(Number(globalDiscount))}</span>
               </div>
             )}
-            <div className="pt-1.5 mt-1.5 border-t border-white/20 flex justify-between items-center">
+            {/* FBR mode indicator — shows only if FBR enabled */}
+          <FbrModeIndicator saleTotal={total} className="mb-2" />
+          <div className="pt-1.5 mt-1.5 border-t border-white/20 flex justify-between items-center">
               <span className="text-sm font-extrabold text-emerald-300">TOTAL</span>
               <span className="text-2xl font-extrabold text-emerald-300 tabular-nums">{formatPKR(total)}</span>
             </div>

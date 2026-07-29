@@ -8,6 +8,7 @@ import {
 import { toast } from 'sonner';
 import { salesApi } from '@modules/sales/sales/api/sales.api';
 import { formatPKR } from '@core/lib/format';
+import { FbrReceiptBadge } from '@integrations/fbr';
 
 const formatDate = (v: string) =>
   new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(v));
@@ -106,6 +107,10 @@ export default function ClinicReceiptPage() {
               <div className="text-xs text-white/90">Print or send via WhatsApp</div>
             </div>
             <Link to="/pos" className="text-xs font-extrabold underline">→ New Bill</Link>
+
+            <FbrReceiptBadge saleId={sale?.id} variant="thermal" />
+
+          
           </div>
         )}
 

@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { salesApi } from '@modules/sales/sales/api/sales.api';
 import { combosApi } from '../api/combos.api';
 import { formatPKR } from '@core/lib/format';
+import { FbrReceiptBadge } from '@integrations/fbr';
 
 const formatDate = (v: string) =>
   new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(v));
@@ -238,6 +239,10 @@ export default function RetailReceiptPage() {
           <div className="h-14 w-14 rounded-full border-4 border-sky-200 border-t-sky-600 animate-spin mx-auto" />
           <p className="mt-4 text-sm font-bold text-slate-500">Receipt loading...</p>
         </div>
+
+        <FbrReceiptBadge saleId={(sale as any)?.id} variant="thermal" />
+
+      
       </div>
     );
   }

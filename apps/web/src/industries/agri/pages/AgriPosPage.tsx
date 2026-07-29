@@ -19,6 +19,7 @@ import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { agriProductsApi } from '../api/products.api';
 import { farmersApi } from '../api/farmers.api';
 import { useSharedPosCart, cartLineId } from '@modules/pos/hooks/useSharedPosCart';
+import { FbrModeIndicator } from '@integrations/fbr/components/FbrModeIndicator';
 
 const CATEGORY_ICONS: Record<string, any> = {
   SEEDS: Sprout, FERTILIZER: FlaskConical, PESTICIDE: Bug, HERBICIDE: Leaf,
@@ -623,6 +624,7 @@ export default function AgriPosPage() {
                 )}
                 <div className="pt-1 mt-1 border-t border-white/20 flex justify-between items-center">
                   <span className="text-sm font-extrabold text-emerald-300">TOTAL</span>
+                  <FbrModeIndicator saleTotal={total} className="mb-2" />
                   <span className="text-2xl font-extrabold text-emerald-300 tabular-nums">{formatPKR(total)}</span>
                 </div>
                 {credit > 0 && (

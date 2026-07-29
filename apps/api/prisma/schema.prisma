@@ -815,34 +815,35 @@ model Category {
 }
 
 model Product {
-  id               String   @id @default(uuid())
+  id               String                  @id @default(uuid())
   tenantId         String
   categoryId       String?
   brandId          String?
   name             String
   slug             String?
-  description      String?  @db.Text
+  description      String?                 @db.Text
   shortDescription String?
   sku              String?
   barcode          String?
-  unit             String   @default("pcs")
-  price            Float    @default(0)
-  costPrice        Float    @default(0)
+  unit             String                  @default("pcs")
+  price            Float                   @default(0)
+  costPrice        Float                   @default(0)
   wholesalePrice   Float?
-  taxRate          Float    @default(0)
-  stock            Float    @default(0)
-  lowStockAlert    Float    @default(5)
+  taxRate          Float                   @default(0)
+  stock            Float                   @default(0)
+  lowStockAlert    Float                   @default(5)
   weight           Float?
   weightUnit       String?
   dimensions       String?
-  hasVariants      Boolean  @default(false)
-  expiryTracked    Boolean  @default(false)
-  isActive         Boolean  @default(true)
-  isFeatured       Boolean  @default(false)
+  hasVariants      Boolean                 @default(false)
+  expiryTracked    Boolean                 @default(false)
+  isActive         Boolean                 @default(true)
+  isFeatured       Boolean                 @default(false)
   metaTitle        String?
   metaDescription  String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+  channelMappings  ProductChannelMapping[]
 
   tenant               Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   category             Category?             @relation(fields: [categoryId], references: [id], onDelete: SetNull)
@@ -1031,6 +1032,8 @@ model Customer {
   phone         String?
   email         String?
   cnic          String?
+  ntn           String?
+  isRegistered  Boolean         @default(false)
   address       String?
   city          String?
   area          String?
@@ -15374,59 +15377,6 @@ model EmergencyDelivery {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// ▓▓▓  FBR TAX (Pakistan Federal Board of Revenue)  ▓▓▓
-// ═══════════════════════════════════════════════════════════════
-
-enum FbrPosStatus {
-  PENDING
-  SUBMITTED
-  ACKNOWLEDGED
-  REJECTED
-  RETRY_REQUIRED
-}
-
-model FbrConfig {
-  id                String    @id @default(cuid())
-  tenantId          String    @unique
-  posId             String
-  ntn               String
-  strn              String?
-  apiToken          String
-  apiEndpoint       String    @default("https://gw.fbr.gov.pk/imsp/v1/api/inv/postinvoicedata_sb")
-  isSandbox         Boolean   @default(true)
-  isActive          Boolean   @default(false)
-  lastSyncAt        DateTime?
-  totalInvoicesSent Int       @default(0)
-  totalRejected     Int       @default(0)
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-
-  @@map("fbr_configs")
-}
-
-model FbrInvoiceLog {
-  id             String       @id @default(cuid())
-  tenantId       String
-  saleId         String?      @unique
-  invoiceNumber  String
-  fbrInvoiceRef  String?
-  fbrQrCode      String?      @db.Text
-  status         FbrPosStatus @default(PENDING)
-  payload        Json
-  response       Json?
-  errorMessage   String?
-  retryCount     Int          @default(0)
-  submittedAt    DateTime?
-  acknowledgedAt DateTime?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-
-  @@index([tenantId, status])
-  @@index([saleId])
-  @@map("fbr_invoice_logs")
-}
-
-// ═══════════════════════════════════════════════════════════════
 // ▓▓▓  COURIER (PostEx / Leopards / TCS)  ▓▓▓
 // ═══════════════════════════════════════════════════════════════
 
@@ -15903,4 +15853,305 @@ model AiRecommendation {
   @@unique([customerId, productId])
   @@index([customerId, score])
   @@map("ai_recommendations")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ▓▓▓  INTEGRATION FRAMEWORK  ▓▓▓
+// ═══════════════════════════════════════════════════════════════
+
+enum IntegrationType {
+  CUSTOM_WEBSITE
+  FOODPANDA
+  DARAZ
+  SHOPIFY
+  WOOCOMMERCE
+  TCS_COURIER
+  LEOPARDS_COURIER
+  CALLCOURIER
+  NAYAPAY
+  RAAST
+}
+
+enum IntegrationCategory {
+  SALES_CHANNEL
+  COURIER
+  PAYMENT
+  ACCOUNTING
+}
+
+enum IntegrationStatus {
+  PENDING
+  CONNECTED
+  DISCONNECTED
+  ERROR
+  SUSPENDED
+}
+
+enum SyncDirection {
+  INBOUND
+  OUTBOUND
+  BIDIRECTIONAL
+}
+
+enum SyncStatus {
+  PENDING
+  SYNCING
+  SUCCESS
+  FAILED
+  SKIPPED
+}
+
+model Integration {
+  id          String              @id @default(cuid())
+  tenantId    String
+  shopId      String?
+  type        IntegrationType
+  category    IntegrationCategory
+  displayName String
+  status      IntegrationStatus   @default(PENDING)
+
+  // Credentials
+  credentials   Json?
+  apiKey        String? @unique
+  apiSecret     String?
+  webhookSecret String?
+
+  // Config
+  config          Json?
+  syncDirection   SyncDirection @default(BIDIRECTIONAL)
+  autoSyncEnabled Boolean       @default(true)
+  syncIntervalMin Int           @default(15)
+
+  // Stats
+  lastSyncAt          DateTime?
+  lastSyncStatus      SyncStatus?
+  totalOrdersSynced   Int         @default(0)
+  totalProductsSynced Int         @default(0)
+  totalErrors         Int         @default(0)
+
+  // Webhook
+  webhookUrl      String?
+  webhookVerified Boolean @default(false)
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  syncLogs        SyncLog[]
+  channelOrders   ChannelOrder[]
+  webhookLogs     WebhookLog[]
+  productMappings ProductChannelMapping[]
+
+  @@unique([tenantId, type])
+  @@index([tenantId, status])
+  @@index([type, status])
+  @@map("integrations")
+}
+
+model ChannelOrder {
+  id            String      @id @default(cuid())
+  integrationId String
+  integration   Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  tenantId      String
+  shopId        String?
+
+  externalOrderId     String
+  externalOrderNumber String?
+
+  customerName    String
+  customerPhone   String?
+  customerEmail   String?
+  customerAddress String?
+  customerCity    String?
+  customerLat     Float?
+  customerLng     Float?
+
+  items       Json
+  subtotal    Decimal @db.Decimal(12, 2)
+  deliveryFee Decimal @default(0) @db.Decimal(10, 2)
+  discount    Decimal @default(0) @db.Decimal(10, 2)
+  total       Decimal @db.Decimal(12, 2)
+
+  paymentMethod String?
+  paymentStatus String  @default("PENDING")
+  orderStatus   String  @default("PENDING")
+
+  nafaaSaleId  String?
+  nafaaOrderId String?
+
+  notes    String?
+  metadata Json?
+
+  receivedAt  DateTime  @default(now())
+  processedAt DateTime?
+
+  @@unique([integrationId, externalOrderId])
+  @@index([tenantId, orderStatus])
+  @@index([integrationId, receivedAt])
+  @@map("channel_orders")
+}
+
+model SyncLog {
+  id            String      @id @default(cuid())
+  integrationId String
+  integration   Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  tenantId      String
+
+  operation        String
+  direction        SyncDirection
+  status           SyncStatus
+  recordsProcessed Int           @default(0)
+  recordsSuccess   Int           @default(0)
+  recordsFailed    Int           @default(0)
+  errorMessage     String?
+  details          Json?
+
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  @@index([integrationId, startedAt])
+  @@map("sync_logs")
+}
+
+model WebhookLog {
+  id            String       @id @default(cuid())
+  integrationId String?
+  integration   Integration? @relation(fields: [integrationId], references: [id])
+  tenantId      String?
+
+  source         String
+  event          String
+  method         String
+  url            String?
+  headers        Json?
+  body           Json?
+  responseStatus Int?
+  processed      Boolean  @default(false)
+  errorMessage   String?
+  receivedAt     DateTime @default(now())
+
+  @@index([integrationId, receivedAt])
+  @@index([source, event])
+  @@map("webhook_logs")
+}
+
+model ProductChannelMapping {
+  id                String      @id @default(cuid())
+  integrationId     String
+  integration       Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  productId         String
+  product           Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  externalProductId String?
+  externalVariantId String?
+  externalSku       String?
+  externalUrl       String?
+  syncStatus        SyncStatus  @default(PENDING)
+  lastSyncedAt      DateTime?
+  externalData      Json?
+
+  @@unique([integrationId, productId])
+  @@index([integrationId, syncStatus])
+  @@index([productId])
+  @@map("product_channel_mappings")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FBR (Federal Board of Revenue) — Pakistan Tax Integration
+// Per-shop, optional, non-intrusive design
+// ═══════════════════════════════════════════════════════════════
+
+enum FbrSubmissionMode {
+  DISABLED
+  MANUAL
+  AUTO_ALL
+  AUTO_ABOVE_LIMIT
+}
+
+enum FbrEnvironment {
+  SANDBOX
+  PRODUCTION
+}
+
+enum FbrInvoiceStatus {
+  PENDING
+  SUBMITTING
+  SUBMITTED
+  ACKNOWLEDGED
+  REJECTED
+  RETRY_QUEUED
+  MANUAL_SKIPPED
+  CANCELLED
+}
+
+model FbrConfig {
+  id                  String            @id @default(cuid())
+  tenantId            String            @unique
+  isEnabled           Boolean           @default(false)
+  submissionMode      FbrSubmissionMode @default(DISABLED)
+  environment         FbrEnvironment    @default(SANDBOX)
+  autoSubmitThreshold Decimal?          @db.Decimal(12, 2)
+  posId               String?
+  ntn                 String?
+  strn                String?
+  apiToken            String?
+  apiEndpoint         String?
+  businessName        String?
+  businessAddress     String?
+  city                String?
+  province            String?
+  defaultTaxRate      Decimal           @default(17) @db.Decimal(5, 2)
+  taxInclusive        Boolean           @default(false)
+  printQrOnReceipt    Boolean           @default(true)
+  printFbrLogo        Boolean           @default(true)
+  askBeforeSubmit     Boolean           @default(true)
+  hideNonFbrSales     Boolean           @default(false)
+  retentionMonths     Int               @default(72)
+  totalSubmitted      Int               @default(0)
+  totalRejected       Int               @default(0)
+  totalSkipped        Int               @default(0)
+  lastSubmissionAt    DateTime?
+  isVerified          Boolean           @default(false)
+  verifiedAt          DateTime?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  invoices FbrInvoice[]
+
+  @@index([tenantId, isEnabled])
+  @@map("fbr_configs")
+}
+
+model FbrInvoice {
+  id                 String           @id @default(cuid())
+  tenantId           String
+  configId           String
+  config             FbrConfig        @relation(fields: [configId], references: [id], onDelete: Cascade)
+  saleId             String           @unique
+  invoiceNumber      String
+  status             FbrInvoiceStatus @default(PENDING)
+  fbrInvoiceNumber   String?
+  fbrQrCode          String?          @db.Text
+  fbrVerificationUrl String?
+  totalAmount        Decimal          @db.Decimal(12, 2)
+  taxAmount          Decimal          @db.Decimal(12, 2)
+  netAmount          Decimal          @db.Decimal(12, 2)
+  taxRate            Decimal          @default(17) @db.Decimal(5, 2)
+  requestPayload     Json
+  responsePayload    Json?
+  errorMessage       String?
+  retryCount         Int              @default(0)
+  maxRetries         Int              @default(5)
+  nextRetryAt        DateTime?
+  submittedAt        DateTime?
+  acknowledgedAt     DateTime?
+  skippedReason      String?
+  skippedBy          String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  @@index([tenantId, status])
+  @@index([configId, submittedAt])
+  @@index([status, nextRetryAt])
+  @@index([saleId])
+  @@map("fbr_invoices")
 }

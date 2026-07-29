@@ -223,6 +223,13 @@ export default function NotificationBell() {
 
               <div className="flex items-center gap-1">
                 <button
+                  onClick={() => play()}
+                  className="h-8 px-2 rounded-lg bg-white/10 hover:bg-white/20 backdrop-blur flex items-center gap-1 text-white transition text-[10px] font-black"
+                  title="Test notification sound"
+                >
+                  🔊 TEST
+                </button>
+                <button
                   onClick={toggleMute}
                   className="h-8 w-8 rounded-lg bg-white/10 hover:bg-white/20 backdrop-blur flex items-center justify-center text-white transition"
                   title={muted ? 'Unmute sounds' : 'Mute sounds'}

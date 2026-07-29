@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { salesApi } from '@modules/sales/sales/api/sales.api';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
 import { useAuthStore } from '@core/stores/auth.store';
+import { FbrReceiptBadge } from '@integrations/fbr';
 
 const formatDate = (v: string) =>
   new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(v));
@@ -268,6 +269,7 @@ export default function CarpetReceiptPage() {
           <div className="h-12 w-12 rounded-full border-4 border-emerald-200 border-t-emerald-600 animate-spin mx-auto" />
           <p className="mt-4 text-sm font-bold text-slate-500">Loading receipt...</p>
         </div>
+      
       </div>
     );
   }

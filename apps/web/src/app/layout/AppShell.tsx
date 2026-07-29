@@ -8,10 +8,14 @@ import { Sidebar } from './parts/Sidebar';
 import { MobileSidebar } from './parts/MobileSidebar';
 import { Topbar } from './parts/Topbar';
 import { DesktopUpdateBanner } from '@modules/desktop/components/DesktopUpdateBanner';
+import { useRealtimeNotifications } from '@core/hooks/useRealtimeNotifications';
+import { useFbrNotifications } from '@integrations/fbr/hooks/useFbrNotifications';
 
 const SIDEBAR_COLLAPSED_KEY = 'nafaa-sidebar-collapsed';
 
 export default function AppShell() {
+  useFbrNotifications();
+  useRealtimeNotifications();
   const navigate = useNavigate();
   const { user, tenant, refreshToken, logout } = useAuthStore();
   const [mobileOpen, setMobileOpen] = useState(false);
