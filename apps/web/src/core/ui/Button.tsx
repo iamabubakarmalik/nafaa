@@ -15,23 +15,38 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variants: Record<Variant, string> = {
-  primary:   'bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white shadow-brand hover:shadow-brand-lg',
-  secondary: 'bg-slate-900 hover:bg-slate-800 active:bg-slate-950 text-white dark:bg-white dark:hover:bg-slate-100 dark:text-slate-900',
-  outline:   'bg-transparent border-2 border-slate-200 hover:border-slate-300 dark:border-neutral-700 dark:hover:border-neutral-600 text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-neutral-800',
-  ghost:     'bg-transparent hover:bg-slate-100 dark:hover:bg-neutral-800 text-slate-700 dark:text-slate-300',
-  danger:    'bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white shadow-md',
-  success:   'bg-success-600 hover:bg-success-700 active:bg-success-800 text-white shadow-md',
-  gradient:  'bg-gradient-to-r from-brand-600 via-brand-700 to-emerald-700 hover:from-brand-700 hover:via-brand-800 hover:to-emerald-800 text-white shadow-brand hover:shadow-brand-lg',
-  link:      'bg-transparent text-brand-700 hover:text-brand-800 dark:text-brand-400 dark:hover:text-brand-300 hover:underline underline-offset-4 p-0 shadow-none h-auto',
+  primary:
+    'bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white shadow-brand hover:shadow-brand-lg ' +
+    'dark:bg-brand-500 dark:hover:bg-brand-600 dark:active:bg-brand-700 dark:text-white',
+  secondary:
+    'bg-slate-900 hover:bg-slate-800 active:bg-slate-950 text-white shadow-card ' +
+    'dark:bg-white dark:hover:bg-slate-100 dark:active:bg-slate-200 dark:text-slate-900',
+  outline:
+    'bg-white border-2 border-slate-300 hover:border-brand-500 hover:bg-brand-50 text-slate-900 ' +
+    'dark:bg-slate-900 dark:border-slate-600 dark:hover:border-brand-400 dark:hover:bg-slate-800 dark:text-white',
+  ghost:
+    'bg-transparent hover:bg-slate-100 active:bg-slate-200 text-slate-800 ' +
+    'dark:hover:bg-slate-800 dark:active:bg-slate-700 dark:text-slate-100',
+  danger:
+    'bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white shadow-card ' +
+    'dark:bg-rose-500 dark:hover:bg-rose-600 dark:text-white',
+  success:
+    'bg-success-600 hover:bg-success-700 active:bg-success-800 text-white shadow-card ' +
+    'dark:bg-success-500 dark:hover:bg-success-600 dark:text-white',
+  gradient:
+    'bg-gradient-to-r from-brand-600 via-brand-700 to-emerald-700 hover:from-brand-700 hover:via-brand-800 hover:to-emerald-800 text-white shadow-brand hover:shadow-brand-lg',
+  link:
+    'bg-transparent text-brand-700 hover:text-brand-800 hover:underline underline-offset-4 p-0 shadow-none h-auto ' +
+    'dark:text-brand-400 dark:hover:text-brand-300',
 };
 
 const sizes: Record<Size, string> = {
-  xs: 'h-7 px-2.5 text-xs rounded-lg gap-1',
-  sm: 'h-9 px-3 text-sm rounded-lg gap-1.5',
-  md: 'h-11 px-4 text-sm rounded-xl gap-2',
-  lg: 'h-12 px-6 text-base rounded-xl gap-2',
-  xl: 'h-14 px-8 text-base rounded-2xl gap-2.5',
-  icon: 'h-10 w-10 rounded-xl',
+  xs:   'h-8 px-3 text-xs rounded-lg gap-1.5',
+  sm:   'h-9 px-3.5 text-sm rounded-lg gap-1.5',
+  md:   'h-11 px-4 text-sm rounded-xl gap-2',
+  lg:   'h-12 px-6 text-base rounded-xl gap-2',
+  xl:   'h-14 px-8 text-base rounded-2xl gap-2.5',
+  icon: 'h-11 w-11 rounded-xl',
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -48,10 +63,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       disabled={disabled || loading}
       aria-busy={loading}
       className={cn(
-        'inline-flex items-center justify-center font-extrabold transition-all duration-200 select-none whitespace-nowrap',
+        'inline-flex items-center justify-center font-bold transition-all duration-200 select-none whitespace-nowrap',
         'disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-neutral-900',
-        'active:scale-[0.98]',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 focus-visible:ring-offset-2',
+        'focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-900',
+        'active:scale-[0.97]',
         variants[variant],
         sizes[size],
         fullWidth && 'w-full',
