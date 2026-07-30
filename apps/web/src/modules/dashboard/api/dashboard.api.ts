@@ -52,6 +52,10 @@ export interface DashboardOverview {
     name?: string; businessType?: string | null; defaultUnit?: string | null;
     isCarpet: boolean; isMobile: boolean;
   };
+  shop: {
+    id: string; name: string; isMain: boolean; type: string; address?: string | null;
+  } | null;
+  scope: 'shop' | 'all';
   stats: DashboardStats;
   carpetStats: CarpetStats | null;
   mobileStats: MobileStats | null;
@@ -81,6 +85,7 @@ export interface DashboardOverview {
     creditAmount: number; paymentMethod: string; status: string; soldAt: string;
     customer?: { id: string; name: string; phone?: string | null } | null;
     cashier?: string | null;
+    shop?: { id: string; name: string } | null;
   }>;
   paymentBreakdown: Array<{ method: string; total: number; count: number; }>;
   currentRegister: any;
@@ -89,6 +94,15 @@ export interface DashboardOverview {
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
 
 export const dashboardApi = {
-  overview: () =>
-    apiClient.get<{ data: DashboardOverview }>('/dashboard/overview').then(unwrap),
+  /**
+   * Get dashboard overview.
+   * @param shopId Optional — scope stats to a single shop (Owner can pass "all" or specific id)
+   *               Manager/Cashier will always see their locked shop regardless.
+   */
+  overview: (shopId?: string) =>
+    apiClient
+      .get<{ data: DashboardOverview }>('/dashboard/overview', {
+        params: shopId && shopId !== 'all' ? { shopId } : {},
+      })
+      .then(unwrap),
 };

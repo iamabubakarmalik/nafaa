@@ -21,25 +21,17 @@ export class TeamService {
   constructor(private readonly prisma: PrismaService) {}
 
   private requireOwner(user: AuthenticatedUser) {
-    if (user.role !== UserRole.OWNER) {
+    if (user.role !== UserRole.OWNER && user.role !== UserRole.SUPER_ADMIN) {
       throw new ForbiddenException('Sirf Owner team manage kar sakta hai');
     }
   }
 
-  /**
-   * Validate permission keys against the master list
-   * Filters out any unknown permissions
-   */
   private sanitizePermissions(perms: string[] | undefined): string[] {
     if (!perms || perms.length === 0) return [];
     const valid = new Set<string>(ALL_PERMISSIONS);
     return Array.from(new Set(perms.filter((p) => valid.has(p as any))));
   }
 
-  /**
-   * GET /team
-   * Returns all team members with their permissions
-   */
   async list(user: AuthenticatedUser) {
     return this.prisma.user.findMany({
       where: { tenantId: user.tenantId },
@@ -54,7 +46,7 @@ export class TeamService {
         permissions: true,
         shopId: true,
         assignedShop: {
-          select: { id: true, name: true, isMain: true },
+          select: { id: true, name: true, isMain: true, type: true, isActive: true },
         },
         lastLoginAt: true,
         createdAt: true,
@@ -62,10 +54,6 @@ export class TeamService {
     });
   }
 
-  /**
-   * POST /team
-   * Create new team member with custom or default permissions
-   */
   async create(user: AuthenticatedUser, dto: CreateTeamMemberDto) {
     this.requireOwner(user);
 
@@ -73,6 +61,28 @@ export class TeamService {
       throw new BadRequestException('Owner role manually nahi bana sakte');
     }
 
+    // Shop assignment rules
+    const needsShop =
+      dto.role === UserRole.MANAGER ||
+      dto.role === UserRole.CASHIER;
+
+    if (needsShop && !(dto as any).shopId) {
+      throw new BadRequestException(
+        `${dto.role} ke liye shop select karna zaroori hai`,
+      );
+    }
+
+    // Validate shopId if provided
+    let shop: any = null;
+    if ((dto as any).shopId) {
+      shop = await this.prisma.shop.findFirst({
+        where: { id: (dto as any).shopId, tenantId: user.tenantId },
+      });
+      if (!shop) throw new NotFoundException('Shop not found');
+      if (!shop.isActive) throw new BadRequestException('Yeh shop inactive hai');
+    }
+
+    // Check duplicate email
     const existingEmail = await this.prisma.user.findUnique({
       where: { email: dto.email.toLowerCase() },
     });
@@ -89,21 +99,12 @@ export class TeamService {
       }
     }
 
-    // Use custom permissions if provided, otherwise apply role defaults
     const permissions =
       dto.permissions && dto.permissions.length > 0
         ? this.sanitizePermissions(dto.permissions)
         : DEFAULT_ROLE_PERMISSIONS[dto.role] ?? [];
 
     const passwordHash = await hashPassword(dto.password);
-
-    // Validate shopId if provided
-    if ((dto as any).shopId) {
-      const shop = await this.prisma.shop.findFirst({
-        where: { id: (dto as any).shopId, tenantId: user.tenantId },
-      });
-      if (!shop) throw new NotFoundException('Shop not found');
-    }
 
     const created = await this.prisma.user.create({
       data: {
@@ -125,12 +126,14 @@ export class TeamService {
         role: true,
         permissions: true,
         shopId: true,
+        assignedShop: {
+          select: { id: true, name: true, isMain: true },
+        },
         isActive: true,
         createdAt: true,
       },
     });
 
-    // Activity log
     await this.prisma.activityLog.create({
       data: {
         tenantId: user.tenantId,
@@ -138,18 +141,20 @@ export class TeamService {
         action: 'CREATE',
         entityType: 'TeamMember',
         entityId: created.id,
-        description: `${user.email} added new team member: ${created.fullName} (${created.role})`,
-        metadata: { role: created.role, permissions: created.permissions },
+        description: `${user.email} added ${created.role}: ${created.fullName}${
+          shop ? ` (assigned to ${shop.name})` : ''
+        }`,
+        metadata: {
+          role: created.role,
+          permissions: created.permissions,
+          shopId: created.shopId,
+        },
       },
     });
 
     return created;
   }
 
-  /**
-   * PATCH /team/:id/permissions
-   * Owner updates a member's permissions
-   */
   async updatePermissions(
     user: AuthenticatedUser,
     id: string,
@@ -193,9 +198,6 @@ export class TeamService {
     return updated;
   }
 
-  /**
-   * Assign team member to a specific shop
-   */
   async updateShop(user: AuthenticatedUser, id: string, shopId: string | null) {
     this.requireOwner(user);
 
@@ -207,11 +209,22 @@ export class TeamService {
       throw new BadRequestException('Owner ko kisi shop se tie nahi kar sakte');
     }
 
+    // Manager/Cashier MUST have a shop
+    if (
+      (member.role === UserRole.MANAGER || member.role === UserRole.CASHIER) &&
+      !shopId
+    ) {
+      throw new BadRequestException(
+        `${member.role} ko shop se unassign nahi kar sakte. Naya shop de dein.`,
+      );
+    }
+
     if (shopId) {
       const shop = await this.prisma.shop.findFirst({
         where: { id: shopId, tenantId: user.tenantId },
       });
       if (!shop) throw new NotFoundException('Shop not found');
+      if (!shop.isActive) throw new BadRequestException('Yeh shop inactive hai');
     }
 
     const updated = await this.prisma.user.update({
@@ -230,7 +243,9 @@ export class TeamService {
         action: 'UPDATE',
         entityType: 'TeamMember',
         entityId: id,
-        description: `${user.email} ${shopId ? 'assigned' : 'unassigned'} ${member.fullName} ${shopId ? 'to shop' : 'from shop'}`,
+        description: `${user.email} ${
+          shopId ? 'assigned' : 'unassigned'
+        } ${member.fullName} ${shopId ? 'to shop' : 'from shop'}`,
         metadata: { shopId },
       },
     });
@@ -238,7 +253,7 @@ export class TeamService {
     return updated;
   }
 
-    async toggleActive(user: AuthenticatedUser, id: string) {
+  async toggleActive(user: AuthenticatedUser, id: string) {
     this.requireOwner(user);
 
     const member = await this.prisma.user.findFirst({
@@ -259,6 +274,11 @@ export class TeamService {
       },
     });
 
+    // If deactivating, kill all sessions
+    if (!updated.isActive) {
+      await this.prisma.session.deleteMany({ where: { userId: id } });
+    }
+
     await this.prisma.activityLog.create({
       data: {
         tenantId: user.tenantId,
@@ -266,7 +286,9 @@ export class TeamService {
         action: updated.isActive ? 'ACTIVATE' : 'DEACTIVATE',
         entityType: 'TeamMember',
         entityId: id,
-        description: `${user.email} ${updated.isActive ? 'activated' : 'deactivated'} ${member.fullName}`,
+        description: `${user.email} ${
+          updated.isActive ? 'activated' : 'deactivated'
+        } ${member.fullName}`,
       },
     });
 
@@ -284,6 +306,41 @@ export class TeamService {
       throw new BadRequestException('Owner ko delete nahi kar sakte');
     }
 
+    // Check if user has any transactional history
+    const [saleCount, expenseCount, cashRegCount] = await Promise.all([
+      this.prisma.sale.count({ where: { createdById: id } }),
+      this.prisma.expense.count({ where: { createdById: id } }),
+      this.prisma.cashRegister.count({
+        where: { OR: [{ openedById: id }, { closedById: id }] },
+      }),
+    ]);
+
+    if (saleCount > 0 || expenseCount > 0 || cashRegCount > 0) {
+      // Soft delete — deactivate + kill sessions
+      const updated = await this.prisma.user.update({
+        where: { id },
+        data: { isActive: false, shopId: null },
+      });
+      await this.prisma.session.deleteMany({ where: { userId: id } });
+
+      await this.prisma.activityLog.create({
+        data: {
+          tenantId: user.tenantId,
+          userId: user.id,
+          action: 'DEACTIVATE',
+          entityType: 'TeamMember',
+          entityId: id,
+          description: `${user.email} soft-deleted (deactivated) ${member.fullName} — has history`,
+          metadata: { saleCount, expenseCount, cashRegCount },
+        },
+      });
+
+      return {
+        message: 'Team member deactivated (had transactional history)',
+        softDeleted: true,
+      };
+    }
+
     await this.prisma.user.delete({ where: { id } });
 
     await this.prisma.activityLog.create({
@@ -293,18 +350,13 @@ export class TeamService {
         action: 'DELETE',
         entityType: 'TeamMember',
         entityId: id,
-        description: `${user.email} removed team member: ${member.fullName}`,
+        description: `${user.email} removed ${member.fullName}`,
       },
     });
 
-    return { message: 'Team member removed successfully' };
+    return { message: 'Team member removed successfully', softDeleted: false };
   }
 
-  /**
-   * GET /team/permissions/catalog
-   * Returns all available permissions + role defaults
-   * Used by frontend to render permission checkboxes
-   */
   getCatalog(user: AuthenticatedUser) {
     this.requireOwner(user);
     return {

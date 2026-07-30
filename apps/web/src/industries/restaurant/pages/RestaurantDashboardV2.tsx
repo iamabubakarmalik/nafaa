@@ -46,7 +46,7 @@ const TABLE_STATUS_COLORS: Record<string, string> = {
 export default function RestaurantDashboardV2() {
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['dashboard-overview'],
-    queryFn: dashboardApi.overview,
+    queryFn: () => dashboardApi.overview(),
     refetchInterval: 60_000,
   });
 

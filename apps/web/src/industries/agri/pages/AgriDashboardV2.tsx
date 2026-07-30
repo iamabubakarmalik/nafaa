@@ -35,7 +35,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 export default function AgriDashboardV2() {
   const { data, refetch, isRefetching } = useQuery({
     queryKey: ['dashboard-overview'],
-    queryFn: dashboardApi.overview,
+    queryFn: () => dashboardApi.overview(),
     refetchInterval: 60_000,
   });
 

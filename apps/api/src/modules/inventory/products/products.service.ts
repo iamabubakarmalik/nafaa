@@ -1,5 +1,5 @@
 import {
-  ConflictException, Injectable, NotFoundException,
+  ConflictException, Injectable, NotFoundException, Logger,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
@@ -17,6 +17,8 @@ function toSlug(name: string) {
 
 @Injectable()
 export class ProductsService {
+  private readonly logger = new Logger(ProductsService.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
   async create(user: AuthenticatedUser, dto: CreateProductDto) {
@@ -50,59 +52,67 @@ export class ProductsService {
 
     const slug = toSlug(dto.name) + '-' + Math.random().toString(36).slice(2, 6);
 
-    const { tagIds, imageUrls, ...productData } = dto;
+    const { tagIds, imageUrls } = dto;
 
-    const product = await this.prisma.product.create({
-      data: {
-        tenantId: user.tenantId,
-        categoryId: dto.categoryId,
-        brandId: dto.brandId,
-        name: dto.name,
-        slug,
-        description: dto.description,
-        shortDescription: dto.shortDescription,
-        sku: dto.sku,
-        barcode: dto.barcode,
-        unit: dto.unit ?? 'pcs',
-        price: dto.price,
-        costPrice: dto.costPrice ?? 0,
-        wholesalePrice: dto.wholesalePrice,
-        taxRate: dto.taxRate ?? 0,
-        stock: dto.stock ?? 0,
-        lowStockAlert: dto.lowStockAlert ?? 5,
-        weight: dto.weight,
-        weightUnit: dto.weightUnit,
-        dimensions: dto.dimensions,
-        expiryTracked: dto.expiryTracked ?? false,
-        isActive: dto.isActive ?? true,
-        isFeatured: dto.isFeatured ?? false,
-      },
-      include: {
-        category: true,
-        brand: true,
-      },
+    // Create product + ShopStock in single transaction
+    const product = await this.prisma.$transaction(async (tx) => {
+      const created = await tx.product.create({
+        data: {
+          tenantId: user.tenantId,
+          categoryId: dto.categoryId,
+          brandId: dto.brandId,
+          name: dto.name,
+          slug,
+          description: dto.description,
+          shortDescription: dto.shortDescription,
+          sku: dto.sku,
+          barcode: dto.barcode,
+          unit: dto.unit ?? 'pcs',
+          price: dto.price,
+          costPrice: dto.costPrice ?? 0,
+          wholesalePrice: dto.wholesalePrice,
+          taxRate: dto.taxRate ?? 0,
+          stock: dto.stock ?? 0,
+          lowStockAlert: dto.lowStockAlert ?? 5,
+          weight: dto.weight,
+          weightUnit: dto.weightUnit,
+          dimensions: dto.dimensions,
+          expiryTracked: dto.expiryTracked ?? false,
+          isActive: dto.isActive ?? true,
+          isFeatured: dto.isFeatured ?? false,
+        },
+      });
+
+      // Tags
+      if (tagIds?.length) {
+        await tx.productTag.createMany({
+          data: tagIds.map((tagId) => ({ productId: created.id, tagId })),
+          skipDuplicates: true,
+        });
+      }
+
+      // Images
+      if (imageUrls?.length) {
+        await tx.productImage.createMany({
+          data: imageUrls.map((url, i) => ({
+            productId: created.id,
+            url,
+            isPrimary: i === 0,
+            sortOrder: i,
+          })),
+        });
+      }
+
+      // ⭐ AUTO-CREATE ShopStock for every active shop
+      await this.ensureShopStockForAllShopsTx(
+        tx,
+        user.tenantId,
+        created.id,
+        dto.stock ?? 0,
+      );
+
+      return created;
     });
-
-    if (tagIds?.length) {
-      await this.prisma.productTag.createMany({
-        data: tagIds.map((tagId) => ({ productId: product.id, tagId })),
-        skipDuplicates: true,
-      });
-    }
-
-    if (imageUrls?.length) {
-      await this.prisma.productImage.createMany({
-        data: imageUrls.map((url, i) => ({
-          productId: product.id,
-          url,
-          isPrimary: i === 0,
-          sortOrder: i,
-        })),
-      });
-    }
-
-    // Auto-create ShopStock for all shops so POS sale doesn't fail
-    await this.ensureShopStockForAllShops(user.tenantId, product.id, dto.stock ?? 0);
 
     return this.findOne(user, product.id);
   }
@@ -144,9 +154,6 @@ export class ProductsService {
     if (query.stockStatus) {
       if (query.stockStatus === 'out') where.stock = 0;
       else if (query.stockStatus === 'in') where.stock = { gt: 0 };
-      else if (query.stockStatus === 'low') {
-        // Filter applied post-query for accuracy
-      }
     }
 
     const [items, total] = await Promise.all([
@@ -228,7 +235,10 @@ export class ProductsService {
       if (barExists) throw new ConflictException('Barcode already exists');
     }
 
-    const { tagIds, imageUrls, ...productData } = dto;
+    const { tagIds } = dto;
+    const productData: any = { ...dto };
+    delete productData.tagIds;
+    delete productData.imageUrls;
 
     await this.prisma.product.update({
       where: { id },
@@ -249,33 +259,32 @@ export class ProductsService {
   }
 
   async remove(user: AuthenticatedUser, id: string) {
-  await this.findOne(user, id);
+    await this.findOne(user, id);
 
-  const saleItemCount = await this.prisma.saleItem.count({
-    where: { productId: id },
-  });
-
-  const purchaseItemCount = await this.prisma.purchaseItem.count({
-    where: { productId: id },
-  });
-
-  if (saleItemCount > 0 || purchaseItemCount > 0) {
-    await this.prisma.product.update({
-      where: { id },
-      data: { isActive: false },
+    const saleItemCount = await this.prisma.saleItem.count({
+      where: { productId: id },
     });
-    return {
-      message: 'Product deactivated (cannot delete — has sales/purchase history)',
-      softDeleted: true,
-      saleCount: saleItemCount,
-      purchaseCount: purchaseItemCount,
-    };
+
+    const purchaseItemCount = await this.prisma.purchaseItem.count({
+      where: { productId: id },
+    });
+
+    if (saleItemCount > 0 || purchaseItemCount > 0) {
+      await this.prisma.product.update({
+        where: { id },
+        data: { isActive: false },
+      });
+      return {
+        message: 'Product deactivated (cannot delete — has sales/purchase history)',
+        softDeleted: true,
+        saleCount: saleItemCount,
+        purchaseCount: purchaseItemCount,
+      };
+    }
+
+    await this.prisma.product.delete({ where: { id } });
+    return { message: 'Product deleted successfully', softDeleted: false };
   }
-
-  await this.prisma.product.delete({ where: { id } });
-  return { message: 'Product deleted successfully', softDeleted: false };
-}
-
 
   async toggleFeatured(user: AuthenticatedUser, id: string) {
     const p = await this.findOne(user, id);
@@ -294,91 +303,71 @@ export class ProductsService {
   }
 
   async bulkAction(
-  user: AuthenticatedUser,
-  productIds: string[],
-  action: 'activate' | 'deactivate' | 'delete' | 'feature' | 'unfeature',
-) {
-  const where = { id: { in: productIds }, tenantId: user.tenantId };
+    user: AuthenticatedUser,
+    productIds: string[],
+    action: 'activate' | 'deactivate' | 'delete' | 'feature' | 'unfeature',
+  ) {
+    const where = { id: { in: productIds }, tenantId: user.tenantId };
 
-  switch (action) {
-    case 'activate':
-      await this.prisma.product.updateMany({
-        where,
-        data: { isActive: true },
-      });
-      break;
-
-    case 'deactivate':
-      await this.prisma.product.updateMany({
-        where,
-        data: { isActive: false },
-      });
-      break;
-
-    case 'feature':
-      await this.prisma.product.updateMany({
-        where,
-        data: { isFeatured: true },
-      });
-      break;
-
-    case 'unfeature':
-      await this.prisma.product.updateMany({
-        where,
-        data: { isFeatured: false },
-      });
-      break;
-
-    case 'delete': {
-      // 🔍 Find products with sales/purchase history
-      const productsWithHistory = await this.prisma.product.findMany({
-        where: {
-          id: { in: productIds },
-          tenantId: user.tenantId,
-          OR: [
-            { saleItems: { some: {} } },
-            { purchaseItems: { some: {} } },
-          ],
-        },
-        select: { id: true },
-      });
-
-      const softIds = productsWithHistory.map((p) => p.id);
-      const hardIds = productIds.filter((id) => !softIds.includes(id));
-
-      // 🟡 Soft delete (deactivate)
-      if (softIds.length > 0) {
-        await this.prisma.product.updateMany({
-          where: { id: { in: softIds }, tenantId: user.tenantId },
-          data: { isActive: false },
+    switch (action) {
+      case 'activate':
+        await this.prisma.product.updateMany({ where, data: { isActive: true } });
+        break;
+      case 'deactivate':
+        await this.prisma.product.updateMany({ where, data: { isActive: false } });
+        break;
+      case 'feature':
+        await this.prisma.product.updateMany({ where, data: { isFeatured: true } });
+        break;
+      case 'unfeature':
+        await this.prisma.product.updateMany({ where, data: { isFeatured: false } });
+        break;
+      case 'delete': {
+        const productsWithHistory = await this.prisma.product.findMany({
+          where: {
+            id: { in: productIds },
+            tenantId: user.tenantId,
+            OR: [
+              { saleItems: { some: {} } },
+              { purchaseItems: { some: {} } },
+            ],
+          },
+          select: { id: true },
         });
-      }
 
-      // 🔴 Hard delete
-      if (hardIds.length > 0) {
-        await this.prisma.product.deleteMany({
-          where: { id: { in: hardIds }, tenantId: user.tenantId },
-        });
-      }
+        const softIds = productsWithHistory.map((p) => p.id);
+        const hardIds = productIds.filter((id) => !softIds.includes(id));
 
-      return {
-        count: productIds.length,
-        action,
-        hardDeleted: hardIds.length,
-        softDeleted: softIds.length,
-      };
+        if (softIds.length > 0) {
+          await this.prisma.product.updateMany({
+            where: { id: { in: softIds }, tenantId: user.tenantId },
+            data: { isActive: false },
+          });
+        }
+
+        if (hardIds.length > 0) {
+          await this.prisma.product.deleteMany({
+            where: { id: { in: hardIds }, tenantId: user.tenantId },
+          });
+        }
+
+        return {
+          count: productIds.length,
+          action,
+          hardDeleted: hardIds.length,
+          softDeleted: softIds.length,
+        };
+      }
     }
+
+    return { count: productIds.length, action };
   }
 
-  return { count: productIds.length, action };
-}
-
   // ═══════════════════════════════════════════════════════════
-  // BULK IMPORT — Preview (validate + match references)
+  // BULK IMPORT — Preview
   // ═══════════════════════════════════════════════════════════
 
   async bulkImportPreview(user: AuthenticatedUser, rows: any[]) {
-    // Fetch all existing data for matching
     const [allCategories, allBrands, allTags, allProducts] = await Promise.all([
       this.prisma.category.findMany({
         where: { tenantId: user.tenantId },
@@ -430,16 +419,13 @@ export class ProductsService {
       const stock = Number(row.stock ?? 0);
       const lowStockAlert = Number(row.lowStockAlert ?? 5);
 
-      // SKU duplicate check
       if (row.sku && skuSet.has(String(row.sku).toLowerCase())) {
         warnings.push(`SKU "${row.sku}" already exists`);
       }
-      // Barcode duplicate check
       if (row.barcode && barcodeSet.has(String(row.barcode).toLowerCase())) {
         warnings.push(`Barcode "${row.barcode}" already exists`);
       }
 
-      // Category matching
       let categoryId: string | undefined;
       let willCreateCategory = false;
       if (row.categoryName) {
@@ -451,7 +437,6 @@ export class ProductsService {
         }
       }
 
-      // Brand matching
       let brandId: string | undefined;
       let willCreateBrand = false;
       if (row.brandName) {
@@ -463,7 +448,6 @@ export class ProductsService {
         }
       }
 
-      // Tags matching
       const tagNames = String(row.tagNames || '')
         .split(',')
         .map((t: string) => t.trim())
@@ -480,13 +464,11 @@ export class ProductsService {
         }
       }
 
-      // Variants parsing
       const variantNames = String(row.variantNames || '')
         .split(',')
         .map((v: string) => v.trim())
         .filter(Boolean);
 
-      // Images parsing
       const imageUrls = String(row.imageUrls || '')
         .split(',')
         .map((u: string) => u.trim())
@@ -550,7 +532,7 @@ export class ProductsService {
   }
 
   // ═══════════════════════════════════════════════════════════
-  // BULK IMPORT — Apply (create products + variants + refs)
+  // BULK IMPORT — Apply
   // ═══════════════════════════════════════════════════════════
 
   async bulkImportApply(user: AuthenticatedUser, rows: any[]) {
@@ -560,7 +542,6 @@ export class ProductsService {
     let newTagsCreated = 0;
     let newVariantsCreated = 0;
 
-    // Pre-fetch existing refs for cache
     const [existingCats, existingBrands, existingTags] = await Promise.all([
       this.prisma.category.findMany({ where: { tenantId: user.tenantId } }),
       this.prisma.brand.findMany({ where: { tenantId: user.tenantId } }),
@@ -579,7 +560,6 @@ export class ProductsService {
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
       try {
-        // Resolve or create category
         let categoryId: string | undefined = row.categoryId;
         if (!categoryId && row.newCategoryName) {
           const key = row.newCategoryName.toLowerCase().trim();
@@ -598,15 +578,13 @@ export class ProductsService {
           }
         }
 
-        // Resolve or create brand
         let brandId: string | undefined = row.brandId;
         if (!brandId && row.newBrandName) {
           const key = row.newBrandName.toLowerCase().trim();
           brandId = brandCache.get(key);
           if (!brandId) {
             const slug = row.newBrandName
-              .toLowerCase()
-              .trim()
+              .toLowerCase().trim()
               .replace(/[^a-z0-9]+/g, '-')
               .replace(/^-|-$/g, '');
             const newBrand = await this.prisma.brand.create({
@@ -622,7 +600,6 @@ export class ProductsService {
           }
         }
 
-        // Resolve or create tags
         const tagIds: string[] = [...(row.tagIds || [])];
         for (const newTagName of row.newTagNames || []) {
           const key = newTagName.toLowerCase().trim();
@@ -642,99 +619,105 @@ export class ProductsService {
           if (!tagIds.includes(tagId)) tagIds.push(tagId);
         }
 
-        // Generate slug
         const slug =
           row.name
-            .toLowerCase()
-            .trim()
+            .toLowerCase().trim()
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/^-|-$/g, '')
             .slice(0, 100) +
           '-' +
           Math.random().toString(36).slice(2, 6);
 
-        // Create product
-        const product = await this.prisma.product.create({
-          data: {
-            tenantId: user.tenantId,
-            categoryId,
-            brandId,
-            name: row.name,
-            slug,
-            description: row.description,
-            shortDescription: row.shortDescription,
-            sku: row.sku || null,
-            barcode: row.barcode || null,
-            unit: row.unit || 'pcs',
-            price: Number(row.price ?? 0),
-            costPrice: Number(row.costPrice ?? 0),
-            wholesalePrice: row.wholesalePrice ? Number(row.wholesalePrice) : null,
-            taxRate: Number(row.taxRate ?? 0),
-            stock: Number(row.stock ?? 0),
-            lowStockAlert: Number(row.lowStockAlert ?? 5),
-            weight: row.weight ? Number(row.weight) : null,
-            weightUnit: row.weightUnit || null,
-            dimensions: row.dimensions || null,
-            expiryTracked: row.expiryTracked ?? false,
-            isActive: row.isActive ?? true,
-            isFeatured: row.isFeatured ?? false,
-            hasVariants: (row.variantNames?.length || 0) > 0,
-          },
-        });
-
-        // Create tag links
-        if (tagIds.length > 0) {
-          await this.prisma.productTag.createMany({
-            data: tagIds.map((tagId: string) => ({
-              productId: product.id,
-              tagId,
-            })),
-            skipDuplicates: true,
-          });
-        }
-
-        // Create variants
-        let variantCount = 0;
-        if (row.variantNames && row.variantNames.length > 0) {
-          await this.prisma.productVariant.createMany({
-            data: row.variantNames.map((vName: string, vIdx: number) => ({
-              productId: product.id,
-              name: vName.trim(),
+        // Create product + ShopStock in transaction
+        const product = await this.prisma.$transaction(async (tx) => {
+          const created = await tx.product.create({
+            data: {
+              tenantId: user.tenantId,
+              categoryId,
+              brandId,
+              name: row.name,
+              slug,
+              description: row.description,
+              shortDescription: row.shortDescription,
+              sku: row.sku || null,
+              barcode: row.barcode || null,
+              unit: row.unit || 'pcs',
               price: Number(row.price ?? 0),
               costPrice: Number(row.costPrice ?? 0),
-              stock: 0,
+              wholesalePrice: row.wholesalePrice ? Number(row.wholesalePrice) : null,
+              taxRate: Number(row.taxRate ?? 0),
+              stock: Number(row.stock ?? 0),
               lowStockAlert: Number(row.lowStockAlert ?? 5),
-              isActive: true,
-              sortOrder: vIdx,
-            })),
+              weight: row.weight ? Number(row.weight) : null,
+              weightUnit: row.weightUnit || null,
+              dimensions: row.dimensions || null,
+              expiryTracked: row.expiryTracked ?? false,
+              isActive: row.isActive ?? true,
+              isFeatured: row.isFeatured ?? false,
+              hasVariants: (row.variantNames?.length || 0) > 0,
+            },
           });
-          variantCount = row.variantNames.length;
-          newVariantsCreated += variantCount;
-        }
 
-        // Create images
-        if (row.imageUrls && row.imageUrls.length > 0) {
-          await this.prisma.productImage.createMany({
-            data: row.imageUrls.map((url: string, idx: number) => ({
-              productId: product.id,
-              url: url.trim(),
-              isPrimary: idx === 0,
-              sortOrder: idx,
-            })),
-          });
-        }
+          if (tagIds.length > 0) {
+            await tx.productTag.createMany({
+              data: tagIds.map((tagId: string) => ({
+                productId: created.id,
+                tagId,
+              })),
+              skipDuplicates: true,
+            });
+          }
 
-        // Auto-create ShopStock so POS works immediately
-        await this.ensureShopStockForAllShops(user.tenantId, product.id, Number(row.stock ?? 0));
+          let variantCount = 0;
+          if (row.variantNames && row.variantNames.length > 0) {
+            await tx.productVariant.createMany({
+              data: row.variantNames.map((vName: string, vIdx: number) => ({
+                productId: created.id,
+                name: vName.trim(),
+                price: Number(row.price ?? 0),
+                costPrice: Number(row.costPrice ?? 0),
+                stock: 0,
+                lowStockAlert: Number(row.lowStockAlert ?? 5),
+                isActive: true,
+                sortOrder: vIdx,
+              })),
+            });
+            variantCount = row.variantNames.length;
+          }
+
+          if (row.imageUrls && row.imageUrls.length > 0) {
+            await tx.productImage.createMany({
+              data: row.imageUrls.map((url: string, idx: number) => ({
+                productId: created.id,
+                url: url.trim(),
+                isPrimary: idx === 0,
+                sortOrder: idx,
+              })),
+            });
+          }
+
+          // Auto-create ShopStock
+          await this.ensureShopStockForAllShopsTx(
+            tx,
+            user.tenantId,
+            created.id,
+            Number(row.stock ?? 0),
+          );
+
+          return { product: created, variantCount };
+        });
+
+        newVariantsCreated += product.variantCount;
 
         results.push({
           index: i + 1,
           productName: row.name,
           success: true,
-          productId: product.id,
-          variantsCreated: variantCount,
+          productId: product.product.id,
+          variantsCreated: product.variantCount,
         });
       } catch (e: any) {
+        this.logger.error(`Bulk import row ${i + 1} failed: ${e.message}`);
         results.push({
           index: i + 1,
           productName: row.name || `Row ${i + 1}`,
@@ -759,27 +742,30 @@ export class ProductsService {
     };
   }
 
+  // ═══════════════════════════════════════════════════════════
+  // SHOPSTOCK AUTO-SYNC HELPERS
+  // ═══════════════════════════════════════════════════════════
+
   /**
-   * Ensure ShopStock row exists for this product in every active shop of the tenant.
-   * Called after product create — so POS sale doesn't fail with "not available in shop".
+   * TX version — used inside a transaction (create, bulk-import)
    */
-  private async ensureShopStockForAllShops(
+  private async ensureShopStockForAllShopsTx(
+    tx: any,
     tenantId: string,
     productId: string,
     initialStock = 0,
   ): Promise<void> {
-    const shops = await this.prisma.shop.findMany({
+    const shops = await tx.shop.findMany({
       where: { tenantId, isActive: true },
-      select: { id: true },
+      select: { id: true, isMain: true },
     });
 
     if (shops.length === 0) return;
 
     for (const shop of shops) {
       try {
-        await this.prisma.shopStock.upsert({
+        await tx.shopStock.upsert({
           where: {
-            // Compound unique: shopId + productId + variantId
             shopId_productId_variantId: {
               shopId: shop.id,
               productId,
@@ -791,13 +777,77 @@ export class ProductsService {
             shopId: shop.id,
             productId,
             variantId: null,
-            stock: initialStock,
+            // Only main shop gets the initial stock
+            stock: shop.isMain ? initialStock : 0,
             isActive: true,
           },
           update: {},
         });
       } catch (e) {
-        // Fallback: if the compound unique doesn't exist, try findFirst + create
+        // Fallback for schemas without compound unique
+        try {
+          const existing = await tx.shopStock.findFirst({
+            where: {
+              shopId: shop.id,
+              productId,
+              variantId: null,
+            },
+          });
+          if (!existing) {
+            await tx.shopStock.create({
+              data: {
+                tenantId,
+                shopId: shop.id,
+                productId,
+                variantId: null,
+                stock: shop.isMain ? initialStock : 0,
+                isActive: true,
+              },
+            });
+          }
+        } catch (err) {
+          this.logger.warn(`ShopStock upsert failed for shop=${shop.id} product=${productId}`);
+        }
+      }
+    }
+  }
+
+  /**
+   * Non-tx version — used from controllers/backfill
+   */
+  private async ensureShopStockForAllShops(
+    tenantId: string,
+    productId: string,
+    initialStock = 0,
+  ): Promise<void> {
+    const shops = await this.prisma.shop.findMany({
+      where: { tenantId, isActive: true },
+      select: { id: true, isMain: true },
+    });
+
+    if (shops.length === 0) return;
+
+    for (const shop of shops) {
+      try {
+        await this.prisma.shopStock.upsert({
+          where: {
+            shopId_productId_variantId: {
+              shopId: shop.id,
+              productId,
+              variantId: null as any,
+            },
+          },
+          create: {
+            tenantId,
+            shopId: shop.id,
+            productId,
+            variantId: null,
+            stock: shop.isMain ? initialStock : 0,
+            isActive: true,
+          },
+          update: {},
+        });
+      } catch {
         try {
           const existing = await this.prisma.shopStock.findFirst({
             where: {
@@ -813,23 +863,22 @@ export class ProductsService {
                 shopId: shop.id,
                 productId,
                 variantId: null,
-                stock: initialStock,
+                stock: shop.isMain ? initialStock : 0,
                 isActive: true,
               },
             });
           }
-        } catch {
-          // Ignore — table shape unknown, will not block product creation
-        }
+        } catch {}
       }
     }
   }
 
   /**
-   * Backfill ShopStock for ALL existing products of the tenant.
-   * Safe to call multiple times — uses upsert.
+   * Backfill — safe to call anytime, uses upsert
    */
-  async backfillShopStock(user: AuthenticatedUser): Promise<{ productsProcessed: number; shopsProcessed: number }> {
+  async backfillShopStock(
+    user: AuthenticatedUser,
+  ): Promise<{ productsProcessed: number; shopsProcessed: number }> {
     const [products, shops] = await Promise.all([
       this.prisma.product.findMany({
         where: { tenantId: user.tenantId },
@@ -854,5 +903,4 @@ export class ProductsService {
       shopsProcessed: shops.length,
     };
   }
-
 }

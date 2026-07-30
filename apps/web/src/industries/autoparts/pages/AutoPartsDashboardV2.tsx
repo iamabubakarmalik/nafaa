@@ -25,7 +25,7 @@ import {
 export default function AutoPartsDashboardV2() {
   const { data, refetch, isRefetching } = useQuery({
     queryKey: ['dashboard-overview'],
-    queryFn: dashboardApi.overview,
+    queryFn: () => dashboardApi.overview(),
     refetchInterval: 60_000,
   });
 

@@ -8,7 +8,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 export class DashboardService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getOverview(tenantId: string) {
+  async getOverview(tenantId: string, shopId?: string) {
     const now = new Date();
     const todayStart = startOfDay(now);
     const yesterdayStart = startOfDay(subDays(now, 1));
@@ -19,11 +19,24 @@ export class DashboardService {
     const sevenDaysAgo = subDays(todayStart, 6);
     const thirtyDaysAgo = subDays(todayStart, 29);
 
-    // ─── Fetch tenant business type for industry-aware logic ───
     const tenant = await this.prisma.tenant.findUnique({
       where: { id: tenantId },
       select: { businessType: true, name: true, defaultUnit: true },
     });
+
+    // Shop scope filter — applied to sales/registers/transfers
+    const shopFilter = shopId ? { shopId } : {};
+
+    let shopContext: any = null;
+    if (shopId) {
+      shopContext = await this.prisma.shop.findFirst({
+        where: { id: shopId, tenantId },
+        select: { id: true, name: true, isMain: true, type: true, address: true },
+      });
+    }
+
+    // Product-level: for a specific shop we use ShopStock; otherwise global Product.stock
+    const useShopStock = !!shopId;
 
     const [
       products,
@@ -52,7 +65,6 @@ export class DashboardService {
       last30DaysSales,
       topProductsRaw,
       currentRegister,
-      // ─── Industry-specific data ───
       carpetRollsAgg,
       carpetCutPiecesAgg,
       carpetRollsLow,
@@ -65,11 +77,10 @@ export class DashboardService {
       returnsToday,
       returnsMonth,
       pendingTransfers,
-      // ─── Hourly sales today ───
       salesTodayHourly,
-      // ─── Payment method breakdown ───
       paymentMethodAgg,
     ] = await Promise.all([
+      // Products — global list (name, price, stock, image) — always tenant-level
       this.prisma.product.findMany({
         where: { tenantId, isActive: true },
         select: {
@@ -88,49 +99,132 @@ export class DashboardService {
           images: { take: 1, select: { url: true } },
         },
       }),
-      this.prisma.product.findMany({
-        where: { tenantId, isActive: true, stock: { lte: 10 } },
-        orderBy: { stock: 'asc' },
-        take: 8,
-        select: {
-          id: true, name: true, stock: true, lowStockAlert: true,
-          unit: true, price: true,
-          images: { take: 1, select: { url: true } },
-        },
-      }),
+      useShopStock
+        ? // Shop-specific low stock
+          this.prisma.shopStock.findMany({
+            where: {
+              shopId,
+              isActive: true,
+              stock: { lte: 10 },
+            },
+            orderBy: { stock: 'asc' },
+            take: 8,
+            include: {
+              product: {
+                select: {
+                  id: true, name: true, unit: true, price: true, lowStockAlert: true,
+                  images: { take: 1, select: { url: true } },
+                },
+              },
+            },
+          }).then((rows) => rows.map((r) => ({
+            id: r.product.id,
+            name: r.product.name,
+            stock: r.stock,
+            lowStockAlert: r.lowStockAlert,
+            unit: r.product.unit,
+            price: r.product.price,
+            images: r.product.images,
+          })))
+        : this.prisma.product.findMany({
+            where: { tenantId, isActive: true, stock: { lte: 10 } },
+            orderBy: { stock: 'asc' },
+            take: 8,
+            select: {
+              id: true, name: true, stock: true, lowStockAlert: true,
+              unit: true, price: true,
+              images: { take: 1, select: { url: true } },
+            },
+          }),
       this.prisma.sale.aggregate({
-        where: { tenantId, status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] }, soldAt: { gte: todayStart } },
+        where: {
+          tenantId,
+          status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
+          soldAt: { gte: todayStart },
+          ...shopFilter,
+        },
         _sum: { total: true, costOfGoods: true, paidAmount: true, creditAmount: true },
         _count: { _all: true },
       }),
       this.prisma.sale.aggregate({
-        where: { tenantId, status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] }, soldAt: { gte: yesterdayStart, lte: yesterdayEnd } },
+        where: {
+          tenantId,
+          status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
+          soldAt: { gte: yesterdayStart, lte: yesterdayEnd },
+          ...shopFilter,
+        },
         _sum: { total: true, costOfGoods: true },
         _count: { _all: true },
       }),
-      this.prisma.sale.count({ where: { tenantId, status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] }, soldAt: { gte: todayStart } } }),
-      this.prisma.sale.count({ where: { tenantId, status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] }, soldAt: { gte: yesterdayStart, lte: yesterdayEnd } } }),
+      this.prisma.sale.count({
+        where: {
+          tenantId,
+          status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
+          soldAt: { gte: todayStart },
+          ...shopFilter,
+        },
+      }),
+      this.prisma.sale.count({
+        where: {
+          tenantId,
+          status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
+          soldAt: { gte: yesterdayStart, lte: yesterdayEnd },
+          ...shopFilter,
+        },
+      }),
       this.prisma.sale.aggregate({
-        where: { tenantId, status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] }, soldAt: { gte: monthStart } },
+        where: {
+          tenantId,
+          status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
+          soldAt: { gte: monthStart },
+          ...shopFilter,
+        },
         _sum: { total: true, costOfGoods: true },
       }),
       this.prisma.sale.aggregate({
-        where: { tenantId, status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] }, soldAt: { gte: lastMonthStart, lte: lastMonthEnd } },
+        where: {
+          tenantId,
+          status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
+          soldAt: { gte: lastMonthStart, lte: lastMonthEnd },
+          ...shopFilter,
+        },
         _sum: { total: true, costOfGoods: true },
       }),
-      this.prisma.sale.count({ where: { tenantId, status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] }, soldAt: { gte: monthStart } } }),
-      this.prisma.sale.count({ where: { tenantId, status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] } } }),
+      this.prisma.sale.count({
+        where: {
+          tenantId,
+          status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
+          soldAt: { gte: monthStart },
+          ...shopFilter,
+        },
+      }),
+      this.prisma.sale.count({
+        where: {
+          tenantId,
+          status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
+          ...shopFilter,
+        },
+      }),
       this.prisma.sale.aggregate({
-        where: { tenantId, status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] } },
+        where: {
+          tenantId,
+          status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
+          ...shopFilter,
+        },
         _sum: { total: true },
       }),
       this.prisma.sale.findMany({
-        where: { tenantId, status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] } },
+        where: {
+          tenantId,
+          status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
+          ...shopFilter,
+        },
         orderBy: { soldAt: 'desc' },
         take: 8,
         include: {
           customer: { select: { id: true, name: true, phone: true } },
           createdBy: { select: { id: true, fullName: true } },
+          shop: { select: { id: true, name: true } },
         },
       }),
       this.prisma.supplier.count({ where: { tenantId, isActive: true } }),
@@ -160,11 +254,21 @@ export class DashboardService {
         _sum: { amount: true },
       }),
       this.prisma.sale.findMany({
-        where: { tenantId, status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] }, soldAt: { gte: sevenDaysAgo } },
+        where: {
+          tenantId,
+          status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
+          soldAt: { gte: sevenDaysAgo },
+          ...shopFilter,
+        },
         select: { soldAt: true, total: true, costOfGoods: true },
       }),
       this.prisma.sale.findMany({
-        where: { tenantId, status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] }, soldAt: { gte: thirtyDaysAgo } },
+        where: {
+          tenantId,
+          status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
+          soldAt: { gte: thirtyDaysAgo },
+          ...shopFilter,
+        },
         select: { soldAt: true, total: true, costOfGoods: true },
       }),
       this.prisma.saleItem.groupBy({
@@ -174,6 +278,7 @@ export class DashboardService {
             tenantId,
             status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
             soldAt: { gte: monthStart },
+            ...shopFilter,
           },
         },
         _sum: { quantity: true, total: true },
@@ -182,26 +287,33 @@ export class DashboardService {
         take: 5,
       }),
       this.prisma.cashRegister.findFirst({
-        where: { tenantId, status: 'OPEN' },
+        where: {
+          tenantId,
+          status: 'OPEN',
+          ...shopFilter,
+        },
         select: {
           id: true, registerNumber: true, openingBalance: true,
           expectedBalance: true, totalCashIn: true, totalCashOut: true,
-          openedAt: true,
+          openedAt: true, shopId: true,
         },
       }),
-      // ─── Carpet rolls ───
       this.prisma.carpetRoll.aggregate({
-        where: { tenantId, status: 'ACTIVE' },
+        where: { tenantId, status: 'ACTIVE', ...shopFilter },
         _sum: { remainingSqft: true, remainingLengthFt: true },
         _count: { _all: true },
       }),
       this.prisma.carpetCutPiece.aggregate({
-        where: { tenantId, status: 'AVAILABLE' },
+        where: { tenantId, status: 'AVAILABLE', ...shopFilter },
         _sum: { totalSqft: true, salePrice: true },
         _count: { _all: true },
       }),
       this.prisma.carpetRoll.findMany({
-        where: { tenantId, status: 'ACTIVE', remainingLengthFt: { lt: 10 } },
+        where: {
+          tenantId, status: 'ACTIVE',
+          remainingLengthFt: { lt: 10 },
+          ...shopFilter,
+        },
         orderBy: { remainingLengthFt: 'asc' },
         take: 5,
         select: {
@@ -211,7 +323,7 @@ export class DashboardService {
         },
       }),
       this.prisma.carpetRoll.findMany({
-        where: { tenantId, status: 'ACTIVE' },
+        where: { tenantId, status: 'ACTIVE', ...shopFilter },
         orderBy: { createdAt: 'desc' },
         take: 5,
         select: {
@@ -222,7 +334,6 @@ export class DashboardService {
           variant: { select: { name: true, colorHex: true } },
         },
       }),
-      // ─── Mobile IMEIs ───
       this.prisma.productImei.groupBy({
         by: ['status'],
         where: { tenantId },
@@ -232,18 +343,18 @@ export class DashboardService {
         where: { tenantId, status: 'SOLD', soldAt: { gte: todayStart } },
       }),
       this.prisma.usedPhone.count({
-        where: { tenantId, status: 'IN_STOCK' },
+        where: { tenantId, status: 'IN_STOCK', ...shopFilter },
       }),
       this.prisma.repairTicket.count({
         where: {
           tenantId,
           status: { in: ['RECEIVED', 'DIAGNOSED', 'AWAITING_APPROVAL', 'AWAITING_PARTS', 'IN_PROGRESS', 'READY'] },
+          ...shopFilter,
         },
       }),
       this.prisma.emiPlan.count({
         where: { tenantId, status: 'ACTIVE' },
       }),
-      // ─── Returns ───
       this.prisma.saleReturn.aggregate({
         where: { tenantId, returnedAt: { gte: todayStart } },
         _sum: { refundAmount: true },
@@ -254,29 +365,36 @@ export class DashboardService {
         _sum: { refundAmount: true },
         _count: { _all: true },
       }),
-      // ─── Pending transfers ───
       this.prisma.stockTransfer.count({
-        where: { tenantId, status: { in: ['PENDING', 'IN_TRANSIT'] } },
+        where: {
+          tenantId,
+          status: { in: ['PENDING', 'IN_TRANSIT'] },
+          ...(shopId ? { OR: [{ fromShopId: shopId }, { toShopId: shopId }] } : {}),
+        },
       }),
-      // ─── Today hourly sales ───
       this.prisma.sale.findMany({
-        where: { tenantId, status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] }, soldAt: { gte: todayStart } },
+        where: {
+          tenantId,
+          status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
+          soldAt: { gte: todayStart },
+          ...shopFilter,
+        },
         select: { soldAt: true, total: true },
       }),
-      // ─── Payment methods this month ───
       this.prisma.sale.groupBy({
         by: ['paymentMethod'],
         where: {
           tenantId,
           status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
           soldAt: { gte: monthStart },
+          ...shopFilter,
         },
         _sum: { total: true },
         _count: { _all: true },
       }),
     ]);
 
-    // ─── Calculations ───
+    // Calculations
     const totalProducts = products.length;
     const lowStockCount = products.filter((p) => p.stock <= p.lowStockAlert).length;
     const outOfStockCount = products.filter((p) => p.stock === 0).length;
@@ -310,7 +428,6 @@ export class DashboardService {
     const aovToday = ordersToday > 0 ? salesToday / ordersToday : 0;
     const aovMonth = ordersMonth > 0 ? salesMonth / ordersMonth : 0;
 
-    // ─── 7-day trend ───
     const trendBuckets: Record<string, { date: string; sales: number; profit: number; orders: number }> = {};
     for (let i = 0; i < 7; i++) {
       const d = format(subDays(now, 6 - i), 'yyyy-MM-dd');
@@ -325,7 +442,6 @@ export class DashboardService {
     }
     const salesTrend7Days = Object.values(trendBuckets);
 
-    // ─── 30-day trend ───
     const trend30Buckets: Record<string, { date: string; sales: number; profit: number }> = {};
     for (let i = 0; i < 30; i++) {
       const d = format(subDays(now, 29 - i), 'yyyy-MM-dd');
@@ -339,7 +455,6 @@ export class DashboardService {
     }
     const salesTrend30Days = Object.values(trend30Buckets);
 
-    // ─── Hourly today ───
     const hourlyBuckets: Record<number, { hour: number; sales: number; orders: number }> = {};
     for (let h = 0; h < 24; h++) hourlyBuckets[h] = { hour: h, sales: 0, orders: 0 };
     for (const s of salesTodayHourly) {
@@ -349,7 +464,6 @@ export class DashboardService {
     }
     const hourlySalesToday = Object.values(hourlyBuckets);
 
-    // ─── Top products ───
     const topProductIds = topProductsRaw.map((t) => t.productId);
     const topProductDetails = await this.prisma.product.findMany({
       where: { id: { in: topProductIds } },
@@ -367,12 +481,10 @@ export class DashboardService {
       orderCount: tp._count._all,
     }));
 
-    // ─── Industry detection ───
     const bt = (tenant?.businessType || '').toUpperCase();
     const isCarpet = bt.includes('CARPET') || bt.includes('FLOORING');
     const isMobile = bt.includes('MOBILE') || bt.includes('PHONE') || bt.includes('ELECTRONICS');
 
-    // ─── IMEI breakdown ───
     const imeiStats = {
       total: 0, inStock: 0, sold: 0, returned: 0, damaged: 0,
     };
@@ -393,6 +505,8 @@ export class DashboardService {
         isCarpet,
         isMobile,
       },
+      shop: shopContext,
+      scope: shopId ? 'shop' : 'all',
       stats: {
         salesToday, ordersToday, cogsToday, grossProfitToday, netProfitToday, expensesToday,
         purchasesToday: purchasesTodayAgg._sum.total ?? 0,
@@ -413,15 +527,12 @@ export class DashboardService {
         registerOpen: !!currentRegister,
         registerExpected: currentRegister?.expectedBalance ?? 0,
         registerOpening: currentRegister?.openingBalance ?? 0,
-        // ─── Returns ───
         returnsTodayCount: returnsToday._count._all ?? 0,
         returnsTodayAmount: returnsToday._sum.refundAmount ?? 0,
         returnsMonthCount: returnsMonth._count._all ?? 0,
         returnsMonthAmount: returnsMonth._sum.refundAmount ?? 0,
-        // ─── Pending tasks ───
         pendingTransfers,
       },
-      // ─── Industry-specific stats ───
       carpetStats: isCarpet ? {
         totalActiveRolls: carpetRollsAgg._count._all ?? 0,
         totalSqft: Number(carpetRollsAgg._sum.remainingSqft ?? 0),
@@ -475,6 +586,7 @@ export class DashboardService {
           id: s.customer.id, name: s.customer.name, phone: s.customer.phone,
         } : null,
         cashier: s.createdBy?.fullName ?? null,
+        shop: s.shop ? { id: s.shop.id, name: s.shop.name } : null,
       })),
       paymentBreakdown: paymentMethodAgg.map((p) => ({
         method: p.paymentMethod,

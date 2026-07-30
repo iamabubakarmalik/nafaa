@@ -116,7 +116,29 @@ export default function PosPage() {
   const barcodeRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Auto-refetch on shop switch
   useEffect(() => {
+    if (!currentShopId) return;
+    queryClient.invalidateQueries({ queryKey: ['products-for-pos'] });
+    queryClient.invalidateQueries({ queryKey: ['products-shop-stock', currentShopId] });
+    queryClient.invalidateQueries({ queryKey: ['carpet-product-summary-pos'] });
+    queryClient.invalidateQueries({ queryKey: ['pos-fast-rolls'] });
+    queryClient.invalidateQueries({ queryKey: ['pos-fast-cut-pieces'] });
+    // Reset cart on shop switch to prevent cross-shop stock issues
+    if (cart.length > 0) {
+      const shouldKeep = confirm('Shop switch ho raha hai — kya current cart clear karna hai?');
+      if (shouldKeep) {
+        setCart([]);
+        setCustomerId('');
+        setPaidAmount('');
+        setGlobalDiscount('');
+        setServiceCharges([]);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentShopId]);
+
+    useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 120);
     return () => clearTimeout(t);
   }, [search]);
@@ -713,6 +735,26 @@ export default function PosPage() {
     }).length,
     [products, carpetSummaryMap, isCarpetProduct],
   );
+
+  // POS_SHOP_GUARD_MARKER — must have an active shop
+  if (!currentShopId) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh] p-6">
+        <div className="max-w-md w-full rounded-3xl bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-300 p-8 text-center shadow-lg">
+          <div className="mx-auto h-16 w-16 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-lg">
+            <Store className="h-8 w-8" />
+          </div>
+          <h2 className="mt-4 text-2xl font-extrabold text-amber-900">Pehle Shop Select Karein</h2>
+          <p className="mt-2 text-sm text-amber-800 font-semibold">
+            POS use karne ke liye topbar se shop select karein.
+          </p>
+          <p className="mt-4 text-xs text-amber-700">
+            Agar koi shop nahi hai to <a href="/shops" className="underline font-bold">Shops page</a> se naya banayein.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

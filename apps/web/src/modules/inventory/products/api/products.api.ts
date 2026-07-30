@@ -40,12 +40,29 @@ export interface Product {
   images?: ProductImage[];
   variants?: ProductVariant[];
   batches?: ProductBatch[];
+  shopStock?: number;
+  shopId?: string;
   _count?: {
     saleItems?: number;
     variants?: number;
     images?: number;
     batches?: number;
   };
+}
+
+export interface ShopStockEntry {
+  id: string;
+  tenantId: string;
+  shopId: string;
+  productId: string;
+  variantId: string | null;
+  stock: number;
+  lowStockAlert: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  product: Product;
+  variant: ProductVariant | null;
 }
 
 export interface ProductsResponse {
@@ -110,15 +127,33 @@ export const productsApi = {
       })
       .then(unwrap),
 
-  lowStock: () =>
-    apiClient.get<{ data: Product[] }>('/products/low-stock').then(unwrap),
+  lowStock: (shopId?: string) =>
+    apiClient
+      .get<{ data: Product[] }>('/products/low-stock', {
+        params: shopId ? { shopId } : {},
+      })
+      .then(unwrap),
+
+  /**
+   * SHOP-AWARE — Returns ShopStock entries for a specific shop.
+   * Each entry has shop-specific stock count + product details.
+   * Used by POS to show only what's available in the current shop.
+   */
+  shopStock: (shopId: string) =>
+    apiClient
+      .get<{ data: ShopStockEntry[] }>('/products/shop-stock', {
+        params: { shopId },
+      })
+      .then(unwrap),
 
   getOne: (id: string) =>
     apiClient.get<{ data: Product }>(`/products/${id}`).then(unwrap),
 
-  byBarcode: (code: string) =>
+  byBarcode: (code: string, shopId?: string) =>
     apiClient
-      .get<{ data: Product }>(`/products/barcode/${encodeURIComponent(code)}`)
+      .get<{ data: Product }>(`/products/barcode/${encodeURIComponent(code)}`, {
+        params: shopId ? { shopId } : {},
+      })
       .then(unwrap),
 
   create: (payload: CreateProductPayload) =>
@@ -153,6 +188,13 @@ export const productsApi = {
 
   remove: (id: string) =>
     apiClient.delete<{ data: { message: string } }>(`/products/${id}`).then(unwrap),
+
+  backfillShopStock: () =>
+    apiClient
+      .post<{ data: { productsProcessed: number; shopsProcessed: number } }>(
+        '/products/backfill-shop-stock',
+      )
+      .then(unwrap),
 
   // ─── Bulk Import ────────────────────────────────────
   bulkImportPreview: (rows: BulkImportProductRow[]) =>

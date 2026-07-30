@@ -13,6 +13,7 @@ import {
   BarChart, Bar, PieChart, Pie, Cell, Legend,
 } from 'recharts';
 import { dashboardApi } from '@modules/dashboard/api/dashboard.api';
+import { useAuthStore } from '@core/stores/auth.store';
 import { bookingsApi } from '@modules/bookings/api/bookings.api';
 import { Button } from '@core/ui/Button';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
@@ -41,10 +42,17 @@ const PAYMENT_ICONS: Record<string, any> = {
 };
 
 export default function DashboardPage() {
+  const currentShopId = useAuthStore((s) => s.currentShopId);
+  const userRole = useAuthStore((s) => s.user?.role);
+  const isOwner = userRole === 'OWNER' || userRole === 'SUPER_ADMIN';
+
+  // Owner can see "all shops" view (no shopId), Manager/Cashier always scoped
+  const effectiveShopId = isOwner ? currentShopId : currentShopId;
+
   const { data, isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['dashboard-overview'],
-    queryFn: dashboardApi.overview,
-    refetchInterval: 60 * 1000, // Auto-refresh every minute
+    queryKey: ['dashboard-overview', effectiveShopId ?? 'all'],
+    queryFn: () => dashboardApi.overview(effectiveShopId ?? undefined),
+    refetchInterval: 60 * 1000,
   });
 
   const { data: bookingsSummary } = useQuery({

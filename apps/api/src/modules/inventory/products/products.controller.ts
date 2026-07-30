@@ -1,5 +1,5 @@
 import {
-  Body, Controller, Delete, Get, NotFoundException,
+  Body, Controller, Delete, Get, NotFoundException, ForbiddenException,
   Param, Patch, Post, Query, UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -33,7 +33,58 @@ export class ProductsController {
   }
 
   @Get('low-stock')
-  async lowStock(@GetUser() user: AuthenticatedUser) {
+  async lowStock(
+    @GetUser() user: AuthenticatedUser,
+    @Query('shopId') shopId?: string,
+  ) {
+    // Non-owner locked to their shop
+    if (user.role !== 'OWNER' && user.role !== 'SUPER_ADMIN' && user.shopId) {
+      shopId = user.shopId;
+    }
+
+    if (shopId) {
+      // Shop-specific low stock (from ShopStock)
+      const shop = await this.prisma.shop.findFirst({
+        where: { id: shopId, tenantId: user.tenantId },
+      });
+      if (!shop) throw new NotFoundException('Shop not found');
+
+      const rows = await this.prisma.shopStock.findMany({
+        where: {
+          tenantId: user.tenantId,
+          shopId,
+          isActive: true,
+          stock: { lte: 10 },
+        },
+        include: {
+          product: {
+            select: {
+              id: true, name: true, sku: true, barcode: true, unit: true,
+              price: true, costPrice: true,
+              images: { take: 1, select: { url: true } },
+            },
+          },
+        },
+        orderBy: { stock: 'asc' },
+        take: 100,
+      });
+
+      return rows.map((r) => ({
+        id: r.product.id,
+        name: r.product.name,
+        sku: r.product.sku,
+        barcode: r.product.barcode,
+        unit: r.product.unit,
+        stock: r.stock,
+        lowStockAlert: r.lowStockAlert,
+        price: r.product.price,
+        costPrice: r.product.costPrice,
+        image: r.product.images[0]?.url ?? null,
+        shopId: r.shopId,
+      }));
+    }
+
+    // Global low stock (tenant-wide)
     return this.prisma.$queryRaw<any[]>`
       SELECT id, name, sku, barcode, unit, stock, "lowStockAlert", price, "costPrice"
       FROM "Product"
@@ -45,12 +96,28 @@ export class ProductsController {
     `;
   }
 
+  /**
+   * Shop-specific stock — used by POS to show only products available in current shop
+   */
   @Get('shop-stock')
   async shopStock(
     @GetUser() user: AuthenticatedUser,
     @Query('shopId') shopId: string,
   ) {
     if (!shopId) throw new NotFoundException('shopId required');
+
+    // Non-owner locked to their shop
+    if (user.role !== 'OWNER' && user.role !== 'SUPER_ADMIN' && user.shopId) {
+      if (user.shopId !== shopId) {
+        throw new ForbiddenException('Aap sirf apni shop ka stock dekh sakte hain');
+      }
+    }
+
+    const shop = await this.prisma.shop.findFirst({
+      where: { id: shopId, tenantId: user.tenantId },
+    });
+    if (!shop) throw new NotFoundException('Shop not found');
+
     return this.prisma.shopStock.findMany({
       where: { tenantId: user.tenantId, shopId, isActive: true },
       include: {
@@ -71,7 +138,12 @@ export class ProductsController {
   async findByBarcode(
     @GetUser() user: AuthenticatedUser,
     @Param('code') code: string,
+    @Query('shopId') shopId?: string,
   ) {
+    if (user.role !== 'OWNER' && user.role !== 'SUPER_ADMIN' && user.shopId) {
+      shopId = user.shopId;
+    }
+
     const product = await this.prisma.product.findFirst({
       where: {
         tenantId: user.tenantId,
@@ -102,8 +174,43 @@ export class ProductsController {
         },
       });
       if (!variant) throw new NotFoundException('Product not found for this code');
+
+      // If shopId provided, enrich with shop-specific stock
+      if (shopId) {
+        const shopStock = await this.prisma.shopStock.findFirst({
+          where: {
+            shopId,
+            productId: variant.productId,
+            variantId: variant.id,
+          },
+        });
+        return {
+          ...variant.product,
+          matchedVariant: variant,
+          shopStock: shopStock?.stock ?? 0,
+          shopId,
+        };
+      }
+
       return { ...variant.product, matchedVariant: variant };
     }
+
+    // If shopId provided, enrich with shop-specific stock
+    if (shopId) {
+      const shopStock = await this.prisma.shopStock.findFirst({
+        where: {
+          shopId,
+          productId: product.id,
+          variantId: null,
+        },
+      });
+      return {
+        ...product,
+        shopStock: shopStock?.stock ?? 0,
+        shopId,
+      };
+    }
+
     return product;
   }
 
@@ -169,13 +276,11 @@ export class ProductsController {
     return { categories, brands, tags };
   }
 
-  
   @Post(':id/generate-barcode')
   async generateBarcode(
     @GetUser() user: AuthenticatedUser,
     @Param('id') id: string,
   ) {
-    // EAN-13 style barcode (200 prefix for internal use)
     const timestamp = Date.now().toString().slice(-10);
     const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
     const barcode = `200${timestamp}${random}`.slice(0, 13);
@@ -221,10 +326,13 @@ export class ProductsController {
 
   @Post('backfill-shop-stock')
   async backfillShopStock(@GetUser() user: AuthenticatedUser) {
+    if (user.role !== 'OWNER' && user.role !== 'SUPER_ADMIN') {
+      throw new ForbiddenException('Sirf Owner backfill kar sakta hai');
+    }
     return this.productsService.backfillShopStock(user);
   }
 
-    @Post('bulk-action')
+  @Post('bulk-action')
   bulkAction(
     @GetUser() user: AuthenticatedUser,
     @Body() body: {

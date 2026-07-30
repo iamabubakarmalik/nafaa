@@ -1,3 +1,5 @@
+import ShopsOverviewPage from '@modules/organization/shops/pages/ShopsOverviewPage';
+import { OwnerOnly } from '@app/router/RoleGuard';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';

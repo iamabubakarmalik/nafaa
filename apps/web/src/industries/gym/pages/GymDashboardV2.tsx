@@ -28,7 +28,7 @@ import { format, differenceInDays, differenceInMinutes } from 'date-fns';
 export default function GymDashboardV2() {
   const { data, refetch, isRefetching } = useQuery({
     queryKey: ['dashboard-overview'],
-    queryFn: dashboardApi.overview,
+    queryFn: () => dashboardApi.overview(),
     refetchInterval: 60_000,
   });
 

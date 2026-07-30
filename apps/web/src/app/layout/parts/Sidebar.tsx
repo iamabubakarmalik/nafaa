@@ -11,7 +11,7 @@ import {
   Command, Clock,
 } from 'lucide-react';
 import { Logo } from '@core/components/brand/Logo';
-import { hasPermission, PERMISSIONS, type PermissionKey } from '@core/lib/permissions';
+import { hasPermission, isOwner, isOwnerOnlyPath, PERMISSIONS, type PermissionKey } from '@core/lib/permissions';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import type { IndustryNavGroup, IndustryNavItem } from '@industries/_shared/types/industry-pack';
 import { useWorkspaceStore, WORKSPACES } from '@core/stores/workspace.store';
@@ -312,12 +312,16 @@ export const Sidebar = memo(function Sidebar({
   }, [allGroups]);
 
   const filteredGroups = useMemo(() => {
+    const userIsOwner = isOwner(role);
     return allGroups
       .map((group) => ({
         ...group,
-        items: group.items.filter((item) =>
-          item.permission ? hasPermission(role, permissions, item.permission) : true
-        ),
+        items: group.items.filter((item) => {
+          // Non-owners can never see Owner-only paths
+          if (!userIsOwner && isOwnerOnlyPath(item.to)) return false;
+          // Standard permission check
+          return item.permission ? hasPermission(role, permissions, item.permission) : true;
+        }),
       }))
       .filter((group) => group.items.length > 0);
   }, [allGroups, role, permissions]);

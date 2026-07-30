@@ -25,7 +25,7 @@ const PRIORITY_COLORS: Record<string, string> = {
 
 export default function ServicesBizDashboardV2() {
   const { data, refetch, isRefetching } = useQuery({
-    queryKey: ['dashboard-overview'], queryFn: dashboardApi.overview, refetchInterval: 60_000,
+    queryKey: ['dashboard-overview'], queryFn: () => dashboardApi.overview(), refetchInterval: 60_000,
   });
   const { data: svcDash } = useQuery({
     queryKey: ['services-dashboard-overview'], queryFn: () => servicesDashboardApi.overview().catch(() => null), refetchInterval: 60_000,

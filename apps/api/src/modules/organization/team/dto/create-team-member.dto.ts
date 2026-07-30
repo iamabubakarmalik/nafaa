@@ -33,7 +33,7 @@ export class CreateTeamMemberDto {
   role!: UserRole;
 
   @ApiPropertyOptional({
-    description: 'Assign user to specific shop (required for MANAGER/CASHIER)',
+    description: 'Required for MANAGER/CASHIER. Shop ID they will work at.',
     example: 'shop-uuid-here',
   })
   @IsOptional()

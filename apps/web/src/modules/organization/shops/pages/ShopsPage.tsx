@@ -1,12 +1,13 @@
 import { useState, useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  Building2, Plus, Trash2, Star, MapPin, Phone, X, Edit3, Save,
+  Building2, Plus, Trash2, Star, MapPin, Phone, X, Edit3, Save, Wrench,
   Search, Info, CheckCircle2, Globe, MessageCircle, Warehouse,
   UserPlus, Mail, Lock, Eye, EyeOff, ShieldCheck, AlertCircle,
   TrendingUp, Package, Activity, Sparkles,
 } from 'lucide-react';
 import { shopsApi, type Shop, type ShopType } from '@modules/organization/shops/api/shops.api';
+import { productsApi } from '@modules/inventory/products/api/products.api';
 import { Button } from '@core/ui/Button';
 import { Input } from '@core/ui/Input';
 import { useAuthStore } from '@core/stores/auth.store';
@@ -69,8 +70,66 @@ export default function ShopsPage() {
     onSuccess: () => {
       toast.success('Shop deleted');
       queryClient.invalidateQueries({ queryKey: ['shops'] });
+      queryClient.invalidateQueries({ queryKey: ['shops-overview'] });
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Cannot delete'),
+    onError: (e: any) => {
+      const err = e?.response?.data?.message;
+      // Backend now returns structured errors
+      if (typeof err === 'object' && err?.code) {
+        const errObj = err as {
+          message: string;
+          code: string;
+          suggestion: string;
+          stats?: any;
+        };
+        switch (errObj.code) {
+          case 'MAIN_SHOP_PROTECTED':
+            toast.error(errObj.message, {
+              description: 'Kisi doosri shop ko Main banayein pehle.',
+              duration: 6000,
+            });
+            break;
+          case 'HAS_SALES_HISTORY':
+            toast.error(errObj.message, {
+              description: `${errObj.stats?.sales ?? 0} sales delete nahi ho sakti. Shop ko deactivate karein.`,
+              duration: 8000,
+              action: {
+                label: 'Deactivate',
+                onClick: () => {
+                  // Trigger deactivation via toggle
+                  const shopId = deleteMutation.variables;
+                  if (shopId) toggleMutation.mutate(shopId as string);
+                },
+              },
+            });
+            break;
+          case 'HAS_PENDING_TRANSFERS':
+            toast.error(errObj.message, {
+              description: 'Pending transfers complete karein pehle.',
+              duration: 6000,
+              action: {
+                label: 'View Transfers',
+                onClick: () => (window.location.href = '/transfers'),
+              },
+            });
+            break;
+          case 'HAS_OPEN_REGISTER':
+            toast.error(errObj.message, {
+              description: 'Register close karke phir try karein.',
+              duration: 6000,
+              action: {
+                label: 'Open Register',
+                onClick: () => (window.location.href = '/cash-register'),
+              },
+            });
+            break;
+          default:
+            toast.error(errObj.message);
+        }
+      } else {
+        toast.error(typeof err === 'string' ? err : 'Cannot delete');
+      }
+    },
   });
 
   const updateMutation = useMutation({
@@ -90,6 +149,22 @@ export default function ShopsPage() {
       toast.success('Status updated');
       queryClient.invalidateQueries({ queryKey: ['shops'] });
     },
+  });
+
+  const backfillMutation = useMutation({
+    mutationFn: () => productsApi.backfillShopStock(),
+    onSuccess: (data: any) => {
+      toast.success(
+        `Multi-shop stock fixed!`,
+        {
+          description: `${data.productsProcessed} products × ${data.shopsProcessed} shops synced.`,
+          duration: 6000,
+        },
+      );
+      queryClient.invalidateQueries({ queryKey: ['products-for-pos'] });
+      queryClient.invalidateQueries({ queryKey: ['shops-overview'] });
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Backfill failed'),
   });
 
   const filtered = useMemo(() => {
@@ -204,9 +279,24 @@ export default function ShopsPage() {
             </p>
           </div>
           {isOwner && (
-            <Button onClick={openCreate} className="bg-white text-slate-900 hover:bg-slate-100">
-              <Plus className="h-4 w-4" /> New Shop / Warehouse
-            </Button>
+            <div className="flex gap-2 flex-wrap">
+              <Button
+                onClick={() => {
+                  if (confirm('Ye sab shops mein missing ShopStock entries banayega. Continue?')) {
+                    backfillMutation.mutate();
+                  }
+                }}
+                loading={backfillMutation.isPending}
+                variant="secondary"
+                className="bg-white/15 backdrop-blur text-white hover:bg-white/25 border-white/20"
+                title="Fix ShopStock — safe to run anytime"
+              >
+                <Wrench className="h-4 w-4" /> Fix Multi-Shop Stock
+              </Button>
+              <Button onClick={openCreate} className="bg-white text-slate-900 hover:bg-slate-100">
+                <Plus className="h-4 w-4" /> New Shop / Warehouse
+              </Button>
+            </div>
           )}
         </div>
       </section>

@@ -22,6 +22,7 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { OtpPurpose } from './dto/send-otp.dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
+import { DEFAULT_ROLE_PERMISSIONS } from '../../common/constants/permissions.constants';
 
 function makeReferralCode(seed: string): string {
   const clean = seed.replace(/[^A-Z0-9]/gi, '').toUpperCase().slice(0, 6);
@@ -40,7 +41,9 @@ export class AuthService {
     private readonly adminNotifications: AdminNotificationsService,
   ) {}
 
-  // ===== REGISTER (Email/Password — NO OTP) =====
+  // ═══════════════════════════════════════════════════════════
+  // REGISTER — Auto creates: Tenant + Owner + Main Shop + Cash Register
+  // ═══════════════════════════════════════════════════════════
   async register(dto: RegisterDto) {
     const existing = await this.prisma.user.findUnique({
       where: { email: dto.email.toLowerCase() },
@@ -74,6 +77,7 @@ export class AuthService {
     }
 
     const result = await this.prisma.$transaction(async (tx) => {
+      // 1. Create Tenant
       const tenant = await tx.tenant.create({
         data: {
           name: dto.shopName,
@@ -84,9 +88,23 @@ export class AuthService {
         },
       });
 
+      // 2. Create Main Shop AUTOMATICALLY
+      const mainShop = await tx.shop.create({
+        data: {
+          tenantId: tenant.id,
+          name: dto.shopName,
+          phone: dto.phone,
+          isMain: true,
+          isActive: true,
+          type: 'SHOP',
+        },
+      });
+
+      // 3. Create Owner User AND assign to main shop
       const user = await tx.user.create({
         data: {
           tenantId: tenant.id,
+          shopId: mainShop.id,
           fullName: dto.fullName,
           email: dto.email.toLowerCase(),
           phone: dto.phone,
@@ -94,13 +112,30 @@ export class AuthService {
           role: UserRole.OWNER,
           authProvider: AuthProvider.EMAIL,
           emailVerified: false,
+          permissions: DEFAULT_ROLE_PERMISSIONS[UserRole.OWNER] ?? [],
         },
       });
 
+      // 4. Create default CLOSED Cash Register for main shop
+      const registerNumber = `CR-MAIN-${Date.now().toString().slice(-6)}`;
+      await tx.cashRegister.create({
+        data: {
+          tenantId: tenant.id,
+          shopId: mainShop.id,
+          openedById: user.id,
+          registerNumber,
+          status: 'CLOSED',
+          openingBalance: 0,
+          expectedBalance: 0,
+        },
+      });
+
+      // 5. Create Onboarding Progress
       await tx.onboardingProgress.create({
         data: { tenantId: tenant.id, userId: user.id, currentStep: 1 },
       });
 
+      // 6. Referral handling
       if (referrer) {
         await tx.referral.create({
           data: {
@@ -122,13 +157,25 @@ export class AuthService {
         });
       }
 
-      return { tenant, user };
+      // 7. Activity log
+      await tx.activityLog.create({
+        data: {
+          tenantId: tenant.id,
+          userId: user.id,
+          action: 'CREATE',
+          entityType: 'Tenant',
+          entityId: tenant.id,
+          description: `Business "${dto.shopName}" created with main shop`,
+          metadata: { shopId: mainShop.id, shopName: mainShop.name },
+        },
+      });
+
+      return { tenant, user, mainShop };
     });
 
     this.notifyAdminNewSignup(result.tenant, result.user, 'EMAIL', dto.referralCode);
     this.sendWelcomeEmail(result.tenant, result.user);
 
-    // Send email verification OTP automatically on signup
     this.sendVerifyEmailOtp(result.user.id).catch((e) => {
       console.error('Auto verify OTP send failed:', e.message);
     });
@@ -138,17 +185,20 @@ export class AuthService {
       tenantId: result.tenant.id,
       email: result.user.email,
       role: result.user.role,
+      shopId: result.mainShop.id,
     });
 
     return {
-      user: this.sanitizeUser(result.user),
+      user: this.sanitizeUser({ ...result.user, shopId: result.mainShop.id }),
       tenant: result.tenant,
       ...tokens,
       requiresEmailVerification: true,
     };
   }
 
-  // ===== LOGIN (Email/Password) =====
+  // ═══════════════════════════════════════════════════════════
+  // LOGIN
+  // ═══════════════════════════════════════════════════════════
   async login(dto: LoginDto, meta?: { userAgent?: string; ip?: string }) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email.toLowerCase() },
@@ -165,7 +215,6 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    // Google-only user can't login with password
     if (!user.passwordHash) {
       this.recordFailedLogin(dto.email, 'No password set (Google account)', meta).catch(() => {});
       throw new UnauthorizedException(
@@ -190,6 +239,7 @@ export class AuthService {
         tenantId: user.tenantId,
         email: user.email,
         role: user.role,
+        shopId: user.shopId,
       },
       meta?.userAgent,
       meta?.ip,
@@ -202,14 +252,15 @@ export class AuthService {
     };
   }
 
-  // ===== GOOGLE AUTH (Core logic — used by web callback AND mobile) =====
+  // ═══════════════════════════════════════════════════════════
+  // GOOGLE AUTH
+  // ═══════════════════════════════════════════════════════════
   async googleAuth(googleUser: {
     googleId: string;
     email: string;
     fullName: string;
     avatarUrl?: string;
   }) {
-    // Find existing user by googleId OR email
     let user = await this.prisma.user.findFirst({
       where: {
         OR: [
@@ -217,11 +268,10 @@ export class AuthService {
           { email: googleUser.email.toLowerCase() },
         ],
       },
-      include: { tenant: true },
+      include: { tenant: true, assignedShop: true },
     });
 
     if (user) {
-      // Existing user → link Google if not already linked
       if (!user.googleId) {
         user = await this.prisma.user.update({
           where: { id: user.id },
@@ -233,14 +283,13 @@ export class AuthService {
             authProvider: user.passwordHash ? AuthProvider.HYBRID : AuthProvider.GOOGLE,
             lastLoginAt: new Date(),
           },
-          include: { tenant: true },
+          include: { tenant: true, assignedShop: true },
         });
       } else {
         await this.prisma.user.update({
           where: { id: user.id },
           data: { lastLoginAt: new Date() },
         });
-        
       }
 
       const tokens = await this.issueTokens({
@@ -248,6 +297,7 @@ export class AuthService {
         tenantId: user.tenantId,
         email: user.email,
         role: user.role,
+        shopId: user.shopId,
       });
 
       return {
@@ -258,7 +308,6 @@ export class AuthService {
       };
     }
 
-    // No user found → return tempToken so frontend can ask for shopName
     const tempToken = await this.jwtService.signAsync(
       {
         googleId: googleUser.googleId,
@@ -282,7 +331,9 @@ export class AuthService {
     };
   }
 
-  // ===== COMPLETE GOOGLE SIGNUP (new user provides shopName) =====
+  // ═══════════════════════════════════════════════════════════
+  // COMPLETE GOOGLE SIGNUP — Also creates main shop
+  // ═══════════════════════════════════════════════════════════
   async completeGoogleSignup(tempToken: string, shopName: string) {
     let payload: any;
     try {
@@ -297,7 +348,6 @@ export class AuthService {
       throw new BadRequestException('Invalid token');
     }
 
-    // Double-check user doesn't exist now
     const existing = await this.prisma.user.findFirst({
       where: {
         OR: [{ googleId: payload.googleId }, { email: payload.email.toLowerCase() }],
@@ -305,7 +355,6 @@ export class AuthService {
       include: { tenant: true },
     });
     if (existing) {
-      // Existing user — just log them in
       return this.googleAuth({
         googleId: payload.googleId,
         email: payload.email,
@@ -318,30 +367,73 @@ export class AuthService {
     const referralCode = makeReferralCode(shopName);
 
     const result = await this.prisma.$transaction(async (tx) => {
+      // 1. Create tenant
       const tenant = await tx.tenant.create({
         data: { name: shopName, slug, referralCode },
       });
 
+      // 2. Create Main Shop
+      const mainShop = await tx.shop.create({
+        data: {
+          tenantId: tenant.id,
+          name: shopName,
+          isMain: true,
+          isActive: true,
+          type: 'SHOP',
+        },
+      });
+
+      // 3. Create Owner
       const newUser = await tx.user.create({
         data: {
           tenantId: tenant.id,
+          shopId: mainShop.id,
           fullName: payload.fullName,
           email: payload.email.toLowerCase(),
-          passwordHash: null, // Google-only user
+          passwordHash: null,
           googleId: payload.googleId,
           avatarUrl: payload.avatarUrl,
           emailVerified: true,
           emailVerifiedAt: new Date(),
           authProvider: AuthProvider.GOOGLE,
           role: UserRole.OWNER,
+          permissions: DEFAULT_ROLE_PERMISSIONS[UserRole.OWNER] ?? [],
         },
       });
 
+      // 4. Create Cash Register
+      const registerNumber = `CR-MAIN-${Date.now().toString().slice(-6)}`;
+      await tx.cashRegister.create({
+        data: {
+          tenantId: tenant.id,
+          shopId: mainShop.id,
+          openedById: newUser.id,
+          registerNumber,
+          status: 'CLOSED',
+          openingBalance: 0,
+          expectedBalance: 0,
+        },
+      });
+
+      // 5. Onboarding
       await tx.onboardingProgress.create({
         data: { tenantId: tenant.id, userId: newUser.id, currentStep: 1 },
       });
 
-      return { tenant, user: newUser };
+      // 6. Activity log
+      await tx.activityLog.create({
+        data: {
+          tenantId: tenant.id,
+          userId: newUser.id,
+          action: 'CREATE',
+          entityType: 'Tenant',
+          entityId: tenant.id,
+          description: `Business "${shopName}" created via Google with main shop`,
+          metadata: { shopId: mainShop.id, provider: 'GOOGLE' },
+        },
+      });
+
+      return { tenant, user: newUser, mainShop };
     });
 
     this.notifyAdminNewSignup(result.tenant, result.user, 'GOOGLE');
@@ -352,19 +444,21 @@ export class AuthService {
       tenantId: result.tenant.id,
       email: result.user.email,
       role: result.user.role,
+      shopId: result.mainShop.id,
     });
 
     return {
-      user: this.sanitizeUser(result.user),
+      user: this.sanitizeUser({ ...result.user, shopId: result.mainShop.id }),
       tenant: result.tenant,
       ...tokens,
       isNewUser: true,
     };
   }
 
-  // ===== GOOGLE MOBILE — verify ID token from native SDK =====
+  // ═══════════════════════════════════════════════════════════
+  // GOOGLE MOBILE
+  // ═══════════════════════════════════════════════════════════
   async googleMobile(idToken: string, shopName?: string) {
-    // Verify ID token with Google's tokeninfo endpoint
     let payload: any;
     try {
       const res = await fetch(
@@ -380,7 +474,6 @@ export class AuthService {
       throw new BadRequestException('Google token mein required fields nahi');
     }
 
-    // Verify audience matches our client IDs
     const allowedAudiences = [
       this.configService.get<string>('GOOGLE_CLIENT_ID'),
       this.configService.get<string>('GOOGLE_IOS_CLIENT_ID'),
@@ -401,7 +494,6 @@ export class AuthService {
 
     const result = await this.googleAuth(googleUser);
 
-    // If needs shopName and we have it, complete signup immediately
     if ('needsShopName' in result && result.needsShopName && shopName) {
       return this.completeGoogleSignup(result.tempToken, shopName);
     }
@@ -409,7 +501,9 @@ export class AuthService {
     return result;
   }
 
-  // ===== SET PASSWORD (Google-only user wants to add password) =====
+  // ═══════════════════════════════════════════════════════════
+  // SET / CHANGE PASSWORD
+  // ═══════════════════════════════════════════════════════════
   async setPassword(userId: string, newPassword: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new UnauthorizedException();
@@ -430,10 +524,9 @@ export class AuthService {
       },
     });
 
-    return { success: true, message: 'Password set ho gaya — ab aap email/password se bhi login kar sakte hain' };
+    return { success: true, message: 'Password set ho gaya' };
   }
 
-  // ===== CHANGE PASSWORD =====
   async changePassword(userId: string, currentPassword: string, newPassword: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new UnauthorizedException();
@@ -457,7 +550,6 @@ export class AuthService {
     return { success: true, message: 'Password change ho gaya' };
   }
 
-  // ===== DISCONNECT GOOGLE =====
   async disconnectGoogle(userId: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new UnauthorizedException();
@@ -468,7 +560,7 @@ export class AuthService {
 
     if (!user.passwordHash) {
       throw new BadRequestException(
-        'Pehle password set karein, phir Google disconnect kar sakte hain (warna login nahi kar paayenge)',
+        'Pehle password set karein, phir Google disconnect kar sakte hain',
       );
     }
 
@@ -483,7 +575,9 @@ export class AuthService {
     return { success: true, message: 'Google account disconnect ho gaya' };
   }
 
-  // ===== EMAIL VERIFICATION (Send OTP for in-app verify) =====
+  // ═══════════════════════════════════════════════════════════
+  // EMAIL VERIFICATION
+  // ═══════════════════════════════════════════════════════════
   async sendVerifyEmailOtp(userId: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new UnauthorizedException();
@@ -492,7 +586,6 @@ export class AuthService {
       return { success: true, message: 'Email already verified', alreadyVerified: true };
     }
 
-    // Throttle: don't allow more than 1 OTP request per minute
     const recentOtp = await this.prisma.otpCode.findFirst({
       where: {
         email: user.email,
@@ -529,11 +622,7 @@ export class AuthService {
         templateSlug: 'email-verify',
         toEmail: user.email,
         toName: user.fullName,
-        variables: {
-          name: user.fullName,
-          code,
-          appUrl,
-        },
+        variables: { name: user.fullName, code, appUrl },
       })
       .catch((e) => console.error('Verify email OTP failed:', e.message));
 
@@ -581,7 +670,9 @@ export class AuthService {
     return { success: true, message: 'Email successfully verified! ✅' };
   }
 
-  // ===== REFRESH =====
+  // ═══════════════════════════════════════════════════════════
+  // REFRESH TOKEN
+  // ═══════════════════════════════════════════════════════════
   async refresh(refreshToken: string) {
     let payload: JwtPayload;
     try {
@@ -605,7 +696,6 @@ export class AuthService {
     }
     if (!matched) throw new UnauthorizedException('Session expired or revoked');
 
-    // Update lastUsedAt for tracking
     await this.prisma.session.update({
       where: { id: matched.id },
       data: { lastUsedAt: new Date() },
@@ -613,19 +703,28 @@ export class AuthService {
 
     await this.prisma.session.delete({ where: { id: matched.id } });
 
+    // Fetch fresh shopId
+    const user = await this.prisma.user.findUnique({
+      where: { id: payload.sub },
+      select: { shopId: true },
+    });
+
     return this.issueTokens(
       {
         sub: payload.sub,
         tenantId: payload.tenantId,
         email: payload.email,
         role: payload.role,
+        shopId: user?.shopId,
       },
       matched.userAgent || undefined,
       matched.ipAddress || undefined,
     );
   }
 
-  // ===== LOGOUT =====
+  // ═══════════════════════════════════════════════════════════
+  // LOGOUT / ME
+  // ═══════════════════════════════════════════════════════════
   async logout(userId: string, refreshToken?: string) {
     if (!refreshToken) {
       await this.prisma.session.deleteMany({ where: { userId } });
@@ -641,7 +740,6 @@ export class AuthService {
     return { success: true };
   }
 
-  // ===== ME =====
   async me(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -659,7 +757,9 @@ export class AuthService {
     };
   }
 
-  // ===== FORGOT PASSWORD =====
+  // ═══════════════════════════════════════════════════════════
+  // FORGOT / RESET PASSWORD
+  // ═══════════════════════════════════════════════════════════
   async forgotPassword(email: string) {
     const user = await this.prisma.user.findUnique({
       where: { email: email.toLowerCase() },
@@ -728,7 +828,9 @@ export class AuthService {
     return { success: true, message: 'Password reset ho gaya' };
   }
 
-  // ===== UPDATE PROFILE =====
+  // ═══════════════════════════════════════════════════════════
+  // UPDATE PROFILE
+  // ═══════════════════════════════════════════════════════════
   async updateProfile(
     userId: string,
     data: { fullName?: string; phone?: string; avatarUrl?: string },
@@ -748,18 +850,15 @@ export class AuthService {
     const user = await this.prisma.user.update({
       where: { id: userId },
       data: updates,
-      include: { tenant: true },
+      include: { tenant: true, assignedShop: true },
     });
 
     return this.sanitizeUser(user);
   }
 
-
-
-  /**
-   * Send team member invitation email with temp password
-   * Called when owner adds a new team member
-   */
+  // ═══════════════════════════════════════════════════════════
+  // TEAM MEMBER INVITATION
+  // ═══════════════════════════════════════════════════════════
   async sendTeamMemberInvitation(params: {
     tenantId: string;
     tenantName: string;
@@ -797,10 +896,6 @@ export class AuthService {
     }
   }
 
-  /**
-   * Send onboarding complete celebration email
-   * Called when user finishes all 6 onboarding steps
-   */
   async sendOnboardingCompleteEmail(params: {
     tenantId: string;
     tenantName: string;
@@ -829,18 +924,14 @@ export class AuthService {
           appUrl,
         },
       });
-      console.log(`📧 Onboarding complete email sent to ${params.user.email}`);
     } catch (e: any) {
       console.error('Onboarding complete email failed:', e.message);
     }
   }
 
-  
-  // ===== SESSION MANAGEMENT =====
-
-  /**
-   * List all active sessions (devices) for a user
-   */
+  // ═══════════════════════════════════════════════════════════
+  // SESSION MANAGEMENT
+  // ═══════════════════════════════════════════════════════════
   async listActiveSessions(userId: string) {
     const sessions = await this.prisma.session.findMany({
       where: {
@@ -872,9 +963,6 @@ export class AuthService {
     }));
   }
 
-  /**
-   * Revoke a specific session (force logout that device)
-   */
   async revokeSession(userId: string, sessionId: string) {
     const session = await this.prisma.session.findFirst({
       where: { id: sessionId, userId },
@@ -888,9 +976,6 @@ export class AuthService {
     return { success: true, message: 'Device session revoked' };
   }
 
-  /**
-   * Revoke all sessions except the current one
-   */
   async revokeAllExceptCurrent(userId: string, currentRefreshToken: string) {
     const sessions = await this.prisma.session.findMany({ where: { userId } });
 
@@ -914,10 +999,6 @@ export class AuthService {
     };
   }
 
-  
-  /**
-   * Get login history for current user (last 30 entries)
-   */
   async getLoginHistory(userId: string, limit = 30) {
     const history = await this.prisma.loginHistory.findMany({
       where: { userId },
@@ -938,16 +1019,13 @@ export class AuthService {
     return history;
   }
 
-  /**
-   * Record a failed login attempt (called from login when password is wrong)
-   */
   async recordFailedLogin(email: string, reason: string, meta?: { userAgent?: string; ip?: string }) {
     try {
       const user = await this.prisma.user.findUnique({
         where: { email: email.toLowerCase() },
         select: { id: true, tenantId: true },
       });
-      if (!user) return; // Don't track if user doesn't exist (info leak prevention)
+      if (!user) return;
 
       const deviceInfo = parseUserAgent(meta?.userAgent);
       await this.prisma.loginHistory.create({
@@ -967,7 +1045,9 @@ export class AuthService {
     } catch {}
   }
 
-    // ===== HELPERS =====
+  // ═══════════════════════════════════════════════════════════
+  // HELPERS
+  // ═══════════════════════════════════════════════════════════
   private async issueTokens(payload: JwtPayload, userAgent?: string, ip?: string) {
     const accessSecret = this.configService.get<string>('JWT_ACCESS_SECRET')!;
     const refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET')!;
@@ -987,7 +1067,6 @@ export class AuthService {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 30);
 
-    // Parse device info
     const deviceInfo = parseUserAgent(userAgent);
     const location = getLocationFromIp(ip);
     const deviceName = `${deviceInfo.device} - ${deviceInfo.browser}`;
@@ -1008,25 +1087,17 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  /**
-   * Check if this is a new device for the user
-   * Returns true if no previous session with same fingerprint exists
-   */
   private async isNewDevice(userId: string, fingerprint: string): Promise<boolean> {
     const existingSession = await this.prisma.session.findFirst({
       where: {
         userId,
         deviceFingerprint: fingerprint,
-        // Don't count session being created right now (any past session counts)
         createdAt: { lt: new Date(Date.now() - 5000) },
       },
     });
     return !existingSession;
   }
 
-  /**
-   * Send new device login alert email (async, fire-and-forget)
-   */
   private async sendNewDeviceAlert(
     user: { id: string; tenantId: string; fullName: string; email: string },
     tenantName: string,
@@ -1051,7 +1122,6 @@ export class AuthService {
           appUrl: this.configService.get<string>('APP_URL') || '',
         },
       });
-      console.log(`📧 New device alert sent to ${user.email}`);
     } catch (e: any) {
       console.error('New device alert email failed:', e.message);
     }
@@ -1098,5 +1168,4 @@ export class AuthService {
       })
       .catch((e) => console.error('Welcome email failed:', e.message));
   }
-
 }

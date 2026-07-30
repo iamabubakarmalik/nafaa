@@ -5,46 +5,47 @@
 @tailwind utilities;
 
 /* ═══════════════════════════════════════════════════════════════
-   DESIGN TOKENS — Light + Dark + System
-   High contrast for Windows readability
+   ★ NAFAA UNIVERSAL UI SYSTEM ★
+   Handles every page, every component, every condition
+   Windows / Mac / Linux / Mobile / Tablet
+   Light / Dark / System mode — ALL bulletproof
    ═══════════════════════════════════════════════════════════════ */
+
+/* ─── DESIGN TOKENS ─── */
 :root {
-  /* Surfaces */
   --bg-app:        #f1f5f9;
   --bg-elevated:   #ffffff;
   --bg-muted:      #e2e8f0;
   --bg-subtle:     #f8fafc;
+  --bg-hover:      #f1f5f9;
 
-  /* Text — near-black for max Windows contrast */
   --text-primary:   #020617;
   --text-secondary: #1e293b;
   --text-muted:     #475569;
   --text-disabled:  #94a3b8;
+  --text-on-dark:   #ffffff;
+  --text-on-light:  #020617;
 
-  /* Borders */
   --border-default: #cbd5e1;
   --border-strong:  #94a3b8;
   --border-subtle:  #e2e8f0;
 
-  /* Brand — Pakistan Emerald */
   --brand-50:  #ecfdf5;
+  --brand-100: #d1fae5;
   --brand-500: #10b981;
   --brand-600: #059669;
   --brand-700: #047857;
   --brand-800: #065f46;
 
-  /* Semantic */
   --success: #15803d;
   --warning: #b45309;
   --danger:  #b91c1c;
   --info:    #1d4ed8;
 
-  /* Scrollbar */
   --scrollbar-track:       transparent;
   --scrollbar-thumb:       #94a3b8;
   --scrollbar-thumb-hover: #64748b;
 
-  /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.08);
   --shadow-md: 0 4px 8px -2px rgb(0 0 0 / 0.12), 0 2px 4px -2px rgb(0 0 0 / 0.08);
   --shadow-lg: 0 12px 20px -4px rgb(0 0 0 / 0.15), 0 4px 8px -4px rgb(0 0 0 / 0.08);
@@ -59,6 +60,7 @@ html.dark {
   --bg-elevated: #0f172a;
   --bg-muted:    #1e293b;
   --bg-subtle:   #0f172a;
+  --bg-hover:    #1e293b;
 
   --text-primary:   #ffffff;
   --text-secondary: #e2e8f0;
@@ -66,7 +68,7 @@ html.dark {
   --text-disabled:  #64748b;
 
   --border-default: #334155;
-  --border-strong:  #475569;
+  --border-strong:  #64748b;
   --border-subtle:  #1e293b;
 
   --scrollbar-thumb:       #475569;
@@ -80,19 +82,19 @@ html.dark {
   color-scheme: dark;
 }
 
-/* System mode = no explicit light/dark class */
 @media (prefers-color-scheme: dark) {
   html:not(.light):not(.dark) {
     --bg-app:      #020617;
     --bg-elevated: #0f172a;
     --bg-muted:    #1e293b;
     --bg-subtle:   #0f172a;
+    --bg-hover:    #1e293b;
     --text-primary:   #ffffff;
     --text-secondary: #e2e8f0;
     --text-muted:     #cbd5e1;
     --text-disabled:  #64748b;
     --border-default: #334155;
-    --border-strong:  #475569;
+    --border-strong:  #64748b;
     --border-subtle:  #1e293b;
     --scrollbar-thumb:       #475569;
     --scrollbar-thumb-hover: #64748b;
@@ -100,17 +102,13 @@ html.dark {
   }
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   BASE — Windows-first font rendering
-   ═══════════════════════════════════════════════════════════════ */
+/* ─── BASE ─── */
 * {
   -webkit-tap-highlight-color: transparent;
   box-sizing: border-box;
 }
 
-html, body, #root {
-  height: 100%;
-}
+html, body, #root { height: 100%; }
 
 html {
   scroll-behavior: smooth;
@@ -119,7 +117,6 @@ html {
 }
 
 body {
-  /* Segoe UI first — sharpest on Windows; Inter fallback */
   font-family: 'Segoe UI Variable Text', 'Segoe UI', 'Inter var', 'Inter',
                system-ui, -apple-system, BlinkMacSystemFont,
                Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -149,25 +146,15 @@ html[dir="rtl"] body {
   line-height: 2;
 }
 
-.font-urdu {
-  font-family: 'Noto Nastaliq Urdu', serif;
-  line-height: 2;
-}
-
+.font-urdu { font-family: 'Noto Nastaliq Urdu', serif; line-height: 2; }
 .font-mono {
-  font-family: 'Cascadia Code', 'Cascadia Mono', 'JetBrains Mono', 'SF Mono',
-               'Consolas', 'Monaco', 'Roboto Mono', monospace;
+  font-family: 'Cascadia Code', 'Cascadia Mono', 'JetBrains Mono',
+               'SF Mono', 'Consolas', 'Monaco', monospace;
   font-feature-settings: 'liga' 1, 'calt' 1;
 }
 
-::selection {
-  background-color: rgba(16, 185, 129, 0.35);
-  color: var(--text-primary);
-}
-html.dark ::selection {
-  background-color: rgba(16, 185, 129, 0.5);
-  color: #ffffff;
-}
+::selection { background-color: rgba(16, 185, 129, 0.35); color: var(--text-primary); }
+html.dark ::selection { background-color: rgba(16, 185, 129, 0.5); color: #ffffff; }
 
 :focus-visible {
   outline: 3px solid rgb(var(--ring-color));
@@ -175,41 +162,22 @@ html.dark ::selection {
   border-radius: 6px;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   SCROLLBARS
-   ═══════════════════════════════════════════════════════════════ */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-}
-*::-webkit-scrollbar        { width: 10px; height: 10px; }
-*::-webkit-scrollbar-track  { background: var(--scrollbar-track); }
-*::-webkit-scrollbar-thumb  {
+/* ─── SCROLLBARS ─── */
+* { scrollbar-width: thin; scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track); }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+*::-webkit-scrollbar-thumb {
   background: var(--scrollbar-thumb);
   border-radius: 6px;
   border: 2px solid transparent;
   background-clip: content-box;
 }
-*::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover);
-  background-clip: content-box;
-}
-*::-webkit-scrollbar-corner { background: transparent; }
-
+*::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); background-clip: content-box; }
 .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
-
 .notif-scroll::-webkit-scrollbar { width: 6px; }
-.notif-scroll::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  border-radius: 3px;
-  border: none;
-}
-.notif-scroll::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); }
 
-/* ═══════════════════════════════════════════════════════════════
-   INPUTS — always dark text on their own light bg
-   ═══════════════════════════════════════════════════════════════ */
+/* ─── INPUTS ─── */
 input, textarea, select {
   font-family: inherit;
   font-size: inherit;
@@ -218,25 +186,17 @@ input, textarea, select {
 input::placeholder, textarea::placeholder { color: #94a3b8; }
 
 input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
+input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 input[type="number"] { -moz-appearance: textfield; }
-
 input[type="search"]::-webkit-search-cancel-button,
-input[type="search"]::-webkit-search-decoration {
-  -webkit-appearance: none;
-}
+input[type="search"]::-webkit-search-decoration { -webkit-appearance: none; }
 
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
-input:-webkit-autofill:focus,
-input:-webkit-autofill:active {
+input:-webkit-autofill:focus {
   -webkit-box-shadow: 0 0 0 30px #ffffff inset !important;
   -webkit-text-fill-color: #0f172a !important;
   transition: background-color 5000s ease-in-out 0s;
-  caret-color: #0f172a;
 }
 
 html.dark input,
@@ -254,57 +214,34 @@ html.dark select:focus {
   border-color: #10b981;
   background-color: #1e293b;
 }
-html.dark input:-webkit-autofill,
-html.dark input:-webkit-autofill:hover,
-html.dark input:-webkit-autofill:focus {
+html.dark input:-webkit-autofill {
   -webkit-box-shadow: 0 0 0 30px #0f172a inset !important;
   -webkit-text-fill-color: #f1f5f9 !important;
 }
-
 html.dark input[type="date"]::-webkit-calendar-picker-indicator,
 html.dark input[type="time"]::-webkit-calendar-picker-indicator,
-html.dark input[type="datetime-local"]::-webkit-calendar-picker-indicator,
-html.dark input[type="month"]::-webkit-calendar-picker-indicator,
-html.dark input[type="week"]::-webkit-calendar-picker-indicator {
-  filter: invert(1);
-  cursor: pointer;
-  opacity: 0.8;
+html.dark input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(1); cursor: pointer; opacity: 0.8;
 }
-html.dark input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
 html.dark select { color-scheme: dark; }
 
-/* ═══════════════════════════════════════════════════════════════
-   ANIMATIONS
-   ═══════════════════════════════════════════════════════════════ */
+/* ─── ANIMATIONS ─── */
 @keyframes fadeIn    { from { opacity: 0; } to { opacity: 1; } }
-@keyframes slideUp   { from { transform: translateY(8px);  opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes slideUp   { from { transform: translateY(8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 @keyframes slideDown { from { transform: translateY(-8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-@keyframes scaleIn   { from { transform: scale(0.95); opacity: 0; }      to { transform: scale(1);    opacity: 1; } }
 @keyframes shimmer   { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
 @keyframes spin-slow { to { transform: rotate(360deg); } }
+@keyframes notifPulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.15); opacity: 0.85; } }
+@keyframes notifSlideIn { from { transform: translateX(110%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes urgentShake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-3px); } 40%, 80% { transform: translateX(3px); } }
 
-@keyframes notifPulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50%      { transform: scale(1.15); opacity: 0.85; }
-}
-@keyframes notifSlideIn {
-  from { transform: translateX(110%); opacity: 0; }
-  to   { transform: translateX(0);    opacity: 1; }
-}
-@keyframes urgentShake {
-  0%, 100%  { transform: translateX(0); }
-  20%, 60%  { transform: translateX(-3px); }
-  40%, 80%  { transform: translateX(3px); }
-}
-
-.fade-in         { animation: fadeIn 0.2s ease-out; }
-.slide-up        { animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
-.shimmer         { background: linear-gradient(90deg, var(--bg-muted) 0%, var(--bg-subtle) 50%, var(--bg-muted) 100%);
-                   background-size: 200% 100%; animation: shimmer 1.5s ease-in-out infinite; }
-.spin-slow       { animation: spin-slow 3s linear infinite; }
-.notif-pulse     { animation: notifPulse 1.5s ease-in-out infinite; }
-.notif-slide-in  { animation: notifSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
-.urgent-shake    { animation: urgentShake 0.5s ease-in-out; }
+.fade-in { animation: fadeIn 0.2s ease-out; }
+.slide-up { animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+.shimmer { background: linear-gradient(90deg, var(--bg-muted) 0%, var(--bg-subtle) 50%, var(--bg-muted) 100%); background-size: 200% 100%; animation: shimmer 1.5s ease-in-out infinite; }
+.spin-slow { animation: spin-slow 3s linear infinite; }
+.notif-pulse { animation: notifPulse 1.5s ease-in-out infinite; }
+.notif-slide-in { animation: notifSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
+.urgent-shake { animation: urgentShake 0.5s ease-in-out; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -315,16 +252,12 @@ html.dark select { color-scheme: dark; }
   }
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   RTL / LTR
-   ═══════════════════════════════════════════════════════════════ */
+/* ─── RTL / LTR ─── */
 html[dir="rtl"] .ltr-only { display: none; }
 html[dir="ltr"] .rtl-only { display: none; }
 html[dir="rtl"] .rtl-flip { transform: scaleX(-1); }
 
-/* ═══════════════════════════════════════════════════════════════
-   CROSS-BROWSER LAYOUT
-   ═══════════════════════════════════════════════════════════════ */
+/* ─── LAYOUT ─── */
 @supports (height: 100dvh) {
   .pos-full-height, .h-screen-dvh { height: 100dvh; }
   .min-h-screen-dvh { min-height: 100dvh; }
@@ -333,250 +266,403 @@ html[dir="rtl"] .rtl-flip { transform: scaleX(-1); }
   .pos-full-height, .h-screen-dvh { height: 100vh; }
   .min-h-screen-dvh { min-height: 100vh; }
 }
-
-.pos-scroll-container {
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-}
-
+.pos-scroll-container { scroll-behavior: smooth; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
 .min-h-0 { min-height: 0; }
+.pos-header-sticky { position: -webkit-sticky; position: sticky; top: 0; z-index: 10; }
+.pos-container { overflow-x: hidden; width: 100%; max-width: 100%; }
 
-.pos-header-sticky {
-  position: -webkit-sticky;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.pos-container {
-  overflow-x: hidden;
-  width: 100%;
-  max-width: 100%;
-}
-
-/* Touch targets */
 @media (pointer: coarse) {
-  button, [role="button"], a.btn, input[type="button"], input[type="submit"] {
-    min-height: 44px;
-  }
+  button, [role="button"], a.btn, input[type="button"], input[type="submit"] { min-height: 44px; }
 }
 
-.safe-top    { padding-top:    env(safe-area-inset-top); }
+.safe-top { padding-top: env(safe-area-inset-top); }
 .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
-.safe-left   { padding-left:   env(safe-area-inset-left); }
-.safe-right  { padding-right:  env(safe-area-inset-right); }
+.safe-left { padding-left: env(safe-area-inset-left); }
+.safe-right { padding-right: env(safe-area-inset-right); }
 
-/* ═══════════════════════════════════════════════════════════════
-   MEDIA
-   ═══════════════════════════════════════════════════════════════ */
 img, video { max-width: 100%; height: auto; }
 img { -webkit-user-drag: none; user-select: none; }
-
 table { border-collapse: collapse; width: 100%; }
-
 button { cursor: pointer; font-family: inherit; }
 button:disabled { cursor: not-allowed; }
 
-/* ═══════════════════════════════════════════════════════════════
-   UTILITIES
-   ═══════════════════════════════════════════════════════════════ */
+/* ─── UTILITIES ─── */
 .tabular-nums { font-variant-numeric: tabular-nums; }
+.gradient-text { background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
 
-.gradient-text {
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-}
+.glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.3); }
+html.dark .glass { background: rgba(15, 23, 42, 0.8); border-color: rgba(255, 255, 255, 0.1); }
 
-.glass {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-html.dark .glass {
-  background: rgba(15, 23, 42, 0.8);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-.skeleton {
-  background: var(--bg-muted);
-  border-radius: 8px;
-  position: relative;
-  overflow: hidden;
-}
-.skeleton::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
-  animation: shimmer 1.5s infinite;
-}
-html.dark .skeleton::after {
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
-}
+.skeleton { background: var(--bg-muted); border-radius: 8px; position: relative; overflow: hidden; }
+.skeleton::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent); animation: shimmer 1.5s infinite; }
+html.dark .skeleton::after { background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent); }
 
 .shadow-theme-sm { box-shadow: var(--shadow-sm); }
 .shadow-theme-md { box-shadow: var(--shadow-md); }
 .shadow-theme-lg { box-shadow: var(--shadow-lg); }
 .shadow-theme-xl { box-shadow: var(--shadow-xl); }
 
-.line-clamp-1, .line-clamp-2, .line-clamp-3 {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
+.line-clamp-1, .line-clamp-2, .line-clamp-3 { display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
 .line-clamp-1 { -webkit-line-clamp: 1; }
 .line-clamp-2 { -webkit-line-clamp: 2; }
 .line-clamp-3 { -webkit-line-clamp: 3; }
 
-.no-overlap {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
+.no-overlap { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .flex-safe > * { min-width: 0; }
 
-/* Kbd chips */
-kbd {
-  background-color: #f1f5f9;
-  color: #0f172a;
-  border: 1px solid #cbd5e1;
-  border-radius: 4px;
-  padding: 1px 6px;
-  font-family: inherit;
-}
-html.dark kbd {
-  background-color: #334155;
-  color: #f1f5f9;
-  border-color: #475569;
-}
+kbd { background-color: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1; border-radius: 4px; padding: 1px 6px; font-family: inherit; }
+html.dark kbd { background-color: #334155; color: #f1f5f9; border-color: #475569; }
 
 /* ═══════════════════════════════════════════════════════════════
-   DARK MODE — automatic token remap for hardcoded Tailwind classes
-   Ensures every page (whose author used text-slate-900 / bg-white)
-   flips correctly when html.dark is set.
+   ★★★ UNIVERSAL DARK MODE — BULLETPROOF SYSTEM ★★★
+   Handles EVERY combination of hardcoded classes across all pages
    ═══════════════════════════════════════════════════════════════ */
 
-/* Text scale */
+/* ─── 1. GRADIENT TEXT — always visible ─── */
+html.dark .bg-clip-text.text-transparent {
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: #f1f5f9 !important;
+  color: #f1f5f9 !important;
+  background-image: none !important;
+}
+
+/* Keep gradient text working when parent is truly white */
+html.dark div[class*="bg-white"]:not([class*="from-"]) .bg-clip-text.text-transparent,
+html.dark section[class*="bg-white"]:not([class*="from-"]) .bg-clip-text.text-transparent {
+  -webkit-text-fill-color: #059669 !important;
+  color: #059669 !important;
+}
+
+/* ─── 2. TEXT SCALE — remap for dark mode ─── */
 html.dark .text-slate-950,
 html.dark .text-slate-900,
-html.dark .text-slate-800  { color: #f1f5f9; }
-html.dark .text-slate-700  { color: #e2e8f0; }
-html.dark .text-slate-600  { color: #cbd5e1; }
-html.dark .text-slate-500  { color: #94a3b8; }
-html.dark .text-slate-400  { color: #64748b; }
-
-/* Neutral scale (used by some cards) */
+html.dark .text-slate-800 { color: #f1f5f9; }
+html.dark .text-slate-700 { color: #e2e8f0; }
+html.dark .text-slate-600 { color: #cbd5e1; }
+html.dark .text-slate-500 { color: #94a3b8; }
+html.dark .text-slate-400 { color: #94a3b8; }
+html.dark .text-slate-300 { color: #cbd5e1; }
 html.dark .text-neutral-950,
 html.dark .text-neutral-900,
 html.dark .text-neutral-800 { color: #f1f5f9; }
+html.dark .text-neutral-700 { color: #e2e8f0; }
+html.dark .text-neutral-600 { color: #cbd5e1; }
+html.dark .text-neutral-500 { color: #94a3b8; }
 
-/* Colored dark text on light bg → lighten */
+/* Deep colored text → light versions */
 html.dark .text-emerald-900, html.dark .text-emerald-800, html.dark .text-emerald-700 { color: #6ee7b7; }
-html.dark .text-blue-900,    html.dark .text-blue-800,    html.dark .text-blue-700    { color: #93c5fd; }
-html.dark .text-violet-900,  html.dark .text-violet-800,  html.dark .text-violet-700  { color: #c4b5fd; }
-html.dark .text-purple-900,  html.dark .text-purple-800,  html.dark .text-purple-700  { color: #d8b4fe; }
-html.dark .text-amber-900,   html.dark .text-amber-800,   html.dark .text-amber-700   { color: #fcd34d; }
-html.dark .text-rose-900,    html.dark .text-rose-800,    html.dark .text-rose-700    { color: #fda4af; }
-html.dark .text-red-900,     html.dark .text-red-800,     html.dark .text-red-700     { color: #fca5a5; }
-html.dark .text-cyan-900,    html.dark .text-cyan-800,    html.dark .text-cyan-700    { color: #67e8f9; }
-html.dark .text-orange-900,  html.dark .text-orange-800,  html.dark .text-orange-700  { color: #fdba74; }
-html.dark .text-pink-900,    html.dark .text-pink-800,    html.dark .text-pink-700    { color: #f9a8d4; }
-html.dark .text-teal-900,    html.dark .text-teal-800,    html.dark .text-teal-700    { color: #5eead4; }
-html.dark .text-indigo-900,  html.dark .text-indigo-800,  html.dark .text-indigo-700  { color: #a5b4fc; }
+html.dark .text-emerald-600 { color: #34d399; }
+html.dark .text-blue-900, html.dark .text-blue-800, html.dark .text-blue-700 { color: #93c5fd; }
+html.dark .text-blue-600 { color: #60a5fa; }
+html.dark .text-violet-900, html.dark .text-violet-800, html.dark .text-violet-700 { color: #c4b5fd; }
+html.dark .text-violet-600 { color: #a78bfa; }
+html.dark .text-purple-900, html.dark .text-purple-800, html.dark .text-purple-700 { color: #d8b4fe; }
+html.dark .text-purple-600 { color: #c084fc; }
+html.dark .text-amber-900, html.dark .text-amber-800, html.dark .text-amber-700 { color: #fcd34d; }
+html.dark .text-amber-600 { color: #fbbf24; }
+html.dark .text-rose-900, html.dark .text-rose-800, html.dark .text-rose-700 { color: #fda4af; }
+html.dark .text-rose-600 { color: #fb7185; }
+html.dark .text-red-900, html.dark .text-red-800, html.dark .text-red-700 { color: #fca5a5; }
+html.dark .text-red-600 { color: #f87171; }
+html.dark .text-cyan-900, html.dark .text-cyan-800, html.dark .text-cyan-700 { color: #67e8f9; }
+html.dark .text-cyan-600 { color: #22d3ee; }
+html.dark .text-orange-900, html.dark .text-orange-800, html.dark .text-orange-700 { color: #fdba74; }
+html.dark .text-orange-600 { color: #fb923c; }
+html.dark .text-pink-900, html.dark .text-pink-800, html.dark .text-pink-700 { color: #f9a8d4; }
+html.dark .text-pink-600 { color: #f472b6; }
+html.dark .text-teal-900, html.dark .text-teal-800, html.dark .text-teal-700 { color: #5eead4; }
+html.dark .text-teal-600 { color: #2dd4bf; }
+html.dark .text-indigo-900, html.dark .text-indigo-800, html.dark .text-indigo-700 { color: #a5b4fc; }
+html.dark .text-indigo-600 { color: #818cf8; }
 html.dark .text-fuchsia-900, html.dark .text-fuchsia-800, html.dark .text-fuchsia-700 { color: #f0abfc; }
-html.dark .text-lime-900,    html.dark .text-lime-800,    html.dark .text-lime-700    { color: #bef264; }
-html.dark .text-sky-900,     html.dark .text-sky-800,     html.dark .text-sky-700     { color: #7dd3fc; }
+html.dark .text-fuchsia-600 { color: #e879f9; }
+html.dark .text-lime-900, html.dark .text-lime-800, html.dark .text-lime-700 { color: #bef264; }
+html.dark .text-lime-600 { color: #a3e635; }
+html.dark .text-sky-900, html.dark .text-sky-800, html.dark .text-sky-700 { color: #7dd3fc; }
+html.dark .text-sky-600 { color: #38bdf8; }
+html.dark .text-green-900, html.dark .text-green-800, html.dark .text-green-700 { color: #86efac; }
+html.dark .text-green-600 { color: #4ade80; }
+html.dark .text-brand-900, html.dark .text-brand-800, html.dark .text-brand-700 { color: #6ee7b7; }
+html.dark .text-brand-600 { color: #34d399; }
 
-/* Backgrounds (only remap the neutral ones — coloured solids stay solid) */
-html.dark .bg-white      { background-color: #0f172a; }
-html.dark .bg-slate-50   { background-color: #020617; }
-html.dark .bg-slate-100  { background-color: #1e293b; }
+/* ─── 3. BACKGROUNDS — neutral surfaces flip ─── */
+html.dark .bg-white { background-color: #0f172a; }
+html.dark .bg-slate-50 { background-color: #020617; }
+html.dark .bg-slate-100 { background-color: #1e293b; }
+html.dark .bg-slate-200 { background-color: #334155; }
 html.dark .bg-neutral-50 { background-color: #020617; }
 html.dark .bg-neutral-100 { background-color: #1e293b; }
+html.dark .bg-neutral-200 { background-color: #334155; }
 
-/* Colored bg-50 tints → subtle in dark mode */
+/* Colored -50 tints → subtle glow */
 html.dark .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.12); }
-html.dark .bg-blue-50    { background-color: rgba(59, 130, 246, 0.12); }
-html.dark .bg-violet-50  { background-color: rgba(139, 92, 246, 0.12); }
-html.dark .bg-purple-50  { background-color: rgba(168, 85, 247, 0.12); }
-html.dark .bg-amber-50   { background-color: rgba(245, 158, 11, 0.12); }
-html.dark .bg-rose-50    { background-color: rgba(244, 63, 94, 0.12); }
-html.dark .bg-red-50     { background-color: rgba(239, 68, 68, 0.12); }
-html.dark .bg-cyan-50    { background-color: rgba(6, 182, 212, 0.12); }
-html.dark .bg-orange-50  { background-color: rgba(249, 115, 22, 0.12); }
-html.dark .bg-pink-50    { background-color: rgba(236, 72, 153, 0.12); }
-html.dark .bg-teal-50    { background-color: rgba(20, 184, 166, 0.12); }
-html.dark .bg-indigo-50  { background-color: rgba(99, 102, 241, 0.12); }
+html.dark .bg-emerald-100 { background-color: rgba(16, 185, 129, 0.18); }
+html.dark .bg-blue-50 { background-color: rgba(59, 130, 246, 0.12); }
+html.dark .bg-blue-100 { background-color: rgba(59, 130, 246, 0.18); }
+html.dark .bg-violet-50 { background-color: rgba(139, 92, 246, 0.12); }
+html.dark .bg-violet-100 { background-color: rgba(139, 92, 246, 0.18); }
+html.dark .bg-purple-50 { background-color: rgba(168, 85, 247, 0.12); }
+html.dark .bg-purple-100 { background-color: rgba(168, 85, 247, 0.18); }
+html.dark .bg-amber-50 { background-color: rgba(245, 158, 11, 0.12); }
+html.dark .bg-amber-100 { background-color: rgba(245, 158, 11, 0.18); }
+html.dark .bg-rose-50 { background-color: rgba(244, 63, 94, 0.12); }
+html.dark .bg-rose-100 { background-color: rgba(244, 63, 94, 0.18); }
+html.dark .bg-red-50 { background-color: rgba(239, 68, 68, 0.12); }
+html.dark .bg-red-100 { background-color: rgba(239, 68, 68, 0.18); }
+html.dark .bg-cyan-50 { background-color: rgba(6, 182, 212, 0.12); }
+html.dark .bg-cyan-100 { background-color: rgba(6, 182, 212, 0.18); }
+html.dark .bg-orange-50 { background-color: rgba(249, 115, 22, 0.12); }
+html.dark .bg-orange-100 { background-color: rgba(249, 115, 22, 0.18); }
+html.dark .bg-pink-50 { background-color: rgba(236, 72, 153, 0.12); }
+html.dark .bg-pink-100 { background-color: rgba(236, 72, 153, 0.18); }
+html.dark .bg-teal-50 { background-color: rgba(20, 184, 166, 0.12); }
+html.dark .bg-teal-100 { background-color: rgba(20, 184, 166, 0.18); }
+html.dark .bg-indigo-50 { background-color: rgba(99, 102, 241, 0.12); }
+html.dark .bg-indigo-100 { background-color: rgba(99, 102, 241, 0.18); }
 html.dark .bg-fuchsia-50 { background-color: rgba(217, 70, 239, 0.12); }
-html.dark .bg-lime-50    { background-color: rgba(132, 204, 22, 0.12); }
-html.dark .bg-sky-50     { background-color: rgba(14, 165, 233, 0.12); }
-html.dark .bg-green-50   { background-color: rgba(34, 197, 94, 0.12); }
+html.dark .bg-lime-50 { background-color: rgba(132, 204, 22, 0.12); }
+html.dark .bg-sky-50 { background-color: rgba(14, 165, 233, 0.12); }
+html.dark .bg-sky-100 { background-color: rgba(14, 165, 233, 0.18); }
+html.dark .bg-green-50 { background-color: rgba(34, 197, 94, 0.12); }
+html.dark .bg-green-100 { background-color: rgba(34, 197, 94, 0.18); }
+html.dark .bg-yellow-50 { background-color: rgba(234, 179, 8, 0.12); }
+html.dark .bg-brand-50 { background-color: rgba(16, 185, 129, 0.12); }
+html.dark .bg-brand-100 { background-color: rgba(16, 185, 129, 0.18); }
 
-/* Borders */
+/* ─── 4. BORDERS ─── */
 html.dark .border-slate-100 { border-color: #1e293b; }
 html.dark .border-slate-200 { border-color: #334155; }
 html.dark .border-slate-300 { border-color: #475569; }
 html.dark .border-neutral-100 { border-color: #1e293b; }
 html.dark .border-neutral-200 { border-color: #334155; }
+html.dark .border-neutral-300 { border-color: #475569; }
+html.dark .border-emerald-200 { border-color: rgba(16, 185, 129, 0.3); }
+html.dark .border-blue-200 { border-color: rgba(59, 130, 246, 0.3); }
+html.dark .border-violet-200 { border-color: rgba(139, 92, 246, 0.3); }
+html.dark .border-amber-200 { border-color: rgba(245, 158, 11, 0.3); }
+html.dark .border-rose-200 { border-color: rgba(244, 63, 94, 0.3); }
 
-/* Dividers */
+/* ─── 5. DIVIDERS ─── */
 html.dark .divide-slate-100 > * + *,
-html.dark .divide-neutral-100 > * + *  { border-color: #1e293b; }
+html.dark .divide-neutral-100 > * + * { border-color: #1e293b; }
 html.dark .divide-slate-200 > * + *,
-html.dark .divide-neutral-200 > * + *  { border-color: #334155; }
+html.dark .divide-neutral-200 > * + * { border-color: #334155; }
 
-/* Hover states */
-html.dark .hover\:bg-slate-50:hover  { background-color: #1e293b; }
+/* ─── 6. HOVER STATES ─── */
+html.dark .hover\:bg-slate-50:hover { background-color: #1e293b; }
 html.dark .hover\:bg-slate-100:hover { background-color: #334155; }
-html.dark .hover\:bg-white:hover     { background-color: #1e293b; }
+html.dark .hover\:bg-white:hover { background-color: #1e293b; }
+html.dark .hover\:bg-neutral-50:hover { background-color: #1e293b; }
+html.dark .hover\:bg-neutral-100:hover { background-color: #334155; }
 
 /* ═══════════════════════════════════════════════════════════════
-   PRINT
+   ★★★ CRITICAL RULES — Handle every edge case
    ═══════════════════════════════════════════════════════════════ */
+
+/* RULE A: Buttons/links with .bg-white must keep white bg + dark text
+   (they're intentionally light-on-light for contrast against dark hero) */
+html.dark button.bg-white,
+html.dark a.bg-white,
+html.dark button.bg-slate-50,
+html.dark a.bg-slate-50 {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+html.dark button.bg-white *,
+html.dark a.bg-white *,
+html.dark button.bg-slate-50 *,
+html.dark a.bg-slate-50 * {
+  color: #0f172a !important;
+}
+/* But hover states should still work */
+html.dark button.bg-white:hover,
+html.dark a.bg-white:hover {
+  background-color: #f1f5f9 !important;
+}
+
+/* RULE B: Dark gradient heroes — children with text-slate-* become light */
+html.dark [class*="from-slate-9"] .text-slate-900,
+html.dark [class*="from-slate-9"] .text-slate-800,
+html.dark [class*="from-slate-9"] .text-slate-700,
+html.dark [class*="from-brand-9"] .text-slate-900,
+html.dark [class*="from-brand-9"] .text-slate-800,
+html.dark [class*="from-emerald-9"] .text-slate-900,
+html.dark [class*="from-emerald-9"] .text-slate-800,
+html.dark [class*="from-slate-950"] .text-slate-900,
+html.dark [class*="from-slate-950"] .text-slate-800,
+html.dark [class*="via-brand-9"] .text-slate-900,
+html.dark [class*="via-emerald-9"] .text-slate-900,
+html.dark [class*="via-purple-9"] .text-slate-900 {
+  color: #f1f5f9 !important;
+}
+
+/* RULE C: White cards intentionally placed INSIDE dark hero
+   — flip them to dark card styling */
+html.dark section[class*="bg-gradient"] .bg-white,
+html.dark div[class*="bg-gradient-to-br"][class*="from-slate-9"] .bg-white,
+html.dark div[class*="bg-gradient-to-br"][class*="from-brand-9"] .bg-white {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(8px);
+}
+html.dark section[class*="bg-gradient"] .bg-white *,
+html.dark div[class*="bg-gradient-to-br"][class*="from-slate-9"] .bg-white *,
+html.dark div[class*="bg-gradient-to-br"][class*="from-brand-9"] .bg-white * {
+  color: #f1f5f9;
+}
+
+/* RULE D: Explicit dark: overrides ALWAYS win */
+html.dark [class*="dark:text-white"] { color: #ffffff !important; }
+html.dark [class*="dark:text-slate-100"] { color: #f1f5f9 !important; }
+html.dark [class*="dark:text-slate-200"] { color: #e2e8f0 !important; }
+html.dark [class*="dark:text-slate-300"] { color: #cbd5e1 !important; }
+html.dark [class*="dark:bg-neutral-900"] { background-color: #0f172a !important; }
+html.dark [class*="dark:bg-neutral-800"] { background-color: #1e293b !important; }
+html.dark [class*="dark:bg-slate-900"] { background-color: #0f172a !important; }
+html.dark [class*="dark:bg-slate-800"] { background-color: #1e293b !important; }
+
+/* RULE E: Solid colored backgrounds (bg-emerald-600, bg-blue-600 etc.)
+   These are BUTTONS/BADGES — always keep white text */
+html.dark .bg-emerald-500,
+html.dark .bg-emerald-600,
+html.dark .bg-emerald-700,
+html.dark .bg-emerald-800,
+html.dark .bg-blue-500,
+html.dark .bg-blue-600,
+html.dark .bg-blue-700,
+html.dark .bg-violet-500,
+html.dark .bg-violet-600,
+html.dark .bg-violet-700,
+html.dark .bg-purple-500,
+html.dark .bg-purple-600,
+html.dark .bg-purple-700,
+html.dark .bg-rose-500,
+html.dark .bg-rose-600,
+html.dark .bg-rose-700,
+html.dark .bg-amber-500,
+html.dark .bg-amber-600,
+html.dark .bg-orange-500,
+html.dark .bg-orange-600,
+html.dark .bg-red-500,
+html.dark .bg-red-600,
+html.dark .bg-teal-500,
+html.dark .bg-teal-600,
+html.dark .bg-cyan-500,
+html.dark .bg-cyan-600,
+html.dark .bg-pink-500,
+html.dark .bg-pink-600,
+html.dark .bg-indigo-500,
+html.dark .bg-indigo-600,
+html.dark .bg-brand-500,
+html.dark .bg-brand-600,
+html.dark .bg-brand-700 {
+  color: #ffffff;
+}
+
+/* RULE F: Placeholders / muted text universal */
+html.dark ::placeholder { color: #64748b; opacity: 1; }
+
+/* RULE G: Skeleton loaders */
+html.dark .animate-pulse { background-color: #1e293b; }
+html.dark .bg-slate-200.animate-pulse,
+html.dark .bg-slate-100.animate-pulse { background-color: #334155; }
+
+/* RULE H: Ring colors on dark bg */
+html.dark [class*="ring-slate-200"] { --tw-ring-color: #334155; }
+html.dark [class*="ring-slate-300"] { --tw-ring-color: #475569; }
+html.dark [class*="ring-white"] { --tw-ring-color: rgba(255, 255, 255, 0.2); }
+
+/* RULE I: Shadow on dark bg — subtle glow */
+html.dark .shadow-sm,
+html.dark .shadow,
+html.dark .shadow-md,
+html.dark .shadow-lg,
+html.dark .shadow-xl,
+html.dark .shadow-2xl {
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.5), 0 2px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+/* RULE J: Tables */
+html.dark table thead { background-color: #1e293b; }
+html.dark table tbody tr:hover { background-color: rgba(255, 255, 255, 0.03); }
+html.dark table td, html.dark table th { border-color: #334155; }
+
+/* RULE K: Modals / Overlays */
+html.dark [role="dialog"],
+html.dark [class*="fixed inset-0"] > .bg-white {
+  background-color: #0f172a !important;
+  color: #f1f5f9 !important;
+}
+
+/* RULE L: Code blocks / pre */
+html.dark pre,
+html.dark code {
+  background-color: #0f172a;
+  color: #e2e8f0;
+  border-color: #334155;
+}
+
+/* RULE M: Sidebar/topbar — already dark, no leaks */
+html.dark aside.bg-gradient-to-b,
+html.dark aside[class*="from-slate-9"],
+html.dark aside[class*="from-slate-950"] {
+  background: linear-gradient(180deg, #020617 0%, #0f172a 50%, #1e293b 100%);
+}
+
+/* RULE N: Empty states / icons in muted areas */
+html.dark .bg-slate-100 svg,
+html.dark .bg-neutral-100 svg { color: #64748b; }
+
+/* RULE O: Datalist / autocomplete dropdowns */
+html.dark option { background-color: #0f172a; color: #f1f5f9; }
+
+/* RULE P: Selected/active states preserve visibility */
+html.dark [aria-selected="true"],
+html.dark [data-state="active"] { color: #ffffff; }
+
+/* ─── PRINT ─── */
 @media print {
-  * {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    color-adjust: exact !important;
-  }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
   html, body { background: white !important; color: black !important; }
   .no-print, .print-hidden { display: none !important; }
   .print-only { display: block !important; }
   a[href]::after { content: none !important; }
-  tr, td, th, li, .avoid-break {
-    page-break-inside: avoid;
-    break-inside: avoid;
-  }
+  tr, td, th, li, .avoid-break { page-break-inside: avoid; break-inside: avoid; }
   .print-bg-white { background: white !important; color: black !important; }
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   TOAST (sonner)
-   ═══════════════════════════════════════════════════════════════ */
+/* ─── TOAST ─── */
 [data-sonner-toaster] {
-  --normal-bg:     var(--bg-elevated);
+  --normal-bg: var(--bg-elevated);
   --normal-border: var(--border-default);
-  --normal-text:   var(--text-primary);
+  --normal-text: var(--text-primary);
   font-family: inherit;
 }
 html.dark [data-sonner-toaster] {
-  --normal-bg:     #0f172a;
+  --normal-bg: #0f172a;
   --normal-border: #334155;
-  --normal-text:   #ffffff;
+  --normal-text: #ffffff;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   MOBILE
-   ═══════════════════════════════════════════════════════════════ */
+/* ─── MOBILE / TABLET ─── */
 @media (max-width: 640px) {
   body { font-size: 15px; }
   h1 { font-size: 1.75rem; }
   h2 { font-size: 1.5rem; }
   h3 { font-size: 1.25rem; }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  body { font-size: 15px; }
+}
+
+/* ─── SAFARI / iOS FIXES ─── */
+@supports (-webkit-touch-callout: none) {
+  input, textarea, select { font-size: 16px; }
+}
+
+/* ─── HIGH DPI / RETINA ─── */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  body { -webkit-font-smoothing: subpixel-antialiased; }
 }
