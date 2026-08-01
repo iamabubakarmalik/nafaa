@@ -1,3 +1,4 @@
+// apps/web/src/industries/mobile/MobilePack.tsx
 import { Smartphone, RefreshCw, Wrench, CreditCard, BarChart3, Sparkles } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
@@ -14,12 +15,14 @@ import MobileProductWizardPage from './pages/MobileProductWizardPage';
 import MobileProductDetailPage from './pages/MobileProductDetailPage';
 
 /**
- * Mobile / Electronics industry pack.
- * IMEI tracking, used phones, repairs, EMI plans.
+ * Mobile industry pack — STRICT MATCHING
+ *
+ * Activates ONLY for mobile-specific business types.
+ * Does NOT match ELECTRONICS / GADGETS / TECH (those belong to ElectronicsPack).
  */
 export const MobilePack: IndustryPack = {
   id: 'mobile',
-  name: 'Mobile / Electronics',
+  name: 'Mobile Shop',
   shortName: 'Mobile',
   emoji: '📱',
   themeColor: '#2563eb',
@@ -29,14 +32,33 @@ export const MobilePack: IndustryPack = {
 
   matches: (tenant) => {
     if (!tenant) return false;
-    const type = (tenant.businessType ?? '').toUpperCase();
-    if (type) {
-      return (
-        type.includes('MOBILE') ||
-        type.includes('PHONE') ||
-        type.includes('ELECTRONICS')
-      );
-    }
+    const type = (tenant.businessType ?? '').toUpperCase().trim();
+
+    // STRICT: only match mobile-specific business types
+    const MOBILE_TYPES = [
+      'MOBILE',
+      'MOBILE_SHOP',
+      'MOBILE_STORE',
+      'CELLPHONE',
+      'CELLPHONE_SHOP',
+      'SMARTPHONE_SHOP',
+      'PHONE_SHOP',
+      'PHONE_STORE',
+    ];
+
+    if (MOBILE_TYPES.includes(type)) return true;
+
+    // Explicitly reject electronics/gadgets/tech types
+    // (they belong to ElectronicsPack)
+    const isElectronicsType =
+      type.includes('ELECTRONIC') ||
+      type.includes('GADGET') ||
+      type.includes('TECH') ||
+      type === 'CONSUMER_ELECTRONICS';
+    if (isElectronicsType) return false;
+
+    // Non-electronics business that specifically enabled IMEI feature
+    // (e.g. general retail that also sells phones)
     const features = (tenant.businessFeatures ?? {}) as Record<string, boolean>;
     return features.imei === true;
   },
@@ -63,7 +85,7 @@ export const MobilePack: IndustryPack = {
     // Wizard — highest priority mobile routes
     { path: '/mobile-products/new', element: MobileProductWizardPage },
     { path: '/mobile-products/:id/edit', element: MobileProductWizardPage },
-    // Detail view — comes AFTER edit so /:id/edit isn\'t swallowed
+    // Detail view — comes AFTER edit so /:id/edit isn't swallowed
     { path: '/mobile-products/:id', element: MobileProductDetailPage },
 
     // Existing pages

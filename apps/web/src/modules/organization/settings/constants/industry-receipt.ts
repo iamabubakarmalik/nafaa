@@ -1,3 +1,4 @@
+// apps/web/src/modules/organization/settings/constants/industry-receipt.ts
 export interface IndustryReceiptTemplate {
   template: string;
   label: string;
@@ -171,6 +172,119 @@ export const INDUSTRY_RECEIPT_TEMPLATES: Record<string, IndustryReceiptTemplate>
       { key: 'showUnitPrice', label: 'Unit Price', desc: 'Per kg / per piece', defaultValue: true },
     ],
   },
+
+  // ─── 10 NEW industries ───
+  APPLIANCES: {
+    template: 'APPLIANCES', label: 'Home Appliances', emoji: '🏠',
+    fields: [
+      { key: 'showSerialNumber', label: 'Serial Number', desc: 'Appliance serial #', defaultValue: true },
+      { key: 'showWarranty', label: 'Warranty Period', desc: 'Warranty duration + terms', defaultValue: true },
+      { key: 'showInstallationDate', label: 'Installation Date', desc: 'Scheduled install date', defaultValue: true },
+      { key: 'showTechnicianName', label: 'Technician Name', desc: 'Delivery/install technician', defaultValue: true },
+      { key: 'showAmcInfo', label: 'AMC Info', desc: 'AMC contract details', defaultValue: false },
+      { key: 'showEmiPlan', label: 'EMI Plan', desc: 'EMI schedule & installments', defaultValue: true },
+    ],
+  },
+  ELECTRONICS: {
+    template: 'ELECTRONICS', label: 'Electronics / Gadgets', emoji: '🔌',
+    fields: [
+      { key: 'showSerialNumber', label: 'Serial Number', desc: 'Device serial #', defaultValue: true },
+      { key: 'showImei', label: 'IMEI (if applicable)', desc: 'IMEI for smartwatches/drones', defaultValue: true },
+      { key: 'showWarranty', label: 'Warranty Period', desc: 'Warranty details', defaultValue: true },
+      { key: 'showBundleItems', label: 'Bundle Items', desc: 'Combo deal breakdown', defaultValue: true },
+      { key: 'showTradeInValue', label: 'Trade-in Value', desc: 'Old device credit', defaultValue: false },
+    ],
+  },
+  FLORIST: {
+    template: 'FLORIST', label: 'Florist / Flower Shop', emoji: '🌸',
+    fields: [
+      { key: 'showDeliveryDate', label: 'Delivery Date', desc: 'Same-day / scheduled delivery', defaultValue: true },
+      { key: 'showOccasion', label: 'Occasion', desc: 'Anniversary/Birthday/Funeral', defaultValue: true },
+      { key: 'showSpecialInstructions', label: 'Card Message', desc: 'Custom card note', defaultValue: true },
+      { key: 'showDeliveryAddress', label: 'Delivery Address', desc: 'Recipient address', defaultValue: true },
+      { key: 'showFreshness', label: 'Freshness Note', desc: 'Cut date / expected lifespan', defaultValue: false },
+    ],
+  },
+  FURNITURE: {
+    template: 'FURNITURE', label: 'Furniture Store', emoji: '🪑',
+    fields: [
+      { key: 'showDimensions', label: 'Dimensions', desc: 'L × W × H', defaultValue: true },
+      { key: 'showMaterial', label: 'Material / Finish', desc: 'Wood/fabric/finish type', defaultValue: true },
+      { key: 'showWarranty', label: 'Warranty', desc: 'Warranty period', defaultValue: true },
+      { key: 'showDeliveryDate', label: 'Delivery Date', desc: 'Scheduled delivery', defaultValue: true },
+      { key: 'showAssemblyRequired', label: 'Assembly Info', desc: 'Assembly included/extra', defaultValue: true },
+      { key: 'showCustomOrderRef', label: 'Custom Order Ref', desc: 'Workshop job #', defaultValue: false },
+    ],
+  },
+  GAMING: {
+    template: 'GAMING', label: 'Gaming Shop / Cyber Cafe', emoji: '🎮',
+    fields: [
+      { key: 'showSerialNumber', label: 'Console Serial', desc: 'Console/product serial #', defaultValue: true },
+      { key: 'showPlatform', label: 'Platform', desc: 'PS5/Xbox/PC/Switch', defaultValue: true },
+      { key: 'showWarranty', label: 'Warranty Period', desc: 'Warranty details', defaultValue: true },
+      { key: 'showRentalPeriod', label: 'Rental Period', desc: 'Console rental duration', defaultValue: false },
+      { key: 'showRentalDeposit', label: 'Security Deposit', desc: 'Refundable deposit', defaultValue: false },
+      { key: 'showSessionTime', label: 'Session Duration', desc: 'LAN cafe billing time', defaultValue: false },
+      { key: 'showTopupCode', label: 'Top-up Code Reveal', desc: 'PSN/UC/Robux code (redact until sold)', defaultValue: true },
+    ],
+  },
+  OPTICAL: {
+    template: 'OPTICAL', label: 'Optical / Eyewear', emoji: '👓',
+    fields: [
+      { key: 'showPrescription', label: 'Prescription Details', desc: 'Sphere/Cyl/Axis per eye', defaultValue: true },
+      { key: 'showLensType', label: 'Lens Type', desc: 'Anti-glare/Photochromic/etc', defaultValue: true },
+      { key: 'showFrameDetails', label: 'Frame Details', desc: 'Brand/model/size', defaultValue: true },
+      { key: 'showEyeTestDate', label: 'Eye Test Date', desc: 'Last eye test date', defaultValue: true },
+      { key: 'showOptometristName', label: 'Optometrist', desc: 'Prescribing doctor', defaultValue: true },
+      { key: 'showWarranty', label: 'Warranty', desc: 'Frame + lens warranty', defaultValue: true },
+      { key: 'showFollowUpDate', label: 'Follow-up Date', desc: 'Next check-up reminder', defaultValue: false },
+    ],
+  },
+  PETSHOP: {
+    template: 'PETSHOP', label: 'Pet Shop / Vet Store', emoji: '🐾',
+    fields: [
+      { key: 'showPetName', label: 'Pet Name', desc: 'Customer pet name', defaultValue: true },
+      { key: 'showPetSpecies', label: 'Species / Breed', desc: 'Dog/Cat/Bird + breed', defaultValue: true },
+      { key: 'showBatchNumber', label: 'Batch Number', desc: 'Food/medicine batch', defaultValue: true },
+      { key: 'showExpiry', label: 'Expiry Date', desc: 'Food/medicine expiry', defaultValue: true },
+      { key: 'showVaccinationDate', label: 'Vaccination Date', desc: 'Last vaccination', defaultValue: false },
+      { key: 'showNextDueDate', label: 'Next Due Date', desc: 'Next vaccine/booster', defaultValue: true },
+      { key: 'showVetName', label: 'Vet Name', desc: 'Attending veterinarian', defaultValue: false },
+    ],
+  },
+  SHOE: {
+    template: 'SHOE', label: 'Shoe Store / Footwear', emoji: '👟',
+    fields: [
+      { key: 'showSize', label: 'Size', desc: 'Shoe size (EU/UK/US)', defaultValue: true },
+      { key: 'showColor', label: 'Color', desc: 'Shoe color', defaultValue: true },
+      { key: 'showBrand', label: 'Brand', desc: 'Brand name', defaultValue: true },
+      { key: 'showWarranty', label: 'Warranty', desc: 'Warranty period', defaultValue: true },
+      { key: 'showOriginalBox', label: 'Original Box', desc: 'Box included?', defaultValue: false },
+      { key: 'showExchangePolicy', label: 'Exchange Policy', desc: '7-day exchange terms', defaultValue: true },
+    ],
+  },
+  TOYSTORE: {
+    template: 'TOYSTORE', label: 'Toy Store', emoji: '🧸',
+    fields: [
+      { key: 'showAgeGroup', label: 'Age Group', desc: 'Recommended age', defaultValue: true },
+      { key: 'showSafetyCert', label: 'Safety Certification', desc: 'CE/ASTM certification', defaultValue: true },
+      { key: 'showWarranty', label: 'Warranty', desc: 'Manufacturer warranty', defaultValue: true },
+      { key: 'showGiftWrap', label: 'Gift Wrap', desc: 'Gift wrapping applied', defaultValue: false },
+      { key: 'showBirthdayMessage', label: 'Birthday Message', desc: 'Custom card note', defaultValue: false },
+    ],
+  },
+  SPORTS: {
+    template: 'SPORTS', label: 'Sports Shop', emoji: '🏏',
+    fields: [
+      { key: 'showSize', label: 'Size', desc: 'Jersey/shoe/equipment size', defaultValue: true },
+      { key: 'showBrand', label: 'Brand', desc: 'Brand name', defaultValue: true },
+      { key: 'showWarranty', label: 'Warranty', desc: 'Warranty period', defaultValue: true },
+      { key: 'showTeamOrderRef', label: 'Team Order Ref', desc: 'Bulk team order #', defaultValue: false },
+      { key: 'showCustomPrint', label: 'Custom Printing', desc: 'Name/number printing', defaultValue: false },
+      { key: 'showSport', label: 'Sport Category', desc: 'Cricket/Football/etc', defaultValue: true },
+    ],
+  },
+
   STANDARD: {
     template: 'STANDARD', label: 'Standard Retail', emoji: '🏬',
     fields: [

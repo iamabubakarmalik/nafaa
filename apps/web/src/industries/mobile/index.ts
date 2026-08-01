@@ -1,3 +1,4 @@
+// apps/web/src/industries/mobile/index.ts
 import type { IndustryPlugin } from '@industries/_shared/types/section.types';
 import { MobileInventorySection } from './sections/MobileInventorySection';
 import { MobileHeaderActionBar } from './sections/MobileHeaderActionBar';
@@ -7,32 +8,40 @@ import { MobileVariantsBanner } from './sections/MobileVariantsBanner';
 import { MobileVariantExtraPanel } from './sections/MobileVariantExtraPanel';
 
 /**
- * Mobile Industry Plugin — Complete
+ * Mobile Industry Plugin — STRICT MATCHING
  *
- * Activates when:
- *  - businessType is MOBILE / MOBILE_SHOP / ELECTRONICS / PHONE
- *  - OR features.imei is enabled (mixed shops)
- *
- * Provides all 6 industry slots:
- *  - InventorySection: IMEI quick-add + warranty + default PTA + stats
- *  - HeaderActionBar: Header IMEI badges + quick add button
- *  - AdminStockBlock: Sidebar IMEI breakdown + PTA mini chart
- *  - CustomerStockBlock: Customer-facing PTA + warranty badges
- *  - VariantsBanner: Storage × Color matrix guide
- *  - VariantExtraPanel: Per-variant IMEI stats + add IMEIs button
+ * Activates ONLY for mobile-specific business types.
+ * Does NOT match ELECTRONICS / GADGETS / TECH (those belong to ElectronicsPack).
  */
 export const mobilePlugin: IndustryPlugin = {
   key: 'MOBILE',
   label: 'Mobile',
   matches: ({ businessType, features }) => {
-    const type = (businessType ?? '').toUpperCase();
-    const isMobileBusiness =
-      type === 'MOBILE' ||
-      type === 'MOBILE_SHOP' ||
-      type === 'ELECTRONICS' ||
-      type.includes('PHONE');
-    const hasImeiFeature = features?.imei === true;
-    return isMobileBusiness || hasImeiFeature;
+    const type = (businessType ?? '').toUpperCase().trim();
+
+    const MOBILE_TYPES = [
+      'MOBILE',
+      'MOBILE_SHOP',
+      'MOBILE_STORE',
+      'CELLPHONE',
+      'CELLPHONE_SHOP',
+      'SMARTPHONE_SHOP',
+      'PHONE_SHOP',
+      'PHONE_STORE',
+    ];
+
+    if (MOBILE_TYPES.includes(type)) return true;
+
+    // Explicitly reject electronics/gadgets/tech
+    const isElectronicsType =
+      type.includes('ELECTRONIC') ||
+      type.includes('GADGET') ||
+      type.includes('TECH') ||
+      type === 'CONSUMER_ELECTRONICS';
+    if (isElectronicsType) return false;
+
+    // Fallback: activate on IMEI feature toggle
+    return features?.imei === true;
   },
   InventorySection: MobileInventorySection,
   HeaderActionBar: MobileHeaderActionBar,
@@ -41,4 +50,5 @@ export const mobilePlugin: IndustryPlugin = {
   VariantsBanner: MobileVariantsBanner,
   VariantExtraPanel: MobileVariantExtraPanel,
 };
+
 export { MobilePack } from './MobilePack';

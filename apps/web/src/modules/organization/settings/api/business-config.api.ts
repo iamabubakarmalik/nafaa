@@ -1,22 +1,88 @@
+// apps/web/src/modules/organization/settings/api/business-config.api.ts
 import { apiClient } from '@core/api/client';
 
 export interface BusinessFeatures {
+  // Core inventory
   variants: boolean;
   variantImages: boolean;
   lengthWidthCalc: boolean;
   weightBased: boolean;
+  multiUnit: boolean;
+  sizeMatrix: boolean;
+  bulkPricing: boolean;
+  combo: boolean;
+  quickKeys: boolean;
+
+  // Tracking
   imei: boolean;
+  serialNumber: boolean;
   expiry: boolean;
   batches: boolean;
   warranty: boolean;
+
+  // Payment
   emi: boolean;
+  layaway: boolean;
+  membership: boolean;
+  packages: boolean;
+  credit: boolean;
+
+  // Operations
   services: boolean;
   tables: boolean;
   appointments: boolean;
   kitchenPrinter: boolean;
+  rooms: boolean;
+  routes: boolean;
+  delivery: boolean;
+
+  // Customer
   prescriptionRequired: boolean;
-  multiUnit: boolean;
-  sizeMatrix: boolean;
+  measurements: boolean;
+  vehicleTracking: boolean;
+  patientRecords: boolean;
+
+  // Industry-specific
+  slaughterLog: boolean;
+  qualityTests: boolean;
+  farmerAccounts: boolean;
+  hallmark: boolean;
+  purityTracking: boolean;
+  liveMetalRates: boolean;
+  amc: boolean;
+  technicianDispatch: boolean;
+  bookRentals: boolean;
+  schoolLists: boolean;
+  compatibilityMatrix: boolean;
+  reservations: boolean;
+  tailoring: boolean;
+  alterations: boolean;
+  qurbani: boolean;
+  subscriptions: boolean;
+  cropAdvisory: boolean;
+  seasonalPlans: boolean;
+  govtSubsidy: boolean;
+  productionPlanning: boolean;
+  ingredientTracking: boolean;
+  customCakes: boolean;
+  bodyMeasurements: boolean;
+  workoutTracking: boolean;
+  dietPlans: boolean;
+  classSchedule: boolean;
+  labTests: boolean;
+  vaccinations: boolean;
+  dentalCharts: boolean;
+  antenatal: boolean;
+  physioSessions: boolean;
+  drugInteractions: boolean;
+  usedItemsTrade: boolean;
+  repairs: boolean;
+  carpetRolls: boolean;
+  cutPieces: boolean;
+  projectTracking: boolean;
+  quotations: boolean;
+  bulkOrders: boolean;
+
   [key: string]: boolean;
 }
 
@@ -38,22 +104,29 @@ export interface BusinessConfig {
 }
 
 const DEFAULT_FEATURES: BusinessFeatures = {
-  variants: true,
-  variantImages: false,
-  lengthWidthCalc: false,
-  weightBased: false,
-  imei: false,
-  expiry: false,
-  batches: false,
-  warranty: false,
-  emi: false,
-  services: false,
-  tables: false,
-  appointments: false,
-  kitchenPrinter: false,
-  prescriptionRequired: false,
-  multiUnit: false,
-  sizeMatrix: false,
+  // Core
+  variants: true, variantImages: false, lengthWidthCalc: false, weightBased: false,
+  multiUnit: false, sizeMatrix: false, bulkPricing: false, combo: false, quickKeys: false,
+  // Tracking
+  imei: false, serialNumber: false, expiry: false, batches: false, warranty: false,
+  // Payment
+  emi: false, layaway: false, membership: false, packages: false, credit: true,
+  // Operations
+  services: false, tables: false, appointments: false, kitchenPrinter: false,
+  rooms: false, routes: false, delivery: false,
+  // Customer
+  prescriptionRequired: false, measurements: false, vehicleTracking: false, patientRecords: false,
+  // Industry-specific
+  slaughterLog: false, qualityTests: false, farmerAccounts: false,
+  hallmark: false, purityTracking: false, liveMetalRates: false,
+  amc: false, technicianDispatch: false, bookRentals: false, schoolLists: false,
+  compatibilityMatrix: false, reservations: false, tailoring: false, alterations: false,
+  qurbani: false, subscriptions: false, cropAdvisory: false, seasonalPlans: false, govtSubsidy: false,
+  productionPlanning: false, ingredientTracking: false, customCakes: false,
+  bodyMeasurements: false, workoutTracking: false, dietPlans: false, classSchedule: false,
+  labTests: false, vaccinations: false, dentalCharts: false, antenatal: false, physioSessions: false,
+  drugInteractions: false, usedItemsTrade: false, repairs: false,
+  carpetRolls: false, cutPieces: false, projectTracking: false, quotations: false, bulkOrders: false,
 };
 
 const FALLBACK_TEMPLATE = {

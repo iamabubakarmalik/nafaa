@@ -1,3 +1,4 @@
+// apps/web/src/modules/inventory/products/pages/ProductFormGate.tsx
 import { Navigate, useParams } from 'react-router-dom';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import ProductFormPage from './ProductFormPage';
@@ -5,10 +6,6 @@ import ProductFormPage from './ProductFormPage';
 /**
  * ProductFormGate — routes /products/new and /products/:id/edit to the
  * correct industry-specific wizard page.
- *
- * Every industry that has a dedicated wizard file is routed here.
- * Any industry not listed falls through to the generic ProductFormPage
- * (which already renders industry-specific plugin slots).
  */
 export default function ProductFormGate() {
   const industry = useCurrentIndustry();
@@ -16,6 +13,7 @@ export default function ProductFormGate() {
   const edit = Boolean(id);
 
   switch (industry?.id) {
+    // ─── Original 19 ───
     case 'carpet':
       return <Navigate to={edit ? `/carpet-products/${id}/edit` : '/carpet-products/new'} replace />;
     case 'mobile':
@@ -50,8 +48,31 @@ export default function ProductFormGate() {
       return <Navigate to={edit ? `/hotel-room-types/${id}/edit` : '/hotel-room-types/new'} replace />;
     case 'clinic':
       return <Navigate to={edit ? `/clinic-services/${id}/edit` : '/clinic-services/new'} replace />;
+
+    // ─── 10 NEW ───
+    case 'appliances':
+      return <Navigate to={edit ? `/appliances-products/${id}/edit` : '/appliances-products/new'} replace />;
+    case 'electronics':
+      return <Navigate to={edit ? `/electronics-products/${id}/edit` : '/electronics-products/new'} replace />;
+    case 'florist':
+      return <Navigate to={edit ? `/florist-products/${id}/edit` : '/florist-products/new'} replace />;
+    case 'furniture':
+      return <Navigate to={edit ? `/furniture-products/${id}/edit` : '/furniture-products/new'} replace />;
+    case 'gaming':
+      return <Navigate to={edit ? `/gaming-products/${id}/edit` : '/gaming-products/new'} replace />;
+    case 'optical':
+      return <Navigate to={edit ? `/optical-products/${id}/edit` : '/optical-products/new'} replace />;
+    case 'petshop':
+      return <Navigate to={edit ? `/petshop-products/${id}/edit` : '/petshop-products/new'} replace />;
+    case 'shoe':
+      return <Navigate to={edit ? `/shoe-products/${id}/edit` : '/shoe-products/new'} replace />;
+    case 'sports':
+      return <Navigate to={edit ? `/sports-products/${id}/edit` : '/sports-products/new'} replace />;
+    case 'toystore':
+      return <Navigate to={edit ? `/toystore-products/${id}/edit` : '/toystore-products/new'} replace />;
+
     default:
-      // clinic, gym, services-biz — no wizard yet, use generic form
+      // gym, services-biz — no wizard yet, use generic form
       return <ProductFormPage />;
   }
 }

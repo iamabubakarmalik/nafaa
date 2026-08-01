@@ -1,3 +1,4 @@
+// apps/web/src/modules/inventory/products/pages/ProductViewGate.tsx
 import { Navigate, useParams } from 'react-router-dom';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 
@@ -5,8 +6,7 @@ import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndus
  * ProductViewGate — routes /products/:id to the correct industry detail page.
  *
  * Every industry with a dedicated detail page is routed here.
- * Any industry not listed falls through to the generic edit form (which
- * then handles the render via ProductFormPage + plugin slots).
+ * Any industry not listed falls through to the generic edit form.
  */
 export default function ProductViewGate() {
   const industry = useCurrentIndustry();
@@ -15,6 +15,7 @@ export default function ProductViewGate() {
   if (!id) return <Navigate to="/products" replace />;
 
   switch (industry?.id) {
+    // ─── Original 19 ───
     case 'carpet':
       return <Navigate to={`/carpet-products/${id}`} replace />;
     case 'mobile':
@@ -49,8 +50,31 @@ export default function ProductViewGate() {
       return <Navigate to={`/hotel-room-types/${id}`} replace />;
     case 'clinic':
       return <Navigate to={`/clinic-services/${id}`} replace />;
+
+    // ─── 10 NEW ───
+    case 'appliances':
+      return <Navigate to={`/appliances-products/${id}`} replace />;
+    case 'electronics':
+      return <Navigate to={`/electronics-products/${id}`} replace />;
+    case 'florist':
+      return <Navigate to={`/florist-products/${id}`} replace />;
+    case 'furniture':
+      return <Navigate to={`/furniture-products/${id}`} replace />;
+    case 'gaming':
+      return <Navigate to={`/gaming-products/${id}`} replace />;
+    case 'optical':
+      return <Navigate to={`/optical-products/${id}`} replace />;
+    case 'petshop':
+      return <Navigate to={`/petshop-products/${id}`} replace />;
+    case 'shoe':
+      return <Navigate to={`/shoe-products/${id}`} replace />;
+    case 'sports':
+      return <Navigate to={`/sports-products/${id}`} replace />;
+    case 'toystore':
+      return <Navigate to={`/toystore-products/${id}`} replace />;
+
     default:
-      // clinic, gym, services-biz — no detail page yet, use generic edit form
+      // gym, services-biz — no detail page yet, use generic edit form
       return <Navigate to={`/products/${id}/edit`} replace />;
   }
 }

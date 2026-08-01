@@ -28,3 +28,4 @@ import { ShoeDashboardModule } from './dashboard/shoe-dashboard.module';
   ],
 })
 export class ShoeModule {}
+

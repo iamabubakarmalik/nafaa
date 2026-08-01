@@ -1,3 +1,4 @@
+// apps/web/src/modules/onboarding/components/BusinessTypeSelector.tsx
 import { useState, useMemo } from 'react';
 import { Check, Sparkles, Search } from 'lucide-react';
 
@@ -17,6 +18,7 @@ export interface BusinessTypeCard {
 
 // ─── Fallback list — agar API se options.businessTypes empty aayen ───
 const FALLBACK_BUSINESS_TYPES: BusinessTypeCard[] = [
+  // ═══ POPULAR (top of list) ═══
   {
     value: 'GROCERY', label: 'Grocery / Kiryana', labelUrdu: 'کریانہ سٹور', emoji: '🛒',
     description: 'General stores, supermarkets', category: 'Retail', popular: true,
@@ -60,6 +62,20 @@ const FALLBACK_BUSINESS_TYPES: BusinessTypeCard[] = [
     highlights: ['Bulk pricing', 'Quotations', 'Delivery tracking', 'Projects'],
   },
   {
+    value: 'APPLIANCES', label: 'Home Appliances', labelUrdu: 'گھریلو آلات', emoji: '🏠',
+    description: 'Fridge, AC, washing machine, LED TV', category: 'Retail', popular: true,
+    defaultUnit: 'pcs',
+    highlights: ['Serial number tracking', 'Warranty', 'EMI plans', 'AMC contracts', 'Delivery + install'],
+  },
+  {
+    value: 'ELECTRONICS', label: 'Electronics & Gadgets', labelUrdu: 'الیکٹرانکس', emoji: '🔌',
+    description: 'Tech accessories, smartwatches, drones', category: 'Electronics', popular: true,
+    defaultUnit: 'pcs',
+    highlights: ['Serial + IMEI', 'Warranty', 'Bundle deals', 'Repair services', 'Trade-in'],
+  },
+
+  // ═══ REGULAR ═══
+  {
     value: 'BAKERY', label: 'Bakery / Cake Shop', labelUrdu: 'بیکری', emoji: '🍰',
     description: 'Bakeries, sweet shops', category: 'Food',
     defaultUnit: 'pcs',
@@ -69,7 +85,7 @@ const FALLBACK_BUSINESS_TYPES: BusinessTypeCard[] = [
     value: 'COSMETICS', label: 'Cosmetics / Beauty', labelUrdu: 'کاسمیٹکس', emoji: '💄',
     description: 'Cosmetics, beauty products', category: 'Lifestyle',
     defaultUnit: 'pcs',
-    highlights: ['Shade variants', 'Expiry tracking', 'Brand catalog'],
+    highlights: ['Shade variants', 'Expiry tracking', 'Brand catalog', 'Gift bundles'],
   },
   {
     value: 'STATIONERY', label: 'Stationery / Books', labelUrdu: 'اسٹیشنری', emoji: '📚',
@@ -137,6 +153,57 @@ const FALLBACK_BUSINESS_TYPES: BusinessTypeCard[] = [
     defaultUnit: 'job',
     highlights: ['Technician dispatch', 'Quotations', 'Warranty', 'AMC contracts'],
   },
+
+  // ═══ 10 NEW INDUSTRIES ═══
+  {
+    value: 'FURNITURE', label: 'Furniture Store', labelUrdu: 'فرنیچر شاپ', emoji: '🪑',
+    description: 'Sofas, beds, tables, custom furniture', category: 'Retail',
+    defaultUnit: 'pcs',
+    highlights: ['Custom dimensions', 'Fabric variants', 'Delivery + assembly', 'Workshop orders', 'EMI + layaway'],
+  },
+  {
+    value: 'GAMING', label: 'Gaming Shop / Cyber Cafe', labelUrdu: 'گیمنگ شاپ', emoji: '🎮',
+    description: 'Consoles, games, LAN cafe, tournaments', category: 'Entertainment',
+    defaultUnit: 'pcs',
+    highlights: ['LAN cafe timer', 'Digital top-ups (PSN/UC)', 'Console rentals', 'Tournaments', 'Pre-owned trade-in'],
+  },
+  {
+    value: 'OPTICAL', label: 'Optical / Eyewear', labelUrdu: 'چشمے کی دکان', emoji: '👓',
+    description: 'Prescription lenses, frames, eye tests', category: 'Healthcare',
+    defaultUnit: 'pcs',
+    highlights: ['Eye test bookings', 'Prescription records', 'Lens power tracking', 'Warranty on frames'],
+  },
+  {
+    value: 'PETSHOP', label: 'Pet Shop / Vet Store', labelUrdu: 'پیٹ شاپ', emoji: '🐾',
+    description: 'Pet food, accessories, vet supplies', category: 'Retail',
+    defaultUnit: 'pcs',
+    highlights: ['Vaccination schedules', 'Pet profiles', 'Bulk pet food', 'Vet appointments', 'Grooming'],
+  },
+  {
+    value: 'SHOE', label: 'Shoe Store / Footwear', labelUrdu: 'جوتوں کی دکان', emoji: '👟',
+    description: 'Footwear with sizes, brands', category: 'Fashion',
+    defaultUnit: 'pair',
+    highlights: ['Size × Color matrix', 'Brand catalog', 'Original boxes', 'Repair services', 'Layaway'],
+  },
+  {
+    value: 'TOYSTORE', label: 'Toy Store', labelUrdu: 'کھلونوں کی دکان', emoji: '🧸',
+    description: 'Kids toys, educational, board games', category: 'Retail',
+    defaultUnit: 'pcs',
+    highlights: ['Age-appropriate filtering', 'Gift wrapping', 'Combo deals', 'Birthday party orders'],
+  },
+  {
+    value: 'SPORTS', label: 'Sports Shop', labelUrdu: 'اسپورٹس شاپ', emoji: '🏏',
+    description: 'Cricket, football, gym equipment', category: 'Retail',
+    defaultUnit: 'pcs',
+    highlights: ['Cricket bat customization', 'Team jersey printing', 'Bulk team orders', 'Custom sizing'],
+  },
+  {
+    value: 'FLORIST', label: 'Florist / Flower Shop', labelUrdu: 'پھول والا', emoji: '🌸',
+    description: 'Fresh flowers, bouquets, wedding', category: 'Retail',
+    defaultUnit: 'pcs',
+    highlights: ['Freshness tracking', 'Custom bouquet orders', 'Event bookings', 'Same-day delivery', 'Wedding packages'],
+  },
+
   {
     value: 'GENERAL', label: 'General Retail', labelUrdu: 'جنرل سٹور', emoji: '🏬',
     description: 'Mixed retail, other', category: 'Other',

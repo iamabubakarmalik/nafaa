@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback, forwardRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Search, ShoppingCart, Package, X, Camera, ScanLine,
@@ -639,16 +639,25 @@ function SearchBar({ value, onChange, onOpenScanner }: any) {
   );
 }
 
-const BarcodeInput = require('react').forwardRef(({ value, onChange, onSubmit }: any, ref: any) => {
-  return (
-    <form onSubmit={(e: any) => { e.preventDefault(); onSubmit(); }} className="relative">
-      <ScanLine className="h-4 w-4 sm:h-5 sm:w-5 text-cyan-600 absolute left-3 top-1/2 -translate-y-1/2" />
-      <input ref={ref} value={value} onChange={(e: any) => onChange(e.target.value)}
-        placeholder="Barcode / Serial (auto-detect)..."
-        className="h-10 sm:h-12 w-full rounded-2xl border-2 border-cyan-300 bg-cyan-50 pl-10 sm:pl-11 pr-3 text-sm sm:text-base font-mono font-extrabold focus:outline-none focus:border-cyan-600 focus:ring-2 focus:ring-cyan-200" />
-    </form>
-  );
-});
+const BarcodeInput = forwardRef<HTMLInputElement, { value: string; onChange: (v: string) => void; onSubmit: () => void }>(
+  ({ value, onChange, onSubmit }, ref) => {
+    return (
+      <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className="relative">
+        <ScanLine className="h-4 w-4 sm:h-5 sm:w-5 text-cyan-600 absolute left-3 top-1/2 -translate-y-1/2" />
+        <input
+          ref={ref}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Barcode / Serial (auto-detect)..."
+          className="h-10 sm:h-12 w-full rounded-2xl border-2 border-cyan-300 bg-cyan-50 pl-10 sm:pl-11 pr-3 text-sm sm:text-base font-mono font-extrabold focus:outline-none focus:border-cyan-600 focus:ring-2 focus:ring-cyan-200"
+        />
+      </form>
+    );
+  }
+);
+
+BarcodeInput.displayName = 'BarcodeInput';
+
 
 function EmptyProducts({ search, onClear }: any) {
   return (

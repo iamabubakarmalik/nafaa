@@ -1,3 +1,4 @@
+// apps/web/src/industries/electronics/ElectronicsPack.tsx
 import {
   LayoutDashboard, Sparkles, Zap, Award, Shield, Cpu, Package,
   Barcode, BadgeCheck, Layers,
@@ -15,25 +16,56 @@ import SerialTrackingPage from './pages/SerialTrackingPage';
 import ElectronicsBundlesPage from './pages/ElectronicsBundlesPage';
 import BundleFormPage from './pages/BundleFormPage';
 
+/**
+ * Electronics & Gadgets pack — STRICT MATCHING
+ *
+ * Activates ONLY for electronics/gadgets/tech business types.
+ * Does NOT match MOBILE / PHONE (those belong to MobilePack).
+ */
 export const ElectronicsPack: IndustryPack = {
   id: 'electronics',
   name: 'Electronics & Gadgets',
   shortName: 'Electronics',
   emoji: '🔌',
   themeColor: '#3b82f6',
-  priority: 80,
+  priority: 62,
   description:
     'Serial/IMEI tracking, warranty claims, brand management, tech specs, bundles, condition grading.',
 
   matches: (tenant) => {
     if (!tenant) return false;
-    const type = (tenant.businessType ?? '').toUpperCase();
-    return (
-      type.includes('ELECTRONICS') ||
-      type.includes('GADGET') ||
-      type.includes('MOBILE') ||
-      type.includes('TECH')
-    );
+    const type = (tenant.businessType ?? '').toUpperCase().trim();
+
+    // STRICT: only match electronics/gadgets/tech
+    const ELECTRONICS_TYPES = [
+      'ELECTRONICS',
+      'ELECTRONICS_STORE',
+      'ELECTRONICS_SHOP',
+      'GADGETS',
+      'GADGET_SHOP',
+      'GADGET_STORE',
+      'TECH',
+      'TECH_STORE',
+      'TECH_ACCESSORIES',
+      'CONSUMER_ELECTRONICS',
+    ];
+
+    if (ELECTRONICS_TYPES.includes(type)) return true;
+
+    // Explicitly reject mobile-specific types
+    const MOBILE_TYPES = [
+      'MOBILE',
+      'MOBILE_SHOP',
+      'MOBILE_STORE',
+      'CELLPHONE',
+      'CELLPHONE_SHOP',
+      'SMARTPHONE_SHOP',
+      'PHONE_SHOP',
+      'PHONE_STORE',
+    ];
+    if (MOBILE_TYPES.includes(type)) return false;
+
+    return false;
   },
 
   navGroups: [

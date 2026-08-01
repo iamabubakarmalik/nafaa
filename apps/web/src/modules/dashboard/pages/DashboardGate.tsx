@@ -1,11 +1,13 @@
+// apps/web/src/modules/dashboard/pages/DashboardGate.tsx
 import { lazy, Suspense } from 'react';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import DashboardPage from './DashboardPage';
 
+// ─── Original 19 industries ───
 const RestaurantDashboardV2 = lazy(() => import('@industries/restaurant/pages/RestaurantDashboardV2'));
 const MobileDashboardV2 = lazy(() => import('@industries/mobile/pages/MobileDashboardV2'));
 const CarpetDashboardV2 = lazy(() => import('@industries/carpet/pages/CarpetDashboardV2'));
-const RetailDashboardV2 = lazy(() => import('@/industries/retail/pages/RetailDashboardV2'));
+const RetailDashboardV2 = lazy(() => import('@industries/retail/pages/RetailDashboardV2'));
 const BakeryDashboardV2 = lazy(() => import('@industries/bakery/pages/BakeryDashboardV2'));
 const ClinicDashboardV2 = lazy(() => import('@industries/clinic/pages/ClinicDashboardV2'));
 const ServicesBizDashboardV2 = lazy(() => import('@industries/services-biz/pages/ServicesBizDashboardV2'));
@@ -20,6 +22,19 @@ const BookstoreDashboardV2 = lazy(() => import('@industries/bookstore/pages/Book
 const SalonDashboardV2 = lazy(() => import('@industries/salon/pages/SalonDashboardV2'));
 const HotelDashboardV2 = lazy(() => import('@industries/hotel/pages/HotelDashboardV2'));
 const GymDashboard = lazy(() => import('@industries/gym/pages/GymDashboardV2'));
+const GarmentsDashboard = lazy(() => import('@industries/garments/pages/GarmentsDashboardV2'));
+
+// ─── 10 NEW industries ───
+const AppliancesDashboard = lazy(() => import('@industries/appliances/pages/AppliancesDashboardPage'));
+const ElectronicsDashboard = lazy(() => import('@industries/electronics/pages/ElectronicsDashboardPage'));
+const FloristDashboard = lazy(() => import('@industries/florist/pages/FloristDashboardPage'));
+const FurnitureDashboard = lazy(() => import('@industries/furniture/pages/FurnitureDashboardPage'));
+const GamingDashboard = lazy(() => import('@industries/gaming/pages/GamingDashboardPage'));
+const OpticalDashboard = lazy(() => import('@industries/optical/pages/OpticalDashboardPage'));
+const PetshopDashboard = lazy(() => import('@industries/petshop/pages/PetshopDashboardPage'));
+const ShoeDashboard = lazy(() => import('@industries/shoe/pages/ShoeDashboardPage'));
+const SportsDashboard = lazy(() => import('@industries/sports/pages/SportsDashboardPage'));
+const ToystoreDashboard = lazy(() => import('@industries/toystore/pages/ToystoreDashboardPage'));
 
 function Loader() {
   return (
@@ -32,6 +47,7 @@ function Loader() {
 export default function DashboardGate() {
   const industry = useCurrentIndustry();
 
+  // ─── Original 19 ───
   if (industry?.id === 'restaurant') return <Suspense fallback={<Loader />}><RestaurantDashboardV2 /></Suspense>;
   if (industry?.id === 'mobile') return <Suspense fallback={<Loader />}><MobileDashboardV2 /></Suspense>;
   if (industry?.id === 'carpet') return <Suspense fallback={<Loader />}><CarpetDashboardV2 /></Suspense>;
@@ -50,6 +66,19 @@ export default function DashboardGate() {
   if (industry?.id === 'bookstore') return <Suspense fallback={<Loader />}><BookstoreDashboardV2 /></Suspense>;
   if (industry?.id === 'salon') return <Suspense fallback={<Loader />}><SalonDashboardV2 /></Suspense>;
   if (industry?.id === 'hotel') return <Suspense fallback={<Loader />}><HotelDashboardV2 /></Suspense>;
+  if (industry?.id === 'garments') return <Suspense fallback={<Loader />}><GarmentsDashboard /></Suspense>;
+
+  // ─── 10 NEW ───
+  if (industry?.id === 'appliances') return <Suspense fallback={<Loader />}><AppliancesDashboard /></Suspense>;
+  if (industry?.id === 'electronics') return <Suspense fallback={<Loader />}><ElectronicsDashboard /></Suspense>;
+  if (industry?.id === 'florist') return <Suspense fallback={<Loader />}><FloristDashboard /></Suspense>;
+  if (industry?.id === 'furniture') return <Suspense fallback={<Loader />}><FurnitureDashboard /></Suspense>;
+  if (industry?.id === 'gaming') return <Suspense fallback={<Loader />}><GamingDashboard /></Suspense>;
+  if (industry?.id === 'optical') return <Suspense fallback={<Loader />}><OpticalDashboard /></Suspense>;
+  if (industry?.id === 'petshop') return <Suspense fallback={<Loader />}><PetshopDashboard /></Suspense>;
+  if (industry?.id === 'shoe') return <Suspense fallback={<Loader />}><ShoeDashboard /></Suspense>;
+  if (industry?.id === 'sports') return <Suspense fallback={<Loader />}><SportsDashboard /></Suspense>;
+  if (industry?.id === 'toystore') return <Suspense fallback={<Loader />}><ToystoreDashboard /></Suspense>;
 
   return <DashboardPage />;
 }

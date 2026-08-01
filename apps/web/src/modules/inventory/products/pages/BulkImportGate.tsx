@@ -1,3 +1,4 @@
+// apps/web/src/modules/inventory/products/pages/BulkImportGate.tsx
 import { lazy, Suspense } from 'react';
 import { useCurrentIndustry } from '../../../../industries/_shared/registry/useCurrentIndustry';
 import ProductBulkImportPage from './ProductBulkImportPage';
