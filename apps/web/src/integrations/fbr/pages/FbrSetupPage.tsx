@@ -408,7 +408,7 @@ export default function FbrSetupPage() {
                 label="Tax Inclusive"
                 hint="Prices mein tax pehle se included hai?"
                 value={value('taxInclusive')}
-                onChange={(v: boolean) => set('taxInclusive', v)}
+                onChange={(v: string) => set('taxInclusive', v)}
               />
               <ToggleField
                 label="Ask Before Submit"

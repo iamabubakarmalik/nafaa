@@ -352,9 +352,9 @@ export function RetailWizardStep1Basic({ basic, onChange, errors }: Props) {
       {/* 7 — SETTINGS */}
       <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-2">
         <Head icon={Sparkles} n="7" t="Settings" d="Kahan dikhega" />
-        <Tog checked={basic.isActive} onChange={(v) => onChange({ isActive: v })} icon={Eye}
+        <Tog checked={basic.isActive} onChange={(v: boolean) => onChange({ isActive: v })} icon={Eye}
           t="Active — POS me dikhega" d="Off karo to POS/catalog se chhup jayega" />
-        <Tog checked={basic.isFeatured} onChange={(v) => onChange({ isFeatured: v })} icon={Star}
+        <Tog checked={basic.isFeatured} onChange={(v: boolean) => onChange({ isFeatured: v })} icon={Star}
           t="Featured — sab se upar" d="Catalog me highlight" />
       </section>
     </div>

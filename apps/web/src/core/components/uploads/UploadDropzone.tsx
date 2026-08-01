@@ -7,7 +7,7 @@ import type { UploadPurpose, UploadRecord } from '@modules/organization/settings
 import { cn } from '@core/lib/cn';
 
 interface Props {
-  purpose?: UploadPurpose;
+  purpose?: string;
   maxSizeMB?: number;
   maxFiles?: number;
   multiple?: boolean;
@@ -35,7 +35,7 @@ export function UploadDropzone({
   const [dragActive, setDragActive] = useState(false);
 
   const { items, uploading, upload, remove } = useImageUpload({
-    purpose,
+    purpose: purpose as any,
     maxSizeMB,
     maxFiles,
     onUploaded,

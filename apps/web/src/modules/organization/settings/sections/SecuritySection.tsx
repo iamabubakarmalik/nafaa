@@ -329,17 +329,17 @@ export default function SecuritySection({ s, set }: any) {
           <div className="mt-4 space-y-1">
             <Toggle
               checked={s.requirePinForVoid}
-              onChange={(v) => set('requirePinForVoid', v)}
+              onChange={(v: boolean) => set('requirePinForVoid', v)}
               label="Void sales ke liye PIN required"
             />
             <Toggle
               checked={s.requirePinForDiscount}
-              onChange={(v) => set('requirePinForDiscount', v)}
+              onChange={(v: boolean) => set('requirePinForDiscount', v)}
               label="Bade discount ke liye PIN required"
             />
             <Toggle
               checked={s.requirePinForRefund}
-              onChange={(v) => set('requirePinForRefund', v)}
+              onChange={(v: boolean) => set('requirePinForRefund', v)}
               label="Refund ke liye PIN required"
             />
           </div>
@@ -393,7 +393,7 @@ export default function SecuritySection({ s, set }: any) {
         >
           <Toggle
             checked={s.enableTwoFactor}
-            onChange={(v) => set('enableTwoFactor', v)}
+            onChange={(v: boolean) => set('enableTwoFactor', v)}
             label="Enable 2FA on login"
             desc="Har login pe Email OTP required hoga"
           />

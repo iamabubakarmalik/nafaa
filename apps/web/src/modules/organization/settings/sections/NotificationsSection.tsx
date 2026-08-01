@@ -17,10 +17,10 @@ export default function NotificationsSection({ s, set }: any) {
   return (
     <div className="space-y-5">
       <SectionCard title="Notification Channels" desc="Kaunse channels enabled karne hain" icon={Bell} color="orange">
-        <Toggle checked={s.emailNotifications} onChange={(v) => set('emailNotifications', v)} label="📧 Email notifications" desc="Emails via SMTP/SES" />
-        <Toggle checked={s.smsNotifications} onChange={(v) => set('smsNotifications', v)} label="📨 SMS notifications" desc="SMS (charges apply)" />
-        <Toggle checked={s.whatsappNotifications} onChange={(v) => set('whatsappNotifications', v)} label="💬 WhatsApp" desc="WhatsApp Business API required" />
-        <Toggle checked={s.pushNotifications} onChange={(v) => set('pushNotifications', v)} label="📱 Push (Mobile)" desc="Mobile app push notifications" />
+        <Toggle checked={s.emailNotifications} onChange={(v: boolean) => set('emailNotifications', v)} label="📧 Email notifications" desc="Emails via SMTP/SES" />
+        <Toggle checked={s.smsNotifications} onChange={(v: boolean) => set('smsNotifications', v)} label="📨 SMS notifications" desc="SMS (charges apply)" />
+        <Toggle checked={s.whatsappNotifications} onChange={(v: boolean) => set('whatsappNotifications', v)} label="💬 WhatsApp" desc="WhatsApp Business API required" />
+        <Toggle checked={s.pushNotifications} onChange={(v: boolean) => set('pushNotifications', v)} label="📱 Push (Mobile)" desc="Mobile app push notifications" />
 
         <div className="mt-4 flex gap-2 flex-wrap">
           <Button size="sm" variant="secondary" onClick={() => testMutation.mutate('email')} disabled={testMutation.isPending}>
@@ -36,14 +36,14 @@ export default function NotificationsSection({ s, set }: any) {
       </SectionCard>
 
       <SectionCard title="Event Triggers" desc="Kaunse events par notify karna hai" icon={Send} color="orange">
-        <Toggle checked={s.notifyLowStock} onChange={(v) => set('notifyLowStock', v)} label="Low stock alerts" />
-        <Toggle checked={s.notifyOutOfStock} onChange={(v) => set('notifyOutOfStock', v)} label="Out of stock alerts" />
-        <Toggle checked={s.notifyNewSale} onChange={(v) => set('notifyNewSale', v)} label="New sale" desc="Har sale par notification" />
-        <Toggle checked={s.notifyNewCustomer} onChange={(v) => set('notifyNewCustomer', v)} label="New customer" />
+        <Toggle checked={s.notifyLowStock} onChange={(v: boolean) => set('notifyLowStock', v)} label="Low stock alerts" />
+        <Toggle checked={s.notifyOutOfStock} onChange={(v: boolean) => set('notifyOutOfStock', v)} label="Out of stock alerts" />
+        <Toggle checked={s.notifyNewSale} onChange={(v: boolean) => set('notifyNewSale', v)} label="New sale" desc="Har sale par notification" />
+        <Toggle checked={s.notifyNewCustomer} onChange={(v: boolean) => set('notifyNewCustomer', v)} label="New customer" />
       </SectionCard>
 
       <SectionCard title="Daily Summary" desc="Roz report bhejo" icon={Bell} color="orange">
-        <Toggle checked={s.notifyDailySummary} onChange={(v) => set('notifyDailySummary', v)} label="Send daily sales summary" />
+        <Toggle checked={s.notifyDailySummary} onChange={(v: boolean) => set('notifyDailySummary', v)} label="Send daily sales summary" />
         {s.notifyDailySummary && (
           <div className="mt-4">
             <Field label="Summary Time" hint="Roz is time pe summary aayegi">

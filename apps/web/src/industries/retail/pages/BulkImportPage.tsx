@@ -535,15 +535,15 @@ export default function BulkImportPage() {
                     return (
                       <tr key={i} className={`hover:bg-blue-50/40 ${hasError ? 'bg-rose-50/40' : ''}`}>
                         <td className="px-2 py-1 text-xs text-slate-500 font-mono">{i + 1}</td>
-                        <TdInput value={row.name} onChange={(v) => updateRow(i, { name: v })} required error={!row.name?.trim()} />
-                        <TdInput value={row.sku || ''} onChange={(v) => updateRow(i, { sku: v })} mono />
-                        <TdInput value={row.barcode || ''} onChange={(v) => updateRow(i, { barcode: v })} mono placeholder={autoBarcodes ? 'auto' : ''} />
-                        <TdInput value={row.category || ''} onChange={(v) => updateRow(i, { category: v })} />
-                        <TdInput value={row.brand || ''} onChange={(v) => updateRow(i, { brand: v })} />
-                        <TdInput value={row.unit || 'pcs'} onChange={(v) => updateRow(i, { unit: v })} />
-                        <TdNumber value={row.costPrice} onChange={(v) => updateRow(i, { costPrice: v })} />
-                        <TdNumber value={row.price} onChange={(v) => updateRow(i, { price: v })} error={!row.price || row.price <= 0} tone="emerald" />
-                        <TdNumber value={row.stock} onChange={(v) => updateRow(i, { stock: v })} />
+                        <TdInput value={row.name} onChange={(v: string) => updateRow(i, { name: v })} required error={!row.name?.trim()} />
+                        <TdInput value={row.sku || ''} onChange={(v: string) => updateRow(i, { sku: v })} mono />
+                        <TdInput value={row.barcode || ''} onChange={(v: string) => updateRow(i, { barcode: v })} mono placeholder={autoBarcodes ? 'auto' : ''} />
+                        <TdInput value={row.category || ''} onChange={(v: string) => updateRow(i, { category: v })} />
+                        <TdInput value={row.brand || ''} onChange={(v: string) => updateRow(i, { brand: v })} />
+                        <TdInput value={row.unit || 'pcs'} onChange={(v: string) => updateRow(i, { unit: v })} />
+                        <TdNumber value={row.costPrice} onChange={(v: number | undefined) => updateRow(i, { costPrice: v })} />
+                        <TdNumber value={row.price} onChange={(v: number | undefined) => updateRow(i, { price: v })} error={!row.price || row.price <= 0} tone="emerald" />
+                        <TdNumber value={row.stock} onChange={(v: number | undefined) => updateRow(i, { stock: v })} />
                         <td className="px-2 py-1">
                           <button
                             onClick={() => removeRow(i)}

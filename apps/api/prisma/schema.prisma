@@ -16155,3 +16155,4211 @@ model FbrInvoice {
   @@index([saleId])
   @@map("fbr_invoices")
 }
+
+// ═══════════════════════════════════════════════════════════════
+// INDUSTRY: ELECTRONICS & GADGETS
+// Tech accessories, cables, chargers, headphones, smartwatches, drones
+// ═══════════════════════════════════════════════════════════════
+
+enum ElectronicsCategoryType {
+  CABLE
+  CHARGER
+  POWER_BANK
+  HEADPHONE
+  EARBUD
+  SPEAKER
+  BLUETOOTH_SPEAKER
+  SMARTWATCH
+  FITNESS_BAND
+  DRONE
+  CAMERA
+  DSLR
+  ACTION_CAMERA
+  WEBCAM
+  KEYBOARD
+  MOUSE
+  MONITOR
+  LAPTOP_ACCESSORY
+  PHONE_ACCESSORY
+  CAR_ACCESSORY
+  SMART_HOME
+  LED_LIGHT
+  ROUTER
+  MEMORY_CARD
+  USB_DRIVE
+  HARD_DRIVE
+  SSD
+  ADAPTER
+  CONVERTER
+  SCREEN_PROTECTOR
+  MOBILE_CASE
+  TABLET_ACCESSORY
+  VR_HEADSET
+  PROJECTOR
+  MICROPHONE
+  TRIPOD
+  GIMBAL
+  OTHER
+}
+
+enum ElectronicsConditionType {
+  BRAND_NEW
+  OPEN_BOX
+  REFURBISHED
+  USED
+  DAMAGED
+  FOR_PARTS
+}
+
+enum ElectronicsWarrantyStatus {
+  ACTIVE
+  EXPIRED
+  VOID
+  CLAIMED
+  IN_REPAIR
+  NO_WARRANTY
+}
+
+enum ElectronicsSerialStatus {
+  IN_STOCK
+  SOLD
+  RESERVED
+  RETURNED
+  IN_REPAIR
+  DEFECTIVE
+  LOST
+}
+
+model ElectronicsBrand {
+  id       String @id @default(uuid())
+  tenantId String
+
+  name            String
+  code            String?
+  countryOfOrigin String?
+  description     String? @db.Text
+  logoUrl         String?
+  websiteUrl      String?
+
+  authorizedDealer Boolean @default(false)
+  dealerCode       String?
+  supportContact   String?
+  supportPhone     String?
+  supportEmail     String?
+  warrantyPolicy   String? @db.Text
+
+  isFeatured   Boolean @default(false)
+  displayOrder Int     @default(0)
+  isActive     Boolean @default(true)
+
+  totalProducts Int   @default(0)
+  totalRevenue  Float @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+model ElectronicsProductProfile {
+  id        String @id @default(uuid())
+  tenantId  String
+  productId String @unique
+
+  brandId       String?
+  categoryType  ElectronicsCategoryType?
+  conditionType ElectronicsConditionType @default(BRAND_NEW)
+
+  modelNumber String?
+  partNumber  String?
+  colorName   String?
+  colorHex    String?
+
+  // Specs
+  connectivity        String[] @default([]) // USB-C, Lightning, Bluetooth 5.0, WiFi 6
+  powerRating         String?
+  batteryCapacity     String?
+  batteryLifeHours    Float?
+  chargingTimeMinutes Int?
+  operatingRange      String?
+  waterResistance     String?
+  screenSize          String?
+  resolution          String?
+  refreshRate         String?
+
+  // Compatibility
+  compatibleWith String[] @default([])
+  compatibleOS   String[] @default([])
+
+  // Physical
+  weightGrams Float?
+  lengthMm    Float?
+  widthMm     Float?
+  heightMm    Float?
+
+  // Warranty
+  warrantyMonths           Int     @default(0)
+  warrantyType             String?
+  hasInternationalWarranty Boolean @default(false)
+
+  // Serialized tracking
+  requiresSerial Boolean @default(false)
+  hasImei        Boolean @default(false)
+
+  // Package contents
+  boxContents     String[] @default([])
+  hasManual       Boolean  @default(true)
+  hasWarrantyCard Boolean  @default(true)
+
+  // Pricing
+  mrp            Float?
+  costPrice      Float?
+  wholesalePrice Float?
+  retailPrice    Float?
+  onlinePrice    Float?
+
+  isFeatured   Boolean @default(false)
+  isBestSeller Boolean @default(false)
+  isNewArrival Boolean @default(false)
+  isTrending   Boolean @default(false)
+
+  totalSold    Int    @default(0)
+  totalRevenue Float  @default(0)
+  avgRating    Float?
+  totalReviews Int    @default(0)
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, categoryType])
+  @@index([brandId])
+}
+
+model ElectronicsSerialTracking {
+  id        String @id @default(uuid())
+  tenantId  String
+  productId String
+
+  serialNumber String
+  imei         String?
+  imei2        String?
+  macAddress   String?
+
+  status ElectronicsSerialStatus @default(IN_STOCK)
+
+  purchasePrice Float?
+  purchaseDate  DateTime?
+  supplierRef   String?
+
+  soldPrice        Float?
+  soldAt           DateTime?
+  soldToCustomerId String?
+  saleId           String?
+  invoiceNumber    String?
+
+  // Warranty
+  warrantyStartDate DateTime?
+  warrantyEndDate   DateTime?
+  warrantyStatus    ElectronicsWarrantyStatus @default(NO_WARRANTY)
+
+  // Condition
+  batteryHealthPct  Float?
+  screenCondition   String?
+  physicalCondition String?
+  functionalStatus  String?
+
+  notes     String?  @db.Text
+  imageUrls String[] @default([])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, serialNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([productId])
+  @@index([imei])
+}
+
+model ElectronicsWarrantyClaim {
+  id       String @id @default(uuid())
+  tenantId String
+
+  claimNumber      String
+  serialTrackingId String?
+  productId        String?
+  productName      String
+
+  customerId    String?
+  customerName  String
+  customerPhone String?
+  customerEmail String?
+
+  purchaseDate  DateTime
+  invoiceNumber String?
+  serialNumber  String?
+  imei          String?
+
+  claimDate        DateTime @default(now())
+  issueDescription String   @db.Text
+  issueCategory    String?
+
+  status ElectronicsWarrantyStatus @default(ACTIVE)
+
+  // Handling
+  receivedAt  DateTime?
+  diagnosedAt DateTime?
+  diagnosis   String?   @db.Text
+  resolution  String?
+
+  sentToBrand      Boolean   @default(false)
+  brandRef         String?
+  brandContactedAt DateTime?
+  brandResponse    String?   @db.Text
+
+  // Financial
+  isChargeable   Boolean @default(false)
+  repairCost     Float   @default(0)
+  paidByCustomer Float   @default(0)
+  paidByBrand    Float   @default(0)
+
+  // Resolution
+  resolvedAt              DateTime?
+  resolutionType          String?
+  replacementSerialNumber String?
+  refundAmount            Float     @default(0)
+
+  imageUrls     String[] @default([])
+  documentUrls  String[] @default([])
+  internalNotes String?  @db.Text
+
+  handledById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([tenantId, claimNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([customerId])
+}
+
+model ElectronicsBundle {
+  id       String @id @default(uuid())
+  tenantId String
+
+  name        String
+  description String? @db.Text
+  imageUrl    String?
+
+  items         Json
+  originalPrice Float
+  bundlePrice   Float
+  savings       Float @default(0)
+  savingsPct    Float @default(0)
+
+  isActive   Boolean @default(true)
+  isFeatured Boolean @default(false)
+
+  validFrom  DateTime?
+  validUntil DateTime?
+
+  totalSold Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INDUSTRY: GAMING SHOP
+// Consoles (PS5/Xbox), games, PC parts, PSN/Xbox top-ups, LAN cafe
+// ═══════════════════════════════════════════════════════════════
+
+enum GamingCategoryType {
+  CONSOLE_PS5
+  CONSOLE_PS4
+  CONSOLE_XBOX_SERIES
+  CONSOLE_XBOX_ONE
+  CONSOLE_NINTENDO_SWITCH
+  CONSOLE_HANDHELD
+  CONSOLE_RETRO
+  GAME_DISC
+  GAME_DIGITAL
+  GAME_COLLECTOR_EDITION
+  CONTROLLER
+  HEADSET_GAMING
+  KEYBOARD_GAMING
+  MOUSE_GAMING
+  MOUSEPAD
+  CHAIR_GAMING
+  DESK_GAMING
+  MONITOR_GAMING
+  PC_PREBUILT
+  PC_CUSTOM_BUILD
+  CPU
+  GPU
+  RAM
+  MOTHERBOARD
+  PSU
+  STORAGE_SSD
+  STORAGE_HDD
+  COOLING
+  PC_CASE
+  RGB_ACCESSORY
+  STREAMING_GEAR
+  CAPTURE_CARD
+  VR_HEADSET
+  DIGITAL_TOPUP
+  DIGITAL_SUBSCRIPTION
+  GIFT_CARD
+  MERCHANDISE
+  OTHER
+}
+
+enum GamingConditionType {
+  NEW_SEALED
+  OPEN_BOX
+  PRE_OWNED
+  REFURBISHED
+  TRADE_IN
+}
+
+enum GamingConsolePlatform {
+  PS5
+  PS4
+  XBOX_SERIES_X
+  XBOX_SERIES_S
+  XBOX_ONE
+  NINTENDO_SWITCH
+  PC
+  STEAM_DECK
+  MOBILE
+  RETRO
+  MULTI
+  OTHER
+}
+
+enum GamingRentalStatus {
+  RESERVED
+  ACTIVE
+  RETURNED
+  OVERDUE
+  DAMAGED
+  LOST
+  CANCELLED
+}
+
+enum GamingTopupProvider {
+  PSN
+  XBOX_LIVE
+  NINTENDO
+  STEAM
+  EPIC_GAMES
+  GOOGLE_PLAY
+  APPLE_STORE
+  ITUNES
+  ROBUX
+  FORTNITE_VBUCKS
+  PUBG_UC
+  MOBILE_LEGENDS_DIAMONDS
+  FREE_FIRE_DIAMONDS
+  DISCORD_NITRO
+  NETFLIX
+  SPOTIFY
+  OTHER
+}
+
+enum GamingCafeSessionStatus {
+  ACTIVE
+  PAUSED
+  ENDED
+  CANCELLED
+}
+
+enum GamingStationType {
+  PC_STATION
+  PS5_STATION
+  PS4_STATION
+  XBOX_STATION
+  SIMULATOR
+  VR_STATION
+  MULTIPLAYER_BOOTH
+  PRIVATE_ROOM
+  OTHER
+}
+
+model GamingProductProfile {
+  id        String @id @default(uuid())
+  tenantId  String
+  productId String @unique
+
+  categoryType  GamingCategoryType?
+  platform      GamingConsolePlatform @default(MULTI)
+  conditionType GamingConditionType   @default(NEW_SEALED)
+
+  // Game-specific
+  publisher         String?
+  developer         String?
+  genre             String[]  @default([])
+  ageRating         String?
+  playerCount       String?
+  onlineMultiplayer Boolean   @default(false)
+  requiresInternet  Boolean   @default(false)
+  gameFileSize      String?
+  releaseDate       DateTime?
+  region            String?
+  language          String[]  @default([])
+
+  // Console/hardware-specific
+  storageCapacity     String?
+  memoryRam           String?
+  processor           String?
+  graphicsCard        String?
+  displaySpec         String?
+  includedAccessories String[] @default([])
+  numberOfControllers Int      @default(1)
+
+  // PC parts specific
+  gpuModel   String?
+  cpuModel   String?
+  ramSpec    String?
+  formFactor String?
+  power      String?
+  socket     String?
+  chipset    String?
+
+  // Availability
+  isRentable         Boolean @default(false)
+  rentalPricePerHour Float?
+  rentalPricePerDay  Float?
+  rentalDeposit      Float?
+
+  // Pricing
+  mrp             Float?
+  costPrice       Float?
+  retailPrice     Float?
+  discountedPrice Float?
+  usedPrice       Float?
+  tradeInValue    Float?
+
+  // Marketing
+  isFeatured          Boolean   @default(false)
+  isBestSeller        Boolean   @default(false)
+  isNewRelease        Boolean   @default(false)
+  isPreOrder          Boolean   @default(false)
+  preOrderReleaseDate DateTime?
+
+  totalSold    Int    @default(0)
+  totalRented  Int    @default(0)
+  totalRevenue Float  @default(0)
+  avgRating    Float?
+
+  coverImageUrl String?
+  trailerUrl    String?
+  screenshots   String[] @default([])
+  notes         String?  @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, categoryType])
+  @@index([tenantId, platform])
+}
+
+model GamingRental {
+  id       String @id @default(uuid())
+  tenantId String
+
+  rentalNumber  String
+  customerId    String?
+  customerName  String
+  customerPhone String?
+  customerCnic  String?
+
+  productId    String?
+  productName  String
+  serialNumber String?
+
+  status GamingRentalStatus @default(RESERVED)
+
+  rentalStartDate  DateTime
+  rentalEndDate    DateTime
+  actualReturnDate DateTime?
+
+  daysRented  Int
+  hoursRented Int?
+  pricePerDay Float
+  totalPrice  Float
+
+  depositAmount   Float @default(0)
+  depositRefunded Float @default(0)
+
+  paidAmount      Float @default(0)
+  remainingAmount Float @default(0)
+
+  // Condition tracking
+  conditionAtCheckout String? @db.Text
+  conditionAtReturn   String? @db.Text
+  damageFee           Float   @default(0)
+  lateFee             Float   @default(0)
+
+  photosAtCheckout     String[] @default([])
+  photosAtReturn       String[] @default([])
+  customerSignatureUrl String?
+
+  guarantorName    String?
+  guarantorPhone   String?
+  securityDocument String?
+
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, rentalNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([customerId])
+}
+
+model GamingDigitalTopup {
+  id       String @id @default(uuid())
+  tenantId String
+
+  topupNumber String
+  provider    GamingTopupProvider
+  topupType   String
+
+  // Card / code
+  denominationValue    Float
+  denominationCurrency String  @default("USD")
+  cardCode             String?
+  cardPin              String?
+  cardSerial           String?
+
+  // Purchase
+  costPrice    Float
+  sellingPrice Float
+  profit       Float @default(0)
+
+  // Status
+  isRedeemed Boolean   @default(false)
+  redeemedAt DateTime?
+
+  soldAt           DateTime?
+  soldToCustomerId String?
+  customerName     String?
+  customerPhone    String?
+
+  // Delivery
+  deliveredVia      String?
+  deliveryReference String?
+
+  expiryDate        DateTime?
+  regionRestriction String?
+
+  notes       String?
+  supplierRef String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, topupNumber])
+  @@index([tenantId])
+  @@index([tenantId, provider])
+  @@index([soldToCustomerId])
+}
+
+model GamingStation {
+  id       String @id @default(uuid())
+  tenantId String
+
+  stationNumber String
+  name          String
+  stationType   GamingStationType
+
+  location String?
+
+  // Specs
+  platform       GamingConsolePlatform?
+  specifications String?                @db.Text
+  installedGames String[]               @default([])
+
+  // Pricing tiers
+  pricePerHour     Float
+  pricePerHalfHour Float?
+  peakHourPrice    Float?
+  offPeakPrice     Float?
+  minimumMinutes   Int    @default(15)
+
+  // Status
+  isActive           Boolean @default(true)
+  isUnderMaintenance Boolean @default(false)
+  maintenanceNotes   String?
+
+  totalHoursUsed Float @default(0)
+  totalRevenue   Float @default(0)
+
+  imageUrl String?
+  notes    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sessions GamingCafeSession[]
+
+  @@unique([tenantId, stationNumber])
+  @@index([tenantId])
+}
+
+model GamingCafeSession {
+  id        String @id @default(uuid())
+  tenantId  String
+  stationId String
+
+  sessionNumber String
+  status        GamingCafeSessionStatus @default(ACTIVE)
+
+  customerId    String?
+  customerName  String?
+  customerPhone String?
+  playerCount   Int     @default(1)
+
+  gameSelected String?
+
+  startedAt DateTime  @default(now())
+  pausedAt  DateTime?
+  resumedAt DateTime?
+  endedAt   DateTime?
+
+  totalPauseMinutes Int  @default(0)
+  actualMinutes     Int?
+  billableMinutes   Int?
+
+  ratePerHour       Float
+  baseAmount        Float   @default(0)
+  foodCharges       Float   @default(0)
+  additionalCharges Float   @default(0)
+  discount          Float   @default(0)
+  totalAmount       Float   @default(0)
+  paidAmount        Float   @default(0)
+  paymentMethod     String?
+
+  // Tournament
+  isTournamentMatch Boolean @default(false)
+  tournamentId      String?
+
+  notes       String?
+  handledById String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  station GamingStation @relation(fields: [stationId], references: [id])
+
+  @@unique([tenantId, sessionNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([stationId])
+}
+
+model GamingTournament {
+  id       String @id @default(uuid())
+  tenantId String
+
+  tournamentNumber String
+  name             String
+  description      String?               @db.Text
+  gameName         String
+  platform         GamingConsolePlatform
+
+  format              String?
+  maxParticipants     Int
+  currentParticipants Int     @default(0)
+
+  entryFee    Float @default(0)
+  prizePool   Float @default(0)
+  firstPrize  Float @default(0)
+  secondPrize Float @default(0)
+  thirdPrize  Float @default(0)
+
+  scheduledDate    DateTime
+  scheduledEndDate DateTime?
+
+  status       String  @default("UPCOMING")
+  winnerName   String?
+  runnerUpName String?
+
+  bannerUrl String?
+  rules     String? @db.Text
+  notes     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, tournamentNumber])
+  @@index([tenantId])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INDUSTRY: HOME APPLIANCES
+// Fridge, AC, washing machine, LED TV — installation, warranty, service
+// ═══════════════════════════════════════════════════════════════
+
+enum ApplianceCategoryType {
+  REFRIGERATOR
+  DEEP_FREEZER
+  AIR_CONDITIONER_SPLIT
+  AIR_CONDITIONER_WINDOW
+  AIR_CONDITIONER_PORTABLE
+  AIR_CONDITIONER_INVERTER
+  WASHING_MACHINE_TOP_LOAD
+  WASHING_MACHINE_FRONT_LOAD
+  WASHING_MACHINE_TWIN_TUB
+  DRYER
+  DISHWASHER
+  LED_TV
+  SMART_TV
+  QLED_TV
+  OLED_TV
+  MICROWAVE_OVEN
+  OTG_OVEN
+  ELECTRIC_STOVE
+  GAS_STOVE
+  RANGE_HOOD
+  WATER_DISPENSER
+  WATER_PURIFIER
+  GEYSER_ELECTRIC
+  GEYSER_GAS
+  AIR_COOLER
+  AIR_PURIFIER
+  ROOM_HEATER
+  VACUUM_CLEANER
+  CHIMNEY
+  BLENDER
+  JUICER
+  IRON_STEAM
+  IRON_DRY
+  FAN_CEILING
+  FAN_PEDESTAL
+  UPS
+  SOLAR_PANEL
+  SOLAR_INVERTER
+  BATTERY
+  GENERATOR
+  OTHER
+}
+
+enum ApplianceEnergyRating {
+  FIVE_STAR
+  FOUR_STAR
+  THREE_STAR
+  TWO_STAR
+  ONE_STAR
+  NOT_RATED
+  INVERTER
+}
+
+enum ApplianceInstallationStatus {
+  PENDING
+  SCHEDULED
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  RESCHEDULED
+  CANCELLED
+  FAILED
+}
+
+enum ApplianceServiceType {
+  INSTALLATION
+  DEMO
+  INSPECTION
+  REPAIR
+  MAINTENANCE
+  DEEP_CLEANING
+  GAS_REFILL
+  WARRANTY_CLAIM
+  AMC_VISIT
+  RELOCATION
+  UNINSTALLATION
+  OTHER
+}
+
+enum ApplianceServiceStatus {
+  REQUESTED
+  SCHEDULED
+  TECHNICIAN_ASSIGNED
+  EN_ROUTE
+  ON_SITE
+  IN_PROGRESS
+  COMPLETED
+  PENDING_PARTS
+  CANCELLED
+  UNRESOLVED
+}
+
+enum ApplianceAmcType {
+  BASIC
+  STANDARD
+  PREMIUM
+  COMPREHENSIVE
+}
+
+enum ApplianceAmcStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  RENEWED
+  SUSPENDED
+}
+
+model ApplianceBrand {
+  id       String @id @default(uuid())
+  tenantId String
+
+  name            String
+  code            String?
+  countryOfOrigin String?
+  description     String? @db.Text
+  logoUrl         String?
+
+  authorizedDealer     Boolean @default(false)
+  dealerCode           String?
+  serviceCenter        String?
+  serviceContact       String?
+  serviceEmail         String?
+  warrantyPolicy       String? @db.Text
+  installationIncluded Boolean @default(false)
+  demoIncluded         Boolean @default(false)
+
+  isFeatured   Boolean @default(false)
+  displayOrder Int     @default(0)
+  isActive     Boolean @default(true)
+
+  totalProducts Int   @default(0)
+  totalRevenue  Float @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+model ApplianceProductProfile {
+  id        String @id @default(uuid())
+  tenantId  String
+  productId String @unique
+
+  brandId      String?
+  categoryType ApplianceCategoryType?
+
+  modelNumber String?
+  modelYear   Int?
+  colorName   String?
+  colorHex    String?
+
+  // Common specs
+  capacity         String?
+  powerConsumption String?
+  voltage          String?
+  frequency        String?
+  weightKg         Float?
+  dimensions       String?
+
+  // Energy
+  energyRating ApplianceEnergyRating?
+  bee_rating   String?
+  isEnergyStar Boolean                @default(false)
+  isInverter   Boolean                @default(false)
+
+  // AC specific
+  acTonnage       String?
+  acType          String?
+  coolingCapacity String?
+  heatingCapacity String?
+  refrigerantType String?
+  eer             String?
+
+  // Refrigerator specific
+  fridgeCapacityLiters Float?
+  refrigeratorType     String?
+  doorCount            Int?
+  compressorType       String?
+
+  // Washing machine specific
+  washingCapacityKg Float?
+  washingType       String?
+  rpm               Int?
+  numberOfPrograms  Int?
+
+  // TV specific
+  screenSizeInch Float?
+  displayType    String?
+  resolution     String?
+  refreshRate    String?
+  smartOS        String?
+  hdmiPorts      Int?
+  usbPorts       Int?
+
+  // Warranty
+  warrantyMonths           Int     @default(12)
+  compressorWarrantyMonths Int?
+  motorWarrantyMonths      Int?
+  warrantyType             String?
+
+  // Installation
+  requiresInstallation  Boolean @default(true)
+  installationCharge    Float   @default(0)
+  installationCovered   Boolean @default(false)
+  installationTimeHours Float?
+  requiresPlumbing      Boolean @default(false)
+  requiresGasConnection Boolean @default(false)
+  requiresElectrician   Boolean @default(false)
+
+  // Delivery
+  requiresLargeVehicle Boolean @default(false)
+  freeDelivery         Boolean @default(false)
+  deliveryChargePerKm  Float?
+
+  // Features
+  features       String[] @default([])
+  smartFeatures  String[] @default([])
+  safetyFeatures String[] @default([])
+  boxContents    String[] @default([])
+
+  // Pricing
+  mrp             Float?
+  costPrice       Float?
+  wholesalePrice  Float?
+  retailPrice     Float?
+  emiStartingFrom Float?
+  cashDiscount    Float  @default(0)
+
+  // Serialized tracking
+  requiresSerial Boolean @default(true)
+
+  isFeatured   Boolean @default(false)
+  isBestSeller Boolean @default(false)
+  isNewArrival Boolean @default(false)
+
+  totalSold    Int    @default(0)
+  totalRevenue Float  @default(0)
+  avgRating    Float?
+  totalReviews Int    @default(0)
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, categoryType])
+  @@index([brandId])
+}
+
+model ApplianceSerialTracking {
+  id        String @id @default(uuid())
+  tenantId  String
+  productId String
+
+  serialNumber    String
+  modelNumber     String?
+  batchNumber     String?
+  manufactureDate DateTime?
+
+  status String @default("IN_STOCK")
+
+  purchasePrice Float?
+  purchaseDate  DateTime?
+  supplierRef   String?
+
+  soldPrice        Float?
+  soldAt           DateTime?
+  soldToCustomerId String?
+  customerName     String?
+  customerPhone    String?
+  saleId           String?
+  invoiceNumber    String?
+
+  // Delivery
+  deliveryAddress String?   @db.Text
+  deliveredAt     DateTime?
+  deliveredBy     String?
+
+  // Installation
+  installationRequired     Boolean                     @default(true)
+  installationStatus       ApplianceInstallationStatus @default(PENDING)
+  installationScheduledFor DateTime?
+  installedAt              DateTime?
+  installedByTechnicianId  String?
+
+  // Warranty
+  warrantyStartDate         DateTime?
+  warrantyEndDate           DateTime?
+  compressorWarrantyEndDate DateTime?
+  motorWarrantyEndDate      DateTime?
+
+  notes     String?  @db.Text
+  imageUrls String[] @default([])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, serialNumber])
+  @@index([tenantId])
+  @@index([productId])
+}
+
+model ApplianceInstallation {
+  id       String @id @default(uuid())
+  tenantId String
+
+  installationNumber String
+  serialTrackingId   String?
+  saleId             String?
+  productId          String?
+  productName        String
+  serialNumber       String?
+
+  customerId      String?
+  customerName    String
+  customerPhone   String
+  customerAddress String  @db.Text
+  city            String?
+  area            String?
+  latitude        Float?
+  longitude       Float?
+  landmark        String?
+
+  serviceType ApplianceServiceType        @default(INSTALLATION)
+  status      ApplianceInstallationStatus @default(PENDING)
+
+  scheduledDate     DateTime?
+  scheduledTimeSlot String?
+  technicianId      String?
+  technicianName    String?
+  technicianPhone   String?
+
+  arrivedAt          DateTime?
+  startedAt          DateTime?
+  completedAt        DateTime?
+  cancelledAt        DateTime?
+  cancellationReason String?
+
+  // Requirements checked
+  hasProperElectricConnection Boolean?
+  hasProperPlumbing           Boolean?
+  hasProperGasConnection      Boolean?
+  wallSpaceAvailable          Boolean?
+  drainageAvailable           Boolean?
+
+  // Materials
+  additionalMaterialUsed Json?
+  materialsCharge        Float   @default(0)
+  laborCharge            Float   @default(0)
+  visitCharge            Float   @default(0)
+  totalCharge            Float   @default(0)
+  paidByCustomer         Float   @default(0)
+  covered_underWarranty  Boolean @default(false)
+
+  // Demo
+  demoGiven Boolean @default(false)
+  demoNotes String? @db.Text
+
+  // Documentation
+  customerSignatureUrl String?
+  photosBeforeUrls     String[] @default([])
+  photosAfterUrls      String[] @default([])
+  customerRating       Int?
+  customerFeedback     String?  @db.Text
+
+  installationCertificateNumber String?
+
+  internalNotes String? @db.Text
+  createdById   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, installationNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([customerId])
+  @@index([technicianId])
+  @@index([scheduledDate])
+}
+
+model ApplianceServiceRequest {
+  id       String @id @default(uuid())
+  tenantId String
+
+  requestNumber    String
+  serialTrackingId String?
+  serialNumber     String?
+  productId        String?
+  productName      String
+
+  customerId      String?
+  customerName    String
+  customerPhone   String
+  customerAddress String  @db.Text
+  city            String?
+  area            String?
+
+  serviceType ApplianceServiceType
+  status      ApplianceServiceStatus @default(REQUESTED)
+  priority    String                 @default("NORMAL")
+
+  reportedIssue String   @db.Text
+  issueCategory String?
+  requestedAt   DateTime @default(now())
+
+  // Scheduling
+  scheduledDate     DateTime?
+  scheduledTimeSlot String?
+  technicianId      String?
+  technicianName    String?
+  technicianPhone   String?
+
+  enRouteAt     DateTime?
+  arrivedAt     DateTime?
+  workStartedAt DateTime?
+  completedAt   DateTime?
+
+  // Diagnosis
+  diagnosedIssue String? @db.Text
+  workDone       String? @db.Text
+  partsReplaced  Json?
+
+  // Financial
+  visitCharge          Float   @default(0)
+  laborCharge          Float   @default(0)
+  partsCharge          Float   @default(0)
+  totalCharge          Float   @default(0)
+  paidAmount           Float   @default(0)
+  coveredUnderWarranty Boolean @default(false)
+  coveredUnderAmc      Boolean @default(false)
+
+  warrantyClaimNumber String?
+  amcContractNumber   String?
+
+  // Follow up
+  requiresFollowUp Boolean   @default(false)
+  followUpDate     DateTime?
+  followUpReason   String?
+
+  // Documentation
+  customerRating       Int?
+  customerFeedback     String?  @db.Text
+  photosBeforeUrls     String[] @default([])
+  photosAfterUrls      String[] @default([])
+  customerSignatureUrl String?
+  serviceCertificate   String?
+
+  internalNotes String? @db.Text
+  createdById   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, requestNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([customerId])
+  @@index([technicianId])
+}
+
+model ApplianceTechnician {
+  id       String @id @default(uuid())
+  tenantId String
+
+  employeeCode String
+  name         String
+  phone        String
+  cnic         String?
+  address      String? @db.Text
+
+  specializations     String[]                @default([])
+  brandsExpertise     String[]                @default([])
+  categoriesExpertise ApplianceCategoryType[] @default([])
+
+  experienceYears Int?
+  certifications  String[] @default([])
+
+  // Availability
+  workingDays   Int[]   @default([1, 2, 3, 4, 5, 6])
+  workStartTime String  @default("09:00")
+  workEndTime   String  @default("18:00")
+  currentZone   String?
+
+  // Rates
+  visitChargeRate Float @default(0)
+  hourlyRate      Float @default(0)
+  commissionPct   Float @default(0)
+
+  // Stats
+  totalJobs       Int    @default(0)
+  completedJobs   Int    @default(0)
+  totalRevenue    Float  @default(0)
+  totalCommission Float  @default(0)
+  avgRating       Float?
+  totalReviews    Int    @default(0)
+
+  isActive Boolean @default(true)
+  photoUrl String?
+  notes    String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, employeeCode])
+  @@index([tenantId])
+}
+
+model ApplianceAmcContract {
+  id       String @id @default(uuid())
+  tenantId String
+
+  contractNumber String
+  amcType        ApplianceAmcType   @default(STANDARD)
+  status         ApplianceAmcStatus @default(ACTIVE)
+
+  customerId      String?
+  customerName    String
+  customerPhone   String
+  customerAddress String? @db.Text
+
+  // Coverage
+  productId        String?
+  productName      String?
+  serialNumber     String?
+  serialTrackingId String?
+
+  // Terms
+  startDate      DateTime
+  expiryDate     DateTime
+  durationMonths Int
+  contractValue  Float
+  paidAmount     Float    @default(0)
+
+  // Coverage details
+  freeVisitsAllowed     Int
+  freeVisitsUsed        Int     @default(0)
+  freePartsAllowed      Boolean @default(false)
+  laborCovered          Boolean @default(true)
+  gasRefillCovered      Boolean @default(false)
+  emergencyCallsAllowed Int?
+
+  // Services included
+  servicesIncluded String[] @default([])
+  servicesExcluded String[] @default([])
+  exclusions       String?  @db.Text
+
+  // Stats
+  totalVisitsUsed   Int   @default(0)
+  totalPartsClaimed Float @default(0)
+  totalLaborSaved   Float @default(0)
+
+  autoRenew           Boolean @default(false)
+  renewalReminderSent Boolean @default(false)
+
+  documentUrls String[] @default([])
+  notes        String?  @db.Text
+  createdById  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, contractNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([customerId])
+  @@index([expiryDate])
+}
+
+model ApplianceDelivery {
+  id       String @id @default(uuid())
+  tenantId String
+
+  deliveryNumber    String
+  saleId            String?
+  serialTrackingIds String[] @default([])
+
+  customerId      String?
+  customerName    String
+  customerPhone   String
+  deliveryAddress String   @db.Text
+  city            String?
+  area            String?
+  landmark        String?
+  latitude        Float?
+  longitude       Float?
+  floorNumber     Int?
+  hasLift         Boolean?
+
+  scheduledDate DateTime?
+  scheduledSlot String?
+
+  vehicleNumber String?
+  driverName    String?
+  driverPhone   String?
+  helperCount   Int?
+
+  dispatchedAt DateTime?
+  arrivedAt    DateTime?
+  deliveredAt  DateTime?
+
+  status String @default("PENDING")
+
+  deliveryCharge  Float @default(0)
+  loadingCharge   Float @default(0)
+  unloadingCharge Float @default(0)
+  floorCharge     Float @default(0)
+  totalCharge     Float @default(0)
+
+  requiresInstallation Boolean @default(true)
+  installationLinked   Boolean @default(false)
+
+  receivedByName String?
+  receivedByCnic String?
+  signatureUrl   String?
+  photoUrls      String[] @default([])
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, deliveryNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INDUSTRY: FURNITURE STORE
+// Custom furniture, showroom + workshop, delivery + assembly
+// ═══════════════════════════════════════════════════════════════
+
+enum FurnitureCategoryType {
+  SOFA_SET
+  SOFA_L_SHAPE
+  SOFA_RECLINER
+  SOFA_BED
+  BED_SINGLE
+  BED_DOUBLE
+  BED_KING
+  BED_QUEEN
+  BED_BUNK
+  MATTRESS
+  WARDROBE
+  DRESSING_TABLE
+  DINING_TABLE
+  DINING_CHAIR
+  DINING_SET
+  CENTER_TABLE
+  SIDE_TABLE
+  OFFICE_DESK
+  OFFICE_CHAIR
+  BOOKSHELF
+  TV_CONSOLE
+  ENTERTAINMENT_UNIT
+  SHOE_RACK
+  CABINET
+  CUPBOARD
+  STUDY_TABLE
+  KIDS_FURNITURE
+  BABY_COT
+  OUTDOOR_FURNITURE
+  GARDEN_SET
+  BEAN_BAG
+  OTTOMAN
+  CUSTOM_FURNITURE
+  CURTAINS
+  RUG
+  DECOR
+  LIGHTING
+  MIRROR
+  OTHER
+}
+
+enum FurnitureMaterialType {
+  SOLID_WOOD_TEAK
+  SOLID_WOOD_SHEESHAM
+  SOLID_WOOD_ROSEWOOD
+  SOLID_WOOD_MANGO
+  ENGINEERED_WOOD
+  MDF
+  PARTICLE_BOARD
+  PLYWOOD
+  METAL_IRON
+  METAL_STEEL
+  METAL_ALUMINIUM
+  GLASS
+  MARBLE
+  GRANITE
+  RATTAN
+  BAMBOO
+  FABRIC_COTTON
+  FABRIC_LINEN
+  FABRIC_VELVET
+  LEATHER_GENUINE
+  LEATHER_FAUX
+  PLASTIC
+  ACRYLIC
+  MIXED
+  OTHER
+}
+
+enum FurnitureConditionType {
+  BRAND_NEW
+  DISPLAY_MODEL
+  FLOOR_MODEL
+  REFURBISHED
+  PRE_OWNED
+  CUSTOM_ORDER
+}
+
+enum FurnitureOrderStatus {
+  QUOTATION
+  DEPOSIT_PAID
+  IN_PRODUCTION
+  READY_FOR_DELIVERY
+  OUT_FOR_DELIVERY
+  DELIVERED
+  ASSEMBLED
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+enum FurnitureDeliveryStatus {
+  PENDING
+  SCHEDULED
+  DISPATCHED
+  IN_TRANSIT
+  ARRIVED
+  DELIVERED
+  ASSEMBLED
+  RESCHEDULED
+  FAILED
+  RETURNED
+}
+
+model FurnitureProductProfile {
+  id        String @id @default(uuid())
+  tenantId  String
+  productId String @unique
+
+  categoryType       FurnitureCategoryType?
+  conditionType      FurnitureConditionType  @default(BRAND_NEW)
+  primaryMaterial    FurnitureMaterialType?
+  secondaryMaterials FurnitureMaterialType[] @default([])
+
+  modelNumber     String?
+  collectionName  String?
+  designerName    String?
+  countryOfOrigin String?
+  brand           String?
+
+  // Dimensions (cm)
+  lengthCm     Float?
+  widthCm      Float?
+  heightCm     Float?
+  depthCm      Float?
+  seatHeightCm Float?
+  weightKg     Float?
+
+  // Capacity
+  seatingCapacity     Int?
+  storageCompartments Int?
+  drawersCount        Int?
+  shelvesCount        Int?
+
+  // Materials & finish
+  woodType         String?
+  woodFinish       String?
+  polishType       String?
+  colorName        String?
+  colorHex         String?
+  upholsteryFabric String?
+  cushionFilling   String?
+  cushionDensity   String?
+
+  // Assembly
+  requiresAssembly        Boolean @default(true)
+  assemblyTimeMinutes     Int?
+  assemblyPartsCount      Int?
+  assemblyToolsIncluded   Boolean @default(false)
+  assemblyInstructionsUrl String?
+  assemblyChargeExtra     Float?
+
+  // Custom order
+  isCustomizable       Boolean @default(false)
+  customizationOptions Json?
+  customLeadTimeDays   Int?
+
+  // Warranty & care
+  warrantyMonths   Int     @default(12)
+  warrantyType     String?
+  careInstructions String? @db.Text
+  isWaterResistant Boolean @default(false)
+  isTermiteProof   Boolean @default(false)
+
+  // Delivery
+  requiresLargeVehicle    Boolean @default(true)
+  requiresMultipleHelpers Boolean @default(true)
+  helpersNeeded           Int     @default(2)
+  deliveryChargeBase      Float?
+  freeDeliveryRadius      Float?
+
+  // Pricing
+  mrp             Float?
+  costPrice       Float?
+  wholesalePrice  Float?
+  retailPrice     Float?
+  discountedPrice Float?
+  emiStartingFrom Float?
+
+  // Marketing
+  isFeatured    Boolean @default(false)
+  isBestSeller  Boolean @default(false)
+  isNewArrival  Boolean @default(false)
+  isCustomMade  Boolean @default(false)
+  isEcoFriendly Boolean @default(false)
+
+  // Stats
+  totalSold    Int    @default(0)
+  totalRevenue Float  @default(0)
+  avgRating    Float?
+  totalReviews Int    @default(0)
+
+  showroomLocation String?
+  showroomFloor    String?
+  displayZone      String?
+
+  images3d     String[] @default([])
+  ar_model_url String?
+  notes        String?  @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, categoryType])
+}
+
+model FurnitureCustomOrder {
+  id       String @id @default(uuid())
+  tenantId String
+
+  orderNumber     String
+  customerId      String?
+  customerName    String
+  customerPhone   String
+  customerAddress String? @db.Text
+  customerCnic    String?
+
+  productType  String
+  description  String                 @db.Text
+  categoryType FurnitureCategoryType?
+
+  // Specifications
+  material         FurnitureMaterialType?
+  woodType         String?
+  colorRequested   String?
+  polishRequested  String?
+  upholsteryFabric String?
+
+  // Dimensions
+  lengthCm         Float?
+  widthCm          Float?
+  heightCm         Float?
+  customDimensions String? @db.Text
+
+  // Design references
+  sketchUrls      String[] @default([])
+  referenceImages String[] @default([])
+  designNotes     String?  @db.Text
+
+  // Pricing & timeline
+  quotedPrice   Float
+  finalPrice    Float?
+  depositAmount Float   @default(0)
+  depositPaid   Boolean @default(false)
+  balanceAmount Float   @default(0)
+  totalPaid     Float   @default(0)
+
+  estimatedDays        Int
+  quotationDate        DateTime  @default(now())
+  approvedDate         DateTime?
+  productionStartDate  DateTime?
+  productionEndDate    DateTime?
+  expectedDeliveryDate DateTime?
+  actualDeliveryDate   DateTime?
+
+  status FurnitureOrderStatus @default(QUOTATION)
+
+  // Assigned to
+  carpenterId      String?
+  carpenterName    String?
+  workshopLocation String?
+
+  // Progress tracking
+  progressPct     Int      @default(0)
+  progressPhotos  String[] @default([])
+  progressUpdates Json?
+
+  // Delivery
+  deliveryAddress String? @db.Text
+  deliveryCity    String?
+  deliveryArea    String?
+
+  // Additional
+  requiresInstallation Boolean @default(true)
+  installationCharge   Float?
+  warrantyMonths       Int     @default(6)
+
+  cancellationReason String?
+  cancelledAt        DateTime?
+  refundAmount       Float     @default(0)
+
+  notes         String? @db.Text
+  internalNotes String? @db.Text
+  createdById   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, orderNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([customerId])
+  @@index([carpenterId])
+}
+
+model FurnitureCarpenter {
+  id       String @id @default(uuid())
+  tenantId String
+
+  employeeCode String
+  name         String
+  phone        String
+  cnic         String?
+  address      String? @db.Text
+
+  specializations    String[]                @default([])
+  materialsExpertise FurnitureMaterialType[] @default([])
+  experienceYears    Int?
+
+  workshopLocation String?
+  workingDays      Int[]   @default([1, 2, 3, 4, 5, 6])
+  workStartTime    String  @default("09:00")
+  workEndTime      String  @default("18:00")
+
+  dailyWage      Float?
+  perProjectRate Float?
+  commissionPct  Float  @default(0)
+
+  totalProjects     Int    @default(0)
+  completedProjects Int    @default(0)
+  activeProjects    Int    @default(0)
+  totalRevenue      Float  @default(0)
+  avgRating         Float?
+
+  isActive Boolean @default(true)
+  photoUrl String?
+  notes    String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, employeeCode])
+  @@index([tenantId])
+}
+
+model FurnitureDelivery {
+  id       String @id @default(uuid())
+  tenantId String
+
+  deliveryNumber String
+  saleId         String?
+  customOrderId  String?
+  productIds     String[] @default([])
+  productNames   String[] @default([])
+  itemsCount     Int      @default(1)
+
+  customerId      String?
+  customerName    String
+  customerPhone   String
+  deliveryAddress String   @db.Text
+  city            String?
+  area            String?
+  landmark        String?
+  floorNumber     Int?
+  hasLift         Boolean?
+  latitude        Float?
+  longitude       Float?
+
+  scheduledDate DateTime?
+  scheduledSlot String?
+  vehicleType   String?
+  vehicleNumber String?
+  driverName    String?
+  driverPhone   String?
+  helpersCount  Int       @default(2)
+
+  dispatchedAt DateTime?
+  arrivedAt    DateTime?
+  deliveredAt  DateTime?
+  assembledAt  DateTime?
+
+  status FurnitureDeliveryStatus @default(PENDING)
+
+  deliveryCharge  Float @default(0)
+  loadingCharge   Float @default(0)
+  unloadingCharge Float @default(0)
+  floorCharge     Float @default(0)
+  assemblyCharge  Float @default(0)
+  totalCharge     Float @default(0)
+
+  requiresAssembly  Boolean @default(true)
+  assemblyIncluded  Boolean @default(true)
+  assemblyTimeSpent Int?
+  assemblyNotes     String?
+
+  receivedByName   String?
+  receivedByCnic   String?
+  signatureUrl     String?
+  photoUrls        String[] @default([])
+  customerRating   Int?
+  customerFeedback String?  @db.Text
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, deliveryNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INDUSTRY: OPTICAL / EYEWEAR
+// Prescription, lenses, frames, contact lenses, eye tests
+// ═══════════════════════════════════════════════════════════════
+
+enum OpticalCategoryType {
+  FRAME_FULL_RIM
+  FRAME_HALF_RIM
+  FRAME_RIMLESS
+  FRAME_SPORTS
+  FRAME_KIDS
+  FRAME_READING
+  SUNGLASSES
+  SUNGLASSES_POLARIZED
+  SUNGLASSES_KIDS
+  LENS_SINGLE_VISION
+  LENS_BIFOCAL
+  LENS_PROGRESSIVE
+  LENS_PHOTOCHROMIC
+  LENS_BLUE_CUT
+  LENS_ANTI_GLARE
+  LENS_CYLINDRICAL
+  LENS_SPHERICAL
+  CONTACT_LENS_MONTHLY
+  CONTACT_LENS_DAILY
+  CONTACT_LENS_YEARLY
+  CONTACT_LENS_COLORED
+  CONTACT_LENS_TORIC
+  CONTACT_LENS_MULTIFOCAL
+  CLEANING_SOLUTION
+  LENS_CASE
+  ACCESSORY
+  OTHER
+}
+
+enum OpticalFrameShape {
+  ROUND
+  SQUARE
+  RECTANGLE
+  OVAL
+  CAT_EYE
+  AVIATOR
+  WAYFARER
+  BROWLINE
+  GEOMETRIC
+  BUTTERFLY
+  HEART
+  OTHER
+}
+
+enum OpticalFrameMaterial {
+  ACETATE
+  METAL
+  TITANIUM
+  STAINLESS_STEEL
+  PLASTIC
+  TR90
+  WOOD
+  ALUMINIUM
+  MIXED
+  OTHER
+}
+
+enum OpticalGender {
+  MENS
+  WOMENS
+  UNISEX
+  KIDS
+  KIDS_BOYS
+  KIDS_GIRLS
+}
+
+enum OpticalPrescriptionType {
+  MYOPIA
+  HYPEROPIA
+  ASTIGMATISM
+  PRESBYOPIA
+  READING
+  DISTANCE
+  BIFOCAL
+  PROGRESSIVE
+  COMPUTER
+  DRIVING
+  OTHER
+}
+
+enum OpticalAppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+  RESCHEDULED
+}
+
+model OpticalProductProfile {
+  id        String @id @default(uuid())
+  tenantId  String
+  productId String @unique
+
+  categoryType OpticalCategoryType?
+
+  // Frame details
+  frameShape    OpticalFrameShape?
+  frameMaterial OpticalFrameMaterial?
+  gender        OpticalGender?
+
+  brand          String?
+  modelNumber    String?
+  collectionName String?
+
+  // Frame measurements
+  frameSizeMm    Int?
+  bridgeSizeMm   Int?
+  templeLengthMm Int?
+  lensWidthMm    Int?
+  lensHeightMm   Int?
+  frameWeightG   Float?
+
+  colorName         String?
+  colorHex          String?
+  frameColorOptions String[] @default([])
+
+  // Lens details
+  lensType        String?
+  lensMaterial    String?
+  lensIndex       String?
+  lensCoatings    String[] @default([])
+  hasBlueCut      Boolean  @default(false)
+  hasAntiGlare    Boolean  @default(false)
+  hasUvProtection Boolean  @default(false)
+  isPolarized     Boolean  @default(false)
+  isPhotochromic  Boolean  @default(false)
+
+  // Contact lens specific
+  isContactLens    Boolean @default(false)
+  clDuration       String?
+  clWaterContent   String?
+  clBaseCurve      String?
+  clDiameter       String?
+  clUvProtection   Boolean @default(false)
+  clForAstigmatism Boolean @default(false)
+
+  // Prescription support
+  supportsMinSph      Float?
+  supportsMaxSph      Float?
+  supportsMinCyl      Float?
+  supportsMaxCyl      Float?
+  supportsProgressive Boolean @default(false)
+
+  // Warranty
+  warrantyMonths Int     @default(6)
+  warrantyType   String?
+
+  // Pricing
+  mrp             Float?
+  costPrice       Float?
+  retailPrice     Float?
+  discountedPrice Float?
+
+  // Marketing
+  isFeatured   Boolean @default(false)
+  isBestSeller Boolean @default(false)
+  isNewArrival Boolean @default(false)
+  isDesigner   Boolean @default(false)
+
+  totalSold    Int   @default(0)
+  totalRevenue Float @default(0)
+
+  imageUrls3d String[] @default([])
+  tryOnUrl    String?
+  notes       String?  @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, categoryType])
+}
+
+model OpticalPrescription {
+  id       String @id @default(uuid())
+  tenantId String
+
+  prescriptionNumber String
+  customerId         String?
+  customerName       String
+  customerPhone      String?
+  customerAge        Int?
+  customerGender     String?
+
+  prescribedBy     String?
+  doctorName       String?
+  clinicName       String?
+  prescriptionDate DateTime  @default(now())
+  expiryDate       DateTime?
+
+  prescriptionType OpticalPrescriptionType?
+
+  // Right eye (OD)
+  rightSph   Float?
+  rightCyl   Float?
+  rightAxis  Int?
+  rightAdd   Float?
+  rightPrism Float?
+  rightPd    Float?
+  rightVa    String?
+
+  // Left eye (OS)
+  leftSph   Float?
+  leftCyl   Float?
+  leftAxis  Int?
+  leftAdd   Float?
+  leftPrism Float?
+  leftPd    Float?
+  leftVa    String?
+
+  // Both eyes
+  pupilDistance Float?
+  segHeight     Float?
+
+  // For contact lenses
+  clRightBaseCurve String?
+  clLeftBaseCurve  String?
+  clRightDiameter  String?
+  clLeftDiameter   String?
+
+  notes        String?  @db.Text
+  imageUrls    String[] @default([])
+  documentUrls String[] @default([])
+
+  isActive  Boolean @default(true)
+  timesUsed Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, prescriptionNumber])
+  @@index([tenantId])
+  @@index([customerId])
+}
+
+model OpticalEyeTest {
+  id       String @id @default(uuid())
+  tenantId String
+
+  testNumber    String
+  customerId    String?
+  customerName  String
+  customerPhone String
+  customerAge   Int?
+
+  appointmentDate DateTime
+  scheduledSlot   String?
+
+  status OpticalAppointmentStatus @default(SCHEDULED)
+
+  optometristId   String?
+  optometristName String?
+
+  // Test details
+  testStartedAt       DateTime?
+  testCompletedAt     DateTime?
+  testDurationMinutes Int?
+
+  chiefComplaint     String? @db.Text
+  medicalHistory     String? @db.Text
+  currentMedications String?
+  familyEyeHistory   String?
+
+  // Test results
+  rightSph      Float?
+  rightCyl      Float?
+  rightAxis     Int?
+  rightAdd      Float?
+  rightVa       String?
+  leftSph       Float?
+  leftCyl       Float?
+  leftAxis      Int?
+  leftAdd       Float?
+  leftVa        String?
+  pupilDistance Float?
+
+  intraocularPressure  String?
+  colorVisionTest      String?
+  depthPerceptionTest  String?
+  peripheralVisionTest String?
+  fundusExamination    String? @db.Text
+
+  diagnosis          String? @db.Text
+  recommendation     String? @db.Text
+  prescriptionIssued Boolean @default(false)
+  prescriptionId     String?
+
+  // Fee
+  testFee       Float   @default(0)
+  paidAmount    Float   @default(0)
+  isWaivedOff   Boolean @default(false)
+  paymentMethod String?
+
+  // Follow up
+  requiresFollowUp Boolean   @default(false)
+  followUpDate     DateTime?
+  followUpReason   String?
+
+  notes     String?  @db.Text
+  imageUrls String[] @default([])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, testNumber])
+  @@index([tenantId])
+  @@index([customerId])
+  @@index([optometristId])
+  @@index([appointmentDate])
+}
+
+model OpticalOptometrist {
+  id       String @id @default(uuid())
+  tenantId String
+
+  employeeCode       String
+  name               String
+  qualification      String?
+  registrationNumber String?
+  phone              String
+  email              String?
+
+  specializations String[] @default([])
+  yearsExperience Int?
+  languages       String[] @default([])
+
+  workingDays   Int[]  @default([1, 2, 3, 4, 5, 6])
+  workStartTime String @default("10:00")
+  workEndTime   String @default("20:00")
+
+  consultationFee Float @default(0)
+  followUpFee     Float @default(0)
+
+  totalTests   Int    @default(0)
+  totalRevenue Float  @default(0)
+  avgRating    Float?
+
+  isActive Boolean @default(true)
+  photoUrl String?
+  bio      String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, employeeCode])
+  @@index([tenantId])
+}
+
+model OpticalLensOrder {
+  id       String @id @default(uuid())
+  tenantId String
+
+  orderNumber    String
+  customerId     String?
+  customerName   String
+  customerPhone  String
+  prescriptionId String?
+
+  frameProductId String?
+  frameName      String
+  lensType       String
+  lensMaterial   String?
+  lensIndex      String?
+  lensCoatings   String[] @default([])
+
+  // Prescription snapshot
+  rightSph      Float?
+  rightCyl      Float?
+  rightAxis     Int?
+  rightAdd      Float?
+  leftSph       Float?
+  leftCyl       Float?
+  leftAxis      Int?
+  leftAdd       Float?
+  pupilDistance Float?
+
+  status      String  @default("ORDERED")
+  labName     String?
+  labOrderRef String?
+
+  orderedAt    DateTime  @default(now())
+  expectedDate DateTime?
+  receivedAt   DateTime?
+  fittedAt     DateTime?
+  deliveredAt  DateTime?
+
+  framePrice      Float @default(0)
+  lensPrice       Float @default(0)
+  fittingCharge   Float @default(0)
+  totalPrice      Float
+  paidAmount      Float @default(0)
+  remainingAmount Float @default(0)
+
+  fittingNotes String? @db.Text
+  qcNotes      String?
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, orderNumber])
+  @@index([tenantId])
+  @@index([customerId])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INDUSTRY: PET SHOP / VET STORE
+// Pet food, aquarium, accessories, vet supplies, grooming
+// ═══════════════════════════════════════════════════════════════
+
+enum PetCategoryType {
+  DOG_FOOD_DRY
+  DOG_FOOD_WET
+  DOG_TREATS
+  DOG_ACCESSORY
+  DOG_TOY
+  DOG_LEASH_COLLAR
+  DOG_BED
+  CAT_FOOD_DRY
+  CAT_FOOD_WET
+  CAT_TREATS
+  CAT_LITTER
+  CAT_ACCESSORY
+  CAT_TOY
+  CAT_BED
+  CAT_SCRATCH_POST
+  BIRD_FOOD
+  BIRD_CAGE
+  BIRD_ACCESSORY
+  FISH_FOOD
+  AQUARIUM_TANK
+  AQUARIUM_FILTER
+  AQUARIUM_DECOR
+  AQUARIUM_PLANT
+  AQUARIUM_HEATER
+  AQUARIUM_LIGHT
+  AQUARIUM_ACCESSORY
+  RABBIT_FOOD
+  RABBIT_ACCESSORY
+  HAMSTER_FOOD
+  HAMSTER_CAGE
+  REPTILE_FOOD
+  REPTILE_ACCESSORY
+  LIVE_ANIMAL_DOG
+  LIVE_ANIMAL_CAT
+  LIVE_ANIMAL_BIRD
+  LIVE_ANIMAL_FISH
+  LIVE_ANIMAL_RABBIT
+  LIVE_ANIMAL_HAMSTER
+  LIVE_ANIMAL_REPTILE
+  LIVE_ANIMAL_OTHER
+  VET_MEDICINE
+  VET_VACCINE
+  VET_DEWORMER
+  VET_SUPPLEMENT
+  VET_SHAMPOO
+  VET_GROOMING
+  VET_HYGIENE
+  TRAINING_TREATS
+  TRAINING_TOOL
+  CARRIER
+  TRANSPORT_CAGE
+  OTHER
+}
+
+enum PetSpeciesType {
+  DOG
+  CAT
+  BIRD
+  FISH
+  RABBIT
+  HAMSTER
+  GUINEA_PIG
+  REPTILE
+  TURTLE
+  SNAKE
+  FERRET
+  OTHER
+}
+
+enum PetLifeStage {
+  PUPPY
+  KITTEN
+  ADULT
+  SENIOR
+  ALL_STAGES
+}
+
+enum PetGroomingServiceType {
+  BATH
+  HAIRCUT
+  FULL_GROOMING
+  NAIL_TRIMMING
+  EAR_CLEANING
+  TEETH_CLEANING
+  ANAL_GLAND
+  FLEA_TREATMENT
+  DEWORMING
+  DELUXE_PACKAGE
+  OTHER
+}
+
+enum PetGroomingStatus {
+  SCHEDULED
+  CONFIRMED
+  IN_PROGRESS
+  READY_FOR_PICKUP
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum PetSaleStatus {
+  AVAILABLE
+  RESERVED
+  SOLD
+  RETURNED
+  DECEASED
+}
+
+model PetProductProfile {
+  id        String @id @default(uuid())
+  tenantId  String
+  productId String @unique
+
+  categoryType PetCategoryType?
+  species      PetSpeciesType?
+  lifeStage    PetLifeStage     @default(ALL_STAGES)
+
+  brand         String?
+  breedSpecific String?
+
+  // Food specific
+  weightGrams      Float?
+  weightKg         Float?
+  packSize         String?
+  flavor           String?
+  proteinSource    String?
+  proteinPct       Float?
+  fatPct           Float?
+  fiberPct         Float?
+  moisturePct      Float?
+  ingredients      String? @db.Text
+  isGrainFree      Boolean @default(false)
+  isOrganic        Boolean @default(false)
+  isHypoallergenic Boolean @default(false)
+
+  // Nutritional benefits
+  benefits            String[] @default([])
+  suitedForBreedSizes String[] @default([])
+  suitedForAges       String?
+
+  // Product size (accessories)
+  size       String?
+  dimensions String?
+  color      String?
+  material   String?
+
+  // Aquarium specific
+  tankCapacityLiters Float?
+  tankShape          String?
+  filterCapacity     String?
+  wattage            String?
+
+  // Medicine specific
+  isPrescriptionOnly  Boolean   @default(false)
+  activeIngredient    String?
+  dosageForm          String?
+  dosageStrength      String?
+  administrationRoute String?
+  storageInstructions String?
+  expiryDate          DateTime?
+  batchNumber         String?
+
+  // Pricing
+  mrp             Float?
+  costPrice       Float?
+  retailPrice     Float?
+  discountedPrice Float?
+
+  // Marketing
+  isFeatured   Boolean @default(false)
+  isBestSeller Boolean @default(false)
+  isNewArrival Boolean @default(false)
+  isOnSale     Boolean @default(false)
+
+  totalSold    Int   @default(0)
+  totalRevenue Float @default(0)
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, categoryType])
+  @@index([tenantId, species])
+}
+
+model PetLiveAnimal {
+  id       String @id @default(uuid())
+  tenantId String
+
+  animalNumber String
+  species      PetSpeciesType
+  breed        String?
+  subBreed     String?
+
+  name      String?
+  gender    String?
+  ageMonths Int?
+  color     String?
+  weightKg  Float?
+
+  birthDate    DateTime?
+  acquiredDate DateTime?
+  sourceType   String?
+  sourceName   String?
+
+  // Health
+  isVaccinated         Boolean @default(false)
+  vaccinationDetails   String? @db.Text
+  isDewormed           Boolean @default(false)
+  dewormingDetails     String?
+  hasHealthCertificate Boolean @default(false)
+  healthNotes          String? @db.Text
+  medicalHistory       Json?
+
+  // Sale info
+  status             PetSaleStatus @default(AVAILABLE)
+  costPrice          Float?
+  askingPrice        Float
+  soldPrice          Float?
+  soldAt             DateTime?
+  soldToCustomerId   String?
+  soldToCustomerName String?
+
+  // Care
+  currentCage     String?
+  feedingSchedule String?
+  specialNeeds    String?
+
+  imageUrls String[] @default([])
+  videoUrl  String?
+
+  notes      String? @db.Text
+  isFeatured Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, animalNumber])
+  @@index([tenantId])
+  @@index([tenantId, species])
+  @@index([tenantId, status])
+}
+
+model PetGroomingAppointment {
+  id       String @id @default(uuid())
+  tenantId String
+
+  appointmentNumber String
+  customerId        String?
+  customerName      String
+  customerPhone     String
+
+  petName                String
+  petSpecies             PetSpeciesType
+  petBreed               String?
+  petAgeMonths           Int?
+  petWeightKg            Float?
+  petTemperament         String?
+  petAllergies           String?
+  petSpecialInstructions String?        @db.Text
+
+  scheduledDate DateTime
+  scheduledSlot String?
+
+  serviceType        PetGroomingServiceType
+  additionalServices PetGroomingServiceType[] @default([])
+  serviceDescription String?                  @db.Text
+
+  status PetGroomingStatus @default(SCHEDULED)
+
+  groomerId   String?
+  groomerName String?
+
+  checkedInAt DateTime?
+  startedAt   DateTime?
+  completedAt DateTime?
+  pickedUpAt  DateTime?
+
+  serviceFee        Float
+  additionalCharges Float   @default(0)
+  discount          Float   @default(0)
+  totalFee          Float
+  paidAmount        Float   @default(0)
+  paymentMethod     String?
+
+  photosBeforeUrls String[] @default([])
+  photosAfterUrls  String[] @default([])
+  customerRating   Int?
+  customerFeedback String?  @db.Text
+  groomerNotes     String?  @db.Text
+
+  reminderSent Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, appointmentNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([customerId])
+  @@index([groomerId])
+  @@index([scheduledDate])
+}
+
+model PetGroomer {
+  id       String @id @default(uuid())
+  tenantId String
+
+  employeeCode String
+  name         String
+  phone        String
+  cnic         String?
+
+  specializations PetSpeciesType[]         @default([])
+  serviceTypes    PetGroomingServiceType[] @default([])
+  experienceYears Int?
+  certifications  String[]                 @default([])
+
+  workingDays   Int[]  @default([1, 2, 3, 4, 5, 6])
+  workStartTime String @default("10:00")
+  workEndTime   String @default("19:00")
+
+  perServiceRate Float @default(0)
+  commissionPct  Float @default(0)
+
+  totalAppointments     Int    @default(0)
+  completedAppointments Int    @default(0)
+  totalRevenue          Float  @default(0)
+  avgRating             Float?
+
+  isActive Boolean @default(true)
+  photoUrl String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, employeeCode])
+  @@index([tenantId])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INDUSTRY: TOY STORE
+// Kids toys, educational, RC, age filtering
+// ═══════════════════════════════════════════════════════════════
+
+enum ToyCategoryType {
+  EDUCATIONAL
+  LEARNING_TOY
+  STEM_TOY
+  PUZZLE
+  BOARD_GAME
+  CARD_GAME
+  ACTION_FIGURE
+  DOLL
+  BARBIE
+  STUFFED_ANIMAL
+  PLUSH_TOY
+  RC_CAR
+  RC_HELICOPTER
+  RC_DRONE
+  RC_BOAT
+  RC_OTHER
+  BUILDING_BLOCKS
+  LEGO_STYLE
+  MAGNETIC_TILES
+  ART_CRAFT
+  DRAWING_PAINTING
+  CLAY_DOUGH
+  MUSICAL_INSTRUMENT
+  MUSICAL_TOY
+  OUTDOOR_TOY
+  RIDE_ON
+  BIKE_KIDS
+  TRICYCLE
+  SCOOTER_KIDS
+  BALL
+  SPORTS_KIDS
+  BABY_TOY
+  RATTLE
+  TEETHER
+  ACTIVITY_GYM
+  BATH_TOY
+  PRETEND_PLAY
+  KITCHEN_PLAYSET
+  DOCTOR_PLAYSET
+  TOOL_PLAYSET
+  DRESS_UP
+  COSTUME
+  SCIENCE_KIT
+  ROBOTICS
+  ELECTRONICS_KIT
+  BOOK_KIDS
+  FLASH_CARDS
+  BIRTHDAY_PARTY
+  GIFT_PACK
+  COLLECTIBLE
+  OTHER
+}
+
+enum ToyAgeGroup {
+  NEWBORN_0_6M
+  INFANT_6_12M
+  TODDLER_1_2Y
+  TODDLER_2_3Y
+  PRESCHOOL_3_5Y
+  KIDS_5_8Y
+  KIDS_8_12Y
+  TWEEN_12_14Y
+  TEEN_14_PLUS
+  ALL_AGES
+}
+
+enum ToyGenderTarget {
+  BOYS
+  GIRLS
+  UNISEX
+  BABY
+}
+
+enum ToySafetyCertification {
+  CE
+  ASTM
+  EN71
+  ISO_8124
+  BIS
+  PSB
+  CPSC
+  NONE
+  OTHER
+}
+
+model ToyProductProfile {
+  id        String @id @default(uuid())
+  tenantId  String
+  productId String @unique
+
+  categoryType ToyCategoryType?
+  ageGroup     ToyAgeGroup      @default(ALL_AGES)
+  ageGroups    ToyAgeGroup[]    @default([])
+  ageMinYears  Float?
+  ageMaxYears  Float?
+  genderTarget ToyGenderTarget  @default(UNISEX)
+
+  brand              String?
+  characterFranchise String?
+  themeCategory      String?
+
+  // Educational value
+  isEducational     Boolean  @default(false)
+  learningAreas     String[] @default([])
+  developmentSkills String[] @default([])
+  cognitiveCategory String?
+
+  // Physical
+  material       String?
+  materialsUsed  String[] @default([])
+  colorName      String?
+  colorHex       String?
+  size           String?
+  dimensions     String?
+  weightGrams    Float?
+  numberOfPieces Int?
+
+  // Batteries
+  requiresBatteries Boolean @default(false)
+  batteriesIncluded Boolean @default(false)
+  batteryType       String?
+  batteryQuantity   Int?
+
+  // RC specific
+  isRemoteControlled Boolean @default(false)
+  rcRange            String?
+  rcChargingTime     String?
+  rcRunTime          String?
+  rcFrequency        String?
+
+  // Safety
+  safetyCertifications ToySafetyCertification[] @default([])
+  safetyWarnings       String[]                 @default([])
+  chokingHazard        Boolean                  @default(false)
+  smallPartsWarning    Boolean                  @default(false)
+  isNonToxic           Boolean                  @default(true)
+  isBpaFree            Boolean                  @default(false)
+  isPhthalateFree      Boolean                  @default(false)
+
+  // Play features
+  playerCount         String?
+  playDurationMinutes Int?
+  isMultiplayer       Boolean @default(false)
+  hasSound            Boolean @default(false)
+  hasLights           Boolean @default(false)
+  hasMotor            Boolean @default(false)
+  isCollectible       Boolean @default(false)
+
+  // Educational
+  languagesSupported   String[] @default([])
+  isMontessoriApproved Boolean  @default(false)
+  isWaldorfApproved    Boolean  @default(false)
+
+  // Pricing
+  mrp             Float?
+  costPrice       Float?
+  retailPrice     Float?
+  discountedPrice Float?
+
+  // Marketing
+  isFeatured      Boolean @default(false)
+  isBestSeller    Boolean @default(false)
+  isNewArrival    Boolean @default(false)
+  isTrending      Boolean @default(false)
+  isBirthdayGift  Boolean @default(false)
+  isEidGift       Boolean @default(false)
+  isChristmasGift Boolean @default(false)
+
+  // Warranty
+  warrantyMonths      Int     @default(0)
+  hasReplacementParts Boolean @default(false)
+
+  totalSold    Int    @default(0)
+  totalRevenue Float  @default(0)
+  avgRating    Float?
+  totalReviews Int    @default(0)
+
+  giftWrapAvailable    Boolean @default(true)
+  giftMessageAvailable Boolean @default(true)
+
+  videoUrl       String?
+  instructionUrl String?
+  notes          String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, categoryType])
+  @@index([tenantId, ageGroup])
+  @@index([tenantId, genderTarget])
+}
+
+model ToyGiftPack {
+  id       String @id @default(uuid())
+  tenantId String
+
+  name        String
+  description String? @db.Text
+  imageUrl    String?
+
+  targetAgeGroup ToyAgeGroup?
+  targetGender   ToyGenderTarget?
+  occasion       String?
+
+  items     Json
+  itemCount Int  @default(0)
+
+  originalPrice Float
+  giftPackPrice Float
+  savings       Float @default(0)
+  savingsPct    Float @default(0)
+
+  isGiftWrapped Boolean @default(true)
+  includesCard  Boolean @default(true)
+
+  isActive   Boolean @default(true)
+  isFeatured Boolean @default(false)
+  isSeasonal Boolean @default(false)
+  seasonName String?
+
+  validFrom  DateTime?
+  validUntil DateTime?
+
+  totalSold Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+model ToyBirthdayReminder {
+  id       String @id @default(uuid())
+  tenantId String
+
+  customerId    String?
+  customerName  String
+  customerPhone String
+
+  childName      String
+  childBirthDate DateTime
+  childGender    ToyGenderTarget?
+  childInterests String[]         @default([])
+
+  parentRelation     String?
+  favoriteCategories ToyCategoryType[] @default([])
+  budgetRange        String?
+
+  lastPurchaseDate DateTime?
+  lastGiftGiven    String?
+  totalPurchases   Int       @default(0)
+  totalSpent       Float     @default(0)
+
+  isActive           Boolean   @default(true)
+  reminderDaysBefore Int       @default(7)
+  lastReminderSent   DateTime?
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([customerId])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INDUSTRY: SPORTS SHOP
+// Cricket bats, footballs, gym equipment, team orders, jerseys
+// ═══════════════════════════════════════════════════════════════
+
+enum SportsCategoryType {
+  // Cricket
+  CRICKET_BAT
+  CRICKET_BALL
+  CRICKET_HELMET
+  CRICKET_PADS
+  CRICKET_GLOVES
+  CRICKET_KIT_BAG
+  CRICKET_STUMPS
+  CRICKET_JERSEY
+  CRICKET_SHOES
+  CRICKET_GUARD
+
+  // Football / Soccer
+  FOOTBALL
+  FOOTBALL_JERSEY
+  FOOTBALL_SHOES
+  FOOTBALL_KIT
+  SHIN_GUARDS
+  GOALKEEPER_GLOVES
+  GOAL_POST
+
+  // Basketball
+  BASKETBALL
+  BASKETBALL_JERSEY
+  BASKETBALL_SHOES
+  BASKETBALL_HOOP
+
+  // Volleyball / Netball
+  VOLLEYBALL
+  VOLLEYBALL_NET
+  NETBALL
+
+  // Racket sports
+  BADMINTON_RACKET
+  BADMINTON_SHUTTLECOCK
+  TENNIS_RACKET
+  TENNIS_BALL
+  TABLE_TENNIS_BAT
+  TABLE_TENNIS_BALL
+  SQUASH_RACKET
+
+  // Gym / Fitness
+  DUMBBELL
+  BARBELL
+  WEIGHT_PLATE
+  KETTLEBELL
+  BENCH_PRESS
+  TREADMILL
+  EXERCISE_BIKE
+  ELLIPTICAL
+  ROWING_MACHINE
+  YOGA_MAT
+  RESISTANCE_BAND
+  SKIPPING_ROPE
+  BOXING_GLOVES
+  PUNCHING_BAG
+  PROTEIN_SUPPLEMENT
+  GYM_ACCESSORY
+
+  // Swimming
+  SWIMMING_GOGGLES
+  SWIMSUIT
+  SWIMMING_CAP
+
+  // Outdoor
+  CAMPING_TENT
+  SLEEPING_BAG
+  HIKING_BAG
+  CYCLING_HELMET
+  BICYCLE
+
+  // Team accessories
+  TROPHY
+  MEDAL
+  WHISTLE
+  STOPWATCH
+  UMPIRE_GEAR
+
+  OTHER
+}
+
+enum SportsBrandTier {
+  PREMIUM
+  MID_RANGE
+  ECONOMY
+  LOCAL
+}
+
+enum SportsAgeGroup {
+  KIDS
+  YOUTH
+  ADULT
+  SENIOR
+  UNIVERSAL
+}
+
+enum SportsGenderTarget {
+  MALE
+  FEMALE
+  UNISEX
+  KIDS
+}
+
+enum TeamOrderStatus {
+  DRAFT
+  QUOTED
+  CONFIRMED
+  IN_PRODUCTION
+  READY
+  DELIVERED
+  CANCELLED
+}
+
+model SportsBrand {
+  id       String @id @default(uuid())
+  tenantId String
+
+  name            String
+  code            String?
+  countryOfOrigin String?
+  description     String?         @db.Text
+  logoUrl         String?
+  websiteUrl      String?
+  brandTier       SportsBrandTier @default(MID_RANGE)
+
+  authorizedDealer Boolean @default(false)
+  dealerCode       String?
+  supportPhone     String?
+  supportEmail     String?
+  warrantyPolicy   String? @db.Text
+
+  isFeatured   Boolean @default(false)
+  displayOrder Int     @default(0)
+  isActive     Boolean @default(true)
+
+  totalProducts Int   @default(0)
+  totalRevenue  Float @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+model SportsProductProfile {
+  id        String @id @default(uuid())
+  tenantId  String
+  productId String @unique
+
+  brandId      String?
+  categoryType SportsCategoryType?
+  sport        String?
+  ageGroup     SportsAgeGroup      @default(ADULT)
+  genderTarget SportsGenderTarget  @default(UNISEX)
+
+  // Cricket bat specific
+  batWood        String?
+  batWeightGrams Float?
+  batGrade       String?
+  batSize        String?
+  handleType     String?
+
+  // Ball specific
+  ballType          String?
+  ballWeight        String?
+  ballCircumference String?
+  ballMaterial      String?
+
+  // Apparel specific (jerseys/kits)
+  size             String?
+  material         String?
+  fit              String?
+  hasCustomization Boolean @default(false)
+
+  // Shoe specific
+  shoeSize String?
+  soleType String?
+  studType String?
+
+  // Gym equipment
+  weight        String?
+  maxUserWeight String?
+  dimensions    String?
+  powerRating   String?
+  motorType     String?
+  foldable      Boolean @default(false)
+
+  // General
+  color          String?
+  colorHex       String?
+  material2      String?
+  countryOfMake  String?
+  certifications String[] @default([])
+
+  // Team / bulk
+  isTeamOrderable      Boolean  @default(false)
+  minTeamOrder         Int?
+  bulkDiscountPct      Float?
+  customizationOptions String[] @default([])
+
+  // Warranty
+  warrantyMonths Int     @default(0)
+  warrantyType   String?
+
+  // Pricing
+  mrp            Float?
+  costPrice      Float?
+  wholesalePrice Float?
+  retailPrice    Float?
+  teamPrice      Float?
+
+  isFeatured     Boolean @default(false)
+  isBestSeller   Boolean @default(false)
+  isNewArrival   Boolean @default(false)
+  isProfessional Boolean @default(false)
+
+  totalSold    Int    @default(0)
+  totalRevenue Float  @default(0)
+  avgRating    Float?
+  totalReviews Int    @default(0)
+
+  notes            String? @db.Text
+  careInstructions String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, categoryType])
+  @@index([brandId])
+}
+
+model SportsTeamOrder {
+  id       String @id @default(uuid())
+  tenantId String
+
+  orderNumber   String
+  teamName      String
+  contactPerson String
+  contactPhone  String
+  contactEmail  String?
+  organization  String?
+  city          String?
+  address       String? @db.Text
+
+  status TeamOrderStatus @default(DRAFT)
+
+  // Order details
+  items          Json
+  totalQuantity  Int   @default(0)
+  subtotal       Float @default(0)
+  discountPct    Float @default(0)
+  discountAmount Float @default(0)
+  taxAmount      Float @default(0)
+  shippingCharge Float @default(0)
+  totalAmount    Float @default(0)
+
+  // Customization
+  hasCustomJerseys     Boolean @default(false)
+  customizationDetails String? @db.Text
+  playerNames          Json?
+  playerNumbers        Json?
+  teamLogoUrl          String?
+
+  // Payment
+  advancePaid   Float   @default(0)
+  balanceAmount Float   @default(0)
+  paymentMethod String?
+
+  // Timeline
+  quotedAt             DateTime?
+  confirmedAt          DateTime?
+  expectedDeliveryDate DateTime?
+  deliveredAt          DateTime?
+
+  // Documents
+  quotationUrl String?
+  invoiceUrl   String?
+  poNumber     String?
+
+  notes         String? @db.Text
+  internalNotes String? @db.Text
+  handledById   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, orderNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+}
+
+model SportsRepairService {
+  id       String @id @default(uuid())
+  tenantId String
+
+  serviceNumber String
+  customerId    String?
+  customerName  String
+  customerPhone String
+
+  itemType        String
+  itemBrand       String?
+  itemDescription String  @db.Text
+  issue           String  @db.Text
+
+  status String @default("RECEIVED")
+
+  receivedAt       DateTime  @default(now())
+  estimatedReadyAt DateTime?
+  completedAt      DateTime?
+  deliveredAt      DateTime?
+
+  estimatedCost Float @default(0)
+  finalCost     Float @default(0)
+  advancePaid   Float @default(0)
+
+  // Common repairs: bat re-gripping, restringing rackets, ball stitching
+  repairType String?
+  workDone   String? @db.Text
+  partsUsed  Json?
+
+  photosBeforeUrls    String[] @default([])
+  photosAfterUrls     String[] @default([])
+  receiptSignatureUrl String?
+
+  notes     String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, serviceNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INDUSTRY: COSMETICS & BEAUTY
+// Makeup, skincare, perfumes, haircare (retail — not salon)
+// ═══════════════════════════════════════════════════════════════
+
+enum CosmeticsCategoryType {
+  // Makeup
+  FOUNDATION
+  CONCEALER
+  POWDER
+  BLUSH
+  BRONZER
+  HIGHLIGHTER
+  EYESHADOW
+  EYELINER
+  MASCARA
+  EYEBROW
+  LIPSTICK
+  LIP_GLOSS
+  LIP_LINER
+  LIP_BALM
+  MAKEUP_PALETTE
+  MAKEUP_BRUSH
+  MAKEUP_REMOVER
+
+  // Skincare
+  FACE_WASH
+  CLEANSER
+  TONER
+  SERUM
+  MOISTURIZER
+  DAY_CREAM
+  NIGHT_CREAM
+  EYE_CREAM
+  FACE_MASK
+  SHEET_MASK
+  EXFOLIATOR
+  SUNSCREEN
+  BODY_LOTION
+  BODY_WASH
+  BODY_SCRUB
+  BODY_OIL
+  HAND_CREAM
+  FOOT_CREAM
+
+  // Fragrance
+  PERFUME
+  EAU_DE_TOILETTE
+  BODY_MIST
+  DEODORANT
+  ATTAR
+  FRAGRANCE_GIFT_SET
+
+  // Haircare
+  SHAMPOO
+  CONDITIONER
+  HAIR_OIL
+  HAIR_MASK
+  HAIR_SERUM
+  HAIR_COLOR
+  HAIR_STYLING
+
+  // Nail
+  NAIL_POLISH
+  NAIL_REMOVER
+  NAIL_ART
+  NAIL_TOOLS
+
+  // Men's grooming
+  SHAVING_CREAM
+  AFTER_SHAVE
+  BEARD_OIL
+  BEARD_TRIMMER
+
+  // Tools
+  HAIR_DRYER
+  STRAIGHTENER
+  CURLING_IRON
+  BEAUTY_TOOL
+
+  // Bath & body
+  SOAP
+  BATH_BOMB
+
+  GIFT_SET
+  OTHER
+}
+
+enum CosmeticsSkinType {
+  DRY
+  OILY
+  COMBINATION
+  NORMAL
+  SENSITIVE
+  ACNE_PRONE
+  MATURE
+  ALL_TYPES
+}
+
+enum CosmeticsSkinTone {
+  FAIR
+  LIGHT
+  MEDIUM
+  TAN
+  DEEP
+  DARK
+  UNIVERSAL
+}
+
+enum CosmeticsFinish {
+  MATTE
+  DEWY
+  SATIN
+  GLOSSY
+  SHIMMER
+  NATURAL
+  METALLIC
+}
+
+model CosmeticsBrand {
+  id       String @id @default(uuid())
+  tenantId String
+
+  name            String
+  code            String?
+  countryOfOrigin String?
+  description     String? @db.Text
+  logoUrl         String?
+  websiteUrl      String?
+
+  isPremium             Boolean @default(false)
+  isCrueltyFree         Boolean @default(false)
+  isVegan               Boolean @default(false)
+  isOrganic             Boolean @default(false)
+  isHalalCertified      Boolean @default(false)
+  isDermatologistTested Boolean @default(false)
+
+  authorizedDealer Boolean @default(false)
+  dealerCode       String?
+
+  isFeatured   Boolean @default(false)
+  displayOrder Int     @default(0)
+  isActive     Boolean @default(true)
+
+  totalProducts Int   @default(0)
+  totalRevenue  Float @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+model CosmeticsProductProfile {
+  id        String @id @default(uuid())
+  tenantId  String
+  productId String @unique
+
+  brandId      String?
+  categoryType CosmeticsCategoryType?
+
+  // Shade / colour
+  shadeName String?
+  shadeCode String?
+  shadeHex  String?
+  finish    CosmeticsFinish?
+
+  // Skin match
+  skinType     CosmeticsSkinType[] @default([])
+  skinTone     CosmeticsSkinTone[] @default([])
+  skinConcerns String[]            @default([])
+
+  // Size / volume
+  sizeMl      Float?
+  sizeGrams   Float?
+  sizeDisplay String?
+
+  // Ingredients
+  keyIngredients  String[] @default([])
+  fullIngredients String?  @db.Text
+  spfRating       String?
+
+  // Certifications
+  isCrueltyFree         Boolean @default(false)
+  isVegan               Boolean @default(false)
+  isOrganic             Boolean @default(false)
+  isHypoallergenic      Boolean @default(false)
+  isFragranceFree       Boolean @default(false)
+  isSulfateFree         Boolean @default(false)
+  isParabenFree         Boolean @default(false)
+  isNoncomedogenic      Boolean @default(false)
+  isHalalCertified      Boolean @default(false)
+  isDermatologistTested Boolean @default(false)
+
+  // Fragrance specific
+  fragranceFamily String?
+  topNotes        String[] @default([])
+  middleNotes     String[] @default([])
+  baseNotes       String[] @default([])
+  longevityHours  String?
+  sillage         String?
+  season          String[] @default([])
+  occasion        String[] @default([])
+
+  // Instructions
+  howToUse String?  @db.Text
+  benefits String[] @default([])
+  warnings String?  @db.Text
+
+  // Batch tracking
+  requiresBatchTracking Boolean @default(true)
+  shelfLifeMonths       Int?
+
+  // Pricing
+  mrp            Float?
+  costPrice      Float?
+  wholesalePrice Float?
+  retailPrice    Float?
+
+  isFeatured       Boolean @default(false)
+  isBestSeller     Boolean @default(false)
+  isNewArrival     Boolean @default(false)
+  isLimitedEdition Boolean @default(false)
+  isViral          Boolean @default(false)
+
+  totalSold    Int    @default(0)
+  totalRevenue Float  @default(0)
+  avgRating    Float?
+  totalReviews Int    @default(0)
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, categoryType])
+  @@index([brandId])
+}
+
+model CosmeticsBatch {
+  id        String @id @default(uuid())
+  tenantId  String
+  productId String
+
+  batchNumber     String
+  manufactureDate DateTime?
+  expiryDate      DateTime?
+  quantity        Int
+  currentStock    Int
+  costPrice       Float?
+  supplierRef     String?
+
+  status String @default("ACTIVE")
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, productId, batchNumber])
+  @@index([tenantId])
+  @@index([expiryDate])
+}
+
+model CosmeticsGiftBundle {
+  id       String @id @default(uuid())
+  tenantId String
+
+  name        String
+  description String? @db.Text
+  imageUrl    String?
+  occasion    String?
+
+  items         Json
+  originalPrice Float
+  bundlePrice   Float
+  savings       Float @default(0)
+
+  // Presentation
+  hasGiftWrap          Boolean @default(false)
+  giftWrapCost         Float   @default(0)
+  includesGreetingCard Boolean @default(false)
+
+  isActive   Boolean   @default(true)
+  isFeatured Boolean   @default(false)
+  validFrom  DateTime?
+  validUntil DateTime?
+
+  totalSold Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+model CosmeticsLoyaltyMember {
+  id       String @id @default(uuid())
+  tenantId String
+
+  memberCode                String
+  customerId                String?
+  name                      String
+  phone                     String
+  email                     String?
+  dateOfBirth               DateTime?
+  skinType                  CosmeticsSkinType?
+  skinConcerns              String[]           @default([])
+  favoriteFragranceFamilies String[]           @default([])
+
+  tier           String @default("BRONZE")
+  pointsBalance  Int    @default(0)
+  lifetimePoints Int    @default(0)
+  totalSpent     Float  @default(0)
+  totalPurchases Int    @default(0)
+
+  lastPurchaseAt    DateTime?
+  birthdayOfferSent Boolean   @default(false)
+
+  isActive Boolean @default(true)
+  notes    String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, memberCode])
+  @@unique([tenantId, phone])
+  @@index([tenantId])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INDUSTRY: FLORIST / FLOWER SHOP
+// Bouquets, arrangements, wedding events, delivery
+// ═══════════════════════════════════════════════════════════════
+
+enum FloristCategoryType {
+  // Individual flowers (loose stems)
+  ROSE_RED
+  ROSE_WHITE
+  ROSE_PINK
+  ROSE_YELLOW
+  ROSE_MIXED
+  TULIP
+  LILY
+  ORCHID
+  SUNFLOWER
+  CARNATION
+  GERBERA
+  CHRYSANTHEMUM
+  DAISY
+  JASMINE
+  MARIGOLD
+  IRIS
+  HYDRANGEA
+  PEONY
+  ANTHURIUM
+  BIRD_OF_PARADISE
+  BABY_BREATH
+  GREENERY_FILLER
+
+  // Ready products
+  BOUQUET_BIRTHDAY
+  BOUQUET_ANNIVERSARY
+  BOUQUET_WEDDING
+  BOUQUET_ROMANCE
+  BOUQUET_CONDOLENCE
+  BOUQUET_GET_WELL
+  BOUQUET_CONGRATULATIONS
+  BOUQUET_MIXED
+
+  // Arrangements
+  BASKET_ARRANGEMENT
+  VASE_ARRANGEMENT
+  BOX_ARRANGEMENT
+  TABLE_CENTREPIECE
+  STANDING_ARRANGEMENT
+
+  // Event & wedding
+  WEDDING_GARLAND
+  BRIDAL_BOUQUET
+  BOUTONNIERE
+  CAR_DECORATION
+  STAGE_DECORATION
+  MEHNDI_DECORATION
+
+  // Sympathy / funeral
+  FUNERAL_WREATH
+  SYMPATHY_ARRANGEMENT
+
+  // Plants
+  POTTED_PLANT_INDOOR
+  POTTED_PLANT_OUTDOOR
+  SUCCULENT
+  BONSAI
+  AIR_PLANT
+
+  // Add-ons
+  CHOCOLATE_BOX
+  TEDDY_BEAR
+  BALLOON
+  GREETING_CARD
+  GIFT_ITEM
+  VASE_EMPTY
+  RIBBON
+  WRAPPING_PAPER
+  FLORAL_FOAM
+
+  OTHER
+}
+
+enum FloristFreshnessGrade {
+  A_PREMIUM
+  B_STANDARD
+  C_ECONOMY
+  IMPORTED
+  LOCAL
+}
+
+enum FloristOrderType {
+  WALK_IN
+  DELIVERY
+  EVENT
+  WEDDING
+  SUBSCRIPTION
+  CORPORATE
+}
+
+enum FloristOrderStatus {
+  DRAFT
+  CONFIRMED
+  IN_PREPARATION
+  READY_FOR_DELIVERY
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+}
+
+enum FloristDeliveryTimeSlot {
+  MORNING_9_12
+  AFTERNOON_12_3
+  EVENING_3_6
+  NIGHT_6_9
+  URGENT
+  SCHEDULED
+}
+
+model FloristProductProfile {
+  id        String @id @default(uuid())
+  tenantId  String
+  productId String @unique
+
+  categoryType   FloristCategoryType?
+  freshnessGrade FloristFreshnessGrade @default(A_PREMIUM)
+
+  // Flower specifics
+  flowerType   String?
+  color        String?
+  colorHex     String?
+  stemLengthCm Float?
+  isImported   Boolean  @default(false)
+  origin       String?
+  season       String[] @default([])
+
+  // Freshness
+  arrivalDate  DateTime?
+  freshUntil   DateTime?
+  daysToWither Int?
+
+  // Bouquet / arrangement details
+  isPreArranged Boolean @default(false)
+  bouquetSize   String?
+  stemCount     Int?
+  composition   Json?
+  wrapType      String?
+  ribbonColor   String?
+  hasVase       Boolean @default(false)
+
+  // Occasions
+  occasions String[] @default([])
+  meaning   String?  @db.Text
+
+  // Care
+  careInstructions String? @db.Text
+
+  // Customization
+  isCustomizable       Boolean  @default(false)
+  customizationOptions String[] @default([])
+  minLeadTimeHours     Int?
+
+  // Pricing
+  mrp            Float?
+  costPrice      Float?
+  wholesalePrice Float?
+  retailPrice    Float?
+  weddingPrice   Float?
+
+  isFeatured        Boolean @default(false)
+  isBestSeller      Boolean @default(false)
+  isSeasonalSpecial Boolean @default(false)
+
+  totalSold    Int   @default(0)
+  totalRevenue Float @default(0)
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, categoryType])
+}
+
+model FloristOrder {
+  id       String @id @default(uuid())
+  tenantId String
+
+  orderNumber String
+  orderType   FloristOrderType   @default(WALK_IN)
+  status      FloristOrderStatus @default(DRAFT)
+
+  // Customer
+  customerId    String?
+  customerName  String
+  customerPhone String
+  customerEmail String?
+  senderName    String?
+
+  // Recipient (for delivery)
+  recipientName   String?
+  recipientPhone  String?
+  deliveryAddress String? @db.Text
+  city            String?
+  area            String?
+  landmark        String?
+  latitude        Float?
+  longitude       Float?
+
+  // Message
+  messageCard String? @db.Text
+  isAnonymous Boolean @default(false)
+
+  // Items
+  items          Json
+  subtotal       Float   @default(0)
+  discountAmount Float   @default(0)
+  deliveryCharge Float   @default(0)
+  wrappingCharge Float   @default(0)
+  totalAmount    Float   @default(0)
+  advancePaid    Float   @default(0)
+  paymentMethod  String?
+
+  // Delivery
+  deliveryTimeSlot      FloristDeliveryTimeSlot?
+  scheduledDeliveryDate DateTime?
+  scheduledDeliveryTime String?
+  actualDeliveryTime    DateTime?
+  deliveredBy           String?
+  deliveryPhotoUrl      String?
+  deliveredToName       String?
+
+  // Event
+  eventDate          DateTime?
+  eventName          String?
+  eventVenue         String?
+  isRecurring        Boolean   @default(false)
+  recurringFrequency String?
+
+  // Preparation
+  preparedBy  String?
+  preparedAt  DateTime?
+  qcCheckedBy String?
+
+  notes               String? @db.Text
+  specialInstructions String? @db.Text
+  internalNotes       String? @db.Text
+  handledById         String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, orderNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([tenantId, orderType])
+  @@index([scheduledDeliveryDate])
+}
+
+model FloristWeddingContract {
+  id       String @id @default(uuid())
+  tenantId String
+
+  contractNumber String
+  brideName      String
+  groomName      String
+  contactPerson  String
+  contactPhone   String
+  contactEmail   String?
+
+  weddingDate    DateTime
+  ceremonyVenue  String?  @db.Text
+  receptionVenue String?  @db.Text
+  city           String?
+
+  // Services
+  includesBridalBouquet      Boolean @default(true)
+  includesBridesmaidBouquets Boolean @default(false)
+  bridesmaidCount            Int?
+  includesBoutonnieres       Boolean @default(false)
+  boutonniereCount           Int?
+  includesGarlands           Boolean @default(true)
+  garlandCount               Int?
+  includesCarDecoration      Boolean @default(false)
+  includesStageDecoration    Boolean @default(false)
+  includesMehndiSetup        Boolean @default(false)
+  includesTableCentrepieces  Boolean @default(false)
+  centrepieceCount           Int?
+
+  // Theme
+  colorTheme       String[] @default([])
+  primaryFlowers   String[] @default([])
+  styleInspiration String?  @db.Text
+  moodBoardUrls    String[] @default([])
+
+  // Financial
+  quotedAmount  Float
+  advanceAmount Float @default(0)
+  balanceAmount Float @default(0)
+  finalAmount   Float @default(0)
+
+  // Timeline
+  status         String    @default("QUOTED")
+  quotedAt       DateTime?
+  confirmedAt    DateTime?
+  siteVisitDate  DateTime?
+  setupStartTime DateTime?
+
+  contractUrl  String?
+  quotationUrl String?
+
+  notes         String? @db.Text
+  internalNotes String? @db.Text
+  handledById   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, contractNumber])
+  @@index([tenantId])
+  @@index([weddingDate])
+}
+
+model FloristSubscription {
+  id       String @id @default(uuid())
+  tenantId String
+
+  subscriptionNumber String
+  customerId         String?
+  customerName       String
+  customerPhone      String
+  deliveryAddress    String  @db.Text
+
+  planName         String
+  frequency        String
+  bouquetType      String
+  pricePerDelivery Float
+
+  startDate           DateTime
+  endDate             DateTime?
+  nextDeliveryDate    DateTime?
+  totalDeliveries     Int       @default(0)
+  completedDeliveries Int       @default(0)
+
+  status String @default("ACTIVE")
+
+  preferences Json?
+  notes       String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, subscriptionNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INDUSTRY: SHOE STORE
+// Footwear with sizing charts + boxes + variants
+// ═══════════════════════════════════════════════════════════════
+
+enum ShoeCategoryType {
+  // Men's
+  MENS_SNEAKERS
+  MENS_FORMAL
+  MENS_LOAFERS
+  MENS_BOOTS
+  MENS_SANDALS
+  MENS_SLIPPERS
+  MENS_SPORTS
+  MENS_KHUSSA
+  MENS_PESHAWARI
+
+  // Women's
+  WOMENS_HEELS
+  WOMENS_FLATS
+  WOMENS_SNEAKERS
+  WOMENS_BOOTS
+  WOMENS_SANDALS
+  WOMENS_SLIPPERS
+  WOMENS_KHUSSA
+  WOMENS_WEDGES
+
+  // Kids
+  KIDS_SNEAKERS
+  KIDS_SCHOOL
+  KIDS_SPORTS
+  KIDS_CASUAL
+  KIDS_SANDALS
+  BABY_SHOES
+
+  // Sports specific
+  RUNNING_SHOES
+  BASKETBALL_SHOES
+  FOOTBALL_STUDS
+  CRICKET_SPIKES
+  TRAINING_SHOES
+
+  // Special
+  RAIN_BOOTS
+  SAFETY_SHOES
+  WORK_BOOTS
+  HIKING_BOOTS
+  BRIDAL_SHOES
+
+  // Accessories
+  SHOE_LACE
+  SHOE_POLISH
+  SHOE_INSOLE
+  SHOE_HORN
+  SHOE_CLEANER
+  SHOE_CARE_KIT
+  SOCK
+
+  OTHER
+}
+
+enum ShoeSizeSystem {
+  UK
+  US
+  EU
+  CM
+  KIDS
+}
+
+enum ShoeWidth {
+  NARROW
+  REGULAR
+  WIDE
+  EXTRA_WIDE
+}
+
+enum ShoeGender {
+  MEN
+  WOMEN
+  UNISEX
+  BOYS
+  GIRLS
+  BABY
+}
+
+model ShoeBrand {
+  id       String @id @default(uuid())
+  tenantId String
+
+  name            String
+  code            String?
+  countryOfOrigin String?
+  description     String? @db.Text
+  logoUrl         String?
+  websiteUrl      String?
+
+  isPremium     Boolean @default(false)
+  isSportsBrand Boolean @default(false)
+  isLocal       Boolean @default(false)
+
+  authorizedDealer Boolean @default(false)
+  dealerCode       String?
+  warrantyPolicy   String? @db.Text
+  returnPolicy     String? @db.Text
+
+  isFeatured   Boolean @default(false)
+  displayOrder Int     @default(0)
+  isActive     Boolean @default(true)
+
+  totalProducts Int   @default(0)
+  totalRevenue  Float @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+model ShoeProductProfile {
+  id        String @id @default(uuid())
+  tenantId  String
+  productId String @unique
+
+  brandId      String?
+  categoryType ShoeCategoryType?
+  gender       ShoeGender        @default(UNISEX)
+  ageGroup     String?
+
+  // Model
+  modelName  String?
+  modelCode  String?
+  collection String?
+  season     String?
+
+  // Materials
+  upperMaterial  String?
+  soleMaterial   String?
+  innerMaterial  String?
+  liningMaterial String?
+
+  // Design
+  colorName   String?
+  colorHex    String?
+  patternType String?
+  closureType String?
+  toeShape    String?
+  heelHeight  String?
+  heelType    String?
+  soleType    String?
+
+  // Sizing
+  sizeSystem     ShoeSizeSystem @default(UK)
+  availableSizes String[]       @default([])
+  width          ShoeWidth      @default(REGULAR)
+  runsLarge      Boolean        @default(false)
+  runsSmall      Boolean        @default(false)
+  sizingNotes    String?
+
+  // Features
+  isWaterproof   Boolean @default(false)
+  isBreathable   Boolean @default(false)
+  hasAirCushion  Boolean @default(false)
+  hasArchSupport Boolean @default(false)
+  isOrthopedic   Boolean @default(false)
+  isVegan        Boolean @default(false)
+  isHandmade     Boolean @default(false)
+
+  // Sport
+  sport          String?
+  playingSurface String[] @default([])
+
+  // Care
+  careInstructions       String? @db.Text
+  cleaningRecommendation String?
+
+  // Warranty
+  warrantyMonths  Int     @default(0)
+  warrantyDetails String? @db.Text
+
+  // Box
+  includesBox        Boolean @default(true)
+  includesDustBag    Boolean @default(false)
+  includesExtraLaces Boolean @default(false)
+  boxColor           String?
+
+  // Pricing
+  mrp            Float?
+  costPrice      Float?
+  wholesalePrice Float?
+  retailPrice    Float?
+  memberPrice    Float?
+
+  isFeatured   Boolean @default(false)
+  isBestSeller Boolean @default(false)
+  isNewArrival Boolean @default(false)
+  isTrending   Boolean @default(false)
+  isBridal     Boolean @default(false)
+  isEidSpecial Boolean @default(false)
+
+  totalSold    Int    @default(0)
+  totalRevenue Float  @default(0)
+  avgRating    Float?
+  totalReviews Int    @default(0)
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, categoryType])
+  @@index([brandId])
+}
+
+model ShoeSizeVariant {
+  id        String @id @default(uuid())
+  tenantId  String
+  productId String
+
+  size       String
+  sizeSystem ShoeSizeSystem @default(UK)
+  width      ShoeWidth      @default(REGULAR)
+
+  sku           String?
+  barcode       String?
+  boxNumber     String?
+  shelfLocation String?
+
+  stock         Int @default(0)
+  reservedStock Int @default(0)
+  lowStockAlert Int @default(1)
+
+  priceOverride Float?
+  costOverride  Float?
+
+  isActive Boolean @default(true)
+
+  totalSold Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, productId, size, sizeSystem, width])
+  @@index([tenantId])
+  @@index([productId])
+  @@index([sku])
+}
+
+model ShoeSizeChart {
+  id       String @id @default(uuid())
+  tenantId String
+
+  name         String
+  brandId      String?
+  gender       ShoeGender        @default(UNISEX)
+  categoryType ShoeCategoryType?
+
+  mappings Json
+
+  notes    String? @db.Text
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+model ShoeTryOnRequest {
+  id       String @id @default(uuid())
+  tenantId String
+
+  requestNumber String
+  customerId    String?
+  customerName  String
+  customerPhone String
+
+  productId       String?
+  productName     String
+  requestedSizes  String[]    @default([])
+  colorPreference String?
+  gender          ShoeGender?
+
+  status String @default("PENDING")
+
+  scheduledAt   DateTime?
+  completedAt   DateTime?
+  purchased     Boolean   @default(false)
+  purchasedSize String?
+
+  notes     String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, requestNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+}
+
+model ShoeExchange {
+  id       String @id @default(uuid())
+  tenantId String
+
+  exchangeNumber  String
+  originalSaleId  String?
+  originalInvoice String?
+
+  customerId    String?
+  customerName  String
+  customerPhone String
+
+  productId     String?
+  productName   String
+  originalSize  String
+  newSize       String
+  colorChanged  Boolean @default(false)
+  originalColor String?
+  newColor      String?
+
+  reason         String
+  reasonCategory String?
+
+  priceDifference   Float @default(0)
+  refundIssued      Float @default(0)
+  additionalCharged Float @default(0)
+
+  status String @default("REQUESTED")
+
+  requestedAt DateTime  @default(now())
+  processedAt DateTime?
+  handledById String?
+
+  photoUrls String[] @default([])
+  notes     String?  @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, exchangeNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+}

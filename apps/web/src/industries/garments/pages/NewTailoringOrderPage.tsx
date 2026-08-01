@@ -390,10 +390,10 @@ export default function NewTailoringOrderPage() {
 
                   {/* Costs */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    <CostInput label="Fabric" value={item.fabricCost} onChange={(v) => updateItem(i, { fabricCost: v })} color="cyan" />
-                    <CostInput label="Stitching" value={item.stitchingCost} onChange={(v) => updateItem(i, { stitchingCost: v })} color="purple" />
-                    <CostInput label="Embroidery" value={item.embroideryCost} onChange={(v) => updateItem(i, { embroideryCost: v })} color="fuchsia" />
-                    <CostInput label="Accessories" value={item.accessoryCost} onChange={(v) => updateItem(i, { accessoryCost: v })} color="amber" />
+                    <CostInput label="Fabric" value={item.fabricCost} onChange={(v: number) => updateItem(i, { fabricCost: v })} color="cyan" />
+                    <CostInput label="Stitching" value={item.stitchingCost} onChange={(v: number) => updateItem(i, { stitchingCost: v })} color="purple" />
+                    <CostInput label="Embroidery" value={item.embroideryCost} onChange={(v: number) => updateItem(i, { embroideryCost: v })} color="fuchsia" />
+                    <CostInput label="Accessories" value={item.accessoryCost} onChange={(v: number) => updateItem(i, { accessoryCost: v })} color="amber" />
                   </div>
 
                   <textarea

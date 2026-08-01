@@ -164,19 +164,19 @@ export function VariantCard({
                   <FieldInput
                     label="Variant Name *"
                     value={draft.name ?? ''}
-                    onChange={(v) => onUpdate({ name: v })}
+                    onChange={(v: string) => onUpdate({ name: v })}
                     placeholder="e.g. Red - Large"
                   />
                   <FieldInput
                     label="SKU"
                     value={draft.sku ?? ''}
-                    onChange={(v) => onUpdate({ sku: v })}
+                    onChange={(v: string) => onUpdate({ sku: v })}
                     mono
                   />
                   <FieldInput
                     label="Barcode"
                     value={draft.barcode ?? ''}
-                    onChange={(v) => onUpdate({ barcode: v })}
+                    onChange={(v: string) => onUpdate({ barcode: v })}
                     mono
                   />
                 </div>
@@ -188,7 +188,7 @@ export function VariantCard({
                   <FieldInput
                     label="Color Name"
                     value={draft.color ?? ''}
-                    onChange={(v) => onUpdate({ color: v })}
+                    onChange={(v: string) => onUpdate({ color: v })}
                     placeholder="Red"
                   />
                   <div>
@@ -211,7 +211,7 @@ export function VariantCard({
                   <FieldInput
                     label="Size / Code"
                     value={draft.size ?? ''}
-                    onChange={(v) => onUpdate({ size: v })}
+                    onChange={(v: string) => onUpdate({ size: v })}
                     placeholder="M, L, 17R"
                   />
                 </div>
@@ -225,7 +225,7 @@ export function VariantCard({
                     type="number"
                     step="0.01"
                     value={String(draft.price ?? 0)}
-                    onChange={(v) => onUpdate({ price: Number(v || 0) })}
+                    onChange={(v: string) => onUpdate({ price: Number(v || 0) })}
                     bold
                     accentClass="text-emerald-700"
                   />
@@ -234,14 +234,14 @@ export function VariantCard({
                     type="number"
                     step="0.01"
                     value={String(draft.costPrice ?? 0)}
-                    onChange={(v) => onUpdate({ costPrice: Number(v || 0) })}
+                    onChange={(v: string) => onUpdate({ costPrice: Number(v || 0) })}
                   />
                   <FieldInput
                     label="Wholesale (PKR)"
                     type="number"
                     step="0.01"
                     value={String(draft.wholesalePrice ?? '')}
-                    onChange={(v) => onUpdate({ wholesalePrice: v ? Number(v) : undefined })}
+                    onChange={(v: string) => onUpdate({ wholesalePrice: v ? Number(v) : undefined })}
                   />
                 </div>
               </FieldGroup>
@@ -254,19 +254,19 @@ export function VariantCard({
                     type="number"
                     step="0.01"
                     value={String(draft.stock ?? 0)}
-                    onChange={(v) => onUpdate({ stock: Number(v || 0) })}
+                    onChange={(v: string) => onUpdate({ stock: Number(v || 0) })}
                     bold
                   />
                   <FieldInput
                     label="Low Stock Alert"
                     type="number"
                     value={String(draft.lowStockAlert ?? 5)}
-                    onChange={(v) => onUpdate({ lowStockAlert: Number(v || 0) })}
+                    onChange={(v: string) => onUpdate({ lowStockAlert: Number(v || 0) })}
                   />
                   <FieldInput
                     label="Unit"
                     value={draft.unit ?? ''}
-                    onChange={(v) => onUpdate({ unit: v })}
+                    onChange={(v: string) => onUpdate({ unit: v })}
                     placeholder={parentUnit || 'pcs'}
                   />
                 </div>

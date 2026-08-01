@@ -206,49 +206,49 @@ export function BakeryWizardStep1Basic({ basic, onChange, onNext, validation }: 
             label="Per Kilogram"
             emoji="⚖️"
             value={basic.pricePerKg}
-            onChange={(v) => onChange({ pricePerKg: v })}
+            onChange={(v: number | '') => onChange({ pricePerKg: v })}
             tone="pink"
           />
           <PriceInput
             label="Per Pound"
             emoji="⚖️"
             value={basic.pricePerPound}
-            onChange={(v) => onChange({ pricePerPound: v })}
+            onChange={(v: number | '') => onChange({ pricePerPound: v })}
             tone="fuchsia"
           />
           <PriceInput
             label="Per Piece"
             emoji="🎂"
             value={basic.pricePerPiece}
-            onChange={(v) => onChange({ pricePerPiece: v })}
+            onChange={(v: number | '') => onChange({ pricePerPiece: v })}
             tone="amber"
           />
           <PriceInput
             label="Per Dozen"
             emoji="📦"
             value={basic.pricePerDozen}
-            onChange={(v) => onChange({ pricePerDozen: v })}
+            onChange={(v: number | '') => onChange({ pricePerDozen: v })}
             tone="orange"
           />
           <PriceInput
             label="Per Slice"
             emoji="🍰"
             value={basic.pricePerSlice}
-            onChange={(v) => onChange({ pricePerSlice: v })}
+            onChange={(v: number | '') => onChange({ pricePerSlice: v })}
             tone="rose"
           />
           <PriceInput
             label="Per Box"
             emoji="📦"
             value={basic.pricePerBox}
-            onChange={(v) => onChange({ pricePerBox: v })}
+            onChange={(v: number | '') => onChange({ pricePerBox: v })}
             tone="purple"
           />
           <PriceInput
             label="Per Tray"
             emoji="🍱"
             value={basic.pricePerTray}
-            onChange={(v) => onChange({ pricePerTray: v })}
+            onChange={(v: number | '') => onChange({ pricePerTray: v })}
             tone="violet"
           />
         </div>

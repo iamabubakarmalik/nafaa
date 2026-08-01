@@ -74,20 +74,20 @@ export function CarpetPiecesTable({
                   </td>
                   <td className="px-2 py-1.5">
                     <div className="flex gap-1 items-center">
-                      <NumCell value={l.widthFt} onChange={(v) => onUpdate(l.tempId, { widthFt: v })} suffix="ft" width="w-14" />
-                      <NumCell value={l.widthInch} onChange={(v) => onUpdate(l.tempId, { widthInch: v })} suffix="in" width="w-12" max={11} />
+                      <NumCell value={l.widthFt} onChange={(v: number) => onUpdate(l.tempId, { widthFt: v })} suffix="ft" width="w-14" />
+                      <NumCell value={l.widthInch} onChange={(v: number) => onUpdate(l.tempId, { widthInch: v })} suffix="in" width="w-12" max={11} />
                     </div>
                   </td>
                   <td className="px-2 py-1.5">
                     <div className="flex gap-1 items-center">
-                      <NumCell value={l.lengthFt} onChange={(v) => onUpdate(l.tempId, { lengthFt: v })} suffix="ft" width="w-14" />
-                      <NumCell value={l.lengthInch} onChange={(v) => onUpdate(l.tempId, { lengthInch: v })} suffix="in" width="w-12" max={11} />
+                      <NumCell value={l.lengthFt} onChange={(v: number) => onUpdate(l.tempId, { lengthFt: v })} suffix="ft" width="w-14" />
+                      <NumCell value={l.lengthInch} onChange={(v: number) => onUpdate(l.tempId, { lengthInch: v })} suffix="in" width="w-12" max={11} />
                     </div>
                   </td>
                   <td className="px-2 py-1.5">
                     <NumCell
                       value={l.quantity}
-                      onChange={(v) => onUpdate(l.tempId, { quantity: v })}
+                      onChange={(v: number) => onUpdate(l.tempId, { quantity: v })}
                       width="w-14"
                       accent="violet"
                     />
@@ -105,14 +105,14 @@ export function CarpetPiecesTable({
                   <td className="px-2 py-1.5">
                     <NumCell
                       value={l.costPricePerPiece}
-                      onChange={(v) => onUpdate(l.tempId, { costPricePerPiece: v })}
+                      onChange={(v: number) => onUpdate(l.tempId, { costPricePerPiece: v })}
                       width="w-20"
                     />
                   </td>
                   <td className="px-2 py-1.5">
                     <NumCell
                       value={l.salePricePerPiece}
-                      onChange={(v) => onUpdate(l.tempId, { salePricePerPiece: v })}
+                      onChange={(v: number) => onUpdate(l.tempId, { salePricePerPiece: v })}
                       width="w-20"
                       accent="emerald"
                     />

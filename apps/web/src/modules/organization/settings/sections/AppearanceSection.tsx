@@ -10,7 +10,7 @@ export default function AppearanceSection({ s, set }: any) {
   return (
     <div className="space-y-5">
       <SectionCard title="Theme" desc="Dashboard ka appearance" icon={Palette} color="cyan">
-        <ChoiceGroup value={s.theme} onChange={(v) => set('theme', v)} columns={3} options={[
+        <ChoiceGroup value={s.theme} onChange={(v: boolean) => set('theme', v)} columns={3} options={[
           { value: 'light', label: 'Light', desc: 'Always light', emoji: '☀️' },
           { value: 'dark', label: 'Dark', desc: 'Always dark', emoji: '🌙' },
           { value: 'auto', label: 'Auto', desc: 'System ke saath', emoji: '🔄' },
@@ -44,7 +44,7 @@ export default function AppearanceSection({ s, set }: any) {
       </SectionCard>
 
       <SectionCard title="Layout" desc="Density options" icon={Palette} color="cyan">
-        <Toggle checked={s.compactMode} onChange={(v) => set('compactMode', v)} label="Compact mode" desc="UI ko chhota karo, zyada content fit karne ke liye" />
+        <Toggle checked={s.compactMode} onChange={(v: boolean) => set('compactMode', v)} label="Compact mode" desc="UI ko chhota karo, zyada content fit karne ke liye" />
       </SectionCard>
     </div>
   );

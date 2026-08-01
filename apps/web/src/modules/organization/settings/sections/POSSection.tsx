@@ -5,7 +5,7 @@ export default function POSSection({ s, set }: any) {
   return (
     <div className="space-y-5">
       <SectionCard title="Default Payment" desc="POS ka default payment method" icon={CreditCard} color="pink">
-        <ChoiceGroup value={s.defaultPaymentMethod} onChange={(v) => set('defaultPaymentMethod', v)} columns={2} options={[
+        <ChoiceGroup value={s.defaultPaymentMethod} onChange={(v: boolean) => set('defaultPaymentMethod', v)} columns={2} options={[
           { value: 'CASH', label: 'Cash', emoji: '💵' },
           { value: 'CARD', label: 'Card', emoji: '💳' },
           { value: 'JAZZCASH', label: 'JazzCash', emoji: '📱' },
@@ -16,14 +16,14 @@ export default function POSSection({ s, set }: any) {
       </SectionCard>
 
       <SectionCard title="Sale Flow" desc="Sale workflow ke rules" icon={ShoppingCart} color="pink">
-        <Toggle checked={s.confirmBeforeCheckout} onChange={(v) => set('confirmBeforeCheckout', v)} label="Confirm before checkout" desc="Sale complete karne se pehle dialog show ho" />
-        <Toggle checked={s.requireCustomerForSale} onChange={(v) => set('requireCustomerForSale', v)} label="Require customer" desc="Har sale ke liye customer select karna zaroori" />
-        <Toggle checked={s.allowNegativeStock} onChange={(v) => set('allowNegativeStock', v)} label="Allow negative stock" desc="Stock zero hone ke baad bhi sale allow ho" />
-        <Toggle checked={s.roundTotal} onChange={(v) => set('roundTotal', v)} label="Round total" desc="Final total automatically round ho" />
+        <Toggle checked={s.confirmBeforeCheckout} onChange={(v: boolean) => set('confirmBeforeCheckout', v)} label="Confirm before checkout" desc="Sale complete karne se pehle dialog show ho" />
+        <Toggle checked={s.requireCustomerForSale} onChange={(v: boolean) => set('requireCustomerForSale', v)} label="Require customer" desc="Har sale ke liye customer select karna zaroori" />
+        <Toggle checked={s.allowNegativeStock} onChange={(v: boolean) => set('allowNegativeStock', v)} label="Allow negative stock" desc="Stock zero hone ke baad bhi sale allow ho" />
+        <Toggle checked={s.roundTotal} onChange={(v: boolean) => set('roundTotal', v)} label="Round total" desc="Final total automatically round ho" />
       </SectionCard>
 
       <SectionCard title="Discounts" desc="Discount rules" icon={ShoppingCart} color="pink">
-        <Toggle checked={s.allowDiscount} onChange={(v) => set('allowDiscount', v)} label="Allow discounts on sales" />
+        <Toggle checked={s.allowDiscount} onChange={(v: boolean) => set('allowDiscount', v)} label="Allow discounts on sales" />
         {s.allowDiscount && (
           <div className="mt-4">
             <Field label="Max Discount %" hint="Cashier kitni max discount de sakta hai">
@@ -34,9 +34,9 @@ export default function POSSection({ s, set }: any) {
       </SectionCard>
 
       <SectionCard title="Interface" desc="POS UI options" icon={Scan} color="pink">
-        <Toggle checked={s.showProductImages} onChange={(v) => set('showProductImages', v)} label="Show product images" desc="POS mein product photos dikhayein" />
-        <Toggle checked={s.enableBarcodeScanner} onChange={(v) => set('enableBarcodeScanner', v)} label="Enable barcode scanner" desc="Physical scanner support" />
-        <Toggle checked={s.enableQuickKeys} onChange={(v) => set('enableQuickKeys', v)} label="Quick keys" desc="F1-F12 keyboard shortcuts" />
+        <Toggle checked={s.showProductImages} onChange={(v: boolean) => set('showProductImages', v)} label="Show product images" desc="POS mein product photos dikhayein" />
+        <Toggle checked={s.enableBarcodeScanner} onChange={(v: boolean) => set('enableBarcodeScanner', v)} label="Enable barcode scanner" desc="Physical scanner support" />
+        <Toggle checked={s.enableQuickKeys} onChange={(v: boolean) => set('enableQuickKeys', v)} label="Quick keys" desc="F1-F12 keyboard shortcuts" />
       </SectionCard>
     </div>
   );

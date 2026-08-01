@@ -141,20 +141,20 @@ export function VariantEditPanel({ variant, basic, onChange }: Props) {
                 label="Cost"
                 fallback={Number(basic.costPricePerSqft || 0)}
                 value={variant.costPriceOverride}
-                onChange={(v) => onChange({ costPriceOverride: v })}
+                onChange={(v: number | undefined) => onChange({ costPriceOverride: v })}
               />
               <OverrideInput
                 label="Sale"
                 fallback={Number(basic.salePricePerSqft || 0)}
                 value={variant.salePriceOverride}
-                onChange={(v) => onChange({ salePriceOverride: v })}
+                onChange={(v: number | undefined) => onChange({ salePriceOverride: v })}
                 accent
               />
               <OverrideInput
                 label="Wholesale"
                 fallback={Number(basic.wholesalePricePerSqft || 0)}
                 value={variant.wholesalePriceOverride}
-                onChange={(v) => onChange({ wholesalePriceOverride: v })}
+                onChange={(v: number | undefined) => onChange({ wholesalePriceOverride: v })}
               />
             </div>
 

@@ -605,10 +605,10 @@ function CustomerProfileForm({ editing, onClose, onSaved }: {
                 Hair Profile
               </div>
               <div className="grid sm:grid-cols-2 gap-3">
-                <SelectField label="Hair Type" value={form.hairType} options={HAIR_TYPES} onChange={(v) => setForm({ ...form, hairType: v })} color="pink" />
-                <SelectField label="Hair Length" value={form.hairLength} options={HAIR_LENGTHS} onChange={(v) => setForm({ ...form, hairLength: v })} color="pink" />
-                <SelectField label="Hair Color" value={form.hairColor} options={HAIR_COLORS} onChange={(v) => setForm({ ...form, hairColor: v })} color="pink" />
-                <SelectField label="Hair Texture" value={form.hairTexture} options={HAIR_TEXTURES} onChange={(v) => setForm({ ...form, hairTexture: v })} color="pink" />
+                <SelectField label="Hair Type" value={form.hairType} options={HAIR_TYPES} onChange={(v: string) => setForm({ ...form, hairType: v })} color="pink" />
+                <SelectField label="Hair Length" value={form.hairLength} options={HAIR_LENGTHS} onChange={(v: string) => setForm({ ...form, hairLength: v })} color="pink" />
+                <SelectField label="Hair Color" value={form.hairColor} options={HAIR_COLORS} onChange={(v: string) => setForm({ ...form, hairColor: v })} color="pink" />
+                <SelectField label="Hair Texture" value={form.hairTexture} options={HAIR_TEXTURES} onChange={(v: string) => setForm({ ...form, hairTexture: v })} color="pink" />
               </div>
             </div>
 
@@ -619,8 +619,8 @@ function CustomerProfileForm({ editing, onClose, onSaved }: {
                 Skin Profile 
               </div>
               <div className="grid sm:grid-cols-2 gap-3">
-                <SelectField label="Skin Type" value={form.skinType} options={SKIN_TYPES} onChange={(v) => setForm({ ...form, skinType: v })} color="amber" />
-                <SelectField label="Skin Tone" value={form.skinTone} options={SKIN_TONES} onChange={(v) => setForm({ ...form, skinTone: v })} color="amber" />
+                <SelectField label="Skin Type" value={form.skinType} options={SKIN_TYPES} onChange={(v: string) => setForm({ ...form, skinType: v })} color="amber" />
+                <SelectField label="Skin Tone" value={form.skinTone} options={SKIN_TONES} onChange={(v: string) => setForm({ ...form, skinTone: v })} color="amber" />
               </div>
             </div>
 

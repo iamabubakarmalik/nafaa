@@ -613,8 +613,8 @@ export function CarpetWizardStep1Basic({ basic, onChange, errors }: Props) {
       {/* ═══ SECTION 7 — SETTINGS ═══ */}
       <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-2">
         <SectionHeader n="7" icon={Sparkles} title="Settings" desc="Kahan dikhega" />
-        <Toggle checked={basic.isActive} onChange={(v) => onChange({ isActive: v })} icon={Eye} title="Active — POS me dikhega" desc="Off karo to POS/catalog se chhup jayega" />
-        <Toggle checked={basic.isFeatured} onChange={(v) => onChange({ isFeatured: v })} icon={Star} title="Featured — highlight" desc="Catalog me sab se upar" />
+        <Toggle checked={basic.isActive} onChange={(v: boolean) => onChange({ isActive: v })} icon={Eye} title="Active — POS me dikhega" desc="Off karo to POS/catalog se chhup jayega" />
+        <Toggle checked={basic.isFeatured} onChange={(v: boolean) => onChange({ isFeatured: v })} icon={Star} title="Featured — highlight" desc="Catalog me sab se upar" />
       </section>
     </div>
   );

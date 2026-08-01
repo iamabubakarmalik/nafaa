@@ -56,7 +56,7 @@ export function BakeryWizardStep3Production({
             unit="hours"
             emoji="⏱️"
             value={production.prepTimeHours}
-            onChange={(v) => onChange({ prepTimeHours: v })}
+            onChange={(v: number | '') => onChange({ prepTimeHours: v })}
             tone="orange"
           />
           <TimeInput
@@ -64,7 +64,7 @@ export function BakeryWizardStep3Production({
             unit="hours"
             emoji="📅"
             value={production.advanceOrderHours}
-            onChange={(v) => onChange({ advanceOrderHours: v })}
+            onChange={(v: number | '') => onChange({ advanceOrderHours: v })}
             tone="amber"
           />
           <TimeInput
@@ -72,7 +72,7 @@ export function BakeryWizardStep3Production({
             unit=""
             emoji="📦"
             value={production.minOrderQty}
-            onChange={(v) => onChange({ minOrderQty: v })}
+            onChange={(v: number | '') => onChange({ minOrderQty: v })}
             tone="blue"
           />
           <TimeInput
@@ -80,7 +80,7 @@ export function BakeryWizardStep3Production({
             unit=""
             emoji="📦"
             value={production.maxOrderQty}
-            onChange={(v) => onChange({ maxOrderQty: v })}
+            onChange={(v: number | '') => onChange({ maxOrderQty: v })}
             tone="cyan"
           />
         </div>
@@ -104,7 +104,7 @@ export function BakeryWizardStep3Production({
             unit="hours"
             emoji="⏱️"
             value={production.shelfLifeHours}
-            onChange={(v) => onChange({ shelfLifeHours: v })}
+            onChange={(v: number | '') => onChange({ shelfLifeHours: v })}
             tone="cyan"
           />
           <TimeInput
@@ -112,7 +112,7 @@ export function BakeryWizardStep3Production({
             unit="days"
             emoji="📅"
             value={production.shelfLifeDays}
-            onChange={(v) => onChange({ shelfLifeDays: v })}
+            onChange={(v: number | '') => onChange({ shelfLifeDays: v })}
             tone="blue"
           />
         </div>
@@ -319,7 +319,7 @@ export function BakeryWizardStep3Production({
           unit="kcal"
           emoji="🔥"
           value={production.caloriesPerServing}
-          onChange={(v) => onChange({ caloriesPerServing: v })}
+          onChange={(v: number | '') => onChange({ caloriesPerServing: v })}
           tone="rose"
         />
       </section>

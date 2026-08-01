@@ -310,14 +310,14 @@ function RollsTable({
                   </td>
                   <td className="px-2 py-1.5">
                     <div className="flex gap-1 items-center">
-                      <NumCell value={r.widthFt} onChange={(v) => onUpdate(r.tempId, { widthFt: v })} suffix="ft" width="w-14" disabled={locked} />
-                      <NumCell value={r.widthInch} onChange={(v) => onUpdate(r.tempId, { widthInch: v })} suffix="in" width="w-12" max={11} disabled={locked} />
+                      <NumCell value={r.widthFt} onChange={(v: number) => onUpdate(r.tempId, { widthFt: v })} suffix="ft" width="w-14" disabled={locked} />
+                      <NumCell value={r.widthInch} onChange={(v: number) => onUpdate(r.tempId, { widthInch: v })} suffix="in" width="w-12" max={11} disabled={locked} />
                     </div>
                   </td>
                   <td className="px-2 py-1.5">
                     <div className="flex gap-1 items-center">
-                      <NumCell value={r.lengthFt} onChange={(v) => onUpdate(r.tempId, { lengthFt: v })} suffix="ft" width="w-14" disabled={locked} />
-                      <NumCell value={r.lengthInch} onChange={(v) => onUpdate(r.tempId, { lengthInch: v })} suffix="in" width="w-12" max={11} disabled={locked} />
+                      <NumCell value={r.lengthFt} onChange={(v: number) => onUpdate(r.tempId, { lengthFt: v })} suffix="ft" width="w-14" disabled={locked} />
+                      <NumCell value={r.lengthInch} onChange={(v: number) => onUpdate(r.tempId, { lengthInch: v })} suffix="in" width="w-12" max={11} disabled={locked} />
                     </div>
                   </td>
                   <td className="px-2 py-1.5">
@@ -326,10 +326,10 @@ function RollsTable({
                     </div>
                   </td>
                   <td className="px-2 py-1.5">
-                    <NumCell value={r.costPerSqft} onChange={(v) => onUpdate(r.tempId, { costPerSqft: v })} width="w-20" disabled={locked} />
+                    <NumCell value={r.costPerSqft} onChange={(v: number) => onUpdate(r.tempId, { costPerSqft: v })} width="w-20" disabled={locked} />
                   </td>
                   <td className="px-2 py-1.5">
-                    <NumCell value={r.salePricePerSqft} onChange={(v) => onUpdate(r.tempId, { salePricePerSqft: v })} width="w-20" accent="emerald" disabled={locked} />
+                    <NumCell value={r.salePricePerSqft} onChange={(v: number) => onUpdate(r.tempId, { salePricePerSqft: v })} width="w-20" accent="emerald" disabled={locked} />
                   </td>
                   <td className="px-2 py-1.5">
                     {locked ? (

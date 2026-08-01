@@ -129,9 +129,9 @@ export function VariantEditPanel({ variant, basic, onChange }: Props) {
             </div>
 
             <div className="grid sm:grid-cols-3 gap-2">
-              <OverrideInput label="Cost" fallback={Number(basic.costPrice || 0)} value={variant.costPriceOverride} onChange={(v) => onChange({ costPriceOverride: v })} />
-              <OverrideInput label="Sale" fallback={Number(basic.salePrice || 0)} value={variant.salePriceOverride} onChange={(v) => onChange({ salePriceOverride: v })} accent />
-              <OverrideInput label="Wholesale" fallback={Number(basic.wholesalePrice || 0)} value={variant.wholesalePriceOverride} onChange={(v) => onChange({ wholesalePriceOverride: v })} />
+              <OverrideInput label="Cost" fallback={Number(basic.costPrice || 0)} value={variant.costPriceOverride} onChange={(v: number | undefined) => onChange({ costPriceOverride: v })} />
+              <OverrideInput label="Sale" fallback={Number(basic.salePrice || 0)} value={variant.salePriceOverride} onChange={(v: number | undefined) => onChange({ salePriceOverride: v })} accent />
+              <OverrideInput label="Wholesale" fallback={Number(basic.wholesalePrice || 0)} value={variant.wholesalePriceOverride} onChange={(v: number | undefined) => onChange({ wholesalePriceOverride: v })} />
             </div>
 
             {effSale > 0 && effCost > 0 && (

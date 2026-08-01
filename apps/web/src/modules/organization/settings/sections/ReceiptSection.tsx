@@ -25,7 +25,7 @@ export default function ReceiptSection({ s, set }: any) {
     <div className="space-y-5">
       <SectionCard title="Paper & Format" desc="Receipt size aur invoice numbering" icon={Receipt} color="violet">
         <Field label="Receipt Size">
-          <ChoiceGroup value={s.receiptSize} onChange={(v) => set('receiptSize', v)} options={[
+          <ChoiceGroup value={s.receiptSize} onChange={(v: boolean) => set('receiptSize', v)} options={[
             { value: 'THERMAL_58MM', label: '58mm Thermal', desc: 'Small (2.3")', emoji: '🧾' },
             { value: 'THERMAL_80MM', label: '80mm Thermal', desc: 'Standard (3.1")', emoji: '🧾' },
             { value: 'A4_BASIC', label: 'A4 Basic', desc: 'Plain paper', emoji: '📄' },
@@ -46,11 +46,11 @@ export default function ReceiptSection({ s, set }: any) {
       </SectionCard>
 
       <SectionCard title="Common Display Options" icon={Receipt} color="violet">
-        <Toggle checked={s.receiptShowLogo} onChange={(v) => set('receiptShowLogo', v)} label="Show Logo" desc="Shop ka logo print ho" />
-        <Toggle checked={s.receiptShowTax} onChange={(v) => set('receiptShowTax', v)} label="Show Tax Breakdown" />
-        <Toggle checked={s.receiptShowCustomer} onChange={(v) => set('receiptShowCustomer', v)} label="Show Customer Info" />
-        <Toggle checked={s.receiptShowBarcode} onChange={(v) => set('receiptShowBarcode', v)} label="Show Invoice Barcode" />
-        <Toggle checked={s.receiptShowQrCode} onChange={(v) => set('receiptShowQrCode', v)} label="Show QR Code" />
+        <Toggle checked={s.receiptShowLogo} onChange={(v: boolean) => set('receiptShowLogo', v)} label="Show Logo" desc="Shop ka logo print ho" />
+        <Toggle checked={s.receiptShowTax} onChange={(v: boolean) => set('receiptShowTax', v)} label="Show Tax Breakdown" />
+        <Toggle checked={s.receiptShowCustomer} onChange={(v: boolean) => set('receiptShowCustomer', v)} label="Show Customer Info" />
+        <Toggle checked={s.receiptShowBarcode} onChange={(v: boolean) => set('receiptShowBarcode', v)} label="Show Invoice Barcode" />
+        <Toggle checked={s.receiptShowQrCode} onChange={(v: boolean) => set('receiptShowQrCode', v)} label="Show QR Code" />
       </SectionCard>
 
       {industryTemplate.fields.length > 0 && (
@@ -62,7 +62,7 @@ export default function ReceiptSection({ s, set }: any) {
             <Toggle
               key={f.key}
               checked={(receiptConfig?.[f.key] ?? f.defaultValue) as boolean}
-              onChange={(v) => toggleReceiptField(f.key, v)}
+              onChange={(v: boolean) => toggleReceiptField(f.key, v)}
               label={f.label}
               desc={f.desc}
             />
@@ -71,7 +71,7 @@ export default function ReceiptSection({ s, set }: any) {
       )}
 
       <SectionCard title="Printing" desc="Auto-print settings" icon={Printer} color="violet">
-        <Toggle checked={s.autoPrintReceipt} onChange={(v) => set('autoPrintReceipt', v)} label="Auto-print after sale" />
+        <Toggle checked={s.autoPrintReceipt} onChange={(v: boolean) => set('autoPrintReceipt', v)} label="Auto-print after sale" />
         <div className="mt-4">
           <Field label="Copies Count" hint="Kitni copies print ho"><NumberInput value={s.printCopiesCount} onChange={(v: number) => set('printCopiesCount', v)} min={1} max={5} /></Field>
         </div>

@@ -18,7 +18,7 @@ export default function LocalizationSection({ s, set }: any) {
         <Field label="Preferred Language" badge={<SyncedBadge />}>
           <ChoiceGroup
             value={s.language}
-            onChange={(v) => set('language', v)}
+            onChange={(v: boolean) => set('language', v)}
             columns={3}
             options={[
               { value: 'roman_ur', label: 'Roman Urdu', desc: 'Aap kaisay hain', emoji: '🇵🇰' },
