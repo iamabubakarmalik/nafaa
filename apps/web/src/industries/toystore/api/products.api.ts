@@ -152,6 +152,6 @@ export const toyProductsApi = {
   getOne: (id: string) =>
     apiClient.get('/toystore/products/' + id).then(unwrap<ToyProductProfile>),
 
-  remove: (id: string) =>
-    apiClient.delete('/toystore/products/' + id).then(unwrap),
+  remove: (id: string, force = false) =>
+    apiClient.delete(`/toystore/products/${id}${force ? '?force=true' : ''}`).then(unwrap),
 };

@@ -113,13 +113,28 @@ export default function ElectronicsProductsPage() {
   const bulkDelete = useMutation({
     mutationFn: async () => {
       const ids = Array.from(selected);
-      const res = await Promise.allSettled(ids.map((id) => productsApi.remove(id)));
+      const res = await Promise.allSettled(ids.map((id) => productsApi.remove(id, false)));
       return { ok: res.filter((r) => r.status === 'fulfilled').length };
     },
     onSuccess: ({ ok }) => {
       if (ok) toast.success(`${ok} products delete ho gaye`);
       setSelected(new Set());
       queryClient.invalidateQueries({ queryKey: ['electronics-products-list'] });
+
+  const forceDeleteAllMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const res = await Promise.allSettled(ids.map((id) => productsApi.remove(id, true)));
+      return { ok: res.filter((r) => r.status === 'fulfilled').length, fail: res.length - res.filter((r) => r.status === 'fulfilled').length };
+    },
+    onSuccess: ({ ok, fail }) => {
+      if (ok) toast.success(`${ok} products force-deleted (cascade)`);
+      if (fail) toast.error(`${fail} still failed`);
+      setSelected(new Set());
+      queryClient.invalidateQueries();
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Force delete failed'),
+  });
+
     },
   });
 

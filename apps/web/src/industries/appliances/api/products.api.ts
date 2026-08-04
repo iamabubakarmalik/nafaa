@@ -103,6 +103,6 @@ export const applianceProductsApi = {
     apiClient.get('/appliances/products/by-product/' + productId).then(unwrap<ApplianceProductProfile | null>),
   getOne: (id: string) =>
     apiClient.get('/appliances/products/' + id).then(unwrap<ApplianceProductProfile>),
-  remove: (id: string) =>
-    apiClient.delete('/appliances/products/' + id).then(unwrap),
+  remove: (id: string, force = false) =>
+    apiClient.delete(`/appliances/products/${id}${force ? '?force=true' : ''}`).then(unwrap),
 };

@@ -101,5 +101,6 @@ export const bakeryProductsApi = {
   byCategory: () => apiClient.get('/bakery/products/by-category').then(unwrap<Record<string, BakeryProduct[]>>),
   byProduct: (productId: string) => apiClient.get('/bakery/products/by-product/' + productId).then(unwrap<BakeryProduct | null>),
   getOne: (id: string) => apiClient.get('/bakery/products/' + id).then(unwrap<BakeryProduct>),
-  remove: (id: string) => apiClient.delete('/bakery/products/' + id).then(unwrap),
+  remove: (id: string, force = false) =>
+    apiClient.delete(`/bakery/products/${id}${force ? '?force=true' : ''}`).then(unwrap),
 };

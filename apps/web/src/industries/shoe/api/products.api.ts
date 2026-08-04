@@ -117,6 +117,6 @@ export const shoeProductsApi = {
   getOne: (id: string) =>
     apiClient.get('/shoe/products/' + id).then(unwrap<ShoeProductProfile>),
 
-  remove: (id: string) =>
-    apiClient.delete('/shoe/products/' + id).then(unwrap),
+  remove: (id: string, force = false) =>
+    apiClient.delete(`/shoe/products/${id}${force ? '?force=true' : ''}`).then(unwrap),
 };

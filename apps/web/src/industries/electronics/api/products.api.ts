@@ -92,6 +92,6 @@ export const electronicsProductsApi = {
   getOne: (id: string) =>
     apiClient.get('/electronics/products/' + id).then(unwrap<ElectronicsProductProfile>),
 
-  remove: (id: string) =>
-    apiClient.delete('/electronics/products/' + id).then(unwrap),
+  remove: (id: string, force = false) =>
+    apiClient.delete(`/electronics/products/${id}${force ? '?force=true' : ''}`).then(unwrap),
 };

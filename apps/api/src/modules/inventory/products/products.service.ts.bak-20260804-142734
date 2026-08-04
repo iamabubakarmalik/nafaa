@@ -258,7 +258,7 @@ export class ProductsService {
     return this.findOne(user, id);
   }
 
-  async remove(user: AuthenticatedUser, id: string, force = false) {
+  async remove(user: AuthenticatedUser, id: string) {
     await this.findOne(user, id);
 
     const saleItemCount = await this.prisma.saleItem.count({
@@ -269,42 +269,13 @@ export class ProductsService {
       where: { productId: id },
     });
 
-    // ═══ FORCE DELETE — cascade everything ═══
-    if (force) {
-      await this.prisma.$transaction(async (tx) => {
-        // Delete all related records first
-        await tx.saleItem.deleteMany({ where: { productId: id } });
-        await tx.purchaseItem.deleteMany({ where: { productId: id } });
-        await tx.stockMovement.deleteMany({ where: { productId: id } });
-        await tx.stockAdjustment.deleteMany({ where: { productId: id } }).catch(() => {});
-        await tx.productImage.deleteMany({ where: { productId: id } });
-        await tx.productTag.deleteMany({ where: { productId: id } });
-        await tx.productVariant.deleteMany({ where: { productId: id } });
-        await tx.productBatch.deleteMany({ where: { productId: id } });
-        await tx.shopStock.deleteMany({ where: { productId: id } });
-        await tx.productImei.deleteMany({ where: { productId: id } }).catch(() => {});
-        await tx.carpetRoll.deleteMany({ where: { productId: id } }).catch(() => {});
-        await tx.carpetCutPiece.deleteMany({ where: { productId: id } }).catch(() => {});
-
-        // Finally delete the product
-        await tx.product.delete({ where: { id } });
-      });
-
-      return {
-        message: 'Product force-deleted with all history',
-        forced: true,
-        cascadedSales: saleItemCount,
-        cascadedPurchases: purchaseItemCount,
-      };
-    }
-
     if (saleItemCount > 0 || purchaseItemCount > 0) {
       await this.prisma.product.update({
         where: { id },
         data: { isActive: false },
       });
       return {
-        message: 'Product deactivated (cannot delete — has sales/purchase history). Use force=true to override.',
+        message: 'Product deactivated (cannot delete — has sales/purchase history)',
         softDeleted: true,
         saleCount: saleItemCount,
         purchaseCount: purchaseItemCount,
@@ -352,32 +323,39 @@ export class ProductsService {
         await this.prisma.product.updateMany({ where, data: { isFeatured: false } });
         break;
       case 'delete': {
-        // For bulk: use force delete for all (removes safety)
-        // Cascade delete everything
-        await this.prisma.$transaction(async (tx) => {
-          await tx.saleItem.deleteMany({ where: { productId: { in: productIds } } });
-          await tx.purchaseItem.deleteMany({ where: { productId: { in: productIds } } });
-          await tx.stockMovement.deleteMany({ where: { productId: { in: productIds } } });
-          await tx.productImage.deleteMany({ where: { productId: { in: productIds } } });
-          await tx.productTag.deleteMany({ where: { productId: { in: productIds } } });
-          await tx.productVariant.deleteMany({ where: { productId: { in: productIds } } });
-          await tx.productBatch.deleteMany({ where: { productId: { in: productIds } } });
-          await tx.shopStock.deleteMany({ where: { productId: { in: productIds } } });
-          await tx.productImei.deleteMany({ where: { productId: { in: productIds } } }).catch(() => {});
-          await tx.carpetRoll.deleteMany({ where: { productId: { in: productIds } } }).catch(() => {});
-          await tx.carpetCutPiece.deleteMany({ where: { productId: { in: productIds } } }).catch(() => {});
-
-          await tx.product.deleteMany({
-            where: { id: { in: productIds }, tenantId: user.tenantId },
-          });
+        const productsWithHistory = await this.prisma.product.findMany({
+          where: {
+            id: { in: productIds },
+            tenantId: user.tenantId,
+            OR: [
+              { saleItems: { some: {} } },
+              { purchaseItems: { some: {} } },
+            ],
+          },
+          select: { id: true },
         });
+
+        const softIds = productsWithHistory.map((p) => p.id);
+        const hardIds = productIds.filter((id) => !softIds.includes(id));
+
+        if (softIds.length > 0) {
+          await this.prisma.product.updateMany({
+            where: { id: { in: softIds }, tenantId: user.tenantId },
+            data: { isActive: false },
+          });
+        }
+
+        if (hardIds.length > 0) {
+          await this.prisma.product.deleteMany({
+            where: { id: { in: hardIds }, tenantId: user.tenantId },
+          });
+        }
 
         return {
           count: productIds.length,
           action,
-          hardDeleted: productIds.length,
-          softDeleted: 0,
-          forced: true,
+          hardDeleted: hardIds.length,
+          softDeleted: softIds.length,
         };
       }
     }

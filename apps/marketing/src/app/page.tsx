@@ -10,7 +10,6 @@ import { FeatureShowcase } from '@/components/home/FeatureShowcase';
 import { IndustriesGrid } from '@/components/home/IndustriesGrid';
 import { PakistanMap } from '@/components/features/PakistanMap';
 import { IntegrationsWall } from '@/components/home/IntegrationsWall';
-import { LiveBazaarPreview } from '@/components/features/LiveBazaarPreview';
 import { MarketplacePreview } from '@/components/home/MarketplacePreview';
 import { VideoTestimonialWall } from '@/components/features/VideoTestimonialWall';
 import { Testimonials } from '@/components/home/Testimonials';
@@ -37,7 +36,6 @@ export default function HomePage() {
         <IndustriesGrid />
         <PakistanMap />
         <IntegrationsWall />
-        <LiveBazaarPreview />
         <MarketplacePreview />
         <VideoTestimonialWall />
         <Testimonials />

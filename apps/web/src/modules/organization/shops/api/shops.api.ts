@@ -91,6 +91,10 @@ export const shopsApi = {
     apiClient.patch<{ data: Shop }>(`/shops/${id}`, payload).then(unwrap),
   toggleActive: (id: string) =>
     apiClient.patch<{ data: Shop }>(`/shops/${id}/toggle`).then(unwrap),
-  remove: (id: string) =>
-    apiClient.delete<{ data: { message: string } }>(`/shops/${id}`).then(unwrap),
+  remove: (id: string, force = false) =>
+    apiClient
+      .delete<{ data: { message: string; forced?: boolean } }>(
+        `/shops/${id}${force ? '?force=true' : ''}`,
+      )
+      .then(unwrap),
 };

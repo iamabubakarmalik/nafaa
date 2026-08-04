@@ -139,6 +139,6 @@ export const furnitureProductsApi = {
   getOne: (id: string) =>
     apiClient.get('/furniture/products/' + id).then(unwrap<FurnitureProductProfile>),
 
-  remove: (id: string) =>
-    apiClient.delete('/furniture/products/' + id).then(unwrap),
+  remove: (id: string, force = false) =>
+    apiClient.delete(`/furniture/products/${id}${force ? '?force=true' : ''}`).then(unwrap),
 };

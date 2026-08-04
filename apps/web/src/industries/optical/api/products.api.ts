@@ -106,6 +106,6 @@ export const opticalProductsApi = {
   getOne: (id: string) =>
     apiClient.get('/optical/products/' + id).then(unwrap<OpticalProductProfile>),
 
-  remove: (id: string) =>
-    apiClient.delete('/optical/products/' + id).then(unwrap),
+  remove: (id: string, force = false) =>
+    apiClient.delete(`/optical/products/${id}${force ? '?force=true' : ''}`).then(unwrap),
 };

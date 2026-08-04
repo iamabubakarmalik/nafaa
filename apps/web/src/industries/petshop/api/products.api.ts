@@ -105,6 +105,6 @@ export const petProductsApi = {
   getOne: (id: string) =>
     apiClient.get('/petshop/products/' + id).then(unwrap<PetProductProfile>),
 
-  remove: (id: string) =>
-    apiClient.delete('/petshop/products/' + id).then(unwrap),
+  remove: (id: string, force = false) =>
+    apiClient.delete(`/petshop/products/${id}${force ? '?force=true' : ''}`).then(unwrap),
 };

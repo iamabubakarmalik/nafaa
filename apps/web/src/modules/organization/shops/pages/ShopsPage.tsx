@@ -64,9 +64,23 @@ export default function ShopsPage() {
     },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
   });
+  const forceDeleteMutation = useMutation({
+    mutationFn: (id: string) => shopsApi.remove(id, true),
+    onSuccess: () => {
+      toast.success('Shop force-deleted with all history', {
+        description: 'Cascade delete complete',
+      });
+      queryClient.invalidateQueries({ queryKey: ['shops'] });
+      queryClient.invalidateQueries({ queryKey: ['shops-overview'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-overview'] });
+    },
+    onError: (e: any) =>
+      toast.error(e?.response?.data?.message || 'Force delete failed'),
+  });
+
 
   const deleteMutation = useMutation({
-    mutationFn: shopsApi.remove,
+    mutationFn: (id: string) => shopsApi.remove(id),
     onSuccess: () => {
       toast.success('Shop deleted');
       queryClient.invalidateQueries({ queryKey: ['shops'] });
@@ -90,15 +104,19 @@ export default function ShopsPage() {
             });
             break;
           case 'HAS_SALES_HISTORY':
-            toast.error(errObj.message, {
-              description: `${errObj.stats?.sales ?? 0} sales delete nahi ho sakti. Shop ko deactivate karein.`,
-              duration: 8000,
+            toast.error(errObj.message || 'Cannot delete — has sales history', {
+              description: `${errObj.stats?.sales ?? 0} sales hain. Force Delete se sab kuch mit jayega (irreversible).`,
+              duration: 12000,
               action: {
-                label: 'Deactivate',
+                label: '⚠️ Force Delete',
                 onClick: () => {
-                  // Trigger deactivation via toggle
-                  const shopId = deleteMutation.variables;
-                  if (shopId) toggleMutation.mutate(shopId as string);
+                  const shopId = deleteMutation.variables as string;
+                  if (!shopId) return;
+                  const c1 = confirm(`⚠️ DANGER: Ye ${errObj.stats?.sales ?? 0} sales, cash registers, transfers, aur ShopStock — sab kuch delete kar dega. Ye undo nahi ho sakta.\n\nContinue?`);
+                  if (!c1) return;
+                  const c2 = confirm('Bilkul sure? Ye demo/test cleanup ke liye hai. Production shops mein use MAT karein.');
+                  if (!c2) return;
+                  forceDeleteMutation.mutate(shopId);
                 },
               },
             });

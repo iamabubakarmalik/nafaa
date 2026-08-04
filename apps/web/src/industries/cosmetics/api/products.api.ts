@@ -109,5 +109,6 @@ export const cosmeticsProductsApi = {
 
   getOne: (id: string) => apiClient.get('/cosmetics/products/' + id).then(unwrap<CosmeticsProductProfile>),
 
-  remove: (id: string) => apiClient.delete('/cosmetics/products/' + id).then(unwrap),
+  remove: (id: string, force = false) =>
+    apiClient.delete(`/cosmetics/products/${id}${force ? '?force=true' : ''}`).then(unwrap),
 };

@@ -186,8 +186,12 @@ export const productsApi = {
       .post<{ data: { count: number; products: Product[] } }>('/products/bulk-generate-barcodes', { productIds })
       .then(unwrap),
 
-  remove: (id: string) =>
-    apiClient.delete<{ data: { message: string } }>(`/products/${id}`).then(unwrap),
+  remove: (id: string, force = false) =>
+    apiClient
+      .delete<{ data: { message: string; forced?: boolean; softDeleted?: boolean } }>(
+        `/products/${id}${force ? '?force=true' : ''}`,
+      )
+      .then(unwrap),
 
   backfillShopStock: () =>
     apiClient

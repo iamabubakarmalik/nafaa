@@ -91,5 +91,6 @@ export const agriProductsApi = {
   expiringCerts: (days?: number) => apiClient.get('/agri/products/expiring-certs', { params: { days } }).then(unwrap<AgriProductProfile[]>),
   byProduct: (productId: string) => apiClient.get('/agri/products/by-product/' + productId).then(unwrap<AgriProductProfile | null>),
   getOne: (id: string) => apiClient.get('/agri/products/' + id).then(unwrap<AgriProductProfile>),
-  remove: (id: string) => apiClient.delete('/agri/products/' + id).then(unwrap),
+  remove: (id: string, force = false) =>
+    apiClient.delete(`/agri/products/${id}${force ? '?force=true' : ''}`).then(unwrap),
 };

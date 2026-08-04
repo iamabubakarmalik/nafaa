@@ -122,6 +122,6 @@ export const sportsProductsApi = {
   getOne: (id: string) =>
     apiClient.get('/sports/products/' + id).then(unwrap<SportsProductProfile>),
 
-  remove: (id: string) =>
-    apiClient.delete('/sports/products/' + id).then(unwrap),
+  remove: (id: string, force = false) =>
+    apiClient.delete(`/sports/products/${id}${force ? '?force=true' : ''}`).then(unwrap),
 };

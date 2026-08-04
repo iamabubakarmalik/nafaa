@@ -82,5 +82,6 @@ export const meatProductsApi = {
   list: (params?: any) => apiClient.get('/meat/products', { params }).then(unwrap<MeatProductProfile[]>),
   byProduct: (productId: string) => apiClient.get('/meat/products/by-product/' + productId).then(unwrap<MeatProductProfile | null>),
   getOne: (id: string) => apiClient.get('/meat/products/' + id).then(unwrap<MeatProductProfile>),
-  remove: (id: string) => apiClient.delete('/meat/products/' + id).then(unwrap),
+  remove: (id: string, force = false) =>
+    apiClient.delete(`/meat/products/${id}${force ? '?force=true' : ''}`).then(unwrap),
 };

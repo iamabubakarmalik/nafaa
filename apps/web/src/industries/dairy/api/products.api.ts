@@ -62,5 +62,6 @@ export const dairyProductsApi = {
   list: (params?: any) => apiClient.get('/dairy/products', { params }).then(unwrap<DairyProduct[]>),
   byProduct: (productId: string) => apiClient.get('/dairy/products/by-product/' + productId).then(unwrap<DairyProduct | null>),
   getOne: (id: string) => apiClient.get('/dairy/products/' + id).then(unwrap<DairyProduct>),
-  remove: (id: string) => apiClient.delete('/dairy/products/' + id).then(unwrap),
+  remove: (id: string, force = false) =>
+    apiClient.delete(`/dairy/products/${id}${force ? '?force=true' : ''}`).then(unwrap),
 };

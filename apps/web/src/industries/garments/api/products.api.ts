@@ -97,8 +97,8 @@ export const garmentProductsApi = {
     apiClient.get('/garments/products/by-product/' + productId).then(unwrap<GarmentProductProfile | null>),
   getOne: (id: string) =>
     apiClient.get('/garments/products/' + id).then(unwrap<GarmentProductProfile>),
-  remove: (id: string) =>
-    apiClient.delete('/garments/products/' + id).then(unwrap),
+  remove: (id: string, force = false) =>
+    apiClient.delete(`/garments/products/${id}${force ? '?force=true' : ''}`).then(unwrap),
 
   upsertVariant: (data: Partial<VariantProfile>) =>
     apiClient.post('/garments/products/variant-profile', data).then(unwrap<VariantProfile>),

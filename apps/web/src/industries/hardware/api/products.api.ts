@@ -84,5 +84,6 @@ export const hardwareProductsApi = {
   byCategoryCount: () => apiClient.get('/hardware/products/by-category-count').then(unwrap<Record<string, number>>),
   byProduct: (productId: string) => apiClient.get('/hardware/products/by-product/' + productId).then(unwrap<HardwareProduct | null>),
   getOne: (id: string) => apiClient.get('/hardware/products/' + id).then(unwrap<HardwareProduct>),
-  remove: (id: string) => apiClient.delete('/hardware/products/' + id).then(unwrap),
+  remove: (id: string, force = false) =>
+    apiClient.delete(`/hardware/products/${id}${force ? '?force=true' : ''}`).then(unwrap),
 };

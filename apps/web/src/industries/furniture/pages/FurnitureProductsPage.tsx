@@ -23,6 +23,7 @@ const CATEGORIES = [
 ];
 
 export default function FurnitureProductsPage() {
+  const queryClient = useQueryClient();
   const qc = useQueryClient();
   const [search, setSearch] = useState('');
   const [categoryType, setCategoryType] = useState('all');
@@ -91,7 +92,7 @@ export default function FurnitureProductsPage() {
 
   const bulkDelete = useMutation({
     mutationFn: async () => {
-      const res = await Promise.allSettled(Array.from(selected).map((id) => productsApi.remove(id)));
+      const res = await Promise.allSettled(Array.from(selected).map((id) => productsApi.remove(id, false)));
       return res.filter((r) => r.status === 'fulfilled').length;
     },
     onSuccess: (ok) => {
@@ -99,6 +100,23 @@ export default function FurnitureProductsPage() {
       setSelected(new Set());
       qc.invalidateQueries({ queryKey: ['furniture-products-list'] });
     },
+  });
+
+  const forceDeleteAllMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const res = await Promise.allSettled(ids.map((id) => productsApi.remove(id, true)));
+      return {
+        ok: res.filter((r) => r.status === 'fulfilled').length,
+        fail: res.length - res.filter((r) => r.status === 'fulfilled').length,
+      };
+    },
+    onSuccess: ({ ok, fail }) => {
+      if (ok) toast.success(`${ok} products force-deleted (cascade)`);
+      if (fail) toast.error(`${fail} still failed`);
+      setSelected(new Set());
+      queryClient.invalidateQueries();
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Force delete failed'),
   });
 
   const exportCSV = () => {
@@ -223,7 +241,24 @@ export default function FurnitureProductsPage() {
       {selected.size > 0 && (
         <section className="sticky top-2 z-20 rounded-2xl bg-slate-900 text-white shadow-2xl p-3 flex items-center gap-2 flex-wrap">
           <div className="font-extrabold text-sm px-2">{selected.size} selected</div>
-          <button onClick={() => { if (confirm(`Delete ${selected.size} products?`)) bulkDelete.mutate(); }}
+          <button onClick={() => {
+                const ids = Array.from(selected);
+                const label = `${ids.length} item(s)`;
+                const c1 = confirm(`⚠️ DANGER: ${label} aur unki saari sales/purchase history delete ho jayegi.
+
+Ye irreversible hai. Continue?`);
+                if (!c1) return;
+                const c2 = confirm('Bilkul sure? Test/demo cleanup ke liye hi.');
+                if (!c2) return;
+                bulkDelete.mutate(undefined, {
+                  onSuccess: ({ fail }: any) => {
+                    if (fail && fail > 0) {
+                      const useForce = confirm(`${fail} products delete nahi ho paye (sales/purchase history hai). Force Delete (cascade) karein?`);
+                      if (useForce) forceDeleteAllMutation.mutate(ids);
+                    }
+                  },
+                });
+              }}
             className="px-3 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-xs font-extrabold inline-flex items-center gap-1">
             <Trash2 className="h-3.5 w-3.5" /> Delete
           </button>

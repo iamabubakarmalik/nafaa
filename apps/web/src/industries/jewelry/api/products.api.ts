@@ -118,5 +118,6 @@ export const jewelryProductsApi = {
   byProduct: (productId: string) => apiClient.get('/jewelry/products/by-product/' + productId).then(unwrap<JewelryProductProfile | null>),
   getOne: (id: string) => apiClient.get('/jewelry/products/' + id).then(unwrap<JewelryProductProfile>),
   currentPrice: (id: string) => apiClient.get('/jewelry/products/' + id + '/current-price').then(unwrap<any>),
-  remove: (id: string) => apiClient.delete('/jewelry/products/' + id).then(unwrap),
+  remove: (id: string, force = false) =>
+    apiClient.delete(`/jewelry/products/${id}${force ? '?force=true' : ''}`).then(unwrap),
 };

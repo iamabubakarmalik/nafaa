@@ -103,6 +103,6 @@ export const gamingProductsApi = {
   getOne: (id: string) =>
     apiClient.get('/gaming/products/' + id).then(unwrap<GamingProductProfile>),
 
-  remove: (id: string) =>
-    apiClient.delete('/gaming/products/' + id).then(unwrap),
+  remove: (id: string, force = false) =>
+    apiClient.delete(`/gaming/products/${id}${force ? '?force=true' : ''}`).then(unwrap),
 };

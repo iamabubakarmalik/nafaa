@@ -170,14 +170,43 @@ export default function RetailProductsPage() {
   const bulkDelete = useMutation({
     mutationFn: async () => {
       const ids = Array.from(selected);
-      const res = await Promise.allSettled(ids.map((id) => productsApi.remove(id)));
+      const res = await Promise.allSettled(ids.map((id) => productsApi.remove(id, false)));
       return { ok: res.filter((r) => r.status === 'fulfilled').length, fail: res.length - res.filter((r) => r.status === 'fulfilled').length };
     },
     onSuccess: ({ ok, fail }) => {
       if (ok) toast.success(`${ok} products delete ho gaye`);
-      if (fail) toast.error(`${fail} delete nahi huay (sales me use ho rahe hain)`);
+      if (fail) {
+        const ids = Array.from(selected);
+        toast.error(`${fail} products delete nahi huay (sales/purchase history hai)`, {
+          duration: 12000,
+          action: {
+            label: '⚠️ Force Delete All',
+            onClick: () => {
+              const c1 = confirm(`⚠️ DANGER: ${fail} products aur unki saari sales/purchase history delete ho jayegi. Irreversible. Continue?`);
+              if (!c1) return;
+              const c2 = confirm('Bilkul sure? Test/demo cleanup ke liye hi.');
+              if (c2) forceDeleteAllMutation.mutate(ids);
+            },
+          },
+        });
+      }
       setSelected(new Set());
       queryClient.invalidateQueries({ queryKey: ['retail-products'] });
+
+  const forceDeleteAllMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const res = await Promise.allSettled(ids.map((id) => productsApi.remove(id, true)));
+      return { ok: res.filter((r) => r.status === 'fulfilled').length, fail: res.length - res.filter((r) => r.status === 'fulfilled').length };
+    },
+    onSuccess: ({ ok, fail }) => {
+      if (ok) toast.success(`${ok} products force-deleted (cascade)`);
+      if (fail) toast.error(`${fail} still failed`);
+      setSelected(new Set());
+      queryClient.invalidateQueries();
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Force delete failed'),
+  });
+
       forceRefreshProducts().catch(() => {});
     },
   });

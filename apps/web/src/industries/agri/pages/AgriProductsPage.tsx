@@ -54,11 +54,44 @@ export default function AgriProductsPage() {
     }),
   });
 
-  const removeMutation = useMutation({
+    const forceDeleteMutation = useMutation({
+    mutationFn: (id: string) => agriProductsApi.remove(id, true),
+    onSuccess: () => {
+      toast.success('Product force-deleted with all history');
+      queryClient.invalidateQueries({ queryKey: ['agri-products'] });
+    },
+    onError: (e: any) =>
+      toast.error(e?.response?.data?.message || 'Force delete failed'),
+  });
+
+const removeMutation = useMutation({
     mutationFn: (id: string) => agriProductsApi.remove(id),
     onSuccess: () => {
       toast.success('Product removed');
       queryClient.invalidateQueries({ queryKey: ['agri-products'] });
+    },
+    onError: (e: any) => {
+      const msg = e?.response?.data?.message || '';
+      const softDeleted = e?.response?.data?.softDeleted || /sales|purchase|history/i.test(msg);
+      if (softDeleted) {
+        const id = removeMutation.variables as string;
+        toast.error('Cannot delete — has sales/purchase history', {
+          description: 'Force Delete se sab kuch cascade delete hoga (irreversible)',
+          duration: 12000,
+          action: {
+            label: '⚠️ Force Delete',
+            onClick: () => {
+              if (!id) return;
+              const c1 = confirm('⚠️ DANGER: Ye product aur uski saari sales/purchase history delete ho jayegi. Irreversible. Continue?');
+              if (!c1) return;
+              const c2 = confirm('Bilkul sure? Test/demo cleanup ke liye hi use karein.');
+              if (c2) forceDeleteMutation.mutate(id);
+            },
+          },
+        });
+      } else {
+        toast.error(msg || 'Delete failed');
+      }
     },
   });
 

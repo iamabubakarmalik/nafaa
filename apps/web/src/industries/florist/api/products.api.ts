@@ -81,6 +81,6 @@ export const floristProductsApi = {
   getOne: (id: string) =>
     apiClient.get('/florist/products/' + id).then(unwrap<FloristProductProfile>),
 
-  remove: (id: string) =>
-    apiClient.delete('/florist/products/' + id).then(unwrap),
+  remove: (id: string, force = false) =>
+    apiClient.delete(`/florist/products/${id}${force ? '?force=true' : ''}`).then(unwrap),
 };
