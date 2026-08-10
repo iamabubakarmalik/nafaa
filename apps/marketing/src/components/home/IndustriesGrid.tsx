@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Flame, Star } from 'lucide-react';
 import { useLocale } from '@/components/providers/LocaleProvider';
 import { Container } from '@/components/primitives/Container';
 import { Section } from '@/components/primitives/Section';
@@ -16,13 +16,14 @@ export function IndustriesGrid() {
   const { t, locale } = useLocale();
   const isUr = locale === 'ur';
 
+  // Show 12 featured + hot industries on homepage
+  const shown = industries.filter((i) => i.featured || i.hot).slice(0, 12);
+
   return (
     <Section variant="subtle" spacing="lg">
       <Container>
         <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={viewport}
+          initial="hidden" whileInView="visible" viewport={viewport}
           variants={staggerContainer(0.06)}
           className="max-w-3xl mb-14"
         >
@@ -45,45 +46,58 @@ export function IndustriesGrid() {
               isUr && 'font-urdu text-xl leading-loose',
             )}
           >
-            {t('industries.subtitle')}
+            {isUr
+              ? 'قالین سے فارمیسی، کریانہ سے زیورات — بتیس صنعتوں کے لیے مخصوص ورک فلو'
+              : 'From carpets to pharmacies, kiryana to jewelry — purpose-built workflows for thirty-two industries'}
           </motion.p>
         </motion.div>
 
         <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={viewport}
+          initial="hidden" whileInView="visible" viewport={viewport}
           variants={staggerContainer(0.03)}
-          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 lg:gap-4"
+          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4"
         >
-          {industries.map((ind) => (
+          {shown.map((ind) => (
             <motion.div key={ind.slug} variants={fadeUp}>
               <Link
                 href={`/industries/${ind.slug}`}
                 className={cn(
                   'group relative block rounded-2xl overflow-hidden',
                   'bg-white dark:bg-ink-800 ring-1 ring-inset ring-ink-100 dark:ring-ink-700/60',
-                  'p-5 transition-all duration-300 ease-out-expo',
-                  'hover:-translate-y-1 hover:shadow-card-hover',
+                  'transition-all duration-300 hover:-translate-y-1 hover:shadow-card-hover',
                 )}
               >
-                {/* Gradient overlay on hover */}
+                {/* Colored top strip */}
+                <div className="h-1 w-full" style={{
+                  background: `linear-gradient(90deg, ${ind.color}, ${ind.colorDark})`,
+                }} />
+
+                {/* Hover gradient */}
                 <div
-                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                  style={{
-                    background: `linear-gradient(135deg, ${ind.color}12 0%, ${ind.color}05 100%)`,
-                  }}
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                  style={{ background: `linear-gradient(135deg, ${ind.color}10, transparent 70%)` }}
                 />
-                <div className="relative">
-                  <div
-                    className="h-11 w-11 rounded-xl flex items-center justify-center text-2xl transition-transform duration-500 group-hover:scale-110"
-                    style={{ background: ind.color + '18' }}
-                  >
-                    {ind.emoji}
+
+                <div className="relative p-5">
+                  <div className="flex items-start justify-between mb-3">
+                    <div
+                      className="h-12 w-12 rounded-xl flex items-center justify-center text-2xl transition-transform duration-500 group-hover:scale-110 shadow-sm"
+                      style={{ background: `linear-gradient(135deg, ${ind.color}25, ${ind.color}10)` }}
+                    >
+                      {ind.emoji}
+                    </div>
+                    {ind.hot && (
+                      <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-sunset/15 text-sunset">
+                        <Flame className="h-2.5 w-2.5" /> HOT
+                      </span>
+                    )}
+                    {ind.featured && !ind.hot && (
+                      <Star className="h-4 w-4 text-gold fill-gold" />
+                    )}
                   </div>
                   <h3
                     className={cn(
-                      'mt-3 font-bold text-sm leading-tight text-ink-900 dark:text-white',
+                      'font-bold text-sm leading-tight text-ink-900 dark:text-white',
                       'group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors',
                       isUr && 'font-urdu text-base leading-snug',
                     )}
@@ -96,7 +110,9 @@ export function IndustriesGrid() {
                   )}>
                     {isUr ? ind.tagUr : ind.tagEn}
                   </p>
-                  <div className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-brand-600 dark:text-brand-400 opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all">
+                  <div className="mt-3 inline-flex items-center gap-1 text-xs font-bold opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all"
+                    style={{ color: ind.color }}
+                  >
                     {isUr ? 'دیکھیں' : 'Explore'}
                     <ArrowRight className="h-3 w-3" />
                   </div>
@@ -108,7 +124,7 @@ export function IndustriesGrid() {
 
         <div className="mt-10 text-center">
           <Button href="/industries" variant="secondary" size="lg" rightIcon={<ArrowRight className="h-4 w-4" />}>
-            {t('industries.viewAll')}
+            {isUr ? 'تمام ۳۲ صنعتیں دیکھیں' : 'View all 32 industries'}
           </Button>
         </div>
       </Container>

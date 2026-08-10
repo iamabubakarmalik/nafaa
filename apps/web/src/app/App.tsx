@@ -1,5 +1,4 @@
 // apps/web/src/App.tsx
-import ShopsOverviewPage from '@modules/organization/shops/pages/ShopsOverviewPage';
 import { OwnerOnly } from '@app/router/RoleGuard';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -127,6 +126,7 @@ import ProfitReportPage from '@modules/finance/profit-report/pages/ProfitReportP
 import SettingsPage from '@modules/organization/settings/pages/SettingsPage';
 import BarcodeLabelsPage from '@modules/inventory/barcodes/pages/BarcodeLabelsPage';
 import ShopsPage from '@modules/organization/shops/pages/ShopsPage';
+import ShopsOverviewPage from '@modules/organization/shops/pages/ShopsOverviewPage';
 import ActivityLogPage from '@modules/reports/activity-log/pages/ActivityLogPage';
 import ExportsPage from '@modules/reports/exports/pages/ExportsPage';
 import BackupPage from '@modules/backup/pages/BackupPage';
@@ -689,6 +689,7 @@ export default function App() {
 
                   <Route path="/barcode-labels" element={secure(PERMISSIONS.BARCODE_LABELS_VIEW, <BarcodeLabelsPage />)} />
                   <Route path="/shops" element={secure(PERMISSIONS.SHOPS_VIEW, <ShopsPage />)} />
+                  <Route path="/Shops/overview" element={secure(PERMISSIONS.SHOPS_VIEW, <ShopsOverviewPage />)} />
                   <Route path="/activity-log" element={secure(PERMISSIONS.ACTIVITY_VIEW, <ActivityLogPage />)} />
                   <Route path="/exports" element={secure(PERMISSIONS.EXPORTS_VIEW, <ExportsPage />)} />
                   <Route path="/backup" element={secure(PERMISSIONS.BACKUP_MANAGE, <BackupPage />)} />

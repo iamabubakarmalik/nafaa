@@ -117,6 +117,7 @@ const posNavGroups: NavGroup[] = [
       { to: '/fbr/reports', label: 'Monthly Reports', icon: TrendingUp },
       { to: '/fbr/analytics', label: 'Analytics', icon: BarChart3 },
       { to: '/shops', label: 'Shops / Branches', icon: Building2, permission: PERMISSIONS.SHOPS_VIEW },
+      { to: '/shops/overview', label: 'Shops / Branches', icon: Building2, permission: PERMISSIONS.SHOPS_VIEW },
       { to: '/exports', label: 'Exports', icon: Download, permission: PERMISSIONS.EXPORTS_VIEW },
       { to: '/backup', label: 'Backup', icon: Database, permission: PERMISSIONS.BACKUP_MANAGE },
       { to: '/activity-log', label: 'Activity Log', icon: Activity, permission: PERMISSIONS.ACTIVITY_VIEW },

@@ -1,109 +1,205 @@
-import Link from 'next/link';
-import { Calendar, Clock, ArrowRight, BookOpen } from 'lucide-react';
+'use client';
+
+import { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, Sparkles, TrendingUp } from 'lucide-react';
 import { Header } from '@/components/layout/Header/Header';
 import { Footer } from '@/components/layout/Footer/Footer';
 import { FloatingWhatsApp } from '@/components/layout/Footer/FloatingWhatsApp';
-import { CTA } from '@/components/home/CTA';
 import { Container } from '@/components/primitives/Container';
 import { Section } from '@/components/primitives/Section';
 import { Eyebrow } from '@/components/primitives/Eyebrow';
-import { Badge } from '@/components/primitives/Badge';
 import { GradientText } from '@/components/primitives/GradientText';
 import { AuroraBackground } from '@/components/primitives/AuroraBackground';
 import { GridBackground } from '@/components/primitives/GridBackground';
 import { NoiseTexture } from '@/components/primitives/NoiseTexture';
-import { blogPosts, blogCategories, featuredPosts } from '@/lib/data/blog';
-import { buildMetadata } from '@/lib/seo/metadata';
+import { BlogCard } from '@/components/blog/BlogCard';
+import { blogPosts, getFeaturedPosts } from '@/lib/data/blog/posts';
+import { blogCategories, type BlogCategory } from '@/lib/data/blog/types';
+import { useLocale } from '@/components/providers/LocaleProvider';
+import { staggerContainer, fadeUp, viewport } from '@/lib/motion/presets';
+import { cn } from '@/lib/cn';
 
-export const metadata = buildMetadata({
-  title: 'Blog — guides, tutorials & stories for Pakistani businesses',
-  description: 'Pakistan\'s best business blog: FBR compliance guides, digital khata tutorials, industry insights, and real success stories from Pakistani shopkeepers.',
-  path: '/blog',
-});
-
-const fmt = (d: string) => new Intl.DateTimeFormat('en-PK', { dateStyle: 'long' }).format(new Date(d));
+type FilterKey = 'all' | BlogCategory;
 
 export default function BlogPage() {
-  const featured = featuredPosts[0];
-  const rest = blogPosts.filter((p) => p.slug !== featured?.slug);
+  const { locale } = useLocale();
+  const isUr = locale === 'ur';
+  const [filter, setFilter] = useState<FilterKey>('all');
+  const [query, setQuery] = useState('');
+
+  const featured = getFeaturedPosts(3);
+  const filtered = useMemo(() => {
+    let list = blogPosts.filter((p) => !featured.some((f) => f.slug === p.slug));
+    if (filter !== 'all') list = list.filter((p) => p.category === filter);
+    if (query.trim()) {
+      const q = query.toLowerCase();
+      list = list.filter((p) =>
+        p.titleEn.toLowerCase().includes(q) ||
+        p.titleUr.includes(query) ||
+        p.tags.some((t) => t.toLowerCase().includes(q))
+      );
+    }
+    return list;
+  }, [filter, query, featured]);
+
+  const chips: Array<{ key: FilterKey; labelEn: string; labelUr: string; count: number }> = [
+    { key: 'all', labelEn: 'All posts', labelUr: 'تمام مضامین', count: blogPosts.length },
+    ...(Object.entries(blogCategories) as [BlogCategory, typeof blogCategories.guides][]).map(([key, cat]) => ({
+      key: key as FilterKey,
+      labelEn: cat.labelEn,
+      labelUr: cat.labelUr,
+      count: blogPosts.filter((p) => p.category === key).length,
+    })),
+  ];
 
   return (
     <>
       <Header />
       <main className="flex-1">
-        <section className="relative overflow-hidden pt-16 pb-16">
+        {/* HERO */}
+        <section className="relative overflow-hidden pt-16 pb-12">
           <AuroraBackground variant="aurora" intensity="base" />
           <GridBackground className="mask-fade-bottom" />
           <NoiseTexture />
-          <Container className="relative text-center">
-            <Eyebrow variant="aurora" icon={<BookOpen className="h-3.5 w-3.5" />}>
-              Knowledge hub
-            </Eyebrow>
-            <h1 className="mt-6 font-display font-extrabold text-4xl sm:text-5xl lg:text-6xl xl:text-7xl leading-[1.05] tracking-tight">
-              <GradientText variant="aurora">Learn. Grow. Dominate.</GradientText>
-            </h1>
-            <p className="mt-6 text-lg lg:text-xl text-ink-600 dark:text-ink-300 max-w-2xl mx-auto">
-              Guides, tutorials, compliance explainers, and real stories — everything a Pakistani business needs to win in 2026.
-            </p>
+          <Container className="relative">
+            <div className="max-w-4xl">
+              <Eyebrow variant="aurora" icon={<Sparkles className="h-3 w-3" />}>
+                {isUr ? 'نفع بلاگ' : 'Nafaa blog'}
+              </Eyebrow>
+              <h1 className={cn(
+                'mt-6 font-display font-extrabold text-4xl sm:text-5xl lg:text-6xl xl:text-7xl leading-[1.05] tracking-tight text-balance',
+                isUr && 'font-urdu leading-[1.5]',
+              )}>
+                <span className="block text-ink-900 dark:text-white">
+                  {isUr ? 'کاروبار کے سوالات،' : 'Answers for'}
+                </span>
+                <GradientText variant="aurora">
+                  {isUr ? 'حقیقی جوابات' : 'Pakistani businesses'}
+                </GradientText>
+              </h1>
+              <p className={cn(
+                'mt-6 text-lg lg:text-xl text-ink-600 dark:text-ink-300 max-w-3xl leading-relaxed',
+                isUr && 'font-urdu text-xl leading-loose',
+              )}>
+                {isUr
+                  ? 'ایف بی آر کی تعمیل، ڈیجیٹل کھاتہ، اور دکان چلانے کی مہارت — 12 ہزار کاروباروں سے سیکھی گئی حکمت عملی۔'
+                  : 'FBR compliance, digital khata, and shopkeeping mastery — battle-tested lessons from 12,000+ Pakistani businesses.'}
+              </p>
+
+              {/* Search */}
+              <div className="mt-8 max-w-xl relative">
+                <Search className="h-5 w-5 text-ink-400 absolute left-5 top-1/2 -translate-y-1/2" />
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder={isUr ? 'تلاش کریں — ایف بی آر، کھاتہ، سونا...' : 'Search — FBR, khata, gold rates...'}
+                  className={cn(
+                    'h-14 w-full rounded-2xl bg-white dark:bg-ink-800 pl-14 pr-5',
+                    'ring-1 ring-inset ring-ink-200 dark:ring-ink-700',
+                    'focus:ring-2 focus:ring-brand-500 outline-none shadow-lg transition',
+                    isUr && 'font-urdu text-lg pr-14 pl-5',
+                  )}
+                />
+              </div>
+            </div>
           </Container>
         </section>
 
-        {/* Featured */}
-        {featured && (
-          <Section variant="default" spacing="sm">
+        {/* CATEGORY FILTERS */}
+        <div className="sticky top-16 z-30 bg-white/85 dark:bg-ink-900/85 backdrop-blur-lg border-b border-ink-100/60 dark:border-ink-800/60">
+          <Container>
+            <div className="flex items-center gap-2 py-4 overflow-x-auto scrollbar-hide">
+              {chips.map((chip) => {
+                const active = filter === chip.key;
+                return (
+                  <button
+                    key={chip.key}
+                    onClick={() => setFilter(chip.key)}
+                    className={cn(
+                      'inline-flex items-center gap-2 px-4 h-10 rounded-full text-sm font-bold whitespace-nowrap',
+                      'ring-1 ring-inset transition-all',
+                      active
+                        ? 'bg-ink-900 dark:bg-white text-white dark:text-ink-900 ring-transparent shadow-lg'
+                        : 'bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200 ring-ink-200 dark:ring-ink-700 hover:ring-brand-400',
+                      isUr && 'font-urdu text-base',
+                    )}
+                  >
+                    {chip.key !== 'all' && blogCategories[chip.key as BlogCategory] && (
+                      <span>{blogCategories[chip.key as BlogCategory].emoji}</span>
+                    )}
+                    {isUr ? chip.labelUr : chip.labelEn}
+                    <span className={cn(
+                      'text-[10px] px-1.5 py-0.5 rounded-full font-mono tabular-nums',
+                      active ? 'bg-white/25' : 'bg-ink-100 dark:bg-ink-900',
+                    )}>
+                      {chip.count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </Container>
+        </div>
+
+        {/* FEATURED */}
+        {filter === 'all' && !query && (
+          <Section variant="default" spacing="md">
             <Container>
-              <Link
-                href={`/blog/${featured.slug}`}
-                className="group block relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-600 via-brand-700 to-emerald-800 p-10 lg:p-14 text-white shadow-brand-glow hover:shadow-[0_24px_64px_-8px_rgba(18,183,106,0.5)] transition-shadow"
+              <div className="flex items-center gap-2 mb-6">
+                <TrendingUp className="h-5 w-5 text-sunset" />
+                <Eyebrow variant="gold">{isUr ? 'نمایاں مضامین' : 'Featured this month'}</Eyebrow>
+              </div>
+              <motion.div
+                initial="hidden" whileInView="visible" viewport={viewport}
+                variants={staggerContainer(0.06)}
+                className="grid lg:grid-cols-3 gap-6"
               >
-                <Badge className="!bg-white/20 !text-white !ring-white/30">⭐ Featured · {blogCategories.find((c) => c.slug === featured.category)?.name}</Badge>
-                <h2 className="mt-6 font-display font-extrabold text-3xl lg:text-5xl leading-tight text-balance max-w-3xl">
-                  {featured.title}
-                </h2>
-                <p className="mt-4 text-lg text-white/90 max-w-2xl leading-relaxed">{featured.excerpt}</p>
-                <div className="mt-6 flex items-center gap-5 text-sm text-white/80">
-                  <span className="flex items-center gap-1.5"><Calendar className="h-4 w-4" />{fmt(featured.publishedAt)}</span>
-                  <span className="flex items-center gap-1.5"><Clock className="h-4 w-4" />{featured.readTime} min read</span>
-                  <span className="hidden sm:block">{featured.author}</span>
-                </div>
-                <div className="mt-6 inline-flex items-center gap-2 font-bold">
-                  Read the guide <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </Link>
+                {featured.map((post, i) => (
+                  <motion.div key={post.slug} variants={fadeUp}>
+                    <BlogCard post={post} featured={i === 0} />
+                  </motion.div>
+                ))}
+              </motion.div>
             </Container>
           </Section>
         )}
 
-        {/* All posts */}
+        {/* ALL POSTS */}
         <Section variant="subtle" spacing="lg">
           <Container>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {rest.map((post) => (
-                <Link
-                  key={post.slug}
-                  href={`/blog/${post.slug}`}
-                  className="group rounded-3xl bg-white dark:bg-ink-800 p-6 ring-1 ring-inset ring-ink-100 dark:ring-ink-700/60 hover:-translate-y-1 hover:shadow-card-hover transition-all duration-300 flex flex-col"
-                >
-                  <Badge variant="brand" size="xs">
-                    {post.categoryEmoji} {blogCategories.find((c) => c.slug === post.category)?.name}
-                  </Badge>
-                  <h3 className="mt-4 font-display font-extrabold text-xl leading-tight group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors line-clamp-3">
-                    {post.title}
-                  </h3>
-                  <p className="mt-3 text-sm text-ink-600 dark:text-ink-300 leading-relaxed line-clamp-3 flex-1">
-                    {post.excerpt}
-                  </p>
-                  <div className="mt-5 pt-5 border-t border-ink-100 dark:border-ink-700/60 flex items-center justify-between text-xs text-ink-500">
-                    <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" />{fmt(post.publishedAt)}</span>
-                    <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" />{post.readTime} min</span>
-                  </div>
-                </Link>
-              ))}
+            <div className="mb-8">
+              <Eyebrow variant="brand">
+                {filter === 'all' ? (isUr ? 'تمام مضامین' : 'All articles') : (isUr ? blogCategories[filter].labelUr : blogCategories[filter].labelEn)}
+              </Eyebrow>
+              <div className="mt-2 text-sm text-ink-500">
+                <span className="tabular-nums font-bold">{filtered.length}</span> {isUr ? 'مضامین' : 'articles'}
+              </div>
             </div>
+
+            <AnimatePresence mode="popLayout">
+              <motion.div
+                key={filter + query}
+                initial="hidden" animate="visible"
+                variants={staggerContainer(0.03)}
+                className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+              >
+                {filtered.map((post) => (
+                  <motion.div key={post.slug} variants={fadeUp} layout>
+                    <BlogCard post={post} />
+                  </motion.div>
+                ))}
+              </motion.div>
+            </AnimatePresence>
+
+            {filtered.length === 0 && (
+              <div className="text-center py-20">
+                <Search className="h-12 w-12 mx-auto text-ink-300 mb-4" />
+                <p className="text-ink-500">{isUr ? 'کوئی مضمون نہیں ملا' : 'No articles found'}</p>
+              </div>
+            )}
           </Container>
         </Section>
-
-        <CTA />
       </main>
       <Footer />
       <FloatingWhatsApp />

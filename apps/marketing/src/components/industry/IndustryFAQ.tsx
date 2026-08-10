@@ -18,6 +18,7 @@ export function IndustryFAQ({ industry, content }: { industry: Industry; content
   const [open, setOpen] = useState<number | null>(0);
   const isUr = locale === 'ur';
 
+  
   const schemaData = jsonLdFAQ(
     content.faqs.map((f) => ({ q: isUr ? f.qUr : f.qEn, a: isUr ? f.aUr : f.aEn })),
   );

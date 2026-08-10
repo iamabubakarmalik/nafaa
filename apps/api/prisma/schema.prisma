@@ -20363,3 +20363,1090 @@ model ShoeExchange {
   @@index([tenantId])
   @@index([tenantId, status])
 }
+
+// ═══════════════════════════════════════════════════════════════
+// MARKETING ADMIN — Platform-level (no tenant)
+// ═══════════════════════════════════════════════════════════════
+
+enum MarketingLeadSource {
+  NEWSLETTER
+  CONTACT_FORM
+  DEMO_REQUEST
+  BLOG_SIGNUP
+  CHATBOT
+  REFERRAL
+  ORGANIC_SEARCH
+  PAID_ADS
+  SOCIAL_MEDIA
+  DIRECT
+  EMAIL_CAMPAIGN
+  AFFILIATE
+  OTHER
+}
+
+enum MarketingLeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  DEMO_SCHEDULED
+  DEMO_COMPLETED
+  PROPOSAL_SENT
+  NEGOTIATING
+  CONVERTED
+  LOST
+  UNRESPONSIVE
+  DO_NOT_CONTACT
+}
+
+enum MarketingLeadTemperature {
+  COLD
+  WARM
+  HOT
+  FIRE
+}
+
+enum NewsletterStatus {
+  ACTIVE
+  UNSUBSCRIBED
+  BOUNCED
+  COMPLAINED
+  PENDING_CONFIRMATION
+}
+
+enum ContactFormType {
+  GENERAL
+  SALES
+  SUPPORT
+  PARTNERSHIP
+  MEDIA
+  CAREER
+  DEMO_REQUEST
+  ENTERPRISE
+  BUG_REPORT
+  FEATURE_REQUEST
+  OTHER
+}
+
+enum ContactFormStatus {
+  NEW
+  IN_PROGRESS
+  REPLIED
+  RESOLVED
+  SPAM
+  ARCHIVED
+}
+
+enum DemoBookingStatus {
+  PENDING
+  CONFIRMED
+  RESCHEDULED
+  COMPLETED
+  NO_SHOW
+  CANCELLED
+}
+
+enum ChatbotConversationStatus {
+  ACTIVE
+  BOT_HANDLING
+  WAITING_HUMAN
+  HUMAN_HANDLING
+  RESOLVED
+  ABANDONED
+  ARCHIVED
+}
+
+enum ChatMessageSenderType {
+  USER
+  BOT
+  AGENT
+  SYSTEM
+}
+
+enum CampaignType {
+  EMAIL
+  SMS
+  WHATSAPP
+  PUSH
+  ANNOUNCEMENT
+  RETARGETING
+}
+
+enum CampaignStatusMkt {
+  DRAFT
+  SCHEDULED
+  RUNNING
+  PAUSED
+  COMPLETED
+  CANCELLED
+  FAILED
+}
+
+enum SeoPageStatus {
+  INDEXED
+  NOT_INDEXED
+  BLOCKED
+  ERROR
+  PENDING
+}
+
+enum AbTestStatus {
+  DRAFT
+  RUNNING
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+// ─── Newsletter Subscribers ──────────────────────────────────
+model NewsletterSubscriber {
+  id                String            @id @default(cuid())
+  email             String            @unique
+  firstName         String?
+  lastName          String?
+  phone             String?
+  status            NewsletterStatus  @default(ACTIVE)
+
+  // Source tracking
+  source            MarketingLeadSource @default(NEWSLETTER)
+  sourceUrl         String?
+  sourcePage        String?
+  referrer          String?
+
+  // UTM
+  utmSource         String?
+  utmMedium         String?
+  utmCampaign       String?
+  utmTerm           String?
+  utmContent        String?
+
+  // Interests
+  interests         String[]          @default([])
+  industry          String?
+  role              String?
+  companyName       String?
+  companySize       String?
+  country           String?           @default("Pakistan")
+  city              String?
+  language          String            @default("en")
+
+  // Verification
+  isVerified        Boolean           @default(false)
+  verifiedAt        DateTime?
+  verificationToken String?           @unique
+
+  // Engagement
+  totalEmailsSent   Int               @default(0)
+  totalOpened       Int               @default(0)
+  totalClicked      Int               @default(0)
+  lastEmailAt       DateTime?
+  lastOpenedAt      DateTime?
+  lastClickedAt     DateTime?
+  engagementScore   Float             @default(0)
+
+  // Unsubscribe
+  unsubscribedAt    DateTime?
+  unsubscribeReason String?
+  bouncedAt         DateTime?
+  bounceReason      String?
+
+  // Tags & segments
+  tags              String[]          @default([])
+  segments          String[]          @default([])
+
+  // Meta
+  ipAddress         String?
+  userAgent         String?
+  deviceType        String?
+  browser           String?
+  os                String?
+
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  emailLogs         NewsletterEmailLog[]
+
+  @@index([status])
+  @@index([email])
+  @@index([source])
+  @@index([createdAt])
+  @@index([engagementScore])
+}
+
+model NewsletterEmailLog {
+  id             String                @id @default(cuid())
+  subscriberId   String
+  subscriber     NewsletterSubscriber  @relation(fields: [subscriberId], references: [id], onDelete: Cascade)
+  campaignId     String?
+  subject        String
+  status         String                @default("SENT")
+  openedAt       DateTime?
+  clickedAt      DateTime?
+  clickedLinks   String[]              @default([])
+  bouncedAt      DateTime?
+  complainedAt   DateTime?
+  sentAt         DateTime              @default(now())
+
+  @@index([subscriberId])
+  @@index([campaignId])
+  @@index([sentAt])
+}
+
+// ─── Contact Form Submissions ────────────────────────────────
+model ContactFormSubmission {
+  id                String              @id @default(cuid())
+  ticketNumber      String              @unique
+
+  // Sender
+  fullName          String
+  email             String
+  phone             String?
+  companyName       String?
+  designation       String?
+  country           String?             @default("Pakistan")
+  city              String?
+
+  // Content
+  formType          ContactFormType     @default(GENERAL)
+  subject           String
+  message           String              @db.Text
+  attachments       String[]            @default([])
+
+  // Source
+  sourceUrl         String?
+  sourcePage        String?
+  referrer          String?
+  utmSource         String?
+  utmMedium         String?
+  utmCampaign       String?
+
+  // Status
+  status            ContactFormStatus   @default(NEW)
+  priority          String              @default("NORMAL")
+  assignedTo        String?
+  assignedAt        DateTime?
+
+  // Response
+  firstResponseAt   DateTime?
+  responseTimeMin   Int?
+  resolvedAt        DateTime?
+  resolutionTimeMin Int?
+  repliesCount      Int                 @default(0)
+
+  // Anti-spam
+  isSpam            Boolean             @default(false)
+  spamScore         Float               @default(0)
+  spamReason        String?
+
+  // Meta
+  ipAddress         String?
+  userAgent         String?
+  deviceType        String?
+  browser           String?
+  os                String?
+
+  // Notes
+  internalNotes     String?             @db.Text
+  tags              String[]            @default([])
+
+  // Conversion
+  convertedToLead   Boolean             @default(false)
+  leadId            String?
+  convertedToTenant Boolean             @default(false)
+  tenantId          String?
+
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  replies           ContactFormReply[]
+
+  @@index([status])
+  @@index([email])
+  @@index([formType])
+  @@index([createdAt])
+  @@index([assignedTo])
+}
+
+model ContactFormReply {
+  id            String                @id @default(cuid())
+  submissionId  String
+  submission    ContactFormSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  senderType    String                // ADMIN | USER
+  senderId      String?
+  senderName    String?
+  message       String                @db.Text
+  attachments   String[]              @default([])
+  isPublic      Boolean               @default(true)
+  isEmailSent   Boolean               @default(false)
+  emailSentAt   DateTime?
+  createdAt     DateTime              @default(now())
+
+  @@index([submissionId])
+}
+
+// ─── Demo Bookings ───────────────────────────────────────────
+model DemoBooking {
+  id                String            @id @default(cuid())
+  bookingNumber     String            @unique
+
+  // Prospect
+  fullName          String
+  email             String
+  phone             String
+  whatsapp          String?
+  companyName       String?
+  designation       String?
+  industry          String?
+  companySize       String?
+  city              String?
+  country           String            @default("Pakistan")
+
+  // Requirements
+  numberOfShops     Int?
+  currentSoftware   String?
+  painPoints        String?           @db.Text
+  interestedIn      String[]          @default([])
+  budget            String?
+  timeline          String?
+
+  // Scheduling
+  preferredDate     DateTime
+  preferredTime     String
+  timezone          String            @default("Asia/Karachi")
+  duration          Int               @default(30)
+  meetingType       String            @default("VIDEO_CALL")
+  meetingLink       String?
+  calendarEventId   String?
+
+  // Assignment
+  status            DemoBookingStatus @default(PENDING)
+  assignedTo        String?
+  assignedName      String?
+  confirmedAt       DateTime?
+  rescheduledAt     DateTime?
+  completedAt       DateTime?
+  cancelledAt       DateTime?
+  cancelReason      String?
+  noShowAt          DateTime?
+
+  // Feedback
+  rating            Int?
+  feedback          String?           @db.Text
+  interestLevel     String?           // LOW | MEDIUM | HIGH | READY_TO_BUY
+
+  // Follow-up
+  followUpScheduled Boolean           @default(false)
+  followUpDate      DateTime?
+  followUpNotes     String?           @db.Text
+
+  // Recording
+  recordingUrl      String?
+  transcriptUrl     String?
+
+  // Source
+  sourceUrl         String?
+  utmSource         String?
+  utmMedium         String?
+  utmCampaign       String?
+
+  // Conversion
+  convertedToLead   Boolean           @default(false)
+  leadId            String?
+  convertedToTenant Boolean           @default(false)
+  tenantId          String?
+  conversionValue   Float?
+
+  // Reminders
+  reminderSent24h   Boolean           @default(false)
+  reminderSent1h    Boolean           @default(false)
+
+  // Meta
+  ipAddress         String?
+  userAgent         String?
+  internalNotes     String?           @db.Text
+  tags              String[]          @default([])
+
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@index([status])
+  @@index([email])
+  @@index([preferredDate])
+  @@index([assignedTo])
+}
+
+// ─── Marketing Leads (Unified) ───────────────────────────────
+model MarketingLead {
+  id                String                    @id @default(cuid())
+  leadNumber        String                    @unique
+
+  // Basic
+  fullName          String
+  email             String?
+  phone             String?
+  whatsapp          String?
+  companyName       String?
+  designation       String?
+  industry          String?
+  companySize       String?
+  city              String?
+  country           String                    @default("Pakistan")
+  linkedinUrl       String?
+  facebookUrl       String?
+
+  // Lead classification
+  source            MarketingLeadSource
+  sourceDetail      String?
+  status            MarketingLeadStatus       @default(NEW)
+  temperature       MarketingLeadTemperature  @default(COLD)
+  score             Int                       @default(0)
+
+  // Assignment
+  assignedTo        String?
+  assignedName      String?
+  assignedAt        DateTime?
+
+  // Origin tracking (which form/action created this lead)
+  originType        String?
+  originId          String?
+  originUrl         String?
+  landingPage       String?
+  referrerUrl       String?
+
+  // UTM
+  utmSource         String?
+  utmMedium         String?
+  utmCampaign       String?
+  utmTerm           String?
+  utmContent        String?
+
+  // Interest
+  interestedInPlan  String?
+  interestedFeatures String[]                 @default([])
+  budget            String?
+  timeline          String?
+  decisionMaker     Boolean                   @default(false)
+
+  // Engagement
+  emailsSent        Int                       @default(0)
+  emailsOpened      Int                       @default(0)
+  callsMade         Int                       @default(0)
+  meetingsHeld      Int                       @default(0)
+  demosScheduled    Int                       @default(0)
+  demosAttended     Int                       @default(0)
+
+  // Timeline
+  firstContactAt    DateTime?
+  lastContactAt     DateTime?
+  nextFollowUpAt    DateTime?
+
+  // Conversion
+  convertedAt       DateTime?
+  convertedToTenant Boolean                   @default(false)
+  tenantId          String?
+  conversionValue   Float                     @default(0)
+  lostReason        String?
+  lostAt            DateTime?
+
+  // Meta
+  tags              String[]                  @default([])
+  internalNotes     String?                   @db.Text
+  customFields      Json?
+
+  createdAt         DateTime                  @default(now())
+  updatedAt         DateTime                  @updatedAt
+
+  activities        LeadActivity[]
+
+  @@index([status])
+  @@index([source])
+  @@index([temperature])
+  @@index([email])
+  @@index([phone])
+  @@index([assignedTo])
+  @@index([createdAt])
+  @@index([score])
+}
+
+model LeadActivity {
+  id          String        @id @default(cuid())
+  leadId      String
+  lead        MarketingLead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  activityType String        // EMAIL_SENT | CALL | MEETING | NOTE | STATUS_CHANGE | DEMO_SCHEDULED
+  title       String
+  description String?       @db.Text
+  performedBy String?
+  performedByName String?
+  outcome     String?
+  scheduledFor DateTime?
+  completedAt DateTime?
+  attachments String[]      @default([])
+  metadata    Json?
+  createdAt   DateTime      @default(now())
+
+  @@index([leadId])
+  @@index([activityType])
+  @@index([createdAt])
+}
+
+// ─── Chatbot / Live Chat ─────────────────────────────────────
+model ChatbotConversation {
+  id                    String                    @id @default(cuid())
+  conversationNumber    String                    @unique
+
+  // Visitor info
+  visitorId             String                    // Anonymous cookie ID
+  visitorName           String?
+  visitorEmail          String?
+  visitorPhone          String?
+  visitorCompany        String?
+  visitorCountry        String?
+  visitorCity           String?
+
+  // Session
+  status                ChatbotConversationStatus @default(BOT_HANDLING)
+  isBot                 Boolean                   @default(true)
+  currentAgentId        String?
+  currentAgentName      String?
+
+  // Context
+  currentPage           String?
+  referrerUrl           String?
+  visitorTimezone       String?
+  language              String                    @default("en")
+
+  // Metrics
+  messageCount          Int                       @default(0)
+  botMessageCount       Int                       @default(0)
+  userMessageCount      Int                       @default(0)
+  agentMessageCount     Int                       @default(0)
+
+  // Timing
+  startedAt             DateTime                  @default(now())
+  firstAgentResponseAt  DateTime?
+  responseTimeSec       Int?
+  resolvedAt            DateTime?
+  durationSec           Int?
+  lastActivityAt        DateTime                  @default(now())
+
+  // Feedback
+  rating                Int?
+  feedback              String?                   @db.Text
+  wasResolved           Boolean?
+
+  // Intent detection
+  detectedIntent        String?
+  intentConfidence      Float?
+  topics                String[]                  @default([])
+
+  // Conversion
+  convertedToLead       Boolean                   @default(false)
+  leadId                String?
+  convertedToDemo       Boolean                   @default(false)
+  demoBookingId         String?
+
+  // Meta
+  ipAddress             String?
+  userAgent             String?
+  deviceType            String?
+  browser               String?
+  os                    String?
+  tags                  String[]                  @default([])
+  internalNotes         String?                   @db.Text
+
+  createdAt             DateTime                  @default(now())
+  updatedAt             DateTime                  @updatedAt
+
+  messages              ChatbotMessage[]
+
+  @@index([status])
+  @@index([visitorId])
+  @@index([currentAgentId])
+  @@index([startedAt])
+  @@index([lastActivityAt])
+}
+
+model ChatbotMessage {
+  id             String                    @id @default(cuid())
+  conversationId String
+  conversation   ChatbotConversation       @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderType     ChatMessageSenderType
+  senderName     String?
+  senderAvatar   String?
+  content        String                    @db.Text
+  contentType    String                    @default("TEXT")  // TEXT | IMAGE | FILE | QUICK_REPLY | CARD | BUTTON
+  attachments    String[]                  @default([])
+  metadata       Json?
+  isRead         Boolean                   @default(false)
+  readAt         DateTime?
+  // Bot-specific
+  intent         String?
+  confidence     Float?
+  botResponseTime Int?
+  createdAt      DateTime                  @default(now())
+
+  @@index([conversationId])
+  @@index([senderType])
+  @@index([createdAt])
+}
+
+model ChatbotIntent {
+  id             String   @id @default(cuid())
+  name           String   @unique
+  slug           String   @unique
+  description    String?
+  keywords       String[] @default([])
+  trainingPhrases String[] @default([])
+  response       String   @db.Text
+  responseType   String   @default("TEXT")
+  quickReplies   Json?
+  suggestedActions String[] @default([])
+  requiresHuman  Boolean  @default(false)
+  isActive       Boolean  @default(true)
+  usageCount     Int      @default(0)
+  successCount   Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([slug])
+}
+
+model ChatbotAgent {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  displayName         String
+  avatarUrl           String?
+  status              String   @default("OFFLINE")  // ONLINE | BUSY | AWAY | OFFLINE
+  maxConcurrentChats  Int      @default(5)
+  currentActiveChats  Int      @default(0)
+  totalChatsHandled   Int      @default(0)
+  avgResponseTimeSec  Int?
+  avgRating           Float?
+  totalRatings        Int      @default(0)
+  workingHoursStart   String?
+  workingHoursEnd     String?
+  workingDays         Int[]    @default([1, 2, 3, 4, 5])
+  specializations     String[] @default([])
+  languages           String[] @default(["en", "ur"])
+  isActive            Boolean  @default(true)
+  lastOnlineAt        DateTime?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([status])
+  @@index([isActive])
+}
+
+// ─── Marketing Campaigns ─────────────────────────────────────
+model MarketingCampaign {
+  id              String            @id @default(cuid())
+  campaignNumber  String            @unique
+  name            String
+  slug            String            @unique
+  description     String?           @db.Text
+  type            CampaignType
+  status          CampaignStatusMkt @default(DRAFT)
+
+  // Content
+  subject         String?
+  previewText     String?
+  bodyHtml        String?           @db.Text
+  bodyText        String?           @db.Text
+  smsMessage      String?
+  whatsappMessage String?           @db.Text
+  templateId      String?
+
+  // Targeting
+  targetSegment   String?
+  targetFilters   Json?
+  targetTags      String[]          @default([])
+  estimatedReach  Int               @default(0)
+
+  // Sender
+  fromName        String?
+  fromEmail       String?
+  replyTo         String?
+
+  // Schedule
+  scheduledAt     DateTime?
+  startedAt       DateTime?
+  completedAt     DateTime?
+
+  // Stats
+  totalRecipients Int               @default(0)
+  totalSent       Int               @default(0)
+  totalDelivered  Int               @default(0)
+  totalOpened     Int               @default(0)
+  totalClicked    Int               @default(0)
+  totalBounced    Int               @default(0)
+  totalUnsubscribed Int             @default(0)
+  totalComplained Int               @default(0)
+
+  // Rates
+  openRate        Float             @default(0)
+  clickRate       Float             @default(0)
+  bounceRate      Float             @default(0)
+  unsubscribeRate Float             @default(0)
+
+  // Conversion
+  totalConversions Int              @default(0)
+  conversionValue Float             @default(0)
+  roi             Float?
+
+  // A/B Testing
+  isAbTest        Boolean           @default(false)
+  abTestId        String?
+  variant         String?
+
+  // Meta
+  createdById     String?
+  tags            String[]          @default([])
+  notes           String?           @db.Text
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([status])
+  @@index([type])
+  @@index([scheduledAt])
+  @@index([createdAt])
+}
+
+// ─── Analytics & Traffic ─────────────────────────────────────
+model MarketingPageView {
+  id             String    @id @default(cuid())
+  path           String
+  fullUrl        String?
+  title          String?
+
+  // Visitor
+  visitorId      String
+  sessionId      String
+  isNewVisitor   Boolean   @default(false)
+  userId         String?
+
+  // Source
+  referrer       String?
+  referrerDomain String?
+  utmSource      String?
+  utmMedium      String?
+  utmCampaign    String?
+  utmTerm        String?
+  utmContent     String?
+
+  // Engagement
+  timeOnPageSec  Int?
+  scrollDepthPct Int?
+  bounced        Boolean   @default(false)
+  exited         Boolean   @default(false)
+  hasInteracted  Boolean   @default(false)
+
+  // Device
+  deviceType     String?
+  browser        String?
+  os             String?
+  screenWidth    Int?
+  screenHeight   Int?
+
+  // Location
+  country        String?
+  city           String?
+  ipAddress      String?
+  ipCountry      String?
+
+  // Language
+  language       String?
+
+  // Timing
+  loadTimeMs     Int?
+
+  createdAt      DateTime  @default(now())
+
+  @@index([path])
+  @@index([visitorId])
+  @@index([sessionId])
+  @@index([createdAt])
+  @@index([utmSource, utmCampaign])
+}
+
+model MarketingSession {
+  id              String    @id @default(cuid())
+  sessionId       String    @unique
+  visitorId       String
+  userId          String?
+
+  // Entry
+  landingPage     String
+  entryReferrer   String?
+  entryUtmSource  String?
+  entryUtmMedium  String?
+  entryUtmCampaign String?
+
+  // Exit
+  exitPage        String?
+  exitAt          DateTime?
+
+  // Stats
+  pageViews       Int       @default(0)
+  duration        Int       @default(0)
+  bounced         Boolean   @default(true)
+  hadConversion   Boolean   @default(false)
+  conversionType  String?
+
+  // Device
+  deviceType      String?
+  browser         String?
+  os              String?
+
+  // Location
+  country         String?
+  city            String?
+  ipAddress       String?
+
+  startedAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([visitorId])
+  @@index([startedAt])
+  @@index([landingPage])
+}
+
+model MarketingEvent {
+  id           String    @id @default(cuid())
+  eventName    String
+  eventCategory String?
+  eventLabel   String?
+  eventValue   Float?
+
+  // Context
+  visitorId    String
+  sessionId    String?
+  userId       String?
+  path         String?
+
+  // Custom data
+  properties   Json?
+
+  createdAt    DateTime  @default(now())
+
+  @@index([eventName])
+  @@index([visitorId])
+  @@index([createdAt])
+  @@index([eventCategory])
+}
+
+// ─── SEO Tracking ────────────────────────────────────────────
+model SeoPage {
+  id                String        @id @default(cuid())
+  path              String        @unique
+  title             String?
+  metaDescription   String?
+  metaKeywords      String[]      @default([])
+  canonicalUrl      String?
+  status            SeoPageStatus @default(INDEXED)
+
+  // Google Search Console
+  totalImpressions  Int           @default(0)
+  totalClicks       Int           @default(0)
+  avgCtr            Float         @default(0)
+  avgPosition       Float?
+  lastCheckedAt     DateTime?
+
+  // Content
+  wordCount         Int?
+  readingTimeMin    Int?
+  contentType       String?
+
+  // Technical
+  hasStructuredData Boolean       @default(false)
+  hasOgImage        Boolean       @default(false)
+  hasCanonical      Boolean       @default(false)
+  mobileScore       Int?
+  desktopScore      Int?
+  lastCrawledAt     DateTime?
+
+  // Meta
+  language          String        @default("en")
+  isPublished       Boolean       @default(true)
+  publishedAt       DateTime?
+
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  keywords          SeoKeyword[]
+
+  @@index([status])
+  @@index([totalClicks])
+}
+
+model SeoKeyword {
+  id             String    @id @default(cuid())
+  pageId         String?
+  page           SeoPage?  @relation(fields: [pageId], references: [id], onDelete: SetNull)
+  keyword        String
+  searchVolume   Int?
+  difficulty     Int?
+  currentPosition Int?
+  previousPosition Int?
+  bestPosition   Int?
+  clicks         Int       @default(0)
+  impressions    Int       @default(0)
+  ctr            Float     @default(0)
+  isTracking     Boolean   @default(true)
+  country        String    @default("PK")
+  device         String    @default("BOTH")
+  lastCheckedAt  DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([keyword, country, device])
+  @@index([pageId])
+  @@index([currentPosition])
+}
+
+// ─── A/B Tests ───────────────────────────────────────────────
+model AbTest {
+  id             String       @id @default(cuid())
+  name           String
+  slug           String       @unique
+  description    String?      @db.Text
+  status         AbTestStatus @default(DRAFT)
+
+  // Config
+  targetPage     String?
+  targetElement  String?
+  goalMetric     String
+  goalValue      String?
+  variants       Json         // [{ name, weight, changes }]
+  trafficPct     Float        @default(100)
+
+  // Timing
+  startedAt      DateTime?
+  endedAt        DateTime?
+  durationDays   Int?
+
+  // Results
+  totalVisitors  Int          @default(0)
+  totalConversions Int        @default(0)
+  winningVariant String?
+  confidenceLevel Float?
+  results        Json?
+
+  createdById    String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([status])
+  @@index([slug])
+}
+
+// ─── Heatmaps ────────────────────────────────────────────────
+model HeatmapSession {
+  id             String    @id @default(cuid())
+  path           String
+  visitorId      String
+  sessionId      String
+  deviceType     String?
+
+  // Interactions (JSON arrays)
+  clicks         Json?
+  scrollDepth    Int?
+  moves          Json?
+
+  durationSec    Int?
+  createdAt      DateTime  @default(now())
+
+  @@index([path])
+  @@index([visitorId])
+  @@index([createdAt])
+}
+
+// ─── Conversion Funnels ──────────────────────────────────────
+model ConversionFunnel {
+  id           String   @id @default(cuid())
+  name         String
+  slug         String   @unique
+  description  String?
+  steps        Json     // [{ name, path, event }]
+  goalValue    Float?
+  totalUsers   Int      @default(0)
+  totalCompleted Int    @default(0)
+  conversionRate Float  @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([slug])
+}
+
+// ─── Marketing Admin Users & Permissions ─────────────────────
+model MarketingAdmin {
+  id             String    @id @default(cuid())
+  userId         String    @unique
+  role           String    @default("MARKETING_MANAGER")  // SUPER | MARKETING_MANAGER | CONTENT | ANALYST | AGENT
+  permissions    String[]  @default([])
+  isActive       Boolean   @default(true)
+  invitedById    String?
+  invitedAt      DateTime?
+  lastActiveAt   DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+// ─── Integrations (GA4, Search Console, Meta Pixel etc) ──────
+model MarketingIntegration {
+  id            String   @id @default(cuid())
+  provider      String   @unique  // GA4 | GSC | META_PIXEL | LINKEDIN | RESEND | TWILIO
+  displayName   String
+  isConnected   Boolean  @default(false)
+  credentials   Json?
+  config        Json?
+  lastSyncAt    DateTime?
+  lastSyncStatus String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// ─── Blog Analytics ──────────────────────────────────────────
+model BlogPostAnalytics {
+  id             String    @id @default(cuid())
+  postSlug       String    @unique
+  postTitle      String
+  category       String?
+  author         String?
+  publishedAt    DateTime?
+
+  // Traffic
+  totalViews     Int       @default(0)
+  uniqueViews    Int       @default(0)
+  avgTimeOnPage  Int?
+  bounceRate     Float?
+  scrollDepthAvg Float?
+
+  // Engagement
+  totalShares    Int       @default(0)
+  totalLikes     Int       @default(0)
+  totalComments  Int       @default(0)
+  emailSignups   Int       @default(0)
+  ctaClicks      Int       @default(0)
+
+  // SEO
+  organicClicks  Int       @default(0)
+  impressions    Int       @default(0)
+  avgPosition    Float?
+
+  // Recent
+  viewsLast7d    Int       @default(0)
+  viewsLast30d   Int       @default(0)
+
+  lastViewedAt   DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([postSlug])
+  @@index([totalViews])
+  @@index([publishedAt])
+}
+

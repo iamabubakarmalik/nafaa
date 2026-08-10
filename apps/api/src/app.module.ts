@@ -84,6 +84,7 @@ import { BillingModule } from './modules/billing/billing/billing.module';
 // ─── Industries + Admin ───────────────────────────────────
 import { IndustriesModule } from './industries/industries.module';
 import { AdminModule } from './admin/admin.module';
+import { AdminMarketingModule } from './admin-marketing/admin-marketing.module';
 
 // ─── Marketplace ──────────────────────────────────────────
 import { MarketplaceModule } from './marketplace/marketplace.module';
@@ -203,6 +204,7 @@ import { AiAssistantModule } from './marketplace/ai-assistant/ai-assistant.modul
     // ─── Industries + Admin + Marketplace ───
     IndustriesModule,
     AdminModule,
+    AdminMarketingModule,
     PublishingModule,
     MarketplaceModule,
 

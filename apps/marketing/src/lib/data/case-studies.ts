@@ -1,105 +1,170 @@
 export interface CaseStudy {
-  slug: string;
-  businessEn: string; businessUr: string;
-  ownerEn: string; ownerUr: string;
-  city: string; cityUr: string;
-  industry: string;
-  emoji: string;
-  gradient: string;
-  taglineEn: string; taglineUr: string;
-  challengeEn: string; challengeUr: string;
-  solutionEn: string; solutionUr: string;
-  results: Array<{ metricEn: string; metricUr: string; valueEn: string; valueUr: string }>;
-  quoteEn: string; quoteUr: string;
-  duration: string;
+  industrySlug: string;
+  businessNameEn: string;
+  businessNameUr: string;
+  city: string;
+  cityUr: string;
+  ownerEn: string;
+  ownerUr: string;
+  founded: string;
+  shopCount: number;
+  yearsWithNafaa: number;
+
+  challenge: { en: string; ur: string };
+  solution: { en: string; ur: string };
+
+  beforeMetrics: Array<{ labelEn: string; labelUr: string; value: string }>;
+  afterMetrics: Array<{ labelEn: string; labelUr: string; value: string }>;
+
+  quote: { en: string; ur: string };
+  headline: { en: string; ur: string };
+
+  timeline: Array<{ month: string; monthUr: string; event: { en: string; ur: string }; impact: string }>;
 }
 
 export const caseStudies: CaseStudy[] = [
   {
-    slug: 'ahmad-bakery-lahore',
-    businessEn: 'Ahmad Sweets & Bakery', businessUr: 'احمد سویٹس اینڈ بیکری',
-    ownerEn: 'Ahmad Raza', ownerUr: 'احمد رضا',
-    city: 'Lahore', cityUr: 'لاہور', industry: 'bakery', emoji: '🍰',
-    gradient: 'from-amber-500 to-orange-600',
-    taglineEn: 'From paper chaos to 42% revenue growth in 90 days', taglineUr: '۹۰ دن میں ۴۲٪ آمدنی اضافہ',
-    challengeEn: 'Ahmad was spending 4 hours nightly reconciling paper registers, missing custom cake orders, and losing Rs 15,000 monthly to expired stock.',
-    challengeUr: 'احمد روازانہ ۴ گھنٹے کاغذی حساب میں لگاتے تھے۔',
-    solutionEn: 'Deployed Nafaa with custom cake order builder, ingredient inventory with expiry alerts, Foodpanda integration, and WhatsApp receipts.',
-    solutionUr: 'نفع نے خصوصی کیک آرڈر سسٹم اور ایکسپائری الرٹس فراہم کیے۔',
-    results: [
-      { metricEn: 'Revenue growth', metricUr: 'آمدنی اضافہ', valueEn: '+42%', valueUr: '+۴۲٪' },
-      { metricEn: 'Expired stock waste', metricUr: 'ایکسپائرڈ نقصان', valueEn: '-65%', valueUr: '-۶۵٪' },
-      { metricEn: 'Missed cake orders', metricUr: 'چھوٹے آرڈرز', valueEn: 'Zero', valueUr: 'صفر' },
-      { metricEn: 'Daily admin time', metricUr: 'روزانہ وقت', valueEn: '4h → 30min', valueUr: '۴ گھنٹے سے ۳۰ منٹ' },
+    industrySlug: 'kiryana',
+    businessNameEn: 'Malik General Store',
+    businessNameUr: 'ملک جنرل اسٹور',
+    city: 'Faisalabad',
+    cityUr: 'فیصل آباد',
+    ownerEn: 'Malik Tanveer Ahmed',
+    ownerUr: 'ملک تنویر احمد',
+    founded: '2008',
+    shopCount: 3,
+    yearsWithNafaa: 2,
+    challenge: {
+      en: 'Running three kiryana shops with paper khata across Faisalabad meant Malik Sahib was losing PKR 80,000+ monthly to forgotten udhar, expired stock, and lost receipts. His son Ahmed had to physically visit each shop daily.',
+      ur: 'فیصل آباد میں تین کریانہ دکانیں کاغذی کھاتے پر چلانے کا مطلب تھا ماہانہ 80,000+ روپے کا نقصان — بھولے ہوئے ادھار، ختم شدہ اسٹاک، اور گمشدہ رسیدیں۔ ان کے بیٹے احمد کو روزانہ ہر دکان جانا پڑتا تھا۔',
+    },
+    solution: {
+      en: 'Deployed Nafaa on 3 tablets with WhatsApp-based digital khata. Every udhar entry now sends automatic WhatsApp reminders. Multi-shop dashboard lets Ahmed monitor all 3 shops from his phone.',
+      ur: 'تین ٹیبلٹس پر نفع اور WhatsApp ڈیجیٹل کھاتہ لگایا۔ ہر ادھار انٹری خودکار WhatsApp یاد دہانی بھیجتی ہے۔ ملٹی-شاپ ڈیش بورڈ سے احمد فون سے تینوں دکانیں مانیٹر کرتا ہے۔',
+    },
+    beforeMetrics: [
+      { labelEn: 'Monthly udhar loss', labelUr: 'ماہانہ ادھار نقصان', value: '₨ 80K' },
+      { labelEn: 'Inventory count time', labelUr: 'اسٹاک گنتی', value: '2 days' },
+      { labelEn: 'Daily reconciliation', labelUr: 'روزانہ ملان', value: '3 hrs' },
+      { labelEn: 'Shops visited/day', labelUr: 'روزانہ دکانیں', value: '3' },
     ],
-    quoteEn: 'Nafaa didn\'t just save me time — it gave me my evenings back with my family. That\'s priceless.',
-    quoteUr: 'نفع نے مجھے میری شامیں واپس دلائیں۔',
-    duration: '90 days',
+    afterMetrics: [
+      { labelEn: 'Monthly udhar loss', labelUr: 'ماہانہ ادھار نقصان', value: '₨ 8K' },
+      { labelEn: 'Inventory count time', labelUr: 'اسٹاک گنتی', value: '20 min' },
+      { labelEn: 'Daily reconciliation', labelUr: 'روزانہ ملان', value: '5 min' },
+      { labelEn: 'Shops visited/day', labelUr: 'روزانہ دکانیں', value: '0' },
+    ],
+    quote: {
+      en: '"Meri zindagi asaan ho gayi. Pehle ratein soch soch ke guzarti thi ke kis ne kitna udhar liya. Ab har cheez phone mein."',
+      ur: '"میری زندگی آسان ہو گئی۔ پہلے راتیں سوچ سوچ کے گزرتی تھیں کہ کس نے کتنا ادھار لیا۔ اب ہر چیز فون میں۔"',
+    },
+    headline: {
+      en: 'Recovered PKR 72K/month in udhar. Manages 3 shops from his phone.',
+      ur: 'ادھار میں ماہانہ 72 ہزار روپے کی وصولی۔ تین دکانیں فون سے۔',
+    },
+    timeline: [
+      { month: 'Day 1', monthUr: 'پہلا دن', event: { en: 'Onboarded, POS live on all 3 shops', ur: 'تینوں دکانوں پر پی او ایس فعال' }, impact: '3 shops digital' },
+      { month: 'Week 2', monthUr: 'دو ہفتے', event: { en: 'First WhatsApp reminder batch sent', ur: 'پہلی WhatsApp یاد دہانی' }, impact: '₨ 42K recovered' },
+      { month: 'Month 3', monthUr: 'تیسرا مہینہ', event: { en: 'Multi-shop sync + inventory alerts', ur: 'ملٹی-شاپ سنک اور انتباہ' }, impact: '90% less waste' },
+      { month: 'Year 1', monthUr: 'پہلا سال', event: { en: 'Opened 4th shop with confidence', ur: 'چوتھی دکان کھولی' }, impact: '₨ 8.6L saved' },
+    ],
   },
+
   {
-    slug: 'zk-pharmacy-karachi',
-    businessEn: 'ZK Pharmacy', businessUr: 'زیڈ کے فارمیسی',
-    ownerEn: 'Fatima Khan', ownerUr: 'فاطمہ خان',
-    city: 'Karachi', cityUr: 'کراچی', industry: 'pharmacy', emoji: '💊',
-    gradient: 'from-blue-500 to-cyan-600',
-    taglineEn: 'Zero expired stock and full DRAP compliance in 30 days', taglineUr: '۳۰ دن میں صفر ایکسپائرڈ اسٹاک',
-    challengeEn: 'Manual batch tracking led to Rs 40,000 monthly expiry losses. DRAP inspections were stressful with paper registers.',
-    challengeUr: 'دستی بیچ ٹریکنگ سے ماہانہ ۴۰ ہزار کا نقصان۔',
-    solutionEn: 'Implemented batch and expiry tracking with 30/60/90 day alerts, salt-based medicine search, and prescription scanning.',
-    solutionUr: 'بیچ اور ایکسپائری ٹریکنگ، سالٹ تلاش، نسخہ اسکیننگ۔',
-    results: [
-      { metricEn: 'Expired stock', metricUr: 'ایکسپائرڈ اسٹاک', valueEn: 'Zero', valueUr: 'صفر' },
-      { metricEn: 'DRAP compliance', metricUr: 'ڈریپ تعمیل', valueEn: '100%', valueUr: '۱۰۰٪' },
-      { metricEn: 'Medicine lookup time', metricUr: 'دوا تلاش وقت', valueEn: '2 min → 15 sec', valueUr: '۲ منٹ سے ۱۵ سیکنڈ' },
-      { metricEn: 'Monthly profit', metricUr: 'ماہانہ منافع', valueEn: '+35%', valueUr: '+۳۵٪' },
+    industrySlug: 'jewelry',
+    businessNameEn: 'Zeenat Jewellers',
+    businessNameUr: 'زینت جیولرز',
+    city: 'Karachi',
+    cityUr: 'کراچی',
+    ownerEn: 'Nazia Zeenat',
+    ownerUr: 'نازیہ زینت',
+    founded: '2015',
+    shopCount: 2,
+    yearsWithNafaa: 3,
+    challenge: {
+      en: 'Bridal jewelry pricing was manual chaos — daily rate lookups, calculator for making charges, GST math errors on 30% of invoices. FBR audit in 2023 flagged inconsistencies.',
+      ur: 'دلہن زیورات کی قیمتیں ہاتھ سے — روزانہ ریٹ دیکھنا، کیلکولیٹر پر مزدوری، 30% بلوں میں جی ایس ٹی کی غلطیاں۔ 2023 میں ایف بی آر آڈٹ میں مسائل۔',
+    },
+    solution: {
+      en: 'Live gold rate integration via Nafaa API. Every invoice auto-calculates 24k/22k/21k value + making charges + GST. FBR e-invoicing integrated directly.',
+      ur: 'براہ راست سونے کی شرح API۔ ہر بل خودکار حساب — کیریٹ، مزدوری، جی ایس ٹی۔ ایف بی آر ای-انوائسنگ شامل۔',
+    },
+    beforeMetrics: [
+      { labelEn: 'Invoice errors', labelUr: 'بل کی غلطیاں', value: '30%' },
+      { labelEn: 'Time per invoice', labelUr: 'بل کا وقت', value: '12 min' },
+      { labelEn: 'FBR compliance', labelUr: 'ایف بی آر تعمیل', value: '60%' },
+      { labelEn: 'Monthly revenue', labelUr: 'ماہانہ آمدنی', value: '₨ 42L' },
     ],
-    quoteEn: 'DRAP inspections used to terrify me. Now I just open Nafaa and everything is right there, audit-ready.',
-    quoteUr: 'ڈریپ معائنے اب خوفناک نہیں۔',
-    duration: '30 days',
+    afterMetrics: [
+      { labelEn: 'Invoice errors', labelUr: 'بل کی غلطیاں', value: '0%' },
+      { labelEn: 'Time per invoice', labelUr: 'بل کا وقت', value: '90 sec' },
+      { labelEn: 'FBR compliance', labelUr: 'ایف بی آر تعمیل', value: '100%' },
+      { labelEn: 'Monthly revenue', labelUr: 'ماہانہ آمدنی', value: '₨ 68L' },
+    ],
+    quote: {
+      en: '"Rate changes har ghante — Nafaa auto pick karta hai. Customer trust bhi barha kyunke wo dekhtay hain ke rate live hai."',
+      ur: '"ریٹ ہر گھنٹے بدلتا ہے — نفع خودکار پک کرتا ہے۔ گاہکوں کا اعتماد بڑھا کہ ریٹ لائیو ہے۔"',
+    },
+    headline: {
+      en: 'Zero invoice errors. 62% revenue growth in 2 years. Full FBR compliance.',
+      ur: 'صفر بل کی غلطیاں۔ دو سال میں 62% آمدنی۔ مکمل ایف بی آر تعمیل۔',
+    },
+    timeline: [
+      { month: 'Week 1', monthUr: 'پہلا ہفتہ', event: { en: 'Gold rate API + POS live', ur: 'گولڈ ریٹ API اور پی او ایس' }, impact: 'Instant pricing' },
+      { month: 'Month 2', monthUr: 'دوسرا مہینہ', event: { en: 'FBR integration complete', ur: 'ایف بی آر تعمیل مکمل' }, impact: '100% compliant' },
+      { month: 'Year 1', monthUr: 'پہلا سال', event: { en: 'Bridal package builder launched', ur: 'دلہن پیکج فیچر' }, impact: '+35% revenue' },
+      { month: 'Year 2', monthUr: 'دوسرا سال', event: { en: '2nd shop opened in DHA', ur: 'ڈی ایچ اے میں دوسری دکان' }, impact: '2 locations' },
+    ],
   },
+
   {
-    slug: 'bilal-mobile-3-branches',
-    businessEn: 'Bilal Mobile Centre', businessUr: 'بلال موبائل سینٹر',
-    ownerEn: 'Muhammad Bilal', ownerUr: 'محمد بلال',
-    city: 'Islamabad', cityUr: 'اسلام آباد', industry: 'mobile-shop', emoji: '📱',
-    gradient: 'from-violet-500 to-purple-600',
-    taglineEn: '3 branches unified into one dashboard — daily management cut from 6 hours to 1',
-    taglineUr: '۳ برانچز ایک ڈیش بورڈ میں متحد',
-    challengeEn: 'Running 3 branches meant 3 separate inventories, 3 sets of staff, and 6 hours daily just managing instead of selling.',
-    challengeUr: '۳ برانچز کا الگ الگ انتظام ۶ گھنٹے روزانہ۔',
-    solutionEn: 'Deployed Nafaa Multi-Shop with centralized inventory, IMEI tracking, PTA compliance, and role-based staff access.',
-    solutionUr: 'نفع ملٹی شاپ، آئی ایم ای آئی ٹریکنگ، پی ٹی اے تعمیل۔',
-    results: [
-      { metricEn: 'Branches unified', metricUr: 'برانچز متحد', valueEn: '3 → 1', valueUr: '۳ سے ۱' },
-      { metricEn: 'Daily management', metricUr: 'روزانہ انتظام', valueEn: '6h → 1h', valueUr: '۶ گھنٹے سے ۱' },
-      { metricEn: 'Lost IMEIs', metricUr: 'کھوئے آئی ایم ای', valueEn: 'Zero', valueUr: 'صفر' },
-      { metricEn: 'Repair revenue', metricUr: 'مرمت آمدنی', valueEn: '+45%', valueUr: '+۴۵٪' },
+    industrySlug: 'pharmacy',
+    businessNameEn: 'City Care Pharmacy',
+    businessNameUr: 'سٹی کیئر فارمیسی',
+    city: 'Lahore',
+    cityUr: 'لاہور',
+    ownerEn: 'Dr. Faisal Rehman',
+    ownerUr: 'ڈاکٹر فیصل رحمان',
+    founded: '2011',
+    shopCount: 4,
+    yearsWithNafaa: 2,
+    challenge: {
+      en: 'Managing 8,000+ SKUs across 4 branches with batch/expiry tracking on paper meant PKR 350K/month in expired medicine losses. DRAP audits were nightmare-inducing.',
+      ur: '8,000+ ادویات، 4 برانچز، کاغذی بیچ ٹریکنگ = ماہانہ 3.5 لاکھ کا نقصان۔ ڈریپ آڈٹ ڈراؤنے۔',
+    },
+    solution: {
+      en: 'Every medicine batch scanned at intake. Auto-alerts 60/30/7 days before expiry. DRAP reports generated in one click. Prescription upload with OCR.',
+      ur: 'ہر بیچ اسکین۔ خودکار انتباہ 60/30/7 دن پہلے۔ ایک کلک ڈریپ رپورٹ۔ نسخہ اپلوڈ + OCR۔',
+    },
+    beforeMetrics: [
+      { labelEn: 'Expired stock loss', labelUr: 'ختم شدہ اسٹاک', value: '₨ 350K' },
+      { labelEn: 'DRAP audit time', labelUr: 'ڈریپ آڈٹ وقت', value: '2 weeks' },
+      { labelEn: 'Prescription lookup', labelUr: 'نسخہ تلاش', value: '10 min' },
+      { labelEn: 'Stock accuracy', labelUr: 'اسٹاک درستگی', value: '78%' },
     ],
-    quoteEn: 'I used to drive between branches daily. Now I see everything from my phone. Nafaa gave me my life back.',
-    quoteUr: 'میں روزانہ برانچز کے درمیان ڈرائیو کرتا تھا۔ اب سب فون پر۔',
-    duration: '60 days',
-  },
-  {
-    slug: 'sara-boutique-faisalabad',
-    businessEn: 'Sara Boutique', businessUr: 'سارہ بوتیک',
-    ownerEn: 'Sara Ahmed', ownerUr: 'سارہ احمد',
-    city: 'Faisalabad', cityUr: 'فیصل آباد', industry: 'garments', emoji: '👗',
-    gradient: 'from-pink-500 to-rose-600',
-    taglineEn: 'From 1 shop to online + offline with 5x faster checkout', taglineUr: 'ایک دکان سے آن لائن + آف لائن',
-    challengeEn: 'Size and color chaos, lost customer measurements, and no way to sell online without losing inventory control.',
-    challengeUr: 'سائز اور رنگ کا الجھاؤ، کھوئی پیمائشیں۔',
-    solutionEn: 'Variant matrix, saved customer measurements, Daraz integration, and Nafaa Bazaar for direct selling.',
-    solutionUr: 'تغیر میٹرکس، محفوظ پیمائشیں، دراز انضمام۔',
-    results: [
-      { metricEn: 'Checkout speed', metricUr: 'چیک آؤٹ رفتار', valueEn: '5x faster', valueUr: '۵ گنا تیز' },
-      { metricEn: 'Lost measurements', metricUr: 'کھوئی پیمائشیں', valueEn: 'Zero', valueUr: 'صفر' },
-      { metricEn: 'Custom order accuracy', metricUr: 'خصوصی آرڈر درستگی', valueEn: '+58%', valueUr: '+۵۸٪' },
-      { metricEn: 'Repeat customers', metricUr: 'دوبارہ گاہک', valueEn: '+40%', valueUr: '+۴۰٪' },
+    afterMetrics: [
+      { labelEn: 'Expired stock loss', labelUr: 'ختم شدہ اسٹاک', value: '₨ 12K' },
+      { labelEn: 'DRAP audit time', labelUr: 'ڈریپ آڈٹ وقت', value: '2 hours' },
+      { labelEn: 'Prescription lookup', labelUr: 'نسخہ تلاش', value: '5 sec' },
+      { labelEn: 'Stock accuracy', labelUr: 'اسٹاک درستگی', value: '99.7%' },
     ],
-    quoteEn: 'My customers love that I remember their measurements. Nafaa made me look like a premium brand.',
-    quoteUr: 'میرے گاہک پسند کرتے ہیں کہ میں ان کی پیمائشیں یاد رکھتی ہوں۔',
-    duration: '45 days',
+    quote: {
+      en: '"DRAP inspector aya, humne 2 ghante mein saara data show kar diya. Pehle 2 hafte lagtay thay. Sar mein dard nahi hota ab."',
+      ur: '"ڈریپ انسپکٹر آیا، 2 گھنٹے میں سارا ڈیٹا۔ پہلے دو ہفتے لگتے تھے۔ اب سر میں درد نہیں۔"',
+    },
+    headline: {
+      en: 'Cut expired stock loss by 96%. DRAP audits from 2 weeks → 2 hours.',
+      ur: '96% کم نقصان۔ ڈریپ آڈٹ دو ہفتے سے دو گھنٹے۔',
+    },
+    timeline: [
+      { month: 'Month 1', monthUr: 'پہلا مہینہ', event: { en: 'Batch scanning across 4 branches', ur: 'چاروں برانچز پر بیچ اسکیننگ' }, impact: '8K SKUs digital' },
+      { month: 'Month 3', monthUr: 'تیسرا مہینہ', event: { en: 'First DRAP audit — passed clean', ur: 'پہلا ڈریپ آڈٹ کامیاب' }, impact: '100% compliant' },
+      { month: 'Month 6', monthUr: 'چھٹا مہینہ', event: { en: 'Expiry loss down 90%', ur: '90% کم نقصان' }, impact: '₨ 2.1M saved' },
+      { month: 'Year 2', monthUr: 'دوسرا سال', event: { en: 'Opened 5th branch in Gulberg', ur: 'گلبرگ میں 5ویں برانچ' }, impact: '5 locations' },
+    ],
   },
 ];
 
-export const getCaseStudy = (slug: string) => caseStudies.find((c) => c.slug === slug);
+export function getCaseStudyForIndustry(slug: string): CaseStudy | null {
+  return caseStudies.find((c) => c.industrySlug === slug) ?? null;
+}

@@ -104,14 +104,22 @@ export const jsonLdHowTo = (p: { name: string; description: string; steps: Array
   step: p.steps.map((s, i) => ({ '@type': 'HowToStep', position: i + 1, name: s.name, text: s.text })),
 });
 
-export const jsonLdArticle = (p: { title: string; description: string; author: string; datePublished: string; image?: string; url: string }) => ({
+export const jsonLdArticle = (p: {
+  title: string;
+  description: string;
+  author: string;
+  datePublished: string;
+  dateModified?: string;
+  image?: string;
+  url: string;
+}) => ({
   '@context': 'https://schema.org',
   '@type': 'Article',
   headline: p.title,
   description: p.description,
   author: { '@type': 'Person', name: p.author },
   datePublished: p.datePublished,
-  dateModified: p.datePublished,
+  dateModified: p.dateModified ?? p.datePublished,
   image: p.image ?? `${SITE_URL}/og/og-default.png`,
   mainEntityOfPage: p.url,
   publisher: { '@id': `${SITE_URL}#organization` },

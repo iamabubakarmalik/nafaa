@@ -13,6 +13,7 @@ import { fadeUp, staggerContainer, viewport } from '@/lib/motion/presets';
 import type { Industry } from '@/lib/data/industries';
 import { cn } from '@/lib/cn';
 
+
 export function IndustryRelated({ current }: { current: Industry }) {
   const { locale } = useLocale();
   const isUr = locale === 'ur';

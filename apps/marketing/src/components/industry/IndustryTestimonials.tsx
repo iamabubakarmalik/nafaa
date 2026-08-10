@@ -12,6 +12,7 @@ import type { IndustryContent } from '@/lib/data/industry-content';
 import type { Industry } from '@/lib/data/industries';
 import { cn } from '@/lib/cn';
 
+
 export function IndustryTestimonials({ industry, content }: { industry: Industry; content: IndustryContent }) {
   const { locale } = useLocale();
   const isUr = locale === 'ur';

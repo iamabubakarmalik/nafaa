@@ -14,50 +14,46 @@ export default async function OGImage({ params }: Props) {
 
   return new ImageResponse(
     (
-      <div
-        style={{
-          width: '100%', height: '100%', display: 'flex', flexDirection: 'column',
-          background: 'linear-gradient(135deg, #0a0e27 0%, #151b30 50%, #053321 100%)',
-          padding: 72, position: 'relative', overflow: 'hidden',
-        }}
-      >
-        {/* Aurora blob using industry color */}
-        <div style={{ position: 'absolute', top: -200, right: -100, width: 600, height: 600, borderRadius: '50%', background: `radial-gradient(circle, ${industry.color}55, transparent 70%)`, display: 'flex' }} />
-        <div style={{ position: 'absolute', bottom: -250, left: -150, width: 700, height: 700, borderRadius: '50%', background: 'radial-gradient(circle, rgba(139,92,246,0.3), transparent 70%)', display: 'flex' }} />
+      <div style={{
+        width: '100%', height: '100%', display: 'flex', flexDirection: 'column',
+        background: `linear-gradient(135deg, ${industry.color} 0%, ${industry.colorDark} 100%)`,
+        padding: 72, position: 'relative', overflow: 'hidden', color: 'white',
+      }}>
+        {/* Aurora blobs */}
+        <div style={{ position: 'absolute', top: -200, right: -100, width: 600, height: 600, borderRadius: '50%', background: `radial-gradient(circle, ${industry.auroraColors[1]}88, transparent 70%)`, display: 'flex' }} />
+        <div style={{ position: 'absolute', bottom: -250, left: -150, width: 700, height: 700, borderRadius: '50%', background: `radial-gradient(circle, ${industry.auroraColors[2]}55, transparent 70%)`, display: 'flex' }} />
 
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-          <div style={{ width: 72, height: 72, borderRadius: 18, background: 'linear-gradient(135deg, #32d583, #027a48)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ color: 'white', fontSize: 42, fontWeight: 800 }}>N</div>
+          <div style={{ width: 72, height: 72, borderRadius: 18, background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ fontSize: 42, fontWeight: 800 }}>N</div>
           </div>
-          <div style={{ color: 'white', fontSize: 32, fontWeight: 800 }}>Nafaa</div>
+          <div style={{ fontSize: 32, fontWeight: 800 }}>Nafaa</div>
         </div>
 
-        {/* Industry emoji + name */}
+        {/* Emoji + name */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 24, marginTop: 64 }}>
-          <div style={{ width: 120, height: 120, borderRadius: 28, background: `${industry.color}30`, border: `3px solid ${industry.color}80`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 72 }}>
+          <div style={{ width: 130, height: 130, borderRadius: 32, background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(10px)', border: '3px solid rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 80 }}>
             {industry.emoji}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <div style={{ color: industry.color, fontSize: 20, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase' }}>Industry Solution</div>
-            <div style={{ color: 'white', fontSize: 56, fontWeight: 800, marginTop: 4 }}>{industry.nameEn}</div>
+            <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase', opacity: 0.9 }}>Industry Solution</div>
+            <div style={{ fontSize: 60, fontWeight: 800, marginTop: 4 }}>{industry.nameEn}</div>
           </div>
         </div>
 
-        {/* Tagline */}
+        {/* Signature */}
         <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ color: 'white', fontSize: 44, fontWeight: 800, lineHeight: 1.15, maxWidth: 1000 }}>
-            {industry.tagEn}
-          </div>
-          <div style={{ color: '#a6f4c5', fontSize: 24, marginTop: 20 }}>
-            nafaa.pk/industries/{industry.slug}
+          <div style={{ fontSize: 18, fontWeight: 700, letterSpacing: 2, opacity: 0.8, marginBottom: 12 }}>ONLY IN NAFAA</div>
+          <div style={{ fontSize: 44, fontWeight: 800, lineHeight: 1.15, maxWidth: 1000 }}>
+            {industry.signature}
           </div>
         </div>
 
         {/* Bottom feature pills */}
         <div style={{ display: 'flex', gap: 12, marginTop: 32 }}>
           {industry.keyFeatures.slice(0, 4).map((f) => (
-            <div key={f} style={{ display: 'flex', padding: '10px 20px', borderRadius: 999, background: `${industry.color}20`, border: `1px solid ${industry.color}60`, color: 'white', fontSize: 20, fontWeight: 700 }}>
+            <div key={f} style={{ display: 'flex', padding: '10px 20px', borderRadius: 999, background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.4)', fontSize: 20, fontWeight: 700 }}>
               ✓ {f}
             </div>
           ))}

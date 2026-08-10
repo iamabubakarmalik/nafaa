@@ -10,8 +10,6 @@ async function main() {
       slug: 'customer-verify-email',
       name: 'Customer — Verify Email',
       subject: 'Verify your email — Nafaa Bazaar',
-      htmlFile: 'customer-verify-email.hbs',
-      description: 'OTP code to verify customer email',
     },
   ];
 
@@ -23,15 +21,13 @@ async function main() {
 
     await prisma.emailTemplate.upsert({
       where: { slug: t.slug },
-      update: { subject: t.subject, htmlContent: html, name: t.name },
+      update: { subject: t.subject, bodyHtml: html, name: t.name },
       create: {
         slug: t.slug,
         name: t.name,
         subject: t.subject,
-        htmlContent: html,
-        description: t.description,
+        bodyHtml: html,
         variables: ['name', 'code', 'appUrl', 'verifyUrl'],
-        isSystem: true,
       },
     });
     console.log(`✅ Seeded: ${t.slug}`);
