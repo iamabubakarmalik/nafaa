@@ -292,24 +292,95 @@ export class ProductsService {
   }
 
   /**
-   * Delete sales that became empty after their items were wiped
-   * (demo/test data cleanup). Sales with other items untouched.
+   * Wipe EVERY record that references a sale — schema-driven.
+   * Prisma DMMF se har model dhundta hai jisme saleId field hai
+   * (payments, khata ledger, notifications, FBR invoices — sab),
+   * taake FK block kabhi sale delete ko fail na kare.
+   */
+  private async wipeSaleRefsTx(tx: any, saleIds: string[]) {
+    if (!saleIds.length) return;
+    const dmmf = (Prisma as any).dmmf ?? (Prisma as any).dMMF;
+    const models = dmmf?.datamodel?.models ?? [];
+    for (const m of models) {
+      if (m.name === 'Sale') continue;
+      const hasSaleId = m.fields?.some((f: any) => f.name === 'saleId');
+      if (!hasSaleId) continue;
+      const delegateName = m.name.charAt(0).toLowerCase() + m.name.slice(1);
+      const delegate = tx[delegateName];
+      if (!delegate || typeof delegate.deleteMany !== 'function') continue;
+      await Promise.resolve(
+        delegate.deleteMany({ where: { saleId: { in: saleIds } } }),
+      ).catch((e: any) =>
+        this.logger.warn(`wipeSaleRefs: ${m.name} skip (${e?.message})`),
+      );
+    }
+  }
+
+  /**
+   * Empty orphan sales delete karo (jinke items wipe ho chuke).
+   * saleItem.saleId se detect karta hai — relation-name independent.
    */
   private async cleanupEmptySalesTx(tx: any, tenantId: string, saleIds: string[]) {
     if (!saleIds.length) return 0;
     try {
-      const empties = await tx.sale.findMany({
-        where: { id: { in: saleIds }, tenantId, items: { none: {} } },
-        select: { id: true },
+      const stillHaveItems = await tx.saleItem.findMany({
+        where: { saleId: { in: saleIds } },
+        select: { saleId: true },
+        distinct: ['saleId'],
       });
-      const emptyIds = empties.map((s: any) => s.id);
+      const withItems = new Set(stillHaveItems.map((r: any) => r.saleId));
+      const emptyIds = saleIds.filter((sid) => !withItems.has(sid));
       if (!emptyIds.length) return 0;
-      await tx.salePayment.deleteMany({ where: { saleId: { in: emptyIds } } }).catch(() => {});
-      await tx.sale.deleteMany({ where: { id: { in: emptyIds }, tenantId } }).catch(() => {});
-      return emptyIds.length;
-    } catch {
+
+      // Pehle sab sale references wipe, PHIR sale delete
+      await this.wipeSaleRefsTx(tx, emptyIds);
+      const res = await tx.sale.deleteMany({
+        where: { id: { in: emptyIds }, tenantId },
+      });
+      this.logger.log(`Orphan sales deleted: ${res?.count ?? 0}`);
+      return res?.count ?? 0;
+    } catch (e: any) {
+      this.logger.warn(`cleanupEmptySalesTx failed: ${e?.message}`);
       return 0;
     }
+  }
+
+  /**
+   * Tenant ke saare orphan sales (0 items wale) saaf karo — one-time repair.
+   * Dashboard pe "0 items • Rs X" wali ghost sales ke liye.
+   */
+  async cleanupOrphanSales(user: AuthenticatedUser) {
+    const [allSales, withItemsRows] = await Promise.all([
+      this.prisma.sale.findMany({
+        where: { tenantId: user.tenantId },
+        select: { id: true, saleNumber: true },
+      }),
+      this.prisma.saleItem.findMany({
+        where: { sale: { tenantId: user.tenantId } },
+        select: { saleId: true },
+        distinct: ['saleId'],
+      }),
+    ]);
+    const withItems = new Set(withItemsRows.map((r) => r.saleId));
+    const orphans = allSales.filter((s) => !withItems.has(s.id));
+    if (!orphans.length) {
+      return { message: 'Koi empty sale nahi mili — sab saaf hai ✓', deleted: 0 };
+    }
+    const ids = orphans.map((s) => s.id);
+    let deleted = 0;
+    await this.prisma.$transaction(async (tx) => {
+      await this.wipeSaleRefsTx(tx, ids);
+      const res = await tx.sale.deleteMany({
+        where: { id: { in: ids }, tenantId: user.tenantId },
+      });
+      deleted = res?.count ?? 0;
+    });
+    this.logger.log(`Orphan sales cleaned: ${deleted} (${orphans.map((o) => o.saleNumber).join(', ')})`);
+    return {
+      message: `${deleted} empty sales permanently delete ho gayi`,
+      deleted,
+      saleNumbers: orphans.map((o) => o.saleNumber),
+    };
   }
 
   async remove(user: AuthenticatedUser, id: string, force = false) {
