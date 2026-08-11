@@ -68,17 +68,12 @@ interface ConfirmModalProps {
 }
 
 function ConfirmUpgradeModal({ plan, interval, price, existingPending, onConfirm, onClose, loading }: ConfirmModalProps) {
-  // Defensive reads — API can return {} (truthy, no subscription/invoice)
-  const pendingSub    = existingPending?.subscription ?? null;
-  const pendingPlan   = pendingSub?.plan ?? null;
-  const pendingInv    = existingPending?.invoice ?? null;
-  const hasPending    = !!pendingPlan;
-  const isSamePlan    = hasPending && pendingPlan?.id === plan.id &&
-                        pendingSub?.interval === interval;
+  const isSamePlan = existingPending?.subscription?.plan?.id === plan.id &&
+                     existingPending?.subscription?.interval === interval;
 
   return (
     <div className="fixed inset-0 z-[100] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
-      <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header */}
         <div className={`relative overflow-hidden bg-gradient-to-br ${planGradients[plan.slug] || 'from-slate-700 to-slate-900'} text-white p-6`}>
           <div className="absolute -top-8 -right-8 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
@@ -89,7 +84,7 @@ function ConfirmUpgradeModal({ plan, interval, price, existingPending, onConfirm
                   <RefreshCw className="h-2.5 w-2.5 text-amber-300" />
                   Same Plan
                 </>
-              ) : hasPending ? (
+              ) : existingPending ? (
                 <>
                   <AlertTriangle className="h-2.5 w-2.5 text-amber-300" />
                   Switch Plan
@@ -112,37 +107,33 @@ function ConfirmUpgradeModal({ plan, interval, price, existingPending, onConfirm
         {/* Body */}
         <div className="p-6 space-y-4">
           {isSamePlan ? (
-            <div className="rounded-2xl bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 p-4 flex items-start gap-3">
-              <RefreshCw className="h-5 w-5 text-blue-700 dark:text-blue-400 shrink-0 mt-0.5" />
+            <div className="rounded-2xl bg-blue-50 border-2 border-blue-200 p-4 flex items-start gap-3">
+              <RefreshCw className="h-5 w-5 text-blue-700 shrink-0 mt-0.5" />
               <div>
-                <div className="font-extrabold text-blue-900 dark:text-blue-200 text-sm">Already Pending</div>
-                <p className="text-xs text-blue-800 dark:text-blue-300 mt-1 font-semibold leading-relaxed">
+                <div className="font-extrabold text-blue-900 text-sm">Already Pending</div>
+                <p className="text-xs text-blue-800 mt-1 font-semibold leading-relaxed">
                   Iss plan ke liye already invoice generate ho chuki hai. Aap ko us hi invoice par redirect kar dia jayega — naya invoice nahi banega.
                 </p>
               </div>
             </div>
-          ) : hasPending ? (
-            <div className="rounded-2xl bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-300 dark:border-amber-800 p-4 flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-amber-700 dark:text-amber-400 shrink-0 mt-0.5" />
+          ) : existingPending ? (
+            <div className="rounded-2xl bg-amber-50 border-2 border-amber-300 p-4 flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-amber-700 shrink-0 mt-0.5" />
               <div>
-                <div className="font-extrabold text-amber-900 dark:text-amber-200 text-sm">Pichla Pending Cancel Ho Jayega</div>
-                <p className="text-xs text-amber-800 dark:text-amber-300 mt-1 font-semibold leading-relaxed">
-                  Aap ka existing pending plan <strong>{pendingPlan?.name ?? 'Unknown'}</strong>
-                  {pendingInv ? (
-                    <>
-                      {' '}aur uska invoice <strong>{pendingInv.invoiceNumber ?? ''}</strong> ({formatPKR(pendingInv.amountDue ?? 0)})
-                    </>
-                  ) : null}
-                  {' '}automatic cancel ho jayega.
+                <div className="font-extrabold text-amber-900 text-sm">Pichla Pending Cancel Ho Jayega</div>
+                <p className="text-xs text-amber-800 mt-1 font-semibold leading-relaxed">
+                  Aap ka existing pending plan{' '}
+                  <strong>{existingPending.subscription.plan.name}</strong> aur uska{' '}
+                  invoice <strong>{existingPending.invoice.invoiceNumber}</strong> ({formatPKR(existingPending.invoice.amountDue)}) automatic cancel ho jayega.
                 </p>
               </div>
             </div>
           ) : (
-            <div className="rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 border-2 border-emerald-200 dark:border-emerald-800 p-4 flex items-start gap-3">
-              <CheckCircle2 className="h-5 w-5 text-emerald-700 dark:text-emerald-400 shrink-0 mt-0.5" />
+            <div className="rounded-2xl bg-emerald-50 border-2 border-emerald-200 p-4 flex items-start gap-3">
+              <CheckCircle2 className="h-5 w-5 text-emerald-700 shrink-0 mt-0.5" />
               <div>
-                <div className="font-extrabold text-emerald-900 dark:text-emerald-200 text-sm">Ready to Subscribe</div>
-                <p className="text-xs text-emerald-800 dark:text-emerald-300 mt-1 font-semibold leading-relaxed">
+                <div className="font-extrabold text-emerald-900 text-sm">Ready to Subscribe</div>
+                <p className="text-xs text-emerald-800 mt-1 font-semibold leading-relaxed">
                   Naya invoice generate hoga aur aap payment page par chale jayenge. Current trial/plan payment confirm hone tak chalta rahega.
                 </p>
               </div>
@@ -150,15 +141,15 @@ function ConfirmUpgradeModal({ plan, interval, price, existingPending, onConfirm
           )}
 
           <ul className="space-y-2 text-sm">
-            <li className="flex items-center gap-2 text-slate-700 dark:text-slate-200 font-semibold">
+            <li className="flex items-center gap-2 text-slate-700 font-semibold">
               <Check className="h-4 w-4 text-emerald-600" strokeWidth={3} />
               <span>{plan.maxProducts >= 999999 ? 'Unlimited' : plan.maxProducts.toLocaleString()} Products</span>
             </li>
-            <li className="flex items-center gap-2 text-slate-700 dark:text-slate-200 font-semibold">
+            <li className="flex items-center gap-2 text-slate-700 font-semibold">
               <Check className="h-4 w-4 text-emerald-600" strokeWidth={3} />
               <span>{plan.maxUsers >= 999 ? 'Unlimited' : plan.maxUsers} Team Users</span>
             </li>
-            <li className="flex items-center gap-2 text-slate-700 dark:text-slate-200 font-semibold">
+            <li className="flex items-center gap-2 text-slate-700 font-semibold">
               <Check className="h-4 w-4 text-emerald-600" strokeWidth={3} />
               <span>{plan.maxShops >= 999 ? 'Unlimited' : plan.maxShops} Shop{plan.maxShops > 1 ? 's' : ''}</span>
             </li>
@@ -400,7 +391,7 @@ export default function PlansPage() {
                 Cleanup
               </Button>
               <Button
-                onClick={() => pendingUpgrade?.invoice?.id && navigate(`/billing/invoice/${pendingUpgrade.invoice.id}/pay`)}
+                onClick={() => navigate(`/billing/invoice/${pendingUpgrade.invoice.id}/pay`)}
                 className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700"
               >
                 Pay Existing
@@ -423,7 +414,7 @@ export default function PlansPage() {
           const price = getPrice(plan);
           const savings = getSavings(plan);
           const isFree = plan.priceMonthly === 0;
-          const isPendingThis = !!pendingUpgrade?.subscription?.plan?.id && pendingUpgrade.subscription.plan.id === plan?.id;
+          const isPendingThis = pendingUpgrade?.subscription?.plan?.id === plan?.id;
 
           return (
             <div
@@ -520,7 +511,7 @@ export default function PlansPage() {
                     <Button className="w-full" variant="secondary" onClick={() => navigate('/billing')}>
                       Already on Trial
                     </Button>
-                  ) : isPendingThis && pendingUpgrade?.invoice?.id ? (
+                  ) : isPendingThis ? (
                     <Button
                       className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700"
                       onClick={() => navigate(`/billing/invoice/${pendingUpgrade.invoice.id}/pay`)}
