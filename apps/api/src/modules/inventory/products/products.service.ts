@@ -258,6 +258,60 @@ export class ProductsService {
     return this.findOne(user, id);
   }
 
+  /**
+   * Cascade-wipe every record that references a product.
+   * Unknown/optional models are skipped safely (.catch).
+   */
+  private async cascadeProductRefsTx(tx: any, ids: string | string[]) {
+    const where = Array.isArray(ids) ? { productId: { in: ids } } : { productId: ids };
+    const wipe = (model: string) => {
+      const m = tx[model];
+      if (!m || typeof m.deleteMany !== 'function') return Promise.resolve();
+      return Promise.resolve(m.deleteMany({ where })).catch(() => {});
+    };
+    // Children first — order matters for FK safety
+    await wipe('saleItem');
+    await wipe('purchaseItem');
+    await wipe('returnItem');
+    await wipe('bookingItem');
+    await wipe('stockMovement');
+    await wipe('stockAdjustment');
+    await wipe('productImage');
+    await wipe('productTag');
+    await wipe('productBatch');
+    await wipe('shopStock');
+    await wipe('productImei');
+    await wipe('carpetCutPiece');
+    await wipe('carpetRoll');
+    await wipe('comboItem');
+    await wipe('productUnit');
+    await wipe('quickKey');
+    await wipe('reorderRule');
+    await wipe('marketplaceProduct');
+    await wipe('productVariant'); // variants last among children
+  }
+
+  /**
+   * Delete sales that became empty after their items were wiped
+   * (demo/test data cleanup). Sales with other items untouched.
+   */
+  private async cleanupEmptySalesTx(tx: any, tenantId: string, saleIds: string[]) {
+    if (!saleIds.length) return 0;
+    try {
+      const empties = await tx.sale.findMany({
+        where: { id: { in: saleIds }, tenantId, items: { none: {} } },
+        select: { id: true },
+      });
+      const emptyIds = empties.map((s: any) => s.id);
+      if (!emptyIds.length) return 0;
+      await tx.salePayment.deleteMany({ where: { saleId: { in: emptyIds } } }).catch(() => {});
+      await tx.sale.deleteMany({ where: { id: { in: emptyIds }, tenantId } }).catch(() => {});
+      return emptyIds.length;
+    } catch {
+      return 0;
+    }
+  }
+
   async remove(user: AuthenticatedUser, id: string, force = false) {
     await this.findOne(user, id);
 
@@ -269,32 +323,30 @@ export class ProductsService {
       where: { productId: id },
     });
 
-    // ═══ FORCE DELETE — cascade everything ═══
+    // ═══ FORCE DELETE — cascade EVERYTHING (sales, stock, images, variants…) ═══
     if (force) {
-      await this.prisma.$transaction(async (tx) => {
-        // Delete all related records first
-        await tx.saleItem.deleteMany({ where: { productId: id } });
-        await tx.purchaseItem.deleteMany({ where: { productId: id } });
-        await tx.stockMovement.deleteMany({ where: { productId: id } });
-        await tx.stockAdjustment.deleteMany({ where: { productId: id } }).catch(() => {});
-        await tx.productImage.deleteMany({ where: { productId: id } });
-        await tx.productTag.deleteMany({ where: { productId: id } });
-        await tx.productVariant.deleteMany({ where: { productId: id } });
-        await tx.productBatch.deleteMany({ where: { productId: id } });
-        await tx.shopStock.deleteMany({ where: { productId: id } });
-        await tx.productImei.deleteMany({ where: { productId: id } }).catch(() => {});
-        await tx.carpetRoll.deleteMany({ where: { productId: id } }).catch(() => {});
-        await tx.carpetCutPiece.deleteMany({ where: { productId: id } }).catch(() => {});
+      // Capture affected sale ids BEFORE wiping items (for orphan-sale cleanup)
+      const affectedSaleIds = (
+        await this.prisma.saleItem.findMany({
+          where: { productId: id },
+          select: { saleId: true },
+          distinct: ['saleId'],
+        })
+      ).map((r) => r.saleId);
 
-        // Finally delete the product
+      let removedEmptySales = 0;
+      await this.prisma.$transaction(async (tx) => {
+        await this.cascadeProductRefsTx(tx, id);
+        removedEmptySales = await this.cleanupEmptySalesTx(tx, user.tenantId, affectedSaleIds);
         await tx.product.delete({ where: { id } });
       });
 
       return {
-        message: 'Product force-deleted with all history',
+        message: 'Product + sales + stock permanently delete ho gaya',
         forced: true,
-        cascadedSales: saleItemCount,
-        cascadedPurchases: purchaseItemCount,
+        cascadedSaleItems: saleItemCount,
+        cascadedPurchaseItems: purchaseItemCount,
+        removedEmptySales,
       };
     }
 
@@ -352,21 +404,19 @@ export class ProductsService {
         await this.prisma.product.updateMany({ where, data: { isFeatured: false } });
         break;
       case 'delete': {
-        // For bulk: use force delete for all (removes safety)
-        // Cascade delete everything
-        await this.prisma.$transaction(async (tx) => {
-          await tx.saleItem.deleteMany({ where: { productId: { in: productIds } } });
-          await tx.purchaseItem.deleteMany({ where: { productId: { in: productIds } } });
-          await tx.stockMovement.deleteMany({ where: { productId: { in: productIds } } });
-          await tx.productImage.deleteMany({ where: { productId: { in: productIds } } });
-          await tx.productTag.deleteMany({ where: { productId: { in: productIds } } });
-          await tx.productVariant.deleteMany({ where: { productId: { in: productIds } } });
-          await tx.productBatch.deleteMany({ where: { productId: { in: productIds } } });
-          await tx.shopStock.deleteMany({ where: { productId: { in: productIds } } });
-          await tx.productImei.deleteMany({ where: { productId: { in: productIds } } }).catch(() => {});
-          await tx.carpetRoll.deleteMany({ where: { productId: { in: productIds } } }).catch(() => {});
-          await tx.carpetCutPiece.deleteMany({ where: { productId: { in: productIds } } }).catch(() => {});
+        // Bulk force-delete — full cascade (demo/test data wipes cleanly)
+        const affectedSaleIds = (
+          await this.prisma.saleItem.findMany({
+            where: { productId: { in: productIds } },
+            select: { saleId: true },
+            distinct: ['saleId'],
+          })
+        ).map((r) => r.saleId);
 
+        let removedEmptySales = 0;
+        await this.prisma.$transaction(async (tx) => {
+          await this.cascadeProductRefsTx(tx, productIds);
+          removedEmptySales = await this.cleanupEmptySalesTx(tx, user.tenantId, affectedSaleIds);
           await tx.product.deleteMany({
             where: { id: { in: productIds }, tenantId: user.tenantId },
           });
@@ -378,6 +428,7 @@ export class ProductsService {
           hardDeleted: productIds.length,
           softDeleted: 0,
           forced: true,
+          removedEmptySales,
         };
       }
     }

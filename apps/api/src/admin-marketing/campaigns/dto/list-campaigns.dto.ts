@@ -4,9 +4,9 @@ import { Type } from 'class-transformer';
 export enum CampaignStatus {
   DRAFT = 'DRAFT',
   SCHEDULED = 'SCHEDULED',
-  SENDING = 'SENDING',
-  SENT = 'SENT',
+  RUNNING = 'RUNNING',
   PAUSED = 'PAUSED',
+  COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED',
   FAILED = 'FAILED',
 }

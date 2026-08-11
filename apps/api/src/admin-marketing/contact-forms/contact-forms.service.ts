@@ -150,7 +150,6 @@ export class ContactFormsService {
         ...(dto.internalNotes !== undefined && {
           internalNotes: dto.internalNotes,
         }),
-        ...(dto.category !== undefined && { category: dto.category }),
         updatedAt: new Date(),
       },
     });

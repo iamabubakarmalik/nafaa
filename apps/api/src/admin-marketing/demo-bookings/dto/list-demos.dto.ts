@@ -2,13 +2,12 @@ import { IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export enum DemoStatus {
-  REQUESTED = 'REQUESTED',
-  SCHEDULED = 'SCHEDULED',
+  PENDING = 'PENDING',
   CONFIRMED = 'CONFIRMED',
-  COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED',
-  NO_SHOW = 'NO_SHOW',
   RESCHEDULED = 'RESCHEDULED',
+  COMPLETED = 'COMPLETED',
+  NO_SHOW = 'NO_SHOW',
+  CANCELLED = 'CANCELLED',
 }
 
 export class ListDemosDto {

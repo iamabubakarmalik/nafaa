@@ -3,10 +3,7 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 
 export default defineConfig({
-  // '/' for web (Vercel) — deep links like /sales/:id/receipt need
-  // absolute asset paths, warna fresh page load pe assets 404 → white screen.
-  // Electron desktop build ke liye: VITE_BASE=./ pnpm build
-  base: process.env.VITE_BASE || '/',
+  base: './',
   plugins: [react()],
   resolve: {
     alias: {

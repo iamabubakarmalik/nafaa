@@ -22,7 +22,7 @@ export class NewsletterService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly resend: EmailService,
-    @InjectQueue('email') private readonly emailQueue: Queue,
+    @InjectQueue('email-queue') private readonly emailQueue: Queue,
   ) {}
 
   // ─────────────────────────────────────────────────
@@ -33,7 +33,10 @@ export class NewsletterService {
 
     const where: Prisma.NewsletterSubscriberWhereInput = {};
     if (dto.status) where.status = dto.status as any;
-    if (dto.source) where.source = dto.source as any;
+    const VALID_SOURCES = ['NEWSLETTER', 'CONTACT_FORM', 'DEMO_REQUEST', 'BLOG_SIGNUP', 'CHATBOT', 'REFERRAL', 'ORGANIC_SEARCH', 'PAID_ADS', 'SOCIAL_MEDIA', 'DIRECT', 'EMAIL_CAMPAIGN', 'AFFILIATE', 'OTHER'];
+    if (dto.source && VALID_SOURCES.includes(dto.source)) {
+      where.source = dto.source as any;
+    }
     if (dto.tag) where.tags = { has: dto.tag };
     if (dto.search) {
       where.OR = [
@@ -269,6 +272,7 @@ export class NewsletterService {
       await this.resend.send({
         toEmail: dto.testEmail,
         subject: `[TEST] ${dto.subject}`,
+        bodyHtml: dto.html,
       });
       return { success: true, testMode: true, sentTo: dto.testEmail };
     }
@@ -313,6 +317,8 @@ export class NewsletterService {
         {
           newsletterId,
           subject: dto.subject,
+          html: dto.html,
+          preheader: dto.preheader,
           recipients: batch,
         },
         {
@@ -362,7 +368,7 @@ export class NewsletterService {
         take: limit,
         orderBy: { sentAt: 'desc' },
         include: {
-          
+          subscriber: { select: { email: true, firstName: true, lastName: true } },
         },
       }),
       this.prisma.newsletterEmailLog.count(),

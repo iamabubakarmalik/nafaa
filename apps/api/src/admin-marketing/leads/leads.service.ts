@@ -30,7 +30,10 @@ export class LeadsService {
     const where: Prisma.MarketingLeadWhereInput = {};
     if (dto.status) where.status = dto.status as any;
     if (dto.temperature) where.temperature = dto.temperature as any;
-    if (dto.source) where.source = dto.source as any;
+    const VALID_SOURCES = ['NEWSLETTER', 'CONTACT_FORM', 'DEMO_REQUEST', 'BLOG_SIGNUP', 'CHATBOT', 'REFERRAL', 'ORGANIC_SEARCH', 'PAID_ADS', 'SOCIAL_MEDIA', 'DIRECT', 'EMAIL_CAMPAIGN', 'AFFILIATE', 'OTHER'];
+    if (dto.source && VALID_SOURCES.includes(dto.source)) {
+      where.source = dto.source as any;
+    }
     if (dto.assignedTo) where.assignedTo = dto.assignedTo;
     if (dto.minScore !== undefined || dto.maxScore !== undefined) {
       where.score = {};

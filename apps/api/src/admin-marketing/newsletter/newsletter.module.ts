@@ -9,7 +9,7 @@ import { NewsletterService } from './newsletter.service';
   imports: [
     PrismaModule,
     EmailModule,
-    BullModule.registerQueue({ name: 'email' }),
+    BullModule.registerQueue({ name: 'email-queue' }),
   ],
   controllers: [NewsletterController],
   providers: [NewsletterService],

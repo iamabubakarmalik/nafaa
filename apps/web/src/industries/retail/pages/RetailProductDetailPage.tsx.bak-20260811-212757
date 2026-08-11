@@ -22,7 +22,6 @@ import { salesApi } from '@modules/sales/sales/api/sales.api';
 import { stockMovementsApi } from '@modules/inventory/stock-movements/api/stock-movements.api';
 import { productUnitsApi } from '../api/product-units.api';
 import { QuickStockModal } from '../components/QuickStockModal';
-import { ProductDeleteButton } from '@core/components/ProductDeleteButton';
 
 import { PrivacyToggle, useCostHidden } from '@core/ui/HiddenValue';
 
@@ -186,6 +185,16 @@ export default function RetailProductDetailPage() {
     return Object.values(buckets);
   }, [soldLines]);
 
+  const removeMutation = useMutation({
+    mutationFn: () => productsApi.remove(id!),
+    onSuccess: (data: any) => {
+      toast.success(data?.softDeleted ? 'Product band ho gaya' : 'Product delete ho gaya');
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['retail-products'] });
+      navigate('/products');
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Delete nahi hua'),
+  });
 
   /* ─── Unit converter ─── */
   const allUnitOptions = useMemo(() => {
@@ -249,13 +258,12 @@ export default function RetailProductDetailPage() {
           <Link to="/retail/barcode-labels" state={{ productIds: [id] }} className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white border-2 border-slate-200 hover:border-blue-300 text-slate-700 text-sm font-extrabold">
             <Barcode className="h-4 w-4" /> Label
           </Link>
-          <ProductDeleteButton
-            id={id!}
-            name={product.name}
-            size="md"
+          <button
+            onClick={() => { if (confirm(`"${product.name}" delete karein?`)) removeMutation.mutate(); }}
             className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-rose-50 border-2 border-rose-200 hover:bg-rose-100 text-rose-700 text-sm font-extrabold"
-            onDeleted={() => navigate('/products')}
-          />
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
         </div>
       </div>
 

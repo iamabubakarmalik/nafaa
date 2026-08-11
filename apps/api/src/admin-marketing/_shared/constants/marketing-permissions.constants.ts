@@ -117,6 +117,10 @@ export function hasMarketingPermission(
   userPermissions: string[],
   required: MarketingPermissionKey,
 ): boolean {
-  if (role === 'SUPER' || role === 'MARKETING_MANAGER') return true;
-  return userPermissions.includes(required);
+  if (role === 'SUPER') return true;
+  // Custom per-user permissions first
+  if (userPermissions.includes(required)) return true;
+  // Fall back to role defaults (MARKETING_MANAGER excludes settings correctly)
+  const rolePerms = MARKETING_ROLE_PERMISSIONS[role] ?? [];
+  return rolePerms.includes(required);
 }

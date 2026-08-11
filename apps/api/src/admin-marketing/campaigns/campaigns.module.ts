@@ -7,7 +7,7 @@ import { CampaignsService } from './campaigns.service';
 @Module({
   imports: [
     PrismaModule,
-    BullModule.registerQueue({ name: 'email' }, { name: 'sms' }),
+    BullModule.registerQueue({ name: 'email-queue' }, { name: 'sms-queue' }),
   ],
   controllers: [CampaignsController],
   providers: [CampaignsService],

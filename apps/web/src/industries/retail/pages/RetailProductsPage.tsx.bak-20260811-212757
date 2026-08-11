@@ -15,7 +15,6 @@ import { categoriesApi } from '@modules/inventory/categories/api/categories.api'
 import { brandsApi } from '@modules/inventory/brands/api/brands.api';
 import { forceRefreshProducts } from '@core/lib/offline/offlineProducts';
 import { QuickStockModal } from '../components/QuickStockModal';
-import { ProductDeleteButton } from '@core/components/ProductDeleteButton';
 
 import { PrivacyToggle, useCostHidden } from '@core/ui/HiddenValue';
 
@@ -168,47 +167,48 @@ export default function RetailProductsPage() {
     },
   });
 
-  const forceDeleteAll = async (ids: string[]) => {
-    const res = await Promise.allSettled(ids.map((id) => productsApi.remove(id, true)));
-    const ok = res.filter((r) => r.status === 'fulfilled').length;
-    const fail = res.length - ok;
-    if (ok) toast.success(`${ok} products force-deleted — sales, stock, sab kuch`);
-    if (fail) toast.error(`${fail} products still failed`);
-    setSelected(new Set());
-    queryClient.invalidateQueries();
-    forceRefreshProducts().catch(() => {});
-  };
-
   const bulkDelete = useMutation({
     mutationFn: async () => {
       const ids = Array.from(selected);
       const res = await Promise.allSettled(ids.map((id) => productsApi.remove(id, false)));
-      return {
-        ids,
-        ok: res.filter((r) => r.status === 'fulfilled').length,
-        fail: res.length - res.filter((r) => r.status === 'fulfilled').length,
-      };
+      return { ok: res.filter((r) => r.status === 'fulfilled').length, fail: res.length - res.filter((r) => r.status === 'fulfilled').length };
     },
-    onSuccess: ({ ids, ok, fail }) => {
+    onSuccess: ({ ok, fail }) => {
       if (ok) toast.success(`${ok} products delete ho gaye`);
       if (fail) {
-        toast.error(`${fail} products ki sales/purchase history hai`, {
-          duration: 15000,
+        const ids = Array.from(selected);
+        toast.error(`${fail} products delete nahi huay (sales/purchase history hai)`, {
+          duration: 12000,
           action: {
             label: '⚠️ Force Delete All',
             onClick: () => {
-              if (!confirm(`⚠️ DANGER: ${fail} products AUR unki saari sales / purchase / stock history PERMANENTLY delete ho jayegi.\n\nYe undo nahi ho sakta. Continue?`)) return;
-              if (!confirm('Bilkul sure? Sirf demo/test data cleanup ke liye.')) return;
-              forceDeleteAll(ids);
+              const c1 = confirm(`⚠️ DANGER: ${fail} products aur unki saari sales/purchase history delete ho jayegi. Irreversible. Continue?`);
+              if (!c1) return;
+              const c2 = confirm('Bilkul sure? Test/demo cleanup ke liye hi.');
+              if (c2) forceDeleteAllMutation.mutate(ids);
             },
           },
         });
       }
       setSelected(new Set());
       queryClient.invalidateQueries({ queryKey: ['retail-products'] });
+
+  const forceDeleteAllMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const res = await Promise.allSettled(ids.map((id) => productsApi.remove(id, true)));
+      return { ok: res.filter((r) => r.status === 'fulfilled').length, fail: res.length - res.filter((r) => r.status === 'fulfilled').length };
+    },
+    onSuccess: ({ ok, fail }) => {
+      if (ok) toast.success(`${ok} products force-deleted (cascade)`);
+      if (fail) toast.error(`${fail} still failed`);
+      setSelected(new Set());
+      queryClient.invalidateQueries();
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Force delete failed'),
+  });
+
       forceRefreshProducts().catch(() => {});
     },
-    onError: () => toast.error('Bulk delete fail'),
   });
 
   const exportCSV = (rows: any[]) => {
@@ -624,7 +624,6 @@ export default function RetailProductsPage() {
                           >
                             <Boxes className="h-3.5 w-3.5" />
                           </button>
-                          <ProductDeleteButton id={p.id} name={p.name} />
                         </div>
                       </td>
                     </tr>
@@ -743,7 +742,6 @@ function ProductCard({ p, selected, onToggle, onStock }: any) {
         >
           <ShoppingCart className="h-3.5 w-3.5" />
         </Link>
-        <ProductDeleteButton id={p.id} name={p.name} />
       </div>
     </div>
   );

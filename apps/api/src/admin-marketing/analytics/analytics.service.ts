@@ -103,7 +103,7 @@ export class AnalyticsService {
         date_trunc('day', "createdAt") AS day,
         COUNT(*)::bigint AS pageviews,
         COUNT(DISTINCT "visitorId")::bigint AS visitors
-      FROM "PageView"
+      FROM "MarketingPageView"
       WHERE "createdAt" >= ${from}
       GROUP BY day
       ORDER BY day ASC;

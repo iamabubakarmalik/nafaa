@@ -6,23 +6,22 @@ export class HeatmapsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async listPages() {
-    // Distinct paths with recorded clicks
     const rows = await this.prisma.$queryRaw<
-      { path: string; clicks: bigint; sessions: bigint }[]
+      { path: string; sessions: bigint; avg_scroll: number | null }[]
     >`
       SELECT
         path,
-        COUNT(*)::bigint AS clicks,
-        COUNT(DISTINCT "sessionId")::bigint AS sessions
-      FROM "HeatmapClick"
+        COUNT(DISTINCT "sessionId")::bigint AS sessions,
+        AVG(COALESCE("scrollDepth", 0))::float AS avg_scroll
+      FROM "HeatmapSession"
       GROUP BY path
-      ORDER BY clicks DESC
+      ORDER BY sessions DESC
       LIMIT 100;
     `;
     return rows.map((r) => ({
       path: r.path,
-      clicks: Number(r.clicks),
       sessions: Number(r.sessions),
+      avgScrollDepth: Math.round(r.avg_scroll ?? 0),
     }));
   }
 
@@ -40,9 +39,9 @@ export class HeatmapsService {
       { bucket: number; count: bigint }[]
     >`
       SELECT
-        (FLOOR("scrollDepthPercent" / 10) * 10)::int AS bucket,
+        (FLOOR(COALESCE("scrollDepth", 0) / 10) * 10)::int AS bucket,
         COUNT(*)::bigint AS count
-      FROM "ScrollEvent"
+      FROM "HeatmapSession"
       WHERE path = ${path}
       GROUP BY bucket
       ORDER BY bucket ASC;

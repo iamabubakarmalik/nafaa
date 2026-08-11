@@ -67,7 +67,7 @@ export class ExportsService {
         'name,email,phone,company,source,status,temperature,score,created_at',
         rows.map((r) => [
           r.fullName ?? '', r.email, r.phone ?? '', r.companyName ?? '',
-          r.utmSource ?? '', r.status, r.temperature, r.score,
+          r.source ?? '', r.status, r.temperature, r.score,
           r.createdAt.toISOString(),
         ]),
       ),

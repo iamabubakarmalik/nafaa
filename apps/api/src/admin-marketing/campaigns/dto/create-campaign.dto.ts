@@ -18,7 +18,7 @@ export enum CampaignType {
 export class CreateCampaignDto {
   @IsString() @MinLength(3) name!: string;
   @IsEnum(CampaignChannel) channel!: CampaignChannel;
-  @IsEnum(CampaignType) type!: CampaignType;
+  @IsOptional() @IsEnum(CampaignType) type?: CampaignType;
   @IsOptional() @IsString() emailSubject?: string;
   @IsOptional() @IsString() emailHtml?: string;
   @IsOptional() @IsString() emailPreheader?: string;

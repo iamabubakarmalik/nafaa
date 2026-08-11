@@ -5,7 +5,8 @@ export enum NewsletterStatus {
   ACTIVE = 'ACTIVE',
   UNSUBSCRIBED = 'UNSUBSCRIBED',
   BOUNCED = 'BOUNCED',
-  PENDING = 'PENDING',
+  COMPLAINED = 'COMPLAINED',
+  PENDING_CONFIRMATION = 'PENDING_CONFIRMATION',
 }
 
 export class ListSubscribersDto {

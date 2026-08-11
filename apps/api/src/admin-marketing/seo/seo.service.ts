@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { parsePagination, paginated } from '../_shared/helpers/pagination.helper';
 
@@ -43,19 +43,20 @@ export class SeoService {
     },
     adminId: string,
   ) {
+    if (!path) throw new BadRequestException('path is required');
     const p = await this.prisma.seoPage.upsert({
       where: { path },
       create: {
         path,
         title: data.title,
         metaDescription: data.description,
-        // keywords: nested create needed,
+        metaKeywords: data.keywords ?? [],
         canonicalUrl: data.canonicalUrl,
       },
       update: {
         title: data.title,
         metaDescription: data.description,
-        // keywords: nested update needed,
+        ...(data.keywords && { metaKeywords: data.keywords }),
         canonicalUrl: data.canonicalUrl,
       },
     });

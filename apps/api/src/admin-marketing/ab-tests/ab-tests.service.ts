@@ -10,15 +10,11 @@ export class AbTestsService {
   async list() {
     return this.prisma.abTest.findMany({
       orderBy: { createdAt: 'desc' },
-
     });
   }
 
   async getOne(id: string) {
-    const t = await this.prisma.abTest.findUnique({
-      where: { id },
-
-    });
+    const t = await this.prisma.abTest.findUnique({ where: { id } });
     if (!t) throw new NotFoundException('A/B test not found');
     return t;
   }
@@ -29,40 +25,46 @@ export class AbTestsService {
     variants: { name: string; content: any; weight?: number }[];
     goalMetric: string;
   }, adminId: string) {
-    if (data.variants.length < 2) {
+    if (!Array.isArray(data.variants) || data.variants.length < 2) {
       throw new BadRequestException('A/B test needs at least 2 variants');
     }
-    const test = await this.prisma.abTest.create({
+    // variants is a Json column — plain array, NOT a nested relation create
+    const variants = data.variants.map((v) => ({
+      name: v.name,
+      content: v.content ?? {},
+      weight: v.weight ?? Math.floor(100 / data.variants.length),
+      assigned: 0,
+      converted: 0,
+    }));
+    return this.prisma.abTest.create({
       data: {
         slug: `ab-${Date.now()}`,
         name: data.name,
-        // hypothesis: not in schema,
+        description: data.hypothesis,
         goalMetric: data.goalMetric,
         status: 'DRAFT',
         createdById: adminId,
-        variants: {
-          create: data.variants.map((v: any) => ({
-            name: v.name,
-            content: v.content,
-            weight: v.weight ?? Math.floor(100 / data.variants.length),
-          })),
-        },
+        variants: variants as any,
       },
-      
     });
-    return test;
   }
 
   async start(id: string) {
-    await this.getOne(id);
+    const t = await this.getOne(id);
+    if (t.status !== 'DRAFT' && t.status !== 'PAUSED') {
+      throw new BadRequestException(`Cannot start a ${t.status} test`);
+    }
     return this.prisma.abTest.update({
       where: { id },
-      data: { status: 'RUNNING', startedAt: new Date() },
+      data: { status: 'RUNNING', startedAt: t.startedAt ?? new Date() },
     });
   }
 
   async stop(id: string, winnerId?: string) {
-    await this.getOne(id);
+    const t = await this.getOne(id);
+    if (t.status !== 'RUNNING') {
+      throw new BadRequestException(`Cannot stop a ${t.status} test`);
+    }
     return this.prisma.abTest.update({
       where: { id },
       data: {
@@ -75,25 +77,32 @@ export class AbTestsService {
 
   async results(id: string) {
     const test = await this.getOne(id);
-    const variants = await this.prisma.abTest.findMany({
-      where: { id },
-    });
+    const variants = Array.isArray(test.variants)
+      ? (test.variants as any[])
+      : [];
+    const live = (test.results as Record<string, { assigned?: number; converted?: number }>) ?? {};
 
     return {
-      test: { id: test.id, name: test.name, status: test.status },
-      variants: variants.map((v: any) => {
-        const assigned = (v as any).assigned ?? 0;
-        const converted = (v as any).converted ?? 0;
+      test: {
+        id: test.id,
+        name: test.name,
+        status: test.status,
+        goalMetric: test.goalMetric,
+        winningVariant: test.winningVariant,
+        confidenceLevel: test.confidenceLevel,
+        totalVisitors: test.totalVisitors,
+        totalConversions: test.totalConversions,
+      },
+      variants: variants.map((v, i) => {
+        const assigned = live[v.name]?.assigned ?? v.assigned ?? 0;
+        const converted = live[v.name]?.converted ?? v.converted ?? 0;
         return {
-          id: v.id,
-          name: v.name,
-          weight: v.weight,
+          key: v.name ?? `variant-${i}`,
+          weight: v.weight ?? 0,
           assigned,
           converted,
           conversionRate:
-            assigned > 0
-              ? `${((converted / assigned) * 100).toFixed(2)}%`
-              : '0%',
+            assigned > 0 ? `${((converted / assigned) * 100).toFixed(2)}%` : '0%',
         };
       }),
     };

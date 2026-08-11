@@ -2,11 +2,13 @@ import { IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export enum ChatStatus {
-  BOT = 'BOT',
-  WAITING = 'WAITING',
   ACTIVE = 'ACTIVE',
+  BOT_HANDLING = 'BOT_HANDLING',
+  WAITING_HUMAN = 'WAITING_HUMAN',
+  HUMAN_HANDLING = 'HUMAN_HANDLING',
   RESOLVED = 'RESOLVED',
   ABANDONED = 'ABANDONED',
+  ARCHIVED = 'ARCHIVED',
 }
 
 export class ListConversationsDto {

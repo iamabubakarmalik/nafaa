@@ -6,5 +6,4 @@ export class UpdateFormDto {
   @IsOptional() @IsEnum(ContactFormPriority) priority?: ContactFormPriority;
   @IsOptional() @IsString() assignedTo?: string;
   @IsOptional() @IsString() internalNotes?: string;
-  @IsOptional() @IsString() category?: string;
 }

@@ -20436,6 +20436,14 @@ enum ContactFormStatus {
   ARCHIVED
 }
 
+// Postgres enums sort by declaration order → orderBy desc = URGENT first
+enum ContactFormPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
 enum DemoBookingStatus {
   PENDING
   CONFIRMED
@@ -20621,7 +20629,7 @@ model ContactFormSubmission {
 
   // Status
   status            ContactFormStatus   @default(NEW)
-  priority          String              @default("NORMAL")
+  priority          ContactFormPriority @default(NORMAL)
   assignedTo        String?
   assignedAt        DateTime?
 

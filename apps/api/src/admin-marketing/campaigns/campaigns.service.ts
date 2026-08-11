@@ -13,8 +13,8 @@ export class CampaignsService {
 
   constructor(
     private readonly prisma: PrismaService,
-    @InjectQueue('email') private readonly emailQueue: Queue,
-    @InjectQueue('sms') private readonly smsQueue: Queue,
+    @InjectQueue('email-queue') private readonly emailQueue: Queue,
+    @InjectQueue('sms-queue') private readonly smsQueue: Queue,
   ) {}
 
   private async log(userId: string, action: string, entityId: string, metadata?: any) {
@@ -32,7 +32,10 @@ export class CampaignsService {
     const { page, limit, skip } = parsePagination(dto);
     const where: Prisma.MarketingCampaignWhereInput = {};
     if (dto.status) where.status = dto.status as any;
-    if (dto.channel) where.type = dto.channel as any;
+    const VALID_CHANNELS = ['EMAIL', 'SMS', 'WHATSAPP', 'PUSH', 'ANNOUNCEMENT', 'RETARGETING'];
+    if (dto.channel && VALID_CHANNELS.includes(dto.channel)) {
+      where.type = dto.channel as any;
+    }
     if (dto.search) where.name = { contains: dto.search, mode: 'insensitive' };
 
     const [items, total] = await Promise.all([
@@ -135,7 +138,7 @@ export class CampaignsService {
       data: { status: 'RUNNING', startedAt: new Date(), totalRecipients: recipients.length },
     });
 
-    if (campaign.type === ('EMAIL' as any) && campaign.subject && campaign.bodyHtml) {
+    if (campaign.subject && campaign.bodyHtml) {
       const BATCH = 100;
       for (let i = 0; i < recipients.length; i += BATCH) {
         await this.emailQueue.add(
@@ -155,7 +158,7 @@ export class CampaignsService {
       }
     }
 
-    if (campaign.type === ('SMS' as any) && campaign.smsMessage) {
+    if (campaign.smsMessage) {
       const withPhones = await this.prisma.newsletterSubscriber.findMany({
         where: { ...audienceWhere, phone: { not: null } },
         select: { id: true, phone: true, email: true },
