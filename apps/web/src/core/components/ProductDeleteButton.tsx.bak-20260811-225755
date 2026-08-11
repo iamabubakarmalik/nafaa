@@ -3,7 +3,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Trash2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { productsApi } from '@modules/inventory/products/api/products.api';
-import { forceRefreshProducts } from '@core/lib/offline/offlineProducts';
 
 /**
  * ProductDeleteButton — shared smart delete for EVERY industry page.
@@ -41,9 +40,6 @@ export function ProductDeleteButton({
   const afterDelete = () => {
     // Sab product-related caches refresh (har industry ke query keys cover)
     queryClient.invalidateQueries();
-    // ⭐ POS ka offline cache (Dexie) bhi refresh — warna deleted
-    // product POS mein ghost ki tarah dikhta rehta hai
-    forceRefreshProducts().catch(() => {});
     onDeleted?.();
   };
 
