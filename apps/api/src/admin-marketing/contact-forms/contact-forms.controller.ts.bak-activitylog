@@ -65,6 +65,6 @@ export class ContactFormsController {
   @Post(':id/spam')
   @RequireMarketingPermissions(MARKETING_PERMISSIONS.CONTACT_FORMS_MANAGE)
   spam(@Param('id') id: string, @Req() req: any) {
-    return this.svc.markSpam(id, req.user.id, req.user.tenantId);
+    return this.svc.markSpam(id, req.user.id);
   }
 }

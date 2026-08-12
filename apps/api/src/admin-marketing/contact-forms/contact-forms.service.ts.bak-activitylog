@@ -154,11 +154,9 @@ export class ContactFormsService {
       },
     });
 
-        const _actTid: string | undefined = (await this.prisma.user.findUnique({ where: { id: adminId }, select: { tenantId: true } }))?.tenantId ?? undefined;
-    const _actTenantExists = _actTid ? !!(await this.prisma.tenant.findUnique({ where: { id: _actTid }, select: { id: true } })) : false;
-    if (_actTenantExists && _actTid) await this.prisma.activityLog.create({
+    await this.prisma.activityLog.create({
       data: {
-        userId: adminId, tenantId: _actTid,
+        userId: adminId, tenantId: "system",
         action: 'CONTACT_FORM_UPDATED',
         description: 'CONTACT_FORM_UPDATED',
         entityType: 'ContactFormSubmission',
@@ -237,11 +235,9 @@ export class ContactFormsService {
       },
     });
 
-        const _actTid: string | undefined = (tenantId as string | undefined) ?? (await this.prisma.user.findUnique({ where: { id: adminId }, select: { tenantId: true } }))?.tenantId ?? undefined;
-    const _actTenantExists = _actTid ? !!(await this.prisma.tenant.findUnique({ where: { id: _actTid }, select: { id: true } })) : false;
-    if (_actTenantExists && _actTid) await this.prisma.activityLog.create({
+    await this.prisma.activityLog.create({
       data: {
-        userId: adminId, tenantId: _actTid,
+        userId: adminId, tenantId: "system",
         action: 'CONTACT_FORM_REPLIED',
         description: 'CONTACT_FORM_REPLIED',
         entityType: 'ContactFormSubmission',
@@ -256,17 +252,15 @@ export class ContactFormsService {
   // ─────────────────────────────────────────────────
   // MARK SPAM
   // ─────────────────────────────────────────────────
-  async markSpam(id: string, adminId: string, tenantId?: string) {
+  async markSpam(id: string, adminId: string) {
     await this.getOne(id);
     await this.prisma.contactFormSubmission.update({
       where: { id },
       data: { status: 'SPAM' },
     });
-        const _actTid: string | undefined = (tenantId as string | undefined) ?? (await this.prisma.user.findUnique({ where: { id: adminId }, select: { tenantId: true } }))?.tenantId ?? undefined;
-    const _actTenantExists = _actTid ? !!(await this.prisma.tenant.findUnique({ where: { id: _actTid }, select: { id: true } })) : false;
-    if (_actTenantExists && _actTid) await this.prisma.activityLog.create({
+    await this.prisma.activityLog.create({
       data: {
-        userId: adminId, tenantId: _actTid,
+        userId: adminId, tenantId: "system",
         action: 'CONTACT_FORM_SPAM',
         description: 'CONTACT_FORM_SPAM',
         entityType: 'ContactFormSubmission',

@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Mail, Phone, MapPin, MessageCircle, Clock, Send, Loader2,
-  CheckCircle2, Handshake, HelpCircle, Newspaper, Users,
+  Mail, Phone, MapPin, MessageCircle, Clock, Send,
+  CheckCircle2, Handshake, HelpCircle, Newspaper, ChevronDown, Ticket,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Header } from '@/components/layout/Header/Header';
@@ -37,21 +37,78 @@ const offices = [
   { cityEn: 'Islamabad', cityUr: 'اسلام آباد', addressEn: 'Opening soon', addressUr: 'جلد کھل رہا ہے', status: 'soon' },
 ];
 
+const topics = [
+  { value: 'sales', en: 'Sales', ur: 'سیلز', etaEn: '~2 hours', etaUr: '~۲ گھنٹے' },
+  { value: 'support', en: 'Support', ur: 'سپورٹ', etaEn: '~4 hours', etaUr: '~۴ گھنٹے' },
+  { value: 'partnership', en: 'Partnership', ur: 'شراکت', etaEn: '~1 day', etaUr: '~۱ دن' },
+  { value: 'press', en: 'Press', ur: 'پریس', etaEn: '~1 day', etaUr: '~۱ دن' },
+  { value: 'other', en: 'Other', ur: 'دیگر', etaEn: '~24 hours', etaUr: '~۲۴ گھنٹے' },
+];
+
+const faqs = [
+  {
+    qEn: 'How fast do you actually reply?', qUr: 'آپ واقعی کتنی جلدی جواب دیتے ہیں؟',
+    aEn: 'WhatsApp: minutes during working hours. Email & forms: within 24 hours, usually much faster for sales queries.',
+    aUr: 'واٹس ایپ: اوقات کار میں چند منٹ۔ ای میل اور فارم: ۲۴ گھنٹوں کے اندر — سیلز سوالات کا اکثر بہت جلد جواب مل جاتا ہے۔',
+  },
+  {
+    qEn: 'Can I get a demo before buying?', qUr: 'کیا خریدنے سے پہلے ڈیمو مل سکتا ہے؟',
+    aEn: 'Yes — free 30-minute video demo in Urdu or English. We walk through YOUR business workflow live.',
+    aUr: 'جی ہاں — اردو یا انگریزی میں مفت ۳۰ منٹ کا ویڈیو ڈیمو۔ ہم آپ کے کاروبار کا ورک فلو لائیو دکھاتے ہیں۔',
+  },
+  {
+    qEn: 'Do you support FBR digital invoicing?', qUr: 'کیا آپ ایف بی آر ڈیجیٹل انوائسنگ سپورٹ کرتے ہیں؟',
+    aEn: 'Fully — Nafaa is built FBR-first. One-click integration, real-time invoice reporting, automatic QR codes.',
+    aUr: 'مکمل طور پر — نفاء ایف بی آر کو مدنظر رکھ کر بنا ہے۔ ایک کلک انضمام، ریئل ٹائم انوائس رپورٹنگ، خودکار کیو آر کوڈ۔',
+  },
+  {
+    qEn: 'Is my business data safe?', qUr: 'کیا میرا کاروباری ڈیٹا محفوظ ہے؟',
+    aEn: 'Bank-grade encryption, daily backups, and your data never leaves your tenant. You can export everything anytime.',
+    aUr: 'بینک درجے کی انکرپشن، روزانہ بیک اپ، اور آپ کا ڈیٹا کبھی آپ کے ٹیننٹ سے باہر نہیں جاتا۔ آپ کبھی بھی سب کچھ ایکسپورٹ کر سکتے ہیں۔',
+  },
+];
+
 export default function ContactPage() {
   const { locale } = useLocale();
   const isUr = locale === 'ur';
   const [form, setForm] = useState({ name: '', email: '', phone: '', topic: 'sales', message: '' });
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [ticket, setTicket] = useState<string | null>(null);
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
+
+  const activeTopic = topics.find((t) => t.value === form.topic) ?? topics[0];
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     setLoading(true);
-    // TODO: wire to /api/contact with Resend
-    await new Promise((r) => setTimeout(r, 1200));
-    setLoading(false);
-    setSent(true);
-    toast.success(isUr ? 'پیغام موصول ہو گیا!' : 'Message received!');
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          phone: form.phone,
+          topic: form.topic,
+          message: form.message,
+          sourceUrl: window.location.href,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) {
+        toast.error(data.error ?? (isUr ? 'بھیجنے میں مسئلہ — واٹس ایپ آزمائیں' : 'Failed to send — try WhatsApp'));
+        return;
+      }
+      setTicket(data.ticket ?? null);
+      setSent(true);
+      toast.success(isUr ? 'پیغام موصول ہو گیا!' : 'Message received!');
+    } catch {
+      toast.error(isUr ? 'نیٹ ورک مسئلہ — واٹس ایپ آزمائیں' : 'Network error — try WhatsApp');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const inputCls = cn(
@@ -64,6 +121,7 @@ export default function ContactPage() {
     <>
       <Header />
       <main className="flex-1">
+        {/* ── Hero ── */}
         <section className="relative overflow-hidden pt-16 pb-16">
           <AuroraBackground variant="brand" intensity="base" />
           <GridBackground className="mask-fade-bottom" />
@@ -86,7 +144,7 @@ export default function ContactPage() {
           </Container>
         </section>
 
-        {/* Channel cards */}
+        {/* ── Channel cards ── */}
         <Section variant="default" spacing="sm">
           <Container>
             <motion.div
@@ -121,7 +179,7 @@ export default function ContactPage() {
           </Container>
         </Section>
 
-        {/* Form + side */}
+        {/* ── Form + side ── */}
         <Section variant="subtle" spacing="lg">
           <Container>
             <div className="grid lg:grid-cols-[1.2fr_1fr] gap-10 items-start">
@@ -138,9 +196,23 @@ export default function ContactPage() {
                     <h3 className={cn('mt-4 font-display font-extrabold text-2xl text-emerald-700 dark:text-emerald-300', isUr && 'font-urdu')}>
                       {isUr ? 'پیغام موصول ہو گیا!' : 'Message received!'}
                     </h3>
-                    <p className={cn('mt-2 text-emerald-700/80 dark:text-emerald-400', isUr && 'font-urdu text-lg')}>
-                      {isUr ? 'ہماری ٹیم ۲۴ گھنٹوں کے اندر رابطہ کرے گی۔' : 'Our team will reach out within 24 hours.'}
+                    {ticket && (
+                      <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-white dark:bg-ink-900 px-4 py-2 ring-1 ring-inset ring-emerald-200 dark:ring-emerald-800">
+                        <Ticket className="h-4 w-4 text-emerald-600" />
+                        <span className="font-mono text-sm font-bold text-emerald-700 dark:text-emerald-300">{ticket}</span>
+                      </div>
+                    )}
+                    <p className={cn('mt-3 text-emerald-700/80 dark:text-emerald-400', isUr && 'font-urdu text-lg')}>
+                      {isUr
+                        ? `ہماری ٹیم ${activeTopic.etaUr} کے اندر رابطہ کرے گی۔ تصدیقی ای میل بھی بھیج دی گئی ہے۔`
+                        : `Our team will reach out within ${activeTopic.etaEn}. A confirmation email is on its way to your inbox.`}
                     </p>
+                    <button
+                      onClick={() => { setSent(false); setTicket(null); setForm({ name: '', email: '', phone: '', topic: 'sales', message: '' }); }}
+                      className={cn('mt-6 text-sm font-bold text-emerald-700 dark:text-emerald-300 hover:underline', isUr && 'font-urdu')}
+                    >
+                      {isUr ? 'ایک اور پیغام بھیجیں' : 'Send another message'}
+                    </button>
                   </div>
                 ) : (
                   <form onSubmit={submit} className="mt-8 space-y-4">
@@ -154,16 +226,20 @@ export default function ContactPage() {
                       <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })}
                         placeholder={isUr ? 'فون نمبر' : 'Phone number'} className={inputCls} />
                       <select value={form.topic} onChange={(e) => setForm({ ...form, topic: e.target.value })} className={inputCls}>
-                        <option value="sales">{isUr ? 'سیلز' : 'Sales'}</option>
-                        <option value="support">{isUr ? 'سپورٹ' : 'Support'}</option>
-                        <option value="partnership">{isUr ? 'شراکت' : 'Partnership'}</option>
-                        <option value="press">{isUr ? 'پریس' : 'Press'}</option>
-                        <option value="other">{isUr ? 'دیگر' : 'Other'}</option>
+                        {topics.map((t) => (
+                          <option key={t.value} value={t.value}>{isUr ? t.ur : t.en}</option>
+                        ))}
                       </select>
                     </div>
-                    <textarea required rows={5} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })}
+                    <textarea required rows={5} minLength={10} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })}
                       placeholder={isUr ? 'اپنا پیغام لکھیں...' : 'Write your message...'}
                       className={cn(inputCls, 'h-auto py-3 resize-none')} />
+                    <div className={cn('flex items-center gap-2 text-xs text-ink-500', isUr && 'font-urdu text-sm')}>
+                      <Clock className="h-3.5 w-3.5 text-brand-500" />
+                      {isUr
+                        ? `${activeTopic.ur} کا حتمی جواب: ${activeTopic.etaUr}`
+                        : `Expected response for ${activeTopic.en}: ${activeTopic.etaEn}`}
+                    </div>
                     <Button type="submit" size="lg" fullWidth loading={loading}
                       rightIcon={!loading ? <Send className="h-4 w-4" /> : undefined}>
                       {loading ? (isUr ? 'بھیجا جا رہا ہے' : 'Sending') : (isUr ? 'پیغام بھیجیں' : 'Send message')}
@@ -174,7 +250,6 @@ export default function ContactPage() {
 
               {/* Side */}
               <div className="space-y-5 lg:sticky lg:top-24">
-                {/* WhatsApp card */}
                 <a href="https://wa.me/923241772933" target="_blank" rel="noopener noreferrer"
                   className="block rounded-3xl bg-gradient-to-br from-[#25d366] to-[#128c7e] p-7 text-white shadow-lg hover:scale-[1.02] transition-transform">
                   <MessageCircle className="h-9 w-9 mb-3" />
@@ -186,7 +261,6 @@ export default function ContactPage() {
                   </p>
                 </a>
 
-                {/* Hours */}
                 <div className="rounded-3xl bg-white dark:bg-ink-800 p-7 ring-1 ring-inset ring-ink-100 dark:ring-ink-700/60">
                   <Clock className="h-8 w-8 text-brand-600 mb-3" />
                   <h3 className={cn('font-display font-extrabold text-lg', isUr && 'font-urdu text-xl')}>
@@ -199,7 +273,6 @@ export default function ContactPage() {
                   </div>
                 </div>
 
-                {/* Offices */}
                 <div className="rounded-3xl bg-white dark:bg-ink-800 p-7 ring-1 ring-inset ring-ink-100 dark:ring-ink-700/60">
                   <MapPin className="h-8 w-8 text-brand-600 mb-3" />
                   <h3 className={cn('font-display font-extrabold text-lg', isUr && 'font-urdu text-xl')}>
@@ -225,6 +298,38 @@ export default function ContactPage() {
                   </div>
                 </div>
               </div>
+            </div>
+          </Container>
+        </Section>
+
+        {/* ── FAQ ── */}
+        <Section variant="default" spacing="lg">
+          <Container size="md">
+            <div className="text-center mb-10">
+              <Eyebrow variant="brand">{isUr ? 'عام سوالات' : 'Quick answers'}</Eyebrow>
+              <h2 className={cn('mt-4 font-display font-extrabold text-3xl lg:text-4xl', isUr && 'font-urdu')}>
+                {isUr ? 'پوچھنے سے پہلے — شاید جواب یہاں ہو' : 'Before you ask — the answer might be here'}
+              </h2>
+            </div>
+            <div className="space-y-3">
+              {faqs.map((f, i) => (
+                <div key={i} className="rounded-2xl bg-white dark:bg-ink-800 ring-1 ring-inset ring-ink-100 dark:ring-ink-700/60 overflow-hidden">
+                  <button
+                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                    className="w-full flex items-center justify-between gap-4 px-6 py-5 text-left"
+                  >
+                    <span className={cn('font-bold text-ink-900 dark:text-white', isUr && 'font-urdu text-lg')}>
+                      {isUr ? f.qUr : f.qEn}
+                    </span>
+                    <ChevronDown className={cn('h-5 w-5 text-ink-400 shrink-0 transition-transform', openFaq === i && 'rotate-180')} />
+                  </button>
+                  {openFaq === i && (
+                    <div className={cn('px-6 pb-5 text-sm text-ink-600 dark:text-ink-300 leading-relaxed', isUr && 'font-urdu text-base leading-loose')}>
+                      {isUr ? f.aUr : f.aEn}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           </Container>
         </Section>

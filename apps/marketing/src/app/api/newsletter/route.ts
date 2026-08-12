@@ -2,6 +2,13 @@ import { NextResponse } from 'next/server';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// Valid MarketingLeadSource enum values (apps/api/prisma/schema.prisma)
+const VALID_SOURCES = new Set([
+  'NEWSLETTER', 'CONTACT_FORM', 'DEMO_REQUEST', 'BLOG_SIGNUP', 'CHATBOT',
+  'REFERRAL', 'ORGANIC_SEARCH', 'PAID_ADS', 'SOCIAL_MEDIA', 'DIRECT',
+  'EMAIL_CAMPAIGN', 'AFFILIATE', 'OTHER',
+]);
+
 function apiBase(): string {
   const raw = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api').replace(/\/+$/, '');
   return raw.endsWith('/api') ? raw : `${raw}/api`;
@@ -20,7 +27,7 @@ export async function POST(request: Request) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         email,
-        source: source ?? 'FOOTER',
+        source: VALID_SOURCES.has(source) ? source : 'NEWSLETTER',
         sourcePage: sourceUrl ?? '/',
         sourceUrl: sourceUrl ?? undefined,
       }),
@@ -28,13 +35,10 @@ export async function POST(request: Request) {
 
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      return NextResponse.json(
-        { ok: false, error: data?.message ?? 'Backend rejected the request' },
-        { status: res.status },
-      );
+      return NextResponse.json({ ok: false, error: data.message ?? 'Backend error' }, { status: res.status });
     }
     return NextResponse.json({ ok: true, message: 'Subscribed' });
-  } catch {
+  } catch (err) {
     return NextResponse.json({ ok: false, error: 'Server error' }, { status: 500 });
   }
 }
