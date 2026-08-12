@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Cookie, X } from 'lucide-react';
 import Link from 'next/link';
 import { useLocale } from '@/components/providers/LocaleProvider';
+import { grantConsent, denyConsent, dataLayerPush } from '@/lib/analytics/gtag';
 import { cn } from '@/lib/cn';
 
 export function CookieConsent() {
@@ -22,11 +23,15 @@ export function CookieConsent() {
 
   const accept = () => {
     localStorage.setItem('nafaa-cookies', 'all');
+    grantConsent();
+    dataLayerPush({ event: 'cookie_consent', consent: 'all' });
     setVisible(false);
   };
 
   const essential = () => {
     localStorage.setItem('nafaa-cookies', 'essential');
+    denyConsent();
+    dataLayerPush({ event: 'cookie_consent', consent: 'essential' });
     setVisible(false);
   };
 

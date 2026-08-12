@@ -18,7 +18,6 @@ export function ChatbotConversationsPage() {
     queryKey: ['chatbot-list', status],
     refetchInterval: 5000,
     queryFn: () => chatbotApi.list({ status: status || undefined }),
-    refetchInterval: 10_000,
   });
 
   return (
