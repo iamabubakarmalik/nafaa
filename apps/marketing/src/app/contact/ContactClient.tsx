@@ -24,10 +24,21 @@ export function ContactForm() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1200));
-    setLoading(false);
-    setSubmitted(true);
-    toast.success('Message received — we\'ll reply within 24 hours');
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...form, sourceUrl: window.location.href }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) throw new Error(data.error ?? 'Send failed');
+      setSubmitted(true);
+      toast.success('Message received — we\'ll reply within 24 hours');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Something went wrong — please try WhatsApp');
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (submitted) {

@@ -17,6 +17,7 @@ import { BlogAnalyticsModule } from './blog-analytics/blog-analytics.module';
 import { ConversionsModule } from './conversions/conversions.module';
 import { ExportsModule } from './exports/exports.module';
 import { MarketingDashboardModule } from './dashboard/dashboard.module';
+import { PublicTrackingModule } from './public-tracking/public-tracking.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { MarketingDashboardModule } from './dashboard/dashboard.module';
     ConversionsModule,
     ExportsModule,
     MarketingDashboardModule,
+    PublicTrackingModule,
   ],
 })
 export class AdminMarketingModule {}

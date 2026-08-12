@@ -27,6 +27,29 @@ import NotificationsPage from '@/features/notifications/pages/NotificationsPage'
 import { ProtectedRoute, PublicOnlyRoute } from '@/routes/ProtectedRoute';
 import AdminShell from '@/components/layout/AdminShell';
 
+// ─── Marketing Hub ────────────────────────────────────────
+import { MarketingLayout } from '@/features/marketing/layout/MarketingLayout';
+import { MarketingDashboardPage } from '@/features/marketing/dashboard/pages/MarketingDashboardPage';
+import { SubscribersListPage } from '@/features/marketing/newsletter/pages/SubscribersListPage';
+import { SendNewsletterPage } from '@/features/marketing/newsletter/pages/SendNewsletterPage';
+import { ContactFormsListPage } from '@/features/marketing/contact-forms/pages/ContactFormsListPage';
+import { ContactFormDetailPage } from '@/features/marketing/contact-forms/pages/ContactFormDetailPage';
+import { DemoBookingsListPage } from '@/features/marketing/demo-bookings/pages/DemoBookingsListPage';
+import { DemoBookingDetailPage } from '@/features/marketing/demo-bookings/pages/DemoBookingDetailPage';
+import { LeadsListPage } from '@/features/marketing/leads/pages/LeadsListPage';
+import { LeadDetailPage } from '@/features/marketing/leads/pages/LeadDetailPage';
+import { ChatbotConversationsPage } from '@/features/marketing/chatbot/pages/ChatbotConversationsPage';
+import { ChatbotConversationDetailPage } from '@/features/marketing/chatbot/pages/ChatbotConversationDetailPage';
+import { CampaignsListPage } from '@/features/marketing/campaigns/pages/CampaignsListPage';
+import { CampaignBuilderPage } from '@/features/marketing/campaigns/pages/CampaignBuilderPage';
+import { TrafficOverviewPage } from '@/features/marketing/analytics/pages/TrafficOverviewPage';
+import { SeoPagesPage } from '@/features/marketing/seo/pages/SeoPagesPage';
+import { AbTestsListPage } from '@/features/marketing/ab-tests/pages/AbTestsListPage';
+import { HeatmapsPage } from '@/features/marketing/heatmaps/pages/HeatmapsPage';
+import { BlogAnalyticsPage } from '@/features/marketing/blog-analytics/pages/BlogAnalyticsPage';
+import { FunnelPage } from '@/features/marketing/conversions/pages/FunnelPage';
+import { ExportsPage as MarketingExportsPage } from '@/features/marketing/exports/pages/ExportsPage';
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: { retry: 1, refetchOnWindowFocus: false },
@@ -43,6 +66,7 @@ export default function App() {
           </Route>
 
           <Route element={<ProtectedRoute />}>
+            {/* Main admin (uses AdminShell) */}
             <Route element={<AdminShell />}>
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/analytics" element={<AnalyticsPage />} />
@@ -71,6 +95,37 @@ export default function App() {
               <Route path="/bulk-actions" element={<BulkActionsPage />} />
               <Route path="/exports" element={<AdminExportsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
+            </Route>
+
+            {/* Marketing Hub — dedicated layout with its own sidebar */}
+            <Route path="/marketing" element={<MarketingLayout />}>
+              <Route index element={<MarketingDashboardPage />} />
+
+              <Route path="newsletter" element={<SubscribersListPage />} />
+              <Route path="newsletter/send" element={<SendNewsletterPage />} />
+
+              <Route path="contact-forms" element={<ContactFormsListPage />} />
+              <Route path="contact-forms/:id" element={<ContactFormDetailPage />} />
+
+              <Route path="demos" element={<DemoBookingsListPage />} />
+              <Route path="demos/:id" element={<DemoBookingDetailPage />} />
+
+              <Route path="leads" element={<LeadsListPage />} />
+              <Route path="leads/:id" element={<LeadDetailPage />} />
+
+              <Route path="chatbot" element={<ChatbotConversationsPage />} />
+              <Route path="chatbot/:id" element={<ChatbotConversationDetailPage />} />
+
+              <Route path="campaigns" element={<CampaignsListPage />} />
+              <Route path="campaigns/new" element={<CampaignBuilderPage />} />
+
+              <Route path="analytics" element={<TrafficOverviewPage />} />
+              <Route path="seo" element={<SeoPagesPage />} />
+              <Route path="ab-tests" element={<AbTestsListPage />} />
+              <Route path="heatmaps" element={<HeatmapsPage />} />
+              <Route path="blog" element={<BlogAnalyticsPage />} />
+              <Route path="conversions" element={<FunnelPage />} />
+              <Route path="exports" element={<MarketingExportsPage />} />
             </Route>
           </Route>
 

@@ -54,6 +54,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <JsonLd id="org-jsonld" data={jsonLdOrg()} />
         <JsonLd id="website-jsonld" data={jsonLdWebsite()} />
         <JsonLd id="software-jsonld" data={jsonLdSoftware()} />
+        <script
+          src={`${(process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api').replace(/\/api\/?$/, '')}/nafaa-tracker.js`}
+          defer
+        />
       </head>
       <body className="min-h-screen flex flex-col bg-ink-0 dark:bg-ink-900 antialiased">
         <Providers>{children}</Providers>

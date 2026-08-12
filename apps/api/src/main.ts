@@ -148,6 +148,9 @@ async function bootstrap() {
     maxAge: isProduction ? '7d' : 0, // Cache uploads for 7 days in production
   });
 
+  // ─── Static assets (public folder: nafaa-tracker.js etc.) ───────────────────
+  app.useStaticAssets(join(process.cwd(), 'public'));
+
   // ─── Global API prefix ───────────────────────────────────────────────────────
   app.setGlobalPrefix('api', {
     exclude: [

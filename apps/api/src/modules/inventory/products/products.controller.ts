@@ -355,6 +355,37 @@ export class ProductsController {
     return this.productsService.cleanupOrphanSales(user);
   }
 
+  /**
+   * Quick Setup — GET catalog (Pakistan grocery FMCG products list)
+   * Frontend shows this as a picker; user selects items to import.
+   */
+  @Get('quick-setup/catalog')
+  getQuickSetupCatalog(@GetUser() user: AuthenticatedUser) {
+    return this.productsService.getQuickSetupCatalog(user);
+  }
+
+  /**
+   * Quick Setup — POST selected catalog IDs
+   * Auto-creates brands, categories, tags, and products in one shot.
+   */
+  @Post('quick-setup/import')
+  quickSetupImport(
+    @GetUser() user: AuthenticatedUser,
+    @Body() body: {
+      catalogIds: string[];
+      priceOverrides?: Record<string, { price?: number; costPrice?: number; stock?: number }>;
+    },
+  ) {
+    if (user.role !== 'OWNER' && user.role !== 'SUPER_ADMIN') {
+      throw new ForbiddenException('Sirf Owner import kar sakta hai');
+    }
+    return this.productsService.quickSetupImport(
+      user,
+      body.catalogIds || [],
+      body.priceOverrides || {},
+    );
+  }
+
   @Delete(':id')
   remove(
     @GetUser() user: AuthenticatedUser,

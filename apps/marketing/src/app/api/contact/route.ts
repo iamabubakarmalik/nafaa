@@ -1,19 +1,16 @@
 import { NextResponse } from 'next/server';
 
-interface ContactPayload {
-  name?: string;
-  email?: string;
-  phone?: string;
-  topic?: string;
-  message?: string;
-}
-
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function apiBase(): string {
+  const raw = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api').replace(/\/+$/, '');
+  return raw.endsWith('/api') ? raw : `${raw}/api`;
+}
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as ContactPayload;
-    const { name, email, phone, topic, message } = body;
+    const body = await request.json();
+    const { name, email, phone, businessType, topic, message, sourceUrl } = body ?? {};
 
     if (!name || !email || !message) {
       return NextResponse.json({ ok: false, error: 'Missing required fields' }, { status: 400 });
@@ -25,20 +22,30 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false, error: 'Message length invalid' }, { status: 400 });
     }
 
-    // TODO: wire to Resend + optionally Slack webhook
-    // Example:
-    // await resend.emails.send({
-    //   from: 'Nafaa <noreply@nafaa.pk>',
-    //   to: routingEmailForTopic(topic),
-    //   replyTo: email,
-    //   subject: `[${topic ?? 'contact'}] ${name}`,
-    //   html: template({ name, email, phone, message, topic }),
-    // });
+    const res = await fetch(`${apiBase()}/public/marketing/contact-form`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fullName: name,
+        email,
+        phone: phone || undefined,
+        formType: 'GENERAL',
+        subject: `[${topic ?? businessType ?? 'contact'}] Website inquiry — ${name}`,
+        message,
+        sourceUrl: sourceUrl ?? undefined,
+        sourcePage: '/contact',
+      }),
+    });
 
-    console.log(`[contact] ${topic} · ${name} <${email}> · ${phone ?? '-'}`);
-
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      return NextResponse.json(
+        { ok: false, error: data?.message ?? 'Backend rejected the request' },
+        { status: res.status },
+      );
+    }
     return NextResponse.json({ ok: true, message: 'Received' });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ ok: false, error: 'Server error' }, { status: 500 });
   }
 }

@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import {
-  ShieldCheck, LayoutDashboard, Building2, Users, LogOut,
+  LayoutDashboard, Building2, Users, LogOut,
   Menu, X, ChevronRight, Sparkles, CreditCard, Gift, Activity,
   TrendingUp, Package, ShoppingCart, Receipt, Megaphone, Tag,
   Mail, Settings as SettingsIcon, Heart, Layers, Download, Bell,
+  Rocket,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/store/auth.store';
@@ -21,6 +22,13 @@ const navGroups = [
       { to: '/analytics', label: 'Analytics', icon: TrendingUp },
       { to: '/health', label: 'System Health', icon: Heart },
       { to: '/notifications', label: 'Notifications', icon: Bell },
+    ],
+  },
+  {
+    label: 'Marketing Hub',
+    highlight: true,
+    items: [
+      { to: '/marketing', label: 'Marketing Dashboard', icon: Rocket, exact: true },
     ],
   },
   {
@@ -105,23 +113,31 @@ export default function AdminShell() {
       <nav className="flex-1 min-h-0 px-3 py-4 space-y-5 overflow-y-auto sidebar-scroll">
         {navGroups.map((group) => (
           <div key={group.label}>
-            <div className="px-3 mb-2 text-[11px] uppercase tracking-[0.18em] text-admin-400 font-semibold">
+            <div className={[
+              'px-3 mb-2 text-[11px] uppercase tracking-[0.18em] font-semibold',
+              (group as any).highlight ? 'text-emerald-300' : 'text-admin-400',
+            ].join(' ')}>
               {group.label}
             </div>
             <div className="space-y-1">
-              {group.items.map((item) => {
+              {group.items.map((item: any) => {
                 const Icon = item.icon;
                 return (
                   <NavLink
                     key={item.to}
                     to={item.to}
+                    end={item.exact}
                     onClick={() => setMobileOpen(false)}
                     className={({ isActive }) =>
                       [
                         'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all',
                         isActive
-                          ? 'bg-admin-600 text-white shadow-soft'
-                          : 'text-admin-200 hover:bg-admin-900/50 hover:text-white',
+                          ? ((group as any).highlight
+                              ? 'bg-emerald-600 text-white shadow-soft'
+                              : 'bg-admin-600 text-white shadow-soft')
+                          : ((group as any).highlight
+                              ? 'text-emerald-100 hover:bg-emerald-800/40 hover:text-white'
+                              : 'text-admin-200 hover:bg-admin-900/50 hover:text-white'),
                       ].join(' ')
                     }
                   >
@@ -146,7 +162,7 @@ export default function AdminShell() {
   return (
     <div className="h-screen overflow-hidden bg-slate-100">
       <div className="grid lg:grid-cols-[280px_1fr] h-full">
-        {/* Desktop Sidebar — FIXED, scrolls independently */}
+        {/* Desktop Sidebar */}
         <aside className="hidden lg:flex flex-col bg-admin-950 text-white border-r border-admin-800/50 h-screen sticky top-0">
           <SidebarContent />
         </aside>
@@ -167,7 +183,6 @@ export default function AdminShell() {
           </div>
         )}
 
-        {/* Main Content Area — scrolls independently */}
         <div className="flex flex-col min-w-0 h-screen overflow-hidden">
           <header className="bg-white border-b border-slate-200 sticky top-0 z-20 flex-shrink-0">
             <div className="px-4 sm:px-6 py-4 flex items-center justify-between gap-3">
@@ -192,7 +207,6 @@ export default function AdminShell() {
 
               <div className="flex items-center gap-3">
                 <NotificationBell />
-
                 <div className="hidden sm:block text-right">
                   <div className="text-sm font-medium text-slate-900">{user?.fullName}</div>
                   <div className="text-xs text-slate-500">Super Admin</div>
@@ -204,7 +218,6 @@ export default function AdminShell() {
             </div>
           </header>
 
-          {/* This is the ONLY scrollable area for page content */}
           <main className="flex-1 overflow-y-auto p-4 sm:p-6">
             <Outlet />
           </main>

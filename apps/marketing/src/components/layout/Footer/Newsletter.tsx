@@ -20,12 +20,22 @@ export function Newsletter() {
       return;
     }
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 800));
-    setLoading(false);
-    setOk(true);
+    try {
+      const res = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, source: 'FOOTER', sourceUrl: window.location.pathname }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) throw new Error(data.error ?? 'Subscribe failed');
+      setOk(true);
     toast.success(isUr ? 'شکریہ! جلد ملاقات ہوگی۔' : 'Thanks — see you soon.');
-    setEmail('');
-    setTimeout(() => setOk(false), 3000);
+      setEmail('');
+      setTimeout(() => setOk(false), 3000);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : isUr ? 'مسئلہ ہوا — دوبارہ کوشش کریں' : 'Something went wrong');
+    }
+    setLoading(false);
   };
 
   return (

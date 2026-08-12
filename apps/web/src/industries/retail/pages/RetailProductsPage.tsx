@@ -15,6 +15,7 @@ import { categoriesApi } from '@modules/inventory/categories/api/categories.api'
 import { brandsApi } from '@modules/inventory/brands/api/brands.api';
 import { forceRefreshProducts } from '@core/lib/offline/offlineProducts';
 import { QuickStockModal } from '../components/QuickStockModal';
+import { QuickSetupCatalogModal } from '@modules/inventory/products/components/QuickSetupCatalogModal';
 import { ProductDeleteButton } from '@core/components/ProductDeleteButton';
 
 import { PrivacyToggle, useCostHidden } from '@core/ui/HiddenValue';
@@ -42,6 +43,7 @@ export default function RetailProductsPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [stockModalProduct, setStockModalProduct] = useState<any>(null);
+  const [quickSetupOpen, setQuickSetupOpen] = useState(false);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [bulkDeleteStep, setBulkDeleteStep] = useState<1 | 2>(1);
 
@@ -252,6 +254,8 @@ export default function RetailProductsPage() {
         <QuickStockModal product={stockModalProduct} onClose={() => setStockModalProduct(null)} />
       )}
 
+      {quickSetupOpen && <QuickSetupCatalogModal onClose={() => setQuickSetupOpen(false)} />}
+
       {bulkDeleteOpen && (
         <div className="fixed inset-0 z-[100] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4"
              onClick={() => setBulkDeleteOpen(false)}>
@@ -357,6 +361,12 @@ export default function RetailProductsPage() {
               <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} /> Refresh
             </button>
             <PrivacyToggle />
+            <button
+              onClick={() => setQuickSetupOpen(true)}
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 px-4 py-2.5 text-sm font-extrabold text-white shadow-lg shadow-amber-500/30 border border-amber-300/40"
+            >
+              <Zap className="h-4 w-4" /> Quick Setup ⚡
+            </button>
             <Link
               to="/retail/bulk-import"
               className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20"
