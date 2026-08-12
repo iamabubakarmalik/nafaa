@@ -7,7 +7,7 @@ import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { CreateProductDto } from './dto/create-product.dto';
 import { QueryProductsDto } from './dto/query-products.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { PAKISTAN_GROCERY_CATALOG, CATEGORY_META, type SeedProduct } from './seed-catalog/pakistan-grocery-catalog';
+import { PAKISTAN_CATALOG, CATEGORY_META, type SeedProduct } from './seed-catalog/pakistan-grocery-catalog';
 
 function toSlug(name: string) {
   return name.toLowerCase().trim()
@@ -537,7 +537,7 @@ export class ProductsService {
     );
 
     // Mark which catalog products already exist
-    const catalog = PAKISTAN_GROCERY_CATALOG.map((p) => ({
+    const catalog = PAKISTAN_CATALOG.map((p) => ({
       ...p,
       alreadyExists: existingProductNames.has(p.name.toLowerCase().trim()),
     }));
@@ -576,7 +576,7 @@ export class ProductsService {
     catalogIds: string[],
     priceOverrides: Record<string, { price?: number; costPrice?: number; stock?: number }> = {},
   ) {
-    const selected = PAKISTAN_GROCERY_CATALOG.filter((p) => catalogIds.includes(p.id));
+    const selected = PAKISTAN_CATALOG.filter((p) => catalogIds.includes(p.id));
     if (!selected.length) {
       return { message: 'Koi products select nahi hue', imported: 0 };
     }

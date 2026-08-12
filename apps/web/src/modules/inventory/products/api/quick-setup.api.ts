@@ -12,6 +12,7 @@ export interface SeedProduct {
   wholesalePrice?: number;
   barcode?: string;
   imageUrl?: string;
+  emoji?: string;
   description?: string;
   weight?: number;
   weightUnit?: string;

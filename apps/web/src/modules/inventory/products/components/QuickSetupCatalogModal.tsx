@@ -290,9 +290,11 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
               <div className="max-h-[300px] overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
                 {selectedProducts.map((p) => (
                   <div key={p.id} className="p-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                    <div className="h-12 w-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 overflow-hidden">
+                    <div className="h-12 w-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 overflow-hidden text-2xl">
                       {p.imageUrl ? (
                         <img src={p.imageUrl} alt="" className="w-full h-full object-cover" />
+                      ) : (p as any).emoji ? (
+                        <span>{(p as any).emoji}</span>
                       ) : (
                         <ImageIcon className="h-5 w-5 text-slate-400" />
                       )}
@@ -305,14 +307,22 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
                       <PriceInput
-                        label="Price"
+                        label="Sale"
                         value={priceOverrides[p.id]?.price ?? p.price}
                         onChange={(v) => updateOverride(p.id, 'price', v)}
+                        tone="emerald"
+                      />
+                      <PriceInput
+                        label="Cost"
+                        value={priceOverrides[p.id]?.costPrice ?? p.costPrice}
+                        onChange={(v) => updateOverride(p.id, 'costPrice', v)}
+                        tone="amber"
                       />
                       <PriceInput
                         label="Stock"
                         value={priceOverrides[p.id]?.stock ?? 0}
                         onChange={(v) => updateOverride(p.id, 'stock', v)}
+                        tone="sky"
                       />
                     </div>
                   </div>
@@ -591,13 +601,22 @@ function ProductCard({
         </div>
       )}
 
-      <div className="aspect-square bg-slate-100 dark:bg-slate-900 overflow-hidden relative">
+      <div
+        className="aspect-square overflow-hidden relative flex items-center justify-center"
+        style={{
+          background: categoryColor
+            ? `linear-gradient(135deg, ${categoryColor}18, ${categoryColor}08)`
+            : undefined,
+        }}
+      >
         {p.imageUrl ? (
           <img src={p.imageUrl} alt="" loading="lazy" className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Package className="h-10 w-10 text-slate-300" />
+        ) : (p as any).emoji ? (
+          <div className="text-6xl group-hover:scale-110 transition-transform drop-shadow-sm">
+            {(p as any).emoji}
           </div>
+        ) : (
+          <Package className="h-12 w-12 text-slate-300" />
         )}
       </div>
 
@@ -659,17 +678,30 @@ function MiniStat({ label, value, highlight }: any) {
   );
 }
 
-function PriceInput({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
+function PriceInput({
+  label, value, onChange, tone = 'sky',
+}: {
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+  tone?: 'sky' | 'emerald' | 'amber';
+}) {
+  const toneMap = {
+    sky:     { text: 'text-sky-700 dark:text-sky-400',         border: 'focus:border-sky-500' },
+    emerald: { text: 'text-emerald-700 dark:text-emerald-400', border: 'focus:border-emerald-500' },
+    amber:   { text: 'text-amber-700 dark:text-amber-400',     border: 'focus:border-amber-500' },
+  };
+  const t = toneMap[tone];
   return (
     <div>
-      <label className="block text-[9px] font-extrabold uppercase text-slate-500 mb-0.5 text-center">{label}</label>
+      <label className={`block text-[9px] font-extrabold uppercase mb-0.5 text-center ${t.text}`}>{label}</label>
       <input
         type="number"
         min={0}
         value={value}
         onChange={(e) => onChange(Number(e.target.value) || 0)}
         onClick={(e) => e.stopPropagation()}
-        className="h-8 w-16 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-1.5 text-xs font-extrabold text-center tabular-nums focus:outline-none focus:border-sky-500"
+        className={`h-9 w-16 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-1.5 text-xs font-extrabold text-center tabular-nums focus:outline-none ${t.border}`}
       />
     </div>
   );
