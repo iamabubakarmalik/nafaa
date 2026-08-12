@@ -653,13 +653,48 @@ export default function RetailReceiptPage() {
       </div>
 
       <style>{`
-        @media print {
-          @page { size: ${format === 'thermal58' ? '58mm auto' : format === 'thermal80' ? '80mm auto' : 'A4'}; margin: ${format === 'a4' ? '8mm' : '0mm'}; }
-          body { background: white !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-          .receipt-thermal { width: ${format === 'thermal58' ? '58mm' : '80mm'} !important; box-shadow: none !important; margin: 0 !important; }
-          .receipt-a4 { box-shadow: none !important; border: none !important; border-radius: 0 !important; }
-        }
-      `}</style>
+  @media print {
+    @page { size: ${format === 'thermal58' ? '58mm auto' : format === 'thermal80' ? '80mm auto' : 'A4'}; margin: ${format === 'a4' ? '8mm' : '0mm'} !important; }
+    html, body {
+      margin: 0 !important;
+      padding: 0 !important;
+      background: #fff !important;
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
+    }
+
+    /* ═══ THERMAL: pure black & white — thermal printer ko koi grey mat do ═══ */
+    .receipt-thermal {
+      width: ${format === 'thermal58' ? '54mm' : '72mm'} !important;
+      max-width: ${format === 'thermal58' ? '54mm' : '72mm'} !important;
+      box-shadow: none !important;
+      margin: 0 !important;
+      padding: 2mm !important;
+    }
+    .receipt-thermal, .receipt-thermal * {
+      color: #000 !important;
+      background: #fff !important;
+      background-color: #fff !important;
+      border-color: #000 !important;
+      box-shadow: none !important;
+      text-shadow: none !important;
+      font-weight: 700 !important;
+    }
+    /* Logo ko pure B/W banao — warna thermal pe dither-dots banenge */
+    .receipt-thermal img {
+      filter: grayscale(1) contrast(2.5) brightness(1.1) !important;
+    }
+    /* Gradients / light backgrounds strip karo */
+    .receipt-thermal .bg-slate-50, .receipt-thermal .bg-violet-50,
+    .receipt-thermal [class*="bg-"] {
+      background: #fff !important;
+    }
+
+    /* ═══ A4 ═══ */
+    .receipt-a4 { box-shadow: none !important; border: none !important; border-radius: 0 !important; }
+  }
+`}</style>
+
     </div>
   );
 }
