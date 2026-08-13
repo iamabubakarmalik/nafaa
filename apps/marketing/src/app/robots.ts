@@ -37,7 +37,6 @@ export default function robots(): MetadataRoute.Robots {
       `${SITE_URL}/sitemap-index.xml`,
       `${SITE_URL}/sitemap.xml`,
       `${SITE_URL}/sitemap-news.xml`,
-    ],
-    host: SITE_URL,
-  };
+    ]
+};
 }
