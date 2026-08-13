@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { CalendarCheck, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/primitives/Button';
+import { trackEvent } from '@/lib/analytics/events';
 import { cn } from '@/lib/cn';
 
 export function DemoForm() {
@@ -35,6 +36,7 @@ export function DemoForm() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.ok) throw new Error(data.error ?? 'Booking failed');
       setSubmitted(true);
+      trackEvent('demo_booked', { industry: form.industry, preferred_time: form.preferredTime, value: 2000 });
       toast.success('Demo booked — we\'ll confirm on WhatsApp shortly');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Something went wrong');

@@ -3,9 +3,14 @@
 import { useEffect, useState } from 'react';
 import { MessageCircle, X } from 'lucide-react';
 import { useLocale } from '@/components/providers/LocaleProvider';
+import { trackEvent } from '@/lib/analytics/events';
 import { cn } from '@/lib/cn';
 
 const WA_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP || '+923241772933';
+
+function handleWhatsAppClick(location: string) {
+  trackEvent('whatsapp_click', { location, page: typeof window !== 'undefined' ? window.location.pathname : '/' });
+}
 
 export function FloatingWhatsApp() {
   const { t, locale } = useLocale();
@@ -60,7 +65,7 @@ export function FloatingWhatsApp() {
               </p>
             </div>
             <a
-              href={`https://wa.me/${num}?text=${msg}`}
+              href={`https://wa.me/${num}?text=${msg}`} onClick={() => handleWhatsAppClick("floating_button")}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-4 w-full h-11 rounded-xl bg-[#25d366] hover:bg-[#20b358] text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors"

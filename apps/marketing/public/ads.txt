@@ -1,0 +1,4 @@
+# ads.txt for nafaa.pk
+# Add authorized digital sellers here when running Google AdSense / DFP
+# Format: <domain>, <publisher_id>, <relationship>, <cert_id>
+# Example: google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0

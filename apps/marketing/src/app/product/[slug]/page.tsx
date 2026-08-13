@@ -12,6 +12,7 @@ import { FeatureFAQ } from '@/components/feature/FeatureFAQ';
 import { FeatureRelated } from '@/components/feature/FeatureRelated';
 import { JsonLd } from '@/lib/seo/JsonLdScript';
 import { jsonLdProduct, jsonLdBreadcrumb } from '@/lib/seo/jsonld';
+import { FeatureSchemas } from '@/lib/seo/injector';
 import { buildMetadata } from '@/lib/seo/metadata';
 import { features, getFeature } from '@/lib/data/features';
 import { getFeatureContent } from '@/lib/data/feature-content';
@@ -49,6 +50,8 @@ export default async function FeaturePage({ params }: Props) {
 
   return (
     <>
+      <FeatureSchemas slug={feature.slug} nameEn={feature.nameEn} taglineEn={feature.taglineEn} />
+      <>
       <JsonLd id={`product-feat-${slug}`} data={jsonLdProduct({ name: `Nafaa ${feature.nameEn}`, description: content.directAnswerEn, slug: `/product/${slug}` })} />
       <JsonLd id={`breadcrumb-feat-${slug}`} data={jsonLdBreadcrumb([
         { name: 'Home', url: '/' },
@@ -68,6 +71,7 @@ export default async function FeaturePage({ params }: Props) {
       </main>
       <Footer />
       <FloatingWhatsApp />
+    </>
     </>
   );
 }

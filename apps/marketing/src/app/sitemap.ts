@@ -78,6 +78,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // Search
     { path: '/search', priority: 0.75, freq: 'weekly' },
 
+
+    { path: '/feed.xml', priority: 0.6, freq: 'daily' },
+    { path: '/llms.txt', priority: 0.5, freq: 'weekly' },
+    { path: '/llms-full.txt', priority: 0.5, freq: 'weekly' },
     // Legal
     { path: '/privacy', priority: 0.4, freq: 'yearly' },
     { path: '/terms', priority: 0.4, freq: 'yearly' },

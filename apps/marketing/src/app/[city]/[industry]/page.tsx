@@ -19,6 +19,7 @@ import { jsonLdBreadcrumb, jsonLdFAQ } from '@/lib/seo/jsonld';
 import { buildMetadata } from '@/lib/seo/metadata';
 import { cities, getCity } from '@/lib/data/cities';
 import { industries, getIndustry } from '@/lib/data/industries';
+import { CityIndustrySchemas } from '@/lib/seo/injector';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.nafaa.pk';
 
@@ -86,6 +87,8 @@ export default async function CityIndustryPage({ params }: Props) {
 
   return (
     <>
+      <CityIndustrySchemas citySlug={city.slug} cityName={city.nameEn} industrySlug={industry.slug} industryName={industry.nameEn} />
+      <>
       <JsonLd id={`breadcrumb-${citySlug}-${industrySlug}`} data={jsonLdBreadcrumb([
         { name: 'Home', url: '/' },
         { name: city.nameEn, url: `/${citySlug}` },
@@ -259,6 +262,7 @@ export default async function CityIndustryPage({ params }: Props) {
       </main>
       <Footer />
       <FloatingWhatsApp />
+    </>
     </>
   );
 }

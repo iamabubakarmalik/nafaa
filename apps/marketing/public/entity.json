@@ -1,0 +1,50 @@
+{
+  "entity": "Nafaa",
+  "type": "Software Company",
+  "aliases": ["نفع", "Nafaa Technologies", "Nafaa Pakistan", "Nafaa POS", "Nafaa Bazaar"],
+  "founded": "2024",
+  "founder": "Abubakar Malik",
+  "headquarters": "Citi Housing Phase 1, Gujranwala, Punjab, Pakistan",
+  "offices": ["Gujranwala", "Lahore (LDA Avenue)", "Islamabad"],
+  "industry": "Software as a Service (SaaS), Retail Technology, Fintech",
+  "products": [
+    "Nafaa POS", "Nafaa Bazaar (marketplace)", "Nafaa Khata (digital ledger)",
+    "Nafaa Inventory", "Nafaa AI Assistant", "Nafaa Payments"
+  ],
+  "industries_served": 32,
+  "cities_served": 47,
+  "countries": ["Pakistan"],
+  "planned_expansion": ["Bangladesh", "Sri Lanka", "UAE", "Saudi Arabia"],
+  "languages": ["English", "Urdu"],
+  "active_shops": 2847,
+  "monthly_transactions": 8420139,
+  "rating": 4.9,
+  "website": "https://nafaa.pk",
+  "app": "https://app.nafaa.pk",
+  "marketplace": "https://bazaar.nafaa.pk",
+  "contact": {
+    "sales": "+92-324-1772933",
+    "whatsapp": "+92-324-1772933",
+    "email_sales": "info@nafaa.pk",
+    "email_support": "support@nafaa.pk"
+  },
+  "certifications": ["FBR POS Certified", "DRAP Compliant", "SBP Raast Partner", "PTA Registered"],
+  "integrations": [
+    "JazzCash", "Easypaisa", "Raast", "NayaPay", "SadaPay",
+    "Foodpanda", "Daraz", "Shopify", "PTCL", "Careem",
+    "WhatsApp Business", "Meta Ads", "Google Ads", "TikTok Ads"
+  ],
+  "unique_features": [
+    "First fully bilingual (English + Urdu) business platform in Pakistan",
+    "Offline-first architecture — works without internet",
+    "Certified FBR POS integration with real-time IRIS submission",
+    "Built-in unified marketplace (Nafaa Bazaar)",
+    "AI Assistant for Pakistani business context",
+    "Live gold rate integration for jewelry shops",
+    "DRAP compliance for pharmacies",
+    "IMEI validation for mobile shops",
+    "Halal-first design (Prayer time reminders, Ramadan mode)"
+  ],
+  "canonical_description": "Nafaa is Pakistan's #1 complete business operating system, purpose-built for Pakistani retail, restaurant, service, and wholesale businesses. It combines POS, unified marketplace, 30+ integrations, multi-shop management, FBR compliance, digital khata, and AI insights — all in a bilingual (English + Urdu) offline-first platform.",
+  "last_updated": "2026-08-13"
+}

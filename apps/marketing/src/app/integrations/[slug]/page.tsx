@@ -13,6 +13,7 @@ import { IntegrationFAQ } from '@/components/integration/IntegrationFAQ';
 import { IntegrationRelated } from '@/components/integration/IntegrationRelated';
 import { JsonLd } from '@/lib/seo/JsonLdScript';
 import { jsonLdProduct, jsonLdBreadcrumb, jsonLdHowTo } from '@/lib/seo/jsonld';
+import { IntegrationSchemas } from '@/lib/seo/injector';
 import { buildMetadata } from '@/lib/seo/metadata';
 import { integrations, getIntegration } from '@/lib/data/integrations';
 import { getIntegrationContent } from '@/lib/data/integration-content';
@@ -50,6 +51,8 @@ export default async function IntegrationPage({ params }: Props) {
 
   return (
     <>
+      <IntegrationSchemas slug={integration.slug} name={integration.name} description={integration.descriptionEn} category={(integration as any).category} />
+      <>
       <JsonLd id={`product-int-${slug}`} data={jsonLdProduct({ name: `${integration.name} integration for Nafaa`, description: content.directAnswerEn, slug: `/integrations/${slug}` })} />
       <JsonLd id={`breadcrumb-int-${slug}`} data={jsonLdBreadcrumb([
         { name: 'Home', url: '/' },
@@ -75,6 +78,7 @@ export default async function IntegrationPage({ params }: Props) {
       </main>
       <Footer />
       <FloatingWhatsApp />
+    </>
     </>
   );
 }

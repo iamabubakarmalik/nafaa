@@ -13,6 +13,7 @@ import { NoiseTexture } from '@/components/primitives/NoiseTexture';
 import { GeoWelcome } from './GeoWelcome';
 import { LivePOSMockup } from './LivePOSMockup';
 import { cn } from '@/lib/cn';
+import { trackEvent } from '@/lib/analytics/events';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.nafaa.pk';
 
@@ -83,7 +84,7 @@ export function Hero() {
               <Button
                 size="xl"
                 href={`${APP_URL}/register`}
-                rightIcon={<ArrowRight className="h-5 w-5" />}
+                rightIcon={<ArrowRight className="h-5 w-5" />} onClick={() => trackEvent("cta_click", { cta_label: "hero_start_trial", cta_location: "hero", destination: "register" })}
               >
                 {t('hero.ctaPrimary')}
               </Button>

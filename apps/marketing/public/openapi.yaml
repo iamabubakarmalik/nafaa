@@ -1,0 +1,41 @@
+openapi: 3.0.1
+info:
+  title: Nafaa Public API
+  description: Public API for querying Nafaa — Pakistan's #1 business platform
+  version: 1.0.0
+  contact:
+    name: Nafaa Support
+    email: info@nafaa.pk
+    url: https://nafaa.pk
+servers:
+  - url: https://nafaa.pk/api
+    description: Production
+paths:
+  /search:
+    get:
+      operationId: searchNafaa
+      summary: Search across industries, integrations, features, and blog posts
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Search results
+  /health:
+    get:
+      operationId: getHealth
+      summary: System health check
+      responses:
+        '200':
+          description: Health status
+components:
+  schemas:
+    SearchResult:
+      type: object
+      properties:
+        title: { type: string }
+        url: { type: string }
+        snippet: { type: string }
+        category: { type: string }

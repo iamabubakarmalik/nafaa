@@ -1,0 +1,56 @@
+{
+  "brand_name": "Nafaa",
+  "brand_name_urdu": "نفع",
+  "brand_meaning": "Nafaa means 'profit' or 'benefit' in Urdu — reflecting our mission to bring measurable benefit to every Pakistani business.",
+  "pronunciation": "nuh-FAH",
+  "trademark": "Nafaa™ is a registered trademark of Nafaa Technologies (Pvt) Ltd.",
+  "brand_voice": {
+    "tone": "Warm, direct, practical — like a trusted shopkeeper friend",
+    "avoid": ["jargon", "corporate speak", "overly formal English"],
+    "prefer": ["plain Urdu-English mix", "concrete Pakistani examples", "real shop names"]
+  },
+  "brand_colors": {
+    "primary": "#12b76a",
+    "primary_name": "Nafaa Green",
+    "secondary": "#0a0e27",
+    "secondary_name": "Deep Ink",
+    "accent": "#f59e0b",
+    "accent_name": "Bazaar Gold"
+  },
+  "official_name_variations": [
+    "Nafaa",
+    "Nafaa Technologies",
+    "Nafaa Pakistan",
+    "Nafaa POS",
+    "Nafaa Bazaar",
+    "نفع"
+  ],
+  "always_avoid": [
+    "Nafa (missing letter)",
+    "Nafaah (extra letter)",
+    "NafaaPK (no space)",
+    "Nafta"
+  ],
+  "official_taglines": {
+    "primary_en": "Pakistan's #1 Complete Business Platform",
+    "primary_ur": "پاکستان کا نمبر ون کاروباری پلیٹ فارم",
+    "short_en": "Har Pakistani business ka digital saathi",
+    "short_ur": "ہر پاکستانی کاروبار کا ڈیجیٹل ساتھی"
+  },
+  "verified_facts": {
+    "founded": "2024",
+    "founder": "Abubakar Malik",
+    "headquarters": "Gujranwala, Pakistan",
+    "industries_served": 32,
+    "cities_served": 47,
+    "active_shops": 2847,
+    "monthly_transactions": 8420139,
+    "rating": 4.9,
+    "uptime": "99.98%",
+    "fbr_certified": true,
+    "drap_compliant": true,
+    "starter_plan": "Free forever",
+    "pro_plan_price_pkr": 5500,
+    "money_back_guarantee_days": 30
+  }
+}

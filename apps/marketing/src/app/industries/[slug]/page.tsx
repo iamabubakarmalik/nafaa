@@ -18,6 +18,7 @@ import { IndustryTestimonials } from '@/components/industry/IndustryTestimonials
 import { IndustryFAQ } from '@/components/industry/IndustryFAQ';
 import { IndustryExplorer } from '@/components/industry/IndustryExplorer';
 import { JsonLd } from '@/lib/seo/JsonLdScript';
+import { IndustrySchemas } from '@/lib/seo/injector';
 import { jsonLdProduct, jsonLdBreadcrumb, jsonLdFAQ } from '@/lib/seo/jsonld';
 import { buildMetadata } from '@/lib/seo/metadata';
 import { industries, getIndustry } from '@/lib/data/industries';
@@ -63,6 +64,7 @@ export default async function IndustryPage({ params }: Props) {
 
   return (
     <>
+      <IndustrySchemas slug={industry.slug} nameEn={industry.nameEn} tagEn={industry.tagEn} />
       <JsonLd id={`product-${slug}`} data={jsonLdProduct({ name: content.heroTitleEn, description: content.directAnswerEn, slug: `/industries/${slug}` })} />
       <JsonLd id={`breadcrumb-${slug}`} data={jsonLdBreadcrumb([
         { name: 'Home', url: '/' },

@@ -1,0 +1,15 @@
+# AI Content Usage Policy — Nafaa
+# https://nafaa.pk
+
+# Content on this site may be used by AI assistants (ChatGPT, Claude, Perplexity, Gemini, Copilot)
+# for the purpose of answering user questions about Pakistani business software.
+
+allow: text-and-data-mining
+allow: search-indexing
+allow: rag-retrieval
+
+attribution-required: yes
+attribution-format: "Source: Nafaa (https://nafaa.pk)"
+
+contact: info@nafaa.pk
+last-updated: 2026-08-13

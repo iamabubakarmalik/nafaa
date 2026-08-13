@@ -11,6 +11,7 @@ import { BlogAuthorCard } from '@/components/blog/BlogAuthorCard';
 import { BlogTOC } from '@/components/blog/BlogTOC';
 import { BlogCard } from '@/components/blog/BlogCard';
 import { JsonLd } from '@/lib/seo/JsonLdScript';
+import { BlogSchemas } from '@/lib/seo/injector';
 import { jsonLdArticle, jsonLdBreadcrumb } from '@/lib/seo/jsonld';
 import { buildMetadata } from '@/lib/seo/metadata';
 import { blogPosts, getBlogPost, getRelatedPosts } from '@/lib/data/blog/posts';
@@ -44,6 +45,7 @@ export default async function BlogPostPage({ params }: Props) {
 
   return (
     <>
+      <BlogSchemas title={post.titleEn} description={post.excerptEn} author={post.author.name} datePublished={post.publishedAt} dateModified={post.updatedAt} slug={post.slug} image={(post as any).image || (post as any).ogImage} />
       <JsonLd id={`article-${slug}`} data={jsonLdArticle({ title: post.titleEn, description: post.excerptEn, datePublished: post.publishedAt, dateModified: post.updatedAt, author: post.author.name, url: `/blog/${slug}` })} />
       <JsonLd id={`breadcrumb-${slug}`} data={jsonLdBreadcrumb([
         { name: 'Home', url: '/' },

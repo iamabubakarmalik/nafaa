@@ -20,6 +20,19 @@ export function reportVitals(metric: Metric) {
     timestamp: Date.now(),
   });
 
+
+  // Also send to GA4 as event
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', metric.name, {
+      value: Math.round(metric.name === 'CLS' ? metric.value * 1000 : metric.value),
+      metric_id: metric.id,
+      metric_value: metric.value,
+      metric_delta: metric.delta,
+      metric_rating: metric.rating,
+      non_interaction: true,
+    });
+  }
+
   // Use sendBeacon for reliability
   if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
     const blob = new Blob([body], { type: 'application/json' });

@@ -10,6 +10,7 @@ import { AuroraBackground } from '@/components/primitives/AuroraBackground';
 import { NoiseTexture } from '@/components/primitives/NoiseTexture';
 import { fadeUp, staggerContainer, viewport } from '@/lib/motion/presets';
 import { cn } from '@/lib/cn';
+import { trackEvent } from '@/lib/analytics/events';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.nafaa.pk';
 
@@ -64,7 +65,7 @@ export function CTA() {
                 size="xl"
                 href={`${APP_URL}/register`}
                 className="!bg-white !text-brand-700 hover:!bg-white/95"
-                rightIcon={<ArrowRight className="h-5 w-5" />}
+                rightIcon={<ArrowRight className="h-5 w-5" />} onClick={() => trackEvent("cta_click", { cta_label: "final_cta_start_trial", cta_location: "cta_section" })}
               >
                 {t('cta.button')}
               </Button>

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, X, Send, Bot, User, Loader2 } from 'lucide-react';
 import { useLocale } from '@/components/providers/LocaleProvider';
+import { trackEvent } from '@/lib/analytics/events';
 import { cn } from '@/lib/cn';
 
 interface Message {
@@ -144,7 +145,7 @@ export function AIAdvisor() {
             initial={{ opacity: 0, scale: 0, y: 40 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0 }}
-            onClick={() => setOpen(true)}
+            onClick={() => { trackEvent('ai_advisor_opened', { trigger: 'floating_button' }); setOpen(true); }}
             className={cn(
               'fixed bottom-24 right-6 rtl:left-6 rtl:right-auto z-[75]',
               'h-14 px-5 rounded-full bg-gradient-to-r from-aurora-purple via-aurora-pink to-sunset',
@@ -246,7 +247,7 @@ export function AIAdvisor() {
               </div>
 
               {/* Input */}
-              <form onSubmit={(e) => { e.preventDefault(); send(); }} className="p-4 border-t border-ink-100 dark:border-ink-800 flex gap-2">
+              <form onSubmit={(e) => { e.preventDefault(); trackEvent('ai_advisor_message', { locale }); send(); }} className="p-4 border-t border-ink-100 dark:border-ink-800 flex gap-2">
                 <input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}

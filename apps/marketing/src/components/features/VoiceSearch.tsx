@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mic, MicOff, X, Sparkles } from 'lucide-react';
 import { useLocale } from '@/components/providers/LocaleProvider';
+import { trackEvent } from '@/lib/analytics/events';
 import { industries } from '@/lib/data/industries';
 import { integrations } from '@/lib/data/integrations';
 import { features } from '@/lib/data/features';
@@ -35,6 +36,7 @@ export function VoiceSearch() {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) return;
 
+    trackEvent('voice_search', { locale });
     const rec = new SR();
     rec.lang = isUr ? 'ur-PK' : 'en-PK';
     rec.interimResults = true;

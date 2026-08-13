@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Calculator, TrendingUp, Clock, Wallet, ArrowRight, Sparkles } from 'lucide-react';
 import { Header } from '@/components/layout/Header/Header';
@@ -16,6 +16,7 @@ import { GridBackground } from '@/components/primitives/GridBackground';
 import { NoiseTexture } from '@/components/primitives/NoiseTexture';
 import { Counter } from '@/components/primitives/Counter';
 import { useLocale } from '@/components/providers/LocaleProvider';
+import { trackEvent } from '@/lib/analytics/events';
 import { cn } from '@/lib/cn';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.nafaa.pk';
@@ -47,6 +48,24 @@ export default function ROICalculatorPage() {
       multiple: (total / nafaaCost).toFixed(1),
     };
   }, [dailySales, dailyHours, monthlyUdhaar, monthlyWaste]);
+
+  // Track ROI calculation (debounced)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      trackEvent('roi_calculated', {
+        daily_sales: dailySales,
+        daily_hours: dailyHours,
+        monthly_udhaar: monthlyUdhaar,
+        monthly_waste: monthlyWaste,
+        total_savings: roi.total,
+        net_gain: roi.netGain,
+        roi_multiple: roi.multiple,
+        value: roi.netGain,
+      });
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [dailySales, dailyHours, monthlyUdhaar, monthlyWaste, roi.total, roi.netGain, roi.multiple]);
+
 
   const fmt = (n: number) => 'Rs ' + n.toLocaleString('en-PK');
 
@@ -158,7 +177,7 @@ export default function ROICalculatorPage() {
                   })}
                 </div>
 
-                <Button size="xl" fullWidth href={`${APP_URL}/register`} rightIcon={<ArrowRight className="h-5 w-5" />}>
+                <Button size="xl" fullWidth href={`${APP_URL}/register`} rightIcon={<ArrowRight className="h-5 w-5" />} onClick={() => trackEvent("cta_click", { cta_label: "roi_start_trial", cta_location: "roi_calculator", net_gain: roi.netGain })}>
                   {isUr ? 'مفت شروع کریں — بچت آج سے' : 'Start free — savings from day one'}
                 </Button>
               </div>

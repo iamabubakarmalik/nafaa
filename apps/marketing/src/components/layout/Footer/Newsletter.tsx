@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ArrowRight, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLocale } from '@/components/providers/LocaleProvider';
+import { trackEvent } from '@/lib/analytics/events';
 import { cn } from '@/lib/cn';
 
 export function Newsletter() {
@@ -29,6 +30,7 @@ export function Newsletter() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.ok) throw new Error(data.error ?? 'Subscribe failed');
       setOk(true);
+      trackEvent('newsletter_signup', { source: 'footer', email_domain: email.split('@')[1] });
     toast.success(isUr ? 'شکریہ! جلد ملاقات ہوگی۔' : 'Thanks — see you soon.');
       setEmail('');
       setTimeout(() => setOk(false), 3000);

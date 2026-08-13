@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Send, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/primitives/Button';
+import { trackEvent } from '@/lib/analytics/events';
 import { cn } from '@/lib/cn';
 
 export function ContactForm() {
@@ -33,6 +34,7 @@ export function ContactForm() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.ok) throw new Error(data.error ?? 'Send failed');
       setSubmitted(true);
+      trackEvent('contact_submitted', { business_type: form.businessType, has_phone: !!form.phone, value: 500 });
       toast.success('Message received — we\'ll reply within 24 hours');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Something went wrong — please try WhatsApp');

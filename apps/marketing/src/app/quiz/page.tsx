@@ -18,6 +18,7 @@ import { NoiseTexture } from '@/components/primitives/NoiseTexture';
 import { industries } from '@/lib/data/industries';
 import { integrations } from '@/lib/data/integrations';
 import { useLocale } from '@/components/providers/LocaleProvider';
+import { trackEvent } from '@/lib/analytics/events';
 import { cn } from '@/lib/cn';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.nafaa.pk';
@@ -130,7 +131,14 @@ export default function QuizPage() {
     const daily = salesAnswer ? salesAnswer.tags.reduce((s, t) => s + (dailyMap[t] || 0), 0) / salesAnswer.tags.length : 20000;
     const roi = Math.round((daily * 365 * 0.08) + (daily * 0.5 * 12 * 0.35) + 80000);
 
-    setResult({ industries: topIndustries, plan, features: [...featureSet], integrations: [...intSet], roi });
+    trackEvent('quiz_complete', {
+        recommended_plan: plan,
+        industries_count: topIndustries.length,
+        top_industry: topIndustries[0] || 'none',
+        estimated_roi: roi,
+        integrations_count: intSet.size,
+      });
+      setResult({ industries: topIndustries, plan, features: [...featureSet], integrations: [...intSet], roi });
   };
 
   const restart = () => { setStep(0); setAnswers([]); setResult(null); };
@@ -329,7 +337,7 @@ export default function QuizPage() {
 
                   {/* CTA */}
                   <div className="flex flex-wrap gap-3 justify-center">
-                    <Button size="xl" href={`${APP_URL}/register`} rightIcon={<ArrowRight className="h-5 w-5" />}>
+                    <Button size="xl" href={`${APP_URL}/register`} rightIcon={<ArrowRight className="h-5 w-5" />} onClick={() => trackEvent("cta_click", { cta_label: "quiz_start_trial", cta_location: "quiz_result", plan: result?.plan })}>
                       Start with {result.plan} plan
                     </Button>
                     <Button size="xl" variant="secondary" href="/roi-calculator">

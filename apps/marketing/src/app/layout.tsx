@@ -4,8 +4,9 @@ import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Providers } from '@/components/providers/Providers';
 import { JsonLd } from '@/lib/seo/JsonLdScript';
-import { jsonLdOrg, jsonLdWebsite, jsonLdSoftware } from '@/lib/seo/jsonld';
+import { jsonLdOrg, jsonLdWebsite, jsonLdSoftware, jsonLdSpeakable } from '@/lib/seo/jsonld';
 import { buildMetadata } from '@/lib/seo/metadata';
+import { PerformanceInstrument } from '@/lib/performance/instrument';
 import './globals.css';
 
 const inter = Inter({
@@ -40,7 +41,6 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-
   return (
     <html
       lang="en"
@@ -54,6 +54,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <JsonLd id="org-jsonld" data={jsonLdOrg()} />
         <JsonLd id="website-jsonld" data={jsonLdWebsite()} />
         <JsonLd id="software-jsonld" data={jsonLdSoftware()} />
+        <JsonLd id="speakable-jsonld" data={jsonLdSpeakable()} />
         <script
           src={`${(process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api').replace(/\/api\/?$/, '')}/nafaa-tracker.js`}
           defer
@@ -63,6 +64,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Providers>{children}</Providers>
         <Analytics />
         <SpeedInsights />
+        <PerformanceInstrument />
       </body>
     </html>
   );

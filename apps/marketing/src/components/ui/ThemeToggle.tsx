@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
 import { Moon, Sun, Monitor } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { trackEvent } from '@/lib/analytics/events';
 
 export function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
@@ -19,7 +20,7 @@ export function ThemeToggle() {
 
   return (
     <button
-      onClick={() => setTheme(next)}
+      onClick={() => { trackEvent('theme_switch', { from: theme, to: next }); setTheme(next); }}
       aria-label="Toggle theme"
       className={cn(
         'relative h-10 w-10 rounded-xl flex items-center justify-center',

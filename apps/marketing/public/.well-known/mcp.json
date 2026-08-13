@@ -1,0 +1,14 @@
+{
+  "name": "nafaa",
+  "version": "1.0.0",
+  "description": "Nafaa — Pakistan's #1 Complete Business Platform",
+  "vendor": "Nafaa Technologies",
+  "homepage": "https://nafaa.pk",
+  "documentation": "https://nafaa.pk/api-docs",
+  "contact": "info@nafaa.pk",
+  "capabilities": {
+    "search": "https://nafaa.pk/api/search",
+    "llms": "https://nafaa.pk/llms.txt",
+    "llms_full": "https://nafaa.pk/llms-full.txt"
+  }
+}

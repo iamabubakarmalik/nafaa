@@ -14,6 +14,7 @@ import { features } from '@/lib/data/features';
 import { solutions } from '@/lib/data/solutions';
 import { blogPosts } from '@/lib/data/blog';
 import { useLocale } from '@/components/providers/LocaleProvider';
+import { trackEvent } from '@/lib/analytics/events';
 import { cn } from '@/lib/cn';
 
 export function CommandPalette() {
@@ -26,7 +27,7 @@ export function CommandPalette() {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
-        setOpen((v) => !v);
+        setOpen((v) => { if (!v) trackEvent('command_palette_search', { trigger: 'keyboard' }); return !v; });
       }
       if (e.key === 'Escape') setOpen(false);
     };
@@ -35,6 +36,7 @@ export function CommandPalette() {
   }, []);
 
   const go = (path: string) => {
+    trackEvent('command_palette_search', { selected_path: path });
     router.push(path);
     setOpen(false);
   };

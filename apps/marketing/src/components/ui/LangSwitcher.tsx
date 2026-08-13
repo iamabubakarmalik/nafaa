@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Globe, Check } from 'lucide-react';
 import { useLocale } from '@/components/providers/LocaleProvider';
 import { locales, localeNames, type Locale } from '@/i18n/config';
+import { trackEvent } from '@/lib/analytics/events';
 import { cn } from '@/lib/cn';
 
 export function LangSwitcher() {

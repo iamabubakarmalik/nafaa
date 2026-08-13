@@ -32,12 +32,38 @@ export function buildMetadata({
     : `${SITE_URL}${image ?? '/og/og-default.png'}`;
 
   const defaultKeywords = [
-    'business software Pakistan', 'POS Pakistan', 'inventory Pakistan',
-    'marketplace Pakistan', 'FBR POS', 'digital khata', 'shop management',
-    'restaurant POS Pakistan', 'pharmacy software Pakistan', 'multi-shop',
-    'kiryana store software', 'bakery POS Pakistan', 'jewelry software Pakistan',
-    'carpet shop software', 'salon software Pakistan', 'gym management',
-    'clinic management Pakistan', 'auto parts software',
+    // Core
+    'business software Pakistan', 'POS Pakistan', 'inventory management Pakistan',
+    'marketplace Pakistan', 'FBR POS integration', 'digital khata app', 'shop management software',
+    'best POS Pakistan 2026', 'cloud POS Pakistan', 'offline POS Pakistan',
+    // Industries (32)
+    'restaurant POS Pakistan', 'pharmacy software Pakistan DRAP', 'kiryana store software',
+    'bakery POS Pakistan', 'jewelry software Pakistan gold rate', 'carpet shop software',
+    'salon software Pakistan', 'gym management Pakistan', 'clinic management Pakistan',
+    'auto parts software Pakistan', 'mobile shop IMEI software', 'garment shop software',
+    'hardware store software', 'bookstore software', 'hotel management Pakistan',
+    'dairy farm software', 'meat shop software', 'wholesale distribution Pakistan',
+    'furniture shop software', 'shoes shop software', 'stationery shop', 'sweets shop POS',
+    'laundry software', 'tailor shop software', 'car rental software Pakistan',
+    'school management Pakistan', 'petrol pump software', 'juice shop POS',
+    'fruit vegetable shop', 'poultry farm software', 'ice cream parlor POS', 'photo studio software',
+    // Payments
+    'JazzCash POS', 'Easypaisa POS', 'Raast POS', 'NayaPay integration',
+    'SadaPay POS', 'Stripe Pakistan',
+    // Integrations
+    'Foodpanda integration', 'Daraz seller Pakistan', 'Shopify Pakistan',
+    'WhatsApp business Pakistan', 'Meta ads Pakistan', 'Google ads Pakistan',
+    // Cities
+    'POS Karachi', 'POS Lahore', 'POS Islamabad', 'POS Faisalabad',
+    'POS Rawalpindi', 'POS Peshawar', 'POS Quetta', 'POS Multan',
+    'POS Gujranwala', 'POS Sialkot', 'POS Hyderabad', 'POS Bahawalpur',
+    // Language
+    'Urdu POS', 'اردو POS', 'bilingual business software',
+    // Compare
+    'Tally alternative Pakistan', 'QuickBooks Pakistan', 'Excel replacement business',
+    // Global
+    'best SMB software 2026', 'small business platform', 'unified commerce platform',
+    'omnichannel retail', 'AI business assistant',
   ];
 
   return {
