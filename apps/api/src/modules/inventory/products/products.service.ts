@@ -575,11 +575,39 @@ export class ProductsService {
     user: AuthenticatedUser,
     catalogIds: string[],
     priceOverrides: Record<string, { price?: number; costPrice?: number; stock?: number }> = {},
+    targetShopId?: string,
   ) {
     const selected = PAKISTAN_CATALOG.filter((p) => catalogIds.includes(p.id));
     if (!selected.length) {
       return { message: 'Koi products select nahi hue', imported: 0 };
     }
+
+    // ═══ Resolve target shop: agar user ne dropdown se koi shop select ki hai
+    //    to us mein stock daalo; warna main shop; warna pehli active shop ═══
+    let resolvedShopId: string | null = null;
+    if (targetShopId) {
+      const s = await this.prisma.shop.findFirst({
+        where: { id: targetShopId, tenantId: user.tenantId, isActive: true },
+        select: { id: true },
+      });
+      if (s) resolvedShopId = s.id;
+    }
+    if (!resolvedShopId) {
+      const mainShop = await this.prisma.shop.findFirst({
+        where: { tenantId: user.tenantId, isActive: true, isMain: true },
+        select: { id: true },
+      });
+      resolvedShopId = mainShop?.id ?? null;
+    }
+    if (!resolvedShopId) {
+      const anyShop = await this.prisma.shop.findFirst({
+        where: { tenantId: user.tenantId, isActive: true },
+        orderBy: { createdAt: 'asc' },
+        select: { id: true },
+      });
+      resolvedShopId = anyShop?.id ?? null;
+    }
+    this.logger.log(`Quick-setup: stock will land in shopId=${resolvedShopId ?? 'NONE'}`);
 
     // Pre-load existing brands/categories/tags
     const [existingBrands, existingCats, existingTags, existingProducts] = await Promise.all([
@@ -755,9 +783,13 @@ export class ProductsService {
               });
             }
 
-            // ShopStock for all shops
-            await this.ensureShopStockForAllShopsTx(
-              tx, user.tenantId, created.id, finalStock,
+            // ShopStock — stock goes to the resolved target shop; other shops start at 0
+            await this.ensureShopStockForShopsTx(
+              tx,
+              user.tenantId,
+              created.id,
+              finalStock,
+              resolvedShopId,
             );
 
             existingNames.add(p.name.toLowerCase().trim());
@@ -1168,6 +1200,108 @@ export class ProductsService {
   /**
    * TX version — used inside a transaction (create, bulk-import)
    */
+  /**
+   * TX version — target shop ko stock deta hai, baaki shops ko 0 se initialize karta hai.
+   * targetShopId null ho to fallback: isMain shop, warna pehli active shop.
+   * Agar ShopStock row pehle se hai to target shop ka stock INCREMENT hota hai.
+   */
+  private async ensureShopStockForShopsTx(
+    tx: any,
+    tenantId: string,
+    productId: string,
+    initialStock: number,
+    targetShopId: string | null,
+  ): Promise<void> {
+    const shops = await tx.shop.findMany({
+      where: { tenantId, isActive: true },
+      select: { id: true, isMain: true },
+    });
+    if (shops.length === 0) return;
+
+    // Decide which shop actually receives the stock
+    let stockShopId = targetShopId;
+    if (!stockShopId) {
+      const main = shops.find((s: any) => s.isMain);
+      stockShopId = main?.id ?? shops[0].id;
+    }
+
+    for (const shop of shops) {
+      const stockForThisShop = shop.id === stockShopId ? initialStock : 0;
+      try {
+        await tx.shopStock.upsert({
+          where: {
+            shopId_productId_variantId: {
+              shopId: shop.id,
+              productId,
+              variantId: null as any,
+            },
+          },
+          create: {
+            tenantId,
+            shopId: shop.id,
+            productId,
+            variantId: null,
+            stock: stockForThisShop,
+            isActive: true,
+          },
+          update:
+            shop.id === stockShopId && initialStock > 0
+              ? { stock: { increment: initialStock } }
+              : {},
+        });
+      } catch {
+        // Fallback for schemas without compound unique
+        try {
+          const existing = await tx.shopStock.findFirst({
+            where: { shopId: shop.id, productId, variantId: null },
+          });
+          if (!existing) {
+            await tx.shopStock.create({
+              data: {
+                tenantId,
+                shopId: shop.id,
+                productId,
+                variantId: null,
+                stock: stockForThisShop,
+                isActive: true,
+              },
+            });
+          } else if (shop.id === stockShopId && initialStock > 0) {
+            await tx.shopStock.update({
+              where: { id: existing.id },
+              data: { stock: { increment: initialStock } },
+            });
+          }
+        } catch (err: any) {
+          this.logger.warn(
+            `ShopStock upsert failed for shop=${shop.id} product=${productId}: ${err?.message}`,
+          );
+        }
+      }
+    }
+
+    // Best-effort opening stock movement for audit (optional)
+    if (initialStock > 0 && stockShopId) {
+      try {
+        const sm = (tx as any).stockMovement;
+        if (sm && typeof sm.create === 'function') {
+          await sm.create({
+            data: {
+              tenantId,
+              shopId: stockShopId,
+              productId,
+              type: 'OPENING',
+              quantity: initialStock,
+              reason: 'Quick Setup opening stock',
+            },
+          });
+        }
+      } catch {
+        // stockMovement schema may differ — silently ignore
+      }
+    }
+  }
+
   private async ensureShopStockForAllShopsTx(
     tx: any,
     tenantId: string,

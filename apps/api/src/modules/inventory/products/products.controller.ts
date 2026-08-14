@@ -374,6 +374,7 @@ export class ProductsController {
     @Body() body: {
       catalogIds: string[];
       priceOverrides?: Record<string, { price?: number; costPrice?: number; stock?: number }>;
+      shopId?: string;
     },
   ) {
     if (user.role !== 'OWNER' && user.role !== 'SUPER_ADMIN') {
@@ -383,6 +384,7 @@ export class ProductsController {
       user,
       body.catalogIds || [],
       body.priceOverrides || {},
+      body.shopId,
     );
   }
 

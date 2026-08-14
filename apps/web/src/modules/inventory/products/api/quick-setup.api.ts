@@ -67,10 +67,12 @@ export const quickSetupApi = {
   async import(
     catalogIds: string[],
     priceOverrides: Record<string, PriceOverride> = {},
+    shopId?: string,
   ): Promise<QuickSetupImportResult> {
     const res = await apiClient.post('/products/quick-setup/import', {
       catalogIds,
       priceOverrides,
+      shopId,
     });
     return unwrap<QuickSetupImportResult>(res);
   },

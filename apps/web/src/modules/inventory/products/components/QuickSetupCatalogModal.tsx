@@ -13,6 +13,7 @@ import {
   type PriceOverride,
 } from '../api/quick-setup.api';
 import { forceRefreshProducts } from '@core/lib/offline/offlineProducts';
+import { useAuthStore } from '@core/stores/auth.store';
 
 interface Props {
   onClose: () => void;
@@ -22,6 +23,9 @@ type Step = 'select' | 'review' | 'importing' | 'done';
 
 export function QuickSetupCatalogModal({ onClose }: Props) {
   const queryClient = useQueryClient();
+  const currentShopId = useAuthStore((s) => s.currentShopId);
+  const shopName = useAuthStore((s) => s.user?.assignedShop?.name ?? null);
+
   const [step, setStep] = useState<Step>('select');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [priceOverrides, setPriceOverrides] = useState<Record<string, PriceOverride>>({});
@@ -37,7 +41,7 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
   });
 
   const importMutation = useMutation({
-    mutationFn: () => quickSetupApi.import(Array.from(selectedIds), priceOverrides),
+    mutationFn: () => quickSetupApi.import(Array.from(selectedIds), priceOverrides, currentShopId ?? undefined),
     onSuccess: (result) => {
       setStep('done');
       queryClient.invalidateQueries({ queryKey: ['products'] });
@@ -371,6 +375,13 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
                 <p className="text-xs text-white/80 font-semibold mt-0.5">
                   Ready-made products list — select karo aur import kar do 🚀
                 </p>
+                {shopName && (
+                  <div className="mt-1.5 inline-flex items-center gap-1.5 rounded-lg bg-emerald-500/25 border border-emerald-300/40 px-2.5 py-1 text-[10px] font-extrabold backdrop-blur">
+                    <span className="text-sm">🏪</span>
+                    <span className="text-white/90">Stock jayegi:</span>
+                    <span className="text-emerald-100">{shopName}</span>
+                  </div>
+                )}
               </div>
             </div>
             <button
