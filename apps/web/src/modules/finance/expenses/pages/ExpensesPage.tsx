@@ -1,30 +1,68 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  Wallet, Plus, Trash2, TrendingDown, CalendarDays, Receipt, Tag,
-  Search, X, Download, Edit3, Calendar, Save, CheckCircle2,
-  Banknote, CreditCard, Smartphone, Zap, Building, Sparkles, FolderOpen,
-  Palette, BarChart3, RefreshCw, AlertTriangle, Crown, Filter, TrendingUp,
-  Import, ChevronRight, Repeat, DollarSign, Info,
+  Receipt, Plus, Trash2, Edit3, Search, Filter, TrendingDown,
+  Calendar, User as UserIcon, Tag, DollarSign, X, RefreshCw,
+  Download, Printer, GraduationCap, CheckCircle2, AlertTriangle,
+  FileText, Wallet, Coffee, Zap, Truck, Home, Wrench, Package,
+  ShoppingCart, HeartPulse, GraduationCap as EduIcon, Wifi,
+  Fuel, MoreHorizontal, PieChart as PieIcon, Activity, Copy,
+  Store, TrendingUp, BarChart3, ChevronDown, FileDown, Eye,
+  ChevronRight, Clock,
 } from 'lucide-react';
 import {
-  ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell,
-  XAxis, YAxis, Tooltip, CartesianGrid, Legend,
+  ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid,
 } from 'recharts';
-import { expensesApi, expenseCategoriesApi } from '@modules/finance/expenses/api/expenses.api';
+import { expensesApi } from '@modules/finance/expenses/api/expenses.api';
 import { Button } from '@core/ui/Button';
 import { Input } from '@core/ui/Input';
 import { formatPKR } from '@core/lib/format';
-import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { toast } from 'sonner';
-import { useIndustryExpensePresets } from '@industries/_shared/presets';
+import { useAuthStore } from '@core/stores/auth.store';
 
-const formatDate = (value: string) =>
-  new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
+/* ═════════════════════════════════════════════════════════════
+   NAFAA EXPENSES — GLOBAL FULL BEST v4
+   ─────────────────────────────────────────────────────────────
+   🌍 GLOBAL — Retail/Restaurant/Salon/Pharmacy sab me kaam
+   🌙 Dark mode complete
+   🎓 Teacher modal
+   ⌨️  / search • N naya • T guide • Esc
+   🔍 DETAIL VIEW — Row click karo → full details modal
+   🎨 CUSTOM CATEGORY — "Other" ke saath apna naam de sakte ho
+   📅 CUSTOM DATE RANGE — From/To dates apni marzi ke
+   🧾 THERMAL RECEIPT (80mm) + 📄 FULL PDF DOWNLOAD
+   📊 Category pie + monthly bar charts
+   ═════════════════════════════════════════════════════════════ */
 
-const formatDateShort = (value: string) =>
-  new Intl.DateTimeFormat('en-PK', { month: 'short', day: 'numeric' }).format(new Date(value));
+const CATEGORIES = [
+  { value: 'RENT',       label: 'Rent / Kiraya',      icon: Home,          color: 'from-blue-500 to-blue-700',       tone: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300' },
+  { value: 'UTILITIES',  label: 'Bijli / Gas / Pani', icon: Zap,           color: 'from-amber-500 to-orange-600',    tone: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300' },
+  { value: 'SALARY',     label: 'Salaries',           icon: UserIcon,      color: 'from-violet-500 to-purple-700',   tone: 'bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-300' },
+  { value: 'INVENTORY',  label: 'Stock Purchase',     icon: Package,       color: 'from-emerald-500 to-emerald-700', tone: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300' },
+  { value: 'TRANSPORT',  label: 'Transport / Fuel',   icon: Fuel,          color: 'from-rose-500 to-rose-700',       tone: 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300' },
+  { value: 'MAINTENANCE',label: 'Marammat / Repair',  icon: Wrench,        color: 'from-slate-500 to-slate-700',     tone: 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300' },
+  { value: 'MARKETING',  label: 'Advertising',        icon: TrendingUp,    color: 'from-pink-500 to-fuchsia-700',    tone: 'bg-pink-100 text-pink-700 dark:bg-pink-500/20 dark:text-pink-300' },
+  { value: 'INTERNET',   label: 'Internet / Phone',   icon: Wifi,          color: 'from-cyan-500 to-blue-700',       tone: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-500/20 dark:text-cyan-300' },
+  { value: 'FOOD',       label: 'Chai / Khana',       icon: Coffee,        color: 'from-orange-500 to-red-700',      tone: 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300' },
+  { value: 'MEDICAL',    label: 'Medical',            icon: HeartPulse,    color: 'from-red-500 to-rose-700',        tone: 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300' },
+  { value: 'EDUCATION',  label: 'Training',           icon: EduIcon,       color: 'from-indigo-500 to-blue-700',     tone: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300' },
+  { value: 'OTHER',      label: 'Other / Custom',     icon: MoreHorizontal,color: 'from-gray-500 to-gray-700',       tone: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300' },
+];
 
+const PAYMENT_METHODS = [
+  { value: 'CASH',      label: 'Cash' },
+  { value: 'BANK',      label: 'Bank Transfer' },
+  { value: 'CARD',      label: 'Debit/Credit Card' },
+  { value: 'JAZZCASH',  label: 'JazzCash' },
+  { value: 'EASYPAISA', label: 'EasyPaisa' },
+  { value: 'CHEQUE',    label: 'Cheque' },
+];
+
+const getCategoryConfig = (value: string) => CATEGORIES.find(c => c.value === value) || CATEGORIES[CATEGORIES.length - 1];
+
+const formatDate = (v: string) => new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium' }).format(new Date(v));
+const formatDateTime = (v: string) => new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(v));
 const formatRelative = (v: string) => {
   const d = new Date(v);
   const diff = Math.floor((Date.now() - d.getTime()) / 1000);
@@ -32,301 +70,424 @@ const formatRelative = (v: string) => {
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
   if (diff < 2592000) return `${Math.floor(diff / 86400)}d ago`;
-  return d.toLocaleDateString('en-PK');
+  return new Date(v).toLocaleDateString('en-PK');
 };
 
-const COLOR_PRESETS = [
-  '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4',
-  '#84cc16', '#f97316', '#a855f7', '#14b8a6', '#6366f1',
-  '#10b981', '#d946ef', '#eab308', '#0ea5e9', '#dc2626',
-];
+type PeriodFilter = 'today' | 'week' | 'month' | 'year' | 'all' | 'custom';
 
-const paymentIcons: any = {
-  CASH: Banknote, CARD: CreditCard, JAZZCASH: Smartphone,
-  EASYPAISA: Zap, BANK_TRANSFER: Building,
+const emptyForm = {
+  category: 'OTHER',
+  customCategory: '',
+  amount: '',
+  description: '',
+  paymentMethod: 'CASH',
+  vendor: '',
+  reference: '',
+  date: new Date().toISOString().slice(0, 10),
+  notes: '',
 };
-
-const paymentLabels: any = {
-  CASH: 'Cash', CARD: 'Card', JAZZCASH: 'JazzCash',
-  EASYPAISA: 'EasyPaisa', BANK_TRANSFER: 'Bank',
-};
-
-const paymentColors: any = {
-  CASH: '#10b981', CARD: '#3b82f6', JAZZCASH: '#f97316',
-  EASYPAISA: '#22c55e', BANK_TRANSFER: '#8b5cf6',
-};
-
-type DateFilter = 'all' | 'today' | 'week' | 'month';
-type Tab = 'overview' | 'list' | 'categories';
 
 export default function ExpensesPage() {
   const queryClient = useQueryClient();
-  const industryPresets = useIndustryExpensePresets();
+  const currentShopId = useAuthStore((s) => s.currentShopId);
+  const shopName = useAuthStore((s: any) => s.currentShop?.name || 'Nafaa POS');
 
-  const [tab, setTab] = useState<Tab>('overview');
+  const searchRef = useRef<HTMLInputElement>(null);
+  const amountRef = useRef<HTMLInputElement>(null);
 
-  // Expense form
-  const [title, setTitle] = useState('');
-  const [amount, setAmount] = useState('');
-  const [categoryId, setCategoryId] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH');
-  const [description, setDescription] = useState('');
-
-  // Filters
   const [search, setSearch] = useState('');
-  const [dateFilter, setDateFilter] = useState<DateFilter>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
-  const [paymentFilter, setPaymentFilter] = useState<PaymentMethod | 'all'>('all');
+  const [period, setPeriod] = useState<PeriodFilter>('month');
+  const [customFrom, setCustomFrom] = useState<string>('');
+  const [customTo, setCustomTo] = useState<string>('');
+  const [showTeacher, setShowTeacher] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState<any>(emptyForm);
+  const [detailExpense, setDetailExpense] = useState<any>(null);
 
-  // Modals
-  const [showCatModal, setShowCatModal] = useState(false);
-  const [showBulkImport, setShowBulkImport] = useState(false);
-  const [selectedPresets, setSelectedPresets] = useState<Set<string>>(new Set());
-  const [editingCat, setEditingCat] = useState<any>(null);
-  const [catName, setCatName] = useState('');
-  const [catColor, setCatColor] = useState(COLOR_PRESETS[0]);
-
-  const { data: expenses = [], refetch, isRefetching } = useQuery({
-    queryKey: ['expenses'],
-    queryFn: expensesApi.list,
+  const { data: expenses = [], isLoading, refetch, isRefetching } = useQuery<any[]>({
+    queryKey: ['expenses', currentShopId],
+    queryFn: () => (expensesApi as any).list(currentShopId || undefined),
+    enabled: !!currentShopId,
   });
 
-  const { data: categories = [] } = useQuery({
-    queryKey: ['expense-categories'],
-    queryFn: expenseCategoriesApi.list,
-  });
-
-  const { data: summary } = useQuery({
-    queryKey: ['expenses-summary'],
-    queryFn: expensesApi.summary,
-  });
-
-  const createExpense = useMutation({
-    mutationFn: expensesApi.create,
+  const createMutation = useMutation({
+    mutationFn: (payload: any) => (expensesApi as any).create(payload),
     onSuccess: () => {
-      toast.success('Expense saved');
-      setTitle(''); setAmount(''); setDescription(''); setCategoryId('');
+      toast.success('Expense record ho gaya');
+      setForm(emptyForm); setShowForm(false); setEditingId(null);
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
-      queryClient.invalidateQueries({ queryKey: ['expenses-summary'] });
-      queryClient.invalidateQueries({ queryKey: ['expense-categories'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard-overview'] });
     },
-    onError: (err: any) => toast.error(err?.response?.data?.message || 'Save failed'),
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Save fail'),
   });
 
-  const deleteExpense = useMutation({
-    mutationFn: expensesApi.remove,
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: any) => (expensesApi as any).update(id, data),
     onSuccess: () => {
-      toast.success('Expense deleted');
+      toast.success('Expense update ho gaya');
+      setForm(emptyForm); setShowForm(false); setEditingId(null);
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
-      queryClient.invalidateQueries({ queryKey: ['expenses-summary'] });
     },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Update fail'),
   });
 
-  const saveCategory = useMutation({
-    mutationFn: () => expenseCategoriesApi.create({ name: catName.trim(), color: catColor }),
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => (expensesApi as any).remove(id),
     onSuccess: () => {
-      toast.success(editingCat ? 'Category updated' : 'Category added');
-      closeCatModal();
-      queryClient.invalidateQueries({ queryKey: ['expense-categories'] });
+      toast.success('Expense delete ho gaya');
+      setDetailExpense(null);
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
     },
-    onError: (err: any) => toast.error(err?.response?.data?.message || 'Failed'),
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Delete fail'),
   });
 
-  const bulkCreateCategories = useMutation({
-    mutationFn: async (presets: Array<{ name: string; color: string }>) => {
-      const results = await Promise.allSettled(
-        presets.map((p) => expenseCategoriesApi.create({ name: p.name, color: p.color }))
-      );
-      const succeeded = results.filter((r) => r.status === 'fulfilled').length;
-      const failed = results.length - succeeded;
-      return { succeeded, failed };
-    },
-    onSuccess: ({ succeeded, failed }) => {
-      if (succeeded > 0) toast.success(`${succeeded} categories added`);
-      if (failed > 0) toast.error(`${failed} failed (duplicates)`);
-      setShowBulkImport(false);
-      setSelectedPresets(new Set());
-      queryClient.invalidateQueries({ queryKey: ['expense-categories'] });
-    },
-  });
-
-  const deleteCategory = useMutation({
-    mutationFn: expenseCategoriesApi.remove,
-    onSuccess: () => {
-      toast.success('Category deleted');
-      queryClient.invalidateQueries({ queryKey: ['expense-categories'] });
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Cannot delete'),
-  });
+  // Period filter
+  const filteredByPeriod = useMemo(() => {
+    if (period === 'all') return expenses;
+    if (period === 'custom') {
+      if (!customFrom && !customTo) return expenses;
+      const start = customFrom ? new Date(customFrom) : new Date('2000-01-01');
+      const end = customTo ? new Date(customTo) : new Date();
+      end.setHours(23, 59, 59, 999);
+      return expenses.filter((e: any) => {
+        const d = new Date(e.date || e.createdAt);
+        return d >= start && d <= end;
+      });
+    }
+    const now = new Date();
+    const start = new Date();
+    if (period === 'today') start.setHours(0, 0, 0, 0);
+    else if (period === 'week') start.setDate(now.getDate() - 7);
+    else if (period === 'month') start.setMonth(now.getMonth() - 1);
+    else if (period === 'year') start.setFullYear(now.getFullYear() - 1);
+    return expenses.filter((e: any) => new Date(e.date || e.createdAt) >= start);
+  }, [expenses, period, customFrom, customTo]);
 
   const filteredExpenses = useMemo(() => {
-    let result = [...expenses];
+    let result = [...filteredByPeriod];
     const q = search.toLowerCase().trim();
     if (q) {
       result = result.filter((e: any) =>
-        e.title.toLowerCase().includes(q) ||
         (e.description || '').toLowerCase().includes(q) ||
-        (e.expenseNumber || '').toLowerCase().includes(q)
+        (e.vendor || '').toLowerCase().includes(q) ||
+        (e.reference || '').toLowerCase().includes(q) ||
+        (e.customCategory || '').toLowerCase().includes(q),
       );
     }
-    if (dateFilter !== 'all') {
-      const now = new Date();
-      let cutoff = new Date();
-      if (dateFilter === 'today') cutoff.setHours(0, 0, 0, 0);
-      else if (dateFilter === 'week') cutoff.setDate(now.getDate() - 7);
-      else if (dateFilter === 'month') cutoff.setMonth(now.getMonth() - 1);
-      result = result.filter((e: any) => new Date(e.expenseDate) >= cutoff);
-    }
     if (categoryFilter !== 'all') {
-      if (categoryFilter === 'none') {
-        result = result.filter((e: any) => !e.category);
-      } else {
-        result = result.filter((e: any) => e.category?.id === categoryFilter);
+      result = result.filter((e: any) => e.category === categoryFilter);
+    }
+    return result.sort((a: any, b: any) => new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime());
+  }, [filteredByPeriod, search, categoryFilter]);
+
+  const stats = useMemo(() => {
+    const total = filteredExpenses.reduce((s: number, e: any) => s + Number(e.amount || 0), 0);
+    const avg = filteredExpenses.length > 0 ? total / filteredExpenses.length : 0;
+    const highest = filteredExpenses.reduce((max: any, e: any) => (Number(e.amount) > Number(max?.amount || 0) ? e : max), null);
+    const categoriesCount = new Set(filteredExpenses.map((e: any) => e.category)).size;
+    return { total, avg, highest, count: filteredExpenses.length, categoriesCount };
+  }, [filteredExpenses]);
+
+  const displayCategoryName = (exp: any) => {
+    if (exp.category === 'OTHER' && exp.customCategory) return exp.customCategory;
+    return getCategoryConfig(exp.category).label;
+  };
+
+  const categoryBreakdown = useMemo(() => {
+  const map = new Map<string, number>();
+  for (const e of filteredExpenses as any[]) {
+    // Always coerce to string, handle null/undefined/number/backend variants
+    const rawCat = e?.category != null ? String(e.category) : 'OTHER';
+    const customName = typeof e?.customCategory === 'string' ? e.customCategory.trim() : '';
+    const key = rawCat === 'OTHER' && customName ? `OTHER:${customName}` : rawCat;
+    const cur = map.get(key) || 0;
+    map.set(key, cur + Number(e?.amount || 0));
+  }
+  const palette = ['#3b82f6','#f59e0b','#8b5cf6','#10b981','#ef4444','#64748b','#ec4899','#06b6d4','#f97316','#dc2626','#6366f1','#6b7280','#a855f7','#14b8a6','#eab308'];
+  return Array.from(map.entries())
+    .map(([rawKey, amt], idx) => {
+      const key = String(rawKey ?? 'OTHER');                    // ✅ safe cast
+      if (key.startsWith('OTHER:')) {
+        return {
+          name: key.slice(6) || 'Other',
+          value: amt,
+          category: 'OTHER',
+          color: palette[idx % palette.length],
+        };
       }
-    }
-    if (paymentFilter !== 'all') {
-      result = result.filter((e: any) => e.paymentMethod === paymentFilter);
-    }
-    return result;
-  }, [expenses, search, dateFilter, categoryFilter, paymentFilter]);
+      const cfg = getCategoryConfig(key);
+      const catIdx = CATEGORIES.findIndex((c) => c.value === key);
+      return {
+        name: cfg.label,
+        value: amt,
+        category: key,
+        color: palette[(catIdx >= 0 ? catIdx : idx) % palette.length],
+      };
+    })
+    .sort((a, b) => b.value - a.value);
+}, [filteredExpenses]);
 
-  const filteredTotal = useMemo(
-    () => filteredExpenses.reduce((s: number, e: any) => s + (e.amount || 0), 0),
-    [filteredExpenses]
-  );
 
-  const hasFilters = search || dateFilter !== 'all' || categoryFilter !== 'all' || paymentFilter !== 'all';
-
-  // 7-day trend (local timezone safe)
-  const trendData = useMemo(() => {
-    const toLocalKey = (d: Date) => {
-      const yyyy = d.getFullYear();
-      const mm = String(d.getMonth() + 1).padStart(2, '0');
-      const dd = String(d.getDate()).padStart(2, '0');
-      return `${yyyy}-${mm}-${dd}`;
-    };
-
-    const buckets: Record<string, { date: string; label: string; total: number; count: number }> = {};
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      d.setHours(0, 0, 0, 0);
-      const key = toLocalKey(d);
-      const dayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getDay()];
-      buckets[key] = { date: key, label: dayName, total: 0, count: 0 };
+  const monthlyTrend = useMemo(() => {
+    const buckets: Record<string, { label: string; total: number }> = {};
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      buckets[key] = { label: d.toLocaleDateString('en-PK', { month: 'short', year: '2-digit' }), total: 0 };
     }
     for (const e of expenses as any[]) {
-      const expDate = new Date(e.expenseDate);
-      const key = toLocalKey(expDate);
-      if (buckets[key]) {
-        buckets[key].total += e.amount || 0;
-        buckets[key].count += 1;
-      }
+      const d = new Date(e.date || e.createdAt);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      if (buckets[key]) buckets[key].total += Number(e.amount || 0);
     }
     return Object.values(buckets);
   }, [expenses]);
 
-  // Category breakdown
-  const categoryBreakdown = useMemo(() => {
-    const map = new Map<string, { name: string; color: string; total: number; count: number }>();
-    for (const e of expenses as any[]) {
-      const key = e.category?.id || 'uncategorized';
-      const name = e.category?.name || 'Uncategorized';
-      const color = e.category?.color || '#94a3b8';
-      const existing = map.get(key) || { name, color, total: 0, count: 0 };
-      existing.total += e.amount || 0;
-      existing.count += 1;
-      map.set(key, existing);
-    }
-    return Array.from(map.values()).sort((a, b) => b.total - a.total).slice(0, 10);
-  }, [expenses]);
-
-  // Top expenses
-  const topExpenses = useMemo(() => {
-    return [...expenses].sort((a: any, b: any) => b.amount - a.amount).slice(0, 5);
-  }, [expenses]);
-
-  // Payment breakdown
-  const paymentBreakdown = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const e of expenses as any[]) {
-      map.set(e.paymentMethod, (map.get(e.paymentMethod) || 0) + (e.amount || 0));
-    }
-    return Array.from(map.entries()).map(([method, total]) => ({
-      name: paymentLabels[method] || method,
-      value: total,
-      color: paymentColors[method] || '#64748b',
-    }));
-  }, [expenses]);
-
-  const todayCount = (summary?.todayCount ?? 0);
-  const avgPerDay = (summary?.monthExpenses ?? 0) / 30;
-  const biggestExpense = topExpenses[0];
-
-  const existingCatNames = new Set(categories.map((c: any) => c.name.toLowerCase()));
-  const availablePresets = industryPresets.categories.filter(
-    (s) => !existingCatNames.has(s.name.toLowerCase())
-  );
-
-  const recurringPresets = availablePresets.filter((p) => p.isRecurring);
-  const oneTimePresets = availablePresets.filter((p) => !p.isRecurring);
-
-  const closeCatModal = () => {
-    setShowCatModal(false);
-    setEditingCat(null);
-    setCatName('');
-    setCatColor(COLOR_PRESETS[0]);
+  const openNewForm = () => {
+    setForm({ ...emptyForm, date: new Date().toISOString().slice(0, 10) });
+    setEditingId(null);
+    setShowForm(true);
+    setTimeout(() => amountRef.current?.focus(), 100);
   };
 
-  const openCatModal = (cat?: any) => {
-    if (cat) {
-      setEditingCat(cat);
-      setCatName(cat.name);
-      setCatColor(cat.color);
-    } else {
-      setEditingCat(null);
-      setCatName('');
-      setCatColor(COLOR_PRESETS[0]);
-    }
-    setShowCatModal(true);
-  };
-
-  const quickAddCategory = (preset: { name: string; color: string }) => {
-    setEditingCat(null);
-    setCatName(preset.name);
-    setCatColor(preset.color);
-    setShowCatModal(true);
-  };
-
-  const togglePresetSelection = (name: string) => {
-    setSelectedPresets((prev) => {
-      const next = new Set(prev);
-      if (next.has(name)) next.delete(name);
-      else next.add(name);
-      return next;
+  const openEditForm = (exp: any) => {
+    setForm({
+      category: exp.category || 'OTHER',
+      customCategory: exp.customCategory || '',
+      amount: String(exp.amount || ''),
+      description: exp.description || '',
+      paymentMethod: exp.paymentMethod || 'CASH',
+      vendor: exp.vendor || '',
+      reference: exp.reference || '',
+      date: (exp.date || exp.createdAt || new Date().toISOString()).slice(0, 10),
+      notes: exp.notes || '',
     });
+    setEditingId(exp.id);
+    setDetailExpense(null);
+    setShowForm(true);
   };
 
-  const bulkAddSelected = () => {
-    const toAdd = availablePresets.filter((p) => selectedPresets.has(p.name));
-    if (toAdd.length === 0) return toast.error('Select at least one category');
-    bulkCreateCategories.mutate(toAdd);
+  const submitForm = () => {
+    if (!currentShopId) return toast.error('Top-bar se shop select karo');
+    const amount = Number(form.amount);
+    if (isNaN(amount) || amount <= 0) return toast.error('Valid amount likho');
+    if (!form.description.trim()) return toast.error('Description likhna zaroori hai');
+    if (form.category === 'OTHER' && !form.customCategory.trim()) {
+      return toast.error('Custom category ka naam likhna zaroori hai');
+    }
+    const payload: any = {
+      shopId: currentShopId,
+      category: form.category,
+      customCategory: form.category === 'OTHER' ? form.customCategory.trim() : undefined,
+      amount,
+      description: form.description.trim(),
+      paymentMethod: form.paymentMethod,
+      vendor: form.vendor.trim() || undefined,
+      reference: form.reference.trim() || undefined,
+      date: form.date,
+      notes: form.notes.trim() || undefined,
+    };
+    if (editingId) updateMutation.mutate({ id: editingId, data: payload });
+    else createMutation.mutate(payload);
+  };
+
+  const confirmDelete = (exp: any) => {
+    if (confirm(`Expense "${exp.description}" (${formatPKR(exp.amount)}) delete karein?\n\nYe permanent hai — accounting record se hat jayega.`)) {
+      deleteMutation.mutate(exp.id);
+    }
+  };
+
+  const duplicateExpense = (exp: any) => {
+    setForm({
+      category: exp.category || 'OTHER',
+      customCategory: exp.customCategory || '',
+      amount: String(exp.amount || ''),
+      description: exp.description || '',
+      paymentMethod: exp.paymentMethod || 'CASH',
+      vendor: exp.vendor || '',
+      reference: '',
+      date: new Date().toISOString().slice(0, 10),
+      notes: '',
+    });
+    setEditingId(null);
+    setDetailExpense(null);
+    setShowForm(true);
+    toast.success('Duplicate ho gaya — edit karke save karo');
+    setTimeout(() => amountRef.current?.focus(), 100);
+  };
+
+  /* 🧾 THERMAL RECEIPT PRINT — 80mm */
+  const printReceipt = (exp: any) => {
+    const catName = displayCategoryName(exp);
+    const html = `<!doctype html>
+<html><head><meta charset="utf-8" /><title>Expense Receipt #${(exp.id || '').slice(-8).toUpperCase()}</title>
+<style>
+  @page { size: 80mm auto; margin: 0; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Courier New', monospace; width: 80mm; padding: 4mm 3mm; margin: 0; color: #000; background: #fff; font-size: 11px; line-height: 1.3; }
+  .center { text-align: center; }
+  .bold { font-weight: 700; }
+  .big { font-size: 14px; }
+  .huge { font-size: 18px; font-weight: 800; }
+  .divider { border-top: 1px dashed #000; margin: 6px 0; }
+  .double-divider { border-top: 2px solid #000; margin: 6px 0; }
+  .row { display: flex; justify-content: space-between; gap: 6px; margin: 2px 0; }
+  .row .value { text-align: right; font-weight: 700; word-break: break-word; }
+  .badge { display: inline-block; border: 1.5px solid #000; padding: 2px 8px; border-radius: 3px; font-size: 10px; font-weight: 700; letter-spacing: 1px; margin: 4px 0; }
+  .footer { font-size: 9px; margin-top: 8px; }
+  .amount-box { border: 2px solid #000; padding: 6px; margin: 6px 0; text-align: center; }
+  @media print { body { padding: 3mm 2mm; } }
+</style></head><body>
+  <div class="center bold big">${shopName}</div>
+  <div class="center" style="font-size: 9px;">Expense Payment Voucher</div>
+  <div class="center" style="font-size: 9px;">Powered by Nafaa POS</div>
+  <div class="divider"></div>
+  <div class="center"><span class="badge">EXPENSE VOUCHER</span></div>
+  <div class="row"><span>Voucher #:</span><span class="value">${(exp.id || '').slice(-8).toUpperCase()}</span></div>
+  <div class="row"><span>Date:</span><span class="value">${formatDate(exp.date || exp.createdAt)}</span></div>
+  <div class="row"><span>Time:</span><span class="value">${new Date(exp.createdAt || Date.now()).toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' })}</span></div>
+  ${exp.createdBy?.fullName ? `<div class="row"><span>By:</span><span class="value">${exp.createdBy.fullName}</span></div>` : ''}
+  <div class="divider"></div>
+  <div class="row"><span>Category:</span><span class="value">${catName}</span></div>
+  <div class="row"><span>Payment:</span><span class="value">${PAYMENT_METHODS.find(p => p.value === exp.paymentMethod)?.label || exp.paymentMethod || 'CASH'}</span></div>
+  ${exp.vendor ? `<div class="row"><span>Vendor:</span><span class="value">${exp.vendor}</span></div>` : ''}
+  ${exp.reference ? `<div class="row"><span>Ref:</span><span class="value">${exp.reference}</span></div>` : ''}
+  <div class="divider"></div>
+  <div class="bold">Description:</div>
+  <div style="margin: 3px 0; word-break: break-word;">${exp.description || '—'}</div>
+  ${exp.notes ? `<div class="divider"></div><div class="bold" style="font-size: 10px;">Notes:</div><div style="font-size: 10px; margin: 2px 0; word-break: break-word;">${exp.notes}</div>` : ''}
+  <div class="amount-box">
+    <div style="font-size: 10px;">TOTAL AMOUNT</div>
+    <div class="huge">${formatPKR(exp.amount)}</div>
+  </div>
+  <div class="double-divider"></div>
+  <div class="row" style="margin-top: 12px;"><span class="bold">Received By:</span><span style="border-bottom: 1px dotted #000; min-width: 30mm;">&nbsp;</span></div>
+  <div class="row" style="margin-top: 12px;"><span class="bold">Signature:</span><span style="border-bottom: 1px dotted #000; min-width: 30mm;">&nbsp;</span></div>
+  <div class="divider"></div>
+  <div class="center footer">Ye ek official expense voucher hai.<br/>Isay safely rakhein — accounting record ke liye.</div>
+  <div class="center footer bold" style="margin-top: 4px;">* * * SHUKRIYA * * *</div>
+  <div class="center" style="font-size: 8px; margin-top: 6px;">Printed: ${new Date().toLocaleString('en-PK')}</div>
+  <script>window.onload = function() { setTimeout(function() { window.print(); setTimeout(function() { window.close(); }, 500); }, 200); };</script>
+</body></html>`;
+    const w = window.open('', '_blank', 'width=380,height=700');
+    if (!w) return toast.error('Popup blocked — allow popups');
+    w.document.write(html);
+    w.document.close();
+  };
+
+  /* 📄 FULL PDF DOWNLOAD */
+  const downloadFullPDF = () => {
+    if (filteredExpenses.length === 0) return toast.error('Koi expense nahi');
+    const totalAmt = stats.total;
+    const html = `<!doctype html>
+<html><head><meta charset="utf-8" /><title>Expenses Report — ${shopName}</title>
+<style>
+  @page { size: A4; margin: 15mm 12mm; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; margin: 0; color: #0f172a; font-size: 11px; }
+  .header { background: linear-gradient(135deg, #1e293b, #7c2d12); color: white; padding: 20px; border-radius: 10px; margin-bottom: 15px; }
+  .header h1 { margin: 0; font-size: 22px; }
+  .header .sub { font-size: 11px; opacity: 0.9; margin-top: 4px; }
+  .meta { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 15px; }
+  .kpi { border: 2px solid #e2e8f0; border-radius: 8px; padding: 10px; background: #f8fafc; }
+  .kpi .lbl { font-size: 9px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+  .kpi .val { font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 3px; }
+  .kpi .sub { font-size: 9px; color: #64748b; margin-top: 2px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 10px; }
+  th { background: #0f172a; color: white; padding: 8px 6px; text-align: left; font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; }
+  th.right, td.right { text-align: right; }
+  th.center, td.center { text-align: center; }
+  td { padding: 7px 6px; border-bottom: 1px solid #e2e8f0; }
+  tr:nth-child(even) td { background: #f8fafc; }
+  .cat-badge { display: inline-block; padding: 2px 6px; border-radius: 3px; background: #e0e7ff; color: #3730a3; font-size: 9px; font-weight: 700; }
+  .cat-summary { margin-top: 20px; page-break-inside: avoid; }
+  .cat-summary h3 { margin: 0 0 8px 0; font-size: 13px; }
+  .cat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .cat-item { display: flex; justify-content: space-between; padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 5px; font-size: 10px; }
+  .cat-item .amt { font-weight: 800; }
+  .total-row td { background: #0f172a !important; color: white; font-weight: 800; font-size: 12px; }
+  .footer { margin-top: 20px; padding-top: 10px; border-top: 2px solid #0f172a; font-size: 9px; color: #64748b; text-align: center; }
+  .signature-block { margin-top: 40px; display: flex; justify-content: space-between; page-break-inside: avoid; }
+  .sig { text-align: center; font-size: 10px; }
+  .sig-line { border-top: 1px solid #0f172a; width: 150px; margin: 40px auto 4px; }
+  @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+</style></head><body>
+  <div class="header">
+    <h1>📊 Expenses Report</h1>
+    <div class="sub">${shopName} • Generated: ${new Date().toLocaleString('en-PK')} • Period: ${period.toUpperCase()}${period === 'custom' ? ` (${customFrom || 'any'} → ${customTo || 'any'})` : ''}${categoryFilter !== 'all' ? ` • Category: ${getCategoryConfig(categoryFilter).label}` : ''}</div>
+  </div>
+  <div class="meta">
+    <div class="kpi"><div class="lbl">Total Expenses</div><div class="val">${formatPKR(stats.total)}</div><div class="sub">${stats.count} transactions</div></div>
+    <div class="kpi"><div class="lbl">Average per Entry</div><div class="val">${formatPKR(stats.avg)}</div><div class="sub">Mean value</div></div>
+    <div class="kpi"><div class="lbl">Highest Expense</div><div class="val">${stats.highest ? formatPKR(stats.highest.amount) : '—'}</div><div class="sub">${(stats.highest?.description || 'N/A').slice(0, 25)}</div></div>
+    <div class="kpi"><div class="lbl">Categories</div><div class="val">${stats.categoriesCount}</div><div class="sub">Different types</div></div>
+  </div>
+  <table>
+    <thead><tr>
+      <th style="width: 5%;">#</th><th style="width: 12%;">Date</th><th style="width: 15%;">Category</th>
+      <th style="width: 28%;">Description</th><th style="width: 15%;">Vendor</th>
+      <th style="width: 10%;">Payment</th><th class="right" style="width: 15%;">Amount</th>
+    </tr></thead>
+    <tbody>
+      ${filteredExpenses.map((e: any, i: number) => `
+        <tr>
+          <td class="center">${i + 1}</td>
+          <td>${formatDate(e.date || e.createdAt)}</td>
+          <td><span class="cat-badge">${displayCategoryName(e).replace(/</g, '&lt;')}</span></td>
+          <td>${(e.description || '').replace(/</g, '&lt;')}</td>
+          <td>${(e.vendor || '—').replace(/</g, '&lt;')}</td>
+          <td>${PAYMENT_METHODS.find(p => p.value === e.paymentMethod)?.label || e.paymentMethod || 'CASH'}</td>
+          <td class="right">${formatPKR(e.amount)}</td>
+        </tr>`).join('')}
+      <tr class="total-row"><td colspan="6" class="right">GRAND TOTAL</td><td class="right">${formatPKR(totalAmt)}</td></tr>
+    </tbody>
+  </table>
+  <div class="cat-summary">
+    <h3>📈 Category-wise Breakdown</h3>
+    <div class="cat-grid">
+      ${categoryBreakdown.map(c => `
+        <div class="cat-item">
+          <span>${c.name.replace(/</g, '&lt;')}</span>
+          <span class="amt">${formatPKR(c.value)} <span style="color: #64748b; font-weight: 500;">(${((c.value / totalAmt) * 100).toFixed(1)}%)</span></span>
+        </div>`).join('')}
+    </div>
+  </div>
+  <div class="signature-block">
+    <div class="sig"><div class="sig-line"></div>Prepared By</div>
+    <div class="sig"><div class="sig-line"></div>Verified By</div>
+    <div class="sig"><div class="sig-line"></div>Approved By</div>
+  </div>
+  <div class="footer"><strong>${shopName}</strong> • Official Expenses Report<br/>Ye ek computer generated report hai.<br/>Powered by Nafaa POS</div>
+  <script>window.onload = function() { setTimeout(function() { window.print(); }, 300); };</script>
+</body></html>`;
+    const w = window.open('', '_blank', 'width=900,height=700');
+    if (!w) return toast.error('Popup blocked — allow popups');
+    w.document.write(html);
+    w.document.close();
+    toast.success('PDF ready — Print dialog me "Save as PDF" choose karo');
   };
 
   const exportCSV = () => {
-    if (filteredExpenses.length === 0) return toast.error('No data');
-    const headers = ['Date', 'Expense #', 'Title', 'Category', 'Amount', 'Payment', 'Description'];
+    if (filteredExpenses.length === 0) return toast.error('Koi data nahi');
+    const summary = [
+      ['Expenses Report'],
+      [`Generated: ${new Date().toLocaleString('en-PK')}  •  Total: ${formatPKR(stats.total)}  •  Count: ${stats.count}`],
+      [''],
+    ];
+    const headers = ['Date', 'Category', 'Description', 'Vendor', 'Payment Method', 'Reference', 'Amount', 'Notes'];
     const rows = filteredExpenses.map((e: any) => [
-      new Date(e.expenseDate).toLocaleString('en-PK'),
-      e.expenseNumber,
-      e.title,
-      e.category?.name || 'No category',
-      e.amount.toFixed(2),
-      e.paymentMethod,
+      formatDate(e.date || e.createdAt),
+      displayCategoryName(e),
       e.description || '',
+      e.vendor || '',
+      e.paymentMethod || 'CASH',
+      e.reference || '',
+      e.amount,
+      e.notes || '',
     ]);
-    const csv = [headers, ...rows].map((r) => r.map((c) => `"${c}"`).join(',')).join('\n');
+    const csv = [...summary, headers, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
     const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -334,890 +495,839 @@ export default function ExpensesPage() {
     a.download = `expenses-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success('Exported');
+    toast.success(`${filteredExpenses.length} expenses export ho gaye`);
   };
 
-  const clearFilters = () => {
-    setSearch('');
-    setDateFilter('all');
-    setCategoryFilter('all');
-    setPaymentFilter('all');
-  };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (showTeacher) return setShowTeacher(false);
+        if (showForm) return setShowForm(false);
+        if (detailExpense) return setDetailExpense(null);
+      }
+      const tag = document.activeElement?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (e.key === '/') { e.preventDefault(); searchRef.current?.focus(); }
+      if (e.key.toLowerCase() === 'n') { e.preventDefault(); openNewForm(); }
+      if (e.key.toLowerCase() === 't') { e.preventDefault(); setShowTeacher(true); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showTeacher, showForm, detailExpense]);
+
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = (showTeacher || showForm || detailExpense) ? 'hidden' : prev;
+    return () => { document.body.style.overflow = prev; };
+  }, [showTeacher, showForm, detailExpense]);
+
+  const hasFilters = !!search || categoryFilter !== 'all' || period !== 'month';
 
   return (
-    <div className="space-y-6">
-      {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-rose-900 to-rose-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-rose-400/20 blur-3xl" />
-        <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-pink-400/15 blur-3xl" />
+    <div className="space-y-4 sm:space-y-5 pb-10">
+      {showTeacher && <ExpensesTeacher onClose={() => setShowTeacher(false)} />}
+      {showForm && (
+        <ExpenseFormModal
+          form={form}
+          setForm={setForm}
+          editingId={editingId}
+          onClose={() => setShowForm(false)}
+          onSubmit={submitForm}
+          loading={createMutation.isPending || updateMutation.isPending}
+          amountRef={amountRef}
+        />
+      )}
+      {detailExpense && (
+        <ExpenseDetailModal
+          expense={detailExpense}
+          onClose={() => setDetailExpense(null)}
+          onEdit={() => openEditForm(detailExpense)}
+          onDelete={() => confirmDelete(detailExpense)}
+          onPrint={() => printReceipt(detailExpense)}
+          onDuplicate={() => duplicateExpense(detailExpense)}
+          displayCategoryName={displayCategoryName}
+        />
+      )}
 
-        <div className="relative flex items-center justify-between gap-4 flex-wrap">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur px-3 py-1 text-xs font-extrabold">
-              <Wallet className="h-3.5 w-3.5 text-amber-300" />
-              Money Out Tracking
-              {industryPresets.industryId && (
-                <>
-                  <span className="text-white/40">•</span>
-                  <span>{industryPresets.industryEmoji} {industryPresets.industryName}</span>
-                </>
-              )}
+      {/* ═══ HERO ═══ */}
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-rose-900 to-red-800 dark:from-slate-950 dark:via-rose-950 dark:to-red-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
+        <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-rose-400/25 blur-3xl pointer-events-none animate-pulse" />
+        <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-amber-400/15 blur-3xl pointer-events-none" />
+        <div className="relative flex items-start justify-between gap-4 flex-wrap">
+          <div className="min-w-0 flex-1">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+              <Receipt className="h-3.5 w-3.5 text-amber-300" /> Business Expenses
             </div>
-            <h2 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">Expenses</h2>
-            <p className="mt-2 text-sm text-white/80">
-              {industryPresets.industryId
-                ? `${industryPresets.industryName} businesses ke liye ${availablePresets.length} ready-made expense categories`
-                : 'Rent, bills, salaries — har kharcha track karo aur asli profit dekho'}
+            <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight">💸 Expenses</h1>
+            <p className="mt-1.5 text-xs sm:text-sm text-white/90 font-semibold">
+              <strong className="text-amber-300 tabular-nums">{formatPKR(stats.total)}</strong> total
+              <span className="opacity-50 mx-1.5">•</span>
+              <strong>{stats.count}</strong> entries
+              <span className="opacity-50 mx-1.5">•</span>
+              <strong className="text-emerald-300">{stats.categoriesCount}</strong> categories
+              <span className="opacity-50 mx-1.5">•</span>
+              Row click karo details ke liye • Har receipt print ho sakta
             </p>
           </div>
-          <div className="flex gap-2 flex-wrap">
-            {availablePresets.length > 0 && (
-              <button
-                onClick={() => setShowBulkImport(true)}
-                className="inline-flex items-center gap-2 rounded-xl bg-amber-500/30 hover:bg-amber-500/50 border-2 border-amber-300/40 px-4 py-2.5 text-sm font-bold transition backdrop-blur"
-              >
-                <Import className="h-4 w-4" />
-                Bulk Import ({availablePresets.length})
-              </button>
-            )}
-            <button
-              onClick={() => refetch()}
-              disabled={isRefetching}
-              className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-4 py-2.5 text-sm font-bold transition disabled:opacity-50 backdrop-blur"
-            >
-              <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
-              Refresh
+          <div className="flex gap-2 flex-wrap items-center shrink-0">
+            <button onClick={openNewForm} className="h-11 px-4 rounded-xl bg-white text-rose-700 hover:bg-rose-50 text-sm font-extrabold inline-flex items-center gap-1.5 shadow-lg transition">
+              <Plus className="h-4 w-4" /> Naya Expense
             </button>
-            {filteredExpenses.length > 0 && (
-              <button
-                onClick={exportCSV}
-                className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold transition backdrop-blur border border-white/20"
-              >
-                <Download className="h-4 w-4" /> Export
-              </button>
-            )}
+            <button onClick={() => setShowTeacher(true)} className="h-11 px-3 rounded-xl bg-amber-400/90 hover:bg-amber-400 text-slate-900 text-xs font-extrabold inline-flex items-center gap-1.5 shadow-lg transition">
+              <GraduationCap className="h-4 w-4" /> <span className="hidden sm:inline">Guide</span>
+            </button>
+            <button onClick={() => refetch()} disabled={isRefetching} className="h-11 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-xs font-extrabold inline-flex items-center gap-1.5 backdrop-blur-md disabled:opacity-50 transition">
+              <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">Refresh</span>
+            </button>
+            <button onClick={downloadFullPDF} disabled={filteredExpenses.length === 0} className="h-11 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-xs font-extrabold inline-flex items-center gap-1.5 shadow-lg disabled:opacity-50 transition">
+              <FileDown className="h-4 w-4" /> <span className="hidden sm:inline">Full PDF</span>
+            </button>
+            <button onClick={exportCSV} disabled={filteredExpenses.length === 0} className="h-11 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-xs font-extrabold inline-flex items-center gap-1.5 backdrop-blur-md disabled:opacity-50 transition">
+              <Download className="h-4 w-4" /> <span className="hidden sm:inline">CSV</span>
+            </button>
           </div>
+        </div>
+        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[10px] font-bold items-center">
+          <Kbd>/</Kbd><span className="text-white/60">Search</span>
+          <span className="text-white/30 mx-1">•</span>
+          <Kbd>N</Kbd><span className="text-white/60">Naya</span>
+          <span className="text-white/30 mx-1">•</span>
+          <Kbd>T</Kbd><span className="text-white/60">Guide</span>
+          <span className="text-white/30 mx-1">•</span>
+          <Kbd>Esc</Kbd><span className="text-white/60">Band</span>
         </div>
       </section>
 
-      {/* ═══ TABS ═══ */}
-      <section className="flex gap-2 overflow-x-auto pb-2">
-        {[
-          { id: 'overview' as Tab, label: 'Overview', icon: BarChart3 },
-          { id: 'list' as Tab, label: 'All Expenses', icon: Receipt },
-          { id: 'categories' as Tab, label: `Categories (${categories.length})`, icon: FolderOpen },
-        ].map((t) => {
-          const Icon = t.icon;
-          const active = tab === t.id;
-          return (
+      {/* ═══ KPIs ═══ */}
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 print:hidden">
+        <Kpi icon={TrendingDown} tone="rose" label="Total Spent" value={formatPKR(stats.total)} sub={`${period.toUpperCase()} period`} highlight />
+        <Kpi icon={Activity} tone="blue" label="Entries" value={stats.count} sub={`Avg: ${formatPKR(stats.avg)}`} />
+        <Kpi icon={AlertTriangle} tone="amber" label="Highest" value={stats.highest ? formatPKR(stats.highest.amount) : '—'} sub={(stats.highest?.description || 'N/A').slice(0, 20)} />
+        <Kpi icon={PieIcon} tone="violet" label="Categories" value={stats.categoriesCount} sub="Different types" />
+      </section>
+
+      {/* ═══ PERIOD PILLS + CUSTOM RANGE ═══ */}
+      <section className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-3 print:hidden">
+        <div className="flex gap-1 sm:gap-2 flex-wrap">
+          {(['today', 'week', 'month', 'year', 'all', 'custom'] as PeriodFilter[]).map((p) => (
             <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-extrabold whitespace-nowrap transition border-2 ${
-                active
-                  ? 'bg-rose-600 text-white border-rose-600 shadow-lg shadow-rose-500/30'
-                  : 'bg-white text-slate-700 border-slate-200 hover:border-rose-300'
+              key={p}
+              onClick={() => setPeriod(p)}
+              className={`px-3 py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider transition inline-flex items-center gap-1.5 ${
+                period === p
+                  ? 'bg-rose-600 text-white shadow-lg shadow-rose-500/30'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
             >
-              <Icon className="h-4 w-4" />
-              {t.label}
+              {p === 'custom' && <Calendar className="h-3 w-3" />}
+              {p === 'today' ? 'Aaj' : p === 'week' ? 'Hafta' : p === 'month' ? 'Mahina' : p === 'year' ? 'Saal' : p === 'all' ? 'Sab' : 'Custom'}
             </button>
-          );
-        })}
-      </section>
-
-      {/* ═══ STATS ═══ */}
-      <section className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          label="Aaj ke Expenses"
-          value={formatPKR(summary?.todayExpenses ?? 0)}
-          sub={`${todayCount} entries today`}
-          icon={TrendingDown}
-          color="rose"
-          isAlert={(summary?.todayExpenses ?? 0) > 5000}
-        />
-        <StatCard
-          label="Is Mahine"
-          value={formatPKR(summary?.monthExpenses ?? 0)}
-          sub={`Avg ${formatPKR(avgPerDay)}/day`}
-          icon={CalendarDays}
-          color="violet"
-        />
-        <StatCard
-          label="Total Expenses"
-          value={formatPKR(summary?.totalExpenses ?? 0)}
-          sub={`${expenses.length} all time`}
-          icon={Wallet}
-          color="amber"
-        />
-        <StatCard
-          label="Biggest Expense"
-          value={biggestExpense ? formatPKR(biggestExpense.amount) : '—'}
-          sub={biggestExpense?.title?.slice(0, 30) || 'No expenses yet'}
-          icon={AlertTriangle}
-          color="orange"
-        />
-      </section>
-
-      {/* ═══ INDUSTRY QUICK ADD BANNER ═══ */}
-      {tab !== 'categories' && availablePresets.length > 0 && categories.length < 5 && (
-        <section className="rounded-3xl bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 border-2 border-amber-300 p-5 shadow-sm">
-          <div className="flex items-start gap-3">
-            <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-lg shrink-0">
-              <Info className="h-5 w-5" />
+          ))}
+        </div>
+        {period === 'custom' && (
+          <div className="mt-3 grid sm:grid-cols-[1fr_1fr_auto] gap-2 sm:items-end p-3 rounded-xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30">
+            <div>
+              <label className="block text-[10px] uppercase tracking-widest font-extrabold text-rose-700 dark:text-rose-300 mb-1">From Date</label>
+              <input
+                type="date"
+                value={customFrom}
+                onChange={(e) => setCustomFrom(e.target.value)}
+                className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:border-rose-500 transition"
+              />
             </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-extrabold text-amber-900">
-                {industryPresets.industryEmoji} Setup expenses for {industryPresets.industryName}
-              </h3>
-              <p className="text-xs text-amber-800 font-semibold mt-1">
-                {availablePresets.length} suggested expense categories tayyar hain — Kitchen Gas,
-                Staff Salary, Delivery Fuel wagera. Bulk Import se ek click mein sab add karo.
-              </p>
-              <div className="mt-3 flex gap-2 flex-wrap">
-                <button
-                  onClick={() => setShowBulkImport(true)}
-                  className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-extrabold inline-flex items-center gap-1 shadow-sm"
-                >
-                  <Import className="h-3 w-3" />
-                  Import All {availablePresets.length}
-                </button>
-                <button
-                  onClick={() => setTab('categories')}
-                  className="px-3 py-1.5 rounded-lg bg-white border-2 border-amber-300 hover:border-amber-400 text-amber-800 text-xs font-extrabold inline-flex items-center gap-1"
-                >
-                  <FolderOpen className="h-3 w-3" />
-                  Manage Categories
-                </button>
-              </div>
+            <div>
+              <label className="block text-[10px] uppercase tracking-widest font-extrabold text-rose-700 dark:text-rose-300 mb-1">To Date</label>
+              <input
+                type="date"
+                value={customTo}
+                onChange={(e) => setCustomTo(e.target.value)}
+                className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:border-rose-500 transition"
+              />
             </div>
-          </div>
-        </section>
-      )}
-
-      {/* ═══ OVERVIEW TAB ═══ */}
-      {tab === 'overview' && (
-        <>
-          <section className="grid lg:grid-cols-[1.5fr_1fr] gap-6">
-            <div className="rounded-3xl bg-white border border-slate-200 shadow-sm p-6">
-              <div className="flex items-center justify-between mb-5">
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900">7-Day Trend</h3>
-                  <p className="text-xs text-slate-500">Daily expense pattern</p>
-                </div>
-                <BarChart3 className="h-5 w-5 text-rose-500" />
-              </div>
-              {trendData.some((d) => d.total > 0) ? (
-                <div className="h-[280px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={trendData}>
-                      <defs>
-                        <linearGradient id="expGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#ef4444" stopOpacity={0.5} />
-                          <stop offset="100%" stopColor="#ef4444" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                      <XAxis dataKey="label" stroke="#64748b" fontSize={11} />
-                      <YAxis stroke="#64748b" fontSize={11} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-                      <Tooltip formatter={(value: any) => formatPKR(Number(value))} contentStyle={{ borderRadius: 12 }} />
-                      <Area type="monotone" dataKey="total" name="Expenses" fill="url(#expGrad)" stroke="#ef4444" strokeWidth={2.5} />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              ) : (
-                <div className="h-[280px] flex flex-col items-center justify-center text-center gap-2">
-                  <div className="h-14 w-14 rounded-2xl bg-rose-100 flex items-center justify-center">
-                    <TrendingDown className="h-7 w-7 text-rose-400" />
-                  </div>
-                  <p className="text-sm font-bold text-slate-700">No expenses in last 7 days</p>
-                  <p className="text-xs text-slate-500 font-semibold">Aaj ka pehla expense add karein</p>
-                </div>
-              )}
-            </div>
-
-            <div className="rounded-3xl bg-white border border-slate-200 shadow-sm p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900">By Category</h3>
-                  <p className="text-xs text-slate-500">Spending distribution</p>
-                </div>
-              </div>
-              {categoryBreakdown.length > 0 ? (
-                <div className="h-[280px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={categoryBreakdown}
-                        cx="50%" cy="45%" outerRadius={85} innerRadius={45}
-                        dataKey="total"
-                        label={(entry: any) => {
-                          const total = categoryBreakdown.reduce((s, c) => s + c.total, 0);
-                          const pct = total > 0 ? ((entry.total / total) * 100).toFixed(0) : '0';
-                          return Number(pct) > 5 ? `${pct}%` : '';
-                        }}
-                        labelLine={false}
-                      >
-                        {categoryBreakdown.map((c, idx) => (
-                          <Cell key={idx} fill={c.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value: any) => formatPKR(Number(value))} contentStyle={{ borderRadius: 12 }} />
-                      <Legend wrapperStyle={{ fontSize: 10, paddingTop: 12 }} iconType="circle" />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              ) : (
-                <div className="h-[280px] flex items-center justify-center text-sm text-slate-500">
-                  No category data
-                </div>
-              )}
-            </div>
-          </section>
-
-          <section className="grid lg:grid-cols-2 gap-6">
-            <div className="rounded-3xl bg-white border-2 border-rose-200 shadow-sm overflow-hidden">
-              <div className="px-5 py-4 bg-gradient-to-r from-rose-50 to-pink-50 border-b-2 border-rose-200 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Crown className="h-5 w-5 text-amber-500" />
-                  <h3 className="font-extrabold text-rose-900">Top 5 Biggest Expenses</h3>
-                </div>
-              </div>
-              <div className="divide-y divide-slate-100">
-                {topExpenses.length > 0 ? (
-                  topExpenses.map((e: any, idx: number) => {
-                    const rankColors = ['bg-amber-500', 'bg-slate-400', 'bg-orange-600', 'bg-rose-500', 'bg-violet-500'];
-                    return (
-                      <div key={e.id} className="px-5 py-3 flex items-center gap-3 hover:bg-slate-50 transition">
-                        <div className={`h-9 w-9 rounded-lg ${rankColors[idx]} text-white font-extrabold flex items-center justify-center text-sm shrink-0 shadow-md`}>
-                          {idx < 3 ? <Crown className="h-4 w-4" /> : idx + 1}
-                        </div>
-                        <div className="h-11 w-11 rounded-xl flex items-center justify-center text-white shadow-md shrink-0" style={{ backgroundColor: e.category?.color || '#64748b' }}>
-                          <Wallet className="h-5 w-5" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="font-bold text-slate-900 text-sm truncate">{e.title}</div>
-                          <div className="text-[11px] text-slate-500 font-bold mt-0.5 flex items-center gap-2">
-                            {e.category && (
-                              <span className="inline-flex items-center gap-1">
-                                <Tag className="h-2.5 w-2.5" />
-                                {e.category.name}
-                              </span>
-                            )}
-                            <span>•</span>
-                            <span>{formatDateShort(e.expenseDate)}</span>
-                          </div>
-                        </div>
-                        <div className="text-right shrink-0">
-                          <div className="font-extrabold text-rose-700 text-lg tabular-nums">{formatPKR(e.amount)}</div>
-                        </div>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="px-5 py-12 text-center text-sm text-slate-500">No expenses yet</div>
-                )}
-              </div>
-            </div>
-
-            <div className="rounded-3xl bg-white border border-slate-200 shadow-sm p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900">Payment Methods</h3>
-                  <p className="text-xs text-slate-500">How you pay</p>
-                </div>
-                <CreditCard className="h-5 w-5 text-blue-500" />
-              </div>
-              {paymentBreakdown.length > 0 ? (
-                <div className="space-y-3">
-                  {paymentBreakdown.map((p) => {
-                    const total = paymentBreakdown.reduce((s, x) => s + x.value, 0);
-                    const pct = total > 0 ? (p.value / total) * 100 : 0;
-                    const methodKey = Object.keys(paymentLabels).find(k => paymentLabels[k] === p.name) || 'CASH';
-                    const PayIcon = paymentIcons[methodKey] || CreditCard;
-                    return (
-                      <div key={p.name}>
-                        <div className="flex items-center justify-between mb-1.5">
-                          <div className="flex items-center gap-2">
-                            <div className="h-9 w-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${p.color}20` }}>
-                              <PayIcon className="h-4 w-4" style={{ color: p.color }} />
-                            </div>
-                            <div>
-                              <div className="font-bold text-slate-900 text-sm">{p.name}</div>
-                              <div className="text-[10px] text-slate-500 font-bold">{pct.toFixed(1)}%</div>
-                            </div>
-                          </div>
-                          <div className="font-extrabold text-rose-700 text-sm tabular-nums">{formatPKR(p.value)}</div>
-                        </div>
-                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                          <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: p.color }} />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="h-[200px] flex items-center justify-center text-sm text-slate-500">No data</div>
-              )}
-            </div>
-          </section>
-        </>
-      )}
-
-      {/* ═══ LIST TAB ═══ */}
-      {tab === 'list' && (
-        <section className="grid xl:grid-cols-[420px_1fr] gap-6">
-          <div className="rounded-3xl bg-white border-2 border-rose-200 shadow-sm p-6 h-fit sticky top-6">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-rose-500 to-rose-700 text-white flex items-center justify-center shadow-lg shadow-rose-500/30">
-                <Plus className="h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-slate-900">New Expense</h3>
-                <p className="text-sm text-slate-500">Quick expense add</p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <Input label="Title *" placeholder="Shop rent for May" value={title} onChange={(e) => setTitle(e.target.value)} />
-              <Input label="Amount (PKR) *" type="number" step="0.01" placeholder="50000" value={amount} onChange={(e) => setAmount(e.target.value)} />
-
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">Category</label>
-                <select
-                  value={categoryId}
-                  onChange={(e) => setCategoryId(e.target.value)}
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-4 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500 transition"
-                >
-                  <option value="">No category</option>
-                  {categories.map((c: any) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
-                {categories.length === 0 && availablePresets.length > 0 && (
-                  <button
-                    onClick={() => setShowBulkImport(true)}
-                    className="text-xs text-rose-700 font-bold hover:underline mt-1 inline-flex items-center gap-1"
-                  >
-                    <Import className="h-3 w-3" /> Import {industryPresets.industryName} categories
-                  </button>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">Payment Method</label>
-                <div className="grid grid-cols-5 gap-1.5">
-                  {(Object.keys(paymentLabels) as PaymentMethod[]).map((m) => {
-                    const Icon = paymentIcons[m];
-                    const active = paymentMethod === m;
-                    return (
-                      <button
-                        key={m}
-                        type="button"
-                        onClick={() => setPaymentMethod(m)}
-                        className={`flex flex-col items-center justify-center gap-1 p-2 rounded-xl border-2 transition ${
-                          active
-                            ? 'border-rose-500 bg-rose-50 text-rose-700 ring-2 ring-rose-200'
-                            : 'border-slate-200 text-slate-500 hover:border-slate-300'
-                        }`}
-                      >
-                        <Icon className="h-3.5 w-3.5" />
-                        <span className="text-[9px] font-extrabold">{paymentLabels[m]}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">Description</label>
-                <textarea
-                  rows={2}
-                  className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-rose-500"
-                  placeholder="Optional notes..."
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                />
-              </div>
-
-              <Button
-                className="w-full bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 shadow-lg shadow-rose-500/30"
-                size="lg"
-                loading={createExpense.isPending}
-                onClick={() => {
-                  if (!title.trim()) return toast.error('Title likhein');
-                  if (!Number(amount)) return toast.error('Amount likhein');
-                  createExpense.mutate({
-                    title: title.trim(),
-                    amount: Number(amount),
-                    description: description.trim() || undefined,
-                    categoryId: categoryId || undefined,
-                    paymentMethod,
-                  });
-                }}
+            {(customFrom || customTo) && (
+              <button
+                onClick={() => { setCustomFrom(''); setCustomTo(''); }}
+                className="h-10 px-3 rounded-lg bg-white dark:bg-slate-800 border-2 border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-400 text-xs font-extrabold hover:bg-rose-100 dark:hover:bg-rose-500/20 transition inline-flex items-center gap-1"
               >
-                <Plus className="h-4 w-4" />
-                Save Expense
-              </Button>
-            </div>
-          </div>
-
-          <div className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
-            <div className="px-6 py-5 border-b border-slate-100 space-y-3">
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                <div>
-                  <h3 className="text-xl font-bold text-slate-900">All Expenses</h3>
-                  <p className="text-sm text-slate-500">
-                    {filteredExpenses.length} of {expenses.length}
-                    {hasFilters && <span className="ml-2 font-bold text-rose-700">• {formatPKR(filteredTotal)}</span>}
-                  </p>
-                </div>
-              </div>
-
-              <div className="relative">
-                <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search title, description..."
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-9 text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-200"
-                />
-                {search && (
-                  <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2">
-                    <X className="h-4 w-4 text-slate-400" />
-                  </button>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex gap-1 flex-wrap items-center">
-                  <span className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mr-1">Date:</span>
-                  {[
-                    { v: 'all' as DateFilter, l: 'All' },
-                    { v: 'today' as DateFilter, l: 'Today' },
-                    { v: 'week' as DateFilter, l: '7 Days' },
-                    { v: 'month' as DateFilter, l: '30 Days' },
-                  ].map((opt) => (
-                    <button
-                      key={opt.v}
-                      onClick={() => setDateFilter(opt.v)}
-                      className={`px-2.5 py-1 rounded-md text-xs font-bold transition ${
-                        dateFilter === opt.v ? 'bg-rose-600 text-white shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                      }`}
-                    >
-                      {opt.l}
-                    </button>
-                  ))}
-                </div>
-                {hasFilters && (
-                  <button onClick={clearFilters} className="text-xs font-bold text-rose-600 hover:text-rose-700 inline-flex items-center gap-1">
-                    <X className="h-3 w-3" /> Clear filters
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {filteredExpenses.length === 0 ? (
-              <div className="p-12 text-center">
-                <div className="mx-auto h-20 w-20 rounded-3xl bg-gradient-to-br from-rose-100 to-pink-200 flex items-center justify-center">
-                  <Wallet className="h-9 w-9 text-rose-600" />
-                </div>
-                <h4 className="mt-5 text-lg font-bold text-slate-900">
-                  {hasFilters ? 'No matches' : 'Abhi koi expense nahi'}
-                </h4>
-              </div>
-            ) : (
-              <div className="divide-y divide-slate-100 max-h-[700px] overflow-y-auto">
-                {filteredExpenses.map((e: any) => {
-                  const PayIcon = paymentIcons[e.paymentMethod] || CreditCard;
-                  return (
-                    <div key={e.id} className="px-6 py-4 hover:bg-slate-50 transition group">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-start gap-3 min-w-0 flex-1">
-                          <div className="h-11 w-11 rounded-xl flex items-center justify-center text-white shadow-md shrink-0" style={{ backgroundColor: e.category?.color || '#64748b' }}>
-                            <Wallet className="h-5 w-5" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-bold text-slate-900">{e.title}</span>
-                              <span className="text-[10px] font-bold text-slate-400 font-mono">{e.expenseNumber}</span>
-                            </div>
-                            <div className="flex items-center gap-2 mt-0.5 flex-wrap text-xs">
-                              {e.category ? (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white" style={{ backgroundColor: e.category.color }}>
-                                  <Tag className="h-2.5 w-2.5" />
-                                  {e.category.name}
-                                </span>
-                              ) : (
-                                <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold">
-                                  Uncategorized
-                                </span>
-                              )}
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold">
-                                <PayIcon className="h-2.5 w-2.5" />
-                                {paymentLabels[e.paymentMethod] || e.paymentMethod}
-                              </span>
-                            </div>
-                            {e.description && (
-                              <div className="text-xs text-slate-600 mt-1 line-clamp-2">{e.description}</div>
-                            )}
-                            <div className="text-[10px] text-slate-400 mt-1 inline-flex items-center gap-1">
-                              <Calendar className="h-2.5 w-2.5" />
-                              {formatDate(e.expenseDate)} • {formatRelative(e.expenseDate)}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <div className="font-extrabold text-rose-700 text-lg tabular-nums">{formatPKR(e.amount)}</div>
-                          <button
-                            onClick={() => { if (confirm(`Delete "${e.title}"?`)) deleteExpense.mutate(e.id); }}
-                            className="h-8 w-8 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                <X className="h-3 w-3" /> Clear
+              </button>
             )}
           </div>
-        </section>
-      )}
+        )}
+      </section>
 
-      {/* ═══ CATEGORIES TAB ═══ */}
-      {tab === 'categories' && (
-        <section className="space-y-4">
-          {/* Industry recurring expenses */}
-          {recurringPresets.length > 0 && (
-            <div className="rounded-3xl bg-gradient-to-br from-blue-50 via-sky-50 to-cyan-50 border-2 border-blue-200 p-5">
-              <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 text-white flex items-center justify-center shadow-md">
-                    <Repeat className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <h3 className="font-extrabold text-blue-900">
-                      {industryPresets.industryEmoji} Recurring Monthly Expenses
-                    </h3>
-                    <p className="text-[11px] text-blue-700 font-bold">
-                      {recurringPresets.length} regular expenses for {industryPresets.industryName}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                {recurringPresets.slice(0, 12).map((s) => (
-                  <button
-                    key={s.name}
-                    onClick={() => quickAddCategory(s)}
-                    className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white border-2 border-blue-200 hover:border-blue-400 hover:shadow-md hover:scale-105 transition group"
-                  >
-                    <div className="h-9 w-9 rounded-lg flex items-center justify-center text-white shadow-sm shrink-0 text-base" style={{ backgroundColor: s.color }}>
-                      {s.emoji}
-                    </div>
-                    <div className="text-left min-w-0 flex-1">
-                      <div className="text-xs font-extrabold text-slate-900 truncate">{s.name}</div>
-                      {s.typicalMonthly && (
-                        <div className="text-[9px] text-blue-600 font-bold">
-                          ~{formatPKR(s.typicalMonthly.min)}-{formatPKR(s.typicalMonthly.max)}
-                        </div>
-                      )}
-                    </div>
-                    <Repeat className="h-3 w-3 text-blue-500 shrink-0" />
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* One-time expenses */}
-          {oneTimePresets.length > 0 && (
-            <div className="rounded-3xl bg-gradient-to-br from-violet-50 to-purple-50 border-2 border-violet-200 p-5">
-              <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center shadow-md">
-                    <DollarSign className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <h3 className="font-extrabold text-violet-900">One-Time / Occasional Expenses</h3>
-                    <p className="text-[11px] text-violet-700 font-bold">
-                      {oneTimePresets.length} occasional {industryPresets.industryName} expenses
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowBulkImport(true)}
-                  className="text-xs font-extrabold text-violet-700 hover:text-violet-800 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white border-2 border-violet-300 hover:border-violet-400 transition"
-                >
-                  <Import className="h-3 w-3" />
-                  Bulk Import
-                  <ChevronRight className="h-3 w-3" />
-                </button>
-              </div>
-              <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                {oneTimePresets.slice(0, 12).map((s) => (
-                  <button
-                    key={s.name}
-                    onClick={() => quickAddCategory(s)}
-                    className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white border-2 hover:shadow-md hover:scale-105 transition group"
-                    style={{ borderColor: `${s.color}50` }}
-                  >
-                    <div className="h-9 w-9 rounded-lg flex items-center justify-center text-white shadow-sm shrink-0 text-base" style={{ backgroundColor: s.color }}>
-                      {s.emoji}
-                    </div>
-                    <div className="text-left min-w-0 flex-1">
-                      <div className="text-xs font-extrabold text-slate-900 truncate">{s.name}</div>
-                      <div className="text-[9px] text-slate-500 font-bold">+ Click to add</div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="rounded-3xl bg-white border border-slate-200 shadow-sm p-6">
-            <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
-              <div className="flex items-center gap-3">
-                <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-violet-500 to-violet-700 text-white flex items-center justify-center shadow-lg shadow-violet-500/30">
-                  <FolderOpen className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-slate-900">All Expense Categories</h3>
-                  <p className="text-sm text-slate-500">{categories.length} categories</p>
-                </div>
-              </div>
-              <Button onClick={() => openCatModal()} className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 shadow-lg shadow-violet-500/30">
-                <Plus className="h-4 w-4" /> New Category
-              </Button>
-            </div>
-
-            {categories.length === 0 ? (
-              <div className="rounded-2xl border-2 border-dashed border-slate-200 p-8 text-center">
-                <Tag className="h-10 w-10 text-slate-300 mx-auto mb-2" />
-                <p className="font-bold text-slate-700 text-sm">No categories yet</p>
-                <p className="text-xs text-slate-500 mt-1">Upar se {industryPresets.industryName} suggestions ka use karo</p>
-              </div>
-            ) : (
-              <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                {categories.map((c: any) => (
-                  <div key={c.id} className="group rounded-2xl border-2 border-slate-200 p-4 hover:border-violet-300 hover:shadow-lg hover:-translate-y-0.5 transition-all">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                        <div className="h-12 w-12 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0" style={{ backgroundColor: c.color, boxShadow: `0 8px 20px ${c.color}40` }}>
-                          <Tag className="h-5 w-5" />
-                        </div>
-                        <div className="min-w-0">
-                          <div className="font-extrabold text-slate-900 truncate">{c.name}</div>
-                          <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                            {c._count?.expenses ?? 0} expenses
-                          </div>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => { if (confirm(`Delete "${c.name}"?`)) deleteCategory.mutate(c.id); }}
-                        className="h-7 w-7 rounded-md bg-rose-50 hover:bg-rose-100 text-rose-700 flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
-      )}
-
-      {/* ═══ BULK IMPORT MODAL ═══ */}
-      {showBulkImport && (
-        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col">
-            <div className="px-6 py-5 border-b-2 border-slate-100 bg-gradient-to-r from-rose-50 to-pink-50 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 text-white flex items-center justify-center shadow-lg">
-                  <Import className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="font-extrabold text-xl text-slate-900">
-                    {industryPresets.industryEmoji} Expense Categories — {industryPresets.industryName}
-                  </h3>
-                  <p className="text-xs text-slate-600 font-semibold">
-                    {selectedPresets.size} of {availablePresets.length} selected
-                  </p>
-                </div>
-              </div>
-              <button onClick={() => { setShowBulkImport(false); setSelectedPresets(new Set()); }} className="h-9 w-9 rounded-lg hover:bg-white flex items-center justify-center">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="px-6 py-3 border-b border-slate-100 flex items-center justify-between">
-              <div className="flex gap-2">
-                <button onClick={() => setSelectedPresets(new Set(availablePresets.map((p) => p.name)))} className="text-xs font-extrabold text-rose-700 hover:underline">Select All</button>
-                <span className="text-slate-300">•</span>
-                <button onClick={() => setSelectedPresets(new Set(recurringPresets.map((p) => p.name)))} className="text-xs font-extrabold text-blue-700 hover:underline">Only Recurring</button>
-                <span className="text-slate-300">•</span>
-                <button onClick={() => setSelectedPresets(new Set())} className="text-xs font-extrabold text-slate-600 hover:underline">Deselect All</button>
-              </div>
-              <div className="text-xs text-slate-500 font-semibold">Existing categories hidden</div>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-6">
-              <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-2">
-                {availablePresets.map((p) => {
-                  const selected = selectedPresets.has(p.name);
-                  return (
-                    <button
-                      key={p.name}
-                      onClick={() => togglePresetSelection(p.name)}
-                      className={`flex items-start gap-2 p-3 rounded-xl border-2 transition text-left ${
-                        selected
-                          ? 'shadow-md ring-2 ring-rose-200 border-rose-500 bg-rose-50'
-                          : 'border-slate-200 bg-white hover:border-rose-300 hover:shadow-sm'
-                      }`}
-                    >
-                      <div className="h-10 w-10 rounded-lg flex items-center justify-center text-white shadow-sm shrink-0 text-lg" style={{ backgroundColor: p.color }}>
-                        {p.emoji}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1">
-                          <div className="text-xs font-extrabold text-slate-900 truncate">{p.name}</div>
-                          {p.isRecurring && <Repeat className="h-2.5 w-2.5 text-blue-600 shrink-0" />}
-                        </div>
-                        {p.typicalMonthly && (
-                          <div className="text-[9px] text-slate-500 font-bold mt-0.5">
-                            ~{formatPKR(p.typicalMonthly.min)} - {formatPKR(p.typicalMonthly.max)}/mo
-                          </div>
-                        )}
-                      </div>
-                      {selected && <CheckCircle2 className="h-4 w-4 text-rose-600 shrink-0 mt-1" />}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="px-6 py-4 border-t-2 border-slate-100 bg-slate-50 flex items-center justify-between gap-2">
-              <div className="text-sm">
-                <div className="font-extrabold text-slate-900">{selectedPresets.size} categories selected</div>
-                <div className="text-xs text-slate-500 font-semibold">Duplicates auto-skipped</div>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="secondary" onClick={() => { setShowBulkImport(false); setSelectedPresets(new Set()); }}>Cancel</Button>
-                <Button
-                  onClick={bulkAddSelected}
-                  disabled={selectedPresets.size === 0}
-                  loading={bulkCreateCategories.isPending}
-                  className="bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700"
-                >
-                  <Import className="h-4 w-4" />
-                  Import {selectedPresets.size} Categories
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ═══ CATEGORY FORM MODAL ═══ */}
-      {showCatModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden">
-            <div className="px-6 py-4 bg-gradient-to-br from-violet-50 to-purple-50 border-b-2 border-violet-200 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center shadow-lg">
-                  {editingCat ? <Edit3 className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
-                </div>
-                <div>
-                  <h3 className="font-extrabold text-lg text-slate-900">{editingCat ? 'Edit Category' : 'New Category'}</h3>
-                  <p className="text-xs text-slate-600 font-semibold">Expense group</p>
-                </div>
-              </div>
-              <button onClick={closeCatModal} className="h-9 w-9 rounded-xl bg-white hover:bg-slate-100 flex items-center justify-center">
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            <div className="p-6 space-y-4">
-              <Input label="Category Name *" value={catName} onChange={(e) => setCatName(e.target.value)} placeholder="Rent, Salary..." autoFocus />
+      {/* ═══ CHARTS ═══ */}
+      {filteredExpenses.length > 0 && (
+        <section className="grid lg:grid-cols-[1fr_1.3fr] gap-4 sm:gap-5">
+          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-5 sm:p-6">
+            <div className="flex items-center justify-between mb-4">
               <div>
-                <label className="text-sm font-bold text-slate-700 mb-2 flex items-center gap-1.5">
-                  <Palette className="h-3.5 w-3.5 text-slate-500" />
-                  Color
-                </label>
-                <div className="grid grid-cols-5 gap-2">
-                  {COLOR_PRESETS.map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      onClick={() => setCatColor(c)}
-                      className={`h-12 rounded-xl border-2 transition shadow-sm ${
-                        catColor === c ? 'border-slate-900 scale-110 shadow-lg ring-2 ring-slate-300' : 'border-transparent hover:scale-105'
-                      }`}
-                      style={{ backgroundColor: c }}
-                    />
-                  ))}
-                </div>
+                <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Category Breakdown</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Kis pe zyada kharcha</p>
               </div>
-              <div className="rounded-xl bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200 p-4">
-                <div className="text-[10px] uppercase tracking-wider text-slate-500 font-extrabold mb-3 flex items-center gap-1">
-                  <Sparkles className="h-3 w-3" />
-                  Live Preview
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="h-14 w-14 rounded-2xl flex items-center justify-center text-white shadow-lg" style={{ backgroundColor: catColor, boxShadow: `0 10px 25px -5px ${catColor}40` }}>
-                    <Tag className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <div className="font-extrabold text-slate-900">{catName || 'Category name'}</div>
-                    <div className="text-xs text-slate-500 font-semibold">0 expenses</div>
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-2 pt-2">
-                <Button variant="secondary" onClick={closeCatModal} className="flex-1">Cancel</Button>
-                <Button
-                  onClick={() => {
-                    if (!catName.trim()) return toast.error('Name required');
-                    saveCategory.mutate();
-                  }}
-                  loading={saveCategory.isPending}
-                  className="flex-1 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"
-                >
-                  <Save className="h-4 w-4" /> {editingCat ? 'Update' : 'Create'}
-                </Button>
-              </div>
+              <PieIcon className="h-5 w-5 text-rose-500 dark:text-rose-400" />
+            </div>
+            <div className="h-[280px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={categoryBreakdown} cx="50%" cy="45%" outerRadius={90} innerRadius={50} dataKey="value" label={(e: any) => `${((e.value / stats.total) * 100).toFixed(0)}%`} labelLine={false}>
+                    {categoryBreakdown.map((entry, idx) => (<Cell key={`cell-${idx}`} fill={entry.color} />))}
+                  </Pie>
+                  <Tooltip formatter={(v: any) => formatPKR(Number(v))} contentStyle={{ borderRadius: 12, border: '2px solid #e2e8f0' }} />
+                  <Legend wrapperStyle={{ fontSize: 10, paddingTop: 8 }} iconType="circle" />
+                </PieChart>
+              </ResponsiveContainer>
             </div>
           </div>
-        </div>
+          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-5 sm:p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">6-Month Trend</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Monthly expense pattern</p>
+              </div>
+              <BarChart3 className="h-5 w-5 text-rose-500 dark:text-rose-400" />
+            </div>
+            <div className="h-[280px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={monthlyTrend}>
+                  <defs>
+                    <linearGradient id="expGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.9} />
+                      <stop offset="100%" stopColor="#f43f5e" stopOpacity={0.4} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" className="dark:opacity-20" />
+                  <XAxis dataKey="label" stroke="#64748b" fontSize={11} />
+                  <YAxis stroke="#64748b" fontSize={11} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+                  <Tooltip formatter={(v: any) => formatPKR(Number(v))} contentStyle={{ borderRadius: 12, border: '2px solid #e2e8f0' }} />
+                  <Bar dataKey="total" fill="url(#expGrad)" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </section>
       )}
+
+      {/* ═══ FILTERS + LIST ═══ */}
+      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div className="px-5 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-slate-800 space-y-3">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">
+              Sab Expenses ({filteredExpenses.length})
+              {hasFilters && <span className="ml-1 text-xs font-bold text-rose-700 dark:text-rose-400">• filtered</span>}
+            </h3>
+            <div className="relative">
+              <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                ref={searchRef}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Description/vendor/custom dhundo... (/)"
+                className="h-9 w-64 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-9 pr-3 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-rose-500 transition"
+              />
+            </div>
+          </div>
+          <div className="flex gap-1 flex-wrap items-center">
+            <span className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-extrabold mr-1">Category:</span>
+            <button
+              onClick={() => setCategoryFilter('all')}
+              className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition ${
+                categoryFilter === 'all' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }`}
+            >
+              All ({filteredByPeriod.length})
+            </button>
+            {CATEGORIES.map((c) => {
+              const count = filteredByPeriod.filter((e: any) => e.category === c.value).length;
+              if (count === 0) return null;
+              const Icon = c.icon;
+              return (
+                <button
+                  key={c.value}
+                  onClick={() => setCategoryFilter(c.value)}
+                  className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition inline-flex items-center gap-1 ${
+                    categoryFilter === c.value
+                      ? `${c.tone} ring-2 ring-rose-200 dark:ring-rose-500/40`
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  }`}
+                >
+                  <Icon className="h-2.5 w-2.5" />
+                  {c.label}
+                  <span className="px-1 rounded-full text-[9px] bg-white/30 dark:bg-black/20">{count}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {isLoading ? (
+          <div className="p-12 text-center">
+            <div className="inline-block h-10 w-10 rounded-full border-4 border-rose-200 dark:border-rose-800 border-t-rose-600 dark:border-t-rose-400 animate-spin" />
+          </div>
+        ) : filteredExpenses.length === 0 ? (
+          <div className="p-12 sm:p-16 text-center">
+            <div className="mx-auto h-20 w-20 rounded-3xl bg-gradient-to-br from-rose-100 to-red-200 dark:from-rose-500/20 dark:to-red-500/20 flex items-center justify-center shadow-inner">
+              <Receipt className="h-9 w-9 text-rose-600 dark:text-rose-400" />
+            </div>
+            <h4 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">
+              {hasFilters ? 'Kuch nahi mila' : 'Abhi koi expense nahi'}
+            </h4>
+            <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400 font-semibold max-w-md mx-auto">
+              {hasFilters ? 'Filter change karke dekho' : 'Business ke sab kharche track karo — har entry ka receipt print aur voucher generate hota hai.'}
+            </p>
+            {hasFilters ? (
+              <Button variant="secondary" className="mt-4" onClick={() => { setSearch(''); setCategoryFilter('all'); setPeriod('all'); setCustomFrom(''); setCustomTo(''); }}>
+                <X className="h-4 w-4" /> Filter hatao
+              </Button>
+            ) : (
+              <button onClick={openNewForm} className="mt-4 px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white text-sm font-extrabold shadow-lg shadow-rose-500/30 inline-flex items-center gap-2">
+                <Plus className="h-4 w-4" /> Pehla Expense Add Karo
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="divide-y-2 divide-slate-100 dark:divide-slate-800 max-h-[700px] overflow-y-auto">
+            {filteredExpenses.map((exp: any) => {
+              const cfg = getCategoryConfig(exp.category);
+              const Icon = cfg.icon;
+              const catName = displayCategoryName(exp);
+              return (
+                <div
+                  key={exp.id}
+                  onClick={() => setDetailExpense(exp)}
+                  className="px-5 sm:px-6 py-4 hover:bg-rose-50/50 dark:hover:bg-rose-500/10 transition group cursor-pointer relative"
+                  title="Click for full details"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${cfg.color} text-white flex items-center justify-center shadow-lg shrink-0`}>
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-2 flex-wrap">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-extrabold text-slate-900 dark:text-white text-sm sm:text-base line-clamp-1">{exp.description}</span>
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-extrabold ${cfg.tone}`}>
+                              <Icon className="h-2.5 w-2.5" />
+                              {catName}
+                            </span>
+                          </div>
+                          <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1 flex items-center gap-2 flex-wrap">
+                            <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" />{formatDate(exp.date || exp.createdAt)}</span>
+                            {exp.vendor && (<><span className="opacity-50">•</span><span className="inline-flex items-center gap-1"><Store className="h-3 w-3" />{exp.vendor}</span></>)}
+                            <span className="opacity-50">•</span>
+                            <span className="inline-flex items-center gap-1"><Wallet className="h-3 w-3" />{PAYMENT_METHODS.find(p => p.value === exp.paymentMethod)?.label || 'CASH'}</span>
+                            {exp.reference && (<><span className="opacity-50">•</span><span className="inline-flex items-center gap-1 font-mono text-[10px]">#{exp.reference}</span></>)}
+                          </div>
+                          {exp.notes && (
+                            <div className="text-xs text-slate-600 dark:text-slate-300 mt-1 italic font-semibold line-clamp-1">📝 {exp.notes}</div>
+                          )}
+                        </div>
+                        <div className="flex flex-col items-end gap-2 shrink-0">
+                          <div className="text-xl sm:text-2xl font-extrabold text-rose-700 dark:text-rose-400 tabular-nums">
+                            −{formatPKR(exp.amount)}
+                          </div>
+                          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                            <button onClick={() => setDetailExpense(exp)} className="h-8 w-8 rounded-lg bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-400 hover:bg-violet-200 dark:hover:bg-violet-500/30 flex items-center justify-center transition" title="View details">
+                              <Eye className="h-3.5 w-3.5" />
+                            </button>
+                            <button onClick={() => printReceipt(exp)} className="h-8 w-8 rounded-lg bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-500/30 flex items-center justify-center transition" title="Print thermal receipt">
+                              <Printer className="h-3.5 w-3.5" />
+                            </button>
+                            <button onClick={() => duplicateExpense(exp)} className="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-500/30 flex items-center justify-center transition" title="Duplicate">
+                              <Copy className="h-3.5 w-3.5" />
+                            </button>
+                            <button onClick={() => openEditForm(exp)} className="h-8 w-8 rounded-lg bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-500/30 flex items-center justify-center transition" title="Edit">
+                              <Edit3 className="h-3.5 w-3.5" />
+                            </button>
+                            <button onClick={() => confirmDelete(exp)} className="h-8 w-8 rounded-lg bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-400 hover:bg-rose-200 dark:hover:bg-rose-500/30 flex items-center justify-center transition" title="Delete">
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-slate-300 dark:text-slate-600 shrink-0 self-center opacity-0 group-hover:opacity-100 transition" />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {filteredExpenses.length > 0 && (
+          <div className="px-5 sm:px-6 py-4 border-t-2 border-slate-100 dark:border-slate-800 bg-gradient-to-r from-rose-50 to-red-50 dark:from-rose-500/10 dark:to-red-500/10 flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <div className="text-[10px] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400">Grand Total</div>
+              <div className="text-2xl sm:text-3xl font-extrabold text-rose-700 dark:text-rose-400 tabular-nums">−{formatPKR(stats.total)}</div>
+            </div>
+            <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold text-right">
+              <div>{stats.count} entries • {stats.categoriesCount} categories</div>
+              <div className="mt-0.5">Avg: <strong className="text-slate-700 dark:text-slate-200">{formatPKR(stats.avg)}</strong></div>
+            </div>
+          </div>
+        )}
+      </section>
+
+      <style>{`
+        @media print {
+          @page { size: A4 landscape; margin: 12mm 10mm; }
+          html, body { background: white !important; color: #0f172a !important; print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important; }
+          .dark body, .dark { background: white !important; color: #0f172a !important; }
+          [class*="fixed"] { display: none !important; }
+          html, body, #root { height: auto !important; min-height: 0 !important; overflow: visible !important; }
+          [class*="sidebar"], [class*="topbar"], nav[class*="fixed"] { display: none !important; }
+          [data-sonner-toaster], [data-sonner-toast], [class*="Toaster"] { display: none !important; visibility: hidden !important; }
+        }
+      `}</style>
     </div>
   );
 }
 
-function StatCard({ label, value, sub, icon: Icon, color, isAlert }: any) {
-  const colors: any = {
-    rose: 'from-rose-500 to-rose-700 shadow-rose-500/30',
-    violet: 'from-violet-500 to-purple-600 shadow-violet-500/30',
-    amber: 'from-amber-500 to-orange-600 shadow-amber-500/30',
-    orange: 'from-orange-500 to-red-600 shadow-orange-500/30',
+/* ═════════════════════════════════════════════════════════════
+   EXPENSE DETAIL MODAL — Full detailed view
+   ═════════════════════════════════════════════════════════════ */
+function ExpenseDetailModal({ expense, onClose, onEdit, onDelete, onPrint, onDuplicate, displayCategoryName }: any) {
+  const cfg = getCategoryConfig(expense.category);
+  const Icon = cfg.icon;
+  const catName = displayCategoryName(expense);
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
+      <div
+        className="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-violet-300 dark:border-violet-500/40 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className={`px-5 py-4 bg-gradient-to-br ${cfg.color} text-white relative overflow-hidden top-0 z-10`}>
+          <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-white/20 blur-2xl pointer-events-none" />
+          <div className="relative flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur-md px-2.5 py-0.5 text-[10px] font-extrabold border border-white/30 mb-2">
+                <Icon className="h-3 w-3" />
+                {catName}
+              </div>
+              <h3 className="text-lg font-extrabold leading-tight line-clamp-2">{expense.description}</h3>
+              <div className="text-xs text-white/80 mt-1 font-semibold flex items-center gap-2 flex-wrap">
+                <Clock className="h-3 w-3" />
+                {formatDateTime(expense.createdAt)}
+                <span className="opacity-60">•</span>
+                {formatRelative(expense.createdAt)}
+              </div>
+            </div>
+            <button onClick={onClose} className="h-8 w-8 rounded-lg bg-white/20 hover:bg-white/30 flex items-center justify-center transition shrink-0">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        <div className="p-5 space-y-4">
+          {/* Amount hero */}
+          <div className="rounded-2xl bg-gradient-to-br from-rose-50 to-red-50 dark:from-rose-500/10 dark:to-red-500/10 border-2 border-rose-200 dark:border-rose-500/40 p-4 text-center">
+            <div className="text-[10px] uppercase tracking-widest font-extrabold text-rose-700 dark:text-rose-300">Total Amount</div>
+            <div className="text-4xl font-extrabold text-rose-700 dark:text-rose-400 tabular-nums mt-1">
+              −{formatPKR(expense.amount)}
+            </div>
+          </div>
+
+          {/* Voucher ID */}
+          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3 flex items-center justify-between">
+            <div>
+              <div className="text-[10px] uppercase tracking-widest font-extrabold text-slate-500 dark:text-slate-400">Voucher #</div>
+              <div className="font-mono text-sm font-extrabold text-slate-900 dark:text-white mt-0.5">{(expense.id || '').slice(-8).toUpperCase()}</div>
+            </div>
+            <button
+              onClick={() => { navigator.clipboard.writeText(expense.id || ''); toast.success('ID copied'); }}
+              className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-700 flex items-center justify-center transition"
+              title="Copy ID"
+            >
+              <Copy className="h-3.5 w-3.5 text-slate-500" />
+            </button>
+          </div>
+
+          {/* Details */}
+          <div className="rounded-xl bg-white dark:bg-slate-800/40 border-2 border-slate-200 dark:border-slate-700 divide-y divide-slate-100 dark:divide-slate-700">
+            <DetailRow icon={Calendar} label="Expense Date" value={formatDate(expense.date || expense.createdAt)} />
+            <DetailRow icon={Tag} label="Category" value={catName} />
+            <DetailRow icon={Wallet} label="Payment Method" value={PAYMENT_METHODS.find(p => p.value === expense.paymentMethod)?.label || expense.paymentMethod || 'CASH'} />
+            {expense.vendor && <DetailRow icon={Store} label="Vendor / Payee" value={expense.vendor} />}
+            {expense.reference && <DetailRow icon={FileText} label="Reference / Bill #" value={expense.reference} mono />}
+            {expense.createdBy?.fullName && <DetailRow icon={UserIcon} label="Recorded By" value={expense.createdBy.fullName} />}
+            <DetailRow icon={Clock} label="Entry Time" value={formatDateTime(expense.createdAt)} />
+          </div>
+
+          {/* Notes */}
+          {expense.notes && (
+            <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-3">
+              <div className="text-[10px] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 mb-1">📝 Notes</div>
+              <p className="text-sm text-slate-700 dark:text-slate-200 font-semibold whitespace-pre-wrap break-words">{expense.notes}</p>
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={onPrint}
+              className="h-11 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white text-sm font-extrabold inline-flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/30 transition"
+            >
+              <Printer className="h-4 w-4" /> Print Receipt
+            </button>
+            <button
+              onClick={onDuplicate}
+              className="h-11 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-sm font-extrabold inline-flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30 transition"
+            >
+              <Copy className="h-4 w-4" /> Duplicate
+            </button>
+            <button
+              onClick={onEdit}
+              className="h-11 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white text-sm font-extrabold inline-flex items-center justify-center gap-2 shadow-lg shadow-amber-500/30 transition"
+            >
+              <Edit3 className="h-4 w-4" /> Edit
+            </button>
+            <button
+              onClick={onDelete}
+              className="h-11 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white text-sm font-extrabold inline-flex items-center justify-center gap-2 shadow-lg shadow-rose-500/30 transition"
+            >
+              <Trash2 className="h-4 w-4" /> Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DetailRow({ icon: Icon, label, value, mono }: any) {
+  return (
+    <div className="flex items-center justify-between gap-3 px-3 py-2.5">
+      <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+        <Icon className="h-3.5 w-3.5" />
+        <span className="text-xs font-extrabold uppercase tracking-wider">{label}</span>
+      </div>
+      <div className={`text-sm font-extrabold text-slate-900 dark:text-white text-right break-words min-w-0 ${mono ? 'font-mono text-xs' : ''}`}>
+        {value}
+      </div>
+    </div>
+  );
+}
+
+/* ═════════════════════════════════════════════════════════════
+   EXPENSE FORM MODAL — with custom category + custom date
+   ═════════════════════════════════════════════════════════════ */
+function ExpenseFormModal({ form, setForm, editingId, onClose, onSubmit, loading, amountRef }: any) {
+  const isOther = form.category === 'OTHER';
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
+      <div
+        className="w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-rose-300 dark:border-rose-500/40 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="px-5 py-3 border-b-2 border-rose-200 dark:border-rose-500/30 bg-gradient-to-r from-rose-50 to-red-50 dark:from-rose-500/15 dark:to-red-500/15 flex items-center justify-between sticky top-0 z-10">
+          <h3 className="font-extrabold text-rose-900 dark:text-rose-200 flex items-center gap-2">
+            <Receipt className="h-5 w-5" />
+            {editingId ? 'Expense Edit Karo' : 'Naya Expense Add Karo'}
+          </h3>
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          </button>
+        </div>
+
+        <div className="p-5 space-y-4">
+          {/* Category picker */}
+          <div>
+            <label className="block text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-2">Category *</label>
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+              {CATEGORIES.map((c) => {
+                const Icon = c.icon;
+                const active = form.category === c.value;
+                return (
+                  <button
+                    key={c.value}
+                    type="button"
+                    onClick={() => setForm({ ...form, category: c.value })}
+                    className={`p-2.5 rounded-xl border-2 transition text-left ${
+                      active
+                        ? `bg-gradient-to-br ${c.color} text-white border-transparent shadow-md`
+                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-rose-300 dark:hover:border-rose-500/50'
+                    }`}
+                  >
+                    <Icon className="h-4 w-4 mb-1" />
+                    <div className="text-[10px] font-extrabold leading-tight">{c.label}</div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Custom category name when OTHER selected */}
+          {isOther && (
+            <div className="rounded-xl bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-500/10 dark:to-purple-500/10 border-2 border-violet-200 dark:border-violet-500/40 p-3">
+              <label className="block text-sm font-extrabold text-violet-900 dark:text-violet-200 mb-1.5 items-center gap-1.5">
+                <Sparkles className="h-4 w-4" />
+                Custom Category Name *
+              </label>
+              <input
+                type="text"
+                value={form.customCategory}
+                onChange={(e) => setForm({ ...form, customCategory: e.target.value })}
+                placeholder="e.g., Zakat, Charity, Tax, Insurance..."
+                maxLength={40}
+                className="h-11 w-full rounded-xl border-2 border-violet-200 dark:border-violet-500/40 bg-white dark:bg-slate-800 px-4 text-sm font-extrabold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500 transition"
+              />
+              <div className="text-[10px] text-violet-700 dark:text-violet-300 mt-1 font-semibold">
+                💡 Aap apna category name likh sakte ho — reports me isi naam se dikhega
+              </div>
+            </div>
+          )}
+
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5">Amount (PKR) *</label>
+              <input
+                ref={amountRef}
+                type="number"
+                value={form.amount}
+                onChange={(e) => setForm({ ...form, amount: e.target.value })}
+                placeholder="5000"
+                className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-lg font-extrabold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-rose-500 transition tabular-nums"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5 items-center gap-1.5">
+                <Calendar className="h-3.5 w-3.5" />
+                Expense Date *
+              </label>
+              <input
+                type="date"
+                value={form.date}
+                onChange={(e) => setForm({ ...form, date: e.target.value })}
+                className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-sm font-extrabold text-slate-900 dark:text-white focus:outline-none focus:border-rose-500 transition"
+              />
+              <div className="flex gap-1 mt-1">
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, date: new Date().toISOString().slice(0, 10) })}
+                  className="text-[10px] font-extrabold text-rose-700 dark:text-rose-400 hover:underline"
+                >
+                  Aaj
+                </button>
+                <span className="text-[10px] text-slate-400">•</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const d = new Date(); d.setDate(d.getDate() - 1);
+                    setForm({ ...form, date: d.toISOString().slice(0, 10) });
+                  }}
+                  className="text-[10px] font-extrabold text-rose-700 dark:text-rose-400 hover:underline"
+                >
+                  Kal
+                </button>
+                <span className="text-[10px] text-slate-400">•</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const d = new Date(); d.setDate(1);
+                    setForm({ ...form, date: d.toISOString().slice(0, 10) });
+                  }}
+                  className="text-[10px] font-extrabold text-rose-700 dark:text-rose-400 hover:underline"
+                >
+                  Month start
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <Input
+            label="Description *"
+            value={form.description}
+            onChange={(e: any) => setForm({ ...form, description: e.target.value })}
+            placeholder="Shop rent for August 2026"
+          />
+
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5">Payment Method</label>
+              <select
+                value={form.paymentMethod}
+                onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })}
+                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:border-rose-500 transition"
+              >
+                {PAYMENT_METHODS.map((p) => (
+                  <option key={p.value} value={p.value}>{p.label}</option>
+                ))}
+              </select>
+            </div>
+            <Input label="Vendor / Payee" value={form.vendor} onChange={(e: any) => setForm({ ...form, vendor: e.target.value })} placeholder="ABC Suppliers" />
+          </div>
+
+          <Input
+            label="Reference / Bill #"
+            value={form.reference}
+            onChange={(e: any) => setForm({ ...form, reference: e.target.value })}
+            placeholder="INV-2026-001 or cheque number"
+          />
+
+          <div>
+            <label className="block text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5">Notes (optional)</label>
+            <textarea
+              value={form.notes}
+              onChange={(e) => setForm({ ...form, notes: e.target.value })}
+              rows={2}
+              placeholder="Extra details, warranty info, etc."
+              className="w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-rose-500 transition resize-none"
+            />
+          </div>
+
+          <div className="flex gap-2 pt-2">
+            <Button variant="secondary" className="flex-1" onClick={onClose}>
+              <X className="h-4 w-4" /> Cancel
+            </Button>
+            <Button
+              className="flex-1 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 font-extrabold shadow-lg shadow-rose-500/30"
+              onClick={onSubmit}
+              loading={loading}
+            >
+              <CheckCircle2 className="h-4 w-4" /> {editingId ? 'Update' : 'Save'} Expense
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═════════════════════════════════════════════════════════════
+   EXPENSES TEACHER
+   ═════════════════════════════════════════════════════════════ */
+function ExpensesTeacher({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
+      <div
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-rose-300 dark:border-rose-500/40 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="px-5 py-3 border-b-2 border-rose-200 dark:border-rose-500/30 bg-gradient-to-r from-rose-50 to-red-50 dark:from-rose-500/15 dark:to-red-500/15 flex items-center justify-between sticky top-0 z-10">
+          <h3 className="font-extrabold text-rose-900 dark:text-rose-200 flex items-center gap-2">
+            <GraduationCap className="h-5 w-5" /> Expenses — Guide
+          </h3>
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          </button>
+        </div>
+
+        <div className="p-5 space-y-4">
+          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+            <strong>Expense tracking = profit ka raaz.</strong> Sales badhne se profit nahi barhta — kharche control karne se barhta hai.
+          </p>
+
+          <div className="rounded-2xl border-2 border-violet-200 dark:border-violet-500/30 bg-violet-50/60 dark:bg-violet-500/5 p-4 space-y-2">
+            <div className="text-[10px] uppercase tracking-widest font-extrabold text-violet-700 dark:text-violet-300 flex items-center gap-1">
+              <Eye className="h-3 w-3" /> Naye Features (v4)
+            </div>
+            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+              <div className="rounded-lg bg-white dark:bg-slate-800 border border-violet-200 dark:border-violet-500/30 p-2">
+                🔍 <strong>Detail View:</strong> Kisi bhi row pe click karo → full details modal khulta hai — voucher #, poori info, notes, print/edit/delete actions.
+              </div>
+              <div className="rounded-lg bg-white dark:bg-slate-800 border border-violet-200 dark:border-violet-500/30 p-2">
+                🎨 <strong>Custom Category:</strong> "Other" select karo → apni marzi ka naam do (Zakat, Charity, Tax, Insurance, kuch bhi). Reports me isi naam se dikhega.
+              </div>
+              <div className="rounded-lg bg-white dark:bg-slate-800 border border-violet-200 dark:border-violet-500/30 p-2">
+                📅 <strong>Custom Date Range:</strong> Period me "Custom" chuno → From/To dates apni marzi. Exact date range ka filter.
+              </div>
+              <div className="rounded-lg bg-white dark:bg-slate-800 border border-violet-200 dark:border-violet-500/30 p-2">
+                ⚡ <strong>Quick date shortcuts:</strong> Form me "Aaj", "Kal", "Month start" — one click date set.
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-500/5 p-4 space-y-2">
+            <div className="text-[10px] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
+              <Printer className="h-3 w-3" /> Print Features
+            </div>
+            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+              <div className="rounded-lg bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-500/30 p-2">
+                🧾 <strong>Individual Receipt (80mm):</strong> Har expense ke 🖨️ button se POS thermal printer pe voucher print — vendor ko diya ja sakta hai.
+              </div>
+              <div className="rounded-lg bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-500/30 p-2">
+                📄 <strong>Full PDF Report:</strong> "Full PDF" button — poori list ka A4 professional PDF (signature blocks + grand total + category breakdown).
+              </div>
+              <div className="rounded-lg bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-500/30 p-2">
+                📊 <strong>CSV Export:</strong> Excel me deep analysis ke liye.
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+            <TipRow><strong>📅 Same-day entry</strong> — Kharcha hote hi likh do. Kal bhool jaoge.</TipRow>
+            <TipRow><strong>🧾 Reference number zaroor</strong> — Bill/invoice number likho. Audit ke waqt kaam ata hai.</TipRow>
+            <TipRow><strong>🏪 Vendor name</strong> — Repeat vendors ka spending pattern samajh me aata hai.</TipRow>
+            <TipRow><strong>🔄 Duplicate feature</strong> — Rent/salaries monthly same. Copy karo, date change karo.</TipRow>
+            <TipRow><strong>💡 30% rule</strong> — Revenue ka {'<'}30% expenses hon. Zyada = margin problem.</TipRow>
+            <TipRow><strong>🎨 Custom category use</strong> — Zakat, Charity, Insurance, Tax jaise special expenses ke liye.</TipRow>
+          </div>
+
+          <div className="rounded-xl bg-violet-50 dark:bg-violet-500/10 border border-violet-200 dark:border-violet-500/30 p-3 text-xs font-semibold text-violet-800 dark:text-violet-200">
+            💡 <strong>Pro tip:</strong> Month end pe "Full PDF" download karke file me rakho. Sal ke end tax filing trivial ho jata hai.
+          </div>
+
+          <Button
+            className="w-full bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 font-extrabold shadow-lg shadow-rose-500/40 h-12"
+            onClick={onClose}
+          >
+            <CheckCircle2 className="h-4 w-4" /> Samajh Gaya — Track Karo!
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TipRow({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex items-start gap-2">
+      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
+      <span>{children}</span>
+    </div>
+  );
+}
+
+function Kbd({ children }: { children: React.ReactNode }) {
+  return (
+    <kbd className="px-1.5 py-0.5 rounded bg-white/15 border border-white/25 text-white font-mono font-bold shadow-sm">
+      {children}
+    </kbd>
+  );
+}
+
+function Sparkles({ className }: any) {
+  return <span className={className}>✨</span>;
+}
+
+function Kpi({ icon: Icon, label, value, sub, tone, highlight }: any) {
+  const tones: Record<string, string> = {
+    rose: 'from-rose-500 to-red-700 shadow-rose-500/40',
+    blue: 'from-blue-500 to-blue-700 shadow-blue-500/40',
+    amber: 'from-amber-500 to-orange-600 shadow-amber-500/40',
+    violet: 'from-violet-500 to-purple-700 shadow-violet-500/40',
   };
   return (
-    <div className={`rounded-2xl border-2 p-5 shadow-sm hover:shadow-md transition ${
-      isAlert ? 'bg-gradient-to-br from-rose-50 to-pink-50 border-rose-300' : 'bg-white border-slate-200'
+    <div className={`rounded-2xl border-2 p-3 sm:p-4 shadow-sm transition ${
+      highlight
+        ? `bg-gradient-to-br ${tones[tone]} text-white border-transparent shadow-lg`
+        : 'bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-slate-200 dark:border-slate-800'
     }`}>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 font-extrabold text-slate-900 tabular-nums truncate text-xl">
-            {value}
-          </div>
-          {sub && <div className="text-xs text-slate-600 font-semibold mt-1 truncate">{sub}</div>}
+          <div className={`text-[10px] uppercase tracking-widest font-extrabold ${highlight ? 'text-white/80' : 'text-slate-500 dark:text-slate-400'}`}>{label}</div>
+          <div className={`mt-1.5 text-lg sm:text-xl lg:text-2xl font-extrabold tabular-nums truncate ${highlight ? 'text-white' : 'text-slate-900 dark:text-white'}`}>{value}</div>
+          {sub && <div className={`text-[10px] font-bold mt-0.5 truncate ${highlight ? 'text-white/80' : 'text-slate-500 dark:text-slate-400'}`}>{sub}</div>}
         </div>
-        <div className={`h-12 w-12 rounded-2xl bg-gradient-to-br ${colors[color]} text-white flex items-center justify-center shadow-lg shrink-0 ml-2`}>
-          <Icon className="h-6 w-6" />
+        <div className={`h-11 w-11 rounded-2xl flex items-center justify-center shrink-0 ${
+          highlight ? 'bg-white/20 backdrop-blur text-white' : `bg-gradient-to-br ${tones[tone]} text-white shadow-lg`
+        }`}>
+          <Icon className="h-5 w-5" />
         </div>
       </div>
     </div>

@@ -1,2 +1,0 @@
-// 💬 messaging module
-export {};

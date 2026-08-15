@@ -1,7 +1,7 @@
 import { LayoutDashboard, Sparkles, Layers, AlertTriangle, Zap, Download, RefreshCw } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
-import RetailDashboardPage from './pages/RetailDashboard1';
+import RetailDashboardPage from './pages/RetailDashboard';
 import RetailPosPage from './pages/RetailPosPage';
 import CombosPage from './pages/CombosPage';
 import ComboFormPage from './pages/ComboFormPage';
@@ -56,12 +56,10 @@ export const RetailPack: IndustryPack = {
       color: '#0ea5e9',
       order: 20,
       items: [
-        { to: '/retail/dashboard',    label: 'Retail Dashboard', icon: LayoutDashboard },
         { to: '/retail/combos',       label: 'Combos',           icon: Sparkles },
         { to: '/retail/product-units',label: 'Multi-Units',      icon: Layers },
         { to: '/retail/damage',       label: 'Damage & Wastage', icon: AlertTriangle },
         { to: '/retail/quick-keys',   label: 'Quick Keys',       icon: Zap },
-        { to: '/retail/bulk-import',  label: 'Bulk Import',      icon: Download },
         { to: '/retail/reorders',     label: 'Smart Reorder',    icon: RefreshCw, badge: 'AI' },
       ],
     },

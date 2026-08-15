@@ -5,7 +5,7 @@ import PurchasesPage from './PurchasesPage';
 const RestaurantPurchases = lazy(() => import('@industries/restaurant/pages/RestaurantPurchasesV2'));
 const MobilePurchases = lazy(() => import('@industries/mobile/pages/MobilePurchasesV2'));
 const CarpetPurchases = lazy(() => import('@industries/carpet/pages/CarpetPurchasesV2'));
-const RetailPurchases = lazy(() => import('@industries/retail/pages/RetailPurchasesV2'));
+const RetailPurchases = lazy(() => import('@/industries/retail/pages/RetailPurchases'));
 
 function Loader() {
   return (

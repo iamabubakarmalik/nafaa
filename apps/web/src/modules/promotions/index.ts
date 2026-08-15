@@ -1,2 +1,0 @@
-// 🎁 promotions module
-export {};

@@ -4,14 +4,23 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft, Save, Trash2, Truck, Building2, CreditCard, FileText,
   MapPin, User, Phone, Mail, Hash, Copy, CheckCircle2, AlertCircle,
-  Wallet, Eye, EyeOff, Sparkles, MessageCircle, Globe, Briefcase,
-  ShieldCheck, Banknote, Info, X, Search,
+  Wallet, Eye, EyeOff, Sparkles, MessageCircle, Briefcase,
+  ShieldCheck, Banknote, Info, X, GraduationCap,
 } from 'lucide-react';
 import { suppliersApi, type UpsertSupplierPayload } from '@modules/purchasing/suppliers/api/suppliers.api';
 import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
 import { AvatarUpload } from '@core/components/uploads';
 import { toast } from 'sonner';
+
+/* ═════════════════════════════════════════════════════════════
+   NAFAA SUPPLIER FORM — GLOBAL FULL BEST v3
+   ─────────────────────────────────────────────────────────────
+   🌍 GLOBAL — 35+ industries sab me same supplier fields
+   🌙 Dark mode complete (har section + sidebar + sticky footer)
+   🎓 Teacher modal — form bharne ka tareeqa sikhata hai
+   ⌨️  Ctrl+S / Ctrl+Enter = save • Esc = wapas
+   ⚠️ Unsaved changes warning • 📱 Mobile stack layout
+   ═════════════════════════════════════════════════════════════ */
 
 const empty: UpsertSupplierPayload = {
   name: '',
@@ -68,16 +77,25 @@ const validateNTN = (ntn: string) => {
   return cleaned.length === 7 || cleaned.length === 9 || cleaned.length === 13;
 };
 
+/* Shared input style — dark aware */
+const inputCls =
+  'h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none transition';
+
+const focusCls = (color: string) =>
+  `focus:ring-2 focus:ring-${color}-500/30 focus:border-${color}-500`;
+
 export default function SupplierFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const isEdit = !!id;
   const submitLockRef = useRef(false);
+  const dirtyRef = useRef(false);
 
   const [form, setForm] = useState<UpsertSupplierPayload>(empty);
   const [showSensitive, setShowSensitive] = useState(false);
   const [activeSection, setActiveSection] = useState<string>('company');
+  const [showTeacher, setShowTeacher] = useState(false);
 
   const { data: supplier } = useQuery({
     queryKey: ['supplier', id],
@@ -106,12 +124,18 @@ export default function SupplierFormPage() {
         notes: supplier.notes ?? '',
         isActive: supplier.isActive,
       });
+      dirtyRef.current = false;
     }
   }, [supplier]);
 
+  /* Dirty tracking — kuch bhi change ho to yaad rakho */
+  const set = (patch: Partial<UpsertSupplierPayload>) => {
+    dirtyRef.current = true;
+    setForm((f) => ({ ...f, ...patch }));
+  };
+
   // Form completion progress
   const completionStats = useMemo(() => {
-    const required = !!form.name?.trim();
     const fields = [
       form.name, form.contactPerson, form.phone, form.email,
       form.address, form.city, form.bankName, form.accountNumber,
@@ -119,8 +143,7 @@ export default function SupplierFormPage() {
     ];
     const filled = fields.filter((f) => f && String(f).trim().length > 0).length;
     const total = fields.length;
-    const percent = Math.round((filled / total) * 100);
-    return { required, filled, total, percent };
+    return { filled, total, percent: Math.round((filled / total) * 100) };
   }, [form]);
 
   const saveMutation = useMutation({
@@ -132,9 +155,7 @@ export default function SupplierFormPage() {
         'paymentTerms', 'notes', 'contactPerson',
       ];
       stringFields.forEach((k) => {
-        if (cleanForm[k] === '' || cleanForm[k] === null) {
-          cleanForm[k] = undefined;
-        }
+        if (cleanForm[k] === '' || cleanForm[k] === null) cleanForm[k] = undefined;
       });
       return isEdit ? suppliersApi.update(id!, cleanForm) : suppliersApi.create(cleanForm);
     },
@@ -143,95 +164,140 @@ export default function SupplierFormPage() {
   const removeMutation = useMutation({
     mutationFn: () => suppliersApi.remove(id!),
     onSuccess: () => {
-      toast.success('Supplier deleted');
+      toast.success('Supplier delete ho gaya');
       navigate('/suppliers');
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Cannot delete'),
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Delete nahi hua — iska purchase record hai'),
   });
 
   const handleSave = async () => {
     if (submitLockRef.current || saveMutation.isPending) return;
     if (!form.name.trim()) {
-      toast.error('Supplier name required');
+      toast.error('Supplier ka naam zaroori hai');
       setActiveSection('company');
+      document.getElementById('section-company')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
-
-    // Validations
     if (form.cnic && form.cnic.replace(/\D/g, '').length !== 13) {
-      toast.error('CNIC should be 13 digits');
+      toast.error('CNIC 13 digits ka hona chahiye');
       setActiveSection('tax');
+      document.getElementById('section-tax')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
     if (form.ntn && !validateNTN(form.ntn)) {
-      toast.error('NTN should be 7, 9, or 13 digits');
+      toast.error('NTN 7, 9 ya 13 digits ka hona chahiye');
       setActiveSection('tax');
+      document.getElementById('section-tax')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
     if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      toast.error('Invalid email format');
+      toast.error('Email format theek nahi');
       setActiveSection('company');
+      document.getElementById('section-company')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
 
     submitLockRef.current = true;
     try {
       const saved = await saveMutation.mutateAsync();
+      dirtyRef.current = false;
       queryClient.invalidateQueries({ queryKey: ['suppliers'] });
       queryClient.invalidateQueries({ queryKey: ['supplier', saved.id] });
       queryClient.invalidateQueries({ queryKey: ['suppliers-summary'] });
-      toast.success(isEdit ? 'Supplier updated' : 'Supplier created', {
-        description: isEdit ? 'Changes saved successfully' : 'Ab purchases create kar sakte hain',
+      toast.success(isEdit ? 'Supplier update ho gaya' : 'Supplier ban gaya', {
+        description: isEdit ? 'Changes save ho gaye' : 'Ab is se purchases bana sakte ho',
       });
       navigate(`/suppliers/${saved.id}`, { replace: true });
     } catch (e: any) {
-      toast.error(e?.response?.data?.message || 'Failed');
+      toast.error(e?.response?.data?.message || 'Save nahi hua');
     } finally {
       setTimeout(() => { submitLockRef.current = false; }, 700);
     }
   };
 
+  const goBack = () => {
+    if (dirtyRef.current && !confirm('⚠️ Changes save nahi huay — wapas jao gay to sab ur jayega.\n\nPakka nikle?')) return;
+    navigate(isEdit ? `/suppliers/${id}` : '/suppliers');
+  };
+
   const copyField = (value: string, label: string) => {
     if (!value) return;
     navigator.clipboard.writeText(value);
-    toast.success(`${label} copied`);
+    toast.success(`${label} copy ho gaya`);
   };
 
+  /* ─── Keyboard: Ctrl+S/Ctrl+Enter = save, Esc = back ─── */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showTeacher) { setShowTeacher(false); return; }
+      if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 's' || e.key === 'Enter')) {
+        e.preventDefault();
+        handleSave();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showTeacher, form, saveMutation.isPending]);
+
+  /* ─── Unsaved changes — browser close/refresh warning ─── */
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (dirtyRef.current) { e.preventDefault(); e.returnValue = ''; }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, []);
+
+  /* Body scroll lock jab teacher khula ho */
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = showTeacher ? 'hidden' : prev;
+    return () => { document.body.style.overflow = prev; };
+  }, [showTeacher]);
+
   const sections = [
-    { id: 'company', label: 'Company Info', icon: Building2, color: 'orange' },
-    { id: 'location', label: 'Location', icon: MapPin, color: 'rose' },
-    { id: 'tax', label: 'Tax Info', icon: FileText, color: 'blue' },
-    { id: 'banking', label: 'Banking', icon: CreditCard, color: 'emerald' },
-    { id: 'notes', label: 'Notes', icon: Info, color: 'amber' },
+    { id: 'company', label: 'Company Info', icon: Building2, activeCls: 'bg-orange-600 border-orange-600 shadow-orange-500/30', idleCls: 'hover:border-orange-300 dark:hover:border-orange-500/50' },
+    { id: 'location', label: 'Location', icon: MapPin, activeCls: 'bg-rose-600 border-rose-600 shadow-rose-500/30', idleCls: 'hover:border-rose-300 dark:hover:border-rose-500/50' },
+    { id: 'tax', label: 'Tax Info', icon: FileText, activeCls: 'bg-blue-600 border-blue-600 shadow-blue-500/30', idleCls: 'hover:border-blue-300 dark:hover:border-blue-500/50' },
+    { id: 'banking', label: 'Banking', icon: CreditCard, activeCls: 'bg-emerald-600 border-emerald-600 shadow-emerald-500/30', idleCls: 'hover:border-emerald-300 dark:hover:border-emerald-500/50' },
+    { id: 'notes', label: 'Notes', icon: Info, activeCls: 'bg-amber-600 border-amber-600 shadow-amber-500/30', idleCls: 'hover:border-amber-300 dark:hover:border-amber-500/50' },
   ];
 
   return (
-    <div className="space-y-6">
-      <Link
-        to={isEdit ? `/suppliers/${id}` : '/suppliers'}
-        className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-orange-600 font-bold"
-      >
-        <ArrowLeft className="h-4 w-4" /> {isEdit ? 'Back to Supplier' : 'Back to Suppliers'}
-      </Link>
+    <div className="space-y-4 sm:space-y-5 pb-10">
+      {showTeacher && <SupplierFormTeacher onClose={() => setShowTeacher(false)} />}
+
+      {/* ═══ BACK ═══ */}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <button
+          onClick={goBack}
+          className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 font-bold transition"
+        >
+          <ArrowLeft className="h-4 w-4" /> {isEdit ? 'Supplier pe Wapas' : 'Sab Suppliers'}
+        </button>
+        <div className="hidden sm:flex items-center gap-1.5 text-[10px] font-bold text-slate-400 dark:text-slate-500">
+          <KbdLight>Ctrl</KbdLight>+<KbdLight>S</KbdLight> Save
+        </div>
+      </div>
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-orange-900 to-amber-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-orange-400/20 blur-3xl" />
-        <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-amber-400/15 blur-3xl" />
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-orange-900 to-amber-700 dark:from-slate-950 dark:via-orange-950 dark:to-amber-900 text-white p-4 sm:p-6 shadow-2xl">
+        <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-orange-400/25 blur-3xl pointer-events-none animate-pulse" />
+        <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-amber-400/20 blur-3xl pointer-events-none" />
 
-        <div className="relative flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur px-3 py-1 text-xs font-extrabold">
+        <div className="relative flex items-start justify-between flex-wrap gap-4">
+          <div className="min-w-0 flex-1">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <Truck className="h-3.5 w-3.5 text-amber-300" />
-              {isEdit ? 'Editing Supplier' : 'New Supplier'}
+              {isEdit ? 'Supplier Edit' : 'Naya Supplier'}
             </div>
-            <h2 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">
-              {form.name || 'New supplier'}
-            </h2>
+            <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight truncate">
+              {form.name || 'Naya supplier'}
+            </h1>
             {form.contactPerson && (
-              <p className="mt-2 text-sm text-white/90 inline-flex items-center gap-1.5">
-                <User className="h-3.5 w-3.5" />
-                Contact: {form.contactPerson}
+              <p className="mt-1.5 text-sm text-white/90 inline-flex items-center gap-1.5 font-semibold">
+                <User className="h-3.5 w-3.5" /> Contact: {form.contactPerson}
               </p>
             )}
 
@@ -239,7 +305,7 @@ export default function SupplierFormPage() {
             <div className="mt-4 max-w-md">
               <div className="flex items-center justify-between text-xs mb-1.5">
                 <span className="text-white/80 font-bold">Profile Completion</span>
-                <span className="font-extrabold">{completionStats.percent}%</span>
+                <span className="font-extrabold tabular-nums">{completionStats.percent}%</span>
               </div>
               <div className="h-2 bg-white/15 rounded-full overflow-hidden">
                 <div
@@ -248,47 +314,45 @@ export default function SupplierFormPage() {
                 />
               </div>
               <div className="mt-1 text-[10px] text-white/70 font-semibold">
-                {completionStats.filled}/{completionStats.total} fields filled
+                {completionStats.filled}/{completionStats.total} fields bhare • Sirf <strong className="text-amber-300">naam</strong> zaroori hai
               </div>
             </div>
           </div>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap items-center shrink-0">
+            <button
+              onClick={() => setShowTeacher(true)}
+              className="h-11 px-3 rounded-xl bg-amber-400/90 hover:bg-amber-400 text-slate-900 text-xs font-extrabold inline-flex items-center gap-1.5 shadow-lg transition"
+              title="Form kaise bharein?"
+            >
+              <GraduationCap className="h-4 w-4" /> <span className="hidden sm:inline">Guide</span>
+            </button>
             {isEdit && (
-              <Button
-                variant="secondary"
+              <button
                 onClick={() => {
-                  if (confirm(`Delete ${form.name}? Yeh action undo nahi ho sakta.`)) removeMutation.mutate();
+                  if (confirm(`"${form.name}" delete karein?\n\nYe action undo nahi ho sakta — purchase history me naam reh jayega lekin supplier chala jayega.`)) removeMutation.mutate();
                 }}
-                loading={removeMutation.isPending}
-                className="bg-rose-600 hover:bg-rose-700 text-white border-rose-700"
+                disabled={removeMutation.isPending}
+                className="h-11 px-3 rounded-xl bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-extrabold inline-flex items-center gap-1.5 shadow-lg transition disabled:opacity-50"
               >
-                <Trash2 className="h-4 w-4" /> Delete
-              </Button>
+                <Trash2 className="h-4 w-4" /> <span className="hidden sm:inline">Delete</span>
+              </button>
             )}
             <Button
               onClick={handleSave}
               loading={saveMutation.isPending}
-              className="bg-white text-slate-900 hover:bg-slate-100 shadow-lg"
+              className="bg-white text-slate-900 hover:bg-slate-100 shadow-2xl font-extrabold"
             >
-              <Save className="h-4 w-4" />
-              {isEdit ? 'Save Changes' : 'Create Supplier'}
+              <Save className="h-4 w-4" /> {isEdit ? 'Save Changes' : 'Supplier Banao'}
             </Button>
           </div>
         </div>
       </section>
 
-      {/* ═══ SECTION NAVIGATION TABS ═══ */}
-      <div className="flex gap-2 overflow-x-auto pb-2">
+      {/* ═══ SECTION NAV TABS ═══ */}
+      <div className="flex gap-2 overflow-x-auto pb-1">
         {sections.map((s) => {
           const Icon = s.icon;
           const active = activeSection === s.id;
-          const colors: Record<string, string> = {
-            orange: active ? 'bg-orange-600 border-orange-600 shadow-orange-500/30' : 'border-slate-200 hover:border-orange-300',
-            rose: active ? 'bg-rose-600 border-rose-600 shadow-rose-500/30' : 'border-slate-200 hover:border-rose-300',
-            blue: active ? 'bg-blue-600 border-blue-600 shadow-blue-500/30' : 'border-slate-200 hover:border-blue-300',
-            emerald: active ? 'bg-emerald-600 border-emerald-600 shadow-emerald-500/30' : 'border-slate-200 hover:border-emerald-300',
-            amber: active ? 'bg-amber-600 border-amber-600 shadow-amber-500/30' : 'border-slate-200 hover:border-amber-300',
-          };
           return (
             <button
               key={s.id}
@@ -296,8 +360,10 @@ export default function SupplierFormPage() {
                 setActiveSection(s.id);
                 document.getElementById(`section-${s.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
               }}
-              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-extrabold whitespace-nowrap transition border-2 ${colors[s.color]} ${
-                active ? 'text-white shadow-lg' : 'bg-white text-slate-700'
+              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-extrabold whitespace-nowrap transition border-2 ${
+                active
+                  ? `${s.activeCls} text-white shadow-lg`
+                  : `bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 ${s.idleCls}`
               }`}
             >
               <Icon className="h-4 w-4" />
@@ -307,109 +373,113 @@ export default function SupplierFormPage() {
         })}
       </div>
 
-      <div className="grid lg:grid-cols-[320px_1fr] gap-6">
+      <div className="grid lg:grid-cols-[320px_1fr] gap-4 sm:gap-5">
         {/* ═══ LEFT SIDEBAR ═══ */}
         <div className="space-y-4">
           {/* Logo Upload */}
-          <div className="rounded-3xl bg-white border-2 border-slate-200 p-5 shadow-sm">
-            <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-              <Building2 className="h-4 w-4 text-orange-600" />
+          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+            <h3 className="font-extrabold text-slate-900 dark:text-white mb-4 flex items-center gap-2 text-sm">
+              <Building2 className="h-4 w-4 text-orange-600 dark:text-orange-400" />
               Supplier Logo
             </h3>
             <div className="flex justify-center">
               <AvatarUpload
                 value={form.logoUrl}
-                onChange={(url) => setForm({ ...form, logoUrl: url || '' })}
+                onChange={(url) => set({ logoUrl: url || '' })}
                 purpose="brand-logo"
                 shape="square"
                 size="xl"
                 fallbackText={form.name || 'S'}
               />
             </div>
-            <p className="text-xs text-slate-500 mt-3 text-center font-semibold">
-              Optional — Supplier company ka logo
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-3 text-center font-semibold">
+              Optional — company ka logo
             </p>
           </div>
 
           {/* Status Toggle */}
-          <div className="rounded-3xl bg-white border-2 border-slate-200 p-5 shadow-sm">
-            <h3 className="font-bold text-slate-900 mb-3 flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-emerald-600" />
+          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+            <h3 className="font-extrabold text-slate-900 dark:text-white mb-3 flex items-center gap-2 text-sm">
+              <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
               Status
             </h3>
-            <label className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200 cursor-pointer hover:border-emerald-300 hover:shadow-sm transition group">
+            <label className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/60 dark:to-slate-800/30 border-2 border-slate-200 dark:border-slate-700 cursor-pointer hover:border-emerald-300 dark:hover:border-emerald-500/50 transition">
               <div className="flex items-center gap-2.5">
                 <div className={`h-9 w-9 rounded-xl flex items-center justify-center transition ${
                   form.isActive
-                    ? 'bg-emerald-100 text-emerald-700'
-                    : 'bg-slate-100 text-slate-500'
+                    ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
+                    : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
                 }`}>
                   {form.isActive ? <CheckCircle2 className="h-4 w-4" /> : <X className="h-4 w-4" />}
                 </div>
                 <div>
-                  <div className="text-sm font-extrabold text-slate-900">
+                  <div className="text-sm font-extrabold text-slate-900 dark:text-white">
                     {form.isActive ? 'Active' : 'Inactive'}
                   </div>
-                  <div className="text-[10px] text-slate-500 font-semibold">
-                    {form.isActive ? 'Purchases mein dikhega' : 'Hidden from POS'}
+                  <div className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">
+                    {form.isActive ? 'Purchases me dikhega' : 'List me chhupa rahega'}
                   </div>
                 </div>
               </div>
               <input
                 type="checkbox"
                 checked={form.isActive ?? true}
-                onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
-                className="h-5 w-5 rounded text-emerald-600 focus:ring-emerald-500"
+                onChange={(e) => set({ isActive: e.target.checked })}
+                className="h-5 w-5 rounded accent-emerald-600"
               />
             </label>
           </div>
 
           {/* Tips Card */}
-          <div className="rounded-3xl bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 p-5">
-            <h3 className="font-bold text-amber-900 mb-3 flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-amber-600" />
+          <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10 border-2 border-amber-200 dark:border-amber-500/40 p-5">
+            <h3 className="font-extrabold text-amber-900 dark:text-amber-200 mb-3 flex items-center gap-2 text-sm">
+              <Sparkles className="h-4 w-4 text-amber-600 dark:text-amber-400" />
               Pro Tips
             </h3>
-            <ul className="space-y-2 text-xs text-amber-900 font-semibold">
+            <ul className="space-y-2 text-xs text-amber-900 dark:text-amber-200/90 font-semibold">
               <li className="flex items-start gap-2">
-                <CheckCircle2 className="h-3.5 w-3.5 text-amber-600 shrink-0 mt-0.5" />
-                <span>NTN/CNIC add karne se tax compliance easy hoti hai</span>
+                <CheckCircle2 className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <span>Sirf <strong>naam</strong> likh ke bhi save ho jata hai — baqi baad me</span>
               </li>
               <li className="flex items-start gap-2">
-                <CheckCircle2 className="h-3.5 w-3.5 text-amber-600 shrink-0 mt-0.5" />
-                <span>Bank details add karein — payment ke waqt zaroori hain</span>
+                <CheckCircle2 className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <span>Phone = WhatsApp — Low Stock se reminders isi pe jayenge</span>
               </li>
               <li className="flex items-start gap-2">
-                <CheckCircle2 className="h-3.5 w-3.5 text-amber-600 shrink-0 mt-0.5" />
-                <span>Payment terms set karein for credit tracking</span>
+                <CheckCircle2 className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <span>Payment terms set karo — udhaar tracking easy hogi</span>
               </li>
               <li className="flex items-start gap-2">
-                <CheckCircle2 className="h-3.5 w-3.5 text-amber-600 shrink-0 mt-0.5" />
-                <span>WhatsApp number add karein — quick orders ke liye</span>
+                <CheckCircle2 className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <span>Bank details chhupe rehte hain — "Show sensitive" se dekho</span>
               </li>
             </ul>
           </div>
 
-          {/* Quick Stats (when editing) */}
-          {isEdit && supplier?.stats && (
-            <div className="rounded-3xl bg-white border-2 border-slate-200 p-5 shadow-sm">
-              <h3 className="font-bold text-slate-900 mb-3 flex items-center gap-2">
-                <Briefcase className="h-4 w-4 text-blue-600" />
+          {/* Quick Stats (edit mode) */}
+          {isEdit && (supplier as any)?.stats && (
+            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+              <h3 className="font-extrabold text-slate-900 dark:text-white mb-3 flex items-center gap-2 text-sm">
+                <Briefcase className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                 Quick Stats
               </h3>
               <dl className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <dt className="text-xs text-slate-600 font-bold">Total Orders</dt>
-                  <dd className="font-extrabold text-slate-900">{supplier.stats.totalPurchases}</dd>
+                  <dt className="text-xs text-slate-600 dark:text-slate-400 font-bold">Total Orders</dt>
+                  <dd className="font-extrabold text-slate-900 dark:text-white tabular-nums">{(supplier as any).stats.totalPurchases}</dd>
                 </div>
                 <div className="flex items-center justify-between">
-                  <dt className="text-xs text-slate-600 font-bold">Total Spent</dt>
-                  <dd className="font-extrabold text-blue-700">{new Intl.NumberFormat('en-PK').format(supplier.stats.totalAmount)}</dd>
+                  <dt className="text-xs text-slate-600 dark:text-slate-400 font-bold">Total Spent</dt>
+                  <dd className="font-extrabold text-blue-700 dark:text-blue-400 tabular-nums">
+                    {new Intl.NumberFormat('en-PK').format((supplier as any).stats.totalAmount)}
+                  </dd>
                 </div>
-                {supplier.stats.outstanding > 0 && (
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-200">
-                    <dt className="text-xs text-rose-700 font-bold">Outstanding</dt>
-                    <dd className="font-extrabold text-rose-700">{new Intl.NumberFormat('en-PK').format(supplier.stats.outstanding)}</dd>
+                {(supplier as any).stats.outstanding > 0 && (
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-700">
+                    <dt className="text-xs text-rose-700 dark:text-rose-400 font-bold">Outstanding</dt>
+                    <dd className="font-extrabold text-rose-700 dark:text-rose-400 tabular-nums">
+                      {new Intl.NumberFormat('en-PK').format((supplier as any).stats.outstanding)}
+                    </dd>
                   </div>
                 )}
               </dl>
@@ -418,107 +488,103 @@ export default function SupplierFormPage() {
         </div>
 
         {/* ═══ MAIN FORM ═══ */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-5 min-w-0">
           {/* COMPANY INFO */}
-          <div
-            id="section-company"
-            className="rounded-3xl bg-white border-2 border-orange-200 shadow-sm overflow-hidden"
-          >
-            <div className="px-6 py-4 bg-gradient-to-r from-orange-50 to-amber-50 border-b-2 border-orange-200">
-              <h3 className="font-extrabold text-orange-900 flex items-center gap-2">
-                <div className="h-9 w-9 rounded-xl bg-orange-600 text-white flex items-center justify-center shadow-md shadow-orange-500/30">
+          <div id="section-company" className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-orange-200 dark:border-orange-500/30 shadow-sm overflow-hidden scroll-mt-4">
+            <div className="px-5 sm:px-6 py-4 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-500/10 dark:to-amber-500/10 border-b-2 border-orange-200 dark:border-orange-500/30">
+              <h3 className="font-extrabold text-orange-900 dark:text-orange-200 flex items-center gap-2 text-sm">
+                <div className="h-9 w-9 rounded-xl bg-orange-600 text-white flex items-center justify-center shadow-md shadow-orange-500/30 shrink-0">
                   <Building2 className="h-4 w-4" />
                 </div>
                 Company Information
-                <span className="ml-auto text-xs font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded-full">Required *</span>
+                <span className="ml-auto text-[10px] font-extrabold text-orange-700 dark:text-orange-300 bg-orange-100 dark:bg-orange-500/20 px-2 py-0.5 rounded-full shrink-0">Required *</span>
               </h3>
             </div>
-            <div className="p-6 space-y-4">
+            <div className="p-5 sm:p-6 space-y-4">
               <div>
-                <label className="block text-sm font-extrabold text-slate-700 mb-1.5">
-                  Supplier / Company Name <span className="text-rose-600">*</span>
+                <label className="block text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5">
+                  Supplier / Company ka Naam <span className="text-rose-600">*</span>
                 </label>
                 <input
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 px-4 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 transition"
+                  autoFocus={!isEdit}
+                  className={`${inputCls} ${focusCls('orange')}`}
                   value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="e.g. Sun Fibre, ABC Wholesalers, etc."
+                  onChange={(e) => set({ name: e.target.value })}
+                  placeholder="Sun Fibre, ABC Wholesalers..."
                 />
-                <div className="text-[10px] text-slate-500 mt-1 font-semibold">
-                  Yahi naam purchases aur reports mein dikhega
+                <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 font-semibold">
+                  Yahi naam purchases aur reports me dikhega
                 </div>
               </div>
 
               <div>
-                <label className="text-sm font-extrabold text-slate-700 mb-1.5 inline-flex items-center gap-1.5">
-                  <User className="h-3.5 w-3.5 text-slate-500" />
+                <label className="text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5 inline-flex items-center gap-1.5">
+                  <User className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
                   Contact Person
                 </label>
                 <input
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 px-4 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 transition"
+                  className={`${inputCls} ${focusCls('orange')}`}
                   value={form.contactPerson ?? ''}
-                  onChange={(e) => setForm({ ...form, contactPerson: e.target.value })}
-                  placeholder="e.g. Mr. Ahmed, Sales Manager Sara"
+                  onChange={(e) => set({ contactPerson: e.target.value })}
+                  placeholder="Mr. Ahmed, Sales Manager Sara..."
                 />
               </div>
 
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-extrabold text-slate-700 mb-1.5 inline-flex items-center gap-1.5">
-                    <Phone className="h-3.5 w-3.5 text-slate-500" />
-                    Phone Number
+                  <label className="text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5 inline-flex items-center gap-1.5">
+                    <Phone className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
+                    Phone (WhatsApp)
                   </label>
                   <div className="relative">
                     <input
-                      className="h-11 w-full rounded-xl border-2 border-slate-200 px-4 pr-20 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 transition"
+                      className={`${inputCls} ${focusCls('orange')} pr-20`}
                       value={form.phone ?? ''}
-                      onChange={(e) => setForm({ ...form, phone: formatPhone(e.target.value) })}
-                      placeholder="+923009998877"
+                      onChange={(e) => set({ phone: formatPhone(e.target.value) })}
+                      placeholder="03009998877"
                     />
                     {form.phone && (
                       <a
                         href={`https://wa.me/${form.phone.replace(/[^0-9]/g, '').replace(/^0/, '92')}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 h-7 px-2 rounded-lg bg-green-100 hover:bg-green-200 text-green-700 inline-flex items-center gap-1 text-[10px] font-bold transition"
-                        title="Test on WhatsApp"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 h-7 px-2 rounded-lg bg-green-100 dark:bg-green-500/20 hover:bg-green-200 dark:hover:bg-green-500/30 text-green-700 dark:text-green-300 inline-flex items-center gap-1 text-[10px] font-bold transition"
+                        title="WhatsApp test"
                       >
-                        <MessageCircle className="h-3 w-3" />
-                        Test
+                        <MessageCircle className="h-3 w-3" /> Test
                       </a>
                     )}
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-extrabold text-slate-700 mb-1.5 inline-flex items-center gap-1.5">
-                    <Phone className="h-3.5 w-3.5 text-slate-500" />
-                    Alternate Phone
+                  <label className="text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5 inline-flex items-center gap-1.5">
+                    <Phone className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
+                    Doosra Phone
                   </label>
                   <input
-                    className="h-11 w-full rounded-xl border-2 border-slate-200 px-4 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 transition"
+                    className={`${inputCls} ${focusCls('orange')}`}
                     value={form.altPhone ?? ''}
-                    onChange={(e) => setForm({ ...form, altPhone: formatPhone(e.target.value) })}
-                    placeholder="Optional landline / second number"
+                    onChange={(e) => set({ altPhone: formatPhone(e.target.value) })}
+                    placeholder="Optional"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-sm font-extrabold text-slate-700 mb-1.5 inline-flex items-center gap-1.5">
-                  <Mail className="h-3.5 w-3.5 text-slate-500" />
+                <label className="text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5 inline-flex items-center gap-1.5">
+                  <Mail className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
                   Email
                 </label>
                 <input
                   type="email"
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 px-4 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 transition"
+                  className={`${inputCls} ${focusCls('orange')}`}
                   value={form.email ?? ''}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  onChange={(e) => set({ email: e.target.value })}
                   placeholder="contact@company.com"
                 />
                 {form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email) && (
-                  <div className="text-[10px] text-rose-600 font-bold mt-1 inline-flex items-center gap-1">
-                    <AlertCircle className="h-3 w-3" />
-                    Invalid email format
+                  <div className="text-[10px] text-rose-600 dark:text-rose-400 font-bold mt-1 inline-flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" /> Email format theek nahi
                   </div>
                 )}
               </div>
@@ -526,28 +592,25 @@ export default function SupplierFormPage() {
           </div>
 
           {/* LOCATION */}
-          <div
-            id="section-location"
-            className="rounded-3xl bg-white border-2 border-rose-200 shadow-sm overflow-hidden"
-          >
-            <div className="px-6 py-4 bg-gradient-to-r from-rose-50 to-pink-50 border-b-2 border-rose-200">
-              <h3 className="font-extrabold text-rose-900 flex items-center gap-2">
-                <div className="h-9 w-9 rounded-xl bg-rose-600 text-white flex items-center justify-center shadow-md shadow-rose-500/30">
+          <div id="section-location" className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-rose-200 dark:border-rose-500/30 shadow-sm overflow-hidden scroll-mt-4">
+            <div className="px-5 sm:px-6 py-4 bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-500/10 dark:to-pink-500/10 border-b-2 border-rose-200 dark:border-rose-500/30">
+              <h3 className="font-extrabold text-rose-900 dark:text-rose-200 flex items-center gap-2 text-sm">
+                <div className="h-9 w-9 rounded-xl bg-rose-600 text-white flex items-center justify-center shadow-md shadow-rose-500/30 shrink-0">
                   <MapPin className="h-4 w-4" />
                 </div>
-                Location Details
-                <span className="ml-auto text-xs font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full">Optional</span>
+                Location
+                <span className="ml-auto text-[10px] font-extrabold text-rose-700 dark:text-rose-300 bg-rose-100 dark:bg-rose-500/20 px-2 py-0.5 rounded-full shrink-0">Optional</span>
               </h3>
             </div>
-            <div className="p-6 space-y-4">
+            <div className="p-5 sm:p-6 space-y-4">
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-extrabold text-slate-700 mb-1.5">City</label>
+                  <label className="block text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5">Sheher</label>
                   <input
-                    className="h-11 w-full rounded-xl border-2 border-slate-200 px-4 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500 transition"
+                    className={`${inputCls} ${focusCls('rose')}`}
                     value={form.city ?? ''}
-                    onChange={(e) => setForm({ ...form, city: e.target.value })}
-                    placeholder="Karachi, Lahore, Islamabad..."
+                    onChange={(e) => set({ city: e.target.value })}
+                    placeholder="Karachi, Lahore..."
                     list="city-list"
                   />
                   <datalist id="city-list">
@@ -555,72 +618,68 @@ export default function SupplierFormPage() {
                   </datalist>
                 </div>
                 <div>
-                  <label className="block text-sm font-extrabold text-slate-700 mb-1.5">Area / Locality</label>
+                  <label className="block text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5">Area / Mohalla</label>
                   <input
-                    className="h-11 w-full rounded-xl border-2 border-slate-200 px-4 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500 transition"
+                    className={`${inputCls} ${focusCls('rose')}`}
                     value={form.area ?? ''}
-                    onChange={(e) => setForm({ ...form, area: e.target.value })}
+                    onChange={(e) => set({ area: e.target.value })}
                     placeholder="Saddar, DHA Phase 5..."
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-extrabold text-slate-700 mb-1.5">Full Address</label>
+                <label className="block text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5">Poora Address</label>
                 <textarea
                   rows={3}
-                  className="w-full rounded-xl border-2 border-slate-200 px-4 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500 transition resize-none"
+                  className={`w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none resize-none transition ${focusCls('rose')}`}
                   value={form.address ?? ''}
-                  onChange={(e) => setForm({ ...form, address: e.target.value })}
+                  onChange={(e) => set({ address: e.target.value })}
                   placeholder="Shop #, Street, Block, Sector..."
                 />
-                <div className="text-[10px] text-slate-500 mt-1 font-semibold">
-                  Pura address purchases invoice par dikhega
+                <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 font-semibold">
+                  Purchase invoices pe ye address dikhega
                 </div>
               </div>
             </div>
           </div>
 
           {/* TAX INFO */}
-          <div
-            id="section-tax"
-            className="rounded-3xl bg-white border-2 border-blue-200 shadow-sm overflow-hidden"
-          >
-            <div className="px-6 py-4 bg-gradient-to-r from-blue-50 to-cyan-50 border-b-2 border-blue-200 flex items-center justify-between">
-              <h3 className="font-extrabold text-blue-900 flex items-center gap-2">
-                <div className="h-9 w-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-500/30">
+          <div id="section-tax" className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-blue-200 dark:border-blue-500/30 shadow-sm overflow-hidden scroll-mt-4">
+            <div className="px-5 sm:px-6 py-4 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-500/10 dark:to-cyan-500/10 border-b-2 border-blue-200 dark:border-blue-500/30 flex items-center justify-between gap-2">
+              <h3 className="font-extrabold text-blue-900 dark:text-blue-200 flex items-center gap-2 text-sm">
+                <div className="h-9 w-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-500/30 shrink-0">
                   <FileText className="h-4 w-4" />
                 </div>
                 Tax Information
               </h3>
               <button
                 onClick={() => setShowSensitive(!showSensitive)}
-                className="text-xs font-bold text-blue-700 hover:text-blue-900 inline-flex items-center gap-1 transition"
+                className="text-xs font-extrabold text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-200 inline-flex items-center gap-1 transition shrink-0"
               >
                 {showSensitive ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-                {showSensitive ? 'Hide' : 'Show'} sensitive
+                {showSensitive ? 'Chhupao' : 'Dikhao'}
               </button>
             </div>
-            <div className="p-6 space-y-4">
+            <div className="p-5 sm:p-6 space-y-4">
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-extrabold text-slate-700 mb-1.5 inline-flex items-center gap-1.5">
-                    <Hash className="h-3.5 w-3.5 text-slate-500" />
-                    CNIC
-                    <span className="text-[10px] font-bold text-slate-400">(13 digits)</span>
+                  <label className="text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5 inline-flex items-center gap-1.5">
+                    <Hash className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
+                    CNIC <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">(13 digits)</span>
                   </label>
                   <div className="relative">
                     <input
                       type={showSensitive ? 'text' : 'password'}
-                      className="h-11 w-full rounded-xl border-2 border-slate-200 px-4 pr-20 text-sm font-mono font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition"
+                      className={`${inputCls} ${focusCls('blue')} pr-10 font-mono`}
                       value={form.cnic ?? ''}
-                      onChange={(e) => setForm({ ...form, cnic: formatCNIC(e.target.value) })}
+                      onChange={(e) => set({ cnic: formatCNIC(e.target.value) })}
                       placeholder="12345-6789012-3"
                       maxLength={15}
                     />
                     {form.cnic && (
                       <button
                         onClick={() => copyField(form.cnic || '', 'CNIC')}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-700 inline-flex items-center justify-center transition"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg bg-blue-100 dark:bg-blue-500/20 hover:bg-blue-200 dark:hover:bg-blue-500/30 text-blue-700 dark:text-blue-300 inline-flex items-center justify-center transition"
                         title="Copy"
                       >
                         <Copy className="h-3 w-3" />
@@ -628,29 +687,27 @@ export default function SupplierFormPage() {
                     )}
                   </div>
                   {form.cnic && form.cnic.replace(/\D/g, '').length !== 13 && (
-                    <div className="text-[10px] text-amber-700 font-bold mt-1 inline-flex items-center gap-1">
-                      <AlertCircle className="h-3 w-3" />
-                      CNIC should be 13 digits
+                    <div className="text-[10px] text-amber-700 dark:text-amber-400 font-bold mt-1 inline-flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" /> 13 digits hone chahiye
                     </div>
                   )}
                 </div>
                 <div>
-                  <label className="text-sm font-extrabold text-slate-700 mb-1.5 inline-flex items-center gap-1.5">
-                    <Hash className="h-3.5 w-3.5 text-slate-500" />
-                    NTN
-                    <span className="text-[10px] font-bold text-slate-400">(7/9/13 digits)</span>
+                  <label className="text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5 inline-flex items-center gap-1.5">
+                    <Hash className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
+                    NTN <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">(7/9/13 digits)</span>
                   </label>
                   <div className="relative">
                     <input
-                      className="h-11 w-full rounded-xl border-2 border-slate-200 px-4 pr-10 text-sm font-mono font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition"
+                      className={`${inputCls} ${focusCls('blue')} pr-10 font-mono`}
                       value={form.ntn ?? ''}
-                      onChange={(e) => setForm({ ...form, ntn: e.target.value })}
+                      onChange={(e) => set({ ntn: e.target.value })}
                       placeholder="National Tax Number"
                     />
                     {form.ntn && (
                       <button
                         onClick={() => copyField(form.ntn || '', 'NTN')}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-700 inline-flex items-center justify-center transition"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg bg-blue-100 dark:bg-blue-500/20 hover:bg-blue-200 dark:hover:bg-blue-500/30 text-blue-700 dark:text-blue-300 inline-flex items-center justify-center transition"
                         title="Copy"
                       >
                         <Copy className="h-3 w-3" />
@@ -658,9 +715,8 @@ export default function SupplierFormPage() {
                     )}
                   </div>
                   {form.ntn && !validateNTN(form.ntn) && (
-                    <div className="text-[10px] text-amber-700 font-bold mt-1 inline-flex items-center gap-1">
-                      <AlertCircle className="h-3 w-3" />
-                      NTN should be 7, 9, or 13 digits
+                    <div className="text-[10px] text-amber-700 dark:text-amber-400 font-bold mt-1 inline-flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" /> 7, 9 ya 13 digits hone chahiye
                     </div>
                   )}
                 </div>
@@ -669,30 +725,27 @@ export default function SupplierFormPage() {
           </div>
 
           {/* BANKING */}
-          <div
-            id="section-banking"
-            className="rounded-3xl bg-white border-2 border-emerald-200 shadow-sm overflow-hidden"
-          >
-            <div className="px-6 py-4 bg-gradient-to-r from-emerald-50 to-green-50 border-b-2 border-emerald-200">
-              <h3 className="font-extrabold text-emerald-900 flex items-center gap-2">
-                <div className="h-9 w-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-500/30">
+          <div id="section-banking" className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-emerald-200 dark:border-emerald-500/30 shadow-sm overflow-hidden scroll-mt-4">
+            <div className="px-5 sm:px-6 py-4 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-500/10 dark:to-green-500/10 border-b-2 border-emerald-200 dark:border-emerald-500/30">
+              <h3 className="font-extrabold text-emerald-900 dark:text-emerald-200 flex items-center gap-2 text-sm">
+                <div className="h-9 w-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-500/30 shrink-0">
                   <CreditCard className="h-4 w-4" />
                 </div>
                 Banking & Payment Terms
-                <span className="ml-auto text-xs font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">Important</span>
+                <span className="ml-auto text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-500/20 px-2 py-0.5 rounded-full shrink-0">Optional</span>
               </h3>
             </div>
-            <div className="p-6 space-y-4">
+            <div className="p-5 sm:p-6 space-y-4">
               <div>
-                <label className="text-sm font-extrabold text-slate-700 mb-1.5 inline-flex items-center gap-1.5">
-                  <Building2 className="h-3.5 w-3.5 text-slate-500" />
-                  Bank Name
+                <label className="text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5 inline-flex items-center gap-1.5">
+                  <Building2 className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
+                  Bank ka Naam
                 </label>
                 <input
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 px-4 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition"
+                  className={`${inputCls} ${focusCls('emerald')}`}
                   value={form.bankName ?? ''}
-                  onChange={(e) => setForm({ ...form, bankName: e.target.value })}
-                  placeholder="HBL, MCB, UBL, Meezan Bank..."
+                  onChange={(e) => set({ bankName: e.target.value })}
+                  placeholder="HBL, Meezan, UBL..."
                   list="bank-list"
                 />
                 <datalist id="bank-list">
@@ -702,22 +755,22 @@ export default function SupplierFormPage() {
 
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-extrabold text-slate-700 mb-1.5 inline-flex items-center gap-1.5">
-                    <Hash className="h-3.5 w-3.5 text-slate-500" />
+                  <label className="text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5 inline-flex items-center gap-1.5">
+                    <Hash className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
                     Account Number
                   </label>
                   <div className="relative">
                     <input
                       type={showSensitive ? 'text' : 'password'}
-                      className="h-11 w-full rounded-xl border-2 border-slate-200 px-4 pr-10 text-sm font-mono font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition"
+                      className={`${inputCls} ${focusCls('emerald')} pr-10 font-mono`}
                       value={form.accountNumber ?? ''}
-                      onChange={(e) => setForm({ ...form, accountNumber: e.target.value })}
+                      onChange={(e) => set({ accountNumber: e.target.value })}
                       placeholder="00000000000"
                     />
                     {form.accountNumber && (
                       <button
                         onClick={() => copyField(form.accountNumber || '', 'Account')}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-700 inline-flex items-center justify-center transition"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg bg-emerald-100 dark:bg-emerald-500/20 hover:bg-emerald-200 dark:hover:bg-emerald-500/30 text-emerald-700 dark:text-emerald-300 inline-flex items-center justify-center transition"
                         title="Copy"
                       >
                         <Copy className="h-3 w-3" />
@@ -726,24 +779,23 @@ export default function SupplierFormPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-extrabold text-slate-700 mb-1.5 inline-flex items-center gap-1.5">
-                    <Banknote className="h-3.5 w-3.5 text-slate-500" />
-                    IBAN
-                    <span className="text-[10px] font-bold text-slate-400">(24 chars)</span>
+                  <label className="text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5 inline-flex items-center gap-1.5">
+                    <Banknote className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
+                    IBAN <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">(24 chars)</span>
                   </label>
                   <div className="relative">
                     <input
                       type={showSensitive ? 'text' : 'password'}
-                      className="h-11 w-full rounded-xl border-2 border-slate-200 px-4 pr-10 text-sm font-mono font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition uppercase"
+                      className={`${inputCls} ${focusCls('emerald')} pr-10 font-mono uppercase`}
                       value={form.iban ?? ''}
-                      onChange={(e) => setForm({ ...form, iban: formatIBAN(e.target.value) })}
+                      onChange={(e) => set({ iban: formatIBAN(e.target.value) })}
                       placeholder="PK00BANK0000000000000000"
                       maxLength={29}
                     />
                     {form.iban && (
                       <button
                         onClick={() => copyField(form.iban?.replace(/\s/g, '') || '', 'IBAN')}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-700 inline-flex items-center justify-center transition"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg bg-emerald-100 dark:bg-emerald-500/20 hover:bg-emerald-200 dark:hover:bg-emerald-500/30 text-emerald-700 dark:text-emerald-300 inline-flex items-center justify-center transition"
                         title="Copy"
                       >
                         <Copy className="h-3 w-3" />
@@ -754,8 +806,8 @@ export default function SupplierFormPage() {
               </div>
 
               <div>
-                <label className="text-sm font-extrabold text-slate-700 mb-2 inline-flex items-center gap-1.5">
-                  <Wallet className="h-3.5 w-3.5 text-slate-500" />
+                <label className="text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-2 inline-flex items-center gap-1.5">
+                  <Wallet className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
                   Payment Terms
                 </label>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
@@ -765,20 +817,20 @@ export default function SupplierFormPage() {
                       <button
                         key={t.value}
                         type="button"
-                        onClick={() => setForm({ ...form, paymentTerms: active ? '' : t.value })}
-                        className={`px-3 py-2.5 rounded-xl border-2 text-left transition group ${
+                        onClick={() => set({ paymentTerms: active ? '' : t.value })}
+                        className={`px-3 py-2.5 rounded-xl border-2 text-left transition ${
                           active
                             ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-500/30'
-                            : 'bg-white border-slate-200 hover:border-emerald-300 hover:shadow-md'
+                            : 'bg-white dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-500/50 hover:shadow-md'
                         }`}
                       >
                         <div className="flex items-center gap-2">
                           <span className="text-base">{t.emoji}</span>
                           <div className="min-w-0">
-                            <div className={`text-xs font-extrabold truncate ${active ? 'text-white' : 'text-slate-900'}`}>
+                            <div className={`text-xs font-extrabold truncate ${active ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
                               {t.value}
                             </div>
-                            <div className={`text-[10px] font-bold ${active ? 'text-white/80' : 'text-slate-500'}`}>
+                            <div className={`text-[10px] font-bold ${active ? 'text-white/80' : 'text-slate-500 dark:text-slate-400'}`}>
                               {t.desc}
                             </div>
                           </div>
@@ -787,65 +839,58 @@ export default function SupplierFormPage() {
                     );
                   })}
                 </div>
-                <p className="text-[10px] text-slate-500 mt-2 font-semibold">
-                  Default payment terms — purchases mein automatically apply hoga
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-2 font-semibold">
+                  Purchases me ye automatically yaad rahega
                 </p>
               </div>
             </div>
           </div>
 
           {/* NOTES */}
-          <div
-            id="section-notes"
-            className="rounded-3xl bg-white border-2 border-amber-200 shadow-sm overflow-hidden"
-          >
-            <div className="px-6 py-4 bg-gradient-to-r from-amber-50 to-orange-50 border-b-2 border-amber-200">
-              <h3 className="font-extrabold text-amber-900 flex items-center gap-2">
-                <div className="h-9 w-9 rounded-xl bg-amber-600 text-white flex items-center justify-center shadow-md shadow-amber-500/30">
+          <div id="section-notes" className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-amber-200 dark:border-amber-500/30 shadow-sm overflow-hidden scroll-mt-4">
+            <div className="px-5 sm:px-6 py-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10 border-b-2 border-amber-200 dark:border-amber-500/30">
+              <h3 className="font-extrabold text-amber-900 dark:text-amber-200 flex items-center gap-2 text-sm">
+                <div className="h-9 w-9 rounded-xl bg-amber-600 text-white flex items-center justify-center shadow-md shadow-amber-500/30 shrink-0">
                   <Info className="h-4 w-4" />
                 </div>
                 Internal Notes
-                <span className="ml-auto text-xs font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">Private</span>
+                <span className="ml-auto text-[10px] font-extrabold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-500/20 px-2 py-0.5 rounded-full shrink-0">Private</span>
               </h3>
             </div>
-            <div className="p-6">
+            <div className="p-5 sm:p-6">
               <textarea
                 rows={4}
-                className="w-full rounded-xl border-2 border-slate-200 px-4 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition resize-none"
+                className={`w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none resize-none transition ${focusCls('amber')}`}
                 value={form.notes ?? ''}
-                onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                placeholder="e.g. Best supplier for cotton fabric, delivery in 2 days, discount on bulk orders > 50k, prefers JazzCash for payment..."
+                onChange={(e) => set({ notes: e.target.value })}
+                placeholder="Best supplier for X, delivery 2 din me, bulk discount 50k+ pe, JazzCash prefer karta hai..."
               />
-              <div className="text-[10px] text-slate-500 mt-2 font-semibold inline-flex items-center gap-1">
-                <ShieldCheck className="h-3 w-3 text-emerald-600" />
-                Sirf aap aur aap ki team dekh sakti hai — supplier ko nahi dikhega
+              <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-2 font-semibold inline-flex items-center gap-1">
+                <ShieldCheck className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                Sirf tum aur tumhari team dekh sakti ho — supplier ko nahi dikhega
               </div>
             </div>
           </div>
 
-          {/* Save Footer (Sticky) */}
+          {/* STICKY SAVE FOOTER */}
           <div className="sticky bottom-4 z-10">
-            <div className="rounded-2xl bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-300 p-4 shadow-2xl backdrop-blur flex items-center justify-between flex-wrap gap-3">
+            <div className="rounded-2xl bg-gradient-to-r from-orange-50 to-amber-50 dark:from-slate-900 dark:to-slate-800 border-2 border-orange-300 dark:border-orange-500/40 p-4 shadow-2xl backdrop-blur flex items-center justify-between flex-wrap gap-3">
               <div className="flex items-center gap-3">
                 <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${
                   completionStats.percent === 100
-                    ? 'bg-emerald-100 text-emerald-700'
+                    ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
                     : completionStats.percent >= 50
-                      ? 'bg-amber-100 text-amber-700'
-                      : 'bg-rose-100 text-rose-700'
+                      ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300'
+                      : 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
                 }`}>
-                  {completionStats.percent === 100 ? (
-                    <CheckCircle2 className="h-5 w-5" />
-                  ) : (
-                    <AlertCircle className="h-5 w-5" />
-                  )}
+                  {completionStats.percent === 100 ? <CheckCircle2 className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
                 </div>
                 <div>
-                  <div className="font-extrabold text-slate-900">
-                    {completionStats.percent === 100 ? 'All fields filled!' : `${completionStats.percent}% Complete`}
+                  <div className="font-extrabold text-slate-900 dark:text-white text-sm">
+                    {completionStats.percent === 100 ? 'Sab fields bhare huay! 🎉' : `${completionStats.percent}% Complete`}
                   </div>
-                  <div className="text-xs text-slate-600 font-semibold">
-                    {completionStats.filled}/{completionStats.total} optional fields filled
+                  <div className="text-xs text-slate-600 dark:text-slate-400 font-semibold">
+                    {dirtyRef.current ? '● Unsaved changes hain' : 'Sirf naam zaroori hai'}
                   </div>
                 </div>
               </div>
@@ -853,15 +898,84 @@ export default function SupplierFormPage() {
                 onClick={handleSave}
                 loading={saveMutation.isPending}
                 size="lg"
-                className="bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 shadow-lg shadow-orange-500/30 text-white"
+                className="bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 shadow-lg shadow-orange-500/30 text-white font-extrabold"
               >
-                <Save className="h-4 w-4" />
-                {isEdit ? 'Save Changes' : 'Create Supplier'}
+                <Save className="h-4 w-4" /> {isEdit ? 'Save Changes' : 'Supplier Banao'}
               </Button>
             </div>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+/* ═════════════════════════════════════════════════════════════
+   SUPPLIER FORM TEACHER — Universal guide
+   ═════════════════════════════════════════════════════════════ */
+function SupplierFormTeacher({ onClose }: { onClose: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-orange-300 dark:border-orange-500/40 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="px-5 py-3 border-b-2 border-orange-200 dark:border-orange-500/30 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-500/15 dark:to-amber-500/15 flex items-center justify-between sticky top-0 z-10">
+          <h3 className="font-extrabold text-orange-900 dark:text-orange-200 flex items-center gap-2">
+            <GraduationCap className="h-5 w-5" /> Supplier Form — Guide
+          </h3>
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          </button>
+        </div>
+
+        <div className="p-5 space-y-4">
+          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+            <strong>Sirf NAAM zaroori hai</strong> — baqi sab optional! Naam likho, save karo, kaam shuru.
+            Baqi details baad me kabhi bhi add kar sakte ho.
+          </p>
+
+          <div className="rounded-2xl border-2 border-orange-200 dark:border-orange-500/30 bg-orange-50/60 dark:bg-orange-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
+            <TipRow><strong>📱 Phone = WhatsApp</strong> — sahi number likho, Low Stock reminders isi pe jate hain ("Test" button se check karo)</TipRow>
+            <TipRow><strong>🗓️ Payment Terms</strong> — "Net 15" = 15 din baad paisa. Udhar suppliers ke liye set karo</TipRow>
+            <TipRow><strong>🔒 Sensitive fields</strong> — CNIC, account, IBAN chhupe rehte hain, "Dikhao" se khulte hain</TipRow>
+            <TipRow><strong>📊 Progress bar</strong> — jitna zyada bharo, utna complete profile (100% ka maza hi alag!)</TipRow>
+            <TipRow><strong>⌨️ Ctrl+S</strong> — kahin se bhi foran save &nbsp;•&nbsp; <strong>Esc</strong> — guide band</TipRow>
+          </div>
+
+          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 text-xs font-semibold text-slate-700 dark:text-slate-200">
+            💡 <strong>Sab se tez tareeqa:</strong> Naam + Phone likho → Save → ho gaya!
+            Bank/tax wali cheezein sirf un suppliers ke liye jinhe online payment karte ho.
+          </div>
+
+          <Button
+            className="w-full bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 font-extrabold shadow-lg shadow-orange-500/40 h-12"
+            onClick={onClose}
+          >
+            <CheckCircle2 className="h-4 w-4" /> Samajh Gaya — Form Bharo!
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TipRow({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex items-start gap-2">
+      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
+      <span>{children}</span>
+    </div>
+  );
+}
+
+function KbdLight({ children }: { children: React.ReactNode }) {
+  return (
+    <kbd className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-mono font-bold shadow-sm">
+      {children}
+    </kbd>
   );
 }

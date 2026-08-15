@@ -85,10 +85,8 @@ import UsedPhonesPage from '@industries/mobile/pages/UsedPhonesPage';
 
 // ─── Customers ─────────────────────────────────────────────────
 import CustomersListPage from '@modules/customers/customers/pages/CustomersListPage';
-import CustomersListGate from '@modules/customers/customers/pages/CustomersListGate';
 import CustomerFormPage from '@modules/customers/customers/pages/CustomerFormPage';
 import CustomerDetailPage from '@modules/customers/customers/pages/CustomerDetailPage';
-import CustomerDetailGate from '@modules/customers/customers/pages/CustomerDetailGate';
 
 // ─── Sales & POS ───────────────────────────────────────────────
 import BookingsListPage from '@modules/bookings/pages/BookingsListPage';
@@ -107,20 +105,20 @@ import SupplierFormPage from '@modules/purchasing/suppliers/pages/SupplierFormPa
 import SupplierDetailPage from '@modules/purchasing/suppliers/pages/SupplierDetailPage';
 import PurchasesPage from '@modules/purchasing/purchases/pages/PurchasesPage';
 import PurchasesGate from '@modules/purchasing/purchases/pages/PurchasesGate';
-import PurchaseDetailPage from '@modules/purchasing/purchases/pages/PurchaseDetailPage';
+import PurchaseDetailGate from '@modules/purchasing/purchases/pages/PurchaseDetailGate';
 import ExpensesPage from '@modules/finance/expenses/pages/ExpensesPage';
 
 // ─── Inventory ─────────────────────────────────────────────────
 import StockMovementsPage from '@modules/inventory/stock-movements/pages/StockMovementsPage';
-import StockAdjustmentsPage from '@modules/inventory/stock-adjustments/pages/StockAdjustmentsPage';
-import LowStockPage from '@modules/inventory/low-stock/pages/LowStockPage';
-import TransfersPage from '@modules/inventory/transfers/pages/TransfersPage';
+import StockAdjustmentsGate from '@modules/inventory/stock-adjustments/pages/StockAdjustmentsGate';
+import LowStockGate from '@modules/inventory/low-stock/pages/LowStockGate';
+import TransfersGate from '@modules/inventory/transfers/pages/TransfersGate';
 
 // ─── Reports ───────────────────────────────────────────────────
 import ReportsPage from '@modules/reports/reports/pages/ReportsPage';
 import ReportsGate from '@modules/reports/reports/pages/ReportsGate';
-import StockReportPage from '@modules/inventory/stock-report/pages/StockReportPage';
-import ProfitReportPage from '@modules/finance/profit-report/pages/ProfitReportPage';
+import StockReportGate from '@modules/inventory/stock-report/pages/StockReportGate';
+import ProfitReportGate from '@modules/finance/profit-report/pages/ProfitReportGate';
 
 // ─── Settings / System ─────────────────────────────────────────
 import SettingsPage from '@modules/organization/settings/pages/SettingsPage';
@@ -131,6 +129,7 @@ import ActivityLogPage from '@modules/reports/activity-log/pages/ActivityLogPage
 import ExportsPage from '@modules/reports/exports/pages/ExportsPage';
 import BackupPage from '@modules/backup/pages/BackupPage';
 import KhataPage from '@modules/customers/khata/pages/KhataPage';
+import KhataGate from '@modules/customers/khata/pages/KhataGate';
 import CashRegisterPage from '@modules/finance/cash-register/pages/CashRegisterPage';
 
 // ─── Team & Staff ──────────────────────────────────────────────
@@ -142,7 +141,7 @@ import AttendancePage from '@modules/organization/staff/pages/AttendancePage';
 import SalaryProcessPage from '@modules/organization/staff/pages/SalaryProcessPage';
 
 // ─── Billing ───────────────────────────────────────────────────
-import PlansPage from '@modules/billing/billing/pages/PlansPage';
+import PlansPage from '@/modules/billing/billing/pages/PlansPage';
 import BillingPage from '@modules/billing/billing/pages/BillingPage';
 import PayInvoicePage from '@modules/billing/billing/pages/PayInvoicePage';
 import ReferralsPage from '@modules/customers/referrals/pages/ReferralsPage';
@@ -165,7 +164,6 @@ import CarpetReportsPage from '@industries/carpet/pages/CarpetReportsPage';
 import CarpetBulkImportPage from '@industries/carpet/pages/CarpetBulkImportPage';
 
 // ─── Retail Industry ───────────────────────────────────────────
-import RetailDashboardPage from '@industries/retail/pages/RetailDashboard1';
 import CombosPage from '@industries/retail/pages/CombosPage';
 import ComboFormPage from '@industries/retail/pages/ComboFormPage';
 import DamageLogPage from '@industries/retail/pages/DamageLogPage';
@@ -612,8 +610,8 @@ export default function App() {
                   {/* ── Customers ──────────────────────────────── */}
                   <Route path="/customers/new" element={secure(PERMISSIONS.CUSTOMERS_EDIT, <CustomerFormPage />)} />
                   <Route path="/customers/:id/edit" element={secure(PERMISSIONS.CUSTOMERS_EDIT, <CustomerFormPage />)} />
-                  <Route path="/customers/:id" element={secure(PERMISSIONS.CUSTOMERS_VIEW, <CustomerDetailGate />)} />
-                  <Route path="/customers" element={secure(PERMISSIONS.CUSTOMERS_VIEW, <CustomersListGate />)} />
+                  <Route path="/customers/:id" element={secure(PERMISSIONS.CUSTOMERS_VIEW, <CustomerDetailPage />)} />
+                  <Route path="/customers" element={secure(PERMISSIONS.CUSTOMERS_VIEW, <CustomersListPage />)} />
 
                   {/* ── Sales / POS ────────────────────────────── */}
                   <Route path="/pos" element={secure(PERMISSIONS.POS_USE, <PosGate />)} />
@@ -624,8 +622,8 @@ export default function App() {
                   <Route path="/returns" element={secure(PERMISSIONS.RETURNS_VIEW, <ReturnsPage />)} />
                   <Route path="/discounts" element={secure(PERMISSIONS.DISCOUNTS_VIEW, <DiscountsPage />)} />
                   <Route path="/loyalty" element={secure(PERMISSIONS.LOYALTY_VIEW, <LoyaltyPage />)} />
-                  <Route path="/profit-report" element={secure(PERMISSIONS.PROFIT_REPORT_VIEW, <ProfitReportPage />)} />
-                  <Route path="/khata" element={secure(PERMISSIONS.KHATA_VIEW, <KhataPage />)} />
+                  <Route path="/profit-report" element={secure(PERMISSIONS.PROFIT_REPORT_VIEW, <ProfitReportGate />)} />
+                  <Route path="/khata" element={secure(PERMISSIONS.KHATA_VIEW, <KhataGate />)} />
                   <Route path="/cash-register" element={secure(PERMISSIONS.CASH_REGISTER_VIEW, <CashRegisterPage />)} />
 
                   {/* ── Suppliers & Purchases ──────────────────── */}
@@ -633,19 +631,19 @@ export default function App() {
                   <Route path="/suppliers/:id/edit" element={secure(PERMISSIONS.SUPPLIERS_VIEW, <SupplierFormPage />)} />
                   <Route path="/suppliers/:id" element={secure(PERMISSIONS.SUPPLIERS_VIEW, <SupplierDetailPage />)} />
                   <Route path="/suppliers" element={secure(PERMISSIONS.SUPPLIERS_VIEW, <SuppliersListPage />)} />
-                  <Route path="/purchases/:id" element={secure(PERMISSIONS.PURCHASES_VIEW, <PurchaseDetailPage />)} />
+                  <Route path="/purchases/:id" element={secure(PERMISSIONS.PURCHASES_VIEW, <PurchaseDetailGate />)} />
                   <Route path="/purchases" element={secure(PERMISSIONS.PURCHASES_VIEW, <PurchasesGate />)} />
                   <Route path="/expenses" element={secure(PERMISSIONS.EXPENSES_VIEW, <ExpensesPage />)} />
 
                   {/* ── Inventory ──────────────────────────────── */}
                   <Route path="/stock-movements" element={secure(PERMISSIONS.STOCK_MOVEMENTS_VIEW, <StockMovementsPage />)} />
-                  <Route path="/stock-adjustments" element={secure(PERMISSIONS.STOCK_ADJUSTMENTS_MANAGE, <StockAdjustmentsPage />)} />
-                  <Route path="/low-stock" element={secure(PERMISSIONS.LOW_STOCK_VIEW, <LowStockPage />)} />
-                  <Route path="/transfers" element={secure(PERMISSIONS.STOCK_TRANSFERS_MANAGE, <TransfersPage />)} />
+                  <Route path="/stock-adjustments" element={secure(PERMISSIONS.STOCK_ADJUSTMENTS_MANAGE, <StockAdjustmentsGate />)} />
+                  <Route path="/low-stock" element={secure(PERMISSIONS.LOW_STOCK_VIEW, <LowStockGate />)} />
+                  <Route path="/transfers" element={secure(PERMISSIONS.STOCK_TRANSFERS_MANAGE, <TransfersGate />)} />
 
                   {/* ── Reports ────────────────────────────────── */}
                   <Route path="/reports" element={secure(PERMISSIONS.REPORTS_VIEW, <ReportsGate />)} />
-                  <Route path="/stock-report" element={secure(PERMISSIONS.REPORTS_VIEW, <StockReportPage />)} />
+                  <Route path="/stock-report" element={secure(PERMISSIONS.REPORTS_VIEW, <StockReportGate />)} />
 
                   {/* ── Settings & System ──────────────────────── */}
                   <Route path="/settings" element={secure(PERMISSIONS.SETTINGS_VIEW, <SettingsPage />)} />
@@ -728,8 +726,6 @@ export default function App() {
                   <Route path="/carpet-bulk-import" element={<CarpetBulkImportPage />} />
 
                   {/* Retail */}
-                  <Route path="/retail" element={<RetailDashboardPage />} />
-                  <Route path="/retail/dashboard" element={<RetailDashboardPage />} />
                   <Route path="/retail/combos/new" element={<ComboFormPage />} />
                   <Route path="/retail/combos/:id/edit" element={<ComboFormPage />} />
                   <Route path="/retail/combos" element={<CombosPage />} />

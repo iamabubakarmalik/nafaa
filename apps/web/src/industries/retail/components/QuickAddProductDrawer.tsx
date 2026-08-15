@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  X, Zap, Package, DollarSign, TrendingUp, Camera, Save,
+  X, Zap, TrendingUp, Camera, Save,
   Sparkles, Tag, ArrowRight, ChevronDown, ChevronUp,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -26,14 +26,15 @@ const UNITS = [
   { v: 'liter', l: 'Liter', e: '🥛' },
   { v: 'packet', l: 'Packet', e: '📦' },
   { v: 'bottle', l: 'Bottle', e: '🍶' },
-  { v: 'dozen', l: 'Dozen', e: '🗳️' },
+  { v: 'dozen', l: 'Dozen', e: '🥚' },
 ];
 
 const MARKUPS = [10, 15, 20, 25, 30];
 
 /**
- * QuickAddProductDrawer — POS pe scan kiya, product nahi mila? Yahin fatafat banao.
+ * QuickAddProductDrawer v3 — POS pe scan kiya, product nahi mila? Yahin fatafat banao.
  * 30 second me pura product ready — naam + rate + stock. Tafseel baad me.
+ * 🌙 Dark mode • ⌨️ Esc band / Ctrl+Enter save
  */
 export function QuickAddProductDrawer({ open, onClose, onCreated, initialBarcode = '' }: Props) {
   const queryClient = useQueryClient();
@@ -87,6 +88,26 @@ export function QuickAddProductDrawer({ open, onClose, onCreated, initialBarcode
   const profit = Number(sale || 0) - Number(cost || 0);
   const margin = Number(sale || 0) > 0 ? (profit / Number(sale)) * 100 : 0;
 
+  /* ─── Keyboard + body scroll lock ─── */
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !scan) { e.preventDefault(); onClose(); }
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && canSave && !create.isPending) {
+        e.preventDefault();
+        create.mutate();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener('keydown', onKey);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, scan, canSave, create.isPending]);
+
   if (!open) return null;
 
   return (
@@ -100,7 +121,7 @@ export function QuickAddProductDrawer({ open, onClose, onCreated, initialBarcode
 
       <div className="fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-[520px] bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
+      <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-[520px] bg-white dark:bg-slate-900 shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
         {/* Head */}
         <div className="shrink-0 px-5 py-4 bg-gradient-to-br from-sky-600 to-cyan-700 text-white flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -110,7 +131,7 @@ export function QuickAddProductDrawer({ open, onClose, onCreated, initialBarcode
             <h3 className="font-extrabold text-xl mt-1.5">Naya Product</h3>
             <p className="text-xs text-white/80 font-semibold">30 second me tayyar — POS pe milega</p>
           </div>
-          <button onClick={onClose} className="h-9 w-9 rounded-lg bg-white/20 hover:bg-white/30 flex items-center justify-center shrink-0">
+          <button onClick={onClose} className="h-9 w-9 rounded-lg bg-white/20 hover:bg-white/30 flex items-center justify-center shrink-0 transition">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -119,7 +140,7 @@ export function QuickAddProductDrawer({ open, onClose, onCreated, initialBarcode
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           {/* Name */}
           <div>
-            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-1.5">
+            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
               Product ka naam *
             </label>
             <input
@@ -127,20 +148,27 @@ export function QuickAddProductDrawer({ open, onClose, onCreated, initialBarcode
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Colgate Toothpaste 100g"
-              className="h-14 w-full rounded-2xl border-2 border-sky-300 bg-white px-4 text-lg font-extrabold text-slate-900 focus:outline-none focus:border-sky-600 focus:ring-4 focus:ring-sky-200"
+              className="h-14 w-full rounded-2xl border-2 border-sky-300 dark:border-sky-500/40 bg-white dark:bg-slate-800 px-4 text-lg font-extrabold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-sky-600 focus:ring-4 focus:ring-sky-200 dark:focus:ring-sky-500/20 transition"
             />
           </div>
 
           {/* Barcode */}
           <div>
-            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-1.5">
-              Barcode <span className="text-slate-400 normal-case font-bold">(optional)</span>
+            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
+              Barcode <span className="text-slate-400 dark:text-slate-500 normal-case font-bold">(optional)</span>
             </label>
             <div className="flex gap-2">
-              <input value={barcode} onChange={(e) => setBarcode(e.target.value)} placeholder="8901234567890"
-                className="h-11 flex-1 rounded-xl border-2 border-slate-200 px-3 text-sm font-mono font-bold focus:outline-none focus:border-sky-500" />
-              <button type="button" onClick={() => setScan(true)}
-                className="h-11 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-extrabold inline-flex items-center gap-1">
+              <input
+                value={barcode}
+                onChange={(e) => setBarcode(e.target.value)}
+                placeholder="8901234567890"
+                className="h-11 flex-1 min-w-0 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 transition"
+              />
+              <button
+                type="button"
+                onClick={() => setScan(true)}
+                className="h-11 px-4 rounded-xl bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 dark:hover:bg-slate-600 text-white text-xs font-extrabold inline-flex items-center gap-1 shrink-0 transition"
+              >
                 <Camera className="h-4 w-4" /> Scan
               </button>
             </div>
@@ -148,14 +176,22 @@ export function QuickAddProductDrawer({ open, onClose, onCreated, initialBarcode
 
           {/* Unit */}
           <div>
-            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-1.5">
+            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
               Unit
             </label>
             <div className="grid grid-cols-3 gap-2">
               {UNITS.map((u) => (
-                <button key={u.v} type="button" onClick={() => setUnit(u.v)}
-                  className={['h-14 rounded-xl border-2 transition flex flex-col items-center justify-center gap-0.5',
-                    unit === u.v ? 'border-sky-600 bg-sky-600 text-white shadow-md' : 'border-slate-200 bg-white text-slate-700 hover:border-sky-400'].join(' ')}>
+                <button
+                  key={u.v}
+                  type="button"
+                  onClick={() => setUnit(u.v)}
+                  className={[
+                    'h-14 rounded-xl border-2 transition flex flex-col items-center justify-center gap-0.5',
+                    unit === u.v
+                      ? 'border-sky-600 bg-sky-600 text-white shadow-md'
+                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-sky-400 dark:hover:border-sky-500/50',
+                  ].join(' ')}
+                >
                   <span className="text-lg">{u.e}</span>
                   <span className="text-xs font-extrabold">{u.l}</span>
                 </button>
@@ -166,36 +202,44 @@ export function QuickAddProductDrawer({ open, onClose, onCreated, initialBarcode
           {/* Rates */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-1.5">
+              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
                 Kharid rate
               </label>
-              <input type="number" step="0.01" inputMode="decimal" value={cost}
+              <input
+                type="number" step="0.01" inputMode="decimal" value={cost}
                 onChange={(e) => setCost(e.target.value === '' ? '' : Number(e.target.value))}
                 placeholder="0"
-                className="h-14 w-full rounded-2xl border-2 border-slate-200 px-4 text-xl font-extrabold tabular-nums focus:outline-none focus:border-slate-500" />
+                className="h-14 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-xl font-extrabold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-slate-500 dark:focus:border-slate-400 transition"
+              />
             </div>
             <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-emerald-700 mb-1.5">
+              <label className="block text-xs font-extrabold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 mb-1.5">
                 Bikri rate *
               </label>
-              <input type="number" step="0.01" inputMode="decimal" value={sale}
+              <input
+                type="number" step="0.01" inputMode="decimal" value={sale}
                 onChange={(e) => setSale(e.target.value === '' ? '' : Number(e.target.value))}
                 placeholder="0"
-                className="h-14 w-full rounded-2xl border-2 border-emerald-400 bg-emerald-50 px-4 text-xl font-extrabold tabular-nums text-emerald-900 focus:outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-200" />
+                className="h-14 w-full rounded-2xl border-2 border-emerald-400 dark:border-emerald-500/40 bg-emerald-50 dark:bg-emerald-500/10 px-4 text-xl font-extrabold tabular-nums text-emerald-900 dark:text-emerald-200 focus:outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-200 dark:focus:ring-emerald-500/20 transition"
+              />
             </div>
           </div>
 
           {/* Quick markup */}
           {Number(cost) > 0 && (
             <div>
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1.5 flex items-center gap-1">
+              <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-1.5 flex items-center gap-1">
                 <Sparkles className="h-3 w-3 text-amber-500" /> Fatafat rate
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {MARKUPS.map((m) => (
-                  <button key={m} type="button" onClick={() => applyMarkup(m)}
-                    className="px-3 py-1.5 rounded-xl bg-white border-2 border-emerald-200 hover:border-emerald-400 text-emerald-800 text-xs font-extrabold">
-                    +{m}% <span className="text-slate-500 font-bold">= {formatPKRFull(Math.round(Number(cost) * (1 + m / 100)))}</span>
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => applyMarkup(m)}
+                    className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border-2 border-emerald-200 dark:border-emerald-500/40 hover:border-emerald-400 dark:hover:border-emerald-500/60 text-emerald-800 dark:text-emerald-300 text-xs font-extrabold transition"
+                  >
+                    +{m}% <span className="text-slate-500 dark:text-slate-400 font-bold">= {formatPKRFull(Math.round(Number(cost) * (1 + m / 100)))}</span>
                   </button>
                 ))}
               </div>
@@ -204,18 +248,33 @@ export function QuickAddProductDrawer({ open, onClose, onCreated, initialBarcode
 
           {/* Profit preview */}
           {Number(sale) > 0 && Number(cost) > 0 && (
-            <div className={['rounded-xl border-2 p-3 flex items-center justify-between',
-              profit < 0 ? 'bg-rose-50 border-rose-300' : margin >= 20 ? 'bg-emerald-50 border-emerald-300' : 'bg-amber-50 border-amber-300'].join(' ')}>
+            <div className={[
+              'rounded-xl border-2 p-3 flex items-center justify-between',
+              profit < 0
+                ? 'bg-rose-50 dark:bg-rose-500/15 border-rose-300 dark:border-rose-500/40'
+                : margin >= 20
+                  ? 'bg-emerald-50 dark:bg-emerald-500/15 border-emerald-300 dark:border-emerald-500/40'
+                  : 'bg-amber-50 dark:bg-amber-500/15 border-amber-300 dark:border-amber-500/40',
+            ].join(' ')}>
               <div className="flex items-center gap-2">
-                <TrendingUp className={['h-5 w-5', profit < 0 ? 'text-rose-700' : margin >= 20 ? 'text-emerald-700' : 'text-amber-700'].join(' ')} />
+                <TrendingUp className={[
+                  'h-5 w-5',
+                  profit < 0 ? 'text-rose-700 dark:text-rose-400' : margin >= 20 ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400',
+                ].join(' ')} />
                 <div>
-                  <div className={['text-[10px] uppercase font-extrabold', profit < 0 ? 'text-rose-700' : margin >= 20 ? 'text-emerald-700' : 'text-amber-700'].join(' ')}>
+                  <div className={[
+                    'text-[10px] uppercase font-extrabold',
+                    profit < 0 ? 'text-rose-700 dark:text-rose-400' : margin >= 20 ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400',
+                  ].join(' ')}>
                     {profit < 0 ? 'Nuqsaan!' : 'Faida'}
                   </div>
-                  <div className="text-base font-extrabold tabular-nums text-slate-900">{formatPKRFull(profit)}</div>
+                  <div className="text-base font-extrabold tabular-nums text-slate-900 dark:text-white">{formatPKRFull(profit)}</div>
                 </div>
               </div>
-              <div className={['text-2xl font-extrabold tabular-nums', profit < 0 ? 'text-rose-700' : margin >= 20 ? 'text-emerald-700' : 'text-amber-700'].join(' ')}>
+              <div className={[
+                'text-2xl font-extrabold tabular-nums',
+                profit < 0 ? 'text-rose-700 dark:text-rose-400' : margin >= 20 ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400',
+              ].join(' ')}>
                 {margin.toFixed(0)}%
               </div>
             </div>
@@ -223,29 +282,37 @@ export function QuickAddProductDrawer({ open, onClose, onCreated, initialBarcode
 
           {/* Stock */}
           <div>
-            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-1.5">
+            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
               Abhi kitna maal hai? ({unit})
             </label>
-            <input type="number" step="0.01" inputMode="decimal" value={stock}
+            <input
+              type="number" step="0.01" inputMode="decimal" value={stock}
               onChange={(e) => setStock(e.target.value === '' ? '' : Number(e.target.value))}
               placeholder="0"
-              className="h-14 w-full rounded-2xl border-2 border-slate-200 px-4 text-xl font-extrabold tabular-nums focus:outline-none focus:border-sky-500" />
+              className="h-14 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-xl font-extrabold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 transition"
+            />
           </div>
 
           {/* Advanced */}
-          <button type="button" onClick={() => setAdvanced((v) => !v)}
-            className="w-full py-2.5 rounded-xl bg-white border-2 border-slate-200 hover:border-sky-300 text-xs font-extrabold text-slate-700 inline-flex items-center justify-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setAdvanced((v) => !v)}
+            className="w-full py-2.5 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-sky-300 dark:hover:border-sky-500/50 text-xs font-extrabold text-slate-700 dark:text-slate-200 inline-flex items-center justify-center gap-1.5 transition"
+          >
             {advanced ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
             {advanced ? 'Chhupao' : 'Category (optional)'}
           </button>
 
           {advanced && (
             <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-1.5 items-center gap-1">
+              <label className="flex text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5 items-center gap-1">
                 <Tag className="h-3 w-3" /> Category
               </label>
-              <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-sky-500">
+              <select
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 transition"
+              >
                 <option value="">Koi nahi</option>
                 {(cats as any[]).map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
               </select>
@@ -254,7 +321,7 @@ export function QuickAddProductDrawer({ open, onClose, onCreated, initialBarcode
         </div>
 
         {/* Footer */}
-        <div className="shrink-0 border-t-2 border-slate-200 p-4 bg-slate-50 space-y-2">
+        <div className="shrink-0 border-t-2 border-slate-200 dark:border-slate-700 p-4 bg-slate-50 dark:bg-slate-900/80 space-y-2">
           <Button
             onClick={() => create.mutate()}
             loading={create.isPending}
@@ -264,8 +331,11 @@ export function QuickAddProductDrawer({ open, onClose, onCreated, initialBarcode
           >
             <Save className="h-4 w-4" /> Product Banao ({formatPKRFull(Number(sale || 0))})
           </Button>
-          <Link to="/retail-products/new" onClick={onClose}
-            className="w-full inline-flex items-center justify-center gap-1 py-2 rounded-xl bg-white border-2 border-slate-200 hover:border-sky-300 text-xs font-extrabold text-slate-700">
+          <Link
+            to="/retail-products/new"
+            onClick={onClose}
+            className="w-full inline-flex items-center justify-center gap-1 py-2 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-sky-300 dark:hover:border-sky-500/50 text-xs font-extrabold text-slate-700 dark:text-slate-200 transition"
+          >
             Poora wizard chahiye (variants, units, batches) <ArrowRight className="h-3 w-3" />
           </Link>
         </div>

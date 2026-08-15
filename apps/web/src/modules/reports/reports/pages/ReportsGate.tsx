@@ -5,7 +5,7 @@ import ReportsPage from './ReportsPage';
 const RestaurantReportsV2 = lazy(() => import('@industries/restaurant/pages/RestaurantReportsV2'));
 const MobileReportsV2 = lazy(() => import('@industries/mobile/pages/MobileReportsV2'));
 const CarpetReportsV2 = lazy(() => import('@industries/carpet/pages/CarpetReportsV2'));
-const RetailReportsV2 = lazy(() => import('@industries/retail/pages/RetailReportsV2'));
+const RetailReportsV2 = lazy(() => import('@/industries/retail/pages/RetailReports'));
 const GarmentReportsV2 = lazy(() => import('@industries/garments/pages/GarmentReportsV2'));
 const BakeryReportsV2 = lazy(() => import('@industries/bakery/pages/BakeryReportsV2'));
 const ClinicReportsV2 = lazy(() => import('@industries/clinic/pages/ClinicReportsV2'));
