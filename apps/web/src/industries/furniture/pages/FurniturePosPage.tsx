@@ -14,6 +14,7 @@ import { useAuthStore } from '@core/stores/auth.store';
 import { offlineProductsApi as productsApi } from '@core/lib/offline/offlineProducts';
 import { offlineCustomersApi as customersApi } from '@core/lib/offline/offlineCustomers';
 import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import { offlineSalesApi } from '@core/lib/offline/offlineSales';
 import type { Product } from '@modules/inventory/products/api/products.api';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { RetailQuickCash } from '@industries/retail/components/pos';
@@ -215,7 +216,7 @@ export default function FurniturePosPage() {
   const checkoutMutation = useMutation({
     mutationFn: async (data: { paymentMethod: PaymentMethod; paidAmount: number }) => {
       if (!currentShopId) throw new Error('Select shop first');
-      return salesApi.create({
+      return offlineSalesApi.create({
         shopId: currentShopId, customerId: customerId || undefined,
         paymentMethod: data.paymentMethod, paidAmount: data.paidAmount,
         discount: discountAmount + deliveryCharge + assemblyCharge > 0 ? discountAmount : 0,

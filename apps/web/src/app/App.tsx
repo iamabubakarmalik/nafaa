@@ -1,7 +1,9 @@
 // apps/web/src/App.tsx
 import { OwnerOnly } from '@app/router/RoleGuard';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient } from '@tanstack/react-query';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
+import { queryCachePersister } from '@core/lib/offline/queryPersister';
 import { Toaster } from 'sonner';
 import { useEffect, type ReactElement } from 'react';
 import { useThemeStore } from '@core/stores/theme.store';
@@ -95,6 +97,7 @@ import BookingDetailPage from '@modules/bookings/pages/BookingDetailPage';
 import PosGate from '@modules/pos/pages/PosGate';
 import SalesGate from '@modules/sales/sales/pages/SalesGate';
 import ReceiptGate from '@modules/sales/sales/pages/ReceiptGate';
+import { OfflineBanner, SyncCenterPage } from '@core/lib/offline/ui';
 import ReturnsPage from '@modules/sales/returns/pages/ReturnsPage';
 import DiscountsPage from '@modules/sales/discounts/pages/DiscountsPage';
 import LoyaltyPage from '@modules/customers/loyalty/pages/LoyaltyPage';
@@ -539,9 +542,26 @@ const queryClient = new QueryClient({
       retry: 1,
       refetchOnWindowFocus: false,
       staleTime: 30_000,
+      // ── OFFLINE-FIRST ──
+      gcTime: 1000 * 60 * 60 * 24 * 7,   // 7 din cache rakho (persistence ke liye)
+      networkMode: 'offlineFirst',        // offline me queries pause NAHI — API layer fallback karega
+    },
+    mutations: {
+      networkMode: 'offlineFirst',        // offline mutations bhi chalein (queue handle karta hai)
     },
   },
 });
+
+/* ═══ Persistence config — sirf successful queries save hoti hain ═══ */
+const persistOptions = {
+  persister: queryCachePersister,
+  maxAge: 1000 * 60 * 60 * 24 * 7, // 7 din
+  buster: 'nafaa-offline-v1',      // schema badlo to yahan version badha do
+  dehydrateOptions: {
+    shouldDehydrateQuery: (q: any) => q.state?.status === 'success',
+    shouldDehydrateMutation: () => false,
+  },
+};
 
 export default function App() {
   const initTheme = useThemeStore((s) => s.initialize);
@@ -557,9 +577,17 @@ export default function App() {
   );
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={persistOptions}
+      onSuccess={() => {
+        // Hydrated from IndexedDB — paused mutations resume (agar koi hon)
+        queryClient.resumePausedMutations().catch(() => {});
+      }}
+    >
       <>
         <IndustryProvider>
+          <OfflineBanner />
           <Routes>
             {/* ═══ PUBLIC ROUTES ═══ */}
             <Route element={<PublicOnlyRoute />}>
@@ -584,6 +612,7 @@ export default function App() {
                   {/* ── Dashboard ────────────────────────────────── */}
                   <Route path="/dashboard" element={<DashboardGate />} />
                   <Route path="/notifications" element={<NotificationsPage />} />
+                  <Route path="/sync" element={<SyncCenterPage />} />
 
                   {/* ── Products & Catalog ───────────────────────── */}
                   <Route path="/products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <ProductFormGate />)} />
@@ -1235,6 +1264,6 @@ export default function App() {
         closeButton
         duration={3500}
       />
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   );
 }

@@ -124,6 +124,16 @@ export const useAuthStore = create<AuthState>()(
         } catch (e) {
           console.warn('Failed to clear offline data:', e);
         }
+        // Query cache bhi clear (shared device privacy)
+        try {
+          const { clearQueryCache } = await import('@core/lib/offline/queryPersister');
+          await clearQueryCache();
+        } catch {}
+        // Offline login credential bhi clear
+        try {
+          const { clearOfflineCredential } = await import('@core/lib/offline/offlineAuth');
+          clearOfflineCredential();
+        } catch {}
         set({
           accessToken: null,
           refreshToken: null,

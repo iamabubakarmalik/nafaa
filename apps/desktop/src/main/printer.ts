@@ -1,55 +1,40 @@
 import { ipcMain } from 'electron';
 import log from 'electron-log';
-import {
-  printer as ThermalPrinter,
-  types as PrinterTypes,
-} from 'node-thermal-printer';
 
-/**
- * Thermal Printer Service
- *
- * Supports:
- * - Network printers (TCP/IP) — most common for POS, works cross-platform
- * - USB printers (via escpos-usb) — fallback for direct USB
- * - System default printer — via Electron's webContents.print()
- *
- * Compatible with:
- * - Epson TM-T20, TM-T82, TM-T88 series
- * - Star TSP143, TSP100, TSP650
- * - Bixolon SRP-350, SRP-275
- * - Generic ESC/POS printers
- */
+/* ═══════════════════════════════════════════════════════════
+   THERMAL PRINTER — safer with dynamic require
+   node-thermal-printer sometimes fails on Windows builds
+   ═══════════════════════════════════════════════════════════ */
 
-export interface PrintJob {
-  type: 'receipt' | 'invoice' | 'kitchen' | 'barcode-label';
-  printer: PrinterConfig;
-  data: ReceiptData | InvoiceData | KitchenData | BarcodeLabelData;
+let ThermalPrinter: any = null;
+let PrinterTypes: any = null;
+let printerModuleLoaded = false;
+
+function loadPrinterModule(): boolean {
+  if (printerModuleLoaded) return !!ThermalPrinter;
+  try {
+    const mod = require('node-thermal-printer');
+    ThermalPrinter = mod.printer;
+    PrinterTypes = mod.types;
+    printerModuleLoaded = true;
+    log.info('node-thermal-printer loaded successfully');
+    return true;
+  } catch (e: any) {
+    log.error('Failed to load node-thermal-printer:', e.message);
+    printerModuleLoaded = true;
+    return false;
+  }
 }
 
 export interface PrinterConfig {
-  // Connection type
   connectionType: 'network' | 'usb' | 'system';
-
-  // Network printer
   ipAddress?: string;
   port?: number;
-
-  // USB printer
   vendorId?: number;
   productId?: number;
-
-  // Common
   type?: 'EPSON' | 'STAR' | 'TANCA' | 'DARUMA' | 'CUSTOM';
   characterSet?: string;
-  width?: 48 | 32; // 80mm=48 chars, 58mm=32 chars
-}
-
-export interface ReceiptItem {
-  name: string;
-  quantity: number;
-  unit?: string;
-  price: number;
-  total: number;
+  width?: 48 | 32;
 }
 
 export interface ReceiptData {
@@ -60,11 +45,8 @@ export interface ReceiptData {
   invoiceNumber: string;
   date: string;
   cashier?: string;
-  customer?: {
-    name?: string;
-    phone?: string;
-  };
-  items: ReceiptItem[];
+  customer?: { name?: string; phone?: string };
+  items: Array<{ name: string; quantity: number; unit?: string; price: number; total: number }>;
   subtotal: number;
   discount?: number;
   tax?: number;
@@ -73,14 +55,8 @@ export interface ReceiptData {
   change?: number;
   paymentMethod?: string;
   footerText?: string;
-  qrCode?: string; // URL or data for QR
+  qrCode?: string;
   logoUrl?: string;
-}
-
-export interface InvoiceData extends ReceiptData {
-  // Invoice has more details
-  dueDate?: string;
-  notes?: string;
 }
 
 export interface KitchenData {
@@ -90,26 +66,17 @@ export interface KitchenData {
   timestamp: string;
 }
 
-export interface BarcodeLabelData {
-  productName: string;
-  price: number;
-  barcode: string;
-  copies?: number;
-}
-
-/**
- * Create printer instance from config
- */
 function createPrinter(config: PrinterConfig) {
+  if (!loadPrinterModule() || !ThermalPrinter) {
+    throw new Error('Thermal printer module unavailable — use system print instead');
+  }
+
   const type =
-    config.type === 'EPSON'
-      ? PrinterTypes.EPSON
-      : config.type === 'STAR'
-        ? PrinterTypes.STAR
-        : PrinterTypes.EPSON; // Default
+    config.type === 'EPSON' ? PrinterTypes.EPSON :
+    config.type === 'STAR' ? PrinterTypes.STAR :
+    PrinterTypes.EPSON;
 
   let interfaceConfig = '';
-
   if (config.connectionType === 'network') {
     if (!config.ipAddress) throw new Error('Network printer needs ipAddress');
     interfaceConfig = `tcp://${config.ipAddress}:${config.port || 9100}`;
@@ -123,32 +90,22 @@ function createPrinter(config: PrinterConfig) {
     characterSet: (config.characterSet as any) || 'PC852_LATIN2',
     width: config.width || 48,
     removeSpecialCharacters: false,
-    options: {
-      timeout: 5000,
-    },
+    options: { timeout: 5000 },
   });
 }
 
-/**
- * Format currency (Pakistani Rupee)
- */
 function formatPKR(amount: number): string {
   return 'Rs ' + amount.toLocaleString('en-PK', { minimumFractionDigits: 0 });
 }
 
-/**
- * Print receipt
- */
 async function printReceipt(config: PrinterConfig, data: ReceiptData): Promise<void> {
   const printer = createPrinter(config);
   const isConnected = await printer.isPrinterConnected();
   if (!isConnected) {
-    throw new Error('Printer connect nahi ho raha — connection check karein');
+    throw new Error('Printer connect nahi ho raha — IP/port check karein');
   }
 
   printer.alignCenter();
-
-  // Header
   printer.bold(true);
   printer.setTextSize(1, 1);
   printer.println(data.shopName);
@@ -160,8 +117,6 @@ async function printReceipt(config: PrinterConfig, data: ReceiptData): Promise<v
   if (data.shopTaxNumber) printer.println(`Tax #: ${data.shopTaxNumber}`);
 
   printer.drawLine();
-
-  // Invoice info
   printer.alignLeft();
   printer.println(`Invoice: ${data.invoiceNumber}`);
   printer.println(`Date: ${data.date}`);
@@ -170,8 +125,6 @@ async function printReceipt(config: PrinterConfig, data: ReceiptData): Promise<v
   if (data.customer?.phone) printer.println(`Phone: ${data.customer.phone}`);
 
   printer.drawLine();
-
-  // Items table header
   printer.tableCustom([
     { text: 'Item', align: 'LEFT', width: 0.5 },
     { text: 'Qty', align: 'CENTER', width: 0.15 },
@@ -180,7 +133,6 @@ async function printReceipt(config: PrinterConfig, data: ReceiptData): Promise<v
   ]);
   printer.drawLine();
 
-  // Items
   for (const item of data.items) {
     printer.tableCustom([
       { text: item.name.slice(0, 24), align: 'LEFT', width: 0.5 },
@@ -191,16 +143,10 @@ async function printReceipt(config: PrinterConfig, data: ReceiptData): Promise<v
   }
 
   printer.drawLine();
-
-  // Totals
   printer.alignRight();
   printer.println(`Subtotal: ${formatPKR(data.subtotal)}`);
-  if (data.discount && data.discount > 0) {
-    printer.println(`Discount: -${formatPKR(data.discount)}`);
-  }
-  if (data.tax && data.tax > 0) {
-    printer.println(`Tax: ${formatPKR(data.tax)}`);
-  }
+  if (data.discount && data.discount > 0) printer.println(`Discount: -${formatPKR(data.discount)}`);
+  if (data.tax && data.tax > 0) printer.println(`Tax: ${formatPKR(data.tax)}`);
   printer.bold(true);
   printer.setTextSize(1, 1);
   printer.println(`TOTAL: ${formatPKR(data.total)}`);
@@ -208,54 +154,31 @@ async function printReceipt(config: PrinterConfig, data: ReceiptData): Promise<v
   printer.setTextNormal();
 
   printer.drawLine();
-
-  // Payment
   printer.alignLeft();
   if (data.paymentMethod) printer.println(`Paid via: ${data.paymentMethod}`);
   printer.println(`Paid: ${formatPKR(data.paid)}`);
-  if (data.change && data.change > 0) {
-    printer.println(`Change: ${formatPKR(data.change)}`);
-  }
+  if (data.change && data.change > 0) printer.println(`Change: ${formatPKR(data.change)}`);
 
   printer.drawLine();
 
-  // QR Code
   if (data.qrCode) {
     printer.alignCenter();
-    try {
-      printer.printQR(data.qrCode, { cellSize: 6, correction: 'M', model: 2 });
-    } catch (e) {
-      log.warn('QR print failed:', e);
-    }
+    try { printer.printQR(data.qrCode, { cellSize: 6, correction: 'M', model: 2 }); } catch {}
   }
 
-  // Footer
   printer.alignCenter();
   printer.newLine();
-  if (data.footerText) {
-    printer.println(data.footerText);
-  } else {
-    printer.println('Shukriya! Phir tashreef laaiye');
-  }
+  printer.println(data.footerText || 'Shukriya! Phir tashreef laaiye');
   printer.newLine();
   printer.println('Powered by Nafaa.pk');
   printer.newLine();
   printer.newLine();
-
   printer.cut();
 
-  try {
-    await printer.execute();
-    log.info('Receipt printed successfully');
-  } catch (e: any) {
-    log.error('Print failed:', e);
-    throw new Error(`Print fail: ${e.message}`);
-  }
+  await printer.execute();
+  log.info('Receipt printed successfully');
 }
 
-/**
- * Print kitchen ticket
- */
 async function printKitchen(config: PrinterConfig, data: KitchenData): Promise<void> {
   const printer = createPrinter(config);
   const isConnected = await printer.isPrinterConnected();
@@ -288,22 +211,18 @@ async function printKitchen(config: PrinterConfig, data: KitchenData): Promise<v
     printer.newLine();
   }
   printer.setTextNormal();
-
   printer.cut();
 
-  try {
-    await printer.execute();
-    log.info('Kitchen ticket printed');
-  } catch (e: any) {
-    throw new Error(`Kitchen print fail: ${e.message}`);
-  }
+  await printer.execute();
+  log.info('Kitchen ticket printed');
 }
 
-/**
- * Test print — checks if printer is reachable
- */
 async function testPrint(config: PrinterConfig): Promise<{ success: boolean; message: string }> {
   try {
+    if (!loadPrinterModule()) {
+      return { success: false, message: 'Thermal printer module load nahi hua — reinstall app try karein' };
+    }
+
     const printer = createPrinter(config);
     const isConnected = await printer.isPrinterConnected();
 
@@ -337,9 +256,6 @@ async function testPrint(config: PrinterConfig): Promise<{ success: boolean; mes
   }
 }
 
-/**
- * Setup IPC handlers
- */
 export function setupPrinterHandlers() {
   ipcMain.handle('printer:test', async (_event, config: PrinterConfig) => {
     return testPrint(config);
@@ -350,6 +266,7 @@ export function setupPrinterHandlers() {
       await printReceipt(config, data);
       return { success: true };
     } catch (e: any) {
+      log.error('printer:receipt error:', e);
       return { success: false, message: e.message };
     }
   });
@@ -359,9 +276,10 @@ export function setupPrinterHandlers() {
       await printKitchen(config, data);
       return { success: true };
     } catch (e: any) {
+      log.error('printer:kitchen error:', e);
       return { success: false, message: e.message };
     }
   });
 
-  log.info('Printer IPC handlers registered');
+  log.info('Printer handlers registered');
 }

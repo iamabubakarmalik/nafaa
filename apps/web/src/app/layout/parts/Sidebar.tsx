@@ -2,7 +2,7 @@ import { memo, useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Package, Sparkles, Users, ShoppingCart, Receipt, PackagePlus, Tag, Wallet, Activity, BarChart3, Settings as SettingsIcon,
-  ScanLine, BookOpen, ClipboardCheck, AlertTriangle,
+  ScanLine, BookOpen, ClipboardCheck, AlertTriangle,Cloud,
   ArrowRightLeft, Download, Database, RotateCcw, Award, Percent, TrendingUp, Gift, Gauge, Hash, UserCircle, LifeBuoy, ScrollText, Eye,
   UserCog, CheckCircle2, Wallet2,
   BookmarkPlus, ChevronDown, ChevronRight, ShieldCheck, CreditCard, Bell, Building2, Truck,
@@ -111,6 +111,7 @@ const posNavGroups: NavGroup[] = [
     label: 'System', icon: SettingsIcon, emoji: '⚙️', color: '#64748b', order: 100,
     items: [
       { to: '/notifications', label: 'Notifications', icon: Bell },
+      { to: '/sync', label: 'Sync Center', icon: Cloud },
       { to: '/integrations', label: 'Integrations', icon: Zap },
       { to: '/fbr', label: 'FBR Setup', icon: Shield, badge: 'NEW' },
       { to: '/fbr/invoices', label: 'FBR Invoices', icon: FileText },

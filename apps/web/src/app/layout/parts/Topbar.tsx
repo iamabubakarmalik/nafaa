@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { DesktopReloadButton } from '@modules/desktop/components/DesktopReloadButton';
 import { Menu, Search, Clock, Sun, Moon, CloudSun } from 'lucide-react';
 import GlobalSearch from '@core/components/search/GlobalSearch';
 import NotificationBell from '@core/components/notifications/NotificationBell';
@@ -152,7 +153,8 @@ export function Topbar({ user, tenant, onOpenMobileSidebar, onLogout }: Props) {
               businessType={(tenant as any)?.businessType}
             />
 
-            <SyncStatusIndicator />
+            <DesktopReloadButton />
+          <SyncStatusIndicator />
             <NotificationBell />
 
             <div className="hidden sm:block h-9 w-px bg-slate-200 dark:bg-slate-700 mx-1" />

@@ -15,6 +15,7 @@ import { offlineProductsApi as productsApi } from '@core/lib/offline/offlineProd
 import { offlineCustomersApi as customersApi } from '@core/lib/offline/offlineCustomers';
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
 import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import { offlineSalesApi } from '@core/lib/offline/offlineSales';
 import type { Product } from '@modules/inventory/products/api/products.api';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { RetailUnitPicker, RetailQuickCash, type RetailUnitOption } from '../components/pos';
@@ -530,7 +531,7 @@ export default function RetailPosPage() {
           });
         }
       });
-      return salesApi.create({
+      return offlineSalesApi.create({
         shopId: currentShopId,
         customerId: customerId || undefined,
         paymentMethod: data.paymentMethod,

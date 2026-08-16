@@ -12,6 +12,7 @@ import { formatPKR, formatPKRFull } from '@core/lib/format';
 import { useAuthStore } from '@core/stores/auth.store';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import { offlineSalesApi } from '@core/lib/offline/offlineSales';
 import { useSharedPosCart } from '@modules/pos/hooks/useSharedPosCart';
 import { catalogApi } from '../api/catalog.api';
 import { FbrModeIndicator } from '@integrations/fbr/components/FbrModeIndicator';
@@ -107,7 +108,7 @@ export default function ServicesBizPosPage() {
   const checkoutMutation = useMutation({
     mutationFn: () => {
       if (!currentShopId) throw new Error('Shop required');
-      return salesApi.create({
+      return offlineSalesApi.create({
         shopId: currentShopId,
         customerId: customerId || undefined,
         paymentMethod,

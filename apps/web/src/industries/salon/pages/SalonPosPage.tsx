@@ -17,6 +17,7 @@ import { appointmentsApi } from '../api/appointments.api';
 import { salonCustomerProfilesApi } from '../api/customer-profiles.api';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import { offlineSalesApi } from '@core/lib/offline/offlineSales';
 import { FbrModeIndicator } from '@integrations/fbr/components/FbrModeIndicator';
 
 type Screen = 'customer' | 'services' | 'schedule' | 'checkout';
@@ -202,7 +203,7 @@ export default function SalonPosPage() {
 
       // If not book-only, create sale
       if (saleMode !== 'BOOK_ONLY' && effectivePaid > 0) {
-        const sale = await salesApi.create({
+        const sale = await offlineSalesApi.create({
           shopId: currentShopId,
           customerId: customerId || undefined,
           paymentMethod,

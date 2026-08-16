@@ -12,6 +12,7 @@ import { useAuthStore } from '@core/stores/auth.store';
 import { offlineProductsApi as productsApi } from '@core/lib/offline/offlineProducts';
 import { offlineCustomersApi as customersApi } from '@core/lib/offline/offlineCustomers';
 import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import { offlineSalesApi } from '@core/lib/offline/offlineSales';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { RetailQuickCash } from '@industries/retail/components/pos';
 import { shoeProductsApi } from '../api/products.api';
@@ -180,7 +181,7 @@ export default function ShoePosPage() {
   const checkoutMutation = useMutation({
     mutationFn: async (data: { paymentMethod: PaymentMethod; paidAmount: number }) => {
       if (!currentShopId) throw new Error('Select shop first');
-      return salesApi.create({
+      return offlineSalesApi.create({
         shopId: currentShopId,
         customerId: customerId || undefined,
         paymentMethod: data.paymentMethod,

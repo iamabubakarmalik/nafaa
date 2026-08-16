@@ -8,7 +8,13 @@ import { Sidebar } from './parts/Sidebar';
 import { MobileSidebar } from './parts/MobileSidebar';
 import { Topbar } from './parts/Topbar';
 import { DesktopUpdateBanner } from '@modules/desktop/components/DesktopUpdateBanner';
+import { DesktopStatusBar } from '@modules/desktop/components/DesktopStatusBar';
 import { useRealtimeNotifications } from '@core/hooks/useRealtimeNotifications';
+import { useDesktopNavigation, useDesktopShortcuts, useDesktopTheme } from '@core/lib/desktop/useDesktop';
+import { useDesktopScanner } from '@core/hooks/useDesktopScanner';
+import { useDesktopAutoBackup } from '@core/lib/desktop/useDesktopAutoBackup';
+import { useDesktopMemory, useDesktopPower } from '@core/lib/desktop/useDesktopMemory';
+import { useDesktopDeepLink } from '@core/lib/desktop/useDesktopDeepLink';
 import { useFbrNotifications } from '@integrations/fbr/hooks/useFbrNotifications';
 
 const SIDEBAR_COLLAPSED_KEY = 'nafaa-sidebar-collapsed';
@@ -16,6 +22,14 @@ const SIDEBAR_COLLAPSED_KEY = 'nafaa-sidebar-collapsed';
 export default function AppShell() {
   useFbrNotifications();
   useRealtimeNotifications();
+  useDesktopNavigation();
+  useDesktopShortcuts();
+  useDesktopTheme();
+  useDesktopScanner();
+  useDesktopAutoBackup();
+  useDesktopMemory();
+  useDesktopPower();
+  useDesktopDeepLink();
   const navigate = useNavigate();
   const { user, tenant, refreshToken, logout } = useAuthStore();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -117,6 +131,7 @@ export default function AppShell() {
             <DesktopUpdateBanner />
             <Outlet />
           </main>
+          <DesktopStatusBar />
         </div>
       </div>
     </div>

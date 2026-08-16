@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { salesApi } from '@modules/sales/sales/api/sales.api';
+import { offlineSalesApi } from '@core/lib/offline/offlineSales';
 import { settingsApi } from '@modules/organization/settings/api/settings.api';
 import { formatPKR } from '@core/lib/format';
 import { FbrReceiptBadge } from '@integrations/fbr';
@@ -127,7 +128,11 @@ export default function RetailReceiptPage() {
 
   const { data: rawSale, isLoading, isError, refetch, isRefetching } = useQuery({
     queryKey: ['sale', id],
-    queryFn: () => salesApi.getOne(id!),
+    queryFn: async () => {
+      const s = await offlineSalesApi.getOne(id!);
+      if (!s) throw new Error('Sale nahi mili');
+      return s as any;
+    },
     enabled: !!id,
     retry: 1,
   });

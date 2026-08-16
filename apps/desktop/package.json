@@ -1,7 +1,7 @@
 {
   "name": "@nafaa/desktop",
-  "version": "1.0.6",
-  "description": "Nafaa Desktop App — Offline-first POS for Pakistan",
+  "version": "1.0.7",
+  "description": "Nafaa Desktop App \u2014 Offline-first POS for Pakistan",
   "main": "dist/main/index.js",
   "author": {
     "name": "Nafaa",
@@ -19,7 +19,9 @@
     "build:linux": "tsc && electron-builder --linux",
     "build:all": "tsc && electron-builder -mwl",
     "pack": "tsc && electron-builder --dir",
-    "clean": "rm -rf dist out release"
+    "clean": "rm -rf dist out release",
+    "postinstall": "electron-builder install-app-deps",
+    "rebuild": "electron-rebuild -f -w usb"
   },
   "dependencies": {
     "electron-log": "^5.1.5",
@@ -44,7 +46,7 @@
   "build": {
     "appId": "pk.nafaa.desktop",
     "productName": "Nafaa",
-    "copyright": "Copyright © 2025 Nafaa",
+    "copyright": "Copyright \u00a9 2025 Nafaa",
     "asar": true,
     "directories": {
       "output": "release",
@@ -77,7 +79,20 @@
       "icon": "build/icon.icns",
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
-      "identity": null
+      "identity": null,
+      "artifactName": "${productName}-${version}-${arch}.${ext}",
+      "extendInfo": {
+        "NSCameraUsageDescription": "Nafaa needs camera for barcode scanning",
+        "NSMicrophoneUsageDescription": "Not used",
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLName": "Nafaa Deep Link",
+            "CFBundleURLSchemes": [
+              "nafaa"
+            ]
+          }
+        ]
+      }
     },
     "win": {
       "target": [
@@ -88,7 +103,9 @@
           ]
         }
       ],
-      "icon": "build/icon.ico"
+      "icon": "build/icon.ico",
+      "requestedExecutionLevel": "asInvoker",
+      "artifactName": "${productName}-Setup-${version}.${ext}"
     },
     "nsis": {
       "oneClick": false,
@@ -96,7 +113,12 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Nafaa"
+      "shortcutName": "Nafaa",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
+      "deleteAppDataOnUninstall": false,
+      "runAfterFinish": true
     },
     "linux": {
       "target": [
@@ -121,6 +143,12 @@
       "owner": "iamabubakarmalik",
       "repo": "nafaa",
       "releaseType": "release"
-    }
+    },
+    "asarUnpack": [
+      "**/node_modules/usb/**/*",
+      "**/node_modules/@node-usb/**/*",
+      "**/node_modules/node-thermal-printer/**/*",
+      "**/node_modules/escpos*/**/*"
+    ]
   }
 }

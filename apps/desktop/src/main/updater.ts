@@ -1,73 +1,79 @@
 import { autoUpdater } from 'electron-updater';
-import { BrowserWindow, dialog, Notification } from 'electron';
+import { BrowserWindow, dialog, Notification, app } from 'electron';
 import log from 'electron-log';
-
-/**
- * Auto-updater wrapper.
- *
- * Behavior:
- * - Checks for updates on app startup (after 10s delay)
- * - Re-checks every 4 hours
- * - Downloads in background
- * - Shows native dialog when update ready
- * - User can install now or later (next launch)
- */
 
 let mainWindowRef: BrowserWindow | null = null;
 let updateCheckInterval: NodeJS.Timeout | null = null;
+let isCheckingManually = false;
 
 export function setupAutoUpdater(mainWindow: BrowserWindow) {
   mainWindowRef = mainWindow;
 
-  // Configure logging
   autoUpdater.logger = log;
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
+  autoUpdater.allowPrerelease = false;
 
-  // ─── Update available ───
+  autoUpdater.on('checking-for-update', () => {
+    log.info('Checking for updates…');
+    sendToRenderer('updater:checking', null);
+  });
+
   autoUpdater.on('update-available', (info) => {
-    log.info(`Update available: ${info.version}`);
+    log.info(`Update available: v${info.version}`);
     sendToRenderer('updater:available', {
       version: info.version,
       releaseDate: info.releaseDate,
     });
 
-    new Notification({
-      title: 'Nafaa Update Available',
-      body: `Version ${info.version} download ho raha hai...`,
-      silent: false,
-    }).show();
+    try {
+      new Notification({
+        title: 'Nafaa Update Available',
+        body: `Version ${info.version} download ho raha hai…`,
+        silent: false,
+      }).show();
+    } catch {}
   });
 
-  // ─── Update not available ───
-  autoUpdater.on('update-not-available', () => {
-    log.info('No updates available');
+  autoUpdater.on('update-not-available', (info) => {
+    log.info(`No updates. Current: v${app.getVersion()}, Latest: v${info?.version || '?'}`);
     sendToRenderer('updater:not-available', null);
+
+    if (isCheckingManually) {
+      isCheckingManually = false;
+      if (mainWindowRef && !mainWindowRef.isDestroyed()) {
+        dialog.showMessageBox(mainWindowRef, {
+          type: 'info',
+          title: 'No Updates',
+          message: `Aap ka Nafaa (v${app.getVersion()}) latest version hai`,
+          buttons: ['OK'],
+        });
+      }
+    }
   });
 
-  // ─── Download progress ───
   autoUpdater.on('download-progress', (progress) => {
-    log.info(`Download progress: ${Math.round(progress.percent)}%`);
+    const percent = Math.round(progress.percent);
+    log.info(`Download: ${percent}% (${Math.round(progress.bytesPerSecond / 1024)} KB/s)`);
     sendToRenderer('updater:progress', {
-      percent: Math.round(progress.percent),
+      percent,
       bytesPerSecond: progress.bytesPerSecond,
       transferred: progress.transferred,
       total: progress.total,
     });
   });
 
-  // ─── Update downloaded ───
   autoUpdater.on('update-downloaded', async (info) => {
-    log.info(`Update downloaded: ${info.version}`);
-    sendToRenderer('updater:downloaded', {
-      version: info.version,
-    });
+    log.info(`Update downloaded: v${info.version}`);
+    sendToRenderer('updater:downloaded', { version: info.version });
 
-    const result = await dialog.showMessageBox(mainWindow, {
+    if (!mainWindowRef || mainWindowRef.isDestroyed()) return;
+
+    const result = await dialog.showMessageBox(mainWindowRef, {
       type: 'info',
       title: 'Update Ready',
-      message: `Nafaa ${info.version} download ho gaya hai`,
-      detail: 'Install karne ke liye app restart hogi. Abhi install karein ya next launch pe?',
+      message: `Nafaa ${info.version} install ke liye ready hai`,
+      detail: 'Install karne ke liye app restart hogi. Aap ka data safe rahega.\n\nAbhi install karein ya next launch pe?',
       buttons: ['Install & Restart', 'Later'],
       defaultId: 0,
       cancelId: 1,
@@ -75,38 +81,57 @@ export function setupAutoUpdater(mainWindow: BrowserWindow) {
 
     if (result.response === 0) {
       log.info('User chose to install now');
-      autoUpdater.quitAndInstall(false, true);
+      setImmediate(() => autoUpdater.quitAndInstall(false, true));
     }
   });
 
-  // ─── Error ───
   autoUpdater.on('error', (error) => {
     log.error('Update error:', error);
     sendToRenderer('updater:error', { message: error.message });
+
+    if (isCheckingManually) {
+      isCheckingManually = false;
+      if (mainWindowRef && !mainWindowRef.isDestroyed()) {
+        dialog.showMessageBox(mainWindowRef, {
+          type: 'error',
+          title: 'Update Check Failed',
+          message: 'Update check nahi ho saka',
+          detail: error.message,
+          buttons: ['OK'],
+        });
+      }
+    }
   });
 
-  // ─── Start check ───
-  // Wait 10s after startup, then check
-  setTimeout(() => {
-    checkForUpdates();
-  }, 10_000);
+  // First check after 15s
+  setTimeout(() => checkForUpdates(false), 15_000);
 
   // Re-check every 4 hours
   updateCheckInterval = setInterval(() => {
-    checkForUpdates();
+    checkForUpdates(false);
   }, 4 * 60 * 60 * 1000);
 }
 
-export function checkForUpdates() {
-  // Don't check in dev mode
+export function checkForUpdates(manual = false) {
   if (process.env.NODE_ENV === 'development') {
     log.info('Skipping update check in dev mode');
+    if (manual && mainWindowRef) {
+      dialog.showMessageBox(mainWindowRef, {
+        type: 'info',
+        title: 'Dev Mode',
+        message: 'Updates dev mode me disabled hain',
+        buttons: ['OK'],
+      });
+    }
     return;
   }
 
-  log.info('Checking for updates...');
+  isCheckingManually = manual;
+  log.info(`Checking for updates (manual: ${manual})…`);
+
   autoUpdater.checkForUpdates().catch((err) => {
     log.error('Update check failed:', err);
+    isCheckingManually = false;
   });
 }
 

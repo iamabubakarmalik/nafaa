@@ -13,6 +13,7 @@ import { useAuthStore } from '@core/stores/auth.store';
 import { productsApi, type Product } from '@modules/inventory/products/api/products.api';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import { offlineSalesApi } from '@core/lib/offline/offlineSales';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { useSharedPosCart, cartLineId } from '@modules/pos/hooks/useSharedPosCart';
 import { FbrModeIndicator } from '@integrations/fbr/components/FbrModeIndicator';
@@ -111,7 +112,7 @@ export default function BookstorePosPage() {
   const checkoutMutation = useMutation({
     mutationFn: () => {
       if (!currentShopId) throw new Error('Shop required');
-      return salesApi.create({
+      return offlineSalesApi.create({
         shopId: currentShopId,
         customerId: customerId || undefined,
         paymentMethod,

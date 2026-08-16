@@ -14,6 +14,7 @@ import { useAuthStore } from '@core/stores/auth.store';
 import { productsApi, type Product } from '@modules/inventory/products/api/products.api';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import { offlineSalesApi } from '@core/lib/offline/offlineSales';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { medicinesApi } from '../api/medicines.api';
 import { batchesApi } from '../api/batches.api';
@@ -163,7 +164,7 @@ export default function PharmacyPosPage() {
         ? `Rx by Dr. ${doctorName}${doctorRegNumber ? ' (PMDC: ' + doctorRegNumber + ')' : ''}`
         : undefined;
 
-      return salesApi.create({
+      return offlineSalesApi.create({
         shopId: currentShopId,
         customerId: customerId || undefined,
         paymentMethod,

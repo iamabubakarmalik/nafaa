@@ -15,6 +15,7 @@ import { useAuthStore } from '@core/stores/auth.store';
 import { productsApi, type Product } from '@modules/inventory/products/api/products.api';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import { offlineSalesApi } from '@core/lib/offline/offlineSales';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { agriProductsApi } from '../api/products.api';
 import { farmersApi } from '../api/farmers.api';
@@ -211,7 +212,7 @@ export default function AgriPosPage() {
       const noteFull = [noteBase, cropTarget && `Crop: ${cropTarget}`, landAcres && `Land: ${landAcres} acres`]
         .filter(Boolean).join(' | ');
 
-      return salesApi.create({
+      return offlineSalesApi.create({
         shopId: currentShopId,
         customerId: customerId || undefined,
         paymentMethod,

@@ -13,6 +13,7 @@ import { useAuthStore } from '@core/stores/auth.store';
 import { productsApi, type Product } from '@modules/inventory/products/api/products.api';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import { offlineSalesApi } from '@core/lib/offline/offlineSales';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { partProfilesApi, type PartCategory } from '../api/part-profiles.api';
 import { customerVehiclesApi } from '../api/customer-vehicles.api';
@@ -144,7 +145,7 @@ export default function AutoPartsPosPage() {
   const checkoutMutation = useMutation({
     mutationFn: () => {
       if (!currentShopId) throw new Error('Shop required');
-      return salesApi.create({
+      return offlineSalesApi.create({
         shopId: currentShopId,
         customerId: customerId || undefined,
         paymentMethod,

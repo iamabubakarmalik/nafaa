@@ -13,6 +13,7 @@ import { useAuthStore } from '@core/stores/auth.store';
 import { productsApi, type Product } from '@modules/inventory/products/api/products.api';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import { offlineSalesApi } from '@core/lib/offline/offlineSales';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { bulkPricingApi } from '../api/bulk-pricing.api';
 import { projectsApi } from '../api/projects.api';
@@ -134,7 +135,7 @@ export default function HardwarePosPage() {
   const checkoutMutation = useMutation({
     mutationFn: async () => {
       if (!currentShopId) throw new Error('Shop required');
-      const sale = await salesApi.create({
+      const sale = await offlineSalesApi.create({
         shopId: currentShopId,
         customerId: customerId || undefined,
         paymentMethod,

@@ -425,6 +425,20 @@ export default function ReceiptPage() {
           </div>
         </div>
 
+        {(data.id.startsWith('local_sale_') || data.saleNumber?.startsWith('OFFLINE-')) && (
+          <div className="rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-orange-50 px-5 py-4 flex items-center gap-3 print:border print:bg-white">
+            <div className="h-10 w-10 rounded-full bg-amber-500 text-white flex items-center justify-center shrink-0">
+              <Zap className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="font-extrabold text-amber-900">OFFLINE SALE</div>
+              <div className="text-xs text-amber-700 mt-0.5">
+                Ye sale abhi sync nahi hui — internet aane par asli receipt number mil jayega
+              </div>
+            </div>
+          </div>
+        )}
+
         {isVoided && (
           <div className="rounded-2xl border-2 border-rose-300 bg-gradient-to-br from-rose-50 to-rose-100 px-5 py-4 flex items-center gap-3 print:rounded-none print:border print:bg-white">
             <div className="h-10 w-10 rounded-full bg-rose-600 text-white flex items-center justify-center shrink-0">

@@ -253,8 +253,8 @@ export function usePosCheckout(onSuccess?: (result: CheckoutResult) => void) {
         duration: result.isOffline ? 5000 : 3000,
       });
 
-      // ═══ AUTO-OPEN RECEIPT IN NEW TAB ═══
-      if (!result.isOffline && getAutoOpenReceipt()) {
+      // ═══ AUTO-OPEN RECEIPT (online AND offline — offline auto-print bhi) ═══
+      if (getAutoOpenReceipt()) {
         setTimeout(() => {
           const url = `/sales/${result.saleId}/receipt?auto=1`;
           const win = window.open(url, '_blank', 'noopener,noreferrer');

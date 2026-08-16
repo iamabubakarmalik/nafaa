@@ -1,9 +1,9 @@
 import { apiClient } from '@core/api/client';
 
 export interface ServiceChargeItem {
-  type: string;   // GLUE, INSTALLATION, CUTTING, DELIVERY, UNDERLAY, CUSTOM, OTHER
-  label: string;  // Display label
-  amount: number; // PKR
+  type: string;
+  label: string;
+  amount: number;
   note?: string;
 }
 
@@ -156,19 +156,162 @@ export interface SalesSummary {
 
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
 
+/** Network failure = server tak pahuncha hi nahi (business error NAHI) */
+const isNetFail = (e: any): boolean => {
+  const s = e?.response?.status;
+  return !s || s === 0 || s === 408 || s >= 502;
+};
+
+/** Pending local sales ko Sale[] shape me lao */
+async function getPendingAsSales(): Promise<Sale[]> {
+  try {
+    const { db } = await import('@core/lib/offline/db');
+    const { pendingSaleToSale } = await import('@core/lib/offline/offlineSales');
+    const pending = await db.pendingSales
+      .where('status')
+      .anyOf('pending', 'failed', 'syncing')
+      .toArray();
+    return pending.map((p) => pendingSaleToSale(p) as Sale);
+  } catch {
+    return [];
+  }
+}
+
 export const salesApi = {
+  /**
+   * create PURE rehta hai — offlineSalesApi isay wrap karta hai.
+   * (Yahan offline logic daalne se circular loop banta)
+   */
   create: (payload: CreateSalePayload) =>
     apiClient.post<{ data: Sale }>('/sales', payload).then(unwrap),
 
-  list: (shopId?: string) =>
-    apiClient.get<{ data: Sale[] }>('/sales', { params: shopId ? { shopId } : {} }).then(unwrap),
+  /**
+   * LIST — GLOBAL OFFLINE: server + pending local sales MERGED.
+   * Har industry ka Sales page automatically offline-capable.
+   */
+  list: async (shopId?: string): Promise<Sale[]> => {
+    let serverSales: Sale[] = [];
+    let serverOk = false;
 
-  summary: (shopId?: string) =>
-    apiClient.get<{ data: SalesSummary }>('/sales/summary', { params: shopId ? { shopId } : {} }).then(unwrap),
+    if (navigator.onLine) {
+      try {
+        serverSales = await apiClient
+          .get<{ data: Sale[] }>('/sales', { params: shopId ? { shopId } : {} })
+          .then(unwrap);
+        serverOk = true;
+      } catch (e) {
+        if (!isNetFail(e)) throw e; // asli server error → page ko batao
+      }
+    }
 
-  getOne: (id: string) =>
-    apiClient.get<{ data: Sale }>(`/sales/${id}`).then(unwrap),
+    const localPending = await getPendingAsSales();
+    const merged = [...localPending, ...serverSales];
+    merged.sort((a, b) => new Date(b.soldAt).getTime() - new Date(a.soldAt).getTime());
 
-  voidSale: (id: string, reason?: string) =>
-    apiClient.post<{ data: any }>(`/sales/${id}/void`, { reason }).then(unwrap),
+    if (!serverOk && merged.length === 0 && navigator.onLine) {
+      throw new Error('Sales load nahi ho sakin');
+    }
+    return merged;
+  },
+
+  /**
+   * SUMMARY — server summary + pending sales ka add-on.
+   */
+  summary: async (shopId?: string): Promise<SalesSummary> => {
+    let server: SalesSummary | null = null;
+
+    if (navigator.onLine) {
+      try {
+        server = await apiClient
+          .get<{ data: SalesSummary }>('/sales/summary', { params: shopId ? { shopId } : {} })
+          .then(unwrap);
+      } catch (e) {
+        if (!isNetFail(e)) throw e;
+      }
+    }
+
+    let pending: Array<{ total: number; creditAmount: number; paidAmount: number; createdAt: number }> = [];
+    try {
+      const { db } = await import('@core/lib/offline/db');
+      pending = await db.pendingSales
+        .where('status')
+        .anyOf('pending', 'failed', 'syncing')
+        .toArray();
+    } catch {}
+
+    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+    const todayP = pending.filter((p) => p.createdAt >= todayStart.getTime());
+    const sumTotal = (arr: typeof pending) => arr.reduce((s, p) => s + p.total, 0);
+    const sumCredit = (arr: typeof pending) => arr.reduce((s, p) => s + p.creditAmount, 0);
+    const sumPaid = (arr: typeof pending) => arr.reduce((s, p) => s + p.paidAmount, 0);
+
+    if (!server) {
+      return {
+        todaySales: sumTotal(todayP),
+        todayOrders: todayP.length,
+        todayProfit: 0,
+        todayCredit: sumCredit(todayP),
+        todayPaid: sumPaid(todayP),
+        monthSales: sumTotal(pending),
+        monthProfit: 0,
+        totalSales: sumTotal(pending),
+        totalProfit: 0,
+        totalOrders: pending.length,
+        paymentBreakdown: [],
+      };
+    }
+
+    return {
+      ...server,
+      todaySales: (server.todaySales ?? 0) + sumTotal(todayP),
+      todayOrders: (server.todayOrders ?? 0) + todayP.length,
+      todayCredit: (server.todayCredit ?? 0) + sumCredit(todayP),
+      todayPaid: (server.todayPaid ?? 0) + sumPaid(todayP),
+      totalSales: (server.totalSales ?? 0) + sumTotal(pending),
+      totalOrders: (server.totalOrders ?? 0) + pending.length,
+    };
+  },
+
+  /**
+   * GET ONE — offline sale ho ya server ki, dono chalti hain.
+   * Receipt page ke liye yahi global fix hai.
+   */
+  getOne: async (id: string): Promise<Sale> => {
+    // Local (offline) sale — seedha Dexie se
+    if (id.startsWith('local_sale_')) {
+      const { db } = await import('@core/lib/offline/db');
+      const { pendingSaleToSale } = await import('@core/lib/offline/offlineSales');
+      const local = await db.pendingSales.get(id);
+      if (!local) throw new Error('Sale nahi mili');
+      return pendingSaleToSale(local) as Sale;
+    }
+
+    if (navigator.onLine) {
+      try {
+        return await apiClient.get<{ data: Sale }>(`/sales/${id}`).then(unwrap);
+      } catch (e: any) {
+        if (e?.response?.status === 404) throw e;
+        if (!isNetFail(e)) throw e;
+        // network fail → local mirror try karo
+      }
+    }
+
+    // Offline: shayad ye hamari hi synced offline sale hai
+    const { db } = await import('@core/lib/offline/db');
+    const { pendingSaleToSale } = await import('@core/lib/offline/offlineSales');
+    const synced = await db.pendingSales.where('serverSaleId').equals(id).first();
+    if (synced) return pendingSaleToSale(synced) as Sale;
+
+    throw new Error('Sale nahi mili (offline — cache me nahi hai)');
+  },
+
+  /**
+   * VOID — sirf online (offline void risky hai, stock double ho sakta hai)
+   */
+  voidSale: (id: string, reason?: string) => {
+    if (!navigator.onLine) {
+      return Promise.reject(new Error('Void karne ke liye internet chahiye'));
+    }
+    return apiClient.post<{ data: any }>(`/sales/${id}/void`, { reason }).then(unwrap);
+  },
 };

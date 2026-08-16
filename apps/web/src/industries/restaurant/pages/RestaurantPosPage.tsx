@@ -18,6 +18,7 @@ import { ordersApi, type OrderMode, type OrderItem } from '../api/orders.api';
 import { kotApi } from '../api/kot.api';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import { offlineSalesApi } from '@core/lib/offline/offlineSales';
 import { RestaurantModifierPicker } from '@industries/restaurant/pos-extensions/RestaurantModifierPicker';
 import { useSharedPosCart, cartLineId } from '@modules/pos/hooks/useSharedPosCart';
 import { FbrModeIndicator } from '@integrations/fbr/components/FbrModeIndicator';
@@ -229,7 +230,7 @@ export default function RestaurantPosPage() {
     mutationFn: async () => {
       if (!currentShopId) throw new Error('Shop required');
       const order = await createOrderMutation.mutateAsync();
-      const sale = await salesApi.create({
+      const sale = await offlineSalesApi.create({
         shopId: currentShopId,
         customerId: customerId || undefined,
         paymentMethod,
