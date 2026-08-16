@@ -10,12 +10,48 @@ if (typeof window !== 'undefined') {
   // ═══ Init offline sync engine ═══
   initSyncEngine();
 
-  // ═══ Prewarm heavy caches (background — non-blocking) ═══
-  setTimeout(() => {
-    import('@core/lib/offline/offlinePrewarm')
-      .then(({ prewarmAllData }) => prewarmAllData(true).catch(() => {}))
-      .catch(() => {});
-  }, 8000);
+  // ═══ Prewarm heavy caches on boot (if authenticated) ═══
+  const runInitialPrewarm = () => {
+    // Only prewarm if user is authenticated
+    import('@core/stores/auth.store').then(({ useAuthStore }) => {
+      if (useAuthStore.getState().isAuthenticated && navigator.onLine) {
+        import('@core/lib/offline/offlinePrewarm')
+          .then(({ prewarmAllData }) => prewarmAllData(true).catch(() => {}))
+          .catch(() => {});
+        // Also trigger sync
+        import('@core/lib/offline/syncEngine')
+          .then(({ downloadAllData }) => downloadAllData(true).catch(() => {}))
+          .catch(() => {});
+      }
+    }).catch(() => {});
+  };
+  setTimeout(runInitialPrewarm, 3000);
+
+  // ═══ Watch auth state — prewarm after ANY login (online/offline) ═══
+  import('@core/stores/auth.store').then(({ useAuthStore }) => {
+    let lastAuthState = useAuthStore.getState().isAuthenticated;
+    let lastUserId = useAuthStore.getState().user?.id;
+    useAuthStore.subscribe((state) => {
+      const currentAuth = state.isAuthenticated;
+      const currentUserId = state.user?.id;
+      // Detect login (was false, now true) OR user change
+      const isLogin = !lastAuthState && currentAuth;
+      const isUserChange = currentUserId && lastUserId && currentUserId !== lastUserId;
+      if ((isLogin || isUserChange) && navigator.onLine) {
+        console.log('[auth-watch] Login detected — triggering prewarm + sync');
+        setTimeout(() => {
+          import('@core/lib/offline/offlinePrewarm').then(({ prewarmAfterLogin }) => {
+            prewarmAfterLogin().catch(() => {});
+          }).catch(() => {});
+          import('@core/lib/offline/syncEngine').then(({ downloadAllData }) => {
+            downloadAllData(true).catch(() => {});
+          }).catch(() => {});
+        }, 800);
+      }
+      lastAuthState = currentAuth;
+      lastUserId = currentUserId;
+    });
+  }).catch(() => {});
 
   // ═══ Register Service Worker (PWA) ═══
   const updateSW = registerSW({

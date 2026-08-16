@@ -24,6 +24,8 @@ import {
   getOfflineCredential,
   clearOfflineCredential,
 } from '@core/lib/offline/offlineAuth';
+import { prewarmAfterLogin } from '@core/lib/offline/offlinePrewarm';
+import { downloadAllData } from '@core/lib/offline/syncEngine';
 
 const schema = z.object({
   email: z.string().email('Sahi email likhein'),
@@ -97,6 +99,13 @@ export default function LoginPage() {
         user: data.user,
         tenant: data.tenant,
       });
+
+      // ═══ AUTO-PREWARM: sab pages ka data background me load ═══
+      // Ye login ke baad chalta hai taake user offline jaye to sab pages me data ho
+      setTimeout(() => {
+        downloadAllData(true).catch(() => {});
+        prewarmAfterLogin().catch(() => {});
+      }, 1000);
 
       const firstName = data.user.fullName.split(' ')[0];
 

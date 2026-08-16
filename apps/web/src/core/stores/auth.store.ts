@@ -84,6 +84,19 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: true,
           currentShopId,
         });
+      
+        // Trigger prewarm after successful login (loads all pages' data in background)
+        if (typeof window !== 'undefined' && navigator.onLine) {
+          setTimeout(() => {
+            import('@core/lib/offline/offlinePrewarm').then(({ prewarmAfterLogin }) => {
+              prewarmAfterLogin().catch(() => {});
+            }).catch(() => {});
+            // Also trigger full sync for fresh data
+            import('@core/lib/offline/syncEngine').then(({ downloadAllData }) => {
+              downloadAllData(true).catch(() => {});
+            }).catch(() => {});
+          }, 500);
+        }
       },
       setTokens: (accessToken, refreshToken) =>
         set({ accessToken, refreshToken }),
