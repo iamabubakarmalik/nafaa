@@ -22,6 +22,7 @@ import {
   verifyOfflineLogin,
   hasOfflineCredential,
   getOfflineCredential,
+  clearOfflineCredential,
 } from '@core/lib/offline/offlineAuth';
 
 const schema = z.object({
@@ -131,6 +132,16 @@ export default function LoginPage() {
       toast.error(err?.response?.data?.message || 'Login fail ho gaya');
     },
   });
+
+  // ═══ SWITCH ACCOUNT (clears offline credential) ═══
+  const handleSwitchAccount = () => {
+    if (!confirm('Saved account clear kar dein? Doosra user login kar sake ga (offline access bhi khatam hogi jab tak aap online wapis login na karein).')) return;
+    clearOfflineCredential();
+    form.reset({ email: '', password: '' });
+    toast.info('Saved account clear ho gaya — naya login karein');
+    // Force re-render
+    window.location.reload();
+  };
 
   // ═══ OFFLINE LOGIN HANDLER ═══
   const handleOfflineLogin = async (d: FormData) => {
@@ -361,8 +372,32 @@ export default function LoginPage() {
 
             {/* Offline hint */}
             {!isOnline && offlineAvailable && (
-              <p className="text-center text-xs text-amber-700 font-semibold">
-                💾 Saved account: {cachedEmail} — wahi password use karein
+              <div className="text-center space-y-1">
+                <p className="text-xs text-amber-700 font-semibold">
+                  💾 Saved account: {cachedEmail} — wahi password use karein
+                </p>
+                <button
+                  type="button"
+                  onClick={handleSwitchAccount}
+                  className="text-xs text-slate-500 hover:text-slate-700 underline font-medium"
+                >
+                  Doosra account use karna hai?
+                </button>
+              </div>
+            )}
+
+            {/* Show saved account even when online */}
+            {isOnline && offlineAvailable && cachedEmail && (
+              <p className="text-center text-[11px] text-slate-400 font-medium">
+                💾 Offline access ready for: <strong className="text-slate-600">{cachedEmail}</strong>
+                {' • '}
+                <button
+                  type="button"
+                  onClick={handleSwitchAccount}
+                  className="text-slate-500 hover:text-slate-700 underline"
+                >
+                  Switch
+                </button>
               </p>
             )}
           </form>

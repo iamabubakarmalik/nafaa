@@ -129,11 +129,8 @@ export const useAuthStore = create<AuthState>()(
           const { clearQueryCache } = await import('@core/lib/offline/queryPersister');
           await clearQueryCache();
         } catch {}
-        // Offline login credential bhi clear
-        try {
-          const { clearOfflineCredential } = await import('@core/lib/offline/offlineAuth');
-          clearOfflineCredential();
-        } catch {}
+        // NOTE: Offline credential ko PRESERVE karo — user offline wapis login kar sake
+        // Sirf 'Switch Account' se clear hota hai (LoginPage pe button)
         set({
           accessToken: null,
           refreshToken: null,

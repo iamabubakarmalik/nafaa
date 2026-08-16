@@ -78,4 +78,12 @@ export async function verifyOfflineLogin(
 
 export function clearOfflineCredential(): void {
   try { localStorage.removeItem(KEY); } catch {}
+  console.log('[offline-auth] Credential cleared');
+}
+
+/** Check if a saved credential exists for a given email */
+export function isOfflineCredentialForEmail(email: string): boolean {
+  const rec = getOfflineCredential();
+  if (!rec) return false;
+  return rec.email === email.toLowerCase().trim();
 }
