@@ -652,7 +652,7 @@ export default function App() {
                   <Route path="/discounts" element={secure(PERMISSIONS.DISCOUNTS_VIEW, <DiscountsPage />)} />
                   <Route path="/loyalty" element={secure(PERMISSIONS.LOYALTY_VIEW, <LoyaltyPage />)} />
                   <Route path="/profit-report" element={secure(PERMISSIONS.PROFIT_REPORT_VIEW, <ProfitReportGate />)} />
-                  <Route path="/khata" element={secure(PERMISSIONS.KHATA_VIEW, <KhataGate />)} />
+                  <Route path="/khata" element={secure(PERMISSIONS.KHATA_VIEW, <KhataPage />)} />
                   <Route path="/cash-register" element={secure(PERMISSIONS.CASH_REGISTER_VIEW, <CashRegisterPage />)} />
 
                   {/* ── Suppliers & Purchases ──────────────────── */}

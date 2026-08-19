@@ -45,6 +45,12 @@ export interface ReceivePaymentPayload {
   note?: string;
 }
 
+export interface AddUdhaarPayload {
+  amount: number;
+  reference?: string;
+  note?: string;
+}
+
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
 
 export const customerLedgerApi = {
@@ -59,5 +65,10 @@ export const customerLedgerApi = {
   receivePayment: (customerId: string, payload: ReceivePaymentPayload) =>
     apiClient
       .post<{ data: any }>(`/customer-ledger/${customerId}/payment`, payload)
+      .then(unwrap),
+  // 🤝 Quick Udhaar — bina purchase
+  addUdhaar: (customerId: string, payload: AddUdhaarPayload) =>
+    apiClient
+      .post<{ data: any }>(`/customer-ledger/${customerId}/udhaar`, payload)
       .then(unwrap),
 };

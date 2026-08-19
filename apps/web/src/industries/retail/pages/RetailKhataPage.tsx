@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { offlineCustomersApi as customersApi } from '@core/lib/offline/offlineCustomers';
+import { customerLedgerApi } from '@modules/customers/khata/api/customer-ledger.api';
 import { salesApi } from '@modules/sales/sales/api/sales.api';
 import { formatPKR } from '@core/lib/format';
 import { Button } from '@core/ui/Button';
@@ -19,15 +20,15 @@ import { AppLockGate } from '@core/security/AppLockGate';
 import { useAuthStore } from '@core/stores/auth.store';
 
 /* ═════════════════════════════════════════════════════════════
-   NAFAA RETAIL KHATA — FULL BEST v3
+   NAFAA RETAIL KHATA — FULL BEST v4
    ─────────────────────────────────────────────────────────────
-   🔔 BULK REMINDER WIZARD — ek click mein sab customers ko
-      WhatsApp yaad-dihani (step-by-step, copy + open + next)
-   📅 Aging buckets — 0-7 din / 7-30 / 30+ (jitna purana utna red)
-   🎓 Teacher modal — "Khata kaise use karein"
-   🌙 Dark mode complete • ⌨️ / = search, Esc = band
-   🖨️ Print/PDF + 📊 CSV summary
-   💳 Payment modal upgraded (calculator, quick amounts)
+   ✅ FIX: Payment ab customerLedgerApi.receivePayment() use karta hai
+      (pehle customersApi.recordPayment tha — 404 aata tha)
+   🔔 BULK REMINDER WIZARD — sab ko yaad-dihani ek click me
+   📅 Aging buckets — 0-7 / 7-30 / 30+ din
+   🎓 Teacher modal • 🌙 Dark mode • ⌨️ / Esc
+   🖨️ Print/PDF + 📊 CSV
+   💳 Payment modal — calculator, quick amounts, live balance
    ═════════════════════════════════════════════════════════════ */
 
 type SortKey = 'balance-high' | 'balance-low' | 'name' | 'recent' | 'oldest-due';
@@ -98,7 +99,6 @@ function RetailKhataContent() {
       const lastSaleAt = custSales.length > 0
         ? Math.max(...custSales.map((s: any) => new Date(s.soldAt).getTime()))
         : 0;
-      // Sab se purana unpaid sale = aging
       const oldestDueAt = pendingSales.length > 0
         ? Math.min(...pendingSales.map((s: any) => new Date(s.soldAt).getTime()))
         : 0;
@@ -140,14 +140,12 @@ function RetailKhataContent() {
     return list;
   }, [khataData, search, sortKey, filter]);
 
-  /* ─── Stats + aging buckets ─── */
   const stats = useMemo(() => {
     const due = khataData.filter((c) => c.balance > 0);
     const totalDue = due.reduce((a, c) => a + c.balance, 0);
     const withDues = due.length;
     const clearCustomers = khataData.filter((c) => c.balance <= 0 && c.salesCount > 0).length;
     const highDue = due.filter((c) => c.balance > 10000).length;
-    const withPhone = due.filter((c) => c.phone).length;
 
     const aging = {
       fresh:  due.filter((c) => c.ageDays < 7).reduce((a, c) => a + c.balance, 0),
@@ -155,25 +153,27 @@ function RetailKhataContent() {
       old:    due.filter((c) => c.ageDays >= 30).reduce((a, c) => a + c.balance, 0),
       oldCount: due.filter((c) => c.ageDays >= 30).length,
     };
-    return { totalDue, withDues, clearCustomers, highDue, withPhone, totalCustomers: khataData.length, aging };
+    return { totalDue, withDues, clearCustomers, highDue, totalCustomers: khataData.length, aging };
   }, [khataData]);
 
-  /* ─── Payment ─── */
+  /* ─── ✅ FIXED: Payment ab customerLedgerApi use karta hai ─── */
   const paymentMutation = useMutation({
     mutationFn: async ({ customerId, amount, note }: { customerId: string; amount: number; note?: string }) => {
-      return (customersApi as any).recordPayment(customerId, { amount, note });
+      return customerLedgerApi.receivePayment(customerId, { amount, note });
     },
     onSuccess: (_, vars) => {
       toast.success(`${formatPKR(vars.amount)} wasool ho gaye ✓`);
       setPaymentModal(null);
       queryClient.invalidateQueries({ queryKey: ['khata-customers'] });
       queryClient.invalidateQueries({ queryKey: ['khata-sales'] });
+      queryClient.invalidateQueries({ queryKey: ['khata-ledger'] });
+      queryClient.invalidateQueries({ queryKey: ['khata-summary'] });
       queryClient.invalidateQueries({ queryKey: ['customers-for-pos'] });
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
     },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Payment fail'),
   });
 
-  /* ─── Single WhatsApp reminder ─── */
   const whatsappReminder = (c: any) => {
     if (!c.phone) return toast.error('Phone number nahi hai');
     const phone = String(c.phone).replace(/[^0-9]/g, '');
@@ -182,14 +182,12 @@ function RetailKhataContent() {
     window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(buildReminderMsg(c, tenantName, tone))}`, '_blank');
   };
 
-  /* ─── Bulk reminder list (customers with balance + phone) ─── */
   const reminderList = useMemo(() =>
     khataData
       .filter((c) => c.balance > 0 && c.phone)
       .sort((a, b) => b.balance - a.balance),
     [khataData]);
 
-  /* ─── CSV ─── */
   const exportCSV = () => {
     if (filtered.length === 0) return toast.error('Koi data nahi');
     const summary = [
@@ -214,7 +212,6 @@ function RetailKhataContent() {
     toast.success('Khata export ho gaya');
   };
 
-  /* ─── Keyboard ─── */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const tag = document.activeElement?.tagName;
@@ -328,7 +325,7 @@ function RetailKhataContent() {
             </div>
           </div>
 
-          {/* 🔔 BULK REMINDER strip — ye hai asli feature */}
+          {/* 🔔 BULK REMINDER strip */}
           {stats.withDues > 0 && (
             <div className="relative mt-4 rounded-2xl bg-gradient-to-r from-emerald-500/25 to-green-500/15 backdrop-blur-md border border-emerald-300/40 p-3 flex items-center gap-3 flex-wrap">
               <div className="h-10 w-10 rounded-xl bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/40 shrink-0">
@@ -511,7 +508,7 @@ function RetailKhataContent() {
 }
 
 /* ═════════════════════════════════════════════════════════════
-   🔔 BULK REMINDER WIZARD — sab customers ko step-by-step
+   🔔 BULK REMINDER WIZARD
    ═════════════════════════════════════════════════════════════ */
 function BulkReminderWizard({ customers, shopName, onClose }: {
   customers: any[];
@@ -602,7 +599,7 @@ function BulkReminderWizard({ customers, shopName, onClose }: {
                 {doneIds.size} reminders bheje • {skippedIds.size} skip kiye
               </p>
               <Button className="mt-4 bg-gradient-to-r from-emerald-600 to-teal-700 font-extrabold" onClick={onClose}>
-                <Check className="h-4 w-4" /> Band Karo
+                <CheckCircle2 className="h-4 w-4" /> Band Karo
               </Button>
             </div>
           ) : current && (
@@ -661,7 +658,7 @@ function BulkReminderWizard({ customers, shopName, onClose }: {
                     onClick={copyMsg}
                     className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400 inline-flex items-center gap-1 hover:underline"
                   >
-                    {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                    {copied ? <CheckCircle2 className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                     {copied ? 'Copied!' : 'Copy'}
                   </button>
                 </div>
@@ -708,8 +705,6 @@ function BulkReminderWizard({ customers, shopName, onClose }: {
     </div>
   );
 }
-
-function Check(props: any) { return <CheckCircle2 {...props} />; }
 
 /* ═════════════════════════════════════════════════════════════
    🎓 KHATA TEACHER
@@ -773,7 +768,7 @@ function KhataTeacher({ onClose, onStartBulk, hasDues }: { onClose: () => void; 
 }
 
 /* ═════════════════════════════════════════════════════════════
-   CUSTOMER ROW (aging badge + dark mode)
+   CUSTOMER ROW
    ═════════════════════════════════════════════════════════════ */
 function CustomerKhataRow({ customer, expanded, hideCost, onToggle, onPayment, onWhatsApp }: any) {
   const hasBalance = customer.balance > 0;
@@ -941,7 +936,7 @@ function CustomerKhataRow({ customer, expanded, hideCost, onToggle, onPayment, o
 }
 
 /* ═════════════════════════════════════════════════════════════
-   PAYMENT MODAL (upgraded + dark mode)
+   PAYMENT MODAL
    ═════════════════════════════════════════════════════════════ */
 function PaymentModal({ customer, loading, onClose, onConfirm }: any) {
   const [amount, setAmount] = useState<string>(String(customer.balance));
