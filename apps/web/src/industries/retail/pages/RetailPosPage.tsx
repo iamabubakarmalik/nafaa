@@ -155,6 +155,22 @@ export default function RetailPosPage() {
     const t = setTimeout(() => setDebouncedSearch(search), 120);
     return () => clearTimeout(t);
   }, [search]);
+
+  // ⭐ AUTO-REFRESH products on POS — page khule ya wapas aao, hamesha fresh stock
+  //    (Purchase / + Stock / Quick Setup ke baad purana cache nahi dikhega)
+  useEffect(() => {
+    const refresh = () => {
+      queryClient.invalidateQueries(); // sab queries refetch — products bhi
+    };
+    refresh(); // mount pe ek dafa
+    const onFocus = () => { if (navigator.onLine !== false) refresh(); };
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) onFocus();
+    });
+    return () => window.removeEventListener('focus', onFocus);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   useEffect(() => {
     setVisibleCount(60);
     if (scrollRef.current) scrollRef.current.scrollTop = 0;

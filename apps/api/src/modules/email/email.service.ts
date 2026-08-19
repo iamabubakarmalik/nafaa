@@ -66,6 +66,9 @@ export class EmailService {
         }
       } catch (e: any) {
         this.logger.error(`Template compilation failed: ${e.message}`);
+        // ═══ FIX: Compilation fail hone pe bhi email bhejo (raw) ═══
+        subject = params.subject ?? subject;
+        bodyHtml = params.bodyHtml ?? bodyHtml;
       }
     }
 

@@ -177,7 +177,7 @@ export class AuthService {
     this.sendWelcomeEmail(result.tenant, result.user);
 
     this.sendVerifyEmailOtp(result.user.id).catch((e) => {
-      console.error('Auto verify OTP send failed:', e.message);
+      console.error('Auto verify OTP send failed:', e);
     });
 
     const tokens = await this.issueTokens({
@@ -576,7 +576,7 @@ export class AuthService {
   }
 
   // ═══════════════════════════════════════════════════════════
-  // EMAIL VERIFICATION
+  // EMAIL VERIFICATION — FIXED VERSION
   // ═══════════════════════════════════════════════════════════
   async sendVerifyEmailOtp(userId: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
@@ -605,28 +605,46 @@ export class AuthService {
     }
 
     const code = generateOtp(6);
-    await this.prisma.otpCode.create({
-      data: {
-        email: user.email,
-        userId: user.id,
-        code,
-        purpose: OtpPurpose.VERIFY_EMAIL,
-        expiresAt: addMinutes(new Date(), 10),
-      },
-    });
+    
+    // ═══ FIX: OTP create ko try/catch me wrap karo ═══
+    try {
+      await this.prisma.otpCode.create({
+        data: {
+          email: user.email,
+          userId: user.id,
+          code,
+          purpose: OtpPurpose.VERIFY_EMAIL,
+          expiresAt: addMinutes(new Date(), 10),
+        },
+      });
+    } catch (e: any) {
+      console.error('❌ OTP CREATE FAILED:', e?.message);
+      console.error('   Full error:', e);
+      throw new BadRequestException('OTP create nahi ho saka — DB check karo');
+    }
 
     const appUrl = this.configService.get<string>('APP_URL') || 'http://localhost:5173';
-    this.emailService
-      .send({
+    
+    // ═══ FIX: Email send ko try/catch me wrap karo ═══
+    try {
+      await this.emailService.send({
         tenantId: user.tenantId,
         templateSlug: 'email-verify',
         toEmail: user.email,
         toName: user.fullName,
         variables: { name: user.fullName, code, appUrl },
-      })
-      .catch((e) => console.error('Verify email OTP failed:', e.message));
-
-    console.log(`📧 Verify-email OTP for ${user.email}: ${code}`);
+      });
+      console.log(`📧 Verify-email OTP sent to ${user.email}: ${code}`);
+    } catch (e: any) {
+      console.error('❌ EMAIL SEND FAILED:', e?.message);
+      console.error('   Full error:', e);
+      // OTP bana diya, email fail hui — retry ka option do
+      return {
+        success: true,
+        message: 'OTP bana diya, email send fail hui — dobara try karein',
+        devCode: process.env.NODE_ENV !== 'production' ? code : undefined,
+      };
+    }
 
     return {
       success: true,

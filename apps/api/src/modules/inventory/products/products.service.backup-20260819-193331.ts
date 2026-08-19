@@ -246,49 +246,6 @@ export class ProductsService {
       data: productData,
     });
 
-    // ⭐ ShopStock sync — stock edit hua to main shop ki ShopStock mein
-    //    delta increment/decrement (warna POS pe purana/0 stock dikhta hai)
-    if (dto.stock !== undefined && Number(dto.stock) !== (existing.stock ?? 0)) {
-      const delta = Number(dto.stock) - (existing.stock ?? 0);
-      try {
-        const mainShop =
-          (await this.prisma.shop.findFirst({
-            where: { tenantId: user.tenantId, isActive: true, isMain: true },
-            select: { id: true },
-          })) ??
-          (await this.prisma.shop.findFirst({
-            where: { tenantId: user.tenantId, isActive: true },
-            orderBy: { createdAt: 'asc' },
-            select: { id: true },
-          }));
-        if (mainShop) {
-          const row = await this.prisma.shopStock.findFirst({
-            where: { shopId: mainShop.id, productId: id, variantId: null },
-          });
-          if (row) {
-            await this.prisma.shopStock.update({
-              where: { id: row.id },
-              data: { stock: { increment: delta } },
-            });
-          } else {
-            await this.prisma.shopStock.create({
-              data: {
-                tenantId: user.tenantId,
-                shopId: mainShop.id,
-                productId: id,
-                variantId: null,
-                stock: Math.max(0, Number(dto.stock)),
-                isActive: true,
-              },
-            });
-          }
-          this.logger.log(`ShopStock sync on update: product=${id} delta=${delta}`);
-        }
-      } catch (e: any) {
-        this.logger.warn(`ShopStock sync on update failed: ${e?.message}`);
-      }
-    }
-
     if (tagIds !== undefined) {
       await this.prisma.productTag.deleteMany({ where: { productId: id } });
       if (tagIds.length) {
@@ -559,101 +516,7 @@ export class ProductsService {
    * Return the full seed catalog for the frontend picker.
    * Includes existing brand/category IDs if already created for this tenant.
    */
-
-  /**
-   * SELF-HEAL — jis bhi product ki ShopStock row kisi shop mein missing hai,
-   * wo bana do (product.stock ki value ke saath).
-   *
-   * Manual create mein row creation ke waqt ban jati hai — lekin purane
-   * quick-imported products ki kabhi bani hi nahi. Ye method catalog open
-   * aur import — dono waqt chalti hai, taake POS pe "Available: 0" ka
-   * masla kabhi na aaye. Sirf MISSING rows banati hai, existing rows
-   * ko touch nahi karti.
-   */
-  private async healMissingShopStock(tenantId: string): Promise<number> {
-    try {
-      const [products, shops] = await Promise.all([
-        this.prisma.product.findMany({
-          where: { tenantId },
-          select: { id: true, stock: true },
-        }),
-        this.prisma.shop.findMany({
-          where: { tenantId, isActive: true },
-          select: { id: true, isMain: true },
-        }),
-      ]);
-      if (!products.length || !shops.length) return 0;
-
-      const mainShop = shops.find((s) => s.isMain) ?? shops[0];
-      const stockOf = new Map(products.map((p) => [p.id, p.stock ?? 0]));
-
-      const existing = await this.prisma.shopStock.findMany({
-        where: { productId: { in: products.map((p) => p.id) } },
-        select: { id: true, productId: true, shopId: true, stock: true },
-      });
-      const byKey = new Map(existing.map((r) => [`${r.productId}:${r.shopId}`, r]));
-
-      let healed = 0;
-
-      // (a) Missing rows — main shop gets product.stock, others 0
-      const toCreate: any[] = [];
-      for (const p of products) {
-        for (const shop of shops) {
-          if (!byKey.has(`${p.id}:${shop.id}`)) {
-            toCreate.push({
-              tenantId,
-              shopId: shop.id,
-              productId: p.id,
-              variantId: null,
-              stock: shop.id === mainShop.id ? (p.stock ?? 0) : 0,
-              isActive: true,
-            });
-          }
-        }
-      }
-      for (let i = 0; i < toCreate.length; i += 500) {
-        try {
-          const res = await this.prisma.shopStock.createMany({
-            data: toCreate.slice(i, i + 500),
-            skipDuplicates: true,
-          });
-          healed += res.count;
-        } catch (e: any) {
-          this.logger.warn(`heal create chunk failed: ${e?.message}`);
-        }
-      }
-
-      // (b) ZERO-REPAIR — main shop row 0 hai lekin product.stock > 0
-      for (const r of existing) {
-        if (r.shopId !== mainShop.id) continue;
-        const pStock = stockOf.get(r.productId) ?? 0;
-        if ((r.stock ?? 0) === 0 && pStock > 0) {
-          try {
-            await this.prisma.shopStock.update({
-              where: { id: r.id },
-              data: { stock: pStock },
-            });
-            healed++;
-          } catch (e: any) {
-            this.logger.warn(`heal repair failed: ${e?.message}`);
-          }
-        }
-      }
-
-      if (healed > 0) {
-        this.logger.log(`✅ ShopStock self-heal: ${healed} rows fixed`);
-      }
-      return healed;
-    } catch (e: any) {
-      this.logger.warn(`healMissingShopStock failed: ${e?.message}`);
-      return 0;
-    }
-  }
-
   async getQuickSetupCatalog(user: AuthenticatedUser) {
-    // ⭐ Self-heal: purane imported products ki missing ShopStock rows repair
-    await this.healMissingShopStock(user.tenantId);
-
     const [existingBrands, existingCategories, existingProducts] = await Promise.all([
       this.prisma.brand.findMany({
         where: { tenantId: user.tenantId },
@@ -938,9 +801,6 @@ export class ProductsService {
         }
       }, { timeout: 30000 });
     }
-
-    // ⭐ Self-heal: har product ki ShopStock har shop mein guarantee
-    await this.healMissingShopStock(user.tenantId);
 
     return {
       message: `${productsCreated} products import ho gaye! 🎉`,

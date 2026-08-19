@@ -23,6 +23,7 @@ import {
   PurchasesHero, TabSwitcher, PurchaseStatCard, ComparisonCard,
   formatDate, formatQty, PAYMENT_COLORS,
 } from '@modules/purchasing/purchases/components/PurchasesShared';
+import { forceRefreshProducts } from '@core/lib/offline/offlineProducts';
 
 /* ═════════════════════════════════════════════════════════════
    NAFAA RETAIL PURCHASES V2 — FULL BEST
@@ -229,6 +230,7 @@ export default function RetailPurchasesV2() {
       items: cart.map((l) => ({ productId: l.productId, quantity: l.quantity, costPrice: l.costPrice })),
     }, {
       onSuccess: () => {
+      forceRefreshProducts().catch(() => {}); // ⭐ POS cache refresh
         toast.success('✓ Purchase save ho gayi — stock update!');
         setCart([]); setSelectedProductId(''); setProductSearch('');
         setQty('1'); setCost(''); setDiscount(''); setPaidAmount(''); setNotes('');

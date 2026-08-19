@@ -45,7 +45,6 @@ export function QuickStockModal({ product, onClose }: Props) {
   const mutation = useMutation({
     mutationFn: () => productsApi.update(product.id, { stock: finalStock } as any),
     onSuccess: () => {
-      forceRefreshProducts().catch(() => {}); // ⭐ POS cache refresh
       toast.success(`${product.name} — stock ${finalStock} ${unit} ho gaya`, {
         description: diff > 0 ? `+${diff} ${unit} add hua` : diff < 0 ? `${diff} ${unit} kam hua` : 'No change',
       });

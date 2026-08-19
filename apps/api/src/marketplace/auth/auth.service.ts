@@ -776,7 +776,7 @@ export class MarketplaceAuthService {
       .send({
         toEmail: customer.email,
         toName: customer.fullName,
-        templateSlug: 'customer-verify-email',
+        templateSlug: 'email-verify',
         variables: {
           name: customer.fullName,
           code,
