@@ -91,7 +91,7 @@ export function Hero() {
               <Button
                 size="xl"
                 variant="secondary"
-                href="#demo"
+                href="demo"
                 leftIcon={<Play className="h-4 w-4" />}
               >
                 {t('hero.ctaSecondary')}
