@@ -69,7 +69,7 @@ export function VariantEditPanel({ variant, basic, onChange }: Props) {
             </div>
             <div className="grid sm:grid-cols-3 gap-2">
               <div>
-                <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1 flex items-center gap-1">
+                <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1 items-center gap-1">
                   <HardDrive className="h-2.5 w-2.5" /> Storage
                 </label>
                 <input
@@ -80,7 +80,7 @@ export function VariantEditPanel({ variant, basic, onChange }: Props) {
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1 flex items-center gap-1">
+                <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1 items-center gap-1">
                   <Cpu className="h-2.5 w-2.5" /> RAM
                 </label>
                 <input
@@ -206,7 +206,7 @@ export function VariantEditPanel({ variant, basic, onChange }: Props) {
               </div>
               <div className="space-y-2">
                 <div>
-                  <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1 flex items-center gap-1">
+                  <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1 items-center gap-1">
                     <StickyNote className="h-2.5 w-2.5" /> Notes
                   </label>
                   <textarea

@@ -15,7 +15,6 @@ export type RepairStatus =
   | 'UNREPAIRABLE';
 
 export type RepairPriority = 'NORMAL' | 'URGENT' | 'EMERGENCY';
-
 export type RepairPaymentStatus = 'PENDING' | 'ADVANCE_PAID' | 'FULLY_PAID';
 
 // ─── Status Labels & Colors ────────────────────────────────
@@ -32,16 +31,43 @@ export const REPAIR_STATUS_LABELS: Record<RepairStatus, string> = {
   UNREPAIRABLE: 'Unrepairable',
 };
 
-export const REPAIR_STATUS_COLORS: Record<RepairStatus, { bg: string; text: string; border: string }> = {
-  RECEIVED: { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300' },
-  DIAGNOSED: { bg: 'bg-indigo-100', text: 'text-indigo-700', border: 'border-indigo-300' },
-  AWAITING_APPROVAL: { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-300' },
-  AWAITING_PARTS: { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-300' },
-  IN_PROGRESS: { bg: 'bg-violet-100', text: 'text-violet-700', border: 'border-violet-300' },
-  READY: { bg: 'bg-emerald-100', text: 'text-emerald-700', border: 'border-emerald-300' },
-  DELIVERED: { bg: 'bg-slate-100', text: 'text-slate-700', border: 'border-slate-300' },
-  CANCELLED: { bg: 'bg-rose-100', text: 'text-rose-700', border: 'border-rose-300' },
-  UNREPAIRABLE: { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300' },
+export const REPAIR_STATUS_URDU: Record<RepairStatus, string> = {
+  RECEIVED: 'Mila',
+  DIAGNOSED: 'Check ho gaya',
+  AWAITING_APPROVAL: 'Customer ki manzoori chahiye',
+  AWAITING_PARTS: 'Parts ka intezaar',
+  IN_PROGRESS: 'Kaam chal raha hai',
+  READY: 'Tayyar (Pickup)',
+  DELIVERED: 'Deliver ho gaya',
+  CANCELLED: 'Cancel',
+  UNREPAIRABLE: 'Nahin ban sakta',
+};
+
+export const REPAIR_STATUS_EMOJI: Record<RepairStatus, string> = {
+  RECEIVED: '📥',
+  DIAGNOSED: '🔍',
+  AWAITING_APPROVAL: '⏳',
+  AWAITING_PARTS: '📦',
+  IN_PROGRESS: '🔧',
+  READY: '✅',
+  DELIVERED: '🎉',
+  CANCELLED: '❌',
+  UNREPAIRABLE: '💀',
+};
+
+export const REPAIR_STATUS_COLORS: Record<
+  RepairStatus,
+  { bg: string; text: string; border: string; darkBg: string; darkText: string }
+> = {
+  RECEIVED:          { bg: 'bg-blue-100',    text: 'text-blue-700',    border: 'border-blue-300',    darkBg: 'dark:bg-blue-900/30',    darkText: 'dark:text-blue-300'    },
+  DIAGNOSED:         { bg: 'bg-indigo-100',  text: 'text-indigo-700',  border: 'border-indigo-300',  darkBg: 'dark:bg-indigo-900/30',  darkText: 'dark:text-indigo-300'  },
+  AWAITING_APPROVAL: { bg: 'bg-amber-100',   text: 'text-amber-700',   border: 'border-amber-300',   darkBg: 'dark:bg-amber-900/30',   darkText: 'dark:text-amber-300'   },
+  AWAITING_PARTS:    { bg: 'bg-orange-100',  text: 'text-orange-700',  border: 'border-orange-300',  darkBg: 'dark:bg-orange-900/30',  darkText: 'dark:text-orange-300'  },
+  IN_PROGRESS:       { bg: 'bg-violet-100',  text: 'text-violet-700',  border: 'border-violet-300',  darkBg: 'dark:bg-violet-900/30',  darkText: 'dark:text-violet-300'  },
+  READY:             { bg: 'bg-emerald-100', text: 'text-emerald-700', border: 'border-emerald-300', darkBg: 'dark:bg-emerald-900/30', darkText: 'dark:text-emerald-300' },
+  DELIVERED:         { bg: 'bg-slate-100',   text: 'text-slate-700',   border: 'border-slate-300',   darkBg: 'dark:bg-slate-800',      darkText: 'dark:text-slate-300'   },
+  CANCELLED:         { bg: 'bg-rose-100',    text: 'text-rose-700',    border: 'border-rose-300',    darkBg: 'dark:bg-rose-900/30',    darkText: 'dark:text-rose-300'    },
+  UNREPAIRABLE:      { bg: 'bg-red-100',     text: 'text-red-700',     border: 'border-red-300',     darkBg: 'dark:bg-red-900/30',     darkText: 'dark:text-red-300'     },
 };
 
 // ─── Priority Labels & Colors ──────────────────────────────
@@ -52,24 +78,61 @@ export const REPAIR_PRIORITY_LABELS: Record<RepairPriority, string> = {
   EMERGENCY: 'Emergency',
 };
 
-export const REPAIR_PRIORITY_COLORS: Record<RepairPriority, { bg: string; text: string; border: string }> = {
-  NORMAL: { bg: 'bg-slate-100', text: 'text-slate-700', border: 'border-slate-300' },
-  URGENT: { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-300' },
-  EMERGENCY: { bg: 'bg-rose-100', text: 'text-rose-700', border: 'border-rose-300' },
+export const REPAIR_PRIORITY_URDU: Record<RepairPriority, string> = {
+  NORMAL: 'Aam',
+  URGENT: 'Jaldi chahiye',
+  EMERGENCY: 'Bohat urgent',
+};
+
+export const REPAIR_PRIORITY_EMOJI: Record<RepairPriority, string> = {
+  NORMAL: '🟢',
+  URGENT: '🟠',
+  EMERGENCY: '🔴',
+};
+
+export const REPAIR_PRIORITY_COLORS: Record<
+  RepairPriority,
+  { bg: string; text: string; border: string }
+> = {
+  NORMAL:    { bg: 'bg-slate-100',  text: 'text-slate-700',  border: 'border-slate-300' },
+  URGENT:    { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-300' },
+  EMERGENCY: { bg: 'bg-rose-100',   text: 'text-rose-700',   border: 'border-rose-300' },
+};
+
+// ─── Payment Status ────────────────────────────────────────
+
+export const REPAIR_PAYMENT_STATUS_LABELS: Record<RepairPaymentStatus, string> = {
+  PENDING: 'Payment Pending',
+  ADVANCE_PAID: 'Advance Paid',
+  FULLY_PAID: 'Fully Paid',
 };
 
 // ─── Valid Status Transitions ──────────────────────────────
 
 export const VALID_STATUS_TRANSITIONS: Record<RepairStatus, RepairStatus[]> = {
-  RECEIVED: ['DIAGNOSED', 'CANCELLED', 'UNREPAIRABLE'],
-  DIAGNOSED: ['AWAITING_APPROVAL', 'AWAITING_PARTS', 'IN_PROGRESS', 'CANCELLED', 'UNREPAIRABLE'],
+  RECEIVED:          ['DIAGNOSED', 'CANCELLED', 'UNREPAIRABLE'],
+  DIAGNOSED:         ['AWAITING_APPROVAL', 'AWAITING_PARTS', 'IN_PROGRESS', 'CANCELLED', 'UNREPAIRABLE'],
   AWAITING_APPROVAL: ['AWAITING_PARTS', 'IN_PROGRESS', 'CANCELLED'],
-  AWAITING_PARTS: ['IN_PROGRESS', 'CANCELLED'],
-  IN_PROGRESS: ['READY', 'UNREPAIRABLE', 'CANCELLED'],
-  READY: ['DELIVERED', 'IN_PROGRESS'],
-  DELIVERED: [],
-  CANCELLED: [],
-  UNREPAIRABLE: ['CANCELLED'],
+  AWAITING_PARTS:    ['IN_PROGRESS', 'CANCELLED'],
+  IN_PROGRESS:       ['READY', 'UNREPAIRABLE', 'CANCELLED'],
+  READY:             ['DELIVERED', 'IN_PROGRESS'],
+  DELIVERED:         [],
+  CANCELLED:         [],
+  UNREPAIRABLE:      ['CANCELLED'],
+};
+
+// ─── Helper: Status flow guidance ──────────────────────────
+
+export const STATUS_NEXT_ACTIONS: Record<RepairStatus, string> = {
+  RECEIVED:          'Ab device check kar ke Diagnose karein',
+  DIAGNOSED:         'Customer ko estimate batayein → Manzoori ya Parts order',
+  AWAITING_APPROVAL: 'Customer se estimate approve karwayein',
+  AWAITING_PARTS:    'Parts aa jayein to In Progress karein',
+  IN_PROGRESS:       'Repair khatam ho to Ready mark karein',
+  READY:             'Customer ko call karein pickup ke liye',
+  DELIVERED:         'Ticket close ho gaya ✅',
+  CANCELLED:         'Ticket cancel ho chuka hai',
+  UNREPAIRABLE:      'Device repair nahin ho sakta, customer ko wapas karein',
 };
 
 // ─── Interfaces ────────────────────────────────────────────
@@ -183,6 +246,8 @@ export interface RepairStats {
   totalRevenue: number;
   totalDelivered: number;
   openTickets: number;
+  avgRepairHours?: number;
+  overdueCount?: number;
 }
 
 // ─── Payloads ──────────────────────────────────────────────
@@ -261,6 +326,8 @@ export const repairsApi = {
     shopId?: string;
     page?: number;
     limit?: number;
+    from?: string;
+    to?: string;
   }) =>
     apiClient.get('/repair-tickets', { params }).then(unwrap) as Promise<{
       items: RepairTicket[];
@@ -275,6 +342,9 @@ export const repairsApi = {
 
   getOne: (id: string) =>
     apiClient.get(`/repair-tickets/${id}`).then(unwrap) as Promise<RepairTicket>,
+
+  getByImei: (imei: string) =>
+    apiClient.get(`/repair-tickets/by-imei/${imei}`).then(unwrap) as Promise<RepairTicket | null>,
 
   create: (payload: CreateRepairTicketPayload) =>
     apiClient.post('/repair-tickets', payload).then(unwrap) as Promise<RepairTicket>,
@@ -299,4 +369,11 @@ export const repairsApi = {
 
   remove: (id: string) =>
     apiClient.delete(`/repair-tickets/${id}`).then(unwrap),
+
+  // Utility endpoints
+  sendSms: (id: string, message?: string) =>
+    apiClient.post(`/repair-tickets/${id}/send-sms`, { message }).then(unwrap),
+
+  printReceipt: (id: string) =>
+    apiClient.get(`/repair-tickets/${id}/receipt`, { responseType: 'blob' }).then((r) => r.data) as Promise<Blob>,
 };

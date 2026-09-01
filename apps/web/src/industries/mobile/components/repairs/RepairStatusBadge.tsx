@@ -5,7 +5,10 @@ import {
 import {
   type RepairStatus,
   REPAIR_STATUS_LABELS,
+  REPAIR_STATUS_URDU,
   REPAIR_STATUS_COLORS,
+  REPAIR_STATUS_EMOJI,
+  STATUS_NEXT_ACTIONS,
 } from '../../api/repairs.api';
 
 const ICONS: Record<RepairStatus, any> = {
@@ -24,17 +27,29 @@ interface Props {
   status: RepairStatus;
   size?: 'sm' | 'md' | 'lg';
   showIcon?: boolean;
+  showEmoji?: boolean;
+  useUrdu?: boolean;
+  pulse?: boolean;
 }
 
-export function RepairStatusBadge({ status, size = 'md', showIcon = true }: Props) {
+export function RepairStatusBadge({
+  status,
+  size = 'md',
+  showIcon = true,
+  showEmoji = false,
+  useUrdu = false,
+  pulse = false,
+}: Props) {
   const Icon = ICONS[status] || AlertCircle;
   const colors = REPAIR_STATUS_COLORS[status];
-  const label = REPAIR_STATUS_LABELS[status];
+  const label = useUrdu ? REPAIR_STATUS_URDU[status] : REPAIR_STATUS_LABELS[status];
+  const emoji = REPAIR_STATUS_EMOJI[status];
+  const nextAction = STATUS_NEXT_ACTIONS[status];
 
   const sizeClasses = {
-    sm: 'text-[9px] px-1.5 py-0.5',
-    md: 'text-[10px] px-2 py-0.5',
-    lg: 'text-xs px-2.5 py-1',
+    sm: 'text-[9px] px-1.5 py-0.5 gap-0.5',
+    md: 'text-[10px] px-2 py-0.5 gap-1',
+    lg: 'text-xs px-2.5 py-1 gap-1.5',
   };
 
   const iconSizes = {
@@ -45,10 +60,20 @@ export function RepairStatusBadge({ status, size = 'md', showIcon = true }: Prop
 
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full border font-extrabold uppercase tracking-wider ${colors.bg} ${colors.text} ${colors.border} ${sizeClasses[size]}`}
-      title={label}
+      className={[
+        'inline-flex items-center rounded-full border font-extrabold uppercase tracking-wider',
+        colors.bg,
+        colors.text,
+        colors.border,
+        colors.darkBg,
+        colors.darkText,
+        sizeClasses[size],
+        pulse ? 'animate-pulse' : '',
+      ].join(' ')}
+      title={`${label} — ${nextAction}`}
     >
-      {showIcon && <Icon className={iconSizes[size]} />}
+      {showEmoji && <span className="leading-none">{emoji}</span>}
+      {showIcon && !showEmoji && <Icon className={iconSizes[size]} />}
       {label}
     </span>
   );

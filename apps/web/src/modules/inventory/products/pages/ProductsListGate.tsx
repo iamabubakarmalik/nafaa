@@ -4,6 +4,7 @@ import { useCurrentIndustry } from '../../../../industries/_shared/registry/useC
 import ProductsListPage from './ProductsListPage';
 
 const RetailProductsPage = lazy(() => import('../../../../industries/retail/pages/RetailProductsPage'));
+const MobileProductsPage = lazy(() => import('../../../../industries/mobile/pages/MobileProductsPage'));
 
 // ─── 10 NEW industries with dedicated list pages ───
 const AppliancesProductsPage = lazy(() => import('@industries/appliances/pages/AppliancesProductsPage'));
@@ -32,6 +33,8 @@ export default function ProductsListGate() {
   const industry = useCurrentIndustry();
 
   if (industry?.id === 'retail') return <Suspense fallback={<Loader />}><RetailProductsPage /></Suspense>;
+  if (industry?.id === 'mobile') return <Suspense fallback={<Loader />}><MobileProductsPage /></Suspense>;
+
 
   // 10 NEW industries
   if (industry?.id === 'appliances') return <Suspense fallback={<Loader />}><AppliancesProductsPage /></Suspense>;

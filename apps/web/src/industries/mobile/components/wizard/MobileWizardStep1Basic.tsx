@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import {
   Package, DollarSign, Image as ImageIcon, Sparkles, Star, Eye,
   TrendingUp, Hash, AlertCircle, Smartphone, Cable, Shuffle,
-  ShieldCheck, Clock,
+  ShieldCheck, Zap,
 } from 'lucide-react';
 import { Input } from '@core/ui/Input';
 import { UploadDropzone } from '@core/components/uploads';
@@ -26,13 +26,13 @@ const PRODUCT_TYPES: Array<{
   label: string;
   desc: string;
   icon: any;
-  color: string;
+  color: 'blue' | 'emerald' | 'amber';
   examples: string;
 }> = [
   {
     key: 'PHONE',
     label: 'Phone / Device',
-    desc: 'IMEI-tracked device (smartphone, tablet)',
+    desc: 'IMEI-tracked — har unit ka apna IMEI + PTA',
     icon: Smartphone,
     color: 'blue',
     examples: 'iPhone, Samsung, tablets, smartwatches',
@@ -40,19 +40,33 @@ const PRODUCT_TYPES: Array<{
   {
     key: 'ACCESSORY',
     label: 'Accessory',
-    desc: 'Regular stock, no IMEI needed',
+    desc: 'Simple stock — koi IMEI nahi, sirf qty',
     icon: Cable,
     color: 'emerald',
-    examples: 'Chargers, cables, covers, screen protectors',
+    examples: 'Chargers, covers, glass, cables, handsfree',
   },
   {
     key: 'MIXED',
     label: 'Mixed',
-    desc: 'Different variants use different types',
+    desc: 'Har variant apna type khud choose karega',
     icon: Shuffle,
     color: 'amber',
-    examples: 'Sometimes rare — variant chooses its own type',
+    examples: 'Rare — jaise phone + free cover bundle',
   },
+];
+
+/** Accessory quick-name chips — 1 tap se naam */
+const ACCESSORY_QUICK = [
+  { label: 'Charger', emoji: '🔌' },
+  { label: 'Cover', emoji: '📱' },
+  { label: 'Tempered Glass', emoji: '🛡️' },
+  { label: 'Handsfree', emoji: '🎧' },
+  { label: 'Data Cable', emoji: '🔗' },
+  { label: 'Power Bank', emoji: '🔋' },
+  { label: 'Earbuds', emoji: '🎵' },
+  { label: 'Car Charger', emoji: '🚗' },
+  { label: 'Memory Card', emoji: '💾' },
+  { label: 'OTG', emoji: '📲' },
 ];
 
 export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
@@ -60,6 +74,7 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
   const { data: brands = [] } = useQuery({ queryKey: ['brands'], queryFn: () => brandsApi.list() });
   const { data: allTags = [] } = useQuery({ queryKey: ['tags'], queryFn: tagsApi.list });
 
+  const isAccessory = basic.productType === 'ACCESSORY';
   const cost = Number(basic.costPrice || 0);
   const sale = Number(basic.salePrice || 0);
   const profit = sale - cost;
@@ -73,15 +88,15 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
     });
   };
 
-  const priceUnit = basic.productType === 'ACCESSORY' ? 'unit' : 'device';
+  const priceUnit = isAccessory ? 'piece' : 'device';
 
   return (
     <div className="space-y-5">
       {errors.length > 0 && (
-        <div className="rounded-2xl bg-rose-50 border-2 border-rose-200 p-3 flex items-start gap-2">
-          <AlertCircle className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
-          <div className="text-xs text-rose-900">
-            <div className="font-extrabold mb-0.5">Fix these before Next:</div>
+        <div className="rounded-2xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/40 p-3 flex items-start gap-2">
+          <AlertCircle className="h-4 w-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+          <div className="text-xs text-rose-900 dark:text-rose-200">
+            <div className="font-extrabold mb-0.5">Next se pehle ye fix karein:</div>
             <ul className="list-disc pl-4 space-y-0.5">
               {errors.map((e, i) => <li key={i}>{e}</li>)}
             </ul>
@@ -89,34 +104,55 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
         </div>
       )}
 
-      {/* SECTION 1 — Identity */}
-      <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-4">
-        <SectionHeader icon={Package} title="Product Identity" desc="Model naam, brand, category" />
+      {/* ═══ SECTION 1 — Identity ═══ */}
+      <section className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 space-y-4">
+        <SectionHeader icon={Package} title="Product Identity" desc="Naam, brand, category — POS aur receipt pe yehi dikhega" />
 
         <Input
           label="Product Name *"
           value={basic.name}
           onChange={(e) => onChange({ name: e.target.value })}
-          placeholder="e.g. iPhone 15 Pro, Samsung Galaxy A54"
+          placeholder={isAccessory ? 'e.g. iPhone 15 Cover, 25W Charger' : 'e.g. iPhone 15 Pro, Samsung Galaxy A54'}
           hint="Ye naam POS aur receipt par dikhega"
         />
 
+        {/* 🎧 Accessory quick names */}
+        {isAccessory && !basic.name && (
+          <div>
+            <div className="text-[10px] uppercase tracking-wider font-extrabold text-emerald-700 dark:text-emerald-400 mb-1.5 flex items-center gap-1">
+              <Zap className="h-3 w-3" /> 1-Tap Quick Names
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {ACCESSORY_QUICK.map((q) => (
+                <button
+                  key={q.label}
+                  type="button"
+                  onClick={() => onChange({ name: q.label })}
+                  className="px-2.5 py-1.5 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-emerald-400 dark:hover:border-emerald-500 text-xs font-extrabold text-slate-700 dark:text-slate-200 transition active:scale-95"
+                >
+                  {q.emoji} {q.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div>
-          <label className="block text-sm font-bold text-slate-700 mb-1.5">Description</label>
+          <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Description</label>
           <textarea
             rows={3}
-            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+            className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
             value={basic.description}
             onChange={(e) => onChange({ description: e.target.value })}
-            placeholder="Features, specs, network compatibility..."
+            placeholder={isAccessory ? 'Compatibility, material, wattage...' : 'Features, specs, network compatibility...'}
           />
         </div>
 
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-1.5">Category</label>
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Category</label>
             <select
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+              className="h-11 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
               value={basic.categoryId}
               onChange={(e) => onChange({ categoryId: e.target.value })}
             >
@@ -125,9 +161,9 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-1.5">Brand</label>
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Brand</label>
             <select
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+              className="h-11 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
               value={basic.brandId}
               onChange={(e) => onChange({ brandId: e.target.value })}
             >
@@ -155,17 +191,17 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
             label="Barcode"
             value={basic.barcode}
             onChange={(e) => onChange({ barcode: e.target.value })}
-            placeholder="Optional"
+            placeholder={isAccessory ? 'POS scan ke liye recommended' : 'Optional'}
           />
         </div>
       </section>
 
-      {/* SECTION 2 — Product Type */}
-      <section className="rounded-2xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-white p-5 space-y-4">
+      {/* ═══ SECTION 2 — Product Type ═══ */}
+      <section className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/40 bg-gradient-to-br from-blue-50 to-white dark:from-blue-500/10 dark:to-slate-900 p-5 space-y-4">
         <SectionHeader
           icon={Smartphone}
           title="Product Type"
-          desc="Ye product IMEI-tracked hai ya simple stock?"
+          desc="IMEI-tracked phone hai ya simple-stock accessory?"
           tone="blue"
         />
 
@@ -174,17 +210,20 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
             const active = basic.productType === t.key;
             const Icon = t.icon;
             const colorClasses: Record<string, string> = {
-              blue: active ? 'border-blue-600 bg-blue-50 shadow-md ring-2 ring-blue-200'
-                            : 'border-slate-200 bg-white hover:border-blue-400',
-              emerald: active ? 'border-emerald-600 bg-emerald-50 shadow-md ring-2 ring-emerald-200'
-                              : 'border-slate-200 bg-white hover:border-emerald-400',
-              amber: active ? 'border-amber-600 bg-amber-50 shadow-md ring-2 ring-amber-200'
-                            : 'border-slate-200 bg-white hover:border-amber-400',
+              blue: active
+                ? 'border-blue-600 bg-blue-50 dark:bg-blue-500/15 shadow-md ring-2 ring-blue-200 dark:ring-blue-500/30'
+                : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-blue-400',
+              emerald: active
+                ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-500/15 shadow-md ring-2 ring-emerald-200 dark:ring-emerald-500/30'
+                : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-emerald-400',
+              amber: active
+                ? 'border-amber-600 bg-amber-50 dark:bg-amber-500/15 shadow-md ring-2 ring-amber-200 dark:ring-amber-500/30'
+                : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-amber-400',
             };
             const iconBg: Record<string, string> = {
-              blue: active ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-700',
-              emerald: active ? 'bg-emerald-600 text-white' : 'bg-emerald-100 text-emerald-700',
-              amber: active ? 'bg-amber-600 text-white' : 'bg-amber-100 text-amber-700',
+              blue: active ? 'bg-blue-600 text-white' : 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300',
+              emerald: active ? 'bg-emerald-600 text-white' : 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300',
+              amber: active ? 'bg-amber-600 text-white' : 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300',
             };
             return (
               <button
@@ -192,7 +231,7 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
                 type="button"
                 onClick={() => onChange({ productType: t.key })}
                 className={[
-                  'flex items-start gap-3 p-3 rounded-2xl border-2 text-left transition',
+                  'flex items-start gap-3 p-3 rounded-2xl border-2 text-left transition active:scale-[0.98]',
                   colorClasses[t.color],
                 ].join(' ')}
               >
@@ -200,9 +239,9 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
                   <Icon className="h-5 w-5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-extrabold text-slate-900 text-sm">{t.label}</div>
-                  <div className="text-[11px] text-slate-600 font-semibold leading-snug mt-0.5">{t.desc}</div>
-                  <div className="text-[10px] text-slate-500 font-bold italic mt-1">{t.examples}</div>
+                  <div className="font-extrabold text-slate-900 dark:text-white text-sm">{t.label}</div>
+                  <div className="text-[11px] text-slate-600 dark:text-slate-300 font-semibold leading-snug mt-0.5">{t.desc}</div>
+                  <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold italic mt-1">{t.examples}</div>
                 </div>
               </button>
             );
@@ -210,62 +249,64 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
         </div>
       </section>
 
-      {/* SECTION 3 — Warranty + PTA Default */}
-      <section className="rounded-2xl border-2 border-indigo-200 bg-gradient-to-br from-indigo-50 to-white p-5 space-y-4">
-        <SectionHeader
-          icon={ShieldCheck}
-          title="Warranty & PTA Default"
-          desc="IMEIs Step 3 mein ye default use karengi"
-          tone="indigo"
-        />
-
-        <div className="grid sm:grid-cols-2 gap-4">
-          <Input
-            label="Warranty Period (months)"
-            type="number"
-            step="1"
-            value={basic.warrantyMonths}
-            onChange={(e) => onChange({ warrantyMonths: e.target.value === '' ? '' : Number(e.target.value) })}
-            placeholder="12"
-            hint="Standard warranty duration"
+      {/* ═══ SECTION 3 — Warranty + PTA (phones only) ═══ */}
+      {!isAccessory && (
+        <section className="rounded-2xl border-2 border-indigo-200 dark:border-indigo-500/40 bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-500/10 dark:to-slate-900 p-5 space-y-4">
+          <SectionHeader
+            icon={ShieldCheck}
+            title="Warranty & PTA Default"
+            desc="Step 3 ke IMEIs ye defaults use karengi"
+            tone="indigo"
           />
-          <div>
-            <label className="block text-sm font-bold text-slate-700 mb-1.5">Default PTA Status</label>
-            <div className="grid grid-cols-5 gap-1.5">
-              {(['APPROVED', 'NON_PTA', 'PATCH', 'PENDING', 'EXEMPT'] as PtaStatus[]).map((status) => {
-                const active = basic.defaultPtaStatus === status;
-                const colors = PTA_STATUS_COLORS[status];
-                return (
-                  <button
-                    key={status}
-                    type="button"
-                    onClick={() => onChange({ defaultPtaStatus: status })}
-                    className={[
-                      'h-10 rounded-lg border-2 text-[10px] font-extrabold transition',
-                      active
-                        ? `${colors.bg} ${colors.text} ${colors.border} shadow-sm ring-2 ring-blue-200`
-                        : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300',
-                    ].join(' ')}
-                    title={PTA_STATUS_LABELS[status]}
-                  >
-                    {PTA_STATUS_LABELS[status].split(' ')[0]}
-                  </button>
-                );
-              })}
-            </div>
-            <p className="text-[10px] text-slate-500 font-semibold mt-1">
-              Naya IMEI add hote waqt ye default aajayega
-            </p>
-          </div>
-        </div>
-      </section>
 
-      {/* SECTION 4 — Pricing */}
-      <section className="rounded-2xl border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-5 space-y-4">
+          <div className="grid sm:grid-cols-2 gap-4">
+            <Input
+              label="Warranty Period (months)"
+              type="number"
+              step="1"
+              value={basic.warrantyMonths}
+              onChange={(e) => onChange({ warrantyMonths: e.target.value === '' ? '' : Number(e.target.value) })}
+              placeholder="12"
+              hint="Standard warranty duration"
+            />
+            <div>
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Default PTA Status</label>
+              <div className="grid grid-cols-5 gap-1.5">
+                {(['APPROVED', 'NON_PTA', 'PATCH', 'PENDING', 'EXEMPT'] as PtaStatus[]).map((status) => {
+                  const active = basic.defaultPtaStatus === status;
+                  const colors = PTA_STATUS_COLORS[status];
+                  return (
+                    <button
+                      key={status}
+                      type="button"
+                      onClick={() => onChange({ defaultPtaStatus: status })}
+                      className={[
+                        'h-10 rounded-lg border-2 text-[10px] font-extrabold transition active:scale-95',
+                        active
+                          ? `${colors.bg} ${colors.text} ${colors.border} shadow-sm ring-2 ring-blue-200 dark:ring-blue-500/30`
+                          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-slate-400',
+                      ].join(' ')}
+                      title={PTA_STATUS_LABELS[status]}
+                    >
+                      {PTA_STATUS_LABELS[status].split(' ')[0]}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold mt-1">
+                Naya IMEI add hote waqt ye default aajayega
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ═══ SECTION 4 — Pricing ═══ */}
+      <section className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/40 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-500/10 dark:to-slate-900 p-5 space-y-4">
         <SectionHeader
           icon={DollarSign}
           title={`Pricing (per ${priceUnit})`}
-          desc="Prices Step 3 mein IMEIs / stock mein auto-fill honge"
+          desc={isAccessory ? 'Simple — cost aur sale rate' : 'Prices Step 3 ke IMEIs mein auto-fill hongi'}
           tone="emerald"
         />
 
@@ -302,33 +343,30 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
         {sale > 0 && cost > 0 && (
           <div className={[
             'rounded-xl border-2 p-3 flex items-center justify-between',
-            isLoss ? 'bg-rose-50 border-rose-300' :
-            margin >= 20 ? 'bg-emerald-50 border-emerald-300' :
-            'bg-amber-50 border-amber-300',
+            isLoss ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-300 dark:border-rose-500/40'
+            : margin >= 20 ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-300 dark:border-emerald-500/40'
+            : 'bg-amber-50 dark:bg-amber-500/10 border-amber-300 dark:border-amber-500/40',
           ].join(' ')}>
             <div className="flex items-center gap-2">
               <TrendingUp className={[
                 'h-5 w-5',
-                isLoss ? 'text-rose-700' : margin >= 20 ? 'text-emerald-700' : 'text-amber-700',
+                isLoss ? 'text-rose-700 dark:text-rose-400' : margin >= 20 ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400',
               ].join(' ')} />
               <div>
                 <div className={[
                   'text-[10px] uppercase tracking-wider font-extrabold',
-                  isLoss ? 'text-rose-700' : margin >= 20 ? 'text-emerald-700' : 'text-amber-700',
+                  isLoss ? 'text-rose-700 dark:text-rose-400' : margin >= 20 ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400',
                 ].join(' ')}>
-                  {isLoss ? '⚠️ Loss Alert' : `Profit per ${priceUnit}`}
+                  {isLoss ? '⚠️ Loss Alert — sale price cost se kam!' : `Profit per ${priceUnit}`}
                 </div>
-                <div className={[
-                  'text-lg font-extrabold tabular-nums leading-tight',
-                  isLoss ? 'text-rose-900' : 'text-slate-900',
-                ].join(' ')}>
+                <div className="text-lg font-extrabold tabular-nums leading-tight text-slate-900 dark:text-white">
                   {formatPKRFull(profit)}
                 </div>
               </div>
             </div>
             <div className={[
               'text-2xl font-extrabold tabular-nums',
-              isLoss ? 'text-rose-700' : margin >= 20 ? 'text-emerald-700' : 'text-amber-700',
+              isLoss ? 'text-rose-700 dark:text-rose-400' : margin >= 20 ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400',
             ].join(' ')}>
               {margin.toFixed(1)}%
             </div>
@@ -346,32 +384,32 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
         />
       </section>
 
-      {/* SECTION 5 — Settings */}
-      <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-3">
+      {/* ═══ SECTION 5 — Settings ═══ */}
+      <section className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 space-y-3">
         <SectionHeader icon={Sparkles} title="Product Settings" desc="Visibility aur featured status" />
 
-        <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl hover:bg-slate-50 transition border-2 border-transparent hover:border-slate-200">
-          <input type="checkbox" checked={basic.isActive} onChange={(e) => onChange({ isActive: e.target.checked })} className="h-5 w-5 rounded" />
-          <Eye className="h-5 w-5 text-slate-600" />
+        <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition border-2 border-transparent hover:border-slate-200 dark:hover:border-slate-700">
+          <input type="checkbox" checked={basic.isActive} onChange={(e) => onChange({ isActive: e.target.checked })} className="h-5 w-5 rounded accent-blue-600" />
+          <Eye className="h-5 w-5 text-slate-600 dark:text-slate-400" />
           <div className="flex-1">
-            <div className="font-extrabold text-slate-900 text-sm">Active</div>
-            <div className="text-xs text-slate-500 font-semibold">POS aur catalog mein visible</div>
+            <div className="font-extrabold text-slate-900 dark:text-white text-sm">Active</div>
+            <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold">POS aur catalog mein visible</div>
           </div>
         </label>
 
-        <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl hover:bg-slate-50 transition border-2 border-transparent hover:border-slate-200">
-          <input type="checkbox" checked={basic.isFeatured} onChange={(e) => onChange({ isFeatured: e.target.checked })} className="h-5 w-5 rounded" />
+        <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition border-2 border-transparent hover:border-slate-200 dark:hover:border-slate-700">
+          <input type="checkbox" checked={basic.isFeatured} onChange={(e) => onChange({ isFeatured: e.target.checked })} className="h-5 w-5 rounded accent-amber-500" />
           <Star className="h-5 w-5 text-amber-500" />
           <div className="flex-1">
-            <div className="font-extrabold text-slate-900 text-sm">Featured</div>
-            <div className="text-xs text-slate-500 font-semibold">Catalog mein highlight</div>
+            <div className="font-extrabold text-slate-900 dark:text-white text-sm">Featured</div>
+            <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Catalog mein highlight — sab se upar</div>
           </div>
         </label>
       </section>
 
-      {/* SECTION 6 — Tags */}
+      {/* ═══ SECTION 6 — Tags ═══ */}
       {allTags.length > 0 && (
-        <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-3">
+        <section className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 space-y-3">
           <SectionHeader icon={Hash} title="Tags" desc="Product ko organize karne ke liye" />
           <div className="flex flex-wrap gap-2">
             {allTags.map((t) => {
@@ -381,15 +419,16 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
                   key={t.id}
                   type="button"
                   onClick={() => toggleTag(t.id)}
-                  className={['inline-flex items-center gap-2 px-3 py-1.5 rounded-full border-2 text-sm font-bold transition', active ? 'shadow-sm' : 'opacity-60 hover:opacity-100'].join(' ')}
+                  className={['inline-flex items-center gap-2 px-3 py-1.5 rounded-full border-2 text-sm font-bold transition active:scale-95', active ? 'shadow-sm' : 'opacity-60 hover:opacity-100'].join(' ')}
                   style={{
-                    backgroundColor: active ? `${t.color}20` : '#fff',
-                    borderColor: active ? t.color : '#e2e8f0',
-                    color: active ? t.color : '#475569',
+                    backgroundColor: active ? `${t.color}20` : undefined,
+                    borderColor: active ? t.color : undefined,
+                    color: active ? t.color : undefined,
                   }}
+                  data-inactive={!active || undefined}
                 >
-                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: t.color }} />
-                  {t.name}
+                  {!active && <span className="h-2 w-2 rounded-full" style={{ backgroundColor: t.color }} />}
+                  <span className={active ? '' : 'text-slate-600 dark:text-slate-300'}>{t.name}</span>
                 </button>
               );
             })}
@@ -397,9 +436,9 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
         </section>
       )}
 
-      {/* SECTION 7 — Images */}
-      <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-3">
-        <SectionHeader icon={ImageIcon} title="Product Images" desc="Pehla image primary" />
+      {/* ═══ SECTION 7 — Images ═══ */}
+      <section className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 space-y-3">
+        <SectionHeader icon={ImageIcon} title="Product Images" desc="Pehla image primary — POS pe yehi dikhega" />
 
         <UploadDropzone
           purpose="product-image"
@@ -413,7 +452,7 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
         {basic.imageUrls.length > 0 && (
           <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
             {basic.imageUrls.map((url, idx) => (
-              <div key={url + idx} className="relative group aspect-square rounded-xl overflow-hidden border-2 border-slate-200">
+              <div key={url + idx} className="relative group aspect-square rounded-xl overflow-hidden border-2 border-slate-200 dark:border-slate-700">
                 <img src={url} alt={`mobile-${idx}`} className="w-full h-full object-cover" />
                 {idx === 0 && (
                   <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-blue-600 text-white text-[9px] font-extrabold">PRIMARY</div>
@@ -441,13 +480,13 @@ function SectionHeader({
     indigo: 'from-indigo-500 to-indigo-700',
   };
   return (
-    <div className="flex items-center gap-3 pb-2 border-b-2 border-slate-100">
+    <div className="flex items-center gap-3 pb-2 border-b-2 border-slate-100 dark:border-slate-800">
       <div className={['h-10 w-10 rounded-xl text-white flex items-center justify-center shadow-md bg-gradient-to-br', tones[tone] ?? tones.slate].join(' ')}>
         <Icon className="h-5 w-5" />
       </div>
       <div>
-        <h3 className="font-extrabold text-slate-900 text-base leading-tight">{title}</h3>
-        <p className="text-xs text-slate-500 font-semibold">{desc}</p>
+        <h3 className="font-extrabold text-slate-900 dark:text-white text-base leading-tight">{title}</h3>
+        <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">{desc}</p>
       </div>
     </div>
   );

@@ -360,7 +360,7 @@ import RentalsPage from '@industries/bookstore/pages/RentalsPage';
 // ─── Industry Product/Item Wizards & Details ──────────────────
 import CarpetProductWizardPage from '@industries/carpet/pages/CarpetProductWizardPage';
 import CarpetProductDetailPage from '@industries/carpet/pages/CarpetProductDetailPage';
-import MobileProductWizardPage from '@industries/mobile/pages/MobileProductWizardPage';
+import MobileProductWizardPage from '@/industries/mobile/pages/MobileProductWizardPage';
 import MobileProductDetailPage from '@industries/mobile/pages/MobileProductDetailPage';
 import RetailProductWizardPage from '@industries/retail/pages/RetailProductWizardPage';
 import RetailProductDetailPage from '@industries/retail/pages/RetailProductDetailPage';

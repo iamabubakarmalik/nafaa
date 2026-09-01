@@ -71,7 +71,6 @@ export const MobilePack: IndustryPack = {
       color: '#2563eb',
       order: 20,
       items: [
-        { to: '/mobile-products/new', label: '+ Add Mobile Product', icon: Sparkles, badge: 'FAST' },
         { to: '/imei-inventory', label: 'IMEI Inventory', icon: Smartphone },
         { to: '/used-phones', label: 'Used Phones', icon: RefreshCw },
         { to: '/repair-tickets', label: 'Repairs', icon: Wrench },

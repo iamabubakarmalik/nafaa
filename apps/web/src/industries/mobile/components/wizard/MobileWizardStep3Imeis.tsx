@@ -5,9 +5,7 @@ import {
 } from 'lucide-react';
 import { MobileImeiTable } from './MobileImeiTable';
 import { MobileAccessoryStockCard } from './MobileAccessoryStockCard';
-import {
-  resolveVariantProductType,
-} from '../../hooks/useMobileWizard';
+import { resolveVariantProductType } from '../../hooks/useMobileWizard';
 import {
   PTA_STATUS_COLORS, PTA_STATUS_LABELS, type PtaStatus,
 } from '../../api/imei.api';
@@ -89,14 +87,17 @@ export function MobileWizardStep3Imeis({
 
   const totalImeis = imeiLines.length;
   const totalAccUnits = accessoryStock.reduce((a, s) => a + Number(s.currentStock || 0), 0);
+  const phoneBuckets = buckets.filter((b) => b.productType === 'PHONE').length;
+  const accBuckets = buckets.length - phoneBuckets;
+  const allAccessory = phoneBuckets === 0;
 
   return (
     <div className="space-y-4">
       {errors.length > 0 && (
-        <div className="rounded-2xl bg-rose-50 border-2 border-rose-200 p-3 flex items-start gap-2">
-          <AlertCircle className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
-          <div className="text-xs text-rose-900">
-            <div className="font-extrabold mb-0.5">Fix before saving:</div>
+        <div className="rounded-2xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/40 p-3 flex items-start gap-2">
+          <AlertCircle className="h-4 w-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+          <div className="text-xs text-rose-900 dark:text-rose-200">
+            <div className="font-extrabold mb-0.5">Save se pehle fix karein:</div>
             <ul className="list-disc pl-4 space-y-0.5">
               {errors.slice(0, 6).map((e, i) => <li key={i}>{e}</li>)}
               {errors.length > 6 && <li>...and {errors.length - 6} more</li>}
@@ -105,23 +106,36 @@ export function MobileWizardStep3Imeis({
         </div>
       )}
 
-      <div className="rounded-2xl bg-gradient-to-br from-blue-50 to-white border-2 border-blue-200 p-4 flex items-start gap-3">
-        <div className="h-10 w-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-md shrink-0">
-          <Smartphone className="h-5 w-5" />
+      {/* Intro — type-aware */}
+      <div className={`rounded-2xl border-2 p-4 flex items-start gap-3 ${
+        allAccessory
+          ? 'bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-500/10 dark:to-slate-900 border-emerald-200 dark:border-emerald-500/40'
+          : 'bg-gradient-to-br from-blue-50 to-white dark:from-blue-500/10 dark:to-slate-900 border-blue-200 dark:border-blue-500/40'
+      }`}>
+        <div className={`h-10 w-10 rounded-xl text-white flex items-center justify-center shadow-md shrink-0 ${allAccessory ? 'bg-emerald-600' : 'bg-blue-600'}`}>
+          {allAccessory ? <Cable className="h-5 w-5" /> : <Smartphone className="h-5 w-5" />}
         </div>
         <div className="flex-1">
-          <h3 className="font-extrabold text-blue-900 text-sm">Add Inventory</h3>
-          <p className="text-xs text-blue-800 font-semibold mt-0.5 leading-relaxed">
-            Phone variants ke liye <strong>IMEI table</strong>, accessory variants ke liye <strong>simple stock</strong>.
-            Ye step <strong>optional</strong> hai — sirf product create karna hai to skip kar dein.
+          <h3 className={`font-extrabold text-sm ${allAccessory ? 'text-emerald-900 dark:text-emerald-200' : 'text-blue-900 dark:text-blue-200'}`}>
+            {allAccessory ? 'Stock Quantity' : 'Add Inventory'}
+          </h3>
+          <p className={`text-xs font-semibold mt-0.5 leading-relaxed ${allAccessory ? 'text-emerald-800 dark:text-emerald-300' : 'text-blue-800 dark:text-blue-300'}`}>
+            {allAccessory
+              ? 'Sirf units ki ginti likho — koi IMEI nahi chahiye. Optional hai — baad me purchase se bhi stock aa sakta hai.'
+              : 'Phone variants ke liye IMEI table (har unit ka 15-digit IMEI + PTA), accessory variants ke liye simple stock. Optional — skip kar ke sirf product bhi bana sakte ho.'}
           </p>
+          {!allAccessory && accBuckets > 0 && (
+            <div className="mt-1.5 text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400">
+              ℹ️ {accBuckets} accessory variant{accBuckets > 1 ? 's' : ''} — unka simple stock neeche hai
+            </div>
+          )}
         </div>
       </div>
 
       {/* Quick PTA set for all IMEIs */}
       {totalImeis > 0 && (
-        <section className="rounded-2xl bg-indigo-50 border-2 border-indigo-200 p-3 space-y-2">
-          <div className="text-[10px] uppercase tracking-wider font-extrabold text-indigo-700 flex items-center gap-1">
+        <section className="rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 border-2 border-indigo-200 dark:border-indigo-500/40 p-3 space-y-2">
+          <div className="text-[10px] uppercase tracking-wider font-extrabold text-indigo-700 dark:text-indigo-300 flex items-center gap-1">
             <ShieldCheck className="h-3 w-3" /> Quick Set PTA for All {totalImeis} IMEIs
           </div>
           <div className="flex flex-wrap gap-1.5">
@@ -133,7 +147,7 @@ export function MobileWizardStep3Imeis({
                   type="button"
                   onClick={() => onApplyPtaToAll(status)}
                   className={[
-                    'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold border-2 hover:shadow',
+                    'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold border-2 hover:shadow transition active:scale-95',
                     colors.bg, colors.text, colors.border,
                   ].join(' ')}
                 >
@@ -153,57 +167,59 @@ export function MobileWizardStep3Imeis({
         return (
           <section
             key={b.tempId ?? '__none__'}
-            className="rounded-2xl border-2 border-slate-200 bg-white overflow-hidden"
+            className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden"
           >
             <button
               type="button"
               onClick={() => toggle(b.tempId)}
-              className="w-full flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-slate-50 to-white hover:from-slate-100 transition"
+              className="w-full flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-slate-50 to-white dark:from-slate-800 dark:to-slate-900 hover:from-slate-100 dark:hover:from-slate-800/80 transition"
             >
               {b.colorHex ? (
                 <div
-                  className="h-9 w-9 rounded-lg border-2 border-slate-200 shrink-0 shadow-inner"
+                  className="h-9 w-9 rounded-lg border-2 border-slate-200 dark:border-slate-600 shrink-0 shadow-inner"
                   style={{ backgroundColor: b.colorHex }}
                 />
               ) : (
-                <div className="h-9 w-9 rounded-lg bg-slate-200 text-slate-500 flex items-center justify-center shrink-0">
+                <div className="h-9 w-9 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-300 flex items-center justify-center shrink-0">
                   <Icon className="h-4 w-4" />
                 </div>
               )}
               <div className="flex-1 text-left min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <div className="font-extrabold text-slate-900 text-sm truncate">{b.name}</div>
+                  <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">{b.name}</div>
                   <span className={[
                     'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-extrabold',
-                    isPhone ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700',
+                    isPhone
+                      ? 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300'
+                      : 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300',
                   ].join(' ')}>
                     <Icon className="h-2.5 w-2.5" />
                     {b.productType}
                   </span>
                   {b.storage && (
-                    <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded">
+                    <span className="text-[10px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-500/20 px-1.5 py-0.5 rounded">
                       {b.storage}
                     </span>
                   )}
                 </div>
               </div>
 
-              {isPhone ? (
+              {isPhone && (
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); onAddImeiLine(b.tempId); setCollapsed(c => ({ ...c, [b.tempId ?? '__none__']: false })); }}
-                  className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold inline-flex items-center gap-1 shadow-sm"
+                  className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold inline-flex items-center gap-1 shadow-sm transition active:scale-95"
                 >
                   <Plus className="h-3.5 w-3.5" /> Add IMEI
                 </button>
-              ) : null}
+              )}
 
-              {collapsedNow ? <ChevronDown className="h-4 w-4 text-slate-500" /> : <ChevronUp className="h-4 w-4 text-slate-500" />}
+              {collapsedNow ? <ChevronDown className="h-4 w-4 text-slate-500 dark:text-slate-400" /> : <ChevronUp className="h-4 w-4 text-slate-500 dark:text-slate-400" />}
             </button>
 
             {!collapsedNow && (
               <>
-                {isPhone && (
+                {isPhone ? (
                   <MobileImeiTable
                     basic={basic}
                     bucketName={b.name}
@@ -214,8 +230,7 @@ export function MobileWizardStep3Imeis({
                     onRemove={onRemoveImeiLine}
                     onBulkAdd={(imeis) => onAddImeisBulk(b.tempId, imeis)}
                   />
-                )}
-                {!isPhone && (
+                ) : (
                   <MobileAccessoryStockCard
                     basic={basic}
                     bucketName={b.name}
@@ -231,11 +246,11 @@ export function MobileWizardStep3Imeis({
       })}
 
       {totalImeis === 0 && totalAccUnits === 0 && (
-        <div className="rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-8 text-center">
-          <Info className="h-10 w-10 text-slate-400 mx-auto mb-2" />
-          <div className="font-extrabold text-slate-700 text-sm">Inventory optional hai</div>
-          <div className="text-xs text-slate-500 font-semibold mt-1">
-            Sirf product create karna hai to <strong>Save</strong> dein — IMEIs baad mein add ho sakti hain
+        <div className="rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 p-8 text-center">
+          <Info className="h-10 w-10 text-slate-400 dark:text-slate-500 mx-auto mb-2" />
+          <div className="font-extrabold text-slate-700 dark:text-slate-200 text-sm">Inventory optional hai</div>
+          <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">
+            Sirf product create karna hai to <strong>Save</strong> dein — {allAccessory ? 'stock' : 'IMEIs'} baad mein add ho sakti hain
           </div>
         </div>
       )}
