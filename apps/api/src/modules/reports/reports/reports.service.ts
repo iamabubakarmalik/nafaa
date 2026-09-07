@@ -53,7 +53,7 @@ export class ReportsService {
 
     const productIds = items.map((i) => i.productId);
     const products = await this.prisma.product.findMany({
-      where: { id: { in: productIds } },
+      where: { id: { in: productIds.filter((id): id is string => !!id) } },
       select: {
         id: true, name: true, sku: true, unit: true, price: true,
         costPrice: true, stock: true,
@@ -63,7 +63,7 @@ export class ReportsService {
     const map = new Map(products.map((p) => [p.id, p]));
 
     return items.map((i) => {
-      const product = map.get(i.productId);
+      const product = i.productId ? map.get(i.productId) : undefined;
       const revenue = i._sum.total ?? 0;
       const qty = i._sum.quantity ?? 0;
       const cost = product ? product.costPrice * qty : 0;
@@ -92,6 +92,7 @@ export class ReportsService {
 
     const buckets: Record<string, any> = {};
     for (const item of items) {
+      if (!item.product) return;
       const cat = item.product.category;
       const key = cat?.id || 'uncategorized';
       const name = cat?.name || 'Uncategorized';

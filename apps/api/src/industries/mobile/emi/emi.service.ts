@@ -15,18 +15,35 @@ import {
 export class EmiService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // ════════════════════════════════════════════════════════
-  // CREATE EMI PLAN — auto-generates installments
-  // ════════════════════════════════════════════════════════
+  /** ─────────────────────────────────────────────────────────
+   * Auto-mark PENDING installments as OVERDUE if dueDate < today.
+   * Called automatically before every read (findAll/findOne/stats)
+   * so the UI never shows stale "PENDING" rows for past dueDates.
+   * ───────────────────────────────────────────────────────── */
+  private async autoMarkOverdue(user: AuthenticatedUser): Promise<void> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    try {
+      await this.prisma.emiInstallment.updateMany({
+        where: {
+          plan: { tenantId: user.tenantId, status: EmiPlanStatus.ACTIVE },
+          status: EmiInstallmentStatus.PENDING,
+          dueDate: { lt: today },
+        },
+        data: { status: EmiInstallmentStatus.OVERDUE },
+      });
+    } catch (e) {
+      // best-effort; read endpoints must never crash because of sync
+      console.error('[EmiService.autoMarkOverdue] failed:', (e as any)?.message);
+    }
+  }
 
   async create(user: AuthenticatedUser, dto: CreateEmiPlanDto) {
-    // Validate customer
     const customer = await this.prisma.customer.findFirst({
       where: { id: dto.customerId, tenantId: user.tenantId },
     });
     if (!customer) throw new NotFoundException('Customer not found');
 
-    // Validate sale (if linked)
     if (dto.saleId) {
       const sale = await this.prisma.sale.findFirst({
         where: { id: dto.saleId, tenantId: user.tenantId },
@@ -41,17 +58,14 @@ export class EmiService {
       }
     }
 
-    // Calculate amounts
     const downPayment = dto.downPayment ?? 0;
     const financedAmount = dto.totalAmount - downPayment;
-
     if (financedAmount <= 0) {
       throw new BadRequestException('Financed amount must be > 0 (downpayment ≥ total not allowed)');
     }
 
     const installmentAmount = Number((financedAmount / dto.installmentCount).toFixed(2));
 
-    // Generate plan number
     const year = new Date().getFullYear();
     const prefix = `EMI-${year}-`;
     const last = await this.prisma.emiPlan.findFirst({
@@ -68,7 +82,6 @@ export class EmiService {
     const planNumber = `${prefix}${String(nextNum).padStart(4, '0')}`;
 
     return this.prisma.$transaction(async (tx) => {
-      // Create plan
       const plan = await tx.emiPlan.create({
         data: {
           tenantId: user.tenantId,
@@ -90,21 +103,16 @@ export class EmiService {
         },
       });
 
-      // Auto-generate installments (monthly intervals)
       const startDate = new Date(dto.startDate);
-      const installmentsData = [];
+      const installmentsData: any[] = [];
       let runningTotal = 0;
-
       for (let i = 1; i <= dto.installmentCount; i++) {
         const dueDate = new Date(startDate);
         dueDate.setMonth(dueDate.getMonth() + (i - 1));
-
-        // Last installment absorbs any rounding diff
         const amount = i === dto.installmentCount
           ? Number((financedAmount - runningTotal).toFixed(2))
           : installmentAmount;
         runningTotal += amount;
-
         installmentsData.push({
           planId: plan.id,
           installmentNumber: i,
@@ -113,25 +121,17 @@ export class EmiService {
           status: EmiInstallmentStatus.PENDING,
         });
       }
-
-      await tx.emiInstallment.createMany({
-        data: installmentsData,
-      });
+      await tx.emiInstallment.createMany({ data: installmentsData });
 
       return tx.emiPlan.findUnique({
         where: { id: plan.id },
-        include: {
-          installments: { orderBy: { installmentNumber: 'asc' } },
-        },
+        include: { installments: { orderBy: { installmentNumber: 'asc' } } },
       });
     });
   }
 
-  // ════════════════════════════════════════════════════════
-  // LIST + DETAIL + STATS
-  // ════════════════════════════════════════════════════════
-
   async findAll(user: AuthenticatedUser, query: QueryEmiPlansDto) {
+    await this.autoMarkOverdue(user);   // ← auto sync on read
     const where: Prisma.EmiPlanWhereInput = {
       tenantId: user.tenantId,
       ...(query.customerId && { customerId: query.customerId }),
@@ -145,7 +145,6 @@ export class EmiService {
       }),
     };
 
-    // Filter: ONLY_OVERDUE / ONLY_UPCOMING
     if (query.filter === 'ONLY_OVERDUE') {
       where.installments = {
         some: {
@@ -191,7 +190,6 @@ export class EmiService {
       this.prisma.emiPlan.count({ where }),
     ]);
 
-    // Enrich each plan with computed fields
     const enriched = items.map((plan) => {
       const today = new Date();
       const overdueInstallments = plan.installments.filter(
@@ -203,7 +201,6 @@ export class EmiService {
       const nextDue = plan.installments
         .filter((i) => i.status === EmiInstallmentStatus.PENDING)
         .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())[0];
-
       return {
         ...plan,
         overdueCount: overdueInstallments.length,
@@ -219,36 +216,20 @@ export class EmiService {
       };
     });
 
-    return {
-      items: enriched,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    return { items: enriched, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
   async findOne(user: AuthenticatedUser, id: string) {
+    await this.autoMarkOverdue(user);   // ← auto sync on read
     const plan = await this.prisma.emiPlan.findFirst({
       where: { id, tenantId: user.tenantId },
-      include: {
-        installments: { orderBy: { installmentNumber: 'asc' } },
-      },
+      include: { installments: { orderBy: { installmentNumber: 'asc' } } },
     });
     if (!plan) throw new NotFoundException('EMI plan not found');
 
-    // Load customer
     const customer = await this.prisma.customer.findFirst({
       where: { id: plan.customerId, tenantId: user.tenantId },
-      select: {
-        id: true,
-        name: true,
-        phone: true,
-        email: true,
-        cnic: true,
-        address: true,
-        balance: true,
-      },
+      select: { id: true, name: true, phone: true, email: true, cnic: true, address: true, balance: true },
     });
 
     const today = new Date();
@@ -279,16 +260,14 @@ export class EmiService {
   }
 
   async stats(user: AuthenticatedUser) {
+    await this.autoMarkOverdue(user);   // ← auto sync on read
+
     const today = new Date();
     const next7Days = new Date();
     next7Days.setDate(next7Days.getDate() + 7);
 
     const [
-      byStatus,
-      totalFinanced,
-      overdueAgg,
-      upcomingAgg,
-      collectedThisMonth,
+      byStatus, totalFinanced, overdueAgg, upcomingAgg, collectedThisMonth,
     ] = await Promise.all([
       this.prisma.emiPlan.groupBy({
         by: ['status'],
@@ -321,9 +300,7 @@ export class EmiService {
         where: {
           plan: { tenantId: user.tenantId },
           status: EmiInstallmentStatus.PAID,
-          paidDate: {
-            gte: new Date(today.getFullYear(), today.getMonth(), 1),
-          },
+          paidDate: { gte: new Date(today.getFullYear(), today.getMonth(), 1) },
         },
         _sum: { paidAmount: true },
         _count: { _all: true },
@@ -347,24 +324,17 @@ export class EmiService {
     };
   }
 
-  // ════════════════════════════════════════════════════════
-  // UPDATE PLAN
-  // ════════════════════════════════════════════════════════
-
   async update(user: AuthenticatedUser, id: string, dto: UpdateEmiPlanDto) {
     const plan = await this.findOne(user, id);
     if (plan.status !== EmiPlanStatus.ACTIVE) {
       throw new BadRequestException(`Cannot edit ${plan.status} plan`);
     }
-
-    // Disallow restructure if any installment has been paid
     const paidCount = plan.installments.filter((i) => Number(i.paidAmount) > 0).length;
     if (paidCount > 0 && (dto.totalAmount || dto.downPayment || dto.installmentCount)) {
       throw new BadRequestException(
         'Cannot restructure plan after payments. Use status transitions or installment edits.',
       );
     }
-
     return this.prisma.emiPlan.update({
       where: { id },
       data: {
@@ -375,10 +345,6 @@ export class EmiService {
       },
     });
   }
-
-  // ════════════════════════════════════════════════════════
-  // RECORD INSTALLMENT PAYMENT
-  // ════════════════════════════════════════════════════════
 
   async recordInstallmentPayment(
     user: AuthenticatedUser,
@@ -397,7 +363,6 @@ export class EmiService {
 
     const installment = plan.installments.find((i) => i.id === installmentId);
     if (!installment) throw new NotFoundException('Installment not found');
-
     if (installment.status === EmiInstallmentStatus.PAID) {
       throw new BadRequestException('Installment already fully paid');
     }
@@ -416,7 +381,6 @@ export class EmiService {
       const newPaidAmount = Number(installment.paidAmount) + dto.amount;
       const isFullyPaid = Math.abs(newPaidAmount - Number(installment.amount)) < 0.01;
 
-      // Update installment
       const updatedInstallment = await tx.emiInstallment.update({
         where: { id: installmentId },
         data: {
@@ -429,18 +393,10 @@ export class EmiService {
         },
       });
 
-      // Update plan aggregates
       const newPlanPaid = Number(plan.paidAmount) + dto.amount;
       const newPlanRemaining = Number(plan.financedAmount) - (newPlanPaid - Number(plan.downPayment));
 
-      // Re-fetch all installments to determine plan status
-      const allInstallments = await tx.emiInstallment.findMany({
-        where: { planId },
-      });
-      const totalPaidByInstallments = allInstallments.reduce(
-        (s, i) => s + Number(i.paidAmount),
-        0,
-      );
+      const allInstallments = await tx.emiInstallment.findMany({ where: { planId } });
       const allInstallmentsPaid = allInstallments.every(
         (i) =>
           i.status === EmiInstallmentStatus.PAID ||
@@ -451,16 +407,10 @@ export class EmiService {
         paidAmount: newPlanPaid,
         remainingAmount: Math.max(newPlanRemaining, 0),
       };
-      if (allInstallmentsPaid) {
-        planUpdate.status = EmiPlanStatus.COMPLETED;
-      }
+      if (allInstallmentsPaid) planUpdate.status = EmiPlanStatus.COMPLETED;
 
-      const updatedPlan = await tx.emiPlan.update({
-        where: { id: planId },
-        data: planUpdate,
-      });
+      const updatedPlan = await tx.emiPlan.update({ where: { id: planId }, data: planUpdate });
 
-      // Record customer ledger entry (payment received)
       await tx.customerLedger.create({
         data: {
           tenantId: user.tenantId,
@@ -468,22 +418,15 @@ export class EmiService {
           createdById: user.id,
           type: 'PAYMENT_RECEIVED',
           amount: dto.amount,
-          balanceAfter: 0, // ledger row, balance computed separately if needed
+          balanceAfter: 0,
           reference: plan.planNumber,
           note: `EMI installment ${installment.installmentNumber}/${plan.installmentCount}`,
         },
       });
 
-      return {
-        installment: updatedInstallment,
-        plan: updatedPlan,
-      };
+      return { installment: updatedInstallment, plan: updatedPlan };
     });
   }
-
-  // ════════════════════════════════════════════════════════
-  // WAIVE INSTALLMENT (e.g., promotional / write-off)
-  // ════════════════════════════════════════════════════════
 
   async waiveInstallment(
     user: AuthenticatedUser,
@@ -506,17 +449,12 @@ export class EmiService {
     return this.prisma.$transaction(async (tx) => {
       const updated = await tx.emiInstallment.update({
         where: { id: installmentId },
-        data: {
-          status: EmiInstallmentStatus.WAIVED,
-          notes: reason ?? 'Waived',
-        },
+        data: { status: EmiInstallmentStatus.WAIVED, notes: reason ?? 'Waived' },
       });
 
-      // Recalc plan remaining (waived counts as cleared)
       const remainingDue = Number(installment.amount) - Number(installment.paidAmount);
       const newRemaining = Math.max(Number(plan.remainingAmount) - remainingDue, 0);
 
-      // Check if all are paid/waived
       const allInstallments = await tx.emiInstallment.findMany({ where: { planId } });
       const allDone = allInstallments.every(
         (i) =>
@@ -531,21 +469,15 @@ export class EmiService {
           status: allDone ? EmiPlanStatus.COMPLETED : plan.status,
         },
       });
-
       return updated;
     });
   }
-
-  // ════════════════════════════════════════════════════════
-  // MARK DEFAULTED
-  // ════════════════════════════════════════════════════════
 
   async markDefaulted(user: AuthenticatedUser, id: string, reason?: string) {
     const plan = await this.findOne(user, id);
     if (plan.status !== EmiPlanStatus.ACTIVE) {
       throw new BadRequestException(`Cannot default ${plan.status} plan`);
     }
-
     return this.prisma.emiPlan.update({
       where: { id },
       data: {
@@ -555,16 +487,11 @@ export class EmiService {
     });
   }
 
-  // ════════════════════════════════════════════════════════
-  // CANCEL PLAN
-  // ════════════════════════════════════════════════════════
-
   async cancel(user: AuthenticatedUser, id: string, reason?: string) {
     const plan = await this.findOne(user, id);
     if (plan.status === EmiPlanStatus.COMPLETED) {
       throw new BadRequestException('Completed plan cannot be cancelled');
     }
-
     return this.prisma.emiPlan.update({
       where: { id },
       data: {
@@ -574,33 +501,11 @@ export class EmiService {
     });
   }
 
-  // ════════════════════════════════════════════════════════
-  // UPDATE OVERDUE FLAGS (Cron job calls this)
-  // ════════════════════════════════════════════════════════
-
-  /**
-   * Marks PENDING installments as OVERDUE if dueDate < today.
-   * Returns count of installments updated.
-   */
+  /** Kept for cron / external triggers — does the same as autoMarkOverdue */
   async updateOverdueFlags(user: AuthenticatedUser) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const result = await this.prisma.emiInstallment.updateMany({
-      where: {
-        plan: { tenantId: user.tenantId, status: EmiPlanStatus.ACTIVE },
-        status: EmiInstallmentStatus.PENDING,
-        dueDate: { lt: today },
-      },
-      data: { status: EmiInstallmentStatus.OVERDUE },
-    });
-
-    return { updatedCount: result.count };
+    await this.autoMarkOverdue(user);
+    return { updatedAt: new Date().toISOString() };
   }
-
-  // ════════════════════════════════════════════════════════
-  // DELETE (only if no payments)
-  // ════════════════════════════════════════════════════════
 
   async remove(user: AuthenticatedUser, id: string) {
     const plan = await this.findOne(user, id);

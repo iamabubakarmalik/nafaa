@@ -15,13 +15,9 @@ export type PaymentMethod =
   | 'EASYPAISA';
 
 export interface CreateSaleItem {
-  /** Regular product ID. Omit ONLY when usedPhoneId is set. */
-  productId?: string;
+  productId: string;
   variantId?: string;
-  /** New-phone IMEI being sold */
   imeiId?: string;
-  /** Used/trade-in phone being sold. Do NOT set productId when this is set. */
-  usedPhoneId?: string;
   quantity: number;
   priceOverride?: number;
   lineDiscount?: number;

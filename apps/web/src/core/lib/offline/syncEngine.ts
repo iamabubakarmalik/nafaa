@@ -258,7 +258,8 @@ export async function uploadPendingChanges(): Promise<{ salesSynced: number; que
           let touched = false;
           if (s.customerId === item.tempId) { s.customerId = realId; touched = true; }
           for (const line of s.items) {
-            if (line.productId === item.tempId) { line.productId = realId; touched = true; }
+            // ✅ FIX: productId optional hai (used-phone items), undefined check zaroori
+            if (line.productId && line.productId === item.tempId) { line.productId = realId; touched = true; }
           }
           if (touched) await db.pendingSales.put(s);
         }
@@ -271,14 +272,17 @@ export async function uploadPendingChanges(): Promise<{ salesSynced: number; que
           }
         }
       } else if (item.type === 'DELETE_PRODUCT') {
+        // ✅ FIX: m[1] ko narrow kiya — m?.[1] guard
         const m = endpoint.match(/\/products\/([^?/]+)/);
-        if (m) await db.products.delete(m[1]);
+        if (m?.[1]) await db.products.delete(m[1]);
       } else if (item.type === 'DELETE_CUSTOMER') {
+        // ✅ FIX: m[1] ko narrow kiya
         const m = endpoint.match(/\/customers\/([^?/]+)/);
-        if (m) await db.customers.delete(m[1]);
+        if (m?.[1]) await db.customers.delete(m[1]);
       } else if (item.type === 'DELETE_EXPENSE') {
+        // ✅ FIX: m[1] ko narrow kiya
         const m = endpoint.match(/\/expenses\/([^?/]+)/);
-        if (m) await db.expenses.delete(m[1]);
+        if (m?.[1]) await db.expenses.delete(m[1]);
       }
 
       await db.syncQueue.update(item.id, { status: 'synced' });
@@ -311,8 +315,9 @@ export async function uploadPendingChanges(): Promise<{ salesSynced: number; que
     try {
       await db.pendingSales.update(sale.id, { status: 'syncing', lastTriedAt: Date.now() });
 
-      const hasTemp = sale.items.some((it) => isTempId(it.productId)) ||
-        (sale.customerId && isTempId(sale.customerId));
+      // ✅ FIX: it.productId optional hai (used-phone-only items) — pehle undefined check
+      const hasTemp = sale.items.some((it) => !!it.productId && isTempId(it.productId)) ||
+        (!!sale.customerId && isTempId(sale.customerId));
       if (hasTemp) {
         await db.pendingSales.update(sale.id, {
           status: 'failed',
@@ -463,6 +468,7 @@ export function initSyncEngine() {
   refreshStatus();
   if (navigator.onLine) setTimeout(() => fullSync(true, true), FIRST_SYNC_DELAY_MS);
 }
+
 
 export function stopSyncEngine() {
   if (uploadInterval) clearInterval(uploadInterval);

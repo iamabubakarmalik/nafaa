@@ -129,6 +129,7 @@ export class MobileReportsService {
     }> = {};
 
     sales.forEach((item) => {
+      if (!item.product) return;
       const brand = item.product.brand;
       if (!brand) return;
       if (!grouped[brand.id]) {

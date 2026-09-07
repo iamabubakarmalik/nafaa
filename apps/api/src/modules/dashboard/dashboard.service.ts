@@ -466,7 +466,7 @@ export class DashboardService {
 
     const topProductIds = topProductsRaw.map((t) => t.productId);
     const topProductDetails = await this.prisma.product.findMany({
-      where: { id: { in: topProductIds } },
+      where: { id: { in: topProductIds.filter((id): id is string => !!id) } },
       select: {
         id: true, name: true, sku: true, unit: true, price: true,
         images: { take: 1, select: { url: true } },
@@ -475,7 +475,7 @@ export class DashboardService {
     const topProductMap = new Map(topProductDetails.map((p) => [p.id, p]));
     const topProducts = topProductsRaw.map((tp) => ({
       productId: tp.productId,
-      product: topProductMap.get(tp.productId),
+      product: tp.productId ? topProductMap.get(tp.productId) : undefined,
       quantitySold: tp._sum.quantity ?? 0,
       revenue: tp._sum.total ?? 0,
       orderCount: tp._count._all,

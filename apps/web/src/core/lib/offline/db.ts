@@ -98,13 +98,46 @@ export interface OfflineLookup {
   _syncedAt: number;
 }
 
+/** ── NEW (v3): used phone cache for offline POS + receipt ── */
+export interface OfflineUsedPhone {
+  id: string;
+  tenantId: string;
+  usedPhoneCode: string;
+  brand: string;
+  model: string;
+  color?: string | null;
+  imei1?: string | null;
+  imei2?: string | null;
+  condition?: string | null;
+  totalCost: number;
+  resalePrice: number;
+  status: string;              // IN_STOCK / SOLD / ...
+  shopId?: string | null;
+  _syncedAt: number;
+}
+
+/** ── NEW (v3): IMEI cache for offline receipt naming ── */
+export interface OfflineImei {
+  id: string;
+  tenantId: string;
+  productId: string;
+  variantId?: string | null;
+  imei1: string;
+  imei2?: string | null;
+  serialNumber?: string | null;
+  color?: string | null;
+  status: string;              // IN_STOCK / SOLD / ...
+  costPrice?: number;
+  _syncedAt: number;
+}
+
 /**
  * ── PendingSale — enriched with SNAPSHOT for offline receipt ──
- * Yani offline sale ka receipt bhi poora dikhe: product names, customer,
- * shop info — sab kuch cache se assemble ho.
+ * v3: productId ab OPTIONAL hai (used-phone-only item ke liye),
+ * aur usedPhoneId field add hui.
  */
 export interface PendingSaleItemSnapshot {
-  productId: string;
+  productId?: string | null;
   productName: string;
   sku?: string | null;
   barcode?: string | null;
@@ -113,6 +146,12 @@ export interface PendingSaleItemSnapshot {
   variantName?: string;
   imeiId?: string;
   imeiNumber?: string;
+  usedPhoneId?: string | null;
+  usedPhoneBrand?: string | null;
+  usedPhoneModel?: string | null;
+  usedPhoneCode?: string | null;
+  usedPhoneImei?: string | null;
+  itemKind?: 'PRODUCT' | 'NEW_PHONE_IMEI' | 'USED_PHONE';
   quantity: number;
   unitPrice: number;      // effective price (after wholesale/override)
   lineTotal: number;
@@ -155,9 +194,10 @@ export interface PendingSale {
   serviceCharges?: number;
   serviceChargesBreakdown?: any[] | null;
 
-  // Raw items (for API replay)
+  // Raw items (for API replay) — productId optional, usedPhoneId allowed
   items: Array<{
-    productId: string;
+    productId?: string;
+    usedPhoneId?: string;
     variantId?: string;
     imeiId?: string;
     quantity: number;
@@ -199,7 +239,6 @@ export interface SyncQueueItem {
   payload: any;
   endpoint: string;
   method: 'POST' | 'PATCH' | 'PUT' | 'DELETE';
-  // Local temp ID mapping (needed when endpoint has /:id and id is temp)
   tempId?: string;
   idField?: 'endpoint' | 'payload';
   createdAt: number;
@@ -222,6 +261,8 @@ class NafaaOfflineDB extends Dexie {
   pendingSales!: Table<PendingSale, string>;
   syncQueue!: Table<SyncQueueItem, string>;
   meta!: Table<SyncMeta, string>;
+  usedPhones!: Table<OfflineUsedPhone, string>;
+  imeis!: Table<OfflineImei, string>;
 
   constructor() {
     super('NafaaOfflineDB');
@@ -246,7 +287,6 @@ class NafaaOfflineDB extends Dexie {
       syncQueue: 'id, type, status, tempId, createdAt, [status+createdAt]',
       meta: 'key',
     }).upgrade(async (tx) => {
-      // Backfill saleNumber on existing pending sales
       const sales = await tx.table('pendingSales').toArray();
       for (const s of sales) {
         if (!s.saleNumber) {
@@ -254,6 +294,19 @@ class NafaaOfflineDB extends Dexie {
           await tx.table('pendingSales').put(s);
         }
       }
+    });
+
+    // v3 — mobile industry: used phones + IMEI cache tables
+    this.version(3).stores({
+      products: 'id, name, sku, barcode, categoryId, brandId, isActive, _localDeleted, _syncedAt',
+      customers: 'id, name, phone, balance, isActive, _localDeleted, _syncedAt',
+      expenses: 'id, expenseDate, categoryId, _localDeleted, _syncedAt',
+      lookups: 'id, type, name',
+      pendingSales: 'id, status, saleNumber, createdAt, customerId, [status+createdAt]',
+      syncQueue: 'id, type, status, tempId, createdAt, [status+createdAt]',
+      meta: 'key',
+      usedPhones: 'id, usedPhoneCode, brand, status, shopId, _syncedAt',
+      imeis: 'id, productId, variantId, imei1, status, _syncedAt',
     });
   }
 }
@@ -278,6 +331,8 @@ export async function clearAllOfflineData(): Promise<void> {
     db.pendingSales.clear(),
     db.syncQueue.clear(),
     db.meta.clear(),
+    db.usedPhones.clear(),
+    db.imeis.clear(),
   ]);
 }
 

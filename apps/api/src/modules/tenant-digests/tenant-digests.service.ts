@@ -249,7 +249,7 @@ export class TenantDigestsService {
         let topProductName = '';
         if (topItem.length > 0) {
           const product = await this.prisma.product.findUnique({
-            where: { id: topItem[0].productId },
+            where: { id: topItem[0].productId as string },
             select: { name: true },
           });
           if (product) {

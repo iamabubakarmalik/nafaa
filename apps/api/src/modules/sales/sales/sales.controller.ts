@@ -41,4 +41,7 @@ export class SalesController {
   ) {
     return this.salesService.voidSale(user, id, body?.reason);
   }
+
+  
 }
+

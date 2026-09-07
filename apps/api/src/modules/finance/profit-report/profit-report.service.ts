@@ -163,7 +163,8 @@ export class ProfitReportService {
     const buckets = new Map<string, Bucket>();
 
     for (const item of items) {
-      const id = item.productId;
+      if (!item.product || !item.productId) continue;
+      const id: string = item.productId;
       const unit = (item.product.unit || 'pcs').toLowerCase();
 
       let industryType: ProductProfitRow['industryType'] = 'STANDARD';

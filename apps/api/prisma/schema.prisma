@@ -836,6 +836,7 @@ model Product {
   weightUnit       String?
   dimensions       String?
   hasVariants      Boolean                 @default(false)
+  productType      String?
   expiryTracked    Boolean                 @default(false)
   isActive         Boolean                 @default(true)
   isFeatured       Boolean                 @default(false)
@@ -1181,7 +1182,8 @@ model Sale {
 model SaleItem {
   id           String           @id @default(uuid())
   saleId       String
-  productId    String
+  productId    String?
+  usedPhoneId  String?          @unique
   quantity     Float
   returnedQty  Float            @default(0)
   price        Float
@@ -1193,7 +1195,8 @@ model SaleItem {
   createdAt    DateTime         @default(now())
 
   sale            Sale                 @relation(fields: [saleId], references: [id], onDelete: Cascade)
-  product         Product              @relation(fields: [productId], references: [id], onDelete: Restrict)
+  product         Product?             @relation(fields: [productId], references: [id], onDelete: Restrict)
+  usedPhone       UsedPhone?           @relation(fields: [usedPhoneId], references: [id], onDelete: SetNull)
   returnItems     SaleReturnItem[]
   carpetMovements CarpetRollMovement[]
 
@@ -2727,6 +2730,7 @@ model UsedPhone {
   shop         Shop?                 @relation(fields: [shopId], references: [id], onDelete: SetNull)
   fromCustomer Customer?             @relation("UsedPhoneFromCustomer", fields: [fromCustomerId], references: [id], onDelete: SetNull)
   inspections  UsedPhoneInspection[]
+  soldSaleItem SaleItem? 
 
   @@unique([tenantId, usedPhoneCode])
   @@unique([tenantId, imei1])

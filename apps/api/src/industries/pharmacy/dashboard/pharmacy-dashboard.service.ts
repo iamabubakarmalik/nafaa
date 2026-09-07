@@ -43,7 +43,7 @@ export class PharmacyDashboardService {
     });
     const productIds = todaySales.map((t) => t.productId);
     const products = await this.prisma.product.findMany({
-      where: { id: { in: productIds } },
+      where: { id: { in: productIds.filter((id): id is string => !!id) } },
       include: {
         images: { where: { isPrimary: true }, take: 1 },
         productSalts: { include: { salt: true } },

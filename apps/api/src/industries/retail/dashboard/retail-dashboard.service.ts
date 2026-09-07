@@ -117,7 +117,7 @@ export class RetailDashboardService {
     // Enrich top products with names
     const productIds = topProducts.map((p) => p.productId);
     const products = await this.prisma.product.findMany({
-      where: { id: { in: productIds } },
+      where: { id: { in: productIds.filter((id): id is string => !!id) } },
       include: {
         images: { where: { isPrimary: true }, take: 1 },
         category: true,
@@ -206,7 +206,7 @@ export class RetailDashboardService {
         tenantId: user.tenantId,
         isActive: true,
         stock: { gt: 0 },
-        id: { notIn: soldIds },
+        id: { notIn: soldIds.filter((id): id is string => !!id) },
       },
       include: {
         category: true,
