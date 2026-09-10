@@ -20,6 +20,35 @@ export class MobileReportsController {
     return this.service.dashboard(user, shopId);
   }
 
+  /** Kamai 4 raston me tori hui — naya phone, used phone, accessory, repair. */
+  @Get('profit-by-source')
+  profitBySource(
+    @GetUser() user: AuthenticatedUser,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('shopId') shopId?: string,
+  ) {
+    return this.service.profitBySource(user, { from, to, shopId });
+  }
+
+  /** Phone models aur accessories jo khatam ho rahe hain. */
+  @Get('low-stock')
+  lowStock(
+    @GetUser() user: AuthenticatedUser,
+    @Query('shopId') shopId?: string,
+  ) {
+    return this.service.lowStock(user, shopId);
+  }
+
+  /** Kaunsa maal kitna purana pada hai — dead stock nikalne ke liye. */
+  @Get('stock-aging')
+  stockAging(
+    @GetUser() user: AuthenticatedUser,
+    @Query('shopId') shopId?: string,
+  ) {
+    return this.service.stockAging(user, shopId);
+  }
+
   @Get('pta-breakdown')
   ptaBreakdown(@GetUser() user: AuthenticatedUser) {
     return this.service.ptaBreakdown(user);

@@ -43,6 +43,29 @@ export interface WarrantyClaim {
   updatedAt: string;
 }
 
+/** Backend ka summary — pehle frontend ghalat naam parh raha tha
+ *  (pendingCount/resolvedCount) is liye saare cards 0 dikhate the. */
+export interface WarrantyClaimsSummary {
+  total: number;
+  active: number;
+  claimed: number;
+  inRepair: number;
+  resolved: number;
+  expired: number;
+  sentToBrand: number;
+  thisMonth: number;
+  /** active + claimed + inRepair — jin par abhi kaam karna hai */
+  pending: number;
+  cost: {
+    repairCost: number;
+    refundAmount: number;
+    paidByCustomer: number;
+    paidByBrand: number;
+    /** Dukan ki apni jeb se kitna gaya */
+    shopBore: number;
+  };
+}
+
 const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
 
 export const warrantyClaimsApi = {
@@ -53,7 +76,7 @@ export const warrantyClaimsApi = {
     apiClient.get('/electronics/warranty-claims', { params }).then(unwrap<WarrantyClaim[]>),
 
   summary: () =>
-    apiClient.get('/electronics/warranty-claims/summary').then(unwrap<any>),
+    apiClient.get('/electronics/warranty-claims/summary').then(unwrap<WarrantyClaimsSummary>),
 
   getOne: (id: string) =>
     apiClient.get('/electronics/warranty-claims/' + id).then(unwrap<WarrantyClaim>),

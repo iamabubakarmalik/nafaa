@@ -9,6 +9,7 @@ import {
 import { toast } from 'sonner';
 import { Button } from '@core/ui/Button';
 import { useMobileWizard, type WizardStep } from '../hooks/useMobileWizard';
+import { useAuthStore } from '@core/stores/auth.store';
 import { MobileWizardStepper } from '../components/wizard/MobileWizardStepper';
 import { MobileWizardStep1Basic } from '../components/wizard/MobileWizardStep1Basic';
 import { MobileWizardStep2Variants } from '../components/wizard/MobileWizardStep2Variants';
@@ -52,6 +53,7 @@ export default function MobileProductWizardPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { id } = useParams();
+  const currentShopId = useAuthStore((st) => st.currentShopId);
   const isEdit = Boolean(id);
   const isOnline = useOnlineStatus();
 
@@ -122,7 +124,7 @@ export default function MobileProductWizardPage() {
   }, [isEdit, existingProduct, existingVariants, editLoaded, updateBasic, setHasVariants]);
 
   const saveMutation = useMutation({
-    mutationFn: () => saveMobileWizard(draft),
+    mutationFn: () => saveMobileWizard(draft, currentShopId || undefined),
     onSuccess: (result) => {
       setSavedResult(result);
       queryClient.invalidateQueries({ queryKey: ['products'] });

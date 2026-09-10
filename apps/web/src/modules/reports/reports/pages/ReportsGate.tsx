@@ -3,7 +3,8 @@ import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndus
 import ReportsPage from './ReportsPage';
 
 const RestaurantReportsV2 = lazy(() => import('@industries/restaurant/pages/RestaurantReportsV2'));
-const MobileReportsV2 = lazy(() => import('@industries/mobile/pages/MobileReportsV2'));
+const MobileReportsPage = lazy(() => import('@industries/mobile/pages/MobileReportsPage'));
+const ElectronicsReportsPage = lazy(() => import('@industries/electronics/pages/ElectronicsReportsPage'));
 const CarpetReportsV2 = lazy(() => import('@industries/carpet/pages/CarpetReportsV2'));
 const RetailReportsV2 = lazy(() => import('@/industries/retail/pages/RetailReports'));
 const GarmentReportsV2 = lazy(() => import('@industries/garments/pages/GarmentReportsV2'));
@@ -32,7 +33,8 @@ export default function ReportsGate() {
   const industry = useCurrentIndustry();
 
   if (industry?.id === 'restaurant') return <Suspense fallback={<Loader />}><RestaurantReportsV2 /></Suspense>;
-  if (industry?.id === 'mobile') return <Suspense fallback={<Loader />}><MobileReportsV2 /></Suspense>;
+  if (industry?.id === 'mobile') return <Suspense fallback={<Loader />}><MobileReportsPage /></Suspense>;
+  if (industry?.id === 'electronics') return <Suspense fallback={<Loader />}><ElectronicsReportsPage /></Suspense>;
   if (industry?.id === 'carpet') return <Suspense fallback={<Loader />}><CarpetReportsV2 /></Suspense>;
   if (industry?.id === 'retail') return <Suspense fallback={<Loader />}><RetailReportsV2 /></Suspense>;
   if (industry?.id === 'garments') return <Suspense fallback={<Loader />}><GarmentReportsV2 /></Suspense>;

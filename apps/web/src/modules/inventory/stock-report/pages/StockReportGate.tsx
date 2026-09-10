@@ -2,6 +2,8 @@
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import StockReportPage from './StockReportPage';
 import RetailStockReportPage from '@industries/retail/pages/RetailStockReportPage';
+import MobileStockReportPage from '@industries/mobile/pages/MobileStockReportPage';
+import ElectronicsStockReportPage from '@industries/electronics/pages/ElectronicsStockReportPage';
 
 /**
  * StockReportGate — routes /stock-report to the correct
@@ -19,11 +21,15 @@ export default function StockReportGate() {
     case 'retail':
       return <RetailStockReportPage />;
 
+    case 'mobile':
+      return <MobileStockReportPage />;
+
+    case 'electronics':
+      return <ElectronicsStockReportPage />;
+
     // Future: alag industries ka custom report yahan add karo
     // case 'carpet':
     //   return <CarpetStockReportPage />;
-    // case 'mobile':
-    //   return <MobileStockReportPage />;
     // case 'pharmacy':
     //   return <PharmacyStockReportPage />;
 

@@ -1,12 +1,13 @@
 // src/industries/mobile/pages/GlobalImeiInventoryPage.tsx
 import { useMemo, useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Smartphone, Search, Download, RefreshCw, ShieldCheck,
   Package, CheckCircle2, ExternalLink, Trash2, ScanLine,
   GraduationCap, X, Keyboard, Printer, AlertOctagon,
   AlertTriangle, Clock, Shield, XCircle, DollarSign,
+  Plus, ArrowLeft, Store, Layers,
 } from 'lucide-react';
 import { Button } from '@core/ui/Button';
 import { formatPKR } from '@core/lib/format';
@@ -19,11 +20,18 @@ import {
   PTA_STATUS_COLORS,
 } from '../api/imei.api';
 import { PtaStatusBadge } from '../components/PtaStatusBadge';
+import { BulkImeiAddModal } from '../components/BulkImeiAddModal';
+import { productsApi } from '@modules/inventory/products/api/products.api';
+import { shopsApi } from '@modules/organization/shops/api/shops.api';
 import { useAuthStore } from '@core/stores/auth.store';
 
 /* ═════════════════════════════════════════════════════════════
-   NAFAA GLOBAL IMEI INVENTORY — FULL BEST v2
+   NAFAA IMEI INVENTORY — ek hi page, do kaam
    ─────────────────────────────────────────────────────────────
+   /imei-inventory        → poori dukan ke saare device
+   /products/:id/imei     → sirf us product ke device
+   Pehle ye do alag pages the — ab ek hi, is liye har feature
+   (teacher, print, bulk select, shop filter) dono jagah milta hai.
    🌙 Dark mode complete
    🎓 Teacher — "IMEI inventory kaise use karein"
    🛡️ PTA breakdown — clickable filter chips
@@ -54,6 +62,10 @@ const STATUS_ICONS: Record<string, any> = {
 };
 
 export default function GlobalImeiInventoryPage() {
+  // `:id` mile to sirf usi product ke IMEI — warna poori dukan
+  const { id: scopedProductId } = useParams();
+  const isScoped = Boolean(scopedProductId);
+
   const queryClient = useQueryClient();
   const tenantName = useAuthStore((s) => s.tenant?.name);
   const shopName = useAuthStore((s) => s.user?.assignedShop?.name);
@@ -65,6 +77,8 @@ export default function GlobalImeiInventoryPage() {
   const [ptaFilter, setPtaFilter] = useState<PtaFilter>('ALL');
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showTeacher, setShowTeacher] = useState(false);
+  const [shopFilter, setShopFilter] = useState<string>('ALL');
+  const [showBulkAdd, setShowBulkAdd] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search.trim()), 200);
@@ -76,12 +90,26 @@ export default function GlobalImeiInventoryPage() {
     queryFn: imeiApi.stats,
   });
 
+  /* Scoped mode: product ka naam/price header me dikhane ke liye */
+  const { data: product } = useQuery({
+    queryKey: ['product', scopedProductId],
+    queryFn: () => productsApi.getOne(scopedProductId!),
+    enabled: isScoped,
+  });
+
+  const { data: shops = [] } = useQuery({
+    queryKey: ['shops'],
+    queryFn: () => shopsApi.list(),
+  });
+
   const { data: listData, isLoading, refetch } = useQuery({
-    queryKey: ['imei-global-list', statusFilter, ptaFilter],
+    queryKey: ['imei-global-list', statusFilter, ptaFilter, shopFilter, scopedProductId],
     queryFn: () =>
       imeiApi.listAll({
         status: statusFilter === 'ALL' ? undefined : statusFilter,
         ptaStatus: ptaFilter === 'ALL' ? undefined : ptaFilter,
+        shopId: shopFilter === 'ALL' ? undefined : shopFilter,
+        productId: scopedProductId,
         limit: 500,
       }),
   });
@@ -213,13 +241,38 @@ export default function GlobalImeiInventoryPage() {
     return () => window.removeEventListener('keydown', onKey);
   }, [showTeacher, search, selected]);
 
-  const hasFilters = !!search || statusFilter !== 'IN_STOCK' || ptaFilter !== 'ALL';
-  const clearFilters = () => { setSearch(''); setStatusFilter('ALL'); setPtaFilter('ALL'); };
+  const hasFilters = !!search || statusFilter !== 'IN_STOCK' || ptaFilter !== 'ALL' || shopFilter !== 'ALL';
+  const clearFilters = () => { setSearch(''); setStatusFilter('ALL'); setPtaFilter('ALL'); setShopFilter('ALL'); };
+
+  const activeShops = useMemo(() => (shops as any[]).filter((sh) => sh.isActive !== false), [shops]);
 
   return (
     <div className="space-y-4 sm:space-y-5 pb-10 print:space-y-0">
       {showTeacher && (
         <ImeiTeacher onClose={() => setShowTeacher(false)} />
+      )}
+
+      {/* Bulk add sirf scoped mode me — kis product ka device, ye pata hona zaroori hai */}
+      {showBulkAdd && product && (
+        <BulkImeiAddModal
+          productId={product.id}
+          productName={product.name}
+          defaultCostPrice={product.costPrice || 0}
+          onSuccess={() => {
+            setShowBulkAdd(false);
+            queryClient.invalidateQueries({
+              predicate: (q) => {
+                const k = String(q.queryKey?.[0] ?? '');
+                return [
+                  'imei-global-list', 'imei-global-stats', 'imei-stats', 'imei-list',
+                  'imei-product-list', 'mobile-pos-catalog', 'mobile-low-stock',
+                  'mobile-stock-aging', 'products', 'mobile-products', 'product',
+                ].includes(k) || k.startsWith('mobile-reports');
+              },
+            });
+          }}
+          onClose={() => setShowBulkAdd(false)}
+        />
       )}
 
       {/* ═══ PRINT-ONLY HEADER ═══ */}
@@ -250,9 +303,21 @@ export default function GlobalImeiInventoryPage() {
               <Smartphone className="h-3.5 w-3.5 text-amber-300" /> Mobile Industry
               {shopName && (<><span className="opacity-40">•</span><span className="text-emerald-200">🏪 {shopName}</span></>)}
             </div>
-            <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight">📇 IMEI Inventory</h1>
+            {isScoped && (
+              <Link to={`/mobile-products/${scopedProductId}`}
+                className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-extrabold text-white/80 hover:text-white transition">
+                <ArrowLeft className="h-3.5 w-3.5" /> Wapis product par
+              </Link>
+            )}
+            <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight">
+              {isScoped
+                ? <>📇 {product?.name ?? 'Product'} <span className="text-white/70 text-lg sm:text-xl">ki IMEIs</span></>
+                : '📇 IMEI Inventory'}
+            </h1>
             <p className="mt-1.5 text-xs sm:text-sm text-white/90 font-semibold">
-              Saare products ki IMEIs ek jagah — search, filter, manage
+              {isScoped
+                ? 'Is product ke saare device — search, filter, manage'
+                : 'Saare products ki IMEIs ek jagah — search, filter, manage'}
               {stats && (
                 <>
                   <span className="opacity-50 mx-1.5">•</span>
@@ -299,10 +364,27 @@ export default function GlobalImeiInventoryPage() {
                 }
               }}
               loading={recalcMutation.isPending}
-              className="bg-white text-blue-900 hover:bg-slate-100 font-extrabold shadow-2xl"
+              variant="outline"
+              className="font-extrabold bg-white/15 border-white/25 text-white hover:bg-white/25"
             >
-              <RefreshCw className="h-4 w-4" /> Recalc Stock
+              <RefreshCw className="h-4 w-4" /> <span className="hidden sm:inline">Recalc Stock</span>
             </Button>
+            {isScoped ? (
+              <Button
+                onClick={() => setShowBulkAdd(true)}
+                disabled={!product}
+                className="bg-white text-blue-900 hover:bg-slate-100 font-extrabold shadow-2xl"
+              >
+                <Plus className="h-4 w-4" /> IMEI Add Karo
+              </Button>
+            ) : (
+              <Link to="/products">
+                <Button className="bg-white text-blue-900 hover:bg-slate-100 font-extrabold shadow-2xl">
+                  <Plus className="h-4 w-4" /> <span className="hidden sm:inline">Product chuno</span>
+                  <span className="sm:hidden">Add</span>
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
 
@@ -383,6 +465,38 @@ export default function GlobalImeiInventoryPage() {
           );
         })}
       </section>
+
+      {/* ═══ SHOP CHIPS — ab har device apni shop se juda hai ═══ */}
+      {activeShops.length > 1 && (
+        <section className="flex gap-1.5 overflow-x-auto pb-1 print:hidden items-center">
+          <span className="shrink-0 text-[10px] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider inline-flex items-center gap-1 pr-1">
+            <Store className="h-3 w-3" /> Shop
+          </span>
+          <button
+            onClick={() => setShopFilter('ALL')}
+            className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition border-2 ${
+              shopFilter === 'ALL'
+                ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-transparent shadow-sm'
+                : 'border-transparent bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+            }`}
+          >
+            Sab shops
+          </button>
+          {activeShops.map((sh: any) => (
+            <button
+              key={sh.id}
+              onClick={() => setShopFilter(sh.id)}
+              className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition border-2 inline-flex items-center gap-1 ${
+                shopFilter === sh.id
+                  ? 'bg-blue-600 text-white border-transparent shadow-sm'
+                  : 'border-transparent bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }`}
+            >
+              <Store className="h-3 w-3" /> {sh.name}
+            </button>
+          ))}
+        </section>
+      )}
 
       {/* ═══ SEARCH + EXPORT ═══ */}
       <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 p-3.5 print:hidden">

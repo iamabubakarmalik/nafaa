@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import {
@@ -9,7 +9,8 @@ import {
   ShoppingCart, Star, Zap, Phone, Layers, Boxes,
   Receipt, Crown, Hourglass, Flame, Rocket, BookOpen,
   BadgeDollarSign, ClipboardCheck, WifiOff, Hash, BatteryCharging,
-  Building2, // ✅ Added
+  Building2, GraduationCap, Keyboard, Printer, FileSpreadsheet, X,
+  CheckCircle2, Cable, RotateCcw, PiggyBank, CalendarDays,
 } from 'lucide-react';
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid,
@@ -20,12 +21,15 @@ import { imeiApi } from '@industries/mobile/api/imei.api';
 import { repairsApi } from '@industries/mobile/api/repairs.api';
 import { usedPhonesApi } from '@industries/mobile/api/used-phones.api';
 import { emiApi } from '@industries/mobile/api/emi.api';
+import { mobileReportsApi, type ProfitSourceKey } from '@industries/mobile/api/mobile-reports.api';
+import { toast } from 'sonner';
 import { formatPKR } from '@core/lib/format';
 import { Button } from '@core/ui/Button';
 import { SubscriptionBanner } from '@modules/dashboard/components/SubscriptionBanner';
 import { EmailVerifyBanner } from '@core/components/auth/EmailVerifyBanner';
 import { useCostHidden, PrivacyToggle } from '@core/ui/HiddenValue';
 import { useAuthStore } from '@core/stores/auth.store';
+import { PrintStyles } from '@core/components/print/PrintStyles';
 
 /* ═════════════════════════════════════════════════════════════
    NAFAA MOBILE DASHBOARD — FULL BEST (Final)
@@ -61,13 +65,38 @@ const formatPercent = (n: number) => `${n > 0 ? '+' : ''}${n.toFixed(1)}%`;
 const formatDate = (v: string) =>
   new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(v));
 
-type Range = '7d' | '30d';
+type Range = 'today' | '7d' | '30d' | 'custom';
 
-export default function MobileDashboardV2() {
+const RANGE_LABEL: Record<Range, string> = {
+  today: 'Aaj',
+  '7d': '7 Din',
+  '30d': '30 Din',
+  custom: 'Apni Tareekh',
+};
+
+/** Profit by source ke chaar raste — wahi rang jo poori app me hain. */
+const SOURCE_META: Record<ProfitSourceKey, { label: string; icon: any; grad: string; chip: string }> = {
+  NEW_PHONE:  { label: 'Naye Phone',  icon: Smartphone, grad: 'from-blue-600 to-indigo-700',    chip: 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300' },
+  USED_PHONE: { label: 'Used Phone',  icon: RotateCcw,  grad: 'from-violet-600 to-fuchsia-700', chip: 'bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300' },
+  ACCESSORY:  { label: 'Accessories', icon: Cable,      grad: 'from-emerald-600 to-teal-700',   chip: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300' },
+  REPAIR:     { label: 'Repair',      icon: Wrench,     grad: 'from-amber-600 to-orange-700',   chip: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300' },
+};
+const SOURCE_ORDER: ProfitSourceKey[] = ['NEW_PHONE', 'USED_PHONE', 'ACCESSORY', 'REPAIR'];
+
+const isoDay = (d: Date) => d.toISOString().slice(0, 10);
+
+export default function MobileDashboard() {
   const hideCost = useCostHidden();
   const shopName = useAuthStore((s) => s.user?.assignedShop?.name);
   const userName = useAuthStore((s) => s.user?.fullName?.split(' ')[0] ?? 'Boss');
-  const [range, setRange] = useState<Range>('7d');
+  // 30 din default — 7 din me aksar repair/used phone nazar hi nahi aate
+  const [range, setRange] = useState<Range>('30d');
+  const [customFrom, setCustomFrom] = useState(() => {
+    const d = new Date(); d.setDate(d.getDate() - 7); return isoDay(d);
+  });
+  const [customTo, setCustomTo] = useState(() => isoDay(new Date()));
+  const [showTeacher, setShowTeacher] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
 
   /* ─── Data queries ─────────────────────────────────────── */
   const { data, refetch, isRefetching } = useQuery({
@@ -99,6 +128,48 @@ export default function MobileDashboardV2() {
     queryFn: () => emiApi.stats(),
     refetchInterval: 60_000,
   });
+
+  /* ─── Kamai kis raste se aa rahi hai ─── */
+  const profitRange = useMemo(() => {
+    if (range === 'custom') return { from: customFrom, to: customTo };
+    const to = new Date();
+    const from = new Date();
+    if (range === 'today') from.setHours(0, 0, 0, 0);
+    else from.setDate(from.getDate() - (range === '30d' ? 30 : 7));
+    return { from: from.toISOString(), to: to.toISOString() };
+  }, [range, customFrom, customTo]);
+
+  const { data: profitSplit } = useQuery({
+    queryKey: ['mobile-profit-by-source', range, customFrom, customTo],
+    queryFn: () => mobileReportsApi.profitBySource(profitRange),
+  });
+
+  /* ─── Keyboard: G guide • R refresh • ? shortcuts • Esc band ─── */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (e.key === 'Escape') {
+        if (showShortcuts) return setShowShortcuts(false);
+        if (showTeacher) return setShowTeacher(false);
+        return;
+      }
+      if (e.ctrlKey || e.metaKey) return;
+      if (e.key === 'g') setShowTeacher(true);
+      if (e.key === 'r') refetch();
+      if (e.key === '?') setShowShortcuts((v) => !v);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showTeacher, showShortcuts]);
+
+  const anyModal = showTeacher || showShortcuts;
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = anyModal ? 'hidden' : prev;
+    return () => { document.body.style.overflow = prev; };
+  }, [anyModal]);
 
   const stats = data?.stats;
   const mobileStats = data?.mobileStats;
@@ -179,8 +250,50 @@ export default function MobileDashboardV2() {
   const usedPhonesInStock = (usedPhonesStats as any)?.inStock ?? 0;
   const activeEmiPlans = (emiStats as any)?.activePlans ?? 0;
 
+  /* ─── CSV export ─── */
+  const exportCsv = () => {
+    const t = profitSplit?.totals;
+    const rows: string[][] = [
+      ['Nafaa — Mobile Dashboard', shopName ?? ''],
+      [`Period: ${RANGE_LABEL[range]}`, new Date().toLocaleString('en-PK')],
+      [],
+      ['KAMAI KA RASTA', 'Bikri', 'Lagat', 'Munafa', 'Margin %', 'Units', 'Sales'],
+      ...SOURCE_ORDER.map((k) => {
+        const row = profitSplit?.sources.find((x) => x.key === k);
+        return [
+          SOURCE_META[k].label,
+          String(Math.round(row?.revenue ?? 0)), String(Math.round(row?.cost ?? 0)),
+          String(Math.round(row?.profit ?? 0)), (row?.margin ?? 0).toFixed(1),
+          String(row?.units ?? 0), String(row?.sales ?? 0),
+        ];
+      }),
+      ['TOTAL', String(Math.round(t?.revenue ?? 0)), String(Math.round(t?.cost ?? 0)),
+       String(Math.round(t?.profit ?? 0)), (t?.margin ?? 0).toFixed(1),
+       String(t?.units ?? 0), String(t?.salesCount ?? 0)],
+      [],
+      ['STOCK', 'Ginti'],
+      ['IMEIs in stock', String(inStockImeis)],
+      ['Used phones in stock', String(usedPhonesInStock)],
+      ['Open repairs', String(openRepairs)],
+      ['Active EMI plans', String(activeEmiPlans)],
+    ];
+    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `mobile-dashboard-${isoDay(new Date())}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('CSV download ho gaya');
+  };
+
   return (
-    <div className="space-y-4 sm:space-y-6 pb-8">
+    <div className="space-y-4 sm:space-y-6 pb-8 print:space-y-3">
+      <PrintStyles orientation="portrait" title="Mobile Dashboard" subtitle="Aaj ka khulasa" />
+
+      {showTeacher && <DashboardTeacher onClose={() => setShowTeacher(false)} />}
+      {showShortcuts && <ShortcutsModal onClose={() => setShowShortcuts(false)} />}
+
       <SubscriptionBanner />
       <EmailVerifyBanner />
 
@@ -224,12 +337,39 @@ export default function MobileDashboardV2() {
           <div className="flex items-center gap-2 flex-wrap shrink-0">
             <PrivacyToggle compact />
             <button
+              onClick={() => setShowTeacher(true)}
+              className="h-11 px-3 rounded-xl bg-amber-400/90 hover:bg-amber-400 text-slate-900 text-xs font-extrabold inline-flex items-center gap-1.5 shadow-lg transition"
+              title="Guide (G)"
+            >
+              <GraduationCap className="h-4 w-4" /> <span className="hidden sm:inline">Guide</span>
+            </button>
+            <button
+              onClick={() => setShowShortcuts(true)}
+              className="h-11 w-11 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 inline-flex items-center justify-center backdrop-blur-md transition"
+              title="Shortcuts (?)"
+            >
+              <Keyboard className="h-4 w-4" />
+            </button>
+            <button
               onClick={() => refetch()}
               disabled={isRefetching}
               className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-3 py-2.5 text-sm font-extrabold backdrop-blur-md disabled:opacity-50 border border-white/20 transition-all hover:scale-105"
+              title="Refresh (R)"
             >
               <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
               <span className="hidden sm:inline">Refresh</span>
+            </button>
+            <button
+              onClick={() => window.print()}
+              className="h-11 px-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-extrabold inline-flex items-center gap-1.5 backdrop-blur-md transition"
+            >
+              <Printer className="h-4 w-4" /> <span className="hidden sm:inline">Print</span>
+            </button>
+            <button
+              onClick={exportCsv}
+              className="h-11 px-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-extrabold inline-flex items-center gap-1.5 backdrop-blur-md transition"
+            >
+              <FileSpreadsheet className="h-4 w-4" /> <span className="hidden sm:inline">CSV</span>
             </button>
             <Link to="/pos">
               <Button className="bg-white text-slate-900 hover:bg-slate-100 font-extrabold shadow-2xl shadow-black/20 hover:scale-105 transition">
@@ -281,8 +421,126 @@ export default function MobileDashboardV2() {
       <section className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
         <OpsCard to="/used-phones" icon={RefreshCw} title="Used Phones" desc={`${usedPhonesInStock} in stock`} tone="violet" />
         <OpsCard to="/emi-plans" icon={CreditCard} title="EMI Plans" desc={`${activeEmiPlans} active`} tone="pink" />
-        <OpsCard to="/repairs" icon={Wrench} title="Repairs" desc={`${openRepairs} open tickets`} tone="amber" />
+        <OpsCard to="/repair-tickets" icon={Wrench} title="Repairs" desc={`${openRepairs} open tickets`} tone="amber" />
         <OpsCard to="/imei-inventory" icon={ShieldCheck} title="IMEI Inventory" desc={`${inStockImeis} available`} tone="blue" />
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════
+          PAISA KAHAN SE — chaar raston ka munafa
+          ═══════════════════════════════════════════════════════ */}
+      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 flex-wrap bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-500/10 dark:to-teal-500/10">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-lg shadow-emerald-500/40">
+              <PiggyBank className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-slate-900 dark:text-white">Paisa Kahan Se Aa Raha Hai?</h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 font-bold">
+                {RANGE_LABEL[range]} · kul munafa{' '}
+                <strong className="text-emerald-700 dark:text-emerald-400">
+                  {hideCost ? '••••' : formatPKR(profitSplit?.totals.profit ?? 0)}
+                </strong>
+              </p>
+            </div>
+          </div>
+
+          {/* Range picker — custom tareekh ke saath */}
+          <div className="flex items-center gap-1.5 flex-wrap print:hidden">
+            {(['today', '7d', '30d', 'custom'] as Range[]).map((r) => (
+              <button
+                key={r}
+                onClick={() => setRange(r)}
+                className={`h-9 px-3 rounded-lg text-xs font-extrabold transition border-2 inline-flex items-center gap-1 ${
+                  range === r
+                    ? 'bg-gradient-to-r from-emerald-600 to-teal-700 text-white border-transparent shadow'
+                    : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-emerald-300'
+                }`}
+              >
+                {r === 'custom' && <CalendarDays className="h-3.5 w-3.5" />}
+                {RANGE_LABEL[r]}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {range === 'custom' && (
+          <div className="px-4 sm:px-6 py-3 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-2 flex-wrap print:hidden">
+            <label className="text-[10px] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">Se</label>
+            <input
+              type="date" value={customFrom} max={customTo}
+              onChange={(e) => setCustomFrom(e.target.value)}
+              className="h-10 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 transition"
+            />
+            <label className="text-[10px] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">Tak</label>
+            <input
+              type="date" value={customTo} min={customFrom} max={isoDay(new Date())}
+              onChange={(e) => setCustomTo(e.target.value)}
+              className="h-10 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 transition"
+            />
+          </div>
+        )}
+
+        <div className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+          {SOURCE_ORDER.map((key) => {
+            const row = profitSplit?.sources.find((x) => x.key === key);
+            const meta = SOURCE_META[key];
+            const Icon = meta.icon;
+            const total = profitSplit?.totals.profit ?? 0;
+            const share = total > 0 && row ? (row.profit / total) * 100 : 0;
+            return (
+              <div key={key} className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 p-3.5">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className={`h-9 w-9 rounded-xl bg-gradient-to-br ${meta.grad} text-white flex items-center justify-center shadow shrink-0`}>
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">{meta.label}</div>
+                      <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 tabular-nums">
+                        {row?.units ?? 0} units
+                      </div>
+                    </div>
+                  </div>
+                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-extrabold tabular-nums shrink-0 ${meta.chip}`}>
+                    {(row?.margin ?? 0).toFixed(0)}%
+                  </span>
+                </div>
+
+                <div className="mt-3 space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span className="font-semibold text-slate-500 dark:text-slate-400">Bikri</span>
+                    <span className="font-extrabold text-slate-900 dark:text-white tabular-nums">{formatPKR(row?.revenue ?? 0)}</span>
+                  </div>
+                  <div className="flex justify-between pt-1 border-t-2 border-slate-100 dark:border-slate-800">
+                    <span className="font-extrabold text-slate-900 dark:text-white">Munafa</span>
+                    <span className="font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">
+                      {hideCost ? '•••' : formatPKR(row?.profit ?? 0)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-2.5">
+                  <div className="flex justify-between text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">
+                    <span>Hissa</span>
+                    <span className="tabular-nums">{share.toFixed(0)}%</span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                    <div className={`h-full bg-gradient-to-r ${meta.grad} transition-all`}
+                      style={{ width: `${Math.max(Math.min(share, 100), 0)}%` }} />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="px-4 sm:px-6 pb-4 print:hidden">
+          <Link to="/profit-report"
+            className="inline-flex items-center gap-1.5 text-xs font-extrabold text-emerald-700 dark:text-emerald-400 hover:underline">
+            Poori profit report dekho <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
       </section>
 
       {/* ═══════════════════════════════════════════════════════
@@ -312,7 +570,7 @@ export default function MobileDashboardV2() {
                 title={`${s.lowStockCount} Kam Stock`} desc="Reorder ka waqt" tone="amber" />
             )}
             {openRepairs > 0 && (
-              <AlertCard to="/repairs" icon={Wrench}
+              <AlertCard to="/repair-tickets" icon={Wrench}
                 title={`${openRepairs} Repairs`} desc="Open tickets" tone="blue" />
             )}
             {(s.pendingTransfers ?? 0) > 0 && (
@@ -452,7 +710,7 @@ export default function MobileDashboardV2() {
                 <Smartphone className="h-3.5 w-3.5" /> All IMEIs
               </Button>
             </Link>
-            <Link to="/imei-inventory/global">
+            <Link to="/imei-inventory">
               <Button size="sm" className="bg-blue-600 hover:bg-blue-700 font-extrabold">
                 <Activity className="h-3.5 w-3.5" /> Global View
               </Button>
@@ -585,13 +843,13 @@ export default function MobileDashboardV2() {
           <OpsCard to="/products" icon={Package} title="Products" desc={`${s.totalProducts ?? 0} items`} tone="cyan" />
           <OpsCard to="/imei-inventory" icon={ShieldCheck} title="IMEI Inventory" desc={`${inStockImeis} available`} tone="blue" />
           <OpsCard to="/used-phones" icon={RefreshCw} title="Used Phones" desc={`${usedPhonesInStock} in stock`} tone="violet" />
-          <OpsCard to="/repairs" icon={Wrench} title="Repairs" desc={`${openRepairs} open`} tone="amber" />
+          <OpsCard to="/repair-tickets" icon={Wrench} title="Repairs" desc={`${openRepairs} open`} tone="amber" />
           <OpsCard to="/emi-plans" icon={CreditCard} title="EMI Plans" desc={`${activeEmiPlans} active`} tone="pink" />
           <OpsCard to="/customers" icon={Users} title="Customers" desc={`${s.totalCustomers ?? 0} log`} tone="rose" />
           <OpsCard to="/khata" icon={BookOpen} title="Khata / Udhaar" desc={formatPKR(s.totalUdhaar ?? 0)} tone="orange" />
           <OpsCard to="/sales" icon={Receipt} title="Sales History" desc="Purani receipts" tone="indigo" />
           <OpsCard to="/mobile-reports" icon={Activity} title="Reports" desc="Analytics" tone="purple" />
-          <OpsCard to="/mobile/bulk-import" icon={Zap} title="Bulk Import" desc="Excel/CSV" tone="teal" />
+          <OpsCard to="/products/bulk-import" icon={Zap} title="Bulk Import" desc="Excel/CSV" tone="teal" />
         </div>
       </section>
 
@@ -832,6 +1090,118 @@ export default function MobileDashboardV2() {
 /* ═════════════════════════════════════════════════════════════
    REUSABLE SUB-COMPONENTS — dark mode perfect
    ═════════════════════════════════════════════════════════════ */
+
+
+/* ═════════════════════════════════════════════════════════════
+   GUIDE + SHORTCUTS
+   ═════════════════════════════════════════════════════════════ */
+
+function DashboardTeacher({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()}
+        className="w-full sm:max-w-2xl bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col border-2 border-transparent dark:border-slate-800">
+        <div className="px-5 py-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-500/15 dark:to-orange-500/15 border-b-2 border-amber-200 dark:border-amber-500/30 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-lg">
+              <GraduationCap className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="text-[10px] uppercase tracking-wider text-amber-700 dark:text-amber-300 font-extrabold">Guide</div>
+              <h3 className="font-extrabold text-slate-900 dark:text-white">Dashboard Kaise Parhein?</h3>
+            </div>
+          </div>
+          <button onClick={onClose} className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-5 space-y-3.5">
+          <GuideStep n={1} title="Upar ke chaar number"
+            body="Aaj ki sales, aaj ka profit, stock me kitne phone (IMEI), aur kitne repair khule hain. Profit par taala laga ho to PIN se kholo."
+            tips={['Profit lagat kaat kar dikhaya jata hai', 'Repair ka number laal ho to foran dekho']} />
+          <GuideStep n={2} title="Paisa kahan se aa raha hai"
+            body="Mobile shop ki kamai chaar raston se aati hai — naye phone, used phone, accessories aur repair. Har card batata hai kitni bikri hui, kitna munafa bacha, aur kul munafe me uska kitna hissa hai."
+            tips={['Apni tareekh chun kar kisi bhi arse ka hisab dekho', 'Repair ki kamai ab khud shamil hoti hai — delivery par sale banti hai']} />
+          <GuideStep n={3} title="Alerts"
+            body="Kam stock, late EMI qisten aur purane repair tickets — ye sab upar alert bar me aate hain. Ek click par us page par pahunch jao."
+            tips={['Alert tabhi dikhta hai jab waqai koi masla ho']} />
+          <GuideStep n={4} title="Nikalo aur bhejo"
+            body="Print se poora dashboard chhap sakte ho, CSV se Excel me le ja sakte ho — dono upar right me hain."
+            tips={['CSV me chaaron raston ka poora hisab aata hai']} />
+        </div>
+
+        <div className="px-5 py-3.5 border-t-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 text-right shrink-0">
+          <Button onClick={onClose} className="bg-gradient-to-r from-amber-500 to-orange-600 font-extrabold shadow-lg shadow-amber-500/30">
+            <CheckCircle2 className="h-4 w-4" /> Samajh Gaya
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function GuideStep({ n, title, body, tips }: any) {
+  return (
+    <div className="rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-3.5">
+      <div className="flex items-start gap-3">
+        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-extrabold text-sm shrink-0 shadow-md">
+          {n}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-extrabold text-slate-900 dark:text-white">{title}</div>
+          <div className="text-xs font-semibold text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">{body}</div>
+          {tips && (
+            <ul className="mt-2 space-y-1">
+              {tips.map((t: string, i: number) => (
+                <li key={i} className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-start gap-1.5">
+                  <Sparkles className="h-2.5 w-2.5 text-amber-500 shrink-0 mt-0.5" /> {t}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ShortcutsModal({ onClose }: { onClose: () => void }) {
+  const sc = [
+    ['G', 'Guide kholo'],
+    ['R', 'Refresh'],
+    ['?', 'Ye list'],
+    ['Esc', 'Band karo'],
+  ];
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border-2 border-slate-200 dark:border-slate-700">
+        <div className="px-5 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="h-9 w-9 rounded-xl bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 flex items-center justify-center">
+              <Keyboard className="h-4 w-4" />
+            </div>
+            <h3 className="font-extrabold text-slate-900 dark:text-white">Keyboard Shortcuts</h3>
+          </div>
+          <button onClick={onClose} className="h-9 w-9 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          </button>
+        </div>
+        <div className="p-5 space-y-2">
+          {sc.map(([key, desc]) => (
+            <div key={key} className="flex items-center justify-between text-sm">
+              <span className="font-semibold text-slate-700 dark:text-slate-300">{desc}</span>
+              <kbd className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 font-mono text-xs font-extrabold text-slate-700 dark:text-slate-200">
+                {key}
+              </kbd>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function Card({ children, noPad = false }: any) {
   return (

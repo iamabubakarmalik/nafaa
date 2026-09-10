@@ -76,7 +76,6 @@ import CatalogGate from '@modules/catalog/pages/CatalogGate';
 import CategoriesPage from '@modules/inventory/categories/pages/CategoriesPage';
 
 // ─── Mobile Industry ───────────────────────────────────────────
-import ImeiInventoryPage from '@industries/mobile/pages/ImeiInventoryPage';
 import MobileReportsPage from '@industries/mobile/pages/MobileReportsPage';
 import EmiPlansPage from '@industries/mobile/pages/EmiPlansPage';
 import EmiPlanDetailPage from '@industries/mobile/pages/EmiPlanDetailPage';
@@ -86,7 +85,7 @@ import GlobalImeiInventoryPage from '@industries/mobile/pages/GlobalImeiInventor
 import UsedPhonesPage from '@industries/mobile/pages/UsedPhonesPage';
 
 // ─── Customers ─────────────────────────────────────────────────
-import CustomersListPage from '@modules/customers/customers/pages/CustomersListPage';
+import CustomersListGate from '@modules/customers/customers/pages/CustomersListGate';
 import CustomerFormPage from '@modules/customers/customers/pages/CustomerFormPage';
 import CustomerDetailPage from '@modules/customers/customers/pages/CustomerDetailPage';
 
@@ -415,7 +414,6 @@ import ElectronicsDashboardPage from '@industries/electronics/pages/ElectronicsD
 import ElectronicsProductsPage from '@industries/electronics/pages/ElectronicsProductsPage';
 import ElectronicsProductWizardPage from '@industries/electronics/pages/ElectronicsProductWizardPage';
 import ElectronicsProductDetailPage from '@industries/electronics/pages/ElectronicsProductDetailPage';
-import ElectronicsBrandsPage from '@industries/electronics/pages/ElectronicsBrandsPage';
 import ElectronicsBundlesPage from '@industries/electronics/pages/ElectronicsBundlesPage';
 import ElectronicsBundleFormPage from '@industries/electronics/pages/BundleFormPage';
 import ElectronicsSerialTrackingPage from '@industries/electronics/pages/SerialTrackingPage';
@@ -618,7 +616,7 @@ export default function App() {
                   <Route path="/products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <ProductFormGate />)} />
                   <Route path="/products/bulk-import" element={secure(PERMISSIONS.PRODUCTS_CREATE, <ProductBulkImportPage />)} />
                   <Route path="/products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <ProductFormGate />)} />
-                  <Route path="/products/:id/imei" element={secure(PERMISSIONS.PRODUCTS_EDIT, <ImeiInventoryPage />)} />
+                  <Route path="/products/:id/imei" element={secure(PERMISSIONS.PRODUCTS_EDIT, <GlobalImeiInventoryPage />)} />
                   <Route path="/products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ProductViewGate />)} />
                   <Route path="/products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ProductsListGate />)} />
 
@@ -640,7 +638,7 @@ export default function App() {
                   <Route path="/customers/new" element={secure(PERMISSIONS.CUSTOMERS_EDIT, <CustomerFormPage />)} />
                   <Route path="/customers/:id/edit" element={secure(PERMISSIONS.CUSTOMERS_EDIT, <CustomerFormPage />)} />
                   <Route path="/customers/:id" element={secure(PERMISSIONS.CUSTOMERS_VIEW, <CustomerDetailPage />)} />
-                  <Route path="/customers" element={secure(PERMISSIONS.CUSTOMERS_VIEW, <CustomersListPage />)} />
+                  <Route path="/customers" element={secure(PERMISSIONS.CUSTOMERS_VIEW, <CustomersListGate />)} />
 
                   {/* ── Sales / POS ────────────────────────────── */}
                   <Route path="/pos" element={secure(PERMISSIONS.POS_USE, <PosGate />)} />
@@ -976,7 +974,6 @@ export default function App() {
                   {/* Electronics */}
                   <Route path="/electronics" element={<ElectronicsDashboardPage />} />
                   <Route path="/electronics/dashboard" element={<ElectronicsDashboardPage />} />
-                  <Route path="/electronics/brands" element={<ElectronicsBrandsPage />} />
                   <Route path="/electronics/bundles/new" element={<ElectronicsBundleFormPage />} />
                   <Route path="/electronics/bundles/:id/edit" element={<ElectronicsBundleFormPage />} />
                   <Route path="/electronics/bundles" element={<ElectronicsBundlesPage />} />

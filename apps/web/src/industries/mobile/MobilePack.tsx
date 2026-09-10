@@ -3,7 +3,6 @@ import { Smartphone, RefreshCw, Wrench, CreditCard, BarChart3, Sparkles } from '
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
 // Pages
-import ImeiInventoryPage from './pages/ImeiInventoryPage';
 import GlobalImeiInventoryPage from './pages/GlobalImeiInventoryPage';
 import UsedPhonesPage from './pages/UsedPhonesPage';
 import MobileReportsPage from './pages/MobileReportsPage';
@@ -65,7 +64,7 @@ export const MobilePack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Mobile Industry',
+      label: 'Mobile Extras',
       icon: Smartphone,
       emoji: '📱',
       color: '#2563eb',
@@ -75,7 +74,6 @@ export const MobilePack: IndustryPack = {
         { to: '/used-phones', label: 'Used Phones', icon: RefreshCw },
         { to: '/repair-tickets', label: 'Repairs', icon: Wrench },
         { to: '/emi-plans', label: 'EMI Plans', icon: CreditCard },
-        { to: '/mobile-reports', label: 'Mobile Reports', icon: BarChart3 },
       ],
     },
   ],
@@ -89,7 +87,8 @@ export const MobilePack: IndustryPack = {
 
     // Existing pages
     { path: '/imei-inventory', element: GlobalImeiInventoryPage },
-    { path: '/products/:id/imei', element: ImeiInventoryPage },
+    // Ek hi page dono kaam karta hai — :id ho to us product par scope ho jata hai
+    { path: '/products/:id/imei', element: GlobalImeiInventoryPage },
     { path: '/used-phones', element: UsedPhonesPage },
     { path: '/repair-tickets', element: RepairTicketsPage },
     { path: '/repair-tickets/:id', element: RepairTicketDetailPage },

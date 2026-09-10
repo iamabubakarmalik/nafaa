@@ -4,6 +4,7 @@ import SalesPage from './SalesPage';
 
 const RestaurantSalesPage = lazy(() => import('@industries/restaurant/pages/RestaurantSalesPage'));
 const MobileSalesPage = lazy(() => import('@industries/mobile/pages/MobileSalesPage'));
+const ElectronicsSalesPage = lazy(() => import('@industries/electronics/pages/ElectronicsSalesPage'));
 const CarpetSalesPage = lazy(() => import('@industries/carpet/pages/CarpetSalesPage'));
 const RetailSalesPage = lazy(() => import('@industries/retail/pages/RetailSalesPage'));
 const GarmentSalesPage = lazy(() => import('@industries/garments/pages/GarmentSalesPage'));
@@ -35,6 +36,7 @@ export default function SalesGate() {
 
   if (industry?.id === 'restaurant') return <Suspense fallback={<Loader />}><RestaurantSalesPage /></Suspense>;
   if (industry?.id === 'mobile') return <Suspense fallback={<Loader />}><MobileSalesPage /></Suspense>;
+  if (industry?.id === 'electronics') return <Suspense fallback={<Loader />}><ElectronicsSalesPage /></Suspense>;
   if (industry?.id === 'carpet') return <Suspense fallback={<Loader />}><CarpetSalesPage /></Suspense>;
   if (industry?.id === 'retail') return <Suspense fallback={<Loader />}><RetailSalesPage /></Suspense>;
   if (industry?.id === 'garments') return <Suspense fallback={<Loader />}><GarmentSalesPage /></Suspense>;

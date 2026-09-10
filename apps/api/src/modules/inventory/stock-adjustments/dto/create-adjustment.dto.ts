@@ -16,6 +16,16 @@ export class CreateAdjustmentDto {
   productId!: string;
 
   @ApiPropertyOptional({
+    description:
+      'Kis shop ka stock theek karna hai. Multi-shop me ye zaroori hai — ' +
+      'iske baghair sirf global ginti badalti thi aur shop ka stock ' +
+      '(ShopStock) purana hi reh jata tha.',
+  })
+  @IsOptional()
+  @IsString()
+  shopId?: string;
+
+  @ApiPropertyOptional({
     description: 'Variant ID (required if product has variants)',
   })
   @IsOptional()

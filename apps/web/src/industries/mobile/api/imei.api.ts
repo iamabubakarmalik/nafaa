@@ -51,6 +51,7 @@ export interface ProductImei {
 export interface CreateImeiPayload {
   productId: string;
   variantId?: string;
+  shopId?: string;
   imei1: string;
   imei2?: string;
   serialNumber?: string;
@@ -77,6 +78,8 @@ export interface BulkImeiItem {
 export interface BulkCreateImeiPayload {
   productId: string;
   variantId?: string;
+  /** Kis shop me ye device rakhe hain */
+  shopId?: string;
   costPrice?: number;
   warrantyMonths?: number;
   imeis: BulkImeiItem[];
@@ -144,6 +147,7 @@ export const imeiApi = {
     ptaStatus?: PtaStatus;
     productId?: string;
     variantId?: string;
+    shopId?: string;
     page?: number;
     limit?: number;
   }) =>

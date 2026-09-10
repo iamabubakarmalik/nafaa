@@ -15,6 +15,8 @@ export interface ElectronicsWizardSaveResult {
 
 export async function saveElectronicsWizard(
   draft: ElectronicsWizardDraft,
+  /** Maal kis shop me rakha ja raha hai. Na do to backend user ki shop le lega. */
+  shopId?: string,
 ): Promise<ElectronicsWizardSaveResult> {
   const { basic, specs, warranty, hasVariants, variants, hasSerials, serials, stock } = draft;
 
@@ -125,34 +127,29 @@ export async function saveElectronicsWizard(
   // Serial numbers (IMEI/S/N tracking)
   let serialsCreated = 0;
   if (hasSerials && serials.length > 0) {
-    const serialNumbers = serials.map((s) => s.serialNumber).filter(Boolean);
-    if (serialNumbers.length > 0) {
+    // Har unit ka poora data ek hi call me — serial + IMEI + MAC.
+    // Pehle IMEI set karne ke liye har serial par alag search+update
+    // chalti thi jo fail hone par chup-chaap nikal jati thi.
+    const entries = serials
+      .filter((s) => s.serialNumber?.trim())
+      .map((s) => ({
+        serialNumber: s.serialNumber.trim(),
+        imei: s.imei?.trim() || undefined,
+        imei2: s.imei2?.trim() || undefined,
+        macAddress: s.macAddress?.trim() || undefined,
+      }));
+
+    if (entries.length > 0) {
       try {
         const result = await serialTrackingApi.bulkCreate({
           productId,
-          serialNumbers,
+          shopId,
+          entries,
           purchasePrice: Number(basic.costPrice || 0),
           warrantyStartDate: warranty.warrantyStartDate,
           warrantyEndDate: warranty.warrantyEndDate,
         });
         serialsCreated = result.created;
-
-        // Update individual serials with IMEI/MAC if provided
-        for (const s of serials) {
-          if (s.imei || s.imei2 || s.macAddress) {
-            try {
-              const list = await serialTrackingApi.list({ productId, search: s.serialNumber });
-              const found = list.find((x) => x.serialNumber === s.serialNumber);
-              if (found) {
-                await serialTrackingApi.update(found.id, {
-                  imei: s.imei || undefined,
-                  imei2: s.imei2 || undefined,
-                  macAddress: s.macAddress || undefined,
-                });
-              }
-            } catch {}
-          }
-        }
       } catch (e) {
         await rollback(e);
       }

@@ -4,7 +4,7 @@ import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { BundlesService } from './bundles.service';
-import { UpsertBundleDto } from './dto/upsert-bundle.dto';
+import { PatchBundleDto, UpsertBundleDto } from './dto/upsert-bundle.dto';
 
 @ApiTags('Electronics - Bundles')
 @ApiBearerAuth()
@@ -22,6 +22,6 @@ export class BundlesController {
     });
   }
   @Get(':id') getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(user, id); }
-  @Patch(':id') update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpsertBundleDto) { return this.service.update(user, id, dto); }
+  @Patch(':id') update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: PatchBundleDto) { return this.service.update(user, id, dto); }
   @Delete(':id') remove(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.remove(user, id); }
 }

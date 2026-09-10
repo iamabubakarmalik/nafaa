@@ -10,7 +10,6 @@ import ElectronicsProductsPage from './pages/ElectronicsProductsPage';
 import ElectronicsProductWizardPage from './pages/ElectronicsProductWizardPage';
 import ElectronicsProductDetailPage from './pages/ElectronicsProductDetailPage';
 import ElectronicsPosPage from './pages/ElectronicsPosPage';
-import ElectronicsBrandsPage from './pages/ElectronicsBrandsPage';
 import WarrantyClaimsPage from './pages/WarrantyClaimsPage';
 import SerialTrackingPage from './pages/SerialTrackingPage';
 import ElectronicsBundlesPage from './pages/ElectronicsBundlesPage';
@@ -70,14 +69,12 @@ export const ElectronicsPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Electronics',
+      label: 'Electronics Extras',
       icon: Cpu,
       emoji: '🔌',
       color: '#3b82f6',
       order: 20,
       items: [
-        { to: '/electronics/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { to: '/electronics/brands', label: 'Brands', icon: Award },
         { to: '/electronics/serials', label: 'Serial/IMEI Track', icon: Barcode },
         { to: '/electronics/warranty-claims', label: 'Warranty Claims', icon: Shield, badge: 'NEW' },
         { to: '/electronics/bundles', label: 'Bundles', icon: Layers },
@@ -95,8 +92,6 @@ export const ElectronicsPack: IndustryPack = {
 
     { path: '/electronics', element: ElectronicsDashboardPage },
     { path: '/electronics/dashboard', element: ElectronicsDashboardPage },
-
-    { path: '/electronics/brands', element: ElectronicsBrandsPage },
 
     { path: '/electronics/serials', element: SerialTrackingPage },
     { path: '/electronics/warranty-claims', element: WarrantyClaimsPage },

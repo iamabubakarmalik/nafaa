@@ -57,7 +57,7 @@ export function ElectronicsWizardSummary({ draft, stats, allValid }: Props) {
               {draft.basic.categoryType.replace(/_/g, ' ')}
             </div>
           )}
-          {draft.basic.conditionType && draft.basic.conditionType !== 'NEW' && (
+          {draft.basic.conditionType && draft.basic.conditionType !== 'BRAND_NEW' && (
             <div className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-amber-500/30 backdrop-blur px-2 py-1 text-[10px] font-extrabold uppercase tracking-wider border border-amber-300/40">
               {draft.basic.conditionType.replace(/_/g, ' ')}
             </div>

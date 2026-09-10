@@ -47,6 +47,10 @@ export class SalesService {
     const usedPhoneIds = [
       ...new Set(usedPhoneItems.map((i) => i.usedPhoneId as string)),
     ];
+    // Electronics: serial/IMEI se track hone wale units (laptop, TV, camera…)
+    const serialIds = [
+      ...new Set(productItems.map((i) => i.serialId).filter(Boolean) as string[]),
+    ];
 
     const products = productIds.length
       ? await this.prisma.product.findMany({
@@ -98,6 +102,27 @@ export class SalesService {
       imeiDupCheck.add(id);
     }
 
+    // ─── Validate electronics serials ─────────────────────────
+    const serials = serialIds.length
+      ? await this.prisma.electronicsSerialTracking.findMany({
+          where: { id: { in: serialIds }, tenantId: user.tenantId },
+        })
+      : [];
+    if (serials.length !== serialIds.length) {
+      throw new NotFoundException('Ek ya zyada serial nahi mile');
+    }
+    const unavailableSerial = serials.find((sr) => sr.status !== 'IN_STOCK');
+    if (unavailableSerial) {
+      throw new BadRequestException(
+        `Serial ${unavailableSerial.serialNumber} is ${unavailableSerial.status} — bech nahi sakte`,
+      );
+    }
+    const serialDupCheck = new Set<string>();
+    for (const id of serialIds) {
+      if (serialDupCheck.has(id)) throw new BadRequestException('Ek hi serial cart me do dafa hai');
+      serialDupCheck.add(id);
+    }
+
     // ─── Validate used phones ───────────────────────────────────
     const usedPhones = usedPhoneIds.length
       ? await this.prisma.usedPhone.findMany({
@@ -126,6 +151,7 @@ export class SalesService {
     const variantMap = new Map(variants.map((v) => [v.id, v]));
     const imeiMap = new Map(imeis.map((i) => [i.id, i]));
     const usedPhoneMap = new Map(usedPhones.map((p) => [p.id, p]));
+    const serialMap = new Map(serials.map((sr) => [sr.id, sr]));
 
     // ─── Detect carpet items ─────────────────────────────────
     const carpetUnits = new Set(['sqft', 'sqm', 'sqyd']);
@@ -144,9 +170,13 @@ export class SalesService {
     // ─── IMEI + used-phone items: skip ShopStock check ────────
     const imeiItemIndices = new Set<number>();
     const usedPhoneItemIndices = new Set<number>();
+    // Serial wale items ka stock aam tareeqe se ghatta hai (IMEI se alag) —
+    // yahan sirf ye yaad rakhna hai ke kaunsi line par kaunsa unit gaya.
+    const serialItemIndices = new Set<number>();
     dto.items.forEach((item, idx) => {
       if (item.imeiId) imeiItemIndices.add(idx);
       if (item.usedPhoneId) usedPhoneItemIndices.add(idx);
+      if (item.serialId) serialItemIndices.add(idx);
     });
 
     // ─── Fetch shop stock for standard items only ────────────
@@ -209,8 +239,8 @@ export class SalesService {
 
       const quantity = Number(item.quantity);
 
-      // ─── IMEI & used-phone sale: enforce quantity = 1 ──────
-      if ((item.imeiId || isUsedPhoneItem) && quantity !== 1) {
+      // ─── IMEI / used-phone / serial: enforce quantity = 1 ──
+      if ((item.imeiId || isUsedPhoneItem || item.serialId) && quantity !== 1) {
         throw new BadRequestException(
           `${itemName}: quantity must be = 1`,
         );
@@ -257,6 +287,7 @@ export class SalesService {
         imeiId: imei?.id,
         imeiNumber: imei?.imei1,
         usedPhoneId: usedPhone?.id ?? null,
+        serialId: item.serialId ?? null,
         shopStockId: shopStock?.id ?? null,
         isCarpetItem,
         isImeiItem,
@@ -502,6 +533,24 @@ export class SalesService {
           continue;
         }
 
+        // ─── Electronics serial: us unit ko SOLD mark karo ──────
+        // Stock aam tareeqe se neeche ghatta hai — serial sirf ye
+        // batata hai ke kaunsa asli unit gaya (warranty ke liye zaroori).
+        if (item.serialId) {
+          await tx.electronicsSerialTracking.update({
+            where: { id: item.serialId },
+            data: {
+              status: 'SOLD',
+              saleId: sale.id,
+              saleItemId: saleItem.id,
+              soldPrice: item.price,
+              soldAt: new Date(),
+              soldToCustomerId: dto.customerId ?? null,
+              invoiceNumber: sale.saleNumber,
+            },
+          });
+        }
+
         // ─── Standard items: decrement ShopStock + global stock ──
         const updatedShopStock = await tx.shopStock.update({
           where: { id: item.shopStockId! },
@@ -604,7 +653,7 @@ export class SalesService {
   }
 
   async findAll(user: AuthenticatedUser, shopId?: string) {
-    return this.prisma.sale.findMany({
+    const sales = await this.prisma.sale.findMany({
       where: {
         tenantId: user.tenantId,
         ...(shopId && shopId !== 'all' ? { shopId } : {}),
@@ -613,6 +662,14 @@ export class SalesService {
         customer: true,
         shop: true,
         createdBy: { select: { id: true, fullName: true, email: true } },
+        // Repair delivery se bani sale — isi se pata chalta hai ye repair ki kamai hai
+        repairTicket: {
+          select: {
+            id: true, ticketNumber: true,
+            deviceBrand: true, deviceModel: true,
+            reportedIssue: true, diagnosedIssue: true,
+          },
+        },
         items: {
           include: {
             product: true,
@@ -624,6 +681,63 @@ export class SalesService {
       orderBy: { soldAt: 'desc' },
       take: 200,
     });
+
+    // Har item ke saath uske bike hue IMEIs — warna list me phone ka
+    // koi nishaan nahi milta aur mobile ke filters khaali reh jate hain.
+    const saleItemIds = sales.flatMap((s) => s.items.map((i) => i.id));
+    const imeis = saleItemIds.length > 0
+      ? await this.prisma.productImei.findMany({
+          where: { tenantId: user.tenantId, saleItemId: { in: saleItemIds } },
+          select: {
+            id: true, imei1: true, imei2: true, serialNumber: true,
+            ptaStatus: true, ptaTaxPaid: true,
+            warrantyMonths: true, warrantyExpiry: true,
+            color: true, costPrice: true, soldPrice: true,
+            saleItemId: true, productId: true,
+          },
+        })
+      : [];
+
+    // Electronics ke serial-tracked units — laptop/camera/drone waghera.
+    // Inke baghair electronics sales list me pata hi nahi chalta ke
+    // kaun sa exact unit gaya aur uski warranty kab tak hai.
+    const serials = saleItemIds.length > 0
+      ? await this.prisma.electronicsSerialTracking.findMany({
+          where: { tenantId: user.tenantId, saleItemId: { in: saleItemIds } },
+          select: {
+            id: true, serialNumber: true, imei: true, imei2: true, macAddress: true,
+            warrantyStartDate: true, warrantyEndDate: true, warrantyStatus: true,
+            physicalCondition: true, batteryHealthPct: true,
+            soldPrice: true, purchasePrice: true,
+            saleItemId: true, productId: true,
+          },
+        })
+      : [];
+
+    const byItem = new Map<string, typeof imeis>();
+    for (const im of imeis) {
+      const key = im.saleItemId as string;
+      const list = byItem.get(key) ?? [];
+      list.push(im);
+      byItem.set(key, list);
+    }
+
+    const serialsByItem = new Map<string, typeof serials>();
+    for (const sn of serials) {
+      const key = sn.saleItemId as string;
+      const list = serialsByItem.get(key) ?? [];
+      list.push(sn);
+      serialsByItem.set(key, list);
+    }
+
+    return sales.map((sale) => ({
+      ...sale,
+      items: sale.items.map((item) => ({
+        ...item,
+        imeis: byItem.get(item.id) ?? [],
+        serials: serialsByItem.get(item.id) ?? [],
+      })),
+    }));
   }
 
   async findOne(user: AuthenticatedUser, id: string) {
@@ -671,10 +785,26 @@ export class SalesService {
         })
       : [];
 
-    // Attach IMEIs to corresponding sale items
+    // Electronics serial units — receipt par serial + warranty
+    // chhapne ke liye zaroori hain.
+    const serials = saleItemIds.length > 0
+      ? await this.prisma.electronicsSerialTracking.findMany({
+          where: { tenantId: user.tenantId, saleItemId: { in: saleItemIds } },
+          select: {
+            id: true, serialNumber: true, imei: true, imei2: true, macAddress: true,
+            warrantyStartDate: true, warrantyEndDate: true, warrantyStatus: true,
+            physicalCondition: true, batteryHealthPct: true,
+            soldPrice: true, purchasePrice: true,
+            saleItemId: true, productId: true,
+          },
+        })
+      : [];
+
+    // Attach IMEIs + serials to corresponding sale items
     const enrichedItems = sale.items.map((item) => ({
       ...item,
       imeis: imeis.filter((i) => i.saleItemId === item.id),
+      serials: serials.filter((sn) => sn.saleItemId === item.id),
     }));
 
     return { ...sale, items: enrichedItems };

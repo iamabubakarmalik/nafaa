@@ -92,7 +92,10 @@ export class ReportsService {
 
     const buckets: Record<string, any> = {};
     for (const item of items) {
-      if (!item.product) return;
+      // `continue`, `return` nahi — repair/used-phone line ka product null hota
+      // hai aur `return` poore function ko undefined kar deta tha, jis se har
+      // industry ka category chart khaali aa jata tha.
+      if (!item.product) continue;
       const cat = item.product.category;
       const key = cat?.id || 'uncategorized';
       const name = cat?.name || 'Uncategorized';

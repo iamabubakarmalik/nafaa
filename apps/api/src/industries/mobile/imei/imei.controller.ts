@@ -25,6 +25,7 @@ export class ImeiController {
     @Query('ptaStatus') ptaStatus?: PtaStatus,
     @Query('productId') productId?: string,
     @Query('variantId') variantId?: string,
+    @Query('shopId') shopId?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
@@ -34,6 +35,7 @@ export class ImeiController {
       ptaStatus,
       productId,
       variantId,
+      shopId,
       page: page ? Number(page) : 1,
       limit: limit ? Number(limit) : 100,
     });
@@ -50,8 +52,12 @@ export class ImeiController {
   }
 
   @Get('search')
-  search(@GetUser() user: AuthenticatedUser, @Query('q') q: string) {
-    return this.service.search(user, q ?? '');
+  search(
+    @GetUser() user: AuthenticatedUser,
+    @Query('q') q: string,
+    @Query('status') status?: ImeiStatus,
+  ) {
+    return this.service.search(user, q ?? '', status);
   }
 
   @Get('product/:productId')

@@ -23,6 +23,47 @@ export class StockAdjustmentsService {
     return this.adjustSimpleProduct(user, dto, product);
   }
 
+
+  /**
+   * Shop ka apna stock (ShopStock) bhi theek karo.
+   *
+   * Pehle sirf `Product.stock` (global ginti) badalti thi. Jin
+   * industries ka poora hisab shop-wise chalta hai (electronics,
+   * mobile) unki stock report, low-stock aur POS ShopStock parhte
+   * hain — is liye durusti wahan nazar hi nahi aati thi.
+   *
+   * Row na ho to bana dete hain, warna sirf badha/ghata dete hain.
+   */
+  private async applyShopStock(
+    tx: any,
+    shopId: string | undefined,
+    productId: string,
+    variantId: string | null,
+    change: number,
+  ) {
+    if (!shopId || change === 0) return;
+
+    const row = await tx.shopStock.findFirst({
+      where: { shopId, productId, variantId },
+    });
+
+    if (row) {
+      await tx.shopStock.update({
+        where: { id: row.id },
+        // Ginti manfi na ho jaye — durusti hai, tabahi nahi
+        data: { stock: Math.max(0, Number(row.stock) + change) },
+      });
+      return;
+    }
+
+    // Row hai hi nahi: sirf tab banao jab stock barh raha ho
+    if (change > 0) {
+      await tx.shopStock.create({
+        data: { shopId, productId, variantId, stock: change },
+      });
+    }
+  }
+
   // ─── SIMPLE PRODUCT ─────────────────────────────────
   private async adjustSimpleProduct(user: AuthenticatedUser, dto: CreateAdjustmentDto, product: any) {
     const isIncrement = dto.type === 'ADJUSTMENT_IN';
@@ -39,6 +80,8 @@ export class StockAdjustmentsService {
         where: { id: product.id },
         data: { stock: { increment: change } },
       });
+
+      await this.applyShopStock(tx, dto.shopId, product.id, null, change);
 
       const adjustment = await tx.stockAdjustment.create({
         data: {
@@ -98,6 +141,8 @@ export class StockAdjustmentsService {
         where: { id: product.id },
         data: { stock: { increment: change } },
       });
+
+      await this.applyShopStock(tx, dto.shopId, product.id, variant.id, change);
 
       const adjustment = await tx.stockAdjustment.create({
         data: {

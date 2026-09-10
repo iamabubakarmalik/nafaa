@@ -21,9 +21,29 @@ import { RetailQuickCash } from '@industries/retail/components/pos';
 import { electronicsProductsApi } from '../api/products.api';
 import { electronicsBundlesApi } from '../api/bundles.api';
 import { serialTrackingApi } from '../api/serial-tracking.api';
+import { electronicsPosApi } from '../api/electronics-pos.api';
 import { SerialPickerModal } from '../components/pos/SerialPickerModal';
 
 const HIDE_PRICES_KEY = 'nafaa.electronics-pos.hide-prices';
+
+/** POS par sab se zyada bikne wali categories — sab valid enum values */
+const POS_CATEGORY_CHIPS = [
+  { v: 'HEADPHONE', l: 'Headphones', e: '🎧' },
+  { v: 'EARBUD', l: 'Earbuds', e: '🎵' },
+  { v: 'BLUETOOTH_SPEAKER', l: 'BT Speaker', e: '📻' },
+  { v: 'CHARGER', l: 'Chargers', e: '⚡' },
+  { v: 'POWER_BANK', l: 'Power Bank', e: '🔋' },
+  { v: 'CABLE', l: 'Cables', e: '🔌' },
+  { v: 'SMARTWATCH', l: 'Watches', e: '⌚' },
+  { v: 'MOBILE_CASE', l: 'Covers', e: '🛡️' },
+  { v: 'SCREEN_PROTECTOR', l: 'Glass', e: '🪟' },
+  { v: 'MONITOR', l: 'Screens', e: '🖥️' },
+  { v: 'MOUSE', l: 'Mouse', e: '🖱️' },
+  { v: 'KEYBOARD', l: 'Keyboard', e: '⌨️' },
+  { v: 'MEMORY_CARD', l: 'Memory Card', e: '💳' },
+  { v: 'USB_DRIVE', l: 'USB', e: '💾' },
+  { v: 'ROUTER', l: 'Router', e: '📶' },
+];
 const AUTO_CLOSE_KEY = 'nafaa.electronics-pos.auto-close-success';
 const VIEW_MODE_KEY = 'nafaa.electronics-pos.view-mode';
 
@@ -143,10 +163,21 @@ export default function ElectronicsPosPage() {
     return () => window.removeEventListener('keydown', handler);
   }, [cart.length, scannerOpen, showCheckout, serialPickerProduct, showMobileCart]);
 
-  const { data: productsData, isLoading: loadingProducts } = useQuery({
-    queryKey: ['products-for-electronics-pos'],
-    queryFn: () => productsApi.list({ page: 1, limit: 2000 }),
-    staleTime: 30_000,
+  /* ── POS catalog ────────────────────────────────────────────
+     Ek hi call: products (IS SHOP ka stock + electronics profile),
+     serial-tracked units, aur bundles. Pehle teen alag calls thin
+     aur stock global aata tha — counter par kuch aur, checkout par
+     "shop me available nahi".                                    */
+  const { data: catalog, isLoading: loadingProducts } = useQuery({
+    queryKey: ['electronics-pos-catalog', currentShopId, debouncedSearch, categoryType],
+    queryFn: () => electronicsPosApi.catalog({
+      shopId: currentShopId || undefined,
+      search: debouncedSearch || undefined,
+      categoryType: categoryType || undefined,
+    }),
+    enabled: Boolean(currentShopId),
+    placeholderData: (prev) => prev,
+    staleTime: 20_000,
   });
   const { data: customersData } = useQuery({
     queryKey: ['customers-for-pos'],
@@ -158,51 +189,31 @@ export default function ElectronicsPosPage() {
     queryFn: categoriesApi.list,
     staleTime: 5 * 60_000,
   });
-  const { data: bundles = [], isLoading: loadingBundles } = useQuery({
-    queryKey: ['pos-electronics-bundles'],
-    queryFn: () => electronicsBundlesApi.list({ active: true }),
-    staleTime: 60_000,
-  });
-  const { data: profiles = [] } = useQuery({
-    queryKey: ['electronics-profiles-all'],
-    queryFn: () => electronicsProductsApi.list(),
-    staleTime: 60_000,
-  });
-
-  const products: Product[] = productsData?.items ?? [];
+  const products = (catalog?.items ?? []) as any[];
+  const bundles = catalog?.bundles ?? [];
+  const loadingBundles = loadingProducts;
   const customers = customersData?.items ?? [];
   const selectedCustomer = customers.find((c) => c.id === customerId);
+
+  // Catalog har product ke saath uska profile pehle hi bhej deta hai —
+  // ye map sirf purane code ko chalta rakhne ke liye hai.
   const profileByProduct = useMemo(() => {
     const map = new Map<string, any>();
-    (profiles as any[]).forEach((p) => map.set(p.productId, p));
+    products.forEach((p) => map.set(p.id, p));
     return map;
-  }, [profiles]);
+  }, [products]);
 
+  // Search aur category filter ab server par lagta hai — yahan sirf tarteeb
   const filteredProducts = useMemo(() => {
-    let list = products.filter((p) => p.isActive !== false);
-    if (categoryType) {
-      list = list.filter((p) => {
-        const profile = profileByProduct.get(p.id);
-        return profile?.categoryType === categoryType;
-      });
-    }
-    const q = debouncedSearch.toLowerCase().trim();
-    if (q) {
-      list = list.filter((p) => {
-        const profile = profileByProduct.get(p.id);
-        return p.name.toLowerCase().includes(q) ||
-          (p.sku || '').toLowerCase().includes(q) ||
-          (p.barcode || '').toLowerCase().includes(q) ||
-          (profile?.modelNumber || '').toLowerCase().includes(q);
-      });
-    }
+    const list = [...products];
     return list.sort((a, b) => {
       if (a.isFeatured !== b.isFeatured) return a.isFeatured ? -1 : 1;
-      const aOut = a.stock <= 0, bOut = b.stock <= 0;
+      const aOut = (a.availableStock ?? a.stock) <= 0;
+      const bOut = (b.availableStock ?? b.stock) <= 0;
       if (aOut !== bOut) return aOut ? 1 : -1;
       return a.name.localeCompare(b.name);
     });
-  }, [products, debouncedSearch, categoryType, profileByProduct]);
+  }, [products]);
 
   const filteredBundles = useMemo(() => {
     const q = debouncedSearch.toLowerCase().trim();
@@ -220,26 +231,34 @@ export default function ElectronicsPosPage() {
   const itemCount = cart.length;
   const totalQty = useMemo(() => cart.reduce((s, l) => s + l.quantity, 0), [cart]);
 
-  const openProduct = useCallback(async (product: Product) => {
-    if (product.stock <= 0) { toast.error(`${product.name} — out of stock`); return; }
-
-    const profile = profileByProduct.get(product.id);
-
-    // If product has serials/IMEI tracking, open picker
-    if (profile?.requiresSerial || profile?.hasImei) {
-      setSerialPickerProduct({ product, profile });
+  const openProduct = useCallback(async (product: any) => {
+    // Shop me stock row hi nahi — checkout par backend reject karega
+    if (product.notInShop) {
+      toast.error(`${product.name} is shop me assign nahi — Transfer ya Purchase entry karein`);
+      return;
+    }
+    const available = product.availableStock ?? product.stock ?? 0;
+    if (available <= 0) { toast.error(`${product.name} — stock khatam`); return; }
+    if (Number(product.price) <= 0) {
+      toast.error(`${product.name} ka price set nahi hai — pehle product edit karke price daalein`);
       return;
     }
 
-    // Direct add for simple products
-    addProductLine(product, 1, profile);
-  }, [profileByProduct]);
+    // Serial/IMEI wala item — kaunsa unit ja raha hai, ye chunna zaroori hai
+    if (product.requiresSerial || product.hasImei) {
+      setSerialPickerProduct({ product, profile: product });
+      return;
+    }
+
+    addProductLine(product, 1, product);
+  }, []);
 
   const addProductLine = (product: Product, qty: number, profile?: any, serial?: any) => {
     const existing = cart.find((l) => l.productId === product.id && (!serial || l.serialTrackingId === serial.id));
     if (existing && !serial) {
+      const avail = (product as any).availableStock ?? product.stock ?? 0;
       const newQty = existing.quantity + qty;
-      if (newQty > product.stock) { toast.error(`Stock only ${product.stock}`); return; }
+      if (newQty > avail) { toast.error(`Stock sirf ${avail}`); return; }
       setCart((prev) => prev.map((l) => l.id === existing.id
         ? { ...l, quantity: newQty, lineTotal: newQty * l.unitPrice } : l));
       toast.success(`${product.name} +${qty}`, { duration: 900 });
@@ -256,7 +275,7 @@ export default function ElectronicsPosPage() {
       brandName: brand,
       unitPrice: product.price,
       quantity: qty,
-      baseStock: product.stock,
+      baseStock: (product as any).availableStock ?? product.stock ?? 0,
       lineTotal: qty * product.price,
       serialTrackingId: serial?.id,
       serialNumber: serial?.serialNumber,
@@ -400,7 +419,6 @@ export default function ElectronicsPosPage() {
       if (!currentShopId) throw new Error('Select shop first');
 
       const items: any[] = [];
-      const serialsSold: Array<{ id: string; saleId?: string }> = [];
 
       cart.forEach((l) => {
         if (l.type === 'bundle' && l.bundleItems) {
@@ -420,11 +438,11 @@ export default function ElectronicsPosPage() {
             productId: l.productId,
             quantity: l.quantity,
             priceOverride: l.unitPrice,
+            // Serial ab sale ke SAATH jata hai — backend usi transaction me
+            // SOLD mark karta hai, sahi price aur warranty ke saath.
+            ...(l.serialTrackingId ? { serialId: l.serialTrackingId } : {}),
             note: l.note,
           });
-          if (l.serialTrackingId) {
-            serialsSold.push({ id: l.serialTrackingId });
-          }
         }
       });
 
@@ -437,18 +455,6 @@ export default function ElectronicsPosPage() {
         items,
       });
 
-      // Mark sold serials
-      for (const s of serialsSold) {
-        try {
-          await serialTrackingApi.sell(s.id, {
-            soldPrice: 0, // priced via line
-            soldToCustomerId: customerId || undefined,
-            saleId: sale.id,
-            invoiceNumber: sale.saleNumber,
-          });
-        } catch {}
-      }
-
       return sale;
     },
     onSuccess: (sale, vars) => {
@@ -457,10 +463,20 @@ export default function ElectronicsPosPage() {
       setShowCheckout(false);
       setShowMobileCart(false);
       clearCart();
-      queryClient.invalidateQueries({ queryKey: ['products-for-electronics-pos'] });
-      queryClient.invalidateQueries({ queryKey: ['sales-list'] });
-      queryClient.invalidateQueries({ queryKey: ['pos-electronics-bundles'] });
-      queryClient.invalidateQueries({ queryKey: ['product-serials'] });
+      // Sale ke baad har wo screen refresh ho jo isi data par chalti hai —
+      // stock, serials, warranty, khata, dashboard aur reports.
+      queryClient.invalidateQueries({
+        predicate: (q) => {
+          const k = String(q.queryKey?.[0] ?? '');
+          return [
+            'electronics-pos-catalog', 'products', 'sales-list',
+            'product-serials', 'serials-for-pos', 'electronics-serials',
+            'electronics-profiles-all', 'pos-electronics-bundles',
+            'electronics-dashboard', 'dashboard-overview',
+            'customers', 'customers-stats', 'customer-ledger-summary',
+          ].includes(k) || k.startsWith('electronics-');
+        },
+      });
       const autoOpen = localStorage.getItem('nafaa.pos.auto-open-receipt') !== 'false';
       if (autoOpen) window.open(`/sales/${sale.id}/receipt?auto=1`, '_blank');
 
@@ -713,17 +729,10 @@ export default function ElectronicsPosPage() {
             {viewMode === 'products' && (
               <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
                 <CatChip active={!categoryType} onClick={() => setCategoryType('')} label="All" emoji="📦" count={products.length} />
-                {[
-                  { v: 'SMARTPHONE', l: 'Phones', e: '📱' },
-                  { v: 'LAPTOP', l: 'Laptops', e: '💻' },
-                  { v: 'TABLET', l: 'Tablets', e: '📱' },
-                  { v: 'SMARTWATCH', l: 'Watches', e: '⌚' },
-                  { v: 'EARBUDS', l: 'Earbuds', e: '🎵' },
-                  { v: 'HEADPHONE', l: 'Headphones', e: '🎧' },
-                  { v: 'CHARGER', l: 'Chargers', e: '🔌' },
-                  { v: 'POWER_BANK', l: 'Power Banks', e: '🔋' },
-                  { v: 'ACCESSORY', l: 'Accessories', e: '🎁' },
-                ].map((c) => (
+                {/* Ye values Prisma enum se match karti hain — pehle
+                    SMARTPHONE/LAPTOP/TABLET/ACCESSORY likha tha jo
+                    database me hain hi nahi, is liye filter khaali aata tha. */}
+                {POS_CATEGORY_CHIPS.map((c) => (
                   <CatChip key={c.v} active={categoryType === c.v} onClick={() => setCategoryType(categoryType === c.v ? '' : c.v)}
                     label={c.l} emoji={c.e} />
                 ))}
@@ -733,7 +742,13 @@ export default function ElectronicsPosPage() {
 
           {/* GRID */}
           <div ref={scrollRef} onScroll={handleScroll} className="lg:flex-1 lg:overflow-y-auto p-2 sm:p-3 bg-slate-50/50 lg:min-h-0">
-            {isLoading ? (
+            {!currentShopId ? (
+              <EmptyState
+                icon={Package}
+                title="Pehle shop select karein"
+                hint="Upar se apni shop chunein — stock aur rate usi shop ke dikhenge"
+              />
+            ) : isLoading ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-3">
                 {Array.from({ length: 12 }).map((_, i) => <div key={i} className="aspect-[3/4] rounded-2xl bg-slate-200 animate-pulse" />)}
               </div>
@@ -864,10 +879,13 @@ function CatChip({ active, onClick, label, emoji, count }: any) {
 function ProductTile({ product: p, profile, cart, hidePrices, onClick }: any) {
   const inCart = cart.filter((l: CartLine) => l.productId === p.id);
   const cartQty = inCart.reduce((s: number, l: CartLine) => s + l.quantity, 0);
-  const out = p.stock <= 0;
-  const low = !out && p.stock <= (p.lowStockAlert || 0);
-  const img = p.images?.[0]?.url;
-  const hasSerial = profile?.requiresSerial || profile?.hasImei;
+  // Serial wale product ki ginti serials se, baqi ki shop ke stock se
+  const available = p.availableStock ?? p.stock ?? 0;
+  const notInShop = Boolean(p.notInShop);
+  const out = notInShop || available <= 0;
+  const low = !out && available <= (p.lowStockAlert || 0);
+  const img = p.imageUrl ?? p.images?.[0]?.url;
+  const hasSerial = p.requiresSerial || p.hasImei || profile?.requiresSerial || profile?.hasImei;
 
   return (
     <button onClick={onClick} disabled={out}
@@ -878,6 +896,11 @@ function ProductTile({ product: p, profile, cart, hidePrices, onClick }: any) {
       {cartQty > 0 && (
         <div className="absolute -top-2 -right-2 min-w-[32px] h-8 sm:min-w-[36px] sm:h-9 px-2 rounded-full bg-emerald-600 text-white text-sm sm:text-base font-extrabold flex items-center justify-center shadow-xl ring-4 ring-white z-10 tabular-nums">
           {cartQty}
+        </div>
+      )}
+      {notInShop && (
+        <div className="absolute top-1.5 left-1.5 z-10 px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[8px] font-extrabold uppercase shadow">
+          Shop me nahi
         </div>
       )}
       <div className="aspect-square bg-slate-100 overflow-hidden relative">
@@ -912,7 +935,8 @@ function ProductTile({ product: p, profile, cart, hidePrices, onClick }: any) {
             ) : null}
           </div>
           <div className={['text-xs sm:text-sm font-extrabold tabular-nums shrink-0', out ? 'text-rose-700' : low ? 'text-amber-700' : 'text-slate-600'].join(' ')}>
-            {p.stock}
+            {available}
+            {hasSerial && <span className="ml-0.5 text-[8px] font-bold opacity-60">S/N</span>}
           </div>
         </div>
       </div>

@@ -28,6 +28,8 @@ export interface StockAdjustment {
 
 export interface CreateAdjustmentPayload {
   productId: string;
+  /** Multi-shop: kis shop ka stock theek karna hai */
+  shopId?: string;
   variantId?: string;
   carpetRollId?: string;
   imeiId?: string;

@@ -2,6 +2,8 @@
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import TransfersPage from './TransfersPage';
 import RetailTransfersPage from '@industries/retail/pages/RetailTransfersPage';
+import MobileTransfersPage from '@industries/mobile/pages/MobileTransfersPage';
+import ElectronicsTransfersPage from '@industries/electronics/pages/ElectronicsTransfersPage';
 
 /**
  * TransfersGate — routes stock transfers to the correct
@@ -19,6 +21,12 @@ export default function TransfersGate() {
   switch (industry?.id) {
     case 'retail':
       return <RetailTransfersPage />;
+
+    case 'mobile':
+      return <MobileTransfersPage />;
+
+    case 'electronics':
+      return <ElectronicsTransfersPage />;
 
     default:
       // Generic fallback — sab industries (carpet, mobile, etc.)

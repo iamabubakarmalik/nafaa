@@ -11,6 +11,7 @@ import { DiagnoseDto } from './dto/diagnose.dto';
 import { AddPartDto } from './dto/add-part.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
 import { AddPaymentDto } from './dto/add-payment.dto';
+import { DeliverRepairDto } from './dto/deliver-repair.dto';
 import { QueryRepairsDto } from './dto/query-repairs.dto';
 import { RepairsService } from './repairs.service';
 
@@ -84,6 +85,16 @@ export class RepairsController {
     @Body() dto: UpdateStatusDto,
   ) {
     return this.service.updateStatus(user, id, dto);
+  }
+
+  /** Counter par ek hi step: baqi paisa lo, deliver karo, sale ban jaye. */
+  @Post(':id/deliver')
+  deliver(
+    @GetUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+    @Body() dto: DeliverRepairDto,
+  ) {
+    return this.service.deliver(user, id, dto);
   }
 
   @Post(':id/payments')

@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -6,14 +6,18 @@ import {
   Package, AlertTriangle, DollarSign, Eye, Edit3, Trash2,
   Barcode, ShoppingCart, CheckCircle2, XCircle, Star,
   Award, Zap, TrendingUp, PackageX, Sparkles,
+  GraduationCap, Keyboard, Printer, FileSpreadsheet, Layers, ShieldCheck,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@core/ui/Button';
 import { formatPKR } from '@core/lib/format';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { electronicsProductsApi } from '../api/products.api';
-import { electronicsBrandsApi } from '../api/brands.api';
+import { brandsApi } from '@modules/inventory/brands/api/brands.api';
 import { PrivacyToggle, useCostHidden } from '@core/ui/HiddenValue';
+import { PrintStyles } from '@core/components/print/PrintStyles';
+import { useAuthStore } from '@core/stores/auth.store';
+import { CATEGORY_META, CONDITION_META, type CategoryType, type ConditionType } from '../constants';
 
 type ViewMode = 'grid' | 'table';
 type StockFilter = 'all' | 'in' | 'low' | 'out';
@@ -30,6 +34,12 @@ export default function ElectronicsProductsPage() {
   const [sortKey, setSortKey] = useState<SortKey>('name');
   const [view, setView] = useState<ViewMode>('grid');
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [showTeacher, setShowTeacher] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  const tenantName = useAuthStore((st: any) => st.tenant?.name);
+  const shopName = useAuthStore((st: any) => st.user?.assignedShop?.name);
 
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['electronics-products-list'],
@@ -43,8 +53,8 @@ export default function ElectronicsProductsPage() {
   });
 
   const { data: brands = [] } = useQuery({
-    queryKey: ['electronics-brands'],
-    queryFn: () => electronicsBrandsApi.list({ active: true }),
+    queryKey: ['brands'],
+    queryFn: () => brandsApi.list(),
   });
 
   const profileByProduct = useMemo(() => {
@@ -161,8 +171,81 @@ export default function ElectronicsProductsPage() {
     toast.success('Exported!');
   };
 
+  /* ─── Shortcuts: / search • G guide • R refresh • ? list ─── */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      const typing = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+      if (e.key === 'Escape') {
+        if (showShortcuts) return setShowShortcuts(false);
+        if (showTeacher) return setShowTeacher(false);
+        if (selected.size > 0) return setSelected(new Set());
+        return;
+      }
+      if (typing || e.ctrlKey || e.metaKey) return;
+      if (e.key === '/') { e.preventDefault(); searchRef.current?.focus(); }
+      if (e.key === 'g') setShowTeacher(true);
+      if (e.key === 'r') refetch();
+      if (e.key === '?') setShowShortcuts((v) => !v);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showTeacher, showShortcuts, selected]);
+
+  const anyModal = showTeacher || showShortcuts;
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = anyModal ? 'hidden' : prev;
+    return () => { document.body.style.overflow = prev; };
+  }, [anyModal]);
+
+  /* ─── CSV: electronics ki apni tafseel ke saath ─── */
+  const exportCsv = () => {
+    if (filtered.length === 0) return toast.error('Koi data nahi');
+    const rows: string[][] = [
+      [`${tenantName ?? 'Nafaa'} — Electronics Products`],
+      [`Shop: ${shopName ?? 'All'}`, new Date().toLocaleString('en-PK')],
+      [`${stats.total} products · ${stats.totalStock} pcs · value ${stats.stockValue.toFixed(0)}`],
+      [],
+      ['Name', 'Brand', 'Category', 'Condition', 'Model No', 'SKU', 'Barcode',
+       'Stock', 'Alert', 'Cost', 'Sale', 'Stock Value', 'Warranty (m)', 'Serial Tracked'],
+      ...filtered.map((p: any) => {
+        const pr = profileByProduct.get(p.id);
+        const stock = Number(p.stock || 0);
+        return [
+          p.name,
+          p.brand?.name ?? '',
+          pr?.categoryType ? (CATEGORY_META[pr.categoryType as CategoryType]?.label ?? pr.categoryType) : '',
+          pr?.conditionType ? (CONDITION_META[pr.conditionType as ConditionType]?.label ?? pr.conditionType) : '',
+          pr?.modelNumber ?? '',
+          p.sku ?? '',
+          p.barcode ?? '',
+          String(stock),
+          String(p.lowStockAlert ?? ''),
+          String(Math.round(Number(p.costPrice || 0))),
+          String(Math.round(Number(p.price || 0))),
+          String(Math.round(stock * Number(p.price || 0))),
+          String(pr?.warrantyMonths ?? 0),
+          pr?.requiresSerial ? 'Yes' : 'No',
+        ];
+      }),
+    ];
+    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const url = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `electronics-products-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`${filtered.length} products export ho gaye`);
+  };
+
   return (
-    <div className="space-y-5 pb-6">
+    <div className="space-y-5 pb-6 print:space-y-3">
+      <PrintStyles orientation="landscape" title="Electronics Products" subtitle="Poori product list" />
+      {showTeacher && <ProductsTeacher onClose={() => setShowTeacher(false)} />}
+      {showShortcuts && <ShortcutsModal onClose={() => setShowShortcuts(false)} />}
       {/* HERO */}
       <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-cyan-700 text-white p-6 shadow-2xl">
         <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-blue-400/20 blur-3xl" />
@@ -177,10 +260,29 @@ export default function ElectronicsProductsPage() {
               <strong className="text-emerald-300">{formatPKR(stats.stockValue)}</strong>
             </p>
           </div>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap print:hidden">
+            <button onClick={() => setShowTeacher(true)}
+              className="inline-flex items-center gap-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-900 px-4 py-2.5 text-sm font-extrabold shadow-lg transition"
+              title="Guide (G)">
+              <GraduationCap className="h-4 w-4" /> Guide
+            </button>
+            <button onClick={() => setShowShortcuts(true)}
+              className="inline-flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 h-[42px] w-[42px] backdrop-blur transition"
+              title="Shortcuts (?)">
+              <Keyboard className="h-4 w-4" />
+            </button>
             <button onClick={() => refetch()} disabled={isRefetching}
-              className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-4 py-2.5 text-sm font-bold backdrop-blur">
+              className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-4 py-2.5 text-sm font-bold backdrop-blur"
+              title="Refresh (R)">
               <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} /> Refresh
+            </button>
+            <button onClick={exportCsv}
+              className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-4 py-2.5 text-sm font-bold backdrop-blur transition">
+              <FileSpreadsheet className="h-4 w-4" /> CSV
+            </button>
+            <button onClick={() => window.print()}
+              className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-4 py-2.5 text-sm font-bold backdrop-blur transition">
+              <Printer className="h-4 w-4" /> Print
             </button>
             <PrivacyToggle />
             <Link to="/electronics-products/new"
@@ -206,7 +308,7 @@ export default function ElectronicsProductsPage() {
         <div className="flex gap-2 flex-wrap">
           <div className="relative flex-1 min-w-[240px]">
             <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input autoFocus value={search} onChange={(e) => setSearch(e.target.value)}
+            <input ref={searchRef} autoFocus value={search} onChange={(e) => setSearch(e.target.value)}
               placeholder="Naam, model, SKU, barcode..."
               className="h-12 w-full rounded-2xl border-2 border-slate-200 bg-white pl-11 pr-10 text-sm font-semibold focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" />
             {search && (
@@ -522,3 +624,120 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick }: any) {
     </Comp>
   );
 }
+
+/* ═════════════════════════════════════════════════════════════
+   GUIDE + SHORTCUTS
+   ═════════════════════════════════════════════════════════════ */
+
+function ProductsTeacher({ onClose }: { onClose: () => void }) {
+  const steps = [
+    {
+      icon: Plus, title: 'Naya product',
+      body: '"New Product" se wizard khulta hai — 4 asaan steps. Category (headphone, charger, screen…), condition, brand, qeemat, warranty aur stock.',
+      tips: ['Ek hi cheez ke rang/size alag hon to wizard ke Step 4 me "Variants" on karein', 'Mehngi cheez (laptop, camera, SSD) par "Serials" on karein — har unit alag pehchana jayega'],
+    },
+    {
+      icon: Layers, title: 'Filters',
+      body: 'Category, brand aur stock (in / low / out) se list chhanti hai. Search me naam, SKU, barcode ya model number — kuch bhi chalega.',
+      tips: ['/ dabate hi search par cursor aa jata hai', 'Laal border = stock khatam, peela = kam ho raha hai'],
+    },
+    {
+      icon: ShieldCheck, title: 'Warranty aur serial',
+      body: 'Jis product par serial tracking on hai, uski ginti serials se banti hai — na ke haath se likhi hui. Bechte waqt POS khud pooch leta hai kaunsa unit ja raha hai.',
+      tips: ['Product detail page se serials add/dekh sakte hain', 'Warranty claim ke waqt yehi record kaam aata hai'],
+    },
+    {
+      icon: FileSpreadsheet, title: 'Nikalo',
+      body: 'CSV se poori list Excel me — category, condition, model no, warranty, serial tracking sab columns ke saath. Print se seedha kaghaz par (stock ginti ke liye).',
+      tips: ['CSV wahi list deta hai jo filter lagi hui hai'],
+    },
+  ];
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()}
+        className="w-full sm:max-w-2xl bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
+        <div className="px-5 py-4 bg-gradient-to-r from-amber-50 to-orange-50 border-b-2 border-amber-200 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-lg">
+              <GraduationCap className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="text-[10px] uppercase tracking-wider text-amber-700 font-extrabold">Guide</div>
+              <h3 className="font-extrabold text-slate-900">Products Page Kaise Chalayein?</h3>
+            </div>
+          </div>
+          <button onClick={onClose} className="h-9 w-9 rounded-xl hover:bg-white flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-5 space-y-3.5">
+          {steps.map((st, i) => (
+            <div key={i} className="rounded-xl border-2 border-slate-200 bg-slate-50 p-3.5 flex items-start gap-3">
+              <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-700 text-white flex items-center justify-center shrink-0 shadow-md">
+                <st.icon className="h-4 w-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="font-extrabold text-slate-900">{st.title}</div>
+                <div className="text-xs font-semibold text-slate-600 mt-1 leading-relaxed">{st.body}</div>
+                <ul className="mt-2 space-y-1">
+                  {st.tips.map((t, j) => (
+                    <li key={j} className="text-[11px] font-semibold text-slate-500 flex items-start gap-1.5">
+                      <Sparkles className="h-2.5 w-2.5 text-amber-500 shrink-0 mt-0.5" /> {t}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="px-5 py-3.5 border-t-2 border-slate-100 bg-slate-50 text-right shrink-0">
+          <Button onClick={onClose} className="bg-gradient-to-r from-amber-500 to-orange-600 font-extrabold shadow-lg">
+            <CheckCircle2 className="h-4 w-4" /> Samajh Gaya
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ShortcutsModal({ onClose }: { onClose: () => void }) {
+  const sc = [
+    ['/', 'Search par jao'],
+    ['G', 'Guide kholo'],
+    ['R', 'Refresh'],
+    ['?', 'Ye list'],
+    ['Esc', 'Selection / modal band'],
+  ];
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border-2 border-slate-200">
+        <div className="px-5 py-4 border-b-2 border-slate-100 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="h-9 w-9 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center">
+              <Keyboard className="h-4 w-4" />
+            </div>
+            <h3 className="font-extrabold text-slate-900">Keyboard Shortcuts</h3>
+          </div>
+          <button onClick={onClose} className="h-9 w-9 rounded-xl hover:bg-slate-100 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600" />
+          </button>
+        </div>
+        <div className="p-5 space-y-2">
+          {sc.map(([key, desc]) => (
+            <div key={key} className="flex items-center justify-between text-sm">
+              <span className="font-semibold text-slate-700">{desc}</span>
+              <kbd className="px-2.5 py-1 rounded-lg bg-slate-100 border-2 border-slate-200 font-mono text-xs font-extrabold text-slate-700">
+                {key}
+              </kbd>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+

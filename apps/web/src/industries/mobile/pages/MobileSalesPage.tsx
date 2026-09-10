@@ -1,5 +1,6 @@
 // src/industries/mobile/pages/MobileSalesPage.tsx
 import { useState, useMemo, useEffect, useRef } from 'react';
+import { saleItemName } from '@modules/sales/sales/lib/saleItemName';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import {
@@ -7,6 +8,7 @@ import {
   CreditCard, Building2, Zap, Eye, Download, RefreshCw, Award, ArrowRight,
   ShieldCheck, Hash, Palette, Clock, BarChart3, CalendarRange,
   GraduationCap, Printer, CheckCircle2, Wrench, AlertOctagon,
+  RotateCcw, Cable, Layers, Star, FileText,
 } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, Legend } from 'recharts';
 import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
@@ -45,7 +47,25 @@ const paymentConfig: Record<string, { label: string; icon: any; hex: string }> =
   BANK_TRANSFER: { label: 'Bank', icon: Building2, hex: '#8b5cf6' },
 };
 
-type View = 'imei' | 'emi' | 'sales';
+type View = 'all' | 'new' | 'used' | 'accessories' | 'repair' | 'credit';
+
+/** Ek sale me kaunsi kism ka maal hai — mobile shop ki chaar raahen. */
+const isRepairSale = (s: any) =>
+  Boolean(s.repairTicket) || String(s.saleNumber ?? '').startsWith('RPR-');
+const hasNewPhone = (s: any) =>
+  s.items?.some((it: any) => (it.imeis?.length ?? 0) > 0);
+const hasUsedPhone = (s: any) =>
+  s.items?.some((it: any) => it.usedPhone || it.usedPhoneId);
+const hasAccessory = (s: any) =>
+  !isRepairSale(s) &&
+  s.items?.some((it: any) => it.product && !(it.imeis?.length ?? 0) && !it.usedPhoneId);
+
+const KIND_META = {
+  new:         { label: 'Naya Phone',  icon: Smartphone, chip: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300',       grad: 'from-blue-600 to-indigo-700' },
+  used:        { label: 'Used Phone',  icon: RotateCcw,  chip: 'bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-300', grad: 'from-violet-600 to-fuchsia-700' },
+  accessories: { label: 'Accessory',   icon: Cable,      chip: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300', grad: 'from-emerald-600 to-teal-700' },
+  repair:      { label: 'Repair',      icon: Wrench,     chip: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300',    grad: 'from-amber-600 to-orange-700' },
+} as const;
 type DateFilter = 'all' | 'today' | 'yesterday' | 'week' | 'month' | 'year' | 'custom';
 
 export default function MobileSalesPage() {
@@ -54,7 +74,7 @@ export default function MobileSalesPage() {
   const shopName = useAuthStore((s) => s.user?.assignedShop?.name);
   const searchRef = useRef<HTMLInputElement>(null);
 
-  const [view, setView] = useState<View>('imei');
+  const [view, setView] = useState<View>('all');
   const [search, setSearch] = useState('');
   const [ptaFilter, setPtaFilter] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState<DateFilter>('month');
@@ -83,8 +103,13 @@ export default function MobileSalesPage() {
     return [start, end];
   };
 
-  const imeiSales = useMemo(() => sales.filter((s) => s.items.some((it: any) => (it.imeis?.length ?? 0) > 0)), [sales]);
-  const emiSales = useMemo(() => sales.filter((s) => s.creditAmount > 0 && s.items.some((it: any) => (it.imeis?.length ?? 0) > 0)), [sales]);
+  const newSales = useMemo(() => sales.filter(hasNewPhone), [sales]);
+  const usedSales = useMemo(() => sales.filter(hasUsedPhone), [sales]);
+  const repairSales = useMemo(() => sales.filter(isRepairSale), [sales]);
+  const accessorySales = useMemo(() => sales.filter(hasAccessory), [sales]);
+  const creditSales = useMemo(() => sales.filter((s) => s.creditAmount > 0), [sales]);
+  // Purane naam kuch jagah istemal hote hain
+  const imeiSales = newSales;
 
   const imeiStats = useMemo(() => {
     let devicesSold = 0, ptaApproved = 0, nonPta = 0, warrantyMonths = 0;
@@ -98,17 +123,24 @@ export default function MobileSalesPage() {
     return { devicesSold, ptaApproved, nonPta, revenue, avgWarranty: devicesSold > 0 ? warrantyMonths / devicesSold : 0 };
   }, [imeiSales]);
 
+
   const filteredList = useMemo(() => {
-    let list = view === 'imei' ? [...imeiSales] : view === 'emi' ? [...emiSales] : [...sales];
+    let list =
+      view === 'new' ? [...newSales]
+      : view === 'used' ? [...usedSales]
+      : view === 'accessories' ? [...accessorySales]
+      : view === 'repair' ? [...repairSales]
+      : view === 'credit' ? [...creditSales]
+      : [...sales];
     const [start, end] = getDateRange();
     list = list.filter((s) => { const d = new Date(s.soldAt); return d >= start && d <= end; });
     if (paymentFilter !== 'all') list = list.filter((s) => s.paymentMethod === paymentFilter);
     if (ptaFilter !== 'all') list = list.filter((s) => s.items.some((it: any) => (it.imeis || []).some((imei: any) => imei.ptaStatus === ptaFilter)));
     const q = search.toLowerCase().trim();
-    if (q) list = list.filter((s) => s.saleNumber.toLowerCase().includes(q) || s.customer?.name?.toLowerCase().includes(q) || s.customer?.phone?.toLowerCase().includes(q) || s.items.some((it: any) => it.product.name.toLowerCase().includes(q) || (it.imeis || []).some((imei: any) => imei.imei1?.toLowerCase().includes(q) || imei.imei2?.toLowerCase().includes(q))));
+    if (q) list = list.filter((s) => s.saleNumber.toLowerCase().includes(q) || s.customer?.name?.toLowerCase().includes(q) || s.customer?.phone?.toLowerCase().includes(q) || s.items.some((it: any) => saleItemName(it).toLowerCase().includes(q) || (it.imeis || []).some((imei: any) => imei.imei1?.toLowerCase().includes(q) || imei.imei2?.toLowerCase().includes(q))));
     return list.sort((a, b) => new Date(b.soldAt).getTime() - new Date(a.soldAt).getTime());
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sales, imeiSales, emiSales, view, dateFilter, customStart, customEnd, paymentFilter, ptaFilter, search]);
+  }, [sales, newSales, usedSales, accessorySales, repairSales, creditSales, view, dateFilter, customStart, customEnd, paymentFilter, ptaFilter, search]);
 
   const stats = useMemo(() => {
     const totalAmount = filteredList.reduce((s, x) => s + x.total, 0);
@@ -117,6 +149,48 @@ export default function MobileSalesPage() {
     const avgOrder = filteredList.length > 0 ? totalAmount / filteredList.length : 0;
     const creditCount = filteredList.filter((s) => s.creditAmount > 0).length;
     return { totalAmount, totalCredit, totalPaid, avgOrder, count: filteredList.length, creditCount };
+  }, [filteredList]);
+
+  /* Filtered list ki kism-wise ginti — har view me sahi numbers */
+  const kindStats = useMemo(() => {
+    let newDevices = 0, usedDevices = 0, accessoryUnits = 0, repairJobs = 0;
+    let newRevenue = 0, usedRevenue = 0, accessoryRevenue = 0, repairRevenue = 0;
+    let ptaApproved = 0, nonPta = 0;
+
+    filteredList.forEach((sale: any) => {
+      if (isRepairSale(sale)) {
+        repairJobs++;
+        repairRevenue += sale.total;
+        return;
+      }
+      let saleHasNew = false, saleHasUsed = false, saleHasAcc = false;
+      sale.items?.forEach((it: any) => {
+        const imeis = it.imeis ?? [];
+        if (imeis.length > 0) {
+          saleHasNew = true;
+          newDevices += imeis.length;
+          imeis.forEach((im: any) => {
+            if (im.ptaStatus === 'APPROVED') ptaApproved++;
+            if (im.ptaStatus === 'NON_PTA') nonPta++;
+          });
+        } else if (it.usedPhone || it.usedPhoneId) {
+          saleHasUsed = true;
+          usedDevices++;
+        } else if (it.product) {
+          saleHasAcc = true;
+          accessoryUnits += Number(it.quantity) || 0;
+        }
+      });
+      if (saleHasNew) newRevenue += sale.total;
+      else if (saleHasUsed) usedRevenue += sale.total;
+      else if (saleHasAcc) accessoryRevenue += sale.total;
+    });
+
+    return {
+      newDevices, usedDevices, accessoryUnits, repairJobs,
+      newRevenue, usedRevenue, accessoryRevenue, repairRevenue,
+      ptaApproved, nonPta,
+    };
   }, [filteredList]);
 
   const ptaBreakdown = useMemo(() => {
@@ -136,19 +210,63 @@ export default function MobileSalesPage() {
     const summary = [
       [`Mobile Sales Report — ${tenantName || 'Nafaa'}`],
       [`Shop: ${shopName || 'All'}  •  Generated: ${new Date().toLocaleString('en-PK')}`],
-      [`View: ${view}  •  Sales: ${filteredList.length}  •  Total: ${stats.totalAmount.toFixed(2)}  •  Devices: ${imeiStats.devicesSold}`],
+      [`View: ${view}  •  Sales: ${filteredList.length}  •  Total: ${stats.totalAmount.toFixed(2)}  •  Naye: ${kindStats.newDevices}  •  Used: ${kindStats.usedDevices}  •  Repair: ${kindStats.repairJobs}`],
       [''],
     ];
-    const headers = ['Sale #', 'Date', 'Customer', 'Phone', 'Device', 'IMEI 1', 'IMEI 2', 'PTA', 'Warranty(m)', 'Sale Total', 'Paid', 'Credit'];
+    const headers = ['Sale #', 'Kism', 'Date', 'Customer', 'Phone', 'Item', 'Ref / IMEI', 'IMEI 2', 'PTA / Halat', 'Warranty(m)', 'Qty', 'Sale Total', 'Paid', 'Credit'];
     const rows: any[] = [];
-    filteredList.forEach((s) => {
-      const imeiItems = s.items.filter((it: any) => (it.imeis?.length ?? 0) > 0);
-      if (imeiItems.length === 0) {
-        rows.push([s.saleNumber, new Date(s.soldAt).toLocaleString('en-PK'), s.customer?.name || 'Walk-in', s.customer?.phone || '', s.items.map((it: any) => it.product.name).join('; '), '', '', '', '', s.total.toFixed(2), s.paidAmount.toFixed(2), s.creditAmount.toFixed(2)]);
-      } else {
-        imeiItems.forEach((it: any) => (it.imeis || []).forEach((imei: any) => {
-          rows.push([s.saleNumber, new Date(s.soldAt).toLocaleString('en-PK'), s.customer?.name || 'Walk-in', s.customer?.phone || '', it.product.name, imei.imei1, imei.imei2 || '', PTA_LABELS[imei.ptaStatus] || '', imei.warrantyMonths || 0, s.total.toFixed(2), s.paidAmount.toFixed(2), s.creditAmount.toFixed(2)]);
-        }));
+    filteredList.forEach((sale: any) => {
+      const when = new Date(sale.soldAt).toLocaleString('en-PK');
+      const who = sale.customer?.name || 'Walk-in';
+      const phone = sale.customer?.phone || '';
+      const money = [sale.total.toFixed(2), sale.paidAmount.toFixed(2), sale.creditAmount.toFixed(2)];
+
+      // Repair sale — ticket ke saath ek hi line
+      if (isRepairSale(sale)) {
+        const r = sale.repairTicket;
+        rows.push([
+          sale.saleNumber, 'Repair', when, who, phone,
+          r ? `${r.deviceBrand} ${r.deviceModel}` : saleItemName(sale.items[0]),
+          r?.ticketNumber ?? '', '',
+          r?.diagnosedIssue || r?.reportedIssue || '', '', 1, ...money,
+        ]);
+        return;
+      }
+
+      let wrote = false;
+      sale.items.forEach((it: any) => {
+        const imeis = it.imeis ?? [];
+        if (imeis.length > 0) {
+          imeis.forEach((im: any) => {
+            wrote = true;
+            rows.push([
+              sale.saleNumber, 'Naya Phone', when, who, phone,
+              saleItemName(it), im.imei1, im.imei2 || '',
+              PTA_LABELS[im.ptaStatus] || '', im.warrantyMonths || 0, 1, ...money,
+            ]);
+          });
+        } else if (it.usedPhone || it.usedPhoneId) {
+          wrote = true;
+          rows.push([
+            sale.saleNumber, 'Used Phone', when, who, phone,
+            saleItemName(it),
+            it.usedPhone?.usedPhoneCode ?? '', it.usedPhone?.imei1 ?? '',
+            it.usedPhone?.condition ?? '', '', 1, ...money,
+          ]);
+        } else if (it.product) {
+          wrote = true;
+          rows.push([
+            sale.saleNumber, 'Accessory', when, who, phone,
+            saleItemName(it), it.product?.sku ?? '', '', '', '',
+            it.quantity, ...money,
+          ]);
+        }
+      });
+
+      if (!wrote) {
+        rows.push([sale.saleNumber, 'Sale', when, who, phone,
+          sale.items.map((it: any) => saleItemName(it)).join('; '),
+          '', '', '', '', '', ...money]);
       }
     });
     const csv = [...summary, headers, ...rows].map((r) => r.map((c: any) => `"${String(c ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
@@ -172,6 +290,14 @@ export default function MobileSalesPage() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [showTeacher]);
+
+  // View badalte waqt PTA filter chhupta hai, is liye usay saaf bhi kar do
+  useEffect(() => {
+    if (view !== 'all' && view !== 'new' && view !== 'used' && ptaFilter !== 'all') {
+      setPtaFilter('all');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view]);
 
   const hasFilters = !!search || dateFilter !== 'month' || paymentFilter !== 'all' || ptaFilter !== 'all';
   const clearFilters = () => { setSearch(''); setDateFilter('month'); setPaymentFilter('all'); setPtaFilter('all'); setCustomStart(''); setCustomEnd(''); };
@@ -220,18 +346,69 @@ export default function MobileSalesPage() {
       </section>
 
       {/* Tabs */}
-      <div className="flex gap-2 flex-wrap print:hidden">
-        <button onClick={() => setView('imei')} className={`px-5 py-3 rounded-xl text-sm font-extrabold inline-flex items-center gap-2 transition ${view === 'imei' ? 'bg-blue-600 text-white shadow-md' : 'bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200'}`}><Smartphone className="h-4 w-4" /> IMEI Sales ({imeiSales.length})</button>
-        <button onClick={() => setView('emi')} className={`px-5 py-3 rounded-xl text-sm font-extrabold inline-flex items-center gap-2 transition ${view === 'emi' ? 'bg-blue-600 text-white shadow-md' : 'bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200'}`}><Wrench className="h-4 w-4" /> EMI Sales ({emiSales.length})</button>
-        <button onClick={() => setView('sales')} className={`px-5 py-3 rounded-xl text-sm font-extrabold inline-flex items-center gap-2 transition ${view === 'sales' ? 'bg-blue-600 text-white shadow-md' : 'bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200'}`}><Package className="h-4 w-4" /> All Sales ({sales.length})</button>
+      <div className="flex gap-1.5 flex-wrap print:hidden">
+        {([
+          { v: 'all',         label: 'Sab Sales',   icon: Layers,     n: sales.length },
+          { v: 'new',         label: 'Naye Phone',  icon: Smartphone, n: newSales.length },
+          { v: 'used',        label: 'Used Phone',  icon: RotateCcw,  n: usedSales.length },
+          { v: 'accessories', label: 'Accessories', icon: Cable,      n: accessorySales.length },
+          { v: 'repair',      label: 'Repair',      icon: Wrench,     n: repairSales.length },
+          { v: 'credit',      label: 'Udhaar/EMI',  icon: CreditCard, n: creditSales.length },
+        ] as { v: View; label: string; icon: any; n: number }[]).map((t) => (
+          <button
+            key={t.v}
+            onClick={() => setView(t.v)}
+            className={`px-3.5 sm:px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold inline-flex items-center gap-1.5 transition ${
+              view === t.v
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md'
+                : 'bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-blue-300 dark:hover:border-blue-500/40'
+            }`}
+          >
+            <t.icon className="h-4 w-4" />
+            <span className="hidden xs:inline sm:inline">{t.label}</span>
+            <span className={`px-1.5 rounded-full text-[10px] tabular-nums ${view === t.v ? 'bg-black/20' : 'bg-slate-100 dark:bg-slate-800'}`}>{t.n}</span>
+          </button>
+        ))}
       </div>
 
       {/* KPIs */}
       <section className="grid sm:grid-cols-2 xl:grid-cols-4 gap-2 sm:gap-3 print:hidden">
-        <Kpi label="Devices Sold" value={String(imeiStats.devicesSold)} sub={`${imeiSales.length} sales`} icon={Smartphone} tone="blue" />
-        <Kpi label="PTA Approved" value={String(imeiStats.ptaApproved)} sub={`${imeiStats.nonPta} non-PTA`} icon={ShieldCheck} tone="emerald" alert={imeiStats.nonPta > 0} />
-        <Kpi label="Avg Warranty" value={`${imeiStats.avgWarranty.toFixed(1)}m`} sub="Per device" icon={Award} tone="violet" />
-        <Kpi label="Device Revenue" value={showValue(formatPKR(imeiStats.revenue))} sub="From IMEI sales" icon={Wallet} tone="amber" />
+        {view === 'used' ? (
+          <>
+            <Kpi label="Used Phone Beche" value={String(kindStats.usedDevices)} sub={`${filteredList.length} sales`} icon={RotateCcw} tone="violet" />
+            <Kpi label="Used Revenue" value={showValue(formatPKR(kindStats.usedRevenue))} sub="Trade-in stock se" icon={Wallet} tone="emerald" />
+            <Kpi label="Avg Sale" value={showValue(formatPKR(stats.avgOrder))} sub="Per sale" icon={TrendingUp} tone="blue" />
+            <Kpi label="Udhaar" value={showValue(formatPKR(stats.totalCredit))} sub={`${stats.creditCount} sales`} icon={CreditCard} tone="amber" alert={stats.creditCount > 0} />
+          </>
+        ) : view === 'repair' ? (
+          <>
+            <Kpi label="Repair Jobs" value={String(kindStats.repairJobs)} sub="Deliver ho chuke" icon={Wrench} tone="amber" />
+            <Kpi label="Repair Kamai" value={showValue(formatPKR(kindStats.repairRevenue))} sub="Sale ban kar aayi" icon={Wallet} tone="emerald" />
+            <Kpi label="Avg Job" value={showValue(formatPKR(stats.avgOrder))} sub="Per repair" icon={TrendingUp} tone="blue" />
+            <Kpi label="Baqi" value={showValue(formatPKR(stats.totalCredit))} sub={`${stats.creditCount} udhaar`} icon={CreditCard} tone="violet" alert={stats.creditCount > 0} />
+          </>
+        ) : view === 'accessories' ? (
+          <>
+            <Kpi label="Units Beche" value={String(kindStats.accessoryUnits)} sub={`${filteredList.length} sales`} icon={Cable} tone="emerald" />
+            <Kpi label="Accessory Revenue" value={showValue(formatPKR(kindStats.accessoryRevenue))} sub="Charger, cover, parts" icon={Wallet} tone="blue" />
+            <Kpi label="Avg Sale" value={showValue(formatPKR(stats.avgOrder))} sub="Per sale" icon={TrendingUp} tone="violet" />
+            <Kpi label="Udhaar" value={showValue(formatPKR(stats.totalCredit))} sub={`${stats.creditCount} sales`} icon={CreditCard} tone="amber" alert={stats.creditCount > 0} />
+          </>
+        ) : view === 'credit' ? (
+          <>
+            <Kpi label="Udhaar Sales" value={String(filteredList.length)} sub="Baqi wali sales" icon={CreditCard} tone="amber" />
+            <Kpi label="Kul Baqi" value={showValue(formatPKR(stats.totalCredit))} sub="Lena hai" icon={Wallet} tone="violet" alert={stats.totalCredit > 0} />
+            <Kpi label="Mil Chuka" value={showValue(formatPKR(stats.totalPaid))} sub="In sales par" icon={CheckCircle2} tone="emerald" />
+            <Kpi label="Kul Bikri" value={showValue(formatPKR(stats.totalAmount))} sub={`Avg ${showValue(formatPKR(stats.avgOrder))}`} icon={TrendingUp} tone="blue" />
+          </>
+        ) : (
+          <>
+            <Kpi label="Naye Phone" value={String(kindStats.newDevices)} sub={`${kindStats.nonPta} non-PTA`} icon={Smartphone} tone="blue" alert={kindStats.nonPta > 0} />
+            <Kpi label="Used Phone" value={String(kindStats.usedDevices)} sub="Trade-in beche" icon={RotateCcw} tone="violet" />
+            <Kpi label="Repair Jobs" value={String(kindStats.repairJobs)} sub={showValue(formatPKR(kindStats.repairRevenue))} icon={Wrench} tone="amber" />
+            <Kpi label="Kul Bikri" value={showValue(formatPKR(stats.totalAmount))} sub={`${stats.count} sales`} icon={Wallet} tone="emerald" />
+          </>
+        )}
       </section>
 
       {/* Charts */}
@@ -312,6 +489,8 @@ export default function MobileSalesPage() {
           )}
         </div>
 
+        {/* PTA sirf phone wale views par — repair/accessory me device hi nahi hota */}
+        {(view === 'all' || view === 'new' || view === 'used') && (
         <div>
           <label className="text-[10px] uppercase font-extrabold text-slate-600 dark:text-slate-400 mb-1.5 block">PTA Status</label>
           <div className="flex gap-1.5 overflow-x-auto pb-1">
@@ -321,6 +500,7 @@ export default function MobileSalesPage() {
             ))}
           </div>
         </div>
+        )}
 
         <div>
           <label className="text-[10px] uppercase font-extrabold text-slate-600 dark:text-slate-400 mb-1.5 block">Payment Method</label>
@@ -358,30 +538,113 @@ export default function MobileSalesPage() {
           </div>
         ) : (
           <div className="divide-y-2 divide-slate-100 dark:divide-slate-800">
-            {filteredList.map((sale) => {
+            {filteredList.map((sale: any) => {
               const imeiItems = sale.items.filter((it: any) => (it.imeis?.length ?? 0) > 0);
+              const usedItems = sale.items.filter((it: any) => it.usedPhone || it.usedPhoneId);
+              const accItems = sale.items.filter(
+                (it: any) => it.product && !(it.imeis?.length ?? 0) && !it.usedPhoneId,
+              );
               const totalImeis = imeiItems.reduce((s: number, it: any) => s + (it.imeis?.length ?? 0), 0);
+              const repair = isRepairSale(sale) ? (sale.repairTicket ?? null) : null;
+              const isRepair = isRepairSale(sale);
+              const kind = isRepair ? 'repair' : totalImeis > 0 ? 'new' : usedItems.length > 0 ? 'used' : 'accessories';
+              const kindCfg = KIND_META[kind as keyof typeof KIND_META];
+              const KindIcon = kindCfg.icon;
               const PayIcon = paymentConfig[sale.paymentMethod]?.icon || CreditCard;
               return (
                 <Link key={sale.id} to={`/sales/${sale.id}/receipt`} className="block px-4 sm:px-5 py-4 hover:bg-blue-50/40 dark:hover:bg-blue-500/5 transition group">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-3 flex-1 min-w-0">
-                      <div className="h-12 w-12 rounded-2xl bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 flex items-center justify-center shrink-0"><Smartphone className="h-5 w-5" /></div>
+                      <div className={`h-12 w-12 rounded-2xl bg-gradient-to-br ${kindCfg.grad} text-white flex items-center justify-center shrink-0 shadow-lg`}><KindIcon className="h-5 w-5" /></div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-mono font-extrabold text-slate-900 dark:text-white text-sm">{sale.saleNumber}</span>
                           {sale.status === 'VOIDED' && <span className="px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-[10px] font-extrabold">VOIDED</span>}
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold inline-flex items-center gap-1 ${kindCfg.chip}`}>
+                            <KindIcon className="h-2.5 w-2.5" />{kindCfg.label}
+                          </span>
                           {totalImeis > 0 && <span className="px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 text-[10px] font-extrabold inline-flex items-center gap-1"><Hash className="h-2.5 w-2.5" />{totalImeis} device{totalImeis !== 1 ? 's' : ''}</span>}
-                          {sale.creditAmount > 0 && <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[10px] font-extrabold inline-flex items-center gap-1"><Wrench className="h-2.5 w-2.5" />EMI/Udhaar</span>}
+                          {usedItems.length > 0 && <span className="px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 text-[10px] font-extrabold inline-flex items-center gap-1"><RotateCcw className="h-2.5 w-2.5" />{usedItems.length} used</span>}
+                          {sale.creditAmount > 0 && <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[10px] font-extrabold inline-flex items-center gap-1"><CreditCard className="h-2.5 w-2.5" />EMI/Udhaar</span>}
                         </div>
                         <div className="mt-1 text-xs text-slate-600 dark:text-slate-300 font-semibold flex items-center gap-2 flex-wrap">
                           <User className="h-3 w-3" />{sale.customer?.name || 'Walk-in'}{sale.customer?.phone && <><span>•</span><span>{sale.customer.phone}</span></>}
                         </div>
                         <div className="mt-1 text-[10px] text-slate-500 dark:text-slate-400 inline-flex items-center gap-1"><Clock className="h-2.5 w-2.5" />{formatDate(sale.soldAt)}</div>
 
+                        {/* Repair ki tafseel */}
+                        {isRepair && (
+                          <div className="mt-2 pl-3 border-l-2 border-amber-300 dark:border-amber-500/40 space-y-1">
+                            <div className="font-extrabold text-sm text-slate-900 dark:text-white inline-flex items-center gap-1.5">
+                              <Wrench className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
+                              {repair ? `${repair.deviceBrand} ${repair.deviceModel}` : saleItemName(sale.items[0])}
+                            </div>
+                            {repair && (
+                              <div className="flex items-center gap-2 flex-wrap text-[10px]">
+                                <Link
+                                  to={`/repair-tickets/${repair.id}`}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="font-mono font-extrabold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-500/20 px-1.5 py-0.5 rounded hover:underline"
+                                >
+                                  {repair.ticketNumber}
+                                </Link>
+                                {(repair.diagnosedIssue || repair.reportedIssue) && (
+                                  <span className="text-slate-600 dark:text-slate-400 font-semibold truncate max-w-[22rem]">
+                                    {repair.diagnosedIssue || repair.reportedIssue}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Used phone ki tafseel */}
+                        {usedItems.map((it: any) => (
+                          <div key={it.id} className="mt-2 pl-3 border-l-2 border-violet-300 dark:border-violet-500/40 space-y-1">
+                            <div className="font-extrabold text-sm text-slate-900 dark:text-white">{saleItemName(it)}</div>
+                            <div className="flex items-center gap-2 flex-wrap text-[10px]">
+                              {it.usedPhone?.usedPhoneCode && (
+                                <span className="font-mono font-extrabold text-violet-700 dark:text-violet-300 bg-violet-100 dark:bg-violet-500/20 px-1.5 py-0.5 rounded">
+                                  {it.usedPhone.usedPhoneCode}
+                                </span>
+                              )}
+                              {it.usedPhone?.imei1 && (
+                                <span className="font-mono font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
+                                  IMEI: {it.usedPhone.imei1}
+                                </span>
+                              )}
+                              {it.usedPhone?.condition && (
+                                <span className="text-violet-700 dark:text-violet-400 font-bold inline-flex items-center gap-0.5">
+                                  <Star className="h-2.5 w-2.5 fill-current" />{it.usedPhone.condition}
+                                </span>
+                              )}
+                              {it.usedPhone?.ptaStatus && (
+                                <span className={`px-1.5 py-0.5 rounded border-2 font-extrabold uppercase ${PTA_COLORS[it.usedPhone.ptaStatus]}`}>
+                                  {PTA_LABELS[it.usedPhone.ptaStatus]}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+
+                        {/* Accessories */}
+                        {!isRepair && accItems.length > 0 && (
+                          <div className="mt-2 pl-3 border-l-2 border-emerald-300 dark:border-emerald-500/40 space-y-0.5">
+                            {accItems.slice(0, 4).map((it: any) => (
+                              <div key={it.id} className="text-[11px] font-bold text-slate-700 dark:text-slate-300 inline-flex items-center gap-1.5 mr-3">
+                                <Cable className="h-2.5 w-2.5 text-emerald-600 dark:text-emerald-400" />
+                                {saleItemName(it)} <span className="text-slate-400">× {it.quantity}</span>
+                              </div>
+                            ))}
+                            {accItems.length > 4 && (
+                              <div className="text-[10px] font-extrabold text-slate-400">+{accItems.length - 4} aur</div>
+                            )}
+                          </div>
+                        )}
+
                         {imeiItems.map((it: any) => (
                           <div key={it.id} className="mt-2 pl-3 border-l-2 border-blue-200 dark:border-blue-500/30 space-y-1">
-                            <div className="font-extrabold text-sm text-slate-900 dark:text-white">{it.product.name}</div>
+                            <div className="font-extrabold text-sm text-slate-900 dark:text-white">{saleItemName(it)}</div>
                             {(it.imeis || []).map((imei: any) => (
                               <div key={imei.id} className="flex items-center gap-2 flex-wrap text-[10px]">
                                 <span className="font-mono font-extrabold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">IMEI: {imei.imei1}</span>

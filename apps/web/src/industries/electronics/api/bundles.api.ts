@@ -5,7 +5,16 @@ export interface ElectronicsBundle {
   name: string;
   description?: string;
   imageUrl?: string;
-  items: Array<{ productId: string; quantity: number; unitPrice: number; product?: any }>;
+  /** `product` backend join se aata hai — JSON column me sirf id/qty/price hote hain */
+  items: Array<{
+    productId: string;
+    quantity: number;
+    unitPrice: number;
+    product?: {
+      id: string; name: string; sku?: string | null; unit?: string;
+      price?: number; stock?: number; imageUrl?: string | null;
+    } | null;
+  }>;
   originalPrice: number;
   bundlePrice: number;
   savings: number;

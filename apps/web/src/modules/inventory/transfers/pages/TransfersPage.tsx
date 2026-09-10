@@ -602,7 +602,7 @@ export default function TransfersPage() {
                           {hasRoll ? <Layers className="h-4 w-4" /> : <Package className="h-4 w-4" />}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-bold text-slate-900 text-sm truncate">{it.product.name}</div>
+                          <div className="font-bold text-slate-900 text-sm truncate">{it.product?.name ?? 'Item'}</div>
                           {hasRoll && it.carpetRoll && (
                             <div className="text-[11px] mt-0.5 font-mono font-bold text-emerald-700 flex items-center gap-1.5 flex-wrap">
                               <span>{it.carpetRoll.rollNumber}</span>
@@ -618,7 +618,7 @@ export default function TransfersPage() {
                           )}
                         </div>
                         <div className="font-extrabold text-cyan-700">
-                          {it.quantity.toFixed(it.quantity % 1 === 0 ? 0 : 2)} <span className="text-xs text-slate-500 font-normal">{it.product.unit}</span>
+                          {it.quantity.toFixed(it.quantity % 1 === 0 ? 0 : 2)} <span className="text-xs text-slate-500 font-normal">{it.product?.unit ?? ''}</span>
                         </div>
                       </div>
                     );

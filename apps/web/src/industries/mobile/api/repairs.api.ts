@@ -340,6 +340,19 @@ export const repairsApi = {
   stats: () =>
     apiClient.get('/repair-tickets/stats').then(unwrap) as Promise<RepairStats>,
 
+  /**
+   * Counter par ek hi step: baqi paisa lo, ticket deliver karo,
+   * aur repair ki kamai ko Sale bana kar hisab me daalo.
+   */
+  deliver: (
+    id: string,
+    payload: { amount?: number; paymentMethod?: string; note?: string },
+  ) =>
+    apiClient.post(`/repair-tickets/${id}/deliver`, payload).then(unwrap) as Promise<{
+      ticket: RepairTicket;
+      sale: { id: string; saleNumber: string; total: number } | null;
+    }>,
+
   getOne: (id: string) =>
     apiClient.get(`/repair-tickets/${id}`).then(unwrap) as Promise<RepairTicket>,
 

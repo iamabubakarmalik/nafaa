@@ -15,7 +15,7 @@ export class ElectronicsDashboardService {
       inStockSerials, soldSerials, defectiveSerials,
       activeClaims, resolvedClaims, activeBundles,
     ] = await Promise.all([
-      this.prisma.electronicsBrand.count({ where: { tenantId: user.tenantId, isActive: true } }),
+      this.prisma.brand.count({ where: { tenantId: user.tenantId, isActive: true } }),
       this.prisma.electronicsProductProfile.count({ where: { tenantId: user.tenantId } }),
       this.prisma.electronicsSerialTracking.count({ where: { tenantId: user.tenantId } }),
       this.prisma.electronicsSerialTracking.count({ where: { tenantId: user.tenantId, status: 'IN_STOCK' } }),
@@ -64,11 +64,36 @@ export class ElectronicsDashboardService {
     });
 
     // Top brands
-    const topBrands = await this.prisma.electronicsBrand.findMany({
-      where: { tenantId: user.tenantId, isActive: true },
-      orderBy: { totalRevenue: 'desc' },
-      take: 5,
+    // Top brands ab asli bikri se — pehle ElectronicsBrand par ek
+    // totalRevenue field thi jo kabhi update hi nahi hoti thi.
+    const brandSales = await this.prisma.saleItem.groupBy({
+      by: ['productId'],
+      where: {
+        sale: { tenantId: user.tenantId, status: 'COMPLETED' },
+        productId: { not: null },
+      },
+      _sum: { total: true, quantity: true },
     });
+    const soldProductIds = brandSales.map((b) => b.productId!).filter(Boolean);
+    const soldProducts = soldProductIds.length
+      ? await this.prisma.product.findMany({
+          where: { id: { in: soldProductIds }, tenantId: user.tenantId },
+          select: { id: true, brandId: true, brand: { select: { id: true, name: true, logoUrl: true } } },
+        })
+      : [];
+    const productBrand = new Map(soldProducts.map((p) => [p.id, p.brand]));
+    const brandTotals = new Map<string, { id: string; name: string; logoUrl: string | null; totalRevenue: number; unitsSold: number }>();
+    for (const row of brandSales) {
+      const br = productBrand.get(row.productId!);
+      if (!br) continue;
+      const cur = brandTotals.get(br.id) ?? { id: br.id, name: br.name, logoUrl: br.logoUrl, totalRevenue: 0, unitsSold: 0 };
+      cur.totalRevenue += Number(row._sum.total) || 0;
+      cur.unitsSold += Number(row._sum.quantity) || 0;
+      brandTotals.set(br.id, cur);
+    }
+    const topBrands = [...brandTotals.values()]
+      .sort((a, b) => b.totalRevenue - a.totalRevenue)
+      .slice(0, 5);
 
     // Category breakdown
     const byCategory = await this.prisma.electronicsProductProfile.groupBy({

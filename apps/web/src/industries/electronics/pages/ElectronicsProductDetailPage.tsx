@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -9,6 +9,7 @@ import {
   BarChart3, Info, Plus, RotateCcw, CheckCircle2, XCircle,
   Shield, Award, Battery, Monitor, Ruler, Droplets, Zap,
   Palette, Globe, FileText, Copy, Layers, ExternalLink,
+  GraduationCap, Keyboard, X, Printer, FileSpreadsheet, ShieldCheck,
 } from 'lucide-react';
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid,
@@ -22,9 +23,10 @@ import { productImagesApi } from '@modules/inventory/products/api/product-images
 import { salesApi } from '@modules/sales/sales/api/sales.api';
 import { stockMovementsApi } from '@modules/inventory/stock-movements/api/stock-movements.api';
 import { electronicsProductsApi } from '../api/products.api';
-import { electronicsBrandsApi } from '../api/brands.api';
+import { brandsApi } from '@modules/inventory/brands/api/brands.api';
 import { serialTrackingApi } from '../api/serial-tracking.api';
 import { PrivacyToggle, useCostHidden } from '@core/ui/HiddenValue';
+import { PrintStyles } from '@core/components/print/PrintStyles';
 
 type Tab = 'overview' | 'specs' | 'warranty' | 'variants' | 'serials' | 'sales' | 'log';
 
@@ -36,6 +38,8 @@ export default function ElectronicsProductDetailPage() {
 
   const [tab, setTab] = useState<Tab>('overview');
   const [imgIndex, setImgIndex] = useState(0);
+  const [showTeacher, setShowTeacher] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
 
   const { data: product, isLoading } = useQuery({
     queryKey: ['product', id],
@@ -50,8 +54,8 @@ export default function ElectronicsProductDetailPage() {
   });
 
   const { data: brand } = useQuery({
-    queryKey: ['electronics-brand', profile?.brandId],
-    queryFn: () => electronicsBrandsApi.getOne(profile!.brandId!),
+    queryKey: ['brand', profile?.brandId],
+    queryFn: () => brandsApi.getOne(profile!.brandId!),
     enabled: !!profile?.brandId,
   });
 
@@ -95,14 +99,14 @@ export default function ElectronicsProductDetailPage() {
   const soldLines = useMemo(() => {
     if (!id) return [];
     return (allSales as any[]).flatMap((s) =>
-      s.items.filter((it: any) => it.product.id === id).map((it: any) => ({ ...it, sale: s })),
+      s.items.filter((it: any) => it.product?.id === id).map((it: any) => ({ ...it, sale: s })),
     );
   }, [allSales, id]);
 
   const salesForProduct = useMemo(() => {
     if (!id) return [];
     return (allSales as any[])
-      .filter((s) => s.items.some((it: any) => it.product.id === id))
+      .filter((s) => s.items.some((it: any) => it.product?.id === id))
       .sort((a, b) => new Date(b.soldAt).getTime() - new Date(a.soldAt).getTime())
       .slice(0, 30);
   }, [allSales, id]);
@@ -177,6 +181,39 @@ export default function ElectronicsProductDetailPage() {
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Delete failed'),
   });
 
+  /* ── Shortcuts — hooks early return se pehle hone chahiyen ── */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      const typing = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+      if (e.key === 'Escape') {
+        if (showShortcuts) return setShowShortcuts(false);
+        if (showTeacher) return setShowTeacher(false);
+        return;
+      }
+      if (typing || e.ctrlKey || e.metaKey) return;
+      if (e.key === 'g') setShowTeacher(true);
+      if (e.key === '?') setShowShortcuts((v) => !v);
+      if (e.key === 'p') window.print();
+      if (e.key === 'e' && id) navigate(`/electronics-products/${id}/edit`);
+      const n = Number(e.key);
+      if (n >= 1 && n <= 7) {
+        const order: Tab[] = ['overview', 'specs', 'warranty', 'variants', 'serials', 'sales', 'log'];
+        setTab(order[n - 1]);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showTeacher, showShortcuts, id]);
+
+  useEffect(() => {
+    const anyModal = showTeacher || showShortcuts;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = anyModal ? 'hidden' : prev;
+    return () => { document.body.style.overflow = prev; };
+  }, [showTeacher, showShortcuts]);
+
   if (isLoading || !product) {
     return (
       <div className="flex items-center justify-center py-24">
@@ -197,24 +234,107 @@ export default function ElectronicsProductDetailPage() {
     { id: 'log', label: 'Stock Log', count: movements.length, icon: History },
   ];
 
+  /* Poora product ek CSV me — audit ya supplier ko bhejne ke liye */
+  const exportCsv = () => {
+    const spec = (profile ?? {}) as any;
+    const rows: string[][] = [
+      ['NAFAA — Electronics Product'],
+      [product.name, new Date().toLocaleString('en-PK')],
+      [],
+      ['BUNYADI'],
+      ['Naam', product.name],
+      ['SKU', product.sku ?? ''],
+      ['Barcode', product.barcode ?? ''],
+      ['Brand', brand?.name ?? ''],
+      ['Category', spec.categoryType ?? ''],
+      ['Condition', spec.conditionType ?? ''],
+      ['Khareed qeemat', String(product.costPrice ?? 0)],
+      ['Sale qeemat', String(product.price ?? 0)],
+      ['Stock', `${product.stock ?? 0} ${product.unit ?? ''}`],
+      ['Low stock alert', String(product.lowStockAlert ?? 0)],
+      [],
+      ['SPECS'],
+      ['Connectivity', (spec.connectivity ?? []).join(' | ')],
+      ['Battery', spec.batteryCapacity ?? ''],
+      ['Battery life (ghante)', String(spec.batteryLifeHours ?? '')],
+      ['Power rating', spec.powerRating ?? ''],
+      ['Screen size', spec.screenSize ?? ''],
+      ['Resolution', spec.resolution ?? ''],
+      ['Refresh rate', spec.refreshRate ?? ''],
+      ['Water resistance', spec.waterResistance ?? ''],
+      ['Compatible OS', (spec.compatibleOS ?? []).join(' | ')],
+      ['Compatible with', (spec.compatibleWith ?? []).join(' | ')],
+      ['Wazan (g)', String(spec.weightGrams ?? '')],
+      [],
+      ['WARRANTY'],
+      ['Mahine', String(spec.warrantyMonths ?? 0)],
+      ['Type', spec.warrantyType ?? ''],
+      ['International', spec.hasInternationalWarranty ? 'Haan' : 'Nahi'],
+      ['Dabbe me', (spec.boxContents ?? []).join(' | ')],
+      [],
+      ['SERIAL / IMEI', 'Status', 'Warranty tak', 'Halat'],
+      ...(serials as any[]).map((x) => [
+        `${x.serialNumber}${x.imei ? ` / ${x.imei}` : ''}`,
+        x.status ?? '',
+        x.warrantyEndDate ? new Date(x.warrantyEndDate).toLocaleDateString('en-PK') : '',
+        x.physicalCondition ?? '',
+      ]),
+      [],
+      ['VARIANTS', 'Stock', 'Qeemat', 'SKU'],
+      ...(variants as any[]).map((v) => [
+        v.name, String(v.stock ?? 0), String(v.priceOverride ?? product.price ?? 0), v.sku ?? '',
+      ]),
+    ];
+    const csvText = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const url = URL.createObjectURL(new Blob(['\ufeff' + csvText], { type: 'text/csv;charset=utf-8;' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${(product.sku || product.name || 'product').replace(/[^a-z0-9]+/gi, '-')}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('CSV download ho gaya');
+  };
+
   return (
-    <div className="space-y-5 pb-10">
+    <div className="space-y-5 pb-10 print:space-y-3">
+      <PrintStyles orientation="portrait" title={product.name}
+        subtitle={[brand?.name, product.sku].filter(Boolean).join(' · ')} />
+      {showTeacher && <DetailTeacher onClose={() => setShowTeacher(false)} />}
+      {showShortcuts && <ShortcutsModal onClose={() => setShowShortcuts(false)} />}
+
       {/* Top bar */}
-      <div className="flex items-center justify-between gap-3 flex-wrap">
+      <div className="flex items-center justify-between gap-3 flex-wrap print:hidden">
         <button onClick={() => navigate('/electronics-products')} className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-blue-600 font-bold">
-          <ArrowLeft className="h-4 w-4" /> All Products
+          <ArrowLeft className="h-4 w-4" /> Sab Products
         </button>
-        <div className="flex items-center gap-2 flex-wrap">
-          <Link to={`/electronics-products/${id}/edit`} className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-blue-50 border-2 border-blue-200 hover:bg-blue-100 text-blue-700 text-sm font-extrabold">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <button onClick={() => setShowTeacher(true)} title="Guide (G)"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-900 text-sm font-extrabold shadow transition">
+            <GraduationCap className="h-4 w-4" /> Guide
+          </button>
+          <button onClick={() => setShowShortcuts(true)} title="Shortcuts (?)"
+            className="h-10 w-10 rounded-xl bg-white border-2 border-slate-200 hover:border-blue-300 text-slate-600 flex items-center justify-center transition">
+            <Keyboard className="h-4 w-4" />
+          </button>
+          <Link to={`/electronics-products/${id}/edit`} title="Edit (E)"
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-blue-50 border-2 border-blue-200 hover:bg-blue-100 text-blue-700 text-sm font-extrabold">
             <Edit3 className="h-4 w-4" /> Edit
           </Link>
           <Link to="/pos" className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white border-2 border-slate-200 hover:border-blue-300 text-slate-700 text-sm font-extrabold">
             <ShoppingCart className="h-4 w-4" /> POS
           </Link>
+          <button onClick={exportCsv} title="CSV download"
+            className="h-10 w-10 rounded-xl bg-white border-2 border-slate-200 hover:border-emerald-300 text-slate-600 flex items-center justify-center transition">
+            <FileSpreadsheet className="h-4 w-4" />
+          </button>
+          <button onClick={() => window.print()} title="Print (P)"
+            className="h-10 w-10 rounded-xl bg-white border-2 border-slate-200 hover:border-blue-300 text-slate-600 flex items-center justify-center transition">
+            <Printer className="h-4 w-4" />
+          </button>
           <PrivacyToggle compact />
           <button
-            onClick={() => { if (confirm(`Delete "${product.name}"?`)) removeMutation.mutate(); }}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-rose-50 border-2 border-rose-200 hover:bg-rose-100 text-rose-700 text-sm font-extrabold"
+            onClick={() => { if (confirm(`"${product.name}" delete karein?`)) removeMutation.mutate(); }}
+            className="h-10 w-10 rounded-xl bg-rose-50 border-2 border-rose-200 hover:bg-rose-100 text-rose-700 flex items-center justify-center transition"
           >
             <Trash2 className="h-4 w-4" />
           </button>
@@ -280,7 +400,7 @@ export default function ElectronicsProductDetailPage() {
               {profile?.modelNumber && <Chip icon={Hash}>Model: {profile.modelNumber}</Chip>}
               {product.sku && <Chip icon={Hash}>SKU: {product.sku}</Chip>}
               {product.barcode && <Chip icon={Barcode}>{product.barcode}</Chip>}
-              {profile?.conditionType && profile.conditionType !== 'NEW' && (
+              {profile?.conditionType && profile.conditionType !== 'BRAND_NEW' && (
                 <Chip icon={Tag} tone="amber">{profile.conditionType.replace(/_/g, ' ')}</Chip>
               )}
               {profile?.colorName && (
@@ -417,7 +537,7 @@ export default function ElectronicsProductDetailPage() {
           <section className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <QuickLink to="/electronics/serials" icon={Barcode} title="All Serials" desc="IMEI tracking" tone="amber" />
             <QuickLink to="/electronics/warranty-claims" icon={Shield} title="Warranty" desc="Claims mgmt" tone="rose" />
-            <QuickLink to="/electronics/brands" icon={Award} title="Brands" desc="Manage brands" tone="violet" />
+            <QuickLink to="/brands" icon={Award} title="Brands" desc="Manage brands" tone="violet" />
             <QuickLink to="/electronics/bundles" icon={Layers} title="Bundles" desc="Combo deals" tone="pink" />
           </section>
 
@@ -439,17 +559,16 @@ export default function ElectronicsProductDetailPage() {
                     )}
                   </div>
                 </div>
-                {brand.websiteUrl && (
-                  <a href={brand.websiteUrl} target="_blank" rel="noreferrer" className="ml-auto inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-extrabold text-slate-700">
+                {brand.website && (
+                  <a href={brand.website} target="_blank" rel="noreferrer" className="ml-auto inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-extrabold text-slate-700">
                     <ExternalLink className="h-3 w-3" /> Website
                   </a>
                 )}
               </div>
-              {(brand.supportContact || brand.supportPhone || brand.supportEmail) && (
-                <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-slate-100">
-                  {brand.supportContact && <MiniField label="Support" value={brand.supportContact} />}
-                  {brand.supportPhone && <MiniField label="Phone" value={brand.supportPhone} />}
-                  {brand.supportEmail && <MiniField label="Email" value={brand.supportEmail} />}
+              {(brand.supportPhone || brand.supportEmail) && (
+                <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-slate-100">
+                  {brand.supportPhone && <MiniField label="Support Phone" value={brand.supportPhone} />}
+                  {brand.supportEmail && <MiniField label="Support Email" value={brand.supportEmail} />}
                 </div>
               )}
             </section>
@@ -683,7 +802,7 @@ export default function ElectronicsProductDetailPage() {
           empty={salesForProduct.length === 0} emptyText="No sales yet">
           <div className="divide-y divide-slate-100 max-h-[600px] overflow-y-auto">
             {salesForProduct.map((s: any) => {
-              const lines = s.items.filter((it: any) => it.product.id === id);
+              const lines = s.items.filter((it: any) => it.product?.id === id);
               const qty = lines.reduce((a: number, it: any) => a + Number(it.quantity || 0), 0);
               const rev = lines.reduce((a: number, it: any) => a + Number(it.total || 0), 0);
               return (
@@ -905,5 +1024,114 @@ function QuickLink({ to, icon: Icon, title, desc, tone }: any) {
       </div>
       <ChevronRight className="h-4 w-4 text-slate-400" />
     </Link>
+  );
+}
+
+/* ═════════════════════════════════════════════════════════════
+   GUIDE + SHORTCUTS
+   ═════════════════════════════════════════════════════════════ */
+
+function DetailTeacher({ onClose }: { onClose: () => void }) {
+  const steps = [
+    {
+      icon: Info, title: 'Overview — ek nazar me sab',
+      body: 'Stock kitna hai, kitne me khareeda, kitne me bech rahe hain, aur ab tak kitna munafa hua. Neeche chart me dikhta hai ye product roz kitna bikta hai.',
+      tips: ['Lagat chupi ho to 🔒 se kholo', '1–7 dabakar tab badlein'],
+    },
+    {
+      icon: Barcode, title: 'Serials / IMEI tab',
+      body: 'Har mehngi cheez ka apna unit yahan alag nazar aata hai — kaun sa stock me hai, kaun sa bik chuka, kis ko bika aur uski warranty kab tak hai.',
+      tips: ['Customer serial le kar aaye to yahin se history milti hai', 'Serial POS par scan karte hi SOLD ho jata hai'],
+    },
+    {
+      icon: ShieldCheck, title: 'Warranty & Dabba tab',
+      body: 'Warranty kitni hai, kaun degi, aur dabbe me kya kya aata hai — yehi cheezein receipt par chhapti hain, is liye inhe theek rakhein.',
+      tips: ['Wapsi ke waqt "dabbe me kya tha" ka jhagra nahi hota'],
+    },
+    {
+      icon: Printer, title: 'Print aur CSV',
+      body: 'Print se is product ki saaf report nikal aati hai. CSV me specs, warranty, serials aur variants — sab kuch Excel ke liye.',
+      tips: ['P dabao to print', 'Supplier ko bhejne ke liye CSV behtar hai'],
+    },
+  ];
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()}
+        className="w-full sm:max-w-2xl bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
+        <div className="px-5 py-4 bg-gradient-to-r from-amber-50 to-orange-50 border-b-2 border-amber-200 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-lg">
+              <GraduationCap className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="text-[10px] uppercase tracking-wider text-amber-700 font-extrabold">Guide</div>
+              <h3 className="font-extrabold text-slate-900">Product Page Kaise Parhein?</h3>
+            </div>
+          </div>
+          <button onClick={onClose} className="h-9 w-9 rounded-xl hover:bg-white flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600" />
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-5 space-y-3.5">
+          {steps.map((st, i) => (
+            <div key={i} className="rounded-xl border-2 border-slate-200 bg-slate-50 p-3.5 flex items-start gap-3">
+              <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-700 text-white flex items-center justify-center shrink-0 shadow-md">
+                <st.icon className="h-4 w-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="font-extrabold text-slate-900">{st.title}</div>
+                <div className="text-xs font-semibold text-slate-600 mt-1 leading-relaxed">{st.body}</div>
+                <ul className="mt-2 space-y-1">
+                  {st.tips.map((tp, j) => (
+                    <li key={j} className="text-[11px] font-semibold text-slate-500 flex items-start gap-1.5">
+                      <Sparkles className="h-2.5 w-2.5 text-amber-500 shrink-0 mt-0.5" /> {tp}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="px-5 py-3.5 border-t-2 border-slate-100 bg-slate-50 text-right shrink-0">
+          <Button onClick={onClose} className="bg-gradient-to-r from-amber-500 to-orange-600 font-extrabold shadow-lg">
+            <CheckCircle2 className="h-4 w-4" /> Samajh Gaya
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ShortcutsModal({ onClose }: { onClose: () => void }) {
+  const sc = [
+    ['1 – 7', 'Tab badlein'], ['E', 'Edit karein'], ['G', 'Guide kholo'],
+    ['P', 'Print'], ['?', 'Ye list'], ['Esc', 'Band karo'],
+  ];
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border-2 border-slate-200">
+        <div className="px-5 py-4 border-b-2 border-slate-100 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="h-9 w-9 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center">
+              <Keyboard className="h-4 w-4" />
+            </div>
+            <h3 className="font-extrabold text-slate-900">Keyboard Shortcuts</h3>
+          </div>
+          <button onClick={onClose} className="h-9 w-9 rounded-xl hover:bg-slate-100 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600" />
+          </button>
+        </div>
+        <div className="p-5 space-y-2">
+          {sc.map(([key, desc]) => (
+            <div key={key} className="flex items-center justify-between text-sm">
+              <span className="font-semibold text-slate-700">{desc}</span>
+              <kbd className="px-2.5 py-1 rounded-lg bg-slate-100 border-2 border-slate-200 font-mono text-xs font-extrabold text-slate-700">{key}</kbd>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }

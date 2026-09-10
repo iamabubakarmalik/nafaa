@@ -102,6 +102,41 @@ export class TransfersService {
     // ─── Validate items + detect carpet rolls ──────────────
     const itemsWithMeta: Array<any> = [];
     for (const item of dto.items) {
+      // ─── USED PHONE PATH — iska koi product nahi hota ────
+      if (item.usedPhoneId) {
+        const usedPhone = await this.prisma.usedPhone.findFirst({
+          where: { id: item.usedPhoneId, tenantId: user.tenantId },
+        });
+        if (!usedPhone) {
+          throw new NotFoundException(`Used phone ${item.usedPhoneId} nahi mila`);
+        }
+        if (usedPhone.shopId && usedPhone.shopId !== dto.fromShopId) {
+          throw new BadRequestException(
+            `${usedPhone.usedPhoneCode} ${fromShop.name} me nahi hai`,
+          );
+        }
+        if (usedPhone.status !== 'IN_STOCK') {
+          throw new BadRequestException(
+            `${usedPhone.usedPhoneCode} is ${usedPhone.status} — transfer nahi ho sakta`,
+          );
+        }
+        itemsWithMeta.push({
+          ...item,
+          isUsedPhone: true,
+          isCarpet: false,
+          product: null,
+          roll: null,
+          imei: null,
+          usedPhone,
+          quantity: 1,
+        });
+        continue;
+      }
+
+      if (!item.productId) {
+        throw new BadRequestException('Har item me productId ya usedPhoneId zaroori hai');
+      }
+
       const product = await this.prisma.product.findFirst({
         where: { id: item.productId, tenantId: user.tenantId },
       });
@@ -152,6 +187,56 @@ export class TransfersService {
         continue;
       }
 
+      // ─── MOBILE PATH — device khud validate karo ─────────
+      // IMEI wale item me ginti nahi, device jata hai.
+      let imei: any = null;
+      if (item.imeiId) {
+        imei = await this.prisma.productImei.findFirst({
+          where: { id: item.imeiId, tenantId: user.tenantId, productId: item.productId },
+        });
+        if (!imei) {
+          throw new NotFoundException(`Device ${item.imeiId} nahi mila`);
+        }
+        if (imei.shopId && imei.shopId !== dto.fromShopId) {
+          throw new BadRequestException(
+            `IMEI ${imei.imei1} ${fromShop.name} me nahi hai — wo kisi aur shop me para hai`,
+          );
+        }
+        if (imei.status !== 'IN_STOCK') {
+          throw new BadRequestException(
+            `IMEI ${imei.imei1} is ${imei.status} — transfer nahi ho sakta`,
+          );
+        }
+        if (Number(item.quantity) !== 1) {
+          throw new BadRequestException(`IMEI ${imei.imei1}: quantity 1 honi chahiye`);
+        }
+      }
+
+      // ─── ELECTRONICS PATH — serial unit khud validate karo ───
+      // Laptop/camera/drone: har unit ka apna serial. Quantity hamesha 1.
+      let serial: any = null;
+      if (item.serialId) {
+        serial = await this.prisma.electronicsSerialTracking.findFirst({
+          where: { id: item.serialId, tenantId: user.tenantId, productId: item.productId },
+        });
+        if (!serial) {
+          throw new NotFoundException(`Serial unit ${item.serialId} nahi mila`);
+        }
+        if (serial.shopId && serial.shopId !== dto.fromShopId) {
+          throw new BadRequestException(
+            `Serial ${serial.serialNumber} ${fromShop.name} me nahi hai — wo kisi aur shop me para hai`,
+          );
+        }
+        if (serial.status !== 'IN_STOCK') {
+          throw new BadRequestException(
+            `Serial ${serial.serialNumber} ka status ${serial.status} hai — transfer nahi ho sakta`,
+          );
+        }
+        if (Number(item.quantity) !== 1) {
+          throw new BadRequestException(`Serial ${serial.serialNumber}: quantity 1 honi chahiye`);
+        }
+      }
+
       // ─── STANDARD PATH — check ShopStock ──────────────────
       const variantId = item.variantId ?? null;
       const sourceStock = await this.prisma.shopStock.findFirst({
@@ -173,6 +258,8 @@ export class TransfersService {
         isCarpet: false,
         product,
         roll: null,
+        imei,
+        serial,
       });
     }
 
@@ -192,9 +279,12 @@ export class TransfersService {
           transferredAt: new Date(),
           items: {
             create: itemsWithMeta.map((item) => ({
-              productId: item.productId,
+              productId: item.productId ?? null,
               variantId: item.variantId ?? null,
               carpetRollId: item.carpetRollId ?? null,
+              imeiId: item.imeiId ?? null,
+              usedPhoneId: item.usedPhoneId ?? null,
+              serialId: item.serialId ?? null,
               quantity: item.quantity,
               notes: item.notes,
             })),
@@ -203,12 +293,21 @@ export class TransfersService {
         include: {
           fromShop: true,
           toShop: true,
-          items: { include: { product: true, carpetRoll: true } },
+          items: { include: { product: true, carpetRoll: true, imei: { select: { id: true, imei1: true, imei2: true, status: true, color: true } }, usedPhone: { select: { id: true, usedPhoneCode: true, brand: true, model: true, storage: true, color: true, status: true, resalePrice: true } }, serial: { select: { id: true, serialNumber: true, imei: true, status: true, warrantyEndDate: true, physicalCondition: true } } } },
         },
       });
 
       // ─── Process each item ─────────────────────────────────
       for (const item of itemsWithMeta) {
+        // ─── USED PHONE: rah me — kisi shop par nahi bikta ──
+        if (item.isUsedPhone && item.usedPhone) {
+          await tx.usedPhone.update({
+            where: { id: item.usedPhone.id },
+            data: { status: 'IN_TRANSIT' },
+          });
+          continue;
+        }
+
         if (item.isCarpet && item.roll) {
           // ─── CARPET: Mark roll as TRANSFERRED (don't move shop yet) ──
           // Roll will be re-shop'd on receive. For now mark status.
@@ -275,6 +374,22 @@ export class TransfersService {
           data: { stock: { decrement: item.quantity } },
         });
 
+        // Device rah me hai — na source par bikega, na destination par
+        if (item.imeiId) {
+          await tx.productImei.update({
+            where: { id: item.imeiId },
+            data: { status: 'RESERVED' },
+          });
+        }
+
+        // Serial unit bhi rah me — na yahan ka, na wahan ka
+        if (item.serialId) {
+          await tx.electronicsSerialTracking.update({
+            where: { id: item.serialId },
+            data: { status: 'IN_TRANSIT' },
+          });
+        }
+
         await tx.stockMovement.create({
           data: {
             tenantId: user.tenantId,
@@ -283,7 +398,11 @@ export class TransfersService {
             quantity: -item.quantity,
             balanceAfter: existingSource.stock - item.quantity,
             reference: transferNumber,
-            note: `Transfer to ${toShop.name}`,
+            note: item.imei
+              ? `IMEI ${item.imei.imei1} → ${toShop.name}`
+              : item.serial
+                ? `Serial ${item.serial.serialNumber} → ${toShop.name}`
+                : `Transfer to ${toShop.name}`,
           },
         });
       }
@@ -310,7 +429,7 @@ export class TransfersService {
     const transfer = await this.prisma.stockTransfer.findFirst({
       where: { id, tenantId: user.tenantId },
       include: {
-        items: { include: { carpetRoll: true, product: true } },
+        items: { include: { carpetRoll: true, product: true, imei: { select: { id: true, imei1: true, imei2: true, status: true, color: true } }, usedPhone: { select: { id: true, usedPhoneCode: true, brand: true, model: true, storage: true, color: true, status: true, resalePrice: true } }, serial: { select: { id: true, serialNumber: true, imei: true, status: true, warrantyEndDate: true, physicalCondition: true } } } },
         fromShop: true,
         toShop: true,
       },
@@ -327,11 +446,24 @@ export class TransfersService {
         include: {
           fromShop: true,
           toShop: true,
-          items: { include: { product: true, carpetRoll: true } },
+          items: { include: { product: true, carpetRoll: true, imei: { select: { id: true, imei1: true, imei2: true, status: true, color: true } }, usedPhone: { select: { id: true, usedPhoneCode: true, brand: true, model: true, storage: true, color: true, status: true, resalePrice: true } }, serial: { select: { id: true, serialNumber: true, imei: true, status: true, warrantyEndDate: true, physicalCondition: true } } } },
         },
       });
 
       for (const item of transfer.items) {
+        // ─── USED PHONE: ab nayi shop ka ho gaya ────────────
+        if (item.usedPhoneId) {
+          await tx.usedPhone.update({
+            where: { id: item.usedPhoneId },
+            data: { status: 'IN_STOCK', shopId: transfer.toShopId },
+          });
+          continue;
+        }
+
+        // Yahan se aage har item ka product hota hai
+        if (!item.productId) continue;
+        const productId: string = item.productId;
+
         if (item.carpetRollId && item.carpetRoll) {
           // ─── CARPET: Move roll to destination shop ───────────
           await tx.carpetRoll.update({
@@ -363,7 +495,7 @@ export class TransfersService {
             tx,
             user.tenantId,
             transfer.toShopId,
-            item.productId,
+            productId,
             item.variantId ?? item.carpetRoll.variantId ?? null,
           );
 
@@ -371,7 +503,7 @@ export class TransfersService {
           await tx.stockMovement.create({
             data: {
               tenantId: user.tenantId,
-              productId: item.productId,
+              productId: productId,
               type: 'TRANSFER_IN',
               quantity: item.quantity,
               balanceAfter: 0,
@@ -388,7 +520,7 @@ export class TransfersService {
         const existing = await tx.shopStock.findFirst({
           where: {
             shopId: transfer.toShopId,
-            productId: item.productId,
+            productId: productId,
             variantId,
           },
         });
@@ -403,17 +535,33 @@ export class TransfersService {
             data: {
               tenantId: user.tenantId,
               shopId: transfer.toShopId,
-              productId: item.productId,
+              productId: productId,
               variantId,
               stock: item.quantity,
             },
           });
         }
 
+        // Device ab destination shop ka ho gaya
+        if (item.imeiId) {
+          await tx.productImei.update({
+            where: { id: item.imeiId },
+            data: { status: 'IN_STOCK', shopId: transfer.toShopId },
+          });
+        }
+
+        // Serial unit ab nayi shop ka — warna stock report jhoot bolti hai
+        if (item.serialId) {
+          await tx.electronicsSerialTracking.update({
+            where: { id: item.serialId },
+            data: { status: 'IN_STOCK', shopId: transfer.toShopId },
+          });
+        }
+
         await tx.stockMovement.create({
           data: {
             tenantId: user.tenantId,
-            productId: item.productId,
+            productId: productId,
             type: 'TRANSFER_IN',
             quantity: item.quantity,
             balanceAfter: 0,
@@ -435,7 +583,7 @@ export class TransfersService {
     const transfer = await this.prisma.stockTransfer.findFirst({
       where: { id, tenantId: user.tenantId },
       include: {
-        items: { include: { carpetRoll: true } },
+        items: { include: { carpetRoll: true, imei: { select: { id: true, imei1: true, imei2: true, status: true, color: true } }, usedPhone: { select: { id: true, usedPhoneCode: true, brand: true, model: true, storage: true, color: true, status: true, resalePrice: true } }, serial: { select: { id: true, serialNumber: true, imei: true, status: true, warrantyEndDate: true, physicalCondition: true } } } },
         fromShop: true,
       },
     });
@@ -455,6 +603,18 @@ export class TransfersService {
 
       if (transfer.status === 'IN_TRANSIT') {
         for (const item of transfer.items) {
+          // ─── USED PHONE: wapas apni purani shop me ────────
+          if (item.usedPhoneId) {
+            await tx.usedPhone.update({
+              where: { id: item.usedPhoneId },
+              data: { status: 'IN_STOCK', shopId: transfer.fromShopId },
+            });
+            continue;
+          }
+
+          if (!item.productId) continue;
+          const productId: string = item.productId;
+
           if (item.carpetRollId && item.carpetRoll) {
             // ─── CARPET: Restore roll status to ACTIVE at source ──
             await tx.carpetRoll.update({
@@ -481,7 +641,7 @@ export class TransfersService {
               tx,
               user.tenantId,
               transfer.fromShopId,
-              item.productId,
+              productId,
               item.variantId ?? item.carpetRoll.variantId ?? null,
             );
 
@@ -493,7 +653,7 @@ export class TransfersService {
           const existing = await tx.shopStock.findFirst({
             where: {
               shopId: transfer.fromShopId,
-              productId: item.productId,
+              productId: productId,
               variantId,
             },
           });
@@ -507,17 +667,33 @@ export class TransfersService {
               data: {
                 tenantId: user.tenantId,
                 shopId: transfer.fromShopId,
-                productId: item.productId,
+                productId: productId,
                 variantId,
                 stock: item.quantity,
               },
             });
           }
 
+          // Device wapas apni purani shop me bikne ke liye tayyar
+          if (item.imeiId) {
+            await tx.productImei.update({
+              where: { id: item.imeiId },
+              data: { status: 'IN_STOCK', shopId: transfer.fromShopId },
+            });
+          }
+
+          // Serial unit wapas apni purani shop me
+          if (item.serialId) {
+            await tx.electronicsSerialTracking.update({
+              where: { id: item.serialId },
+              data: { status: 'IN_STOCK', shopId: transfer.fromShopId },
+            });
+          }
+
           await tx.stockMovement.create({
             data: {
               tenantId: user.tenantId,
-              productId: item.productId,
+              productId: productId,
               type: 'TRANSFER_IN',
               quantity: item.quantity,
               balanceAfter: 0,
@@ -549,6 +725,7 @@ export class TransfersService {
           include: {
             product: { select: { id: true, name: true, unit: true } },
             carpetRoll: { select: { id: true, rollNumber: true, remainingSqft: true } },
+            imei: { select: { id: true, imei1: true, imei2: true, status: true, color: true } }, usedPhone: { select: { id: true, usedPhoneCode: true, brand: true, model: true, storage: true, color: true, status: true, resalePrice: true } },
           },
         },
       },
@@ -570,6 +747,7 @@ export class TransfersService {
                 variant: { select: { id: true, name: true, color: true } },
               },
             },
+            imei: { select: { id: true, imei1: true, imei2: true, status: true, color: true } }, usedPhone: { select: { id: true, usedPhoneCode: true, brand: true, model: true, storage: true, color: true, status: true, resalePrice: true } },
           },
         },
       },

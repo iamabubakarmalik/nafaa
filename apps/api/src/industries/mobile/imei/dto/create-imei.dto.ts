@@ -10,6 +10,11 @@ export class CreateImeiDto {
   @IsString()
   productId!: string;
 
+  @ApiPropertyOptional({ description: 'Kis shop me ye device rakha hai. Na do to user ki shop.' })
+  @IsOptional()
+  @IsString()
+  shopId?: string;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()

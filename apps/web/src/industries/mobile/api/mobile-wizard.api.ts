@@ -21,6 +21,8 @@ export interface MobileWizardSaveResult {
  */
 export async function saveMobileWizard(
   draft: MobileWizardDraft,
+  /** Device kis shop me rakha ja raha hai. Na do to backend user ki shop le lega. */
+  shopId?: string,
 ): Promise<MobileWizardSaveResult> {
   const { basic, hasVariants, variants, imeiLines, accessoryStock } = draft;
 
@@ -160,6 +162,7 @@ export async function saveMobileWizard(
         const result = await imeiApi.bulkCreate({
           productId,
           variantId,
+          shopId,
           costPrice: batchCost,
           warrantyMonths: batchWarranty,
           imeis: items,

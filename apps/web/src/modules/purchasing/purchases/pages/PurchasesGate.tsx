@@ -4,6 +4,7 @@ import PurchasesPage from './PurchasesPage';
 
 const RestaurantPurchases = lazy(() => import('@industries/restaurant/pages/RestaurantPurchasesV2'));
 const MobilePurchases = lazy(() => import('@industries/mobile/pages/MobilePurchasesV2'));
+const ElectronicsPurchases = lazy(() => import('@industries/electronics/pages/ElectronicsPurchasesPage'));
 const CarpetPurchases = lazy(() => import('@industries/carpet/pages/CarpetPurchasesV2'));
 const RetailPurchases = lazy(() => import('@/industries/retail/pages/RetailPurchases'));
 
@@ -32,6 +33,9 @@ export default function PurchasesGate() {
   }
   if (industry?.id === 'mobile') {
     return <Suspense fallback={<Loader />}><MobilePurchases /></Suspense>;
+  }
+  if (industry?.id === 'electronics') {
+    return <Suspense fallback={<Loader />}><ElectronicsPurchases /></Suspense>;
   }
   if (industry?.id === 'carpet') {
     return <Suspense fallback={<Loader />}><CarpetPurchases /></Suspense>;

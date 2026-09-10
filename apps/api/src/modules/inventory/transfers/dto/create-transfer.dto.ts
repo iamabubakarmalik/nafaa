@@ -5,9 +5,11 @@ import {
 } from 'class-validator';
 
 export class CreateTransferItemDto {
-  @ApiProperty()
+  // Used phone bhejte waqt product nahi hota — is liye optional
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsString()
-  productId!: string;
+  productId?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -20,6 +22,21 @@ export class CreateTransferItemDto {
   @IsOptional()
   @IsString()
   carpetRollId?: string;
+
+  @ApiPropertyOptional({ description: 'Mobile: kaunsa device bheja ja raha hai (quantity hamesha 1)' })
+  @IsOptional()
+  @IsString()
+  imeiId?: string;
+
+  @ApiPropertyOptional({ description: 'Mobile: used phone bhejne ke liye — iska product nahi hota' })
+  @IsOptional()
+  @IsString()
+  usedPhoneId?: string;
+
+  @ApiPropertyOptional({ description: 'Electronics: kaun sa serial unit ja raha hai (quantity hamesha 1)' })
+  @IsOptional()
+  @IsString()
+  serialId?: string;
 
   @ApiProperty({ example: 10 })
   @IsNumber()

@@ -4,6 +4,7 @@ import CatalogPage from './CatalogPage';
 
 const RestaurantCatalogPage = lazy(() => import('@industries/restaurant/pages/RestaurantCatalogPage'));
 const MobileCatalogPage = lazy(() => import('@industries/mobile/pages/MobileCatalogPage'));
+const ElectronicsCatalogPage = lazy(() => import('@industries/electronics/pages/ElectronicsCatalogPage'));
 const CarpetCatalogPage = lazy(() => import('@industries/carpet/pages/CarpetCatalogPage'));
 const BakeryCatalogPage = lazy(() => import('@industries/bakery/pages/BakeryCatalogPage'));
 const ClinicCatalogPage = lazy(() => import('@industries/clinic/pages/ClinicCatalogPage'));
@@ -24,6 +25,7 @@ export default function CatalogGate() {
 
   if (industry?.id === 'restaurant') return <Suspense fallback={<Loader />}><RestaurantCatalogPage /></Suspense>;
   if (industry?.id === 'mobile') return <Suspense fallback={<Loader />}><MobileCatalogPage /></Suspense>;
+  if (industry?.id === 'electronics') return <Suspense fallback={<Loader />}><ElectronicsCatalogPage /></Suspense>;
   if (industry?.id === 'carpet') return <Suspense fallback={<Loader />}><CarpetCatalogPage /></Suspense>;
   if (industry?.id === 'bakery') return <Suspense fallback={<Loader />}><BakeryCatalogPage /></Suspense>;
   if (industry?.id === 'gym') return <Suspense fallback={<Loader />}><GymCatalogPage /></Suspense>;

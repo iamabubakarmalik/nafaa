@@ -9,6 +9,20 @@ export interface Brand {
   logoUrl?: string | null;
   website?: string | null;
   isActive: boolean;
+
+  /* ── Dealer / after-sales ──────────────────────────────────
+     Pehle ye electronics ke apne brand table par the. Ab global
+     Brand par hain — har industry (electronics, appliances,
+     mobile) inhe use kar sakti hai.                            */
+  countryOfOrigin?: string | null;
+  authorizedDealer?: boolean;
+  dealerCode?: string | null;
+  supportPhone?: string | null;
+  supportEmail?: string | null;
+  warrantyPolicy?: string | null;
+  isFeatured?: boolean;
+  displayOrder?: number;
+
   createdAt: string;
   updatedAt: string;
   _count?: { products: number };
@@ -20,6 +34,15 @@ export interface UpsertBrandPayload {
   logoUrl?: string;
   website?: string;
   isActive?: boolean;
+
+  countryOfOrigin?: string;
+  authorizedDealer?: boolean;
+  dealerCode?: string;
+  supportPhone?: string;
+  supportEmail?: string;
+  warrantyPolicy?: string;
+  isFeatured?: boolean;
+  displayOrder?: number;
 }
 
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;

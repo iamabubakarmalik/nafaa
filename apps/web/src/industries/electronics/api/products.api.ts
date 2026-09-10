@@ -1,25 +1,20 @@
 import { apiClient } from '@core/api/client';
 
-export type ElectronicsCategoryType =
-  | 'SMARTPHONE' | 'FEATURE_PHONE' | 'TABLET' | 'LAPTOP' | 'DESKTOP'
-  | 'SMARTWATCH' | 'FITNESS_TRACKER' | 'HEADPHONE' | 'EARBUDS' | 'SPEAKER'
-  | 'CAMERA' | 'DRONE' | 'GAMING_CONSOLE' | 'GAMING_ACCESSORY'
-  | 'CHARGER' | 'CABLE' | 'ADAPTER' | 'POWER_BANK'
-  | 'MEMORY_CARD' | 'USB_DRIVE' | 'HARD_DRIVE' | 'SSD'
-  | 'MONITOR' | 'KEYBOARD' | 'MOUSE' | 'WEBCAM'
-  | 'ROUTER' | 'MODEM' | 'NETWORK_SWITCH'
-  | 'SMART_HOME' | 'SECURITY_CAMERA' | 'VR_HEADSET'
-  | 'PRINTER' | 'SCANNER' | 'PROJECTOR'
-  | 'CAR_ELECTRONICS' | 'ACCESSORY' | 'OTHER';
-
-export type ElectronicsConditionType = 'NEW' | 'REFURBISHED' | 'USED_LIKE_NEW' | 'USED_GOOD' | 'USED_FAIR' | 'OPEN_BOX';
+/**
+ * Ye types ab `../constants` se aati hain — wohi Prisma enum se match
+ * karti hain. Pehle yahan apni alag list likhi hui thi (SMARTPHONE,
+ * LAPTOP, USED_GOOD waghera) jo database me hain hi nahi, is liye
+ * un options ke saath product save hi nahi hota tha.
+ */
+export type { CategoryType as ElectronicsCategoryType, ConditionType as ElectronicsConditionType } from '../constants';
+import type { CategoryType, ConditionType } from '../constants';
 
 export interface ElectronicsProductProfile {
   id: string;
   productId: string;
   brandId?: string;
-  categoryType?: ElectronicsCategoryType;
-  conditionType?: ElectronicsConditionType;
+  categoryType?: CategoryType;
+  conditionType?: ConditionType;
   modelNumber?: string;
   partNumber?: string;
   colorName?: string;

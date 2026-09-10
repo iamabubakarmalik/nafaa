@@ -17,6 +17,8 @@ export function SerialPickerModal({ product, profile, onConfirm, onClose }: Prop
 
   const { data: serials = [], isLoading } = useQuery({
     queryKey: ['serials-for-pos', product.id],
+    // Counter par har dafa taaza list chahiye — bika hua unit na dikhe
+    staleTime: 0,
     queryFn: () => serialTrackingApi.list({ productId: product.id, status: 'IN_STOCK' }),
   });
 

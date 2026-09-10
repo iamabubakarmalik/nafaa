@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Cpu, DollarSign, Image as ImageIcon, Sparkles, Star, TrendingUp,
   AlertCircle, Award, Percent, Camera, Wand2, Plus, Check, X,
-  ChevronDown, ChevronUp, Zap, Palette, Tag,
+  ChevronDown, ChevronUp, Zap, Palette, Tag, Search,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Input } from '@core/ui/Input';
@@ -11,62 +11,19 @@ import { UploadDropzone } from '@core/components/uploads';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
 import { tagsApi } from '@modules/inventory/tags/api/tags.api';
-import { electronicsBrandsApi } from '../../api/brands.api';
+import { brandsApi } from '@modules/inventory/brands/api/brands.api';
 import { formatPKRFull } from '@core/lib/format';
 import type { ElectronicsWizardBasic } from '../../hooks/useElectronicsWizard';
+import {
+  CATEGORY_GROUPS, CATEGORY_META, CONDITION_TYPES, CONDITION_META,
+  SERIAL_SUGGESTED, type CategoryType, type ConditionType,
+} from '../../constants';
 
 interface Props {
   basic: ElectronicsWizardBasic;
   onChange: (patch: Partial<ElectronicsWizardBasic>) => void;
   errors: string[];
 }
-
-const CATEGORY_TYPES = [
-  { v: 'SMARTPHONE', l: 'Smartphone', e: '📱' },
-  { v: 'FEATURE_PHONE', l: 'Feature Phone', e: '☎️' },
-  { v: 'TABLET', l: 'Tablet', e: '📱' },
-  { v: 'LAPTOP', l: 'Laptop', e: '💻' },
-  { v: 'DESKTOP', l: 'Desktop PC', e: '🖥️' },
-  { v: 'SMARTWATCH', l: 'Smartwatch', e: '⌚' },
-  { v: 'FITNESS_TRACKER', l: 'Fitness Band', e: '🏃' },
-  { v: 'HEADPHONE', l: 'Headphones', e: '🎧' },
-  { v: 'EARBUDS', l: 'Earbuds', e: '🎵' },
-  { v: 'SPEAKER', l: 'Speaker', e: '🔊' },
-  { v: 'CAMERA', l: 'Camera', e: '📷' },
-  { v: 'DRONE', l: 'Drone', e: '🚁' },
-  { v: 'GAMING_CONSOLE', l: 'Gaming Console', e: '🎮' },
-  { v: 'GAMING_ACCESSORY', l: 'Gaming Accessory', e: '🕹️' },
-  { v: 'CHARGER', l: 'Charger', e: '🔌' },
-  { v: 'CABLE', l: 'Cable', e: '🧵' },
-  { v: 'ADAPTER', l: 'Adapter', e: '⚡' },
-  { v: 'POWER_BANK', l: 'Power Bank', e: '🔋' },
-  { v: 'MEMORY_CARD', l: 'Memory Card', e: '💾' },
-  { v: 'USB_DRIVE', l: 'USB Drive', e: '🔌' },
-  { v: 'HARD_DRIVE', l: 'Hard Drive', e: '💿' },
-  { v: 'SSD', l: 'SSD', e: '💾' },
-  { v: 'MONITOR', l: 'Monitor', e: '🖥️' },
-  { v: 'KEYBOARD', l: 'Keyboard', e: '⌨️' },
-  { v: 'MOUSE', l: 'Mouse', e: '🖱️' },
-  { v: 'WEBCAM', l: 'Webcam', e: '📹' },
-  { v: 'ROUTER', l: 'Router', e: '📡' },
-  { v: 'SMART_HOME', l: 'Smart Home', e: '🏠' },
-  { v: 'SECURITY_CAMERA', l: 'CCTV', e: '📹' },
-  { v: 'VR_HEADSET', l: 'VR Headset', e: '🥽' },
-  { v: 'PRINTER', l: 'Printer', e: '🖨️' },
-  { v: 'PROJECTOR', l: 'Projector', e: '📽️' },
-  { v: 'CAR_ELECTRONICS', l: 'Car Electronics', e: '🚗' },
-  { v: 'ACCESSORY', l: 'Accessory', e: '🎁' },
-  { v: 'OTHER', l: 'Other', e: '📦' },
-];
-
-const CONDITION_TYPES = [
-  { v: 'NEW', l: 'Brand New', e: '✨', color: 'emerald' },
-  { v: 'OPEN_BOX', l: 'Open Box', e: '📦', color: 'blue' },
-  { v: 'REFURBISHED', l: 'Refurbished', e: '🔧', color: 'violet' },
-  { v: 'USED_LIKE_NEW', l: 'Used - Like New', e: '👍', color: 'sky' },
-  { v: 'USED_GOOD', l: 'Used - Good', e: '👌', color: 'amber' },
-  { v: 'USED_FAIR', l: 'Used - Fair', e: '📱', color: 'orange' },
-];
 
 const MARKUPS = [10, 15, 20, 25, 30, 40];
 const COLOR_PRESETS = [
@@ -88,9 +45,31 @@ export function ElectronicsWizardStep1Basic({ basic, onChange, errors }: Props) 
   const [adv, setAdv] = useState(Boolean(basic.wholesalePrice || basic.mrp || basic.taxRate));
   const [newBrand, setNewBrand] = useState('');
   const [showBrand, setShowBrand] = useState(false);
+  const [catSearch, setCatSearch] = useState('');
+
+  // Search ke hisab se groups chhanto — poori list 38 items ki hai
+  const visibleGroups = useMemo(() => {
+    const q = catSearch.toLowerCase().trim();
+    if (!q) return CATEGORY_GROUPS;
+    return CATEGORY_GROUPS
+      .map((g) => ({
+        ...g,
+        items: g.items.filter((c) => {
+          const m = CATEGORY_META[c];
+          return m.label.toLowerCase().includes(q)
+            || (m.urdu ?? '').toLowerCase().includes(q)
+            || c.toLowerCase().includes(q);
+        }),
+      }))
+      .filter((g) => g.items.length > 0);
+  }, [catSearch]);
+
+  // Kuch cheezein aam tor par serial ke saath aati hain — user ko yaad dila do
+  const serialHint = SERIAL_SUGGESTED.includes(basic.categoryType as CategoryType);
 
   const { data: cats = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list });
-  const { data: brands = [] } = useQuery({ queryKey: ['electronics-brands'], queryFn: () => electronicsBrandsApi.list({ active: true }) });
+  // Ab poori app ka ek hi brand system — global Brand
+  const { data: brands = [] } = useQuery({ queryKey: ['brands'], queryFn: () => brandsApi.list() });
   const { data: tags = [] } = useQuery({ queryKey: ['tags'], queryFn: tagsApi.list });
 
   const cost = Number(basic.costPrice || 0);
@@ -100,12 +79,12 @@ export function ElectronicsWizardStep1Basic({ basic, onChange, errors }: Props) 
   const loss = cost > 0 && sale > 0 && profit < 0;
 
   const mkBrand = useMutation({
-    mutationFn: () => electronicsBrandsApi.create({ name: newBrand.trim(), isActive: true }),
+    mutationFn: () => brandsApi.create({ name: newBrand.trim() } as any),
     onSuccess: (b: any) => {
       toast.success(`"${b.name}" ban gaya`);
       onChange({ electronicsBrandId: b.id });
       setNewBrand(''); setShowBrand(false);
-      qc.invalidateQueries({ queryKey: ['electronics-brands'] });
+      qc.invalidateQueries({ queryKey: ['brands'] });
     },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Nahi bana'),
   });
@@ -183,42 +162,81 @@ export function ElectronicsWizardStep1Basic({ basic, onChange, errors }: Props) 
 
       {/* 2 — CATEGORY TYPE */}
       <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-3">
-        <Head icon={Tag} n="2" t="Category Type" d="Kis type ki cheez hai?" />
-        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 max-h-72 overflow-y-auto">
-          {CATEGORY_TYPES.map((c) => {
-            const a = basic.categoryType === c.v;
-            return (
-              <button key={c.v} type="button" onClick={() => onChange({ categoryType: c.v })}
-                className={['p-2.5 rounded-xl border-2 transition flex flex-col items-center justify-center gap-0.5 min-h-[70px]',
-                  a ? 'border-blue-600 bg-blue-600 text-white shadow-md scale-[1.03]' : 'border-slate-200 bg-white text-slate-700 hover:border-blue-400'].join(' ')}>
-                <span className="text-xl leading-none">{c.e}</span>
-                <span className="text-[10px] font-extrabold text-center leading-tight">{c.l}</span>
-              </button>
-            );
-          })}
+        <Head icon={Tag} n="2" t="Category Type" d="Kis kism ki cheez hai?" />
+
+        <div className="relative">
+          <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            value={catSearch}
+            onChange={(e) => setCatSearch(e.target.value)}
+            placeholder="Headphone, charger, screen... dhoondo"
+            className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white pl-9 pr-3 text-sm font-bold text-slate-900 focus:outline-none focus:border-blue-500 transition"
+          />
         </div>
+
+        {/* Khandaan ke hisab se — dhoondna aasan */}
+        <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
+          {visibleGroups.length === 0 ? (
+            <p className="text-sm font-semibold text-slate-500 py-6 text-center">
+              "{catSearch}" se koi category nahi mili
+            </p>
+          ) : visibleGroups.map((g) => (
+            <div key={g.label}>
+              <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500 mb-1.5">
+                {g.emoji} {g.label}
+              </div>
+              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-2">
+                {g.items.map((c) => {
+                  const meta = CATEGORY_META[c];
+                  const a = basic.categoryType === c;
+                  return (
+                    <button key={c} type="button" onClick={() => onChange({ categoryType: c })}
+                      className={['p-2.5 rounded-xl border-2 transition flex flex-col items-center justify-center gap-0.5 min-h-[68px]',
+                        a ? 'border-blue-600 bg-blue-600 text-white shadow-md scale-[1.03]'
+                          : 'border-slate-200 bg-white text-slate-700 hover:border-blue-400'].join(' ')}>
+                      <span className="text-xl leading-none">{meta.emoji}</span>
+                      <span className="text-[10px] font-extrabold text-center leading-tight">{meta.label}</span>
+                      {meta.urdu && !a && (
+                        <span className="text-[8px] font-bold text-slate-400 leading-none">{meta.urdu}</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {serialHint && (
+          <div className="rounded-xl bg-amber-50 border-2 border-amber-200 p-3 flex items-start gap-2">
+            <Sparkles className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+            <p className="text-xs font-semibold text-amber-900">
+              <strong>{CATEGORY_META[basic.categoryType as CategoryType]?.label}</strong> aam tor par
+              serial number ke saath aata hai — Step 4 me "Serial tracking" on kar lein taake har unit
+              alag pehchana jaye (warranty ke liye zaroori hai).
+            </p>
+          </div>
+        )}
       </section>
 
       {/* 3 — CONDITION */}
       <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-3">
         <Head icon={BadgeCheck} n="3" t="Condition" d="Naya, refurbished, ya used?" />
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
           {CONDITION_TYPES.map((c) => {
-            const a = basic.conditionType === c.v;
-            const toneMap: Record<string, string> = {
-              emerald: 'border-emerald-500 bg-emerald-500 text-white',
-              blue: 'border-blue-500 bg-blue-500 text-white',
-              violet: 'border-violet-500 bg-violet-500 text-white',
-              sky: 'border-sky-500 bg-sky-500 text-white',
-              amber: 'border-amber-500 bg-amber-500 text-white',
-              orange: 'border-orange-500 bg-orange-500 text-white',
-            };
+            const meta = CONDITION_META[c];
+            const a = basic.conditionType === c;
             return (
-              <button key={c.v} type="button" onClick={() => onChange({ conditionType: c.v })}
-                className={['p-3 rounded-xl border-2 transition flex flex-col items-center gap-1',
-                  a ? `${toneMap[c.color]} shadow-md scale-[1.02]` : 'border-slate-200 bg-white text-slate-700 hover:border-slate-400'].join(' ')}>
-                <span className="text-2xl">{c.e}</span>
-                <span className="text-[10px] font-extrabold text-center">{c.l}</span>
+              <button key={c} type="button" onClick={() => onChange({ conditionType: c })}
+                title={meta.hint}
+                className={['p-3 rounded-xl border-2 transition flex flex-col items-center gap-1 text-center',
+                  a ? 'border-blue-600 bg-blue-600 text-white shadow-md scale-[1.02]'
+                    : 'border-slate-200 bg-white text-slate-700 hover:border-blue-400'].join(' ')}>
+                <span className="text-2xl">{meta.emoji}</span>
+                <span className="text-[11px] font-extrabold leading-tight">{meta.label}</span>
+                <span className={['text-[9px] font-semibold leading-tight', a ? 'text-white/80' : 'text-slate-400'].join(' ')}>
+                  {meta.hint}
+                </span>
               </button>
             );
           })}

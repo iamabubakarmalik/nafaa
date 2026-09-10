@@ -2,6 +2,8 @@
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import StockAdjustmentsPage from './StockAdjustmentsPage';
 import RetailStockAdjustmentsPage from '@industries/retail/pages/RetailStockAdjustmentsPage';
+import MobileStockAdjustmentsPage from '@industries/mobile/pages/MobileStockAdjustmentsPage';
+import ElectronicsStockAdjustmentsPage from '@industries/electronics/pages/ElectronicsStockAdjustmentsPage';
 
 /**
  * StockAdjustmentsGate — routes stock adjustments to the correct
@@ -20,6 +22,12 @@ export default function StockAdjustmentsGate() {
   switch (industry?.id) {
     case 'retail':
       return <RetailStockAdjustmentsPage />;
+
+    case 'mobile':
+      return <MobileStockAdjustmentsPage />;
+
+    case 'electronics':
+      return <ElectronicsStockAdjustmentsPage />;
 
     default:
       // Generic fallback — sab industries (carpet, mobile, etc.)

@@ -13,7 +13,6 @@ import {
 import { electronicsDashboardApi } from '../api/dashboard.api';
 import { warrantyClaimsApi } from '../api/warranty-claims.api';
 import { serialTrackingApi } from '../api/serial-tracking.api';
-import { electronicsBrandsApi } from '../api/brands.api';
 import { formatPKR } from '@core/lib/format';
 import { Button } from '@core/ui/Button';
 import { PrivacyToggle, useCostHidden } from '@core/ui/HiddenValue';
@@ -35,7 +34,7 @@ export default function ElectronicsDashboardPage() {
 
   const { data: topBrands = [] } = useQuery({
     queryKey: ['top-electronics-brands'],
-    queryFn: () => electronicsBrandsApi.topBrands(5),
+    queryFn: () => electronicsDashboardApi.overview().then((d: any) => d?.topBrands ?? []),
   });
 
   const { data: recentSerials = [] } = useQuery({
@@ -116,12 +115,12 @@ export default function ElectronicsDashboardPage() {
         <QuickAction to="/electronics-products/new" icon={Plus} label="Add Product" tone="emerald" />
         <QuickAction to="/electronics/serials" icon={Barcode} label="Serials" tone="amber" />
         <QuickAction to="/electronics/warranty-claims" icon={Shield} label="Warranty" tone="rose" />
-        <QuickAction to="/electronics/brands" icon={Award} label="Brands" tone="violet" />
+        <QuickAction to="/brands" icon={Award} label="Brands" tone="violet" />
         <QuickAction to="/electronics/bundles" icon={Layers} label="Bundles" tone="pink" />
       </section>
 
       {/* ALERTS */}
-      {(inventory.lowStock > 0 || inventory.outOfStock > 0 || (warrantySummary?.pendingCount ?? 0) > 0) && (
+      {(inventory.lowStock > 0 || inventory.outOfStock > 0 || (warrantySummary?.pending ?? 0) > 0) && (
         <section className="rounded-3xl bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 border-2 border-amber-300 p-4 sm:p-5">
           <div className="flex items-center gap-2 mb-3">
             <div className="h-10 w-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-lg">
@@ -139,8 +138,8 @@ export default function ElectronicsDashboardPage() {
             {inventory.lowStock > 0 && (
               <AlertCard to="/electronics-products?filter=low" icon={AlertTriangle} title={`${inventory.lowStock} Low Stock`} desc="Reorder ka waqt" tone="amber" />
             )}
-            {(warrantySummary?.pendingCount ?? 0) > 0 && (
-              <AlertCard to="/electronics/warranty-claims" icon={Shield} title={`${warrantySummary.pendingCount} Warranty Claims`} desc="Pending processing" tone="blue" />
+            {(warrantySummary?.pending ?? 0) > 0 && (
+              <AlertCard to="/electronics/warranty-claims" icon={Shield} title={`${warrantySummary?.pending ?? 0} Warranty Claims`} desc="Abhi khule hue hain" tone="blue" />
             )}
           </div>
         </section>
@@ -275,10 +274,10 @@ export default function ElectronicsDashboardPage() {
             </div>
           </div>
           <div className="p-4 grid grid-cols-2 gap-3">
-            <StatBox label="Total Claims" value={warrantySummary?.totalCount ?? 0} icon={Shield} tone="blue" />
-            <StatBox label="Pending" value={warrantySummary?.pendingCount ?? 0} icon={Clock} tone="amber" />
-            <StatBox label="Resolved" value={warrantySummary?.resolvedCount ?? 0} icon={CheckCircle2} tone="emerald" />
-            <StatBox label="This Month" value={warrantySummary?.thisMonthCount ?? 0} icon={Activity} tone="violet" />
+            <StatBox label="Kul Claims" value={warrantySummary?.total ?? 0} icon={Shield} tone="blue" />
+            <StatBox label="Khule Hue" value={warrantySummary?.pending ?? 0} icon={Clock} tone="amber" />
+            <StatBox label="Hal Ho Gaye" value={warrantySummary?.resolved ?? 0} icon={CheckCircle2} tone="emerald" />
+            <StatBox label="Is Mahine" value={warrantySummary?.thisMonth ?? 0} icon={Activity} tone="violet" />
           </div>
           <div className="px-4 pb-4">
             <Link to="/electronics/warranty-claims" className="w-full inline-flex items-center justify-center gap-2 h-11 rounded-xl bg-gradient-to-r from-rose-600 to-red-700 hover:from-rose-700 text-white font-extrabold text-sm shadow-md transition">
@@ -345,11 +344,11 @@ export default function ElectronicsDashboardPage() {
             {topBrands.length === 0 ? (
               <div className="p-12 text-center text-sm text-slate-500 font-semibold">
                 <p>No brands yet</p>
-                <Link to="/electronics/brands" className="mt-2 inline-block text-blue-600 font-extrabold hover:underline">Add brands →</Link>
+                <Link to="/brands" className="mt-2 inline-block text-blue-600 font-extrabold hover:underline">Brands add karo →</Link>
               </div>
             ) : (
               topBrands.map((b: any, i: number) => (
-                <Link key={b.id} to="/electronics/brands" className="px-5 py-3 flex items-center gap-3 hover:bg-slate-50 transition">
+                <Link key={b.id} to="/brands" className="px-5 py-3 flex items-center gap-3 hover:bg-slate-50 transition">
                   <div className={`h-9 w-9 rounded-lg text-white flex items-center justify-center font-extrabold text-xs shrink-0 ${
                     i === 0 ? 'bg-amber-500' : i === 1 ? 'bg-slate-400' : i === 2 ? 'bg-orange-600' : 'bg-violet-500'
                   }`}>

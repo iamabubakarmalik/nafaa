@@ -48,6 +48,11 @@ export class BulkImeiEntry {
 }
 
 export class BulkCreateImeiDto {
+
+  @ApiPropertyOptional({ description: 'Kis shop me ye device rakha hai. Na do to user ki shop.' })
+  @IsOptional()
+  @IsString()
+  shopId?: string;
   @ApiProperty()
   @IsString()
   productId!: string;

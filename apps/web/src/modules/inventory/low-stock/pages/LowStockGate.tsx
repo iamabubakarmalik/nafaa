@@ -2,6 +2,8 @@
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import LowStockPage from './LowStockPage';
 import RetailLowStockPage from '@industries/retail/pages/RetailLowStockPage';
+import MobileLowStockPage from '@industries/mobile/pages/MobileLowStockPage';
+import ElectronicsLowStockPage from '@industries/electronics/pages/ElectronicsLowStockPage';
 
 /**
  * LowStockGate — routes /low-stock (ya /inventory/low-stock) to the
@@ -20,11 +22,15 @@ export default function LowStockGate() {
     case 'retail':
       return <RetailLowStockPage />;
 
+    case 'mobile':
+      return <MobileLowStockPage />;
+
+    case 'electronics':
+      return <ElectronicsLowStockPage />;
+
     // Future: alag industries ka custom low-stock yahan add karo
     // case 'carpet':
     //   return <CarpetLowStockPage />;
-    // case 'mobile':
-    //   return <MobileLowStockPage />;
     // case 'pharmacy':
     //   return <PharmacyLowStockPage />;
 

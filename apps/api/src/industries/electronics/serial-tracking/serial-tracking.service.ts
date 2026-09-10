@@ -13,9 +13,20 @@ export class SerialTrackingService {
     });
     if (dup) throw new BadRequestException(`Serial "${dto.serialNumber}" already exists`);
 
+    // Shop: dto > user ki apni shop > pehli active shop
+    const shopId = dto.shopId
+      ?? user.shopId
+      ?? (await this.prisma.shop.findFirst({
+            where: { tenantId: user.tenantId, isActive: true },
+            orderBy: { createdAt: 'asc' },
+            select: { id: true },
+          }))?.id
+      ?? null;
+
     return this.prisma.electronicsSerialTracking.create({
       data: {
         ...dto,
+        shopId,
         tenantId: user.tenantId,
         purchaseDate: dto.purchaseDate ? new Date(dto.purchaseDate) : null,
         warrantyStartDate: dto.warrantyStartDate ? new Date(dto.warrantyStartDate) : null,
@@ -28,21 +39,60 @@ export class SerialTrackingService {
     const product = await this.prisma.product.findFirst({ where: { id: dto.productId, tenantId: user.tenantId } });
     if (!product) throw new NotFoundException('Product not found');
 
+    // Do tareeqe chalte hain: sirf serial numbers, ya poore entries
+    // (serial + IMEI + MAC) — dono ko ek shakl me le aao.
+    const entries = dto.entries?.length
+      ? dto.entries.filter((e) => e.serialNumber?.trim())
+      : (dto.serialNumbers ?? [])
+          .filter((sn) => sn?.trim())
+          .map((serialNumber) => ({ serialNumber, imei: undefined, imei2: undefined, macAddress: undefined }));
+
+    if (entries.length === 0) {
+      throw new BadRequestException('Koi serial number nahi diya gaya');
+    }
+
+    // Ek hi call me do dafa aaya hua serial hata do
+    const seen = new Set<string>();
+    const unique = entries.filter((e) => {
+      const sn = e.serialNumber.trim();
+      if (seen.has(sn)) return false;
+      seen.add(sn);
+      return true;
+    });
+
     const existing = await this.prisma.electronicsSerialTracking.findMany({
-      where: { tenantId: user.tenantId, serialNumber: { in: dto.serialNumbers } },
+      where: { tenantId: user.tenantId, serialNumber: { in: unique.map((e) => e.serialNumber.trim()) } },
+      select: { serialNumber: true },
     });
     const existingSet = new Set(existing.map((e) => e.serialNumber));
-    const newSerials = dto.serialNumbers.filter((s) => !existingSet.has(s));
+    const fresh = unique.filter((e) => !existingSet.has(e.serialNumber.trim()));
 
-    if (newSerials.length === 0) throw new BadRequestException('All serials already exist');
+    if (fresh.length === 0) {
+      throw new BadRequestException('Ye saare serial pehle se mojood hain');
+    }
+
+    // Shop: dto > user ki apni shop > pehli active shop
+    const shopId = dto.shopId
+      ?? user.shopId
+      ?? (await this.prisma.shop.findFirst({
+            where: { tenantId: user.tenantId, isActive: true },
+            orderBy: { createdAt: 'asc' },
+            select: { id: true },
+          }))?.id
+      ?? null;
 
     await this.prisma.electronicsSerialTracking.createMany({
-      data: newSerials.map((serialNumber) => ({
+      data: fresh.map((e) => ({
         tenantId: user.tenantId,
+        shopId,
         productId: dto.productId,
-        serialNumber,
+        serialNumber: e.serialNumber.trim(),
+        imei: e.imei?.trim() || null,
+        imei2: e.imei2?.trim() || null,
+        macAddress: e.macAddress?.trim() || null,
         status: 'IN_STOCK' as const,
         purchasePrice: dto.purchasePrice,
+        purchaseDate: new Date(),
         supplierRef: dto.supplierRef,
         warrantyStartDate: dto.warrantyStartDate ? new Date(dto.warrantyStartDate) : null,
         warrantyEndDate: dto.warrantyEndDate ? new Date(dto.warrantyEndDate) : null,
@@ -50,15 +100,26 @@ export class SerialTrackingService {
       })),
     });
 
-    return { created: newSerials.length, skipped: dto.serialNumbers.length - newSerials.length };
+    return {
+      created: fresh.length,
+      skipped: unique.length - fresh.length,
+      duplicatesInRequest: entries.length - unique.length,
+    };
   }
 
-  async list(user: AuthenticatedUser, params: { productId?: string; status?: string; imei?: string; search?: string }) {
-    return this.prisma.electronicsSerialTracking.findMany({
+  async list(
+    user: AuthenticatedUser,
+    params: { productId?: string; status?: string; imei?: string; search?: string; shopId?: string },
+  ) {
+    const rows = await this.prisma.electronicsSerialTracking.findMany({
       where: {
         tenantId: user.tenantId,
         ...(params.productId && { productId: params.productId }),
         ...(params.status && { status: params.status as any }),
+        // Shop filter — transfer ke waqt sirf usi dukan ke units chahiyen.
+        // shopId null wale purane units bhi dikhao warna wo kabhi nazar
+        // hi nahi aayenge (backfill se pehle ke records).
+        ...(params.shopId && { OR: [{ shopId: params.shopId }, { shopId: null }] }),
         ...(params.imei && { OR: [{ imei: params.imei }, { imei2: params.imei }] }),
         ...(params.search && {
           OR: [
@@ -71,6 +132,23 @@ export class SerialTrackingService {
       orderBy: { createdAt: 'desc' },
       take: 500,
     });
+
+    // Product ka naam sath bhejo — warna UI par sirf serial number
+    // dikhta hai aur pata hi nahi chalta ke cheez kya hai.
+    // (Product ka koi Prisma relation nahi hai, is liye alag query.)
+    const productIds = [...new Set(rows.map((r) => r.productId))];
+    const products = productIds.length
+      ? await this.prisma.product.findMany({
+          where: { id: { in: productIds } },
+          select: {
+            id: true, name: true, sku: true, unit: true, price: true, costPrice: true,
+            images: { select: { id: true, url: true }, orderBy: { sortOrder: 'asc' }, take: 1 },
+          },
+        })
+      : [];
+    const byId = new Map(products.map((p) => [p.id, p]));
+
+    return rows.map((r) => ({ ...r, product: byId.get(r.productId) ?? null }));
   }
 
   async getOne(user: AuthenticatedUser, id: string) {

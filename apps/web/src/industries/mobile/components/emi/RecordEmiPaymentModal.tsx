@@ -51,9 +51,19 @@ export function RecordEmiPaymentModal({
       }),
     onSuccess: () => {
       toast.success(`✓ ${formatPKR(Number(amount))} record ho gaya`);
-      queryClient.invalidateQueries({ queryKey: ['emi-plan', planId] });
-      queryClient.invalidateQueries({ queryKey: ['emi-plans'] });
-      queryClient.invalidateQueries({ queryKey: ['emi-stats'] });
+      // Qist milne par customer ka khata bhi kam hota hai — is liye
+      // khata, customer list aur reports sab refresh karne hain.
+      queryClient.invalidateQueries({
+        predicate: (q) => {
+          const k = String(q.queryKey?.[0] ?? '');
+          return [
+            'emi-plan', 'emi-plans', 'emi-stats',
+            'customer-ledger-summary', 'customer-ledger',
+            'customers', 'customers-stats', 'customer',
+            'dashboard-overview',
+          ].includes(k) || k.startsWith('mobile-reports');
+        },
+      });
       onClose();
     },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Fail hua'),

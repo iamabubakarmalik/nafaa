@@ -11,16 +11,59 @@ import { BulkCreateImeiDto } from './dto/bulk-create-imei.dto';
 export class ImeiService {
   constructor(private readonly prisma: PrismaService) {}
 
+  /**
+   * Har IMEI lookup ke saath sale ke liye zaroori fields.
+   * `price` yahan hona zaroori hai — iske baghair POS phone ko Rs 0 par cart me daal deta tha.
+   */
+  private static readonly SALE_INCLUDE = {
+    product: {
+      select: {
+        id: true,
+        name: true,
+        sku: true,
+        unit: true,
+        price: true,
+        costPrice: true,
+        images: {
+          select: { url: true },
+          orderBy: [{ isPrimary: 'desc' as const }, { sortOrder: 'asc' as const }],
+          take: 1,
+        },
+      },
+    },
+    variant: {
+      select: {
+        id: true,
+        name: true,
+        color: true,
+        colorHex: true,
+        price: true,
+        costPrice: true,
+      },
+    },
+  } satisfies Prisma.ProductImeiInclude;
+
   // ════════════════════════════════════════════════════════
   // HELPER: Sync product/variant stock from IMEI counts
   // ════════════════════════════════════════════════════════
+  /**
+   * IMEI ginti se stock dobara banata hai.
+   *
+   * Pehle ye har shop ka stock "pehli shop" me daal deta tha, is liye
+   * multi-shop me ginti hamesha galat rehti thi. Ab har shop ka apna
+   * ShopStock usi shop ke IMEIs se banta hai.
+   *
+   * `shopIds` me wo shops do jinka hisab badla hai (misal transfer me
+   * dono taraf ki shop).
+   */
   private async syncStockFromImeis(
     tx: any,
     tenantId: string,
     productId: string,
     variantId?: string | null,
+    shopIds?: (string | null | undefined)[],
   ) {
-    // Count IN_STOCK IMEIs for the product
+    // Product ka global stock = tenant ke tamam IN_STOCK IMEIs
     const productInStock = await tx.productImei.count({
       where: { tenantId, productId, status: 'IN_STOCK' },
     });
@@ -29,7 +72,6 @@ export class ImeiService {
       data: { stock: productInStock },
     });
 
-    // Count IN_STOCK IMEIs for the variant (if applicable)
     if (variantId) {
       const variantInStock = await tx.productImei.count({
         where: { tenantId, productId, variantId, status: 'IN_STOCK' },
@@ -40,30 +82,53 @@ export class ImeiService {
       });
     }
 
-    // Sync ShopStock (use first shop or null)
-    const tenant = await tx.tenant.findUnique({
-      where: { id: tenantId },
-      include: { shops: { where: { isActive: true }, take: 1 } },
-    });
-    const shopId = tenant?.shops?.[0]?.id;
-    if (shopId) {
+    // Kaunsi shops ka hisab dobara banana hai
+    let targets = (shopIds ?? []).filter((id): id is string => Boolean(id));
+    if (targets.length === 0) {
+      const rows = await tx.productImei.findMany({
+        where: { tenantId, productId, shopId: { not: null } },
+        select: { shopId: true },
+        distinct: ['shopId'],
+      });
+      targets = rows.map((r: any) => r.shopId).filter(Boolean);
+    }
+    targets = [...new Set(targets)];
+
+    for (const shopId of targets) {
+      const shopInStock = await tx.productImei.count({
+        where: { tenantId, productId, shopId, status: 'IN_STOCK', ...(variantId ? { variantId } : {}) },
+      });
+
       const existing = await tx.shopStock.findFirst({
         where: { shopId, productId, variantId: variantId ?? null },
       });
+
       if (existing) {
         await tx.shopStock.update({
           where: { id: existing.id },
-          data: { stock: variantId ? productInStock : productInStock },
+          data: { stock: shopInStock },
         });
-      } else if (productInStock > 0) {
+      } else if (shopInStock > 0) {
         await tx.shopStock.create({
           data: {
             tenantId, shopId, productId, variantId: variantId ?? null,
-            stock: productInStock, isActive: true,
+            stock: shopInStock, isActive: true,
           },
         });
       }
     }
+  }
+
+  /** Device kis shop me rakha jaye — dto > user ki shop > pehli active shop. */
+  private async resolveShopId(user: AuthenticatedUser, explicit?: string) {
+    if (explicit) return explicit;
+    if (user.shopId) return user.shopId;
+    const shop = await this.prisma.shop.findFirst({
+      where: { tenantId: user.tenantId, isActive: true },
+      orderBy: { createdAt: 'asc' },
+      select: { id: true },
+    });
+    return shop?.id ?? null;
   }
 
   // ════════════════════════════════════════════════════════
@@ -81,10 +146,13 @@ export class ImeiService {
       ? new Date(Date.now() + dto.warrantyMonths * 30 * 24 * 60 * 60 * 1000)
       : null;
 
+    const shopId = await this.resolveShopId(user, dto.shopId);
+
     return this.prisma.$transaction(async (tx) => {
       const imei = await tx.productImei.create({
         data: {
           tenantId: user.tenantId,
+          shopId,
           productId: dto.productId,
           variantId: dto.variantId,
           imei1: dto.imei1,
@@ -103,7 +171,7 @@ export class ImeiService {
         },
       });
 
-      await this.syncStockFromImeis(tx, user.tenantId, dto.productId, dto.variantId);
+      await this.syncStockFromImeis(tx, user.tenantId, dto.productId, dto.variantId, [shopId]);
       return imei;
     });
   }
@@ -128,11 +196,13 @@ export class ImeiService {
       : null;
 
     const count = dto.imeis.length;
+    const shopId = await this.resolveShopId(user, dto.shopId);
 
     await this.prisma.$transaction(async (tx) => {
       await tx.productImei.createMany({
         data: dto.imeis.map((i) => ({
           tenantId: user.tenantId,
+          shopId,
           productId: dto.productId,
           variantId: dto.variantId,
           imei1: i.imei1,
@@ -149,7 +219,7 @@ export class ImeiService {
         })),
       });
 
-      await this.syncStockFromImeis(tx, user.tenantId, dto.productId, dto.variantId);
+      await this.syncStockFromImeis(tx, user.tenantId, dto.productId, dto.variantId, [shopId]);
     });
 
     return { count, message: `${count} IMEIs added successfully` };
@@ -166,12 +236,14 @@ export class ImeiService {
       ptaStatus?: PtaStatus;
       productId?: string;
       variantId?: string;
+      shopId?: string;
       page?: number;
       limit?: number;
     },
   ) {
     const where: Prisma.ProductImeiWhereInput = {
       tenantId: user.tenantId,
+      ...(params.shopId && { shopId: params.shopId }),
       ...(params.status && { status: params.status }),
       ...(params.ptaStatus && { ptaStatus: params.ptaStatus }),
       ...(params.productId && { productId: params.productId }),
@@ -196,6 +268,7 @@ export class ImeiService {
         include: {
           product: { select: { id: true, name: true, sku: true, brandId: true, brand: { select: { name: true } } } },
           variant: { select: { id: true, name: true, color: true, colorHex: true } },
+          shop: { select: { id: true, name: true } },
         },
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,
@@ -333,25 +406,32 @@ export class ImeiService {
         ...(variantId && { variantId }),
         status: 'IN_STOCK',
       },
+      include: ImeiService.SALE_INCLUDE,
       orderBy: { purchasedAt: 'asc' },
     });
   }
 
-  async search(user: AuthenticatedUser, query: string) {
+  async search(user: AuthenticatedUser, query: string, status?: ImeiStatus) {
     return this.prisma.productImei.findMany({
       where: {
         tenantId: user.tenantId,
-        OR: [
-          { imei1: { contains: query } },
-          { imei2: { contains: query } },
-          { serialNumber: { contains: query } },
-        ],
+        ...(status && { status }),
+        ...(query
+          ? {
+              OR: [
+                { imei1: { contains: query } },
+                { imei2: { contains: query } },
+                { serialNumber: { contains: query, mode: 'insensitive' as const } },
+                { product: { name: { contains: query, mode: 'insensitive' as const } } },
+              ],
+            }
+          : {}),
       },
-      include: {
-        product: { select: { id: true, name: true } },
-        variant: { select: { id: true, name: true, color: true } },
-      },
-      take: 20,
+      include: ImeiService.SALE_INCLUDE,
+      // IN_STOCK pehle — warna 20 sold rows list bhar dete the aur
+      // bikne wale phone bilkul dikhte hi nahi the.
+      orderBy: [{ status: 'asc' }, { purchasedAt: 'asc' }],
+      take: 50,
     });
   }
 
@@ -391,7 +471,7 @@ export class ImeiService {
 
     await this.prisma.$transaction(async (tx) => {
       await tx.productImei.delete({ where: { id } });
-      await this.syncStockFromImeis(tx, user.tenantId, imei.productId, imei.variantId);
+      await this.syncStockFromImeis(tx, user.tenantId, imei.productId, imei.variantId, [imei.shopId]);
     });
 
     return { success: true };

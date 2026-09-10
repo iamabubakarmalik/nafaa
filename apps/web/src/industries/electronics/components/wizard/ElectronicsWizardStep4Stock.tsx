@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Package, Plus, Trash2, AlertCircle, ToggleLeft, ToggleRight,
   Boxes, MapPin, Barcode, Sparkles, Upload, CheckCircle2,
+  Copy, TrendingUp, Wallet, Lightbulb, ShieldCheck,
 } from 'lucide-react';
 import { Input } from '@core/ui/Input';
 import { formatPKRFull } from '@core/lib/format';
@@ -58,18 +59,77 @@ export function ElectronicsWizardStep4Stock({
     setVName('');
   };
 
+  /* Bulk paste — har line ek serial. Agar line me comma/tab ho to
+     pehla hissa serial, doosra IMEI samjha jata hai (scanner/Excel
+     se aksar "serial,imei" is tarah aata hai). */
+  const parseBulk = (text: string) =>
+    text
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter(Boolean)
+      .map((line) => {
+        const parts = line.split(/[,\t;]+/).map((x) => x.trim()).filter(Boolean);
+        return { serialNumber: parts[0] ?? '', imei: parts[1], imei2: parts[2], macAddress: parts[3] };
+      })
+      .filter((x) => x.serialNumber);
+
+  const bulkParsed = useMemo(() => parseBulk(bulkText), [bulkText]);
+
+  /* Jo pehle se maujood hain ya paste me hi do bar aa gaye */
+  const bulkDupes = useMemo(() => {
+    const existing = new Set(serials.map((s) => s.serialNumber.trim().toLowerCase()));
+    const seen = new Set<string>();
+    const dupes: string[] = [];
+    for (const e of bulkParsed) {
+      const k = e.serialNumber.toLowerCase();
+      if (existing.has(k) || seen.has(k)) dupes.push(e.serialNumber);
+      seen.add(k);
+    }
+    return dupes;
+  }, [bulkParsed, serials]);
+
+  const bulkFresh = useMemo(() => {
+    const existing = new Set(serials.map((s) => s.serialNumber.trim().toLowerCase()));
+    const seen = new Set<string>();
+    return bulkParsed.filter((e) => {
+      const k = e.serialNumber.toLowerCase();
+      if (existing.has(k) || seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+  }, [bulkParsed, serials]);
+
   const bulkImport = () => {
-    const lines = bulkText.split(/[\n,]/).map((l) => l.trim()).filter(Boolean);
-    if (lines.length === 0) return;
-    onAddSerialsBulk(lines);
+    if (bulkFresh.length === 0) return;
+    // Hook sirf lines leta hai — extra fields baad me row par set hote hain
+    onAddSerialsBulk(bulkFresh.map((e) => e.serialNumber));
     setBulkText('');
     setShowBulk(false);
   };
 
+  /* Ek hi serial do bar? — save se pehle pakadna zaroori hai warna
+     backend chupchap skip kar deta hai aur ginti ghalat ho jati hai. */
+  const dupeSerials = useMemo(() => {
+    const count = new Map<string, number>();
+    for (const s of serials) {
+      const k = s.serialNumber.trim().toLowerCase();
+      if (!k) continue;
+      count.set(k, (count.get(k) ?? 0) + 1);
+    }
+    return new Set([...count.entries()].filter(([, n]) => n > 1).map(([k]) => k));
+  }, [serials]);
+
+  const blankSerials = serials.filter((s) => !s.serialNumber.trim()).length;
+
   const totalVariantStock = variants.reduce((a, v) => a + Number(v.stock || 0), 0);
   const totalSerialStock = serials.length;
   const displayStock = hasVariants ? totalVariantStock : hasSerials ? totalSerialStock : Number(stock.currentStock || 0);
-  const stockValue = displayStock * sale;
+  const cost = Number(basic.costPrice || 0);
+  /* Pehle yahan retail price ko "stock value" likha ja raha tha —
+     asal me lagat khareed qeemat se banti hai. */
+  const stockCost = displayStock * cost;
+  const stockRetail = displayStock * sale;
+  const potentialProfit = stockRetail - stockCost;
 
   return (
     <div className="space-y-5">
@@ -315,15 +375,60 @@ export function ElectronicsWizardStep4Stock({
 
           {showBulk && (
             <div className="rounded-xl bg-white border-2 border-amber-300 p-3 space-y-2">
-              <div className="text-xs font-extrabold text-amber-800">Har line pe ek serial number (ya comma-separated)</div>
-              <textarea rows={5} value={bulkText} onChange={(e) => setBulkText(e.target.value)}
-                placeholder="SN123456789&#10;SN987654321&#10;IMEI1234567890"
+              <div className="text-xs font-extrabold text-amber-800">
+                Har line par ek serial. Agar IMEI bhi hai to comma laga kar likhein
+              </div>
+              <textarea rows={6} value={bulkText} onChange={(e) => setBulkText(e.target.value)}
+                placeholder={'SN123456789\nSN987654321, 356938035643809\nSN555000111'}
                 className="w-full rounded-lg border-2 border-slate-200 px-3 py-2 text-sm font-mono focus:outline-none focus:border-amber-500" />
+
+              {bulkParsed.length > 0 && (
+                <div className="rounded-lg bg-slate-50 border-2 border-slate-200 p-2.5 space-y-1.5">
+                  <div className="flex items-center gap-2 flex-wrap text-[11px] font-extrabold">
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                      {bulkFresh.length} naye
+                    </span>
+                    {bulkDupes.length > 0 && (
+                      <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 inline-flex items-center gap-1">
+                        <Copy className="h-3 w-3" /> {bulkDupes.length} pehle se maujood
+                      </span>
+                    )}
+                    {bulkParsed.some((e) => e.imei) && (
+                      <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
+                        IMEI bhi mila
+                      </span>
+                    )}
+                  </div>
+                  {bulkDupes.length > 0 && (
+                    <div className="text-[10px] font-semibold text-rose-700 font-mono truncate">
+                      Chhode jayenge: {bulkDupes.slice(0, 5).join(', ')}
+                      {bulkDupes.length > 5 && ` +${bulkDupes.length - 5}`}
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="flex justify-end gap-2">
-                <button type="button" onClick={() => { setShowBulk(false); setBulkText(''); }} className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-extrabold">Cancel</button>
-                <button type="button" onClick={bulkImport} className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-extrabold">
-                  Import {bulkText.split(/[\n,]/).filter((l) => l.trim()).length} serials
+                <button type="button" onClick={() => { setShowBulk(false); setBulkText(''); }}
+                  className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-extrabold">Cancel</button>
+                <button type="button" onClick={bulkImport} disabled={bulkFresh.length === 0}
+                  className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-extrabold disabled:opacity-50">
+                  {bulkFresh.length} serials daalein
                 </button>
+              </div>
+            </div>
+          )}
+
+          {(dupeSerials.size > 0 || blankSerials > 0) && (
+            <div className="rounded-xl bg-rose-50 border-2 border-rose-300 p-3 flex items-start gap-2.5">
+              <AlertCircle className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
+              <div className="text-xs font-semibold text-rose-900">
+                {dupeSerials.size > 0 && (
+                  <div><b>{dupeSerials.size} serial do bar</b> aa gaya hai — ek hi serial dobara save nahi hota, ginti ghalat ho jayegi.</div>
+                )}
+                {blankSerials > 0 && (
+                  <div><b>{blankSerials} khaali</b> serial row hai — bhar dein ya hata dein.</div>
+                )}
               </div>
             </div>
           )}
@@ -331,7 +436,11 @@ export function ElectronicsWizardStep4Stock({
           {serials.length > 0 ? (
             <div className="space-y-2 max-h-96 overflow-y-auto">
               {serials.map((s, i) => (
-                <div key={s.tempId} className="rounded-xl border-2 border-slate-200 bg-white p-3">
+                <div key={s.tempId} className={[
+                  'rounded-xl border-2 bg-white p-3',
+                  s.serialNumber.trim() && dupeSerials.has(s.serialNumber.trim().toLowerCase())
+                    ? 'border-rose-400 bg-rose-50/40' : 'border-slate-200',
+                ].join(' ')}>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 items-end">
                     <div className="sm:col-span-1">
                       <div className="text-[9px] uppercase font-extrabold text-slate-500 mb-1">#{i + 1}</div>
@@ -377,29 +486,83 @@ export function ElectronicsWizardStep4Stock({
         </section>
       )}
 
-      {/* Live summary */}
-      {displayStock > 0 && sale > 0 && (
+      {/* Live summary — lagat, bechne par, aur mumkin munafa alag alag */}
+      {displayStock > 0 && (
         <section className="rounded-2xl bg-gradient-to-br from-slate-950 to-blue-900 text-white p-5 shadow-xl">
           <div className="flex items-center gap-2 mb-3">
             <CheckCircle2 className="h-4 w-4 text-emerald-300" />
-            <span className="text-[10px] uppercase font-extrabold tracking-wider text-emerald-300">Stock preview</span>
+            <span className="text-[10px] uppercase font-extrabold tracking-wider text-emerald-300">
+              Save karne par aisa hoga
+            </span>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-white/60">Total stock</div>
-              <div className="text-3xl font-extrabold tabular-nums text-white leading-none mt-1">
-                {displayStock} <span className="text-sm text-white/60">pcs</span>
+              <div className="text-[10px] uppercase font-extrabold text-white/60 inline-flex items-center gap-1">
+                <Boxes className="h-3 w-3" /> Stock
+              </div>
+              <div className="text-2xl font-extrabold tabular-nums text-white leading-none mt-1">
+                {displayStock} <span className="text-xs text-white/60">pcs</span>
+              </div>
+              <div className="text-[10px] font-bold text-white/50 mt-0.5">
+                {hasSerials ? 'serials se' : hasVariants ? 'variants se' : 'seedhi ginti'}
               </div>
             </div>
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-white/60">Stock value</div>
-              <div className="text-3xl font-extrabold tabular-nums text-emerald-300 leading-none mt-1">
-                {formatPKRFull(stockValue)}
+              <div className="text-[10px] uppercase font-extrabold text-white/60 inline-flex items-center gap-1">
+                <Wallet className="h-3 w-3" /> Lagat
+              </div>
+              <div className="text-2xl font-extrabold tabular-nums text-white leading-none mt-1">
+                {cost > 0 ? formatPKRFull(stockCost) : '—'}
+              </div>
+              <div className="text-[10px] font-bold text-white/50 mt-0.5">
+                {cost > 0 ? 'itna paisa lagega' : 'khareed qeemat nahi di'}
               </div>
             </div>
+            <div>
+              <div className="text-[10px] uppercase font-extrabold text-white/60 inline-flex items-center gap-1">
+                <TrendingUp className="h-3 w-3" /> Bechne Par
+              </div>
+              <div className="text-2xl font-extrabold tabular-nums text-cyan-300 leading-none mt-1">
+                {sale > 0 ? formatPKRFull(stockRetail) : '—'}
+              </div>
+            </div>
+            <div>
+              <div className="text-[10px] uppercase font-extrabold text-white/60 inline-flex items-center gap-1">
+                <Sparkles className="h-3 w-3" /> Mumkin Munafa
+              </div>
+              <div className="text-2xl font-extrabold tabular-nums text-emerald-300 leading-none mt-1">
+                {cost > 0 && sale > 0 ? formatPKRFull(potentialProfit) : '—'}
+              </div>
+              {cost > 0 && sale > 0 && stockRetail > 0 && (
+                <div className="text-[10px] font-bold text-white/50 mt-0.5">
+                  {((potentialProfit / stockRetail) * 100).toFixed(1)}% margin
+                </div>
+              )}
+            </div>
           </div>
+
+          {hasSerials && (
+            <div className="mt-4 pt-3 border-t border-white/15 flex items-start gap-2">
+              <ShieldCheck className="h-4 w-4 text-emerald-300 shrink-0 mt-0.5" />
+              <p className="text-xs font-semibold text-white/80">
+                Har serial alag unit ban jayega. POS par serial scan karte hi wahi unit
+                SOLD ho jayega aur uski warranty customer ke naam ho jayegi.
+              </p>
+            </div>
+          )}
         </section>
       )}
+
+      {/* Mashwara */}
+      <div className="rounded-2xl bg-amber-50 border-2 border-amber-200 p-4 flex items-start gap-3">
+        <Lightbulb className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+        <div className="text-sm font-semibold text-amber-900">
+          <b>Kaunsa tareeqa chunein?</b> Cable, cover, glass jaisi sasti cheezon me
+          <b> seedhi ginti</b> kaafi hai. Ek hi cheez alag storage/color me aati ho to
+          <b> variants</b>. Aur laptop, camera, drone, monitor jaisi mehngi cheez me
+          <b> serial</b> — tabhi warranty aur customer history track hoti hai.
+        </div>
+      </div>
     </div>
   );
 }

@@ -16,6 +16,8 @@ import { useAuthStore } from '@core/stores/auth.store';
 import { useCatalogCart } from '@modules/catalog/hooks/useCatalogCart';
 import { useWishlist } from '@modules/catalog/hooks/useWishlist';
 import { CatalogCartDrawer } from '@modules/catalog/components/CatalogCartDrawer';
+import { mobilePosApi } from '../api/mobile-pos.api';
+import { PTA_STATUS_LABELS, PTA_STATUS_COLORS, type PtaStatus } from '../api/imei.api';
 
 const PRICE_RANGES = [
   { label: 'Under 20K', min: 0, max: 20000 },
@@ -27,6 +29,7 @@ const PRICE_RANGES = [
 
 export default function MobileCatalogPage() {
   const tenant = useAuthStore((s) => s.tenant);
+  const currentShopId = useAuthStore((s) => s.currentShopId);
   const cart = useCatalogCart();
   const wishlist = useWishlist();
 
@@ -60,14 +63,57 @@ export default function MobileCatalogPage() {
     queryFn: () => brandsApi.list(),
   });
 
+  /* ── Asli availability ──────────────────────────────────────
+     Product ka `stock` field kaafi nahi: phone ka stock IMEI se
+     banta hai aur accessory ka stock shop ke hisab se hota hai.
+     Is liye POS catalog se sachi ginti laate hain, warna 0 stock
+     wala phone bhi "available" dikhta tha.                     */
+  const { data: liveCatalog } = useQuery({
+    queryKey: ['mobile-pos-catalog', currentShopId, ''],
+    queryFn: () => mobilePosApi.catalog({ shopId: currentShopId || undefined }),
+    enabled: Boolean(currentShopId),
+    staleTime: 30_000,
+  });
+
+  /** productId → { stock, isPhone, pta } */
+  const liveStock = useMemo(() => {
+    const map = new Map<string, { stock: number; isPhone: boolean; pta: Record<string, number> }>();
+
+    for (const ph of liveCatalog?.phones ?? []) {
+      const row = map.get(ph.productId) ?? { stock: 0, isPhone: true, pta: {} };
+      row.isPhone = true;
+      row.stock += 1;
+      if (ph.ptaStatus) row.pta[ph.ptaStatus] = (row.pta[ph.ptaStatus] ?? 0) + 1;
+      map.set(ph.productId, row);
+    }
+    for (const acc of liveCatalog?.accessories ?? []) {
+      map.set(acc.id, { stock: acc.notInShop ? 0 : acc.stock, isPhone: false, pta: {} });
+    }
+    return map;
+  }, [liveCatalog]);
+
+  const stockOf = (id: string) => liveStock.get(id);
+
+  const usedPhones = liveCatalog?.usedPhones ?? [];
+
   const products = useMemo(() => {
-    let list = productsData?.items ?? [];
+    let list = (productsData?.items ?? []).map((p) => {
+      const live = liveStock.get(p.id);
+      return {
+        ...p,
+        // Jab tak live data na aaye, product ka apna stock dikha do
+        liveStock: live ? live.stock : Number(p.stock) || 0,
+        isPhone: live?.isPhone ?? false,
+        ptaMix: live?.pta ?? {},
+      };
+    });
     if (priceRange !== null) {
       const range = PRICE_RANGES[priceRange];
       list = list.filter((p) => Number(p.price) >= range.min && Number(p.price) < range.max);
     }
-    return list;
-  }, [productsData?.items, priceRange]);
+    // Stock wale pehle — khaali cheezein neeche
+    return list.sort((a, b) => (b.liveStock > 0 ? 1 : 0) - (a.liveStock > 0 ? 1 : 0));
+  }, [productsData?.items, priceRange, liveStock]);
 
   const featured = useMemo(() => products.filter((p) => p.isFeatured).slice(0, 8), [products]);
 
@@ -75,6 +121,12 @@ export default function MobileCatalogPage() {
   const shopWhatsapp = shopSettings.shopWhatsapp || shopSettings.shopPhone || (tenant as any)?.phone;
 
   const handleAdd = (p: any) => {
+    const live = stockOf(p.id);
+    const available = live ? live.stock : Number(p.stock) || 0;
+    if (available <= 0) {
+      toast.error(`${p.name} abhi stock me nahi hai`);
+      return;
+    }
     cart.addItem({
       productId: p.id,
       name: p.name,
@@ -323,13 +375,42 @@ function PhoneCard({ product, onAdd, onDetail, onEmi, onCompare, inCompare, wish
   const inWishlist = wishlist.has(product.id);
   const monthlyEmi = Math.round(Number(product.price) / 12);
 
+  // Asli availability — phone ke liye IMEI ginti, accessory ke liye shop stock
+  const stock = Number(product.liveStock ?? product.stock ?? 0);
+  const outOfStock = stock <= 0;
+  const lowStock = !outOfStock && stock <= 2;
+
+  // Sab se aam PTA halat is model ki
+  const ptaTop = Object.entries((product.ptaMix ?? {}) as Record<string, number>)
+    .sort((a, b) => b[1] - a[1])[0];
+  const ptaCfg = ptaTop ? PTA_STATUS_COLORS[ptaTop[0] as PtaStatus] : null;
+
   return (
-    <div className="group relative rounded-2xl bg-white border-2 border-slate-200 overflow-hidden hover:border-blue-400 hover:shadow-xl hover:-translate-y-0.5 transition-all">
-      {product.isFeatured && (
-        <div className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[9px] font-extrabold shadow inline-flex items-center gap-1">
-          <Star className="h-2 w-2 fill-white" /> FEATURED
-        </div>
-      )}
+    <div className={`group relative rounded-2xl bg-white border-2 overflow-hidden transition-all ${
+      outOfStock
+        ? 'border-slate-200 opacity-70'
+        : 'border-slate-200 hover:border-blue-400 hover:shadow-xl hover:-translate-y-0.5'
+    }`}>
+      <div className="absolute top-2 left-2 z-10 flex flex-col gap-1 items-start">
+        {product.isFeatured && (
+          <div className="px-2 py-0.5 rounded-full bg-amber-500 text-white text-[9px] font-extrabold shadow inline-flex items-center gap-1">
+            <Star className="h-2 w-2 fill-white" /> FEATURED
+          </div>
+        )}
+        {outOfStock ? (
+          <div className="px-2 py-0.5 rounded-full bg-slate-900/85 text-white text-[9px] font-extrabold shadow">
+            STOCK KHATAM
+          </div>
+        ) : lowStock ? (
+          <div className="px-2 py-0.5 rounded-full bg-rose-600 text-white text-[9px] font-extrabold shadow">
+            SIRF {stock} BAQI
+          </div>
+        ) : (
+          <div className="px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[9px] font-extrabold shadow">
+            {stock} MOJOOD
+          </div>
+        )}
+      </div>
 
       <div className="aspect-square bg-gradient-to-br from-slate-100 to-slate-200 cursor-pointer overflow-hidden" onClick={onDetail}>
         {image ? (
@@ -368,6 +449,13 @@ function PhoneCard({ product, onAdd, onDetail, onEmi, onCompare, inCompare, wish
           <div className="text-[9px] uppercase font-extrabold text-blue-700 tracking-wider">{product.brand.name}</div>
         )}
         <h4 className="font-extrabold text-slate-900 text-sm line-clamp-2 min-h-[2.25rem]">{product.name}</h4>
+        {ptaTop && ptaCfg && (
+          <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[9px] font-extrabold uppercase ${ptaCfg.bg} ${ptaCfg.text} ${ptaCfg.border}`}>
+            <ShieldCheck className="h-2.5 w-2.5" />
+            {PTA_STATUS_LABELS[ptaTop[0] as PtaStatus]}
+            {Object.keys(product.ptaMix ?? {}).length > 1 && <span className="opacity-60">+</span>}
+          </span>
+        )}
         <div className="flex items-baseline justify-between">
           <div>
             <div className="text-lg font-extrabold text-emerald-700 tabular-nums leading-none">{formatPKR(Number(product.price))}</div>
@@ -385,10 +473,16 @@ function PhoneCard({ product, onAdd, onDetail, onEmi, onCompare, inCompare, wish
           </button>
           <button
             onClick={onAdd}
-            className="h-8 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-extrabold flex items-center justify-center gap-1"
+            disabled={outOfStock}
+            title={outOfStock ? 'Abhi stock me nahi' : undefined}
+            className={`h-8 rounded-lg text-[10px] font-extrabold flex items-center justify-center gap-1 transition ${
+              outOfStock
+                ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                : 'bg-blue-600 hover:bg-blue-700 text-white'
+            }`}
           >
             <Plus className="h-3 w-3" />
-            Add
+            {outOfStock ? 'Khatam' : 'Add'}
           </button>
         </div>
       </div>

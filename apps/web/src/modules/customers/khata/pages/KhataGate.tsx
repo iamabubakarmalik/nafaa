@@ -5,6 +5,12 @@ import KhataPage from './KhataPage';
 const RetailKhataPage = lazy(() =>
   import('../../../../industries/retail/pages/RetailKhataPage')
 );
+const MobileKhataPage = lazy(() =>
+  import('../../../../industries/mobile/pages/MobileKhataPage')
+);
+const ElectronicsKhataPage = lazy(() =>
+  import('../../../../industries/electronics/pages/ElectronicsKhataPage')
+);
 
 function Loader() {
   return (
@@ -17,6 +23,8 @@ function Loader() {
 /**
  * KhataGate — /khata ko industry ke hisaab se route karta hai.
  * Retail  → RetailKhataPage (full khata system)
+ * Mobile  → MobileKhataPage (udhaar + EMI qisten ek jagah)
+ * Electronics → ElectronicsKhataPage (udhaar + serial units ka alert)
  * Others  → generic KhataPage
  */
 export default function KhataGate() {
@@ -26,6 +34,22 @@ export default function KhataGate() {
     return (
       <Suspense fallback={<Loader />}>
         <RetailKhataPage />
+      </Suspense>
+    );
+  }
+
+  if (industry?.id === 'mobile') {
+    return (
+      <Suspense fallback={<Loader />}>
+        <MobileKhataPage />
+      </Suspense>
+    );
+  }
+
+  if (industry?.id === 'electronics') {
+    return (
+      <Suspense fallback={<Loader />}>
+        <ElectronicsKhataPage />
       </Suspense>
     );
   }

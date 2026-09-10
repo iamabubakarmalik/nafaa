@@ -411,6 +411,19 @@ export class EmiService {
 
       const updatedPlan = await tx.emiPlan.update({ where: { id: planId }, data: planUpdate });
 
+      // Qist milne par customer ka asli khata bhi kam hona chahiye.
+      // Pehle yahan balanceAfter: 0 likha hua tha aur customer.balance
+      // chhua hi nahi jata tha — is se khata hamesha poora udhaar dikhata raha.
+      const emiCustomer = await tx.customer.findUnique({ where: { id: plan.customerId } });
+      const newCustomerBalance = Math.max(Number(emiCustomer?.balance ?? 0) - dto.amount, 0);
+
+      if (emiCustomer) {
+        await tx.customer.update({
+          where: { id: emiCustomer.id },
+          data: { balance: newCustomerBalance },
+        });
+      }
+
       await tx.customerLedger.create({
         data: {
           tenantId: user.tenantId,
@@ -418,7 +431,7 @@ export class EmiService {
           createdById: user.id,
           type: 'PAYMENT_RECEIVED',
           amount: dto.amount,
-          balanceAfter: 0,
+          balanceAfter: newCustomerBalance,
           reference: plan.planNumber,
           note: `EMI installment ${installment.installmentNumber}/${plan.installmentCount}`,
         },

@@ -15,8 +15,8 @@ export class SerialTrackingController {
 
   @Post() create(@GetUser() user: AuthenticatedUser, @Body() dto: UpsertSerialDto) { return this.service.create(user, dto); }
   @Post('bulk') bulk(@GetUser() user: AuthenticatedUser, @Body() dto: BulkCreateSerialDto) { return this.service.bulkCreate(user, dto); }
-  @Get() list(@GetUser() user: AuthenticatedUser, @Query('productId') productId?: string, @Query('status') status?: string, @Query('imei') imei?: string, @Query('search') search?: string) {
-    return this.service.list(user, { productId, status, imei, search });
+  @Get() list(@GetUser() user: AuthenticatedUser, @Query('productId') productId?: string, @Query('status') status?: string, @Query('imei') imei?: string, @Query('search') search?: string, @Query('shopId') shopId?: string) {
+    return this.service.list(user, { productId, status, imei, search, shopId });
   }
   @Get('lookup/:code') lookup(@GetUser() user: AuthenticatedUser, @Param('code') code: string) { return this.service.lookupBySerialOrImei(user, code); }
   @Get('warranty-check/:code') warranty(@GetUser() user: AuthenticatedUser, @Param('code') code: string) { return this.service.warrantyCheck(user, code); }

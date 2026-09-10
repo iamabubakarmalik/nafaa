@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { saleItemName } from '../lib/saleItemName';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
 import {
@@ -183,7 +184,7 @@ export default function ReceiptPage() {
 
     data.items.forEach((it, idx) => {
       const variant = it.variantLink?.variant;
-      const itemName = variant ? `${it.product.name} (${variant.name})` : it.product.name;
+      const itemName = saleItemName(it);
       const carpet = parseCarpetNote(it.note);
 
       lines.push(`*${idx + 1}.* ${itemName}`);
@@ -516,7 +517,7 @@ export default function ReceiptPage() {
                 <div className="font-bold text-center mb-1">ITEMS</div>
                 {data.items.map((item, idx) => {
                   const variant = item.variantLink?.variant;
-                  const itemName = variant ? `${item.product.name} (${variant.name})` : item.product.name;
+                  const itemName = saleItemName(item);
                   const carpet = parseCarpetNote(item.note);
                   const roItem = isRestaurantSale && restaurantOrder
                     ? restaurantOrder.items?.find((ri: any) => ri.productId === item.product.id)
@@ -825,7 +826,7 @@ export default function ReceiptPage() {
                         <tr key={item.id} className="border-b border-slate-100 align-top hover:bg-slate-50/50 transition">
                           <td className="py-4 px-2 text-slate-500 font-mono text-xs">{idx + 1}</td>
                           <td className="py-4 px-2">
-                            <div className="font-extrabold text-slate-900 text-base">{item.product.name}</div>
+                            <div className="font-extrabold text-slate-900 text-base">{saleItemName(item)}</div>
                             {variant && (
                               <div className="text-xs font-semibold text-violet-700 mt-0.5 inline-flex items-center gap-1.5">
                                 {variant.colorHex && <span className="h-2.5 w-2.5 rounded-full border border-slate-300 print:hidden" style={{ backgroundColor: variant.colorHex }} />}
@@ -1139,7 +1140,7 @@ export default function ReceiptPage() {
                     <div key={i} className="text-lg">
                       <div className="flex items-baseline gap-2">
                         <span className="font-extrabold text-2xl">{item.quantity}×</span>
-                        <span className="font-bold uppercase">{item.product?.name}</span>
+                        <span className="font-bold uppercase">{saleItemName(item)}</span>
                       </div>
                       {item.modifiers?.length > 0 && (
                         <div className="pl-6 text-sm italic">

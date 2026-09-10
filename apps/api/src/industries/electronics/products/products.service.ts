@@ -57,7 +57,8 @@ export class ElectronicsProductsService {
         },
         include: { images: { where: { isPrimary: true }, take: 1 }, category: true },
       }),
-      this.prisma.electronicsBrand.findMany({ where: { id: { in: brandIds } } }),
+      // Ab global Brand — electronics ka apna brand table khatam kar diya
+      this.prisma.brand.findMany({ where: { id: { in: brandIds } } }),
     ]);
 
     const productsMap = new Map(products.map((p) => [p.id, p]));
@@ -77,7 +78,7 @@ export class ElectronicsProductsService {
       where: { productId, tenantId: user.tenantId },
     });
     if (!profile) return null;
-    const brand = profile.brandId ? await this.prisma.electronicsBrand.findUnique({ where: { id: profile.brandId } }) : null;
+    const brand = profile.brandId ? await this.prisma.brand.findUnique({ where: { id: profile.brandId } }) : null;
     const serialCount = await this.prisma.electronicsSerialTracking.count({
       where: { tenantId: user.tenantId, productId, status: 'IN_STOCK' },
     });

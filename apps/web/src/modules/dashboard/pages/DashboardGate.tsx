@@ -5,7 +5,7 @@ import DashboardPage from './DashboardPage';
 
 // ─── Original 19 industries ───
 const RestaurantDashboardV2 = lazy(() => import('@industries/restaurant/pages/RestaurantDashboardV2'));
-const MobileDashboardV2 = lazy(() => import('@industries/mobile/pages/MobileDashboardV2'));
+const MobileDashboardV2 = lazy(() => import('@/industries/mobile/pages/MobileDashboard'));
 const CarpetDashboardV2 = lazy(() => import('@industries/carpet/pages/CarpetDashboardV2'));
 const RetailDashboardV2 = lazy(() => import('@/industries/retail/pages/RetailDashboard'));
 const BakeryDashboardV2 = lazy(() => import('@industries/bakery/pages/BakeryDashboardV2'));

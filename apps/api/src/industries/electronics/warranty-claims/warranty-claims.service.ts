@@ -113,13 +113,53 @@ export class WarrantyClaimsService {
   }
 
   async summary(user: AuthenticatedUser) {
-    const [total, active, inRepair, resolved, sentToBrand] = await Promise.all([
-      this.prisma.electronicsWarrantyClaim.count({ where: { tenantId: user.tenantId } }),
-      this.prisma.electronicsWarrantyClaim.count({ where: { tenantId: user.tenantId, status: 'ACTIVE' } }),
-      this.prisma.electronicsWarrantyClaim.count({ where: { tenantId: user.tenantId, status: 'IN_REPAIR' } }),
-      this.prisma.electronicsWarrantyClaim.count({ where: { tenantId: user.tenantId, status: 'CLAIMED' } }),
-      this.prisma.electronicsWarrantyClaim.count({ where: { tenantId: user.tenantId, sentToBrand: true } }),
-    ]);
-    return { total, active, inRepair, resolved, sentToBrand };
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
+
+    const where = { tenantId: user.tenantId };
+
+    const [total, active, claimed, inRepair, resolved, expired, sentToBrand, thisMonth, money] =
+      await Promise.all([
+        this.prisma.electronicsWarrantyClaim.count({ where }),
+        this.prisma.electronicsWarrantyClaim.count({ where: { ...where, status: 'ACTIVE' } }),
+        this.prisma.electronicsWarrantyClaim.count({ where: { ...where, status: 'CLAIMED' } }),
+        this.prisma.electronicsWarrantyClaim.count({ where: { ...where, status: 'IN_REPAIR' } }),
+        // "Hal ho gaya" = jis par resolvedAt lag chuka hai
+        this.prisma.electronicsWarrantyClaim.count({ where: { ...where, resolvedAt: { not: null } } }),
+        this.prisma.electronicsWarrantyClaim.count({ where: { ...where, status: 'EXPIRED' } }),
+        this.prisma.electronicsWarrantyClaim.count({ where: { ...where, sentToBrand: true } }),
+        this.prisma.electronicsWarrantyClaim.count({ where: { ...where, claimDate: { gte: monthStart } } }),
+        this.prisma.electronicsWarrantyClaim.aggregate({
+          where,
+          _sum: { repairCost: true, refundAmount: true, paidByCustomer: true, paidByBrand: true },
+        }),
+      ]);
+
+    const repairCost = money._sum.repairCost ?? 0;
+    const refundAmount = money._sum.refundAmount ?? 0;
+    const paidByCustomer = money._sum.paidByCustomer ?? 0;
+    const paidByBrand = money._sum.paidByBrand ?? 0;
+
+    return {
+      total,
+      active,
+      claimed,
+      inRepair,
+      resolved,
+      expired,
+      sentToBrand,
+      thisMonth,
+      // Abhi jo khule hain — inhi par kaam karna hai
+      pending: active + claimed + inRepair,
+      cost: {
+        repairCost,
+        refundAmount,
+        paidByCustomer,
+        paidByBrand,
+        // Dukan ki apni jeb se kitna gaya
+        shopBore: Math.max(0, repairCost + refundAmount - paidByCustomer - paidByBrand),
+      },
+    };
   }
 }

@@ -4,6 +4,7 @@ import ReceiptPage from './ReceiptPage';
 
 const RestaurantReceiptPage = lazy(() => import('@industries/restaurant/pages/RestaurantReceiptPage'));
 const MobileReceiptPage = lazy(() => import('@industries/mobile/pages/MobileReceiptPage'));
+const ElectronicsReceiptPage = lazy(() => import('@industries/electronics/pages/ElectronicsReceiptPage'));
 const CarpetReceiptPage = lazy(() => import('@industries/carpet/pages/CarpetReceiptPage'));
 const RetailReceiptPage = lazy(() => import('@industries/retail/pages/RetailReceiptPage'));
 const GarmentReceiptPage = lazy(() => import('@industries/garments/pages/GarmentReceiptPage'));
@@ -35,6 +36,7 @@ export default function ReceiptGate() {
 
   if (industry?.id === 'restaurant') return <Suspense fallback={<Loader />}><RestaurantReceiptPage /></Suspense>;
   if (industry?.id === 'mobile') return <Suspense fallback={<Loader />}><MobileReceiptPage /></Suspense>;
+  if (industry?.id === 'electronics') return <Suspense fallback={<Loader />}><ElectronicsReceiptPage /></Suspense>;
   if (industry?.id === 'carpet') return <Suspense fallback={<Loader />}><CarpetReceiptPage /></Suspense>;
   if (industry?.id === 'retail') return <Suspense fallback={<Loader />}><RetailReceiptPage /></Suspense>;
   if (industry?.id === 'garments') return <Suspense fallback={<Loader />}><GarmentReceiptPage /></Suspense>;

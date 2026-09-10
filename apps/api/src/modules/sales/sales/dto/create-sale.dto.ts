@@ -33,6 +33,13 @@ class CreateSaleItemDto {
   @IsString()
   usedPhoneId?: string;
 
+  @ApiPropertyOptional({
+    description: 'For electronics: specific serial/IMEI-tracked unit being sold (laptop, TV, camera...).',
+  })
+  @IsOptional()
+  @IsString()
+  serialId?: string;
+
   @ApiProperty({ example: 1.5, description: 'Decimal quantity (e.g. 12.5 sqft)' })
   @IsNumber()
   @Min(0.01)

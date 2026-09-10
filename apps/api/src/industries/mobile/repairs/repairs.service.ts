@@ -9,6 +9,7 @@ import { DiagnoseDto } from './dto/diagnose.dto';
 import { AddPartDto } from './dto/add-part.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
 import { AddPaymentDto } from './dto/add-payment.dto';
+import { DeliverRepairDto } from './dto/deliver-repair.dto';
 import { QueryRepairsDto } from './dto/query-repairs.dto';
 import { Prisma, RepairStatus } from '@prisma/client';
 
@@ -317,6 +318,20 @@ export class RepairsService {
           where: { id: product.id },
           data: { stock: { decrement: dto.quantity } },
         });
+
+        // Us shop ka stock bhi kam karo — warna POS galat ginti dikhata hai
+        if (ticket.shopId) {
+          const shopStock = await tx.shopStock.findFirst({
+            where: { shopId: ticket.shopId, productId: product.id, variantId: null },
+          });
+          if (shopStock) {
+            await tx.shopStock.update({
+              where: { id: shopStock.id },
+              data: { stock: Math.max(Number(shopStock.stock) - dto.quantity, 0) },
+            });
+          }
+        }
+
         await tx.stockMovement.create({
           data: {
             tenantId: user.tenantId,
@@ -379,6 +394,20 @@ export class RepairsService {
           where: { id: part.productId },
           data: { stock: { increment: Number(part.quantity) } },
         });
+
+        // Shop ka stock bhi wapas barhao
+        if (ticket.shopId) {
+          const shopStock = await tx.shopStock.findFirst({
+            where: { shopId: ticket.shopId, productId: part.productId, variantId: null },
+          });
+          if (shopStock) {
+            await tx.shopStock.update({
+              where: { id: shopStock.id },
+              data: { stock: Number(shopStock.stock) + Number(part.quantity) },
+            });
+          }
+        }
+
         await tx.stockMovement.create({
           data: {
             tenantId: user.tenantId,
@@ -415,6 +444,208 @@ export class RepairsService {
   // ════════════════════════════════════════════════════════
   // STATUS WORKFLOW
   // ════════════════════════════════════════════════════════
+
+
+  // ════════════════════════════════════════════════════════
+  // DELIVERY → SALE
+  // Repair ki kamai apne aap Sale ban jati hai, taake wo
+  // dashboard, roz ke profit, cash register aur khata —
+  // sab me wese hi aaye jese phone ki sale aati hai.
+  // ════════════════════════════════════════════════════════
+
+  private async createSaleForDeliveredTicket(
+    tx: Prisma.TransactionClient,
+    user: AuthenticatedUser,
+    ticketId: string,
+  ) {
+    const ticket = await tx.repairTicket.findUnique({
+      where: { id: ticketId },
+      include: { parts: true, shop: { select: { id: true, name: true } } },
+    });
+
+    // Ek ticket ki ek hi sale — dobara deliver hone par duplicate na bane.
+    if (!ticket || ticket.saleId) return null;
+
+    const grossTotal = Number(ticket.partsCost) + Number(ticket.laborCost);
+    const discount = Number(ticket.discount) || 0;
+    const netTotal = Number(ticket.totalCost) || 0;
+
+    // Bina paise wale ticket (warranty claim, goodwill) ki sale nahi banti.
+    if (netTotal <= 0) return null;
+
+    // Asli lagat = parts ka cost (jo customer se liya wo unitPrice hai, cost nahi)
+    const costOfGoods = ticket.parts.reduce(
+      (sum, part) => sum + Number(part.quantity) * Number(part.unitCost),
+      0,
+    );
+
+    const paidAmount = Math.min(Number(ticket.paidAmount) || 0, netTotal);
+    const creditAmount = Math.max(netTotal - paidAmount, 0);
+
+    // Udhaar sirf tab jab customer account se juda ho
+    if (creditAmount > 0 && !ticket.customerId) {
+      throw new BadRequestException(
+        `${ticket.ticketNumber}: Rs ${creditAmount} baqi hai. Pehle poora payment lein ya ticket ko customer account se jorein.`,
+      );
+    }
+
+    const cashRegister = await tx.cashRegister.findFirst({
+      where: { tenantId: user.tenantId, shopId: ticket.shopId, status: 'OPEN' },
+    });
+
+    const label = `Repair ${ticket.ticketNumber} — ${ticket.deviceBrand} ${ticket.deviceModel}`;
+    const workDone = ticket.diagnosedIssue || ticket.reportedIssue || 'Repair service';
+
+    const sale = await tx.sale.create({
+      data: {
+        tenantId: user.tenantId,
+        shopId: ticket.shopId,
+        cashRegisterId: cashRegister?.id,
+        customerId: ticket.customerId,
+        createdById: user.id,
+        // ticketNumber tenant ke andar unique hai, is liye saleNumber bhi unique rahega
+        saleNumber: `RPR-${ticket.ticketNumber}`,
+        subtotal: grossTotal,
+        discount,
+        total: netTotal,
+        costOfGoods,
+        paidAmount,
+        changeAmount: 0,
+        creditAmount,
+        paymentMethod: 'CASH',
+        status: 'COMPLETED',
+        soldAt: new Date(),
+        serviceCharges: 0,
+        serviceChargesBreakdown: [
+          { label, amount: Number(ticket.laborCost) || 0, kind: 'REPAIR_LABOR' },
+        ] as unknown as Prisma.InputJsonValue,
+        items: {
+          create: [
+            {
+              // Repair ek service hai — koi product row nahi hoti.
+              // Line ka total discount se PEHLE ka rakhte hain (subtotal ke barabar),
+              // taake sale.discount har report me ek hi dafa kate.
+              productId: null,
+              quantity: 1,
+              price: grossTotal,
+              costPrice: costOfGoods,
+              total: grossTotal,
+              note: `${label} — ${workDone}`,
+            },
+          ],
+        },
+      },
+    });
+
+    if (creditAmount > 0 && ticket.customerId) {
+      const customer = await tx.customer.findUnique({ where: { id: ticket.customerId } });
+      if (customer) {
+        const newBalance = Number(customer.balance) + creditAmount;
+        await tx.customer.update({
+          where: { id: customer.id },
+          data: { balance: newBalance },
+        });
+        await tx.customerLedger.create({
+          data: {
+            tenantId: user.tenantId,
+            customerId: customer.id,
+            createdById: user.id,
+            type: 'SALE_CREDIT',
+            amount: creditAmount,
+            balanceAfter: newBalance,
+            reference: sale.saleNumber,
+            note: `Repair udhaar: ${ticket.ticketNumber}${ticket.shop ? ` (${ticket.shop.name})` : ''}`,
+          },
+        });
+      }
+    }
+
+    await tx.repairTicket.update({
+      where: { id: ticket.id },
+      data: { saleId: sale.id },
+    });
+
+    return sale;
+  }
+
+
+  // ════════════════════════════════════════════════════════
+  // DELIVER — counter par ek hi step
+  // Baqi paisa lo → ticket DELIVERED → Sale ban jaye.
+  // Teeno ek transaction me, taake aadha kaam kabhi na ho.
+  // ════════════════════════════════════════════════════════
+
+  async deliver(user: AuthenticatedUser, id: string, dto: DeliverRepairDto) {
+    const ticket = await this.findOne(user, id);
+
+    if (ticket.status === 'DELIVERED') {
+      throw new BadRequestException(`${ticket.ticketNumber} pehle hi deliver ho chuka hai`);
+    }
+    if (ticket.status !== 'READY') {
+      throw new BadRequestException(
+        `Sirf READY ticket deliver hota hai. ${ticket.ticketNumber} abhi ${ticket.status} hai.`,
+      );
+    }
+
+    const balanceDue = Math.max(Number(ticket.totalCost) - Number(ticket.paidAmount), 0);
+    const amount = Number(dto.amount) || 0;
+
+    if (amount > balanceDue + 0.01) {
+      throw new BadRequestException(
+        `Baqi sirf Rs ${balanceDue} hai — Rs ${amount} nahi liya ja sakta`,
+      );
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      if (amount > 0) {
+        const newPaid = Number(ticket.paidAmount) + amount;
+        const newBalance = Math.max(Number(ticket.totalCost) - newPaid, 0);
+
+        await tx.repairPayment.create({
+          data: {
+            ticketId: id,
+            amount,
+            paymentMethod: dto.paymentMethod ?? 'CASH',
+            notes: dto.note ?? 'Delivery par liya gaya',
+            createdById: user.id,
+          },
+        });
+        await tx.repairTicket.update({
+          where: { id },
+          data: {
+            paidAmount: newPaid,
+            balanceDue: newBalance,
+            paymentStatus: newBalance === 0 ? 'FULLY_PAID' : 'ADVANCE_PAID',
+          },
+        });
+      }
+
+      const now = new Date();
+      await tx.repairTicket.update({
+        where: { id },
+        data: { status: 'DELIVERED', deliveredAt: now },
+      });
+      await tx.repairStatusLog.create({
+        data: {
+          ticketId: id,
+          fromStatus: ticket.status,
+          toStatus: 'DELIVERED',
+          note: dto.note ?? 'Counter se deliver hua',
+          changedById: user.id,
+        },
+      });
+
+      // Yehi wo qadam hai jo repair ki kamai ko profit tak le jata hai
+      const sale = await this.createSaleForDeliveredTicket(tx, user, id);
+
+      const updated = await tx.repairTicket.findUnique({
+        where: { id },
+        include: { payments: { orderBy: { paidAt: 'desc' } } },
+      });
+
+      return { ticket: updated, sale };
+    });
+  }
 
   async updateStatus(user: AuthenticatedUser, id: string, dto: UpdateStatusDto) {
     const ticket = await this.findOne(user, id);
@@ -468,6 +699,12 @@ export class RepairsService {
           changedById: user.id,
         },
       });
+
+      // Deliver hote hi repair ki kamai Sale ban kar hisab me aa jati hai
+      if (dto.toStatus === 'DELIVERED') {
+        await this.createSaleForDeliveredTicket(tx, user, id);
+      }
+
       return updated;
     });
   }

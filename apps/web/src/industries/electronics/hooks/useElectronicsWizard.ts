@@ -106,7 +106,9 @@ export interface ElectronicsWizardDraft {
 
 const emptyBasic = (): ElectronicsWizardBasic => ({
   name: '', description: '', categoryId: '', electronicsBrandId: '',
-  categoryType: 'SMARTPHONE', conditionType: 'NEW',
+  // Ye dono Prisma enum se match hone chahiye — pehle 'SMARTPHONE'/'NEW'
+  // likha tha jo enum me hain hi nahi, is liye har save fail hota tha.
+  categoryType: 'OTHER', conditionType: 'BRAND_NEW',
   sku: '', barcode: '', modelNumber: '', partNumber: '',
   colorName: '', colorHex: '',
   costPrice: '', retailPrice: '', wholesalePrice: '', mrp: '',

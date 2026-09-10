@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { saleItemName } from '../lib/saleItemName';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import {
@@ -102,7 +103,7 @@ export default function SalesPage() {
           s.saleNumber.toLowerCase().includes(q) ||
           s.customer?.name.toLowerCase().includes(q) ||
           s.customer?.phone?.toLowerCase().includes(q) ||
-          s.items.some((it) => it.product.name.toLowerCase().includes(q)),
+          s.items.some((it) => saleItemName(it).toLowerCase().includes(q)),
       );
     }
 
@@ -716,7 +717,7 @@ export default function SalesPage() {
                             {sale.items.slice(0, 3).map((item) => (
                               <span key={item.id} className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 max-w-[180px] truncate inline-flex items-center gap-1">
                                 {item.product.unit === 'sqft' && <Layers className="h-2.5 w-2.5 text-emerald-600" />}
-                                {item.product.name} × {formatQty(item.quantity)}
+                                {saleItemName(item)} × {formatQty(item.quantity)}
                                 <IndustrySlot slot={(p) => p.sales?.saleItemBadge} slotProps={{ item }} />
                               </span>
                             ))}

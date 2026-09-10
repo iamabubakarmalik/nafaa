@@ -8,11 +8,43 @@ export interface StockTransferItem {
   notes?: string | null;
   variantId?: string | null;
   carpetRollId?: string | null;
-  product: {
+  /** Mobile: kaunsa device bheja gaya */
+  imeiId?: string | null;
+  imei?: {
+    id: string;
+    imei1: string;
+    imei2?: string | null;
+    status: string;
+    color?: string | null;
+  } | null;
+  /** Mobile: used phone bheja gaya — iska product nahi hota */
+  usedPhoneId?: string | null;
+  usedPhone?: {
+    id: string;
+    usedPhoneCode: string;
+    brand: string;
+    model: string;
+    storage?: string | null;
+    color?: string | null;
+    status: string;
+    resalePrice?: number;
+  } | null;
+  /** Electronics: kaun sa serial unit bheja gaya */
+  serialId?: string | null;
+  serial?: {
+    id: string;
+    serialNumber: string;
+    imei?: string | null;
+    status: string;
+    warrantyEndDate?: string | null;
+    physicalCondition?: string | null;
+  } | null;
+  /** Used phone items me product nahi hota */
+  product?: {
     id: string;
     name: string;
     unit: string;
-  };
+  } | null;
   carpetRoll?: {
     id: string;
     rollNumber: string;
@@ -39,9 +71,16 @@ export interface StockTransfer {
 }
 
 export interface CreateTransferItemPayload {
-  productId: string;
+  /** Used phone bhejte waqt product nahi hota */
+  productId?: string;
   variantId?: string;
   carpetRollId?: string;
+  /** Mobile: device bhejne ke liye — quantity hamesha 1 */
+  imeiId?: string;
+  /** Mobile: used phone bhejne ke liye */
+  usedPhoneId?: string;
+  /** Electronics: serial unit bhejne ke liye — quantity hamesha 1 */
+  serialId?: string;
   quantity: number;
   notes?: string;
 }
