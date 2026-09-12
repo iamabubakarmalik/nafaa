@@ -1,6 +1,6 @@
 import {
   BadRequestException, ConflictException, ForbiddenException,
-  Injectable, NotFoundException,
+  Injectable, Logger, NotFoundException,
 } from '@nestjs/common';
 import { UserRole } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
@@ -11,12 +11,92 @@ import { DEFAULT_ROLE_PERMISSIONS } from '../../../common/constants/permissions.
 
 @Injectable()
 export class ShopsService {
+  private readonly logger = new Logger(ShopsService.name);
+
   constructor(private readonly prisma: PrismaService) {}
+
+  /**
+   * Make sure an owner always has a branch to work in.
+   *
+   * Signup creates the main shop automatically, but accounts exist that slipped
+   * through: tenants with no shop at all, and owners whose `shopId` was never
+   * set (or was cleared when a shop got deleted). Those accounts would see an
+   * empty switcher and a POS that refuses to sell, with no way out except
+   * knowing to visit /shops.
+   *
+   * Healing it here — the switcher calls this on every page load — costs one
+   * extra query for accounts that are already fine and silently repairs the
+   * rest. Idempotent by construction: it only acts when something is missing.
+   */
+  private async ensureOwnerHasShop(user: AuthenticatedUser): Promise<void> {
+    // Only a tenant's own owner. SUPER_ADMIN is platform staff and may be
+    // looking at a tenant that legitimately has no shops.
+    if (user.role !== UserRole.OWNER) return;
+
+    const existing = await this.prisma.shop.findFirst({
+      where: { tenantId: user.tenantId },
+      orderBy: [{ isMain: 'desc' }, { createdAt: 'asc' }],
+      select: { id: true, isActive: true },
+    });
+
+    if (!existing) {
+      const tenant = await this.prisma.tenant.findUnique({
+        where: { id: user.tenantId },
+        select: { name: true },
+      });
+
+      const shop = await this.prisma.shop.create({
+        data: {
+          tenantId: user.tenantId,
+          name: tenant?.name?.trim() || 'Main Shop',
+          isMain: true,
+          isActive: true,
+          type: 'SHOP',
+        },
+      });
+
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { shopId: shop.id },
+      });
+
+      await this.prisma.activityLog.create({
+        data: {
+          tenantId: user.tenantId,
+          userId: user.id,
+          action: 'CREATE',
+          entityType: 'Shop',
+          entityId: shop.id,
+          description: `Main shop "${shop.name}" auto-created — account had none`,
+          metadata: { autoHealed: true },
+        },
+      });
+
+      this.logger.warn(
+        `Tenant ${user.tenantId} had no shop — created main shop ${shop.id}`,
+      );
+      return;
+    }
+
+    // Shop exists but this owner is not attached to one — attach them so the
+    // switcher, POS and cash register all have a default to fall back on.
+    if (!user.shopId) {
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { shopId: existing.id },
+      });
+      this.logger.warn(
+        `Owner ${user.id} had no shopId — assigned to shop ${existing.id}`,
+      );
+    }
+  }
 
   /**
    * LIST — Owner sees all, Manager/Cashier sees only their assigned shop
    */
   async list(user: AuthenticatedUser) {
+    await this.ensureOwnerHasShop(user);
+
     const where: any = { tenantId: user.tenantId };
 
     if (user.role !== UserRole.OWNER && user.role !== UserRole.SUPER_ADMIN && user.shopId) {
@@ -312,7 +392,15 @@ export class ShopsService {
       where: { id, tenantId: user.tenantId },
       include: {
         _count: {
-          select: { sales: true, users: true, shopStocks: true, cashRegisters: true },
+          select: {
+            sales: true,
+            users: true,
+            shopStocks: true,
+            cashRegisters: true,
+            purchases: true,
+            expenses: true,
+            customerLedgers: true,
+          },
         },
       },
     });
@@ -360,7 +448,10 @@ export class ShopsService {
           },
         });
 
-        // 8. Finally delete the shop
+        // 8. Finally delete the shop.
+        // Purchases, expenses, khata entries, stock movements and adjustments
+        // are ON DELETE SET NULL — the money trail survives as untagged
+        // history rather than disappearing with the branch.
         await tx.shop.delete({ where: { id } });
 
         await tx.activityLog.create({
@@ -388,14 +479,29 @@ export class ShopsService {
       });
     }
 
-    // Safety: block delete if sales exist
-    if (shop._count.sales > 0) {
+    // Safety: block delete while any financial history points at this branch.
+    // Sales alone used to be checked, so a branch holding only purchases,
+    // expenses or khata entries could be deleted and quietly orphan them.
+    const history =
+      shop._count.sales +
+      shop._count.purchases +
+      shop._count.expenses +
+      shop._count.customerLedgers;
+
+    if (history > 0) {
       throw new BadRequestException({
-        message: `${shop.name} mein ${shop._count.sales} sales hain. Delete nahi kar sakte.`,
-        code: 'HAS_SALES_HISTORY',
+        message:
+          `${shop.name} ka hisab mojood hai (${shop._count.sales} sales, ` +
+          `${shop._count.purchases} purchases, ${shop._count.expenses} kharche, ` +
+          `${shop._count.customerLedgers} khata entries). Delete nahi kar sakte — ` +
+          `deactivate karein taake record mehfooz rahe.`,
+        code: 'HAS_FINANCIAL_HISTORY',
         suggestion: 'DEACTIVATE',
         stats: {
           sales: shop._count.sales,
+          purchases: shop._count.purchases,
+          expenses: shop._count.expenses,
+          ledgerEntries: shop._count.customerLedgers,
           users: shop._count.users,
           products: shop._count.shopStocks,
           registers: shop._count.cashRegisters,
@@ -467,7 +573,13 @@ export class ShopsService {
   /**
    * OVERVIEW — Owner sees stats across all shops
    */
-  async overview(user: AuthenticatedUser) {
+  /**
+   * ANALYTICS — every branch side by side, plus the tenant-wide roll-up.
+   *
+   * This is what the owner's "All Shops" view is built on: who is selling most,
+   * who is sitting on udhaar, whose register is still shut.
+   */
+  async analytics(user: AuthenticatedUser) {
     if (user.role !== UserRole.OWNER && user.role !== UserRole.SUPER_ADMIN) {
       throw new ForbiddenException('Sirf Owner overview dekh sakta hai');
     }
@@ -484,10 +596,18 @@ export class ShopsService {
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const weekAgo = new Date(today);
+    weekAgo.setDate(weekAgo.getDate() - 6);
+    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
 
     const enriched = await Promise.all(
       shops.map(async (shop) => {
-        const [todayAgg, monthAgg, lowStockCount, openRegister, totalStock] = await Promise.all([
+        const [
+          todayAgg, monthAgg, lowStockCount, openRegister, totalStock,
+          yesterdayAgg, weekAgg, expenseToday, expenseMonth, creditAgg, staffCount,
+        ] = await Promise.all([
           this.prisma.sale.aggregate({
             where: {
               tenantId: user.tenantId,
@@ -522,12 +642,64 @@ export class ShopsService {
             where: { shopId: shop.id, isActive: true },
             _sum: { stock: true },
           }),
+
+          // ── Comparison + branch-health figures ──
+          this.prisma.sale.aggregate({
+            where: {
+              tenantId: user.tenantId,
+              shopId: shop.id,
+              status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
+              soldAt: { gte: yesterday, lt: today },
+            },
+            _sum: { total: true },
+          }),
+          this.prisma.sale.aggregate({
+            where: {
+              tenantId: user.tenantId,
+              shopId: shop.id,
+              status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
+              soldAt: { gte: weekAgo },
+            },
+            _sum: { total: true, costOfGoods: true },
+            _count: { _all: true },
+          }),
+          this.prisma.expense.aggregate({
+            where: {
+              tenantId: user.tenantId,
+              shopId: shop.id,
+              status: 'PAID',
+              expenseDate: { gte: today },
+            },
+            _sum: { amount: true },
+          }),
+          this.prisma.expense.aggregate({
+            where: {
+              tenantId: user.tenantId,
+              shopId: shop.id,
+              status: 'PAID',
+              expenseDate: { gte: monthStart },
+            },
+            _sum: { amount: true },
+          }),
+          // Is branch ne jo udhaar diya, uska baqi — khata ki jaan
+          this.prisma.customerLedger.aggregate({
+            where: { tenantId: user.tenantId, shopId: shop.id },
+            _sum: { amount: true },
+          }),
+          this.prisma.staff.count({
+            where: { tenantId: user.tenantId, shopId: shop.id, status: 'ACTIVE' },
+          }),
         ]);
 
         const todaySales = todayAgg._sum.total ?? 0;
         const todayCogs = todayAgg._sum.costOfGoods ?? 0;
         const monthSales = monthAgg._sum.total ?? 0;
         const monthCogs = monthAgg._sum.costOfGoods ?? 0;
+        const yesterdaySales = yesterdayAgg._sum.total ?? 0;
+        const weekSales = weekAgg._sum.total ?? 0;
+        const weekCogs = weekAgg._sum.costOfGoods ?? 0;
+        const todayExpenses = expenseToday._sum.amount ?? 0;
+        const monthExpenses = expenseMonth._sum.amount ?? 0;
 
         return {
           ...shop,
@@ -544,10 +716,96 @@ export class ShopsService {
           registerBalance: openRegister?.expectedBalance ?? 0,
           registerOpening: openRegister?.openingBalance ?? 0,
           registerOpenedAt: openRegister?.openedAt ?? null,
+
+          // ── Comparison ──
+          yesterdaySales,
+          /** Kal ke muqable kitne % upar/neeche */
+          growthVsYesterday:
+            yesterdaySales > 0
+              ? ((todaySales - yesterdaySales) / yesterdaySales) * 100
+              : todaySales > 0
+                ? 100
+                : 0,
+          weekSales,
+          weekProfit: weekSales - weekCogs,
+          weekOrders: weekAgg._count._all ?? 0,
+          avgOrderValue:
+            (weekAgg._count._all ?? 0) > 0 ? weekSales / weekAgg._count._all : 0,
+
+          // ── Branch health ──
+          todayExpenses,
+          monthExpenses,
+          /** Aaj ka asli bacha hua paisa: sales − cost − kharche */
+          todayNetProfit: todaySales - todayCogs - todayExpenses,
+          monthNetProfit: monthSales - monthCogs - monthExpenses,
+          /** Is branch ka diya hua udhaar jo abhi baqi hai */
+          outstandingCredit: Math.max(Number(creditAgg._sum.amount ?? 0), 0),
+          staffCount,
         };
       }),
     );
 
-    return enriched;
+    // Tenant-wide roll-up so the UI doesn't have to re-add it, plus each
+    // branch's share of the month — that is what makes the All Shops view
+    // answer "kaun si branch chal rahi hai".
+    const totals = enriched.reduce(
+      (a, s) => ({
+        todaySales: a.todaySales + s.todaySales,
+        todayOrders: a.todayOrders + s.todayOrders,
+        todayNetProfit: a.todayNetProfit + s.todayNetProfit,
+        todayExpenses: a.todayExpenses + s.todayExpenses,
+        monthSales: a.monthSales + s.monthSales,
+        monthNetProfit: a.monthNetProfit + s.monthNetProfit,
+        outstandingCredit: a.outstandingCredit + s.outstandingCredit,
+        lowStockCount: a.lowStockCount + s.lowStockCount,
+        totalStock: a.totalStock + s.totalStock,
+        registersOpen: a.registersOpen + (s.registerOpen ? 1 : 0),
+        staffCount: a.staffCount + s.staffCount,
+      }),
+      {
+        todaySales: 0, todayOrders: 0, todayNetProfit: 0, todayExpenses: 0,
+        monthSales: 0, monthNetProfit: 0, outstandingCredit: 0,
+        lowStockCount: 0, totalStock: 0, registersOpen: 0, staffCount: 0,
+      },
+    );
+
+    const withShare = enriched
+      .map((s) => ({
+        ...s,
+        monthShare: totals.monthSales > 0 ? (s.monthSales / totals.monthSales) * 100 : 0,
+      }))
+      .sort((a, b) => b.monthSales - a.monthSales);
+
+    const ranked = withShare.map((s, i) => ({ ...s, rank: i + 1 }));
+
+    return {
+      shops: ranked,
+      totals: { ...totals, shopCount: ranked.length },
+      best: ranked[0] ?? null,
+      /** Jin par fauran tawajjo chahiye */
+      needsAttention: ranked
+        .filter((s) => s.lowStockCount > 0 || s.outstandingCredit > 0 || (!s.registerOpen && s.type === 'SHOP'))
+        .map((s) => ({
+          shopId: s.id,
+          name: s.name,
+          reasons: [
+            s.lowStockCount > 0 ? `${s.lowStockCount} items low stock` : null,
+            s.outstandingCredit > 0 ? `Rs ${Math.round(s.outstandingCredit)} udhaar baqi` : null,
+            !s.registerOpen && s.type === 'SHOP' ? 'Register band hai' : null,
+          ].filter((r): r is string => r !== null),
+        })),
+    };
+  }
+
+  /**
+   * OVERVIEW — per-branch rows only.
+   *
+   * Kept as a plain array because the Shops and Shops-Overview pages already
+   * render it that way; the roll-up lives at `analytics()` instead of changing
+   * this shape out from under them. The extra per-shop fields are additive.
+   */
+  async overview(user: AuthenticatedUser) {
+    const { shops } = await this.analytics(user);
+    return shops;
   }
 }

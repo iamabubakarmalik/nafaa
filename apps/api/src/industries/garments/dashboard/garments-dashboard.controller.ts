@@ -4,6 +4,7 @@ import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { GarmentsDashboardService } from './garments-dashboard.service';
+import { ShopIdParam } from '../../../common/shop-scope';
 
 @ApiTags('Garments - Dashboard')
 @ApiBearerAuth()
@@ -12,5 +13,5 @@ import { GarmentsDashboardService } from './garments-dashboard.service';
 export class GarmentsDashboardController {
   constructor(private readonly service: GarmentsDashboardService) {}
 
-  @Get('overview') overview(@GetUser() user: AuthenticatedUser, @Query('shopId') shopId?: string) { return this.service.overview(user, shopId); }
+  @Get('overview') overview(@GetUser() user: AuthenticatedUser, @ShopIdParam() shopId?: string) { return this.service.overview(user, shopId); }
 }

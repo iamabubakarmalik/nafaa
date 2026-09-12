@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
+import { ShopIdParam } from '../../../common/shop-scope';
 import { StockReportService } from './stock-report.service';
 
 @ApiTags('Stock Report')
@@ -19,13 +20,14 @@ export class StockReportController {
     @Query('brandId') brandId?: string,
     @Query('stockStatus') stockStatus?: 'all' | 'in' | 'low' | 'out',
     @Query('isActive') isActive?: string,
-    @Query('shopId') shopId?: string,
+    @ShopIdParam() shopId?: string,
   ) {
     return this.service.generate(user, {
       categoryId,
       brandId,
       stockStatus,
       isActive: isActive === undefined ? undefined : isActive === 'true',
+      // Explicit ?shopId= wins for drill-downs; otherwise the active branch.
       shopId,
     });
   }

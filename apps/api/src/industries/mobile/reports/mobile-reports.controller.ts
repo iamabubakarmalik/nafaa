@@ -4,6 +4,7 @@ import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { MobileReportsService } from './mobile-reports.service';
+import { ShopIdParam } from '../../../common/shop-scope';
 
 @ApiTags('Mobile Reports')
 @ApiBearerAuth()
@@ -15,7 +16,7 @@ export class MobileReportsController {
   @Get('dashboard')
   dashboard(
     @GetUser() user: AuthenticatedUser,
-    @Query('shopId') shopId?: string,
+    @ShopIdParam() shopId?: string,
   ) {
     return this.service.dashboard(user, shopId);
   }
@@ -26,7 +27,7 @@ export class MobileReportsController {
     @GetUser() user: AuthenticatedUser,
     @Query('from') from?: string,
     @Query('to') to?: string,
-    @Query('shopId') shopId?: string,
+    @ShopIdParam() shopId?: string,
   ) {
     return this.service.profitBySource(user, { from, to, shopId });
   }
@@ -35,7 +36,7 @@ export class MobileReportsController {
   @Get('low-stock')
   lowStock(
     @GetUser() user: AuthenticatedUser,
-    @Query('shopId') shopId?: string,
+    @ShopIdParam() shopId?: string,
   ) {
     return this.service.lowStock(user, shopId);
   }
@@ -44,7 +45,7 @@ export class MobileReportsController {
   @Get('stock-aging')
   stockAging(
     @GetUser() user: AuthenticatedUser,
-    @Query('shopId') shopId?: string,
+    @ShopIdParam() shopId?: string,
   ) {
     return this.service.stockAging(user, shopId);
   }

@@ -9,6 +9,7 @@ import { CarpetCutPiecesService } from './carpet-cut-pieces.service';
 import { CreateCutPieceDto } from './dto/create-cut-piece.dto';
 import { UpdateCutPieceDto } from './dto/update-cut-piece.dto';
 import { QueryCutPiecesDto } from './dto/query-cut-pieces.dto';
+import { ShopIdParam } from '../../../common/shop-scope';
 
 @ApiTags('Carpet Cut Pieces')
 @ApiBearerAuth()
@@ -30,7 +31,7 @@ export class CarpetCutPiecesController {
   @Get('available')
   available(
     @GetUser() user: AuthenticatedUser,
-    @Query('shopId') shopId?: string,
+    @ShopIdParam() shopId?: string,
   ) {
     return this.service.available(user, shopId);
   }

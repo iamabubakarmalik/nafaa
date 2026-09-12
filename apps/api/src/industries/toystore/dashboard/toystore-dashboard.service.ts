@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { ShopScope } from '../../../common/shop-scope';
 
 function daysUntilNextBirthday(birthDate: Date, from = new Date()): number {
   const today = new Date(from.getFullYear(), from.getMonth(), from.getDate());
@@ -139,13 +140,18 @@ export class ToystoreDashboardService {
     };
   }
 
-  async salesReport(user: AuthenticatedUser, from: string, to: string) {
+  async salesReport(
+    user: AuthenticatedUser,
+    scope: ShopScope,
+    from: string,
+    to: string,
+  ) {
     const start = new Date(from);
     const end = new Date(to);
 
     // Sales come from the core sale tables; here we aggregate toy-profile products sold
     const sales = await this.prisma.sale.findMany({
-      where: { tenantId: user.tenantId, soldAt: { gte: start, lte: end } },
+      where: { tenantId: user.tenantId, ...scope.where, soldAt: { gte: start, lte: end } },
       include: { items: { include: { product: true } } },
       take: 2000,
     });

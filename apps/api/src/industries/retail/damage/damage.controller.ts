@@ -8,6 +8,7 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 import { DamageService } from './damage.service';
 import { CreateDamageDto } from './dto/create-damage.dto';
 import { ApproveDamageDto, RejectDamageDto } from './dto/approve-damage.dto';
+import { ShopIdParam } from '../../../common/shop-scope';
 
 @ApiTags('Retail - Damage Tracking')
 @ApiBearerAuth()
@@ -25,7 +26,7 @@ export class DamageController {
   findAll(
     @GetUser() user: AuthenticatedUser,
     @Query('status') status?: string,
-    @Query('shopId') shopId?: string,
+    @ShopIdParam() shopId?: string,
     @Query('reasonCode') reasonCode?: string,
     @Query('from') from?: string,
     @Query('to') to?: string,

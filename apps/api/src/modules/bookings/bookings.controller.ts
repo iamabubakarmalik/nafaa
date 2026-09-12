@@ -8,6 +8,7 @@ import { CreateBookingDto } from './dto/create-booking.dto';
 import { AddBookingPaymentDto } from './dto/add-payment.dto';
 import { CancelBookingDto } from './dto/cancel-booking.dto';
 import { ConvertBookingDto } from './dto/convert-booking.dto';
+import { ShopIdParam } from '../../common/shop-scope';
 
 @ApiTags('Bookings')
 @ApiBearerAuth()
@@ -25,7 +26,7 @@ export class BookingsController {
   findAll(
     @GetUser() user: AuthenticatedUser,
     @Query('status') status?: string,
-    @Query('shopId') shopId?: string,
+    @ShopIdParam() shopId?: string,
     @Query('customerId') customerId?: string,
     @Query('search') search?: string,
   ) {
@@ -33,7 +34,7 @@ export class BookingsController {
   }
 
   @Get('summary')
-  summary(@GetUser() user: AuthenticatedUser, @Query('shopId') shopId?: string) {
+  summary(@GetUser() user: AuthenticatedUser, @ShopIdParam() shopId?: string) {
     return this.bookingsService.summary(user, shopId);
   }
 

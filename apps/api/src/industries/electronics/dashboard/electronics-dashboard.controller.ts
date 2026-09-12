@@ -4,6 +4,7 @@ import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { ElectronicsDashboardService } from './electronics-dashboard.service';
+import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 
 @ApiTags('Electronics - Dashboard')
 @ApiBearerAuth()
@@ -12,8 +13,18 @@ import { ElectronicsDashboardService } from './electronics-dashboard.service';
 export class ElectronicsDashboardController {
   constructor(private readonly service: ElectronicsDashboardService) {}
 
-  @Get('overview') overview(@GetUser() user: AuthenticatedUser) { return this.service.overview(user); }
-  @Get('sales-report') sales(@GetUser() user: AuthenticatedUser, @Query('from') from: string, @Query('to') to: string) {
-    return this.service.salesReport(user, from, to);
+  @Get('overview')
+  overview(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope) {
+    return this.service.overview(user, shop);
+  }
+
+  @Get('sales-report')
+  sales(
+    @GetUser() user: AuthenticatedUser,
+    @CurrentShop() shop: ShopScope,
+    @Query('from') from: string,
+    @Query('to') to: string,
+  ) {
+    return this.service.salesReport(user, shop, from, to);
   }
 }

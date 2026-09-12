@@ -5,6 +5,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
+import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 import { CustomersService } from './customers.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
@@ -18,13 +19,21 @@ export class CustomersController {
   constructor(private readonly customersService: CustomersService) {}
 
   @Post()
-  create(@GetUser() user: AuthenticatedUser, @Body() dto: CreateCustomerDto) {
-    return this.customersService.create(user, dto);
+  create(
+    @GetUser() user: AuthenticatedUser,
+    @CurrentShop() shop: ShopScope,
+    @Body() dto: CreateCustomerDto,
+  ) {
+    return this.customersService.create(user, shop, dto);
   }
 
   @Get()
-  findAll(@GetUser() user: AuthenticatedUser, @Query() query: QueryCustomersDto) {
-    return this.customersService.findAll(user, query);
+  findAll(
+    @GetUser() user: AuthenticatedUser,
+    @CurrentShop() shop: ShopScope,
+    @Query() query: QueryCustomersDto,
+  ) {
+    return this.customersService.findAll(user, shop, query);
   }
 
   @Get('stats')
@@ -33,8 +42,12 @@ export class CustomersController {
   }
 
   @Get(':id')
-  findOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {
-    return this.customersService.findOne(user, id);
+  findOne(
+    @GetUser() user: AuthenticatedUser,
+    @CurrentShop() shop: ShopScope,
+    @Param('id') id: string,
+  ) {
+    return this.customersService.findOne(user, shop, id);
   }
 
   @Patch(':id')

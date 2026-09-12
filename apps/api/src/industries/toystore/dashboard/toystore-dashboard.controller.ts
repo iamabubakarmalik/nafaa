@@ -4,6 +4,7 @@ import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { ToystoreDashboardService } from './toystore-dashboard.service';
+import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 
 @ApiTags('Toy Store - Dashboard')
 @ApiBearerAuth()
@@ -14,7 +15,13 @@ export class ToystoreDashboardController {
 
   @Get('overview') overview(@GetUser() user: AuthenticatedUser) { return this.service.overview(user); }
   @Get('age-analytics') age(@GetUser() user: AuthenticatedUser) { return this.service.ageAnalytics(user); }
-  @Get('sales-report') sales(@GetUser() user: AuthenticatedUser, @Query('from') from: string, @Query('to') to: string) {
-    return this.service.salesReport(user, from, to);
+  @Get('sales-report')
+  sales(
+    @GetUser() user: AuthenticatedUser,
+    @CurrentShop() shop: ShopScope,
+    @Query('from') from: string,
+    @Query('to') to: string,
+  ) {
+    return this.service.salesReport(user, shop, from, to);
   }
 }

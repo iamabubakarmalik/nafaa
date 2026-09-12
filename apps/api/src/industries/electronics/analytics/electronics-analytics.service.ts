@@ -47,6 +47,7 @@ export class ElectronicsAnalyticsService {
         },
         select: {
           id: true, discount: true, soldAt: true,
+          serviceCharges: true, serviceChargesBreakdown: true,
           items: {
             select: {
               id: true, quantity: true, costPrice: true, total: true, productId: true,
@@ -81,8 +82,20 @@ export class ElectronicsAnalyticsService {
     const totals = blank();
     let serialUnits = 0;
     let serialRevenue = 0;
+    // Delivery/installation jaisi services — ye item par nahi, poori sale
+    // par lagti hain. Inhe alag gina jata hai warna profit report aur
+    // dashboard do alag numbers dikhate hain.
+    let serviceIncome = 0;
+    let serviceCost = 0;
 
     for (const sale of sales) {
+      serviceIncome += Number(sale.serviceCharges) || 0;
+      for (const sc of (Array.isArray(sale.serviceChargesBreakdown)
+        ? (sale.serviceChargesBreakdown as any[])
+        : [])) {
+        serviceCost += Number(sc?.cost) || 0;
+      }
+
       // Sale-level discount har line par uske hisse ke mutabiq
       const lineSum = sale.items.reduce((s, i) => s + Number(i.total), 0);
       const discount = Number(sale.discount) || 0;
@@ -139,7 +152,22 @@ export class ElectronicsAnalyticsService {
 
     return {
       range: { from: gte.toISOString(), to: lte.toISOString() },
-      totals: { ...withMargin(totals), salesCount: sales.length },
+      totals: {
+        ...withMargin({
+          ...totals,
+          // Service income bhi bikri aur munafe ka hissa hai
+          revenue: totals.revenue + serviceIncome,
+          cost: totals.cost + serviceCost,
+          profit: totals.profit + serviceIncome - serviceCost,
+        }),
+        salesCount: sales.length,
+      },
+      /** Delivery waghera se alag kamai — product ke munafe se mila kar na parhein */
+      services: {
+        income: serviceIncome,
+        cost: serviceCost,
+        profit: serviceIncome - serviceCost,
+      },
       byCategory: [...byCategory.entries()]
         .map(([categoryType, b]) => ({ categoryType, ...withMargin(b) }))
         .sort((a, b) => b.profit - a.profit),

@@ -137,6 +137,10 @@ async function bootstrap() {
       'Accept',
       'Origin',
       'X-Tenant-Id',
+      // Active branch. This is an allow-list, so a header missing from it fails
+      // the browser's preflight and every request is blocked client-side — the
+      // app then silently falls back to its offline cache and looks empty.
+      'X-Shop-Id',
     ],
     exposedHeaders: ['Content-Disposition'], // For file downloads
     maxAge: 86400, // 24 hours — cache preflight

@@ -4,6 +4,7 @@ import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { RetailDashboardService } from './retail-dashboard.service';
+import { ShopIdParam } from '../../../common/shop-scope';
 
 @ApiTags('Retail - Dashboard')
 @ApiBearerAuth()
@@ -13,12 +14,12 @@ export class RetailDashboardController {
   constructor(private readonly service: RetailDashboardService) {}
 
   @Get('overview')
-  overview(@GetUser() user: AuthenticatedUser, @Query('shopId') shopId?: string) {
+  overview(@GetUser() user: AuthenticatedUser, @ShopIdParam() shopId?: string) {
     return this.service.overview(user, shopId);
   }
 
   @Get('sales-by-hour')
-  salesByHour(@GetUser() user: AuthenticatedUser, @Query('shopId') shopId?: string) {
+  salesByHour(@GetUser() user: AuthenticatedUser, @ShopIdParam() shopId?: string) {
     return this.service.salesByHour(user, shopId);
   }
 

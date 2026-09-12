@@ -3,6 +3,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
+import { ShopScope, resolveWriteShopId } from '../../../common/shop-scope';
 import { OpenRegisterDto } from './dto/open-register.dto';
 import { CloseRegisterDto } from './dto/close-register.dto';
 import { CashTransactionDto } from './dto/cash-transaction.dto';
@@ -11,12 +12,12 @@ import { CashTransactionDto } from './dto/cash-transaction.dto';
 export class CashRegisterService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getCurrent(user: AuthenticatedUser, shopId?: string) {
+  async getCurrent(user: AuthenticatedUser, scope: ShopScope) {
     return this.prisma.cashRegister.findFirst({
       where: {
         tenantId: user.tenantId,
         status: 'OPEN',
-        ...(shopId && { shopId }),
+        ...scope.where,
       },
       include: {
         openedBy: { select: { id: true, fullName: true } },
@@ -26,15 +27,22 @@ export class CashRegisterService {
     });
   }
 
-  async open(user: AuthenticatedUser, dto: OpenRegisterDto) {
+  async open(user: AuthenticatedUser, scope: ShopScope, dto: OpenRegisterDto) {
+    const shopId = await resolveWriteShopId(
+      this.prisma,
+      user.tenantId,
+      scope,
+      dto.shopId,
+    );
+
     const shop = await this.prisma.shop.findFirst({
-      where: { id: dto.shopId, tenantId: user.tenantId, isActive: true },
+      where: { id: shopId, tenantId: user.tenantId, isActive: true },
     });
     if (!shop) throw new NotFoundException('Shop not found or inactive');
 
     // Check if this shop already has an open register
     const existing = await this.prisma.cashRegister.findFirst({
-      where: { tenantId: user.tenantId, shopId: dto.shopId, status: 'OPEN' },
+      where: { tenantId: user.tenantId, shopId, status: 'OPEN' },
     });
     if (existing) {
       throw new BadRequestException(
@@ -48,7 +56,7 @@ export class CashRegisterService {
       const register = await tx.cashRegister.create({
         data: {
           tenantId: user.tenantId,
-          shopId: dto.shopId,
+          shopId,
           openedById: user.id,
           registerNumber,
           openingBalance: dto.openingBalance,
@@ -74,12 +82,16 @@ export class CashRegisterService {
     });
   }
 
-  async addTransaction(user: AuthenticatedUser, dto: CashTransactionDto, shopId?: string) {
+  async addTransaction(
+    user: AuthenticatedUser,
+    scope: ShopScope,
+    dto: CashTransactionDto,
+  ) {
     const register = await this.prisma.cashRegister.findFirst({
       where: {
         tenantId: user.tenantId,
         status: 'OPEN',
-        ...(shopId && { shopId }),
+        ...scope.where,
       },
     });
     if (!register) throw new BadRequestException('Koi register open nahi hai');
@@ -111,12 +123,12 @@ export class CashRegisterService {
     });
   }
 
-  async close(user: AuthenticatedUser, dto: CloseRegisterDto, shopId?: string) {
+  async close(user: AuthenticatedUser, scope: ShopScope, dto: CloseRegisterDto) {
     const register = await this.prisma.cashRegister.findFirst({
       where: {
         tenantId: user.tenantId,
         status: 'OPEN',
-        ...(shopId && { shopId }),
+        ...scope.where,
       },
     });
     if (!register) throw new BadRequestException('Koi register open nahi hai');
@@ -183,9 +195,9 @@ export class CashRegisterService {
     });
   }
 
-  async history(user: AuthenticatedUser, shopId?: string) {
+  async history(user: AuthenticatedUser, scope: ShopScope) {
     return this.prisma.cashRegister.findMany({
-      where: { tenantId: user.tenantId, ...(shopId && { shopId }) },
+      where: { tenantId: user.tenantId, ...scope.where },
       orderBy: { openedAt: 'desc' },
       take: 30,
       include: {

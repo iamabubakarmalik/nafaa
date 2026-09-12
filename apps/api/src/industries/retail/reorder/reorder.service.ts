@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { subDays } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { ShopScope } from '../../../common/shop-scope';
 
 @Injectable()
 export class ReorderService {
@@ -11,7 +12,7 @@ export class ReorderService {
    * Analyze sales history and generate reorder suggestions
    * Formula: If daysOfStock < 7 days AND product actively sold, suggest reorder
    */
-  async generateSuggestions(user: AuthenticatedUser) {
+  async generateSuggestions(user: AuthenticatedUser, scope: ShopScope) {
     const thirtyDaysAgo = subDays(new Date(), 30);
 
     // Get sales per product in last 30 days
@@ -20,6 +21,8 @@ export class ReorderService {
       where: {
         sale: {
           tenantId: user.tenantId,
+          // Reorder advice is per branch: a shop restocks what *it* sells.
+          ...scope.where,
           status: 'COMPLETED',
           soldAt: { gte: thirtyDaysAgo },
         },

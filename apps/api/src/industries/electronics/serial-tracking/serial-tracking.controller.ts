@@ -5,6 +5,7 @@ import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { SerialTrackingService } from './serial-tracking.service';
 import { BulkCreateSerialDto, SellSerialDto, UpsertSerialDto } from './dto/upsert-serial.dto';
+import { ShopIdParam } from '../../../common/shop-scope';
 
 @ApiTags('Electronics - Serial Tracking')
 @ApiBearerAuth()
@@ -15,7 +16,7 @@ export class SerialTrackingController {
 
   @Post() create(@GetUser() user: AuthenticatedUser, @Body() dto: UpsertSerialDto) { return this.service.create(user, dto); }
   @Post('bulk') bulk(@GetUser() user: AuthenticatedUser, @Body() dto: BulkCreateSerialDto) { return this.service.bulkCreate(user, dto); }
-  @Get() list(@GetUser() user: AuthenticatedUser, @Query('productId') productId?: string, @Query('status') status?: string, @Query('imei') imei?: string, @Query('search') search?: string, @Query('shopId') shopId?: string) {
+  @Get() list(@GetUser() user: AuthenticatedUser, @Query('productId') productId?: string, @Query('status') status?: string, @Query('imei') imei?: string, @Query('search') search?: string, @ShopIdParam() shopId?: string) {
     return this.service.list(user, { productId, status, imei, search, shopId });
   }
   @Get('lookup/:code') lookup(@GetUser() user: AuthenticatedUser, @Param('code') code: string) { return this.service.lookupBySerialOrImei(user, code); }

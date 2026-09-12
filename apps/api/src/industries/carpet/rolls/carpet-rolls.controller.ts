@@ -11,6 +11,7 @@ import { UpdateCarpetRollDto } from './dto/update-carpet-roll.dto';
 import { QueryRollsDto } from './dto/query-rolls.dto';
 import { CutRollDto } from './dto/cut-roll.dto';
 import { AdjustRollDto } from './dto/adjust-roll.dto';
+import { ShopIdParam } from '../../../common/shop-scope';
 
 @ApiTags('Carpet Rolls')
 @ApiBearerAuth()
@@ -66,7 +67,7 @@ export class CarpetRollsController {
   @Get('summary')
   summary(
     @GetUser() user: AuthenticatedUser,
-    @Query('shopId') shopId?: string,
+    @ShopIdParam() shopId?: string,
   ) {
     return this.service.summary(user, shopId);
   }

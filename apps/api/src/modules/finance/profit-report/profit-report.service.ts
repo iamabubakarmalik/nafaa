@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
+import { ShopScope } from '../../../common/shop-scope';
 
 export type ProfitPeriod = 'today' | 'week' | 'month' | 'quarter' | 'year' | 'all';
 export type ProfitSortBy = 'profit' | 'margin' | 'revenue' | 'quantity';
@@ -98,13 +99,19 @@ export class ProfitReportService {
     }
   }
 
-  async byProduct(user: AuthenticatedUser, filters?: ProfitFilters): Promise<ProductProfitRow[]> {
+  async byProduct(
+    user: AuthenticatedUser,
+    scope: ShopScope,
+    filters?: ProfitFilters,
+  ): Promise<ProductProfitRow[]> {
     const dateRange = this.getDateRange(filters);
 
     const items = await this.prisma.saleItem.findMany({
       where: {
         sale: {
           tenantId: user.tenantId,
+          // Profit follows the sale, so narrowing the sale narrows the report.
+          ...scope.where,
           status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
           ...(dateRange.gte || dateRange.lte
             ? {
@@ -265,8 +272,12 @@ export class ProfitReportService {
     return result;
   }
 
-  async summary(user: AuthenticatedUser, filters?: ProfitFilters) {
-    const products = await this.byProduct(user, filters);
+  async summary(
+    user: AuthenticatedUser,
+    scope: ShopScope,
+    filters?: ProfitFilters,
+  ) {
+    const products = await this.byProduct(user, scope, filters);
 
     const totalRevenue = products.reduce((s, p) => s + p.revenue, 0);
     const totalCost = products.reduce((s, p) => s + p.cost, 0);

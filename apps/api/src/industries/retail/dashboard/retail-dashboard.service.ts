@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { startOfDay, subDays } from 'date-fns';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 
@@ -8,6 +9,13 @@ export class RetailDashboardService {
   constructor(private readonly prisma: PrismaService) {}
 
   async overview(user: AuthenticatedUser, shopId?: string) {
+    // `Prisma.sql` / `Prisma.empty`, never a plain nested template string: a
+    // nested `${...}` inside $queryRaw becomes a bound parameter, so the SQL
+    // ends up with a stray placeholder where the AND clause should be.
+    const shopFilter = shopId
+      ? Prisma.sql`AND s."shopId" = ${shopId}`
+      : Prisma.empty;
+
     const todayStart = startOfDay(new Date());
     const yesterdayStart = startOfDay(subDays(new Date(), 1));
     const weekAgo = startOfDay(subDays(new Date(), 7));
@@ -80,7 +88,7 @@ export class RetailDashboardService {
         WHERE s."tenantId" = ${user.tenantId}
           AND s.status = 'COMPLETED'
           AND s."soldAt" >= ${weekAgo}
-          ${shopId ? `AND s."shopId" = '${shopId}'` : ''}
+          ${shopFilter}
         GROUP BY c.id, c.name
         ORDER BY total DESC
         LIMIT 8

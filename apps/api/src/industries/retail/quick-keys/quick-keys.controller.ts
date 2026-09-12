@@ -7,6 +7,7 @@ import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { QuickKeysService } from './quick-keys.service';
 import { UpsertQuickKeyDto } from './dto/upsert-quick-key.dto';
+import { ShopIdParam } from '../../../common/shop-scope';
 
 @ApiTags('Retail - Quick Keys')
 @ApiBearerAuth()
@@ -16,7 +17,7 @@ export class QuickKeysController {
   constructor(private readonly service: QuickKeysService) {}
 
   @Get()
-  list(@GetUser() user: AuthenticatedUser, @Query('shopId') shopId?: string) {
+  list(@GetUser() user: AuthenticatedUser, @ShopIdParam() shopId?: string) {
     return this.service.list(user, shopId);
   }
 

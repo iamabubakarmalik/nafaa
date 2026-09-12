@@ -4,6 +4,7 @@ import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { ReorderService } from './reorder.service';
+import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 
 @ApiTags('Retail - Reorder Suggestions')
 @ApiBearerAuth()
@@ -13,8 +14,8 @@ export class ReorderController {
   constructor(private readonly service: ReorderService) {}
 
   @Post('generate')
-  generate(@GetUser() user: AuthenticatedUser) {
-    return this.service.generateSuggestions(user);
+  generate(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope) {
+    return this.service.generateSuggestions(user, shop);
   }
 
   @Get()

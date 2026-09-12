@@ -6,6 +6,7 @@ import {
 import { FbrService } from '../../../integrations/fbr/fbr.service';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
+import { ShopScope, applyStockDelta } from '../../../common/shop-scope';
 import { CreateReturnDto } from './dto/create-return.dto';
 import { NotificationsService } from '../../notifications/notifications.service';
 
@@ -172,9 +173,9 @@ export class ReturnsService {
   // CREATE RETURN
   // ════════════════════════════════════════════════════════
 
-  async create(user: AuthenticatedUser, dto: CreateReturnDto) {
+  async create(user: AuthenticatedUser, scope: ShopScope, dto: CreateReturnDto) {
     const sale = await this.prisma.sale.findFirst({
-      where: { id: dto.saleId, tenantId: user.tenantId },
+      where: { id: dto.saleId, tenantId: user.tenantId, ...scope.where },
       include: {
         items: { include: { product: true, variantLink: true } },
         customer: true,
@@ -182,6 +183,11 @@ export class ReturnsService {
     });
 
     if (!sale) throw new NotFoundException('Sale not found');
+    if (!sale.shopId) {
+      throw new BadRequestException(
+        'Is sale par koi shop darj nahi — return safely process nahi ho sakta',
+      );
+    }
     if (sale.status === 'VOIDED') throw new BadRequestException('Sale is voided');
     if (sale.status === 'FULLY_RETURNED') {
       throw new BadRequestException('Already fully returned');
@@ -234,6 +240,8 @@ export class ReturnsService {
       const created = await tx.saleReturn.create({
         data: {
           tenantId: user.tenantId,
+          // Goods come back to the counter that sold them.
+          shopId: sale.shopId,
           saleId: sale.id,
           createdById: user.id,
           returnNumber,
@@ -385,58 +393,20 @@ export class ReturnsService {
           continue;
         }
 
-        // ─── STANDARD PATH — restore product stock ───────────
-        const product = await tx.product.update({
-          where: { id: item.productId },
-          data: { stock: { increment: item.quantity } },
-        });
-
-        // Restore ShopStock if sale had shop
-        if (sale.shopId) {
-          const existingShopStock = await tx.shopStock.findFirst({
-            where: {
-              shopId: sale.shopId,
-              productId: item.productId,
-              variantId: item.variantId,
-            },
-          });
-          if (existingShopStock) {
-            await tx.shopStock.update({
-              where: { id: existingShopStock.id },
-              data: { stock: { increment: item.quantity } },
-            });
-          } else {
-            await tx.shopStock.create({
-              data: {
-                tenantId: user.tenantId,
-                shopId: sale.shopId,
-                productId: item.productId,
-                variantId: item.variantId,
-                stock: item.quantity,
-                isActive: true,
-              },
-            });
-          }
-        }
-
-        // Restore variant stock if applicable
-        if (item.variantId) {
-          await tx.productVariant.update({
-            where: { id: item.variantId },
-            data: { stock: { increment: item.quantity } },
-          });
-        }
-
-        await tx.stockMovement.create({
-          data: {
-            tenantId: user.tenantId,
-            productId: item.productId,
-            type: 'RETURN_IN',
-            quantity: item.quantity,
-            balanceAfter: product.stock,
-            reference: returnNumber,
-            note: 'Sale return',
-          },
+        // ─── STANDARD PATH — restore branch stock ────────────
+        // applyStockDelta puts the units back on the selling branch's shelf and
+        // re-derives Product.stock / ProductVariant.stock from every branch, so
+        // the global totals can never drift away from the branch rows.
+        await applyStockDelta({
+          tx,
+          tenantId: user.tenantId,
+          shopId: sale.shopId!,
+          productId: item.productId,
+          variantId: item.variantId,
+          delta: item.quantity,
+          movementType: 'RETURN_IN',
+          reference: returnNumber,
+          note: 'Sale return',
         });
       }
 
@@ -537,15 +507,16 @@ export class ReturnsService {
   // LIST + DETAIL
   // ════════════════════════════════════════════════════════
 
-  list(user: AuthenticatedUser) {
+  list(user: AuthenticatedUser, scope: ShopScope) {
     return this.prisma.saleReturn.findMany({
-      where: { tenantId: user.tenantId },
+      where: { tenantId: user.tenantId, ...scope.whereLoose },
       orderBy: { returnedAt: 'desc' },
       take: 50,
       include: {
         sale: { include: { customer: true } },
         createdBy: { select: { id: true, fullName: true } },
         items: { include: { product: true } },
+        shop: { select: { id: true, name: true, isMain: true } },
       },
     });
   }

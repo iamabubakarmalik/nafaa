@@ -4,6 +4,7 @@ import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { CarpetReportsService } from './carpet-reports.service';
+import { ShopIdParam } from '../../../common/shop-scope';
 
 @ApiTags('Carpet Reports')
 @ApiBearerAuth()
@@ -15,7 +16,7 @@ export class CarpetReportsController {
   @Get('overview')
   overview(
     @GetUser() user: AuthenticatedUser,
-    @Query('shopId') shopId?: string,
+    @ShopIdParam() shopId?: string,
   ) {
     return this.service.overview(user, shopId);
   }
@@ -23,7 +24,7 @@ export class CarpetReportsController {
   @Get('roll-profit')
   rollProfit(
     @GetUser() user: AuthenticatedUser,
-    @Query('shopId') shopId?: string,
+    @ShopIdParam() shopId?: string,
   ) {
     return this.service.rollProfitReport(user, shopId);
   }
@@ -32,7 +33,7 @@ export class CarpetReportsController {
   slowMoving(
     @GetUser() user: AuthenticatedUser,
     @Query('days') days?: string,
-    @Query('shopId') shopId?: string,
+    @ShopIdParam() shopId?: string,
   ) {
     return this.service.slowMovingRolls(user, days ? Number(days) : 30, shopId);
   }
@@ -40,7 +41,7 @@ export class CarpetReportsController {
   @Get('todays-cuts')
   todaysCuts(
     @GetUser() user: AuthenticatedUser,
-    @Query('shopId') shopId?: string,
+    @ShopIdParam() shopId?: string,
   ) {
     return this.service.todaysCuts(user, shopId);
   }
@@ -49,7 +50,7 @@ export class CarpetReportsController {
   topDesigns(
     @GetUser() user: AuthenticatedUser,
     @Query('days') days?: string,
-    @Query('shopId') shopId?: string,
+    @ShopIdParam() shopId?: string,
   ) {
     return this.service.topSellingDesigns(
       user,
@@ -61,7 +62,7 @@ export class CarpetReportsController {
   @Get('cut-pieces')
   cutPiecesReport(
     @GetUser() user: AuthenticatedUser,
-    @Query('shopId') shopId?: string,
+    @ShopIdParam() shopId?: string,
   ) {
     return this.service.cutPiecesReport(user, shopId);
   }

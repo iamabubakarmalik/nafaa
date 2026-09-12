@@ -2,13 +2,27 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { startOfDay, startOfMonth } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
+import { ShopScope, resolveWriteShopId } from '../../../common/shop-scope';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 
 @Injectable()
 export class ExpensesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(user: AuthenticatedUser, dto: CreateExpenseDto) {
+  async create(
+    user: AuthenticatedUser,
+    scope: ShopScope,
+    dto: CreateExpenseDto,
+  ) {
+    // An expense is always somebody's branch expense — rent, bills, salaries
+    // all belong to a location, never to "all shops".
+    const shopId = await resolveWriteShopId(
+      this.prisma,
+      user.tenantId,
+      scope,
+      (dto as any).shopId,
+    );
+
     if (dto.categoryId) {
       const cat = await this.prisma.expenseCategory.findFirst({
         where: { id: dto.categoryId, tenantId: user.tenantId },
@@ -21,6 +35,7 @@ export class ExpensesService {
     return this.prisma.expense.create({
       data: {
         tenantId: user.tenantId,
+        shopId,
         createdById: user.id,
         categoryId: dto.categoryId,
         expenseNumber,
@@ -34,18 +49,21 @@ export class ExpensesService {
     });
   }
 
-  findAll(user: AuthenticatedUser) {
+  findAll(user: AuthenticatedUser, scope: ShopScope) {
     return this.prisma.expense.findMany({
-      where: { tenantId: user.tenantId },
-      include: { category: true },
+      where: { tenantId: user.tenantId, ...scope.where },
+      include: {
+        category: true,
+        shop: { select: { id: true, name: true, isMain: true } },
+      },
       orderBy: { expenseDate: 'desc' },
       take: 100,
     });
   }
 
-  async remove(user: AuthenticatedUser, id: string) {
+  async remove(user: AuthenticatedUser, scope: ShopScope, id: string) {
     const expense = await this.prisma.expense.findFirst({
-      where: { id, tenantId: user.tenantId },
+      where: { id, tenantId: user.tenantId, ...scope.where },
     });
     if (!expense) throw new NotFoundException('Expense not found');
 
@@ -53,7 +71,8 @@ export class ExpensesService {
     return { message: 'Expense deleted successfully' };
   }
 
-  async summary(user: AuthenticatedUser) {
+  async summary(user: AuthenticatedUser, scope: ShopScope) {
+    const shopWhere = scope.where;
     const todayStart = startOfDay(new Date());
     const monthStart = startOfMonth(new Date());
 
@@ -61,6 +80,7 @@ export class ExpensesService {
       this.prisma.expense.aggregate({
         where: {
           tenantId: user.tenantId,
+          ...shopWhere,
           status: 'PAID',
           expenseDate: { gte: todayStart },
         },
@@ -70,18 +90,19 @@ export class ExpensesService {
       this.prisma.expense.aggregate({
         where: {
           tenantId: user.tenantId,
+          ...shopWhere,
           status: 'PAID',
           expenseDate: { gte: monthStart },
         },
         _sum: { amount: true },
       }),
       this.prisma.expense.aggregate({
-        where: { tenantId: user.tenantId, status: 'PAID' },
+        where: { tenantId: user.tenantId, ...shopWhere, status: 'PAID' },
         _sum: { amount: true },
       }),
       this.prisma.expense.groupBy({
         by: ['categoryId'],
-        where: { tenantId: user.tenantId, status: 'PAID' },
+        where: { tenantId: user.tenantId, ...shopWhere, status: 'PAID' },
         _sum: { amount: true },
         _count: { _all: true },
       }),

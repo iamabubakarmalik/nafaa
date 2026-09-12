@@ -9,6 +9,7 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 import { CreateImeiDto } from './dto/create-imei.dto';
 import { BulkCreateImeiDto } from './dto/bulk-create-imei.dto';
 import { ImeiService } from './imei.service';
+import { ShopIdParam } from '../../../common/shop-scope';
 
 @ApiTags('IMEI Tracking')
 @ApiBearerAuth()
@@ -25,7 +26,7 @@ export class ImeiController {
     @Query('ptaStatus') ptaStatus?: PtaStatus,
     @Query('productId') productId?: string,
     @Query('variantId') variantId?: string,
-    @Query('shopId') shopId?: string,
+    @ShopIdParam() shopId?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {

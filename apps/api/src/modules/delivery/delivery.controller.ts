@@ -8,6 +8,7 @@ import { UpdateRiderDto } from './dto/update-rider.dto';
 import { AssignOrderDto } from './dto/assign-order.dto';
 import { UpdateLocationDto } from './dto/update-location.dto';
 import { CreateZoneDto } from './dto/create-zone.dto';
+import { ShopIdParam } from '../../common/shop-scope';
 
 @ApiTags('Delivery (Business)')
 @Controller('delivery')
@@ -25,7 +26,7 @@ export class DeliveryController {
   listRiders(
     @Req() req: Request,
     @Query('status') status?: any,
-    @Query('shopId') shopId?: string,
+    @ShopIdParam() shopId?: string,
     @Query('search') search?: string,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
@@ -83,7 +84,7 @@ export class DeliveryController {
 
   // ─── ZONES ───
   @Get('zones')
-  listZones(@Req() req: Request, @Query('shopId') shopId?: string) {
+  listZones(@Req() req: Request, @ShopIdParam() shopId?: string) {
     return this.svc.listZones(this.tid(req), shopId);
   }
 

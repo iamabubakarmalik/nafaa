@@ -2,17 +2,19 @@ import { Injectable } from '@nestjs/common';
 import { startOfDay, startOfMonth, subDays, format, subMonths, startOfYear } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
+import { ShopScope } from '../../../common/shop-scope';
 
 @Injectable()
 export class ReportsService {
   constructor(private readonly prisma: PrismaService) {}
 
   // ─── 1. Sales Trend (line/area chart) ──────────────────────
-  async salesTrend(user: AuthenticatedUser, days = 14) {
+  async salesTrend(user: AuthenticatedUser, scope: ShopScope, days = 14) {
     const start = startOfDay(subDays(new Date(), days - 1));
     const sales = await this.prisma.sale.findMany({
       where: {
         tenantId: user.tenantId,
+        ...scope.where,
         status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
         soldAt: { gte: start },
       },
@@ -39,11 +41,11 @@ export class ReportsService {
   }
 
   // ─── 2. Top Products with Profit ───────────────────────────
-  async topProducts(user: AuthenticatedUser, limit = 10) {
+  async topProducts(user: AuthenticatedUser, scope: ShopScope, limit = 10) {
     const items = await this.prisma.saleItem.groupBy({
       by: ['productId'],
       where: {
-        sale: { tenantId: user.tenantId, status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] } },
+        sale: { tenantId: user.tenantId, ...scope.where, status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] } },
       },
       _sum: { quantity: true, total: true },
       _count: { _all: true },
@@ -82,10 +84,10 @@ export class ReportsService {
   }
 
   // ─── 3. Category Breakdown ─────────────────────────────────
-  async categoryBreakdown(user: AuthenticatedUser) {
+  async categoryBreakdown(user: AuthenticatedUser, scope: ShopScope) {
     const items = await this.prisma.saleItem.findMany({
       where: {
-        sale: { tenantId: user.tenantId, status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] } },
+        sale: { tenantId: user.tenantId, ...scope.where, status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] } },
       },
       include: { product: { include: { category: true } } },
     });
@@ -119,10 +121,10 @@ export class ReportsService {
   }
 
   // ─── 4. Payment Methods ────────────────────────────────────
-  async paymentMethods(user: AuthenticatedUser) {
+  async paymentMethods(user: AuthenticatedUser, scope: ShopScope) {
     const result = await this.prisma.sale.groupBy({
       by: ['paymentMethod'],
-      where: { tenantId: user.tenantId, status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] } },
+      where: { tenantId: user.tenantId, ...scope.where, status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] } },
       _sum: { total: true, paidAmount: true },
       _count: { _all: true },
     });
@@ -140,11 +142,12 @@ export class ReportsService {
   }
 
   // ─── 5. Hourly Sales Today ─────────────────────────────────
-  async hourlySalesToday(user: AuthenticatedUser) {
+  async hourlySalesToday(user: AuthenticatedUser, scope: ShopScope) {
     const todayStart = startOfDay(new Date());
     const sales = await this.prisma.sale.findMany({
       where: {
         tenantId: user.tenantId,
+        ...scope.where,
         status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
         soldAt: { gte: todayStart },
       },
@@ -164,12 +167,13 @@ export class ReportsService {
   }
 
   // ─── 6. Cashier Performance ────────────────────────────────
-  async cashierPerformance(user: AuthenticatedUser, days = 30) {
+  async cashierPerformance(user: AuthenticatedUser, scope: ShopScope, days = 30) {
     const start = startOfDay(subDays(new Date(), days - 1));
     const sales = await this.prisma.sale.groupBy({
       by: ['createdById'],
       where: {
         tenantId: user.tenantId,
+        ...scope.where,
         status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
         soldAt: { gte: start },
       },
@@ -196,11 +200,12 @@ export class ReportsService {
   }
 
   // ─── 7. Top Customers ──────────────────────────────────────
-  async topCustomers(user: AuthenticatedUser, limit = 10) {
+  async topCustomers(user: AuthenticatedUser, scope: ShopScope, limit = 10) {
     const sales = await this.prisma.sale.groupBy({
       by: ['customerId'],
       where: {
         tenantId: user.tenantId,
+        ...scope.where,
         status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
         customerId: { not: null },
       },
@@ -230,21 +235,37 @@ export class ReportsService {
   }
 
   // ─── 8. Inventory Value ────────────────────────────────────
-  async inventoryValue(user: AuthenticatedUser) {
+  async inventoryValue(user: AuthenticatedUser, scope: ShopScope) {
     const products = await this.prisma.product.findMany({
       where: { tenantId: user.tenantId, isActive: true },
       include: { category: true },
     });
 
+    // `Product.stock` is the tenant-wide total. On one branch the question is
+    // "what is sitting on *my* shelves", so read that branch's rows instead.
+    let stockOf = (p: { id: string; stock: number }) => p.stock;
+    if (scope.shopId) {
+      const rows = await this.prisma.shopStock.groupBy({
+        by: ['productId'],
+        where: { shopId: scope.shopId, isActive: true },
+        _sum: { stock: true },
+      });
+      const branch = new Map(
+        rows.map((r) => [r.productId, Number(r._sum.stock ?? 0)]),
+      );
+      stockOf = (p) => branch.get(p.id) ?? 0;
+    }
+
     const byCategory: Record<string, any> = {};
     let totalCost = 0, totalSell = 0, totalUnits = 0;
 
     for (const p of products) {
-      const cost = p.costPrice * p.stock;
-      const sell = p.price * p.stock;
+      const stock = stockOf(p);
+      const cost = p.costPrice * stock;
+      const sell = p.price * stock;
       totalCost += cost;
       totalSell += sell;
-      totalUnits += p.stock;
+      totalUnits += stock;
 
       const cat = p.category;
       const key = cat?.id || 'uncategorized';
@@ -255,7 +276,7 @@ export class ReportsService {
         byCategory[key] = { id: key, name, color, productCount: 0, totalStock: 0, costValue: 0, sellValue: 0 };
       }
       byCategory[key].productCount += 1;
-      byCategory[key].totalStock += p.stock;
+      byCategory[key].totalStock += stock;
       byCategory[key].costValue += cost;
       byCategory[key].sellValue += sell;
     }
@@ -274,10 +295,10 @@ export class ReportsService {
   }
 
   // ─── 9. Expense Breakdown ──────────────────────────────────
-  async expenseBreakdown(user: AuthenticatedUser, days = 30) {
+  async expenseBreakdown(user: AuthenticatedUser, scope: ShopScope, days = 30) {
     const start = startOfDay(subDays(new Date(), days - 1));
     const expenses = await this.prisma.expense.findMany({
-      where: { tenantId: user.tenantId, status: 'PAID', expenseDate: { gte: start } },
+      where: { tenantId: user.tenantId, ...scope.where, status: 'PAID', expenseDate: { gte: start } },
       include: { category: true },
     });
 
@@ -306,12 +327,13 @@ export class ReportsService {
   }
 
   // ─── 10. Profit & Loss ─────────────────────────────────────
-  async profitAndLoss(user: AuthenticatedUser, days = 30) {
+  async profitAndLoss(user: AuthenticatedUser, scope: ShopScope, days = 30) {
     const start = startOfDay(subDays(new Date(), days - 1));
     const [salesAgg, expensesAgg, returnsAgg, purchasesAgg] = await Promise.all([
       this.prisma.sale.aggregate({
         where: {
           tenantId: user.tenantId,
+          ...scope.where,
           status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
           soldAt: { gte: start },
         },
@@ -319,16 +341,16 @@ export class ReportsService {
         _count: { _all: true },
       }),
       this.prisma.expense.aggregate({
-        where: { tenantId: user.tenantId, status: 'PAID', expenseDate: { gte: start } },
+        where: { tenantId: user.tenantId, ...scope.where, status: 'PAID', expenseDate: { gte: start } },
         _sum: { amount: true },
       }),
       this.prisma.saleReturn.aggregate({
-        where: { tenantId: user.tenantId, returnedAt: { gte: start } },
+        where: { tenantId: user.tenantId, ...scope.where, returnedAt: { gte: start } },
         _sum: { refundAmount: true },
         _count: { _all: true },
       }),
       this.prisma.purchase.aggregate({
-        where: { tenantId: user.tenantId, status: 'RECEIVED', purchasedAt: { gte: start } },
+        where: { tenantId: user.tenantId, ...scope.where, status: 'RECEIVED', purchasedAt: { gte: start } },
         _sum: { total: true },
         _count: { _all: true },
       }),
@@ -367,11 +389,12 @@ export class ReportsService {
   }
 
   // ─── 11. NEW: Weekday Pattern (which days are best) ────────
-  async weekdayPattern(user: AuthenticatedUser, days = 90) {
+  async weekdayPattern(user: AuthenticatedUser, scope: ShopScope, days = 90) {
     const start = startOfDay(subDays(new Date(), days - 1));
     const sales = await this.prisma.sale.findMany({
       where: {
         tenantId: user.tenantId,
+        ...scope.where,
         status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
         soldAt: { gte: start },
       },
@@ -409,7 +432,7 @@ export class ReportsService {
   }
 
   // ─── 12. NEW: Monthly Comparison (last 6 months) ───────────
-  async monthlyComparison(user: AuthenticatedUser) {
+  async monthlyComparison(user: AuthenticatedUser, scope: ShopScope) {
     const buckets: Array<{ month: string; sales: number; profit: number; expenses: number; orders: number }> = [];
 
     for (let i = 5; i >= 0; i--) {
@@ -420,6 +443,7 @@ export class ReportsService {
         this.prisma.sale.aggregate({
           where: {
             tenantId: user.tenantId,
+            ...scope.where,
             status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
             soldAt: { gte: monthStart, lt: monthEnd },
           },
@@ -427,7 +451,7 @@ export class ReportsService {
           _count: { _all: true },
         }),
         this.prisma.expense.aggregate({
-          where: { tenantId: user.tenantId, status: 'PAID', expenseDate: { gte: monthStart, lt: monthEnd } },
+          where: { tenantId: user.tenantId, ...scope.where, status: 'PAID', expenseDate: { gte: monthStart, lt: monthEnd } },
           _sum: { amount: true },
         }),
       ]);
@@ -446,7 +470,7 @@ export class ReportsService {
   }
 
   // ─── 13. NEW: Sales vs Expenses (radar/composed) ───────────
-  async salesVsExpenses(user: AuthenticatedUser, days = 30) {
+  async salesVsExpenses(user: AuthenticatedUser, scope: ShopScope, days = 30) {
     const start = startOfDay(subDays(new Date(), days - 1));
     const buckets: Record<string, { date: string; sales: number; expenses: number; profit: number }> = {};
 
@@ -459,13 +483,14 @@ export class ReportsService {
       this.prisma.sale.findMany({
         where: {
           tenantId: user.tenantId,
+          ...scope.where,
           status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
           soldAt: { gte: start },
         },
         select: { soldAt: true, total: true, costOfGoods: true },
       }),
       this.prisma.expense.findMany({
-        where: { tenantId: user.tenantId, status: 'PAID', expenseDate: { gte: start } },
+        where: { tenantId: user.tenantId, ...scope.where, status: 'PAID', expenseDate: { gte: start } },
         select: { expenseDate: true, amount: true },
       }),
     ]);
@@ -485,7 +510,7 @@ export class ReportsService {
   }
 
   // ─── 14. NEW: Customer Acquisition Trend ──────────────────
-  async customerAcquisition(user: AuthenticatedUser, days = 30) {
+  async customerAcquisition(user: AuthenticatedUser, scope: ShopScope, days = 30) {
     const start = startOfDay(subDays(new Date(), days - 1));
     const customers = await this.prisma.customer.findMany({
       where: { tenantId: user.tenantId, createdAt: { gte: start } },

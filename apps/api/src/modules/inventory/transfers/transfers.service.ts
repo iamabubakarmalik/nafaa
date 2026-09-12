@@ -345,6 +345,7 @@ export class TransfersService {
           await tx.stockMovement.create({
             data: {
               tenantId: user.tenantId,
+              shopId: dto.fromShopId,
               productId: item.productId,
               type: 'TRANSFER_OUT',
               quantity: -item.quantity,
@@ -393,6 +394,7 @@ export class TransfersService {
         await tx.stockMovement.create({
           data: {
             tenantId: user.tenantId,
+            shopId: dto.fromShopId,
             productId: item.productId,
             type: 'TRANSFER_OUT',
             quantity: -item.quantity,
@@ -503,6 +505,7 @@ export class TransfersService {
           await tx.stockMovement.create({
             data: {
               tenantId: user.tenantId,
+              shopId: transfer.toShopId,
               productId: productId,
               type: 'TRANSFER_IN',
               quantity: item.quantity,
@@ -561,6 +564,7 @@ export class TransfersService {
         await tx.stockMovement.create({
           data: {
             tenantId: user.tenantId,
+            shopId: transfer.toShopId,
             productId: productId,
             type: 'TRANSFER_IN',
             quantity: item.quantity,
@@ -693,6 +697,8 @@ export class TransfersService {
           await tx.stockMovement.create({
             data: {
               tenantId: user.tenantId,
+              // Cancelled: the goods land back at the branch that sent them.
+              shopId: transfer.fromShopId,
               productId: productId,
               type: 'TRANSFER_IN',
               quantity: item.quantity,

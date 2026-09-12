@@ -4,6 +4,7 @@ import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { MobilePosService } from './mobile-pos.service';
+import { ShopIdParam } from '../../../common/shop-scope';
 
 @ApiTags('Mobile POS')
 @ApiBearerAuth()
@@ -19,7 +20,7 @@ export class MobilePosController {
   @Get('catalog')
   catalog(
     @GetUser() user: AuthenticatedUser,
-    @Query('shopId') shopId?: string,
+    @ShopIdParam() shopId?: string,
     @Query('search') search?: string,
   ) {
     return this.service.catalog(user, { shopId, search });

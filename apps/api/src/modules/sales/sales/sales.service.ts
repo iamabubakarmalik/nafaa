@@ -4,6 +4,7 @@ import {
 import { startOfDay, startOfMonth } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
+import { ShopScope, resolveWriteShopId } from '../../../common/shop-scope';
 import { CreateSaleDto } from './dto/create-sale.dto';
 import { DiscountsService } from '../discounts/discounts.service';
 import { FbrService } from '../../../integrations/fbr/fbr.service';
@@ -17,7 +18,16 @@ export class SalesService {
     private readonly fbr: FbrService,
   ) {}
 
-  async create(user: AuthenticatedUser, dto: CreateSaleDto) {
+  async create(user: AuthenticatedUser, scope: ShopScope, dto: CreateSaleDto) {
+    // A sale happens at exactly one counter. The body may name the branch
+    // (offline queue replays carry it); otherwise use the one being viewed.
+    const sellingShopId = await resolveWriteShopId(
+      this.prisma,
+      user.tenantId,
+      scope,
+      dto.shopId,
+    );
+
     // ─── Validate every item has EITHER productId OR usedPhoneId ──
     for (const item of dto.items) {
       if (!item.productId && !item.usedPhoneId) {
@@ -30,7 +40,7 @@ export class SalesService {
 
     // ─── Validate shop ────────────────────────────────────────
     const shop = await this.prisma.shop.findFirst({
-      where: { id: dto.shopId, tenantId: user.tenantId, isActive: true },
+      where: { id: sellingShopId, tenantId: user.tenantId, isActive: true },
     });
     if (!shop) throw new NotFoundException('Shop not found or inactive');
 
@@ -190,7 +200,7 @@ export class SalesService {
     const shopStocks = standardItems.length > 0
       ? await this.prisma.shopStock.findMany({
           where: {
-            shopId: dto.shopId,
+            shopId: sellingShopId,
             OR: standardItems.map((i) => ({
               productId: i.productId as string,
               variantId: i.variantId ?? null,
@@ -345,6 +355,14 @@ export class SalesService {
       0,
     );
 
+    // Kuch services par dukan ka apna kharcha hota hai (rider ka kiraya
+    // waghera). Wo costOfGoods me jurta hai — warna `total - costOfGoods`
+    // wali har report delivery charge ko poora munafa gin leti thi.
+    const serviceChargesCost = serviceChargesArr.reduce(
+      (sum, sc) => sum + Number((sc as any).cost || 0),
+      0,
+    );
+
     const total = Math.max(subtotal - totalDiscount + serviceChargesTotal, 0);
     const paidAmount = dto.paidAmount;
     const creditAmount = Math.max(total - paidAmount, 0);
@@ -362,7 +380,7 @@ export class SalesService {
     const saleNumber = `NF-${Date.now().toString().slice(-8)}`;
 
     const cashRegister = await this.prisma.cashRegister.findFirst({
-      where: { tenantId: user.tenantId, shopId: dto.shopId, status: 'OPEN' },
+      where: { tenantId: user.tenantId, shopId: sellingShopId, status: 'OPEN' },
     });
 
     const result = await this.prisma.$transaction(async (tx) => {
@@ -377,7 +395,7 @@ export class SalesService {
       const sale = await tx.sale.create({
         data: {
           tenantId: user.tenantId,
-          shopId: dto.shopId,
+          shopId: sellingShopId,
           cashRegisterId: cashRegister?.id,
           customerId: dto.customerId,
           createdById: user.id,
@@ -389,7 +407,7 @@ export class SalesService {
           loyaltyUsed: loyaltyPointsUsed,
           loyaltyEarned,
           total,
-          costOfGoods,
+          costOfGoods: costOfGoods + serviceChargesCost,
           paidAmount,
           changeAmount,
           creditAmount,
@@ -490,7 +508,7 @@ export class SalesService {
 
           const existingShopStock = await tx.shopStock.findFirst({
             where: {
-              shopId: dto.shopId,
+              shopId: sellingShopId,
               productId: item.productId!,
               variantId: item.variantId ?? null,
             },
@@ -571,6 +589,7 @@ export class SalesService {
         await tx.stockMovement.create({
           data: {
             tenantId: user.tenantId,
+            shopId: sellingShopId,
             productId: item.productId!,
             type: 'SALE_OUT',
             quantity: -item.quantity,
@@ -597,6 +616,7 @@ export class SalesService {
         await tx.customerLedger.create({
           data: {
             tenantId: user.tenantId,
+            shopId: sellingShopId,
             customerId: customer.id,
             createdById: user.id,
             type: 'SALE_CREDIT',
@@ -652,11 +672,16 @@ export class SalesService {
     return result;
   }
 
-  async findAll(user: AuthenticatedUser, shopId?: string) {
+  async findAll(user: AuthenticatedUser, scope: ShopScope, shopId?: string) {
+    // An explicit ?shopId= still wins (report drill-downs use it); otherwise
+    // the branch from the switcher applies.
+    const shopWhere =
+      shopId && shopId !== 'all' ? { shopId } : scope.where;
+
     const sales = await this.prisma.sale.findMany({
       where: {
         tenantId: user.tenantId,
-        ...(shopId && shopId !== 'all' ? { shopId } : {}),
+        ...shopWhere,
       },
       include: {
         customer: true,
@@ -740,7 +765,10 @@ export class SalesService {
     }));
   }
 
-  async findOne(user: AuthenticatedUser, id: string) {
+  // Deliberately not narrowed by branch: receipt links, WhatsApp shares and
+  // support lookups must still open a sale made at another branch. Tenant
+  // isolation is what matters here, and that is enforced below.
+  async findOne(user: AuthenticatedUser, _scope: ShopScope, id: string) {
     const sale = await this.prisma.sale.findFirst({
       where: { id, tenantId: user.tenantId },
       include: {
@@ -810,13 +838,13 @@ export class SalesService {
     return { ...sale, items: enrichedItems };
   }
 
-  async summary(user: AuthenticatedUser, shopId?: string) {
+  async summary(user: AuthenticatedUser, scope: ShopScope, shopId?: string) {
     const todayStart = startOfDay(new Date());
     const monthStart = startOfMonth(new Date());
     const baseWhere = {
       tenantId: user.tenantId,
       status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] as any },
-      ...(shopId && { shopId }),
+      ...(shopId && shopId !== 'all' ? { shopId } : scope.where),
     };
 
     const [todayAgg, monthAgg, totalAgg, totalOrders, paymentBreakdown, shopBreakdown] =
@@ -862,9 +890,14 @@ export class SalesService {
     };
   }
 
-  async voidSale(user: AuthenticatedUser, id: string, reason?: string) {
+  async voidSale(
+    user: AuthenticatedUser,
+    scope: ShopScope,
+    id: string,
+    reason?: string,
+  ) {
     const sale = await this.prisma.sale.findFirst({
-      where: { id, tenantId: user.tenantId },
+      where: { id, tenantId: user.tenantId, ...scope.where },
       include: { items: { include: { variantLink: true } } },
     });
     if (!sale) throw new NotFoundException('Sale not found');
@@ -921,6 +954,7 @@ export class SalesService {
           await tx.stockMovement.create({
             data: {
               tenantId: user.tenantId,
+              shopId: sale.shopId,
               productId: item.productId,
               type: 'RETURN_IN',
               quantity: item.quantity,
@@ -973,6 +1007,7 @@ export class SalesService {
           await tx.stockMovement.create({
             data: {
               tenantId: user.tenantId,
+              shopId: sale.shopId,
               productId: item.productId,
               type: 'RETURN_IN',
               quantity: item.quantity,
@@ -1020,6 +1055,7 @@ export class SalesService {
         await tx.stockMovement.create({
           data: {
             tenantId: user.tenantId,
+            shopId: sale.shopId,
             productId: item.productId,
             type: 'RETURN_IN',
             quantity: item.quantity,
@@ -1041,6 +1077,7 @@ export class SalesService {
           await tx.customerLedger.create({
             data: {
               tenantId: user.tenantId,
+              shopId: sale.shopId,
               customerId: sale.customerId,
               createdById: user.id,
               type: 'ADJUSTMENT',

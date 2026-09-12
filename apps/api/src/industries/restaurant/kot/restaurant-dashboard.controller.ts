@@ -4,6 +4,7 @@ import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { RestaurantDashboardService } from './restaurant-dashboard.service';
+import { ShopIdParam } from '../../../common/shop-scope';
 
 @ApiTags('Restaurant - Dashboard')
 @ApiBearerAuth()
@@ -12,7 +13,7 @@ import { RestaurantDashboardService } from './restaurant-dashboard.service';
 export class RestaurantDashboardController {
   constructor(private readonly service: RestaurantDashboardService) {}
 
-  @Get('overview') overview(@GetUser() user: AuthenticatedUser, @Query('shopId') shopId?: string) { return this.service.overview(user, shopId); }
-  @Get('orders-by-hour') ordersByHour(@GetUser() user: AuthenticatedUser, @Query('shopId') shopId?: string) { return this.service.ordersByHour(user, shopId); }
+  @Get('overview') overview(@GetUser() user: AuthenticatedUser, @ShopIdParam() shopId?: string) { return this.service.overview(user, shopId); }
+  @Get('orders-by-hour') ordersByHour(@GetUser() user: AuthenticatedUser, @ShopIdParam() shopId?: string) { return this.service.ordersByHour(user, shopId); }
   @Get('kitchen-performance') kitchenPerf(@GetUser() user: AuthenticatedUser) { return this.service.kitchenPerformance(user); }
 }

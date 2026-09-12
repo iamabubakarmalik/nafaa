@@ -2,12 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { startOfDay, subDays, addDays } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { ShopScope } from '../../../common/shop-scope';
 
 @Injectable()
 export class PharmacyDashboardService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async overview(user: AuthenticatedUser, shopId?: string) {
+  async overview(user: AuthenticatedUser, scope: ShopScope) {
     const todayStart = startOfDay(new Date());
     const soon = addDays(new Date(), 30);
     const weekAgo = subDays(new Date(), 7);
@@ -34,7 +35,7 @@ export class PharmacyDashboardService {
     const todaySales = await this.prisma.saleItem.groupBy({
       by: ['productId'],
       where: {
-        sale: { tenantId: user.tenantId, soldAt: { gte: todayStart }, status: 'COMPLETED' },
+        sale: { tenantId: user.tenantId, ...scope.where, soldAt: { gte: todayStart }, status: 'COMPLETED' },
         product: { pharmacyMedicine: { isNot: null } },
       },
       _sum: { quantity: true, total: true },

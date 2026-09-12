@@ -100,6 +100,18 @@ class ServiceChargeItemDto {
   @Min(0)
   amount!: number;
 
+  @ApiPropertyOptional({
+    example: 200,
+    description:
+      'Is service par dukan ka apna kharcha (jaise rider ko diya gaya paisa). ' +
+      'Ye costOfGoods me jurta hai taake profit har report me sahi aaye — ' +
+      'warna delivery charge poora munafa gina jata tha.',
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  cost?: number;
+
   @ApiPropertyOptional({ description: 'Optional note for this charge' })
   @IsOptional()
   @IsString()
@@ -107,9 +119,15 @@ class ServiceChargeItemDto {
 }
 
 export class CreateSaleDto {
-  @ApiProperty({ description: 'Shop ID where sale happened' })
+  /**
+   * Branch the sale was rung up at. Optional because the active shop already
+   * travels on the `x-shop-id` header — the body only needs it when it differs,
+   * as with an offline sale replaying after the user switched branches.
+   */
+  @ApiPropertyOptional({ description: 'Shop ID where sale happened' })
+  @IsOptional()
   @IsString()
-  shopId!: string;
+  shopId?: string;
 
   @ApiPropertyOptional()
   @IsOptional()

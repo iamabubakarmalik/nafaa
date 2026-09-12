@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { startOfMonth, subMonths } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
+import { ShopScope, resolveWriteShopId } from '../../../common/shop-scope';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { QueryCustomersDto } from './dto/query-customers.dto';
@@ -11,10 +12,19 @@ import { QueryCustomersDto } from './dto/query-customers.dto';
 export class CustomersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(user: AuthenticatedUser, dto: CreateCustomerDto) {
+  async create(
+    user: AuthenticatedUser,
+    scope: ShopScope,
+    dto: CreateCustomerDto,
+  ) {
+    // The branch that registers a customer owns them in every branch list.
+    // The record itself stays shared — one person, one balance, one loyalty pot.
+    const shopId = await resolveWriteShopId(this.prisma, user.tenantId, scope);
+
     return this.prisma.customer.create({
       data: {
         tenantId: user.tenantId,
+        shopId,
         name: dto.name,
         phone: dto.phone,
         email: dto.email,
@@ -33,7 +43,32 @@ export class CustomersService {
     });
   }
 
-  async findAll(user: AuthenticatedUser, query: QueryCustomersDto) {
+  /**
+   * What each of these customers owes at one branch.
+   *
+   * The customer record itself is shared across branches (one person, one
+   * profile), so the per-branch figure has to be added up from their ledger.
+   */
+  private async branchBalances(
+    tenantId: string,
+    shopId: string,
+    customerIds: string[],
+  ): Promise<Map<string, number>> {
+    if (customerIds.length === 0) return new Map();
+
+    const rows = await this.prisma.customerLedger.groupBy({
+      by: ['customerId'],
+      where: { tenantId, shopId, customerId: { in: customerIds } },
+      _sum: { amount: true },
+    });
+    return new Map(rows.map((r) => [r.customerId, Number(r._sum.amount ?? 0)]));
+  }
+
+  async findAll(
+    user: AuthenticatedUser,
+    scope: ShopScope,
+    query: QueryCustomersDto,
+  ) {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
@@ -41,6 +76,42 @@ export class CustomersService {
     const where: Prisma.CustomerWhereInput = {
       tenantId: user.tenantId,
     };
+
+    // ─── Whose customers are these? ───────────────────────────
+    // Registered at this branch, OR they have actually bought / taken udhaar
+    // here. The second half matters: a walk-in from another branch becomes
+    // "ours" the moment they transact, without anybody re-typing their details.
+    //
+    // A search is deliberately exempt — the cashier typing a phone number must
+    // always find the person, whichever branch first met them.
+    const branchList = Boolean(
+      scope.shopId && !query.search && query.scope !== 'all',
+    );
+
+    if (branchList) {
+      const shopId = scope.shopId!;
+      const [fromSales, fromLedger] = await Promise.all([
+        this.prisma.sale.findMany({
+          where: { tenantId: user.tenantId, shopId, customerId: { not: null } },
+          select: { customerId: true },
+          distinct: ['customerId'],
+        }),
+        this.prisma.customerLedger.findMany({
+          where: { tenantId: user.tenantId, shopId },
+          select: { customerId: true },
+          distinct: ['customerId'],
+        }),
+      ]);
+
+      const transacted = [
+        ...new Set([
+          ...fromSales.map((s) => s.customerId!),
+          ...fromLedger.map((l) => l.customerId),
+        ]),
+      ];
+
+      where.OR = [{ shopId }, ...(transacted.length ? [{ id: { in: transacted } }] : [])];
+    }
 
     if (query.search) {
       where.OR = [
@@ -70,22 +141,42 @@ export class CustomersService {
       this.prisma.customer.count({ where }),
     ]);
 
+    // On a single branch, show what is owed *here* alongside the overall
+    // balance, so a cashier isn't chasing money another branch already took.
+    let decorated: any[] = items;
+    if (scope.shopId) {
+      const balances = await this.branchBalances(
+        user.tenantId,
+        scope.shopId,
+        items.map((c) => c.id),
+      );
+      decorated = items.map((c) => ({
+        ...c,
+        shopBalance: balances.get(c.id) ?? 0,
+        totalBalance: c.balance,
+      }));
+    }
+
     return {
-      items,
+      items: decorated,
       meta: {
         page,
         limit,
         total,
         totalPages: Math.ceil(total / limit),
       },
+      isAllShops: scope.isAll,
+      /** true = sirf is branch ke customers dikh rahe hain */
+      branchFiltered: branchList,
     };
   }
 
-  async findOne(user: AuthenticatedUser, id: string) {
+  async findOne(user: AuthenticatedUser, scope: ShopScope, id: string) {
     const customer = await this.prisma.customer.findFirst({
       where: { id, tenantId: user.tenantId },
       include: {
         sales: {
+          where: scope.where,
           orderBy: { soldAt: 'desc' },
           take: 20,
           select: {
@@ -100,10 +191,12 @@ export class CustomersService {
           },
         },
         ledgers: {
+          where: scope.where,
           orderBy: { createdAt: 'desc' },
           take: 30,
           include: {
             createdBy: { select: { id: true, fullName: true } },
+            shop: { select: { id: true, name: true, isMain: true } },
           },
         },
         loyaltyTransactions: {
@@ -119,7 +212,7 @@ export class CustomersService {
     if (!customer) throw new NotFoundException('Customer not found');
 
     const totalSalesAgg = await this.prisma.sale.aggregate({
-      where: { customerId: id, tenantId: user.tenantId, status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] } },
+      where: { customerId: id, tenantId: user.tenantId, ...scope.where, status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] } },
       _sum: { total: true },
       _count: { _all: true },
       _avg: { total: true },
@@ -135,8 +228,17 @@ export class CustomersService {
     };
   }
 
+  /** Existence + tenant check. The customer record itself is branch-neutral. */
+  private async assertExists(user: AuthenticatedUser, id: string) {
+    const customer = await this.prisma.customer.findFirst({
+      where: { id, tenantId: user.tenantId },
+    });
+    if (!customer) throw new NotFoundException('Customer not found');
+    return customer;
+  }
+
   async update(user: AuthenticatedUser, id: string, dto: UpdateCustomerDto) {
-    await this.findOne(user, id);
+    await this.assertExists(user, id);
     return this.prisma.customer.update({
       where: { id },
       data: {
@@ -157,7 +259,7 @@ export class CustomersService {
   }
 
   async toggleVip(user: AuthenticatedUser, id: string) {
-    const c = await this.findOne(user, id);
+    const c = await this.assertExists(user, id);
     return this.prisma.customer.update({
       where: { id },
       data: { isVip: !c.isVip },

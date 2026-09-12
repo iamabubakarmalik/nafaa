@@ -4,6 +4,7 @@ import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { ElectronicsAnalyticsService } from './electronics-analytics.service';
+import { ShopIdParam } from '../../../common/shop-scope';
 
 @ApiTags('Electronics Analytics')
 @ApiBearerAuth()
@@ -18,7 +19,7 @@ export class ElectronicsAnalyticsController {
     @GetUser() user: AuthenticatedUser,
     @Query('from') from?: string,
     @Query('to') to?: string,
-    @Query('shopId') shopId?: string,
+    @ShopIdParam() shopId?: string,
   ) {
     return this.service.profitBreakdown(user, { from, to, shopId });
   }
@@ -27,7 +28,7 @@ export class ElectronicsAnalyticsController {
   @Get('low-stock')
   lowStock(
     @GetUser() user: AuthenticatedUser,
-    @Query('shopId') shopId?: string,
+    @ShopIdParam() shopId?: string,
   ) {
     return this.service.lowStock(user, shopId);
   }
@@ -36,7 +37,7 @@ export class ElectronicsAnalyticsController {
   @Get('stock')
   stock(
     @GetUser() user: AuthenticatedUser,
-    @Query('shopId') shopId?: string,
+    @ShopIdParam() shopId?: string,
   ) {
     return this.service.stockReport(user, shopId);
   }

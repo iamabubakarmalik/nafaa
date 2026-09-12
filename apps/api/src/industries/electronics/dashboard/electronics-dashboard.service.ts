@@ -2,12 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { subDays } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { ShopScope } from '../../../common/shop-scope';
 
 @Injectable()
 export class ElectronicsDashboardService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async overview(user: AuthenticatedUser) {
+  async overview(user: AuthenticatedUser, scope: ShopScope) {
     const monthAgo = subDays(new Date(), 30);
 
     const [
@@ -69,7 +70,7 @@ export class ElectronicsDashboardService {
     const brandSales = await this.prisma.saleItem.groupBy({
       by: ['productId'],
       where: {
-        sale: { tenantId: user.tenantId, status: 'COMPLETED' },
+        sale: { tenantId: user.tenantId, ...scope.where, status: 'COMPLETED' },
         productId: { not: null },
       },
       _sum: { total: true, quantity: true },
@@ -114,10 +115,17 @@ export class ElectronicsDashboardService {
     };
   }
 
-  async salesReport(user: AuthenticatedUser, from: string, to: string) {
+  async salesReport(
+    user: AuthenticatedUser,
+    scope: ShopScope,
+    from: string,
+    to: string,
+  ) {
     const sales = await this.prisma.electronicsSerialTracking.findMany({
       where: {
         tenantId: user.tenantId,
+        // Each serialised unit is tagged with the branch that sold it.
+        ...scope.where,
         status: 'SOLD',
         soldAt: { gte: new Date(from), lte: new Date(to) },
       },

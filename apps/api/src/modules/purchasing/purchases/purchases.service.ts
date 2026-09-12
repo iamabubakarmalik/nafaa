@@ -2,6 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { startOfDay, startOfMonth, subDays, subMonths, format } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
+import {
+  ShopScope,
+  applyStockDelta,
+  resolveWriteShopId,
+} from '../../../common/shop-scope';
 import { CreatePurchaseDto } from './dto/create-purchase.dto';
 
 const CARPET_UNITS = new Set(['sqft', 'sqm', 'sqyd']);
@@ -10,7 +15,25 @@ const CARPET_UNITS = new Set(['sqft', 'sqm', 'sqyd']);
 export class PurchasesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(user: AuthenticatedUser, dto: CreatePurchaseDto) {
+  async create(
+    user: AuthenticatedUser,
+    scope: ShopScope,
+    dto: CreatePurchaseDto,
+  ) {
+    // Received goods have to land in one branch's stock — never "all shops".
+    const shopId = await resolveWriteShopId(
+      this.prisma,
+      user.tenantId,
+      scope,
+      dto.shopId,
+    );
+
+    const shop = await this.prisma.shop.findUnique({
+      where: { id: shopId },
+      select: { name: true },
+    });
+    const shopName = shop?.name ?? 'shop';
+
     const supplier = await this.prisma.supplier.findFirst({
       where: { id: dto.supplierId, tenantId: user.tenantId },
     });
@@ -49,6 +72,7 @@ export class PurchasesService {
       const purchase = await tx.purchase.create({
         data: {
           tenantId: user.tenantId,
+          shopId,
           supplierId: supplier.id,
           createdById: user.id,
           purchaseNumber,
@@ -90,26 +114,23 @@ export class PurchasesService {
         const product = productMap.get(item.productId);
         const isCarpet = product && CARPET_UNITS.has(product.unit);
 
-        // Update product stock + cost
-        const updated = await tx.product.update({
+        // Stock lands in the receiving branch; Product.stock is re-derived
+        // from every branch inside applyStockDelta.
+        await tx.product.update({
           where: { id: item.productId },
-          data: {
-            stock: { increment: item.quantity },
-            costPrice: item.costPrice,
-          },
+          data: { costPrice: item.costPrice },
         });
 
-        // Stock movement
-        await tx.stockMovement.create({
-          data: {
-            tenantId: user.tenantId,
-            productId: item.productId,
-            type: 'PURCHASE_IN',
-            quantity: item.quantity,
-            balanceAfter: updated.stock,
-            reference: purchase.purchaseNumber,
-            note: `Purchase from ${supplier.name}`,
-          },
+        await applyStockDelta({
+          tx,
+          tenantId: user.tenantId,
+          shopId,
+          productId: item.productId,
+          variantId: null,
+          delta: item.quantity,
+          movementType: 'PURCHASE_IN',
+          reference: purchase.purchaseNumber,
+          note: `Purchase from ${supplier.name} → ${shopName}`,
         });
 
         // Create carpet rolls if carpet product with rolls data
@@ -132,7 +153,7 @@ export class PurchasesService {
             const createdRoll = await tx.carpetRoll.create({
               data: {
                 tenantId: user.tenantId,
-                shopId: dto.shopId ?? null,
+                shopId,
                 productId: item.productId,
                 variantId: roll.variantId ?? null,
                 rollNumber,
@@ -186,9 +207,9 @@ export class PurchasesService {
     });
   }
 
-  async findOne(user: AuthenticatedUser, id: string) {
+  async findOne(user: AuthenticatedUser, scope: ShopScope, id: string) {
     const purchase = await this.prisma.purchase.findFirst({
-      where: { id, tenantId: user.tenantId },
+      where: { id, tenantId: user.tenantId, ...scope.where },
       include: {
         supplier: true,
         items: { include: { product: { include: { images: { take: 1 } } } } },
@@ -208,11 +229,12 @@ export class PurchasesService {
     return { ...purchase, carpetRolls: rolls };
   }
 
-  findAll(user: AuthenticatedUser) {
+  findAll(user: AuthenticatedUser, scope: ShopScope) {
     return this.prisma.purchase.findMany({
-      where: { tenantId: user.tenantId },
+      where: { tenantId: user.tenantId, ...scope.where },
       include: {
         supplier: true,
+        shop: { select: { id: true, name: true, isMain: true } },
         items: { include: { product: true } },
       },
       orderBy: { purchasedAt: 'desc' },
@@ -220,7 +242,8 @@ export class PurchasesService {
     });
   }
 
-  async summary(user: AuthenticatedUser) {
+  async summary(user: AuthenticatedUser, scope: ShopScope) {
+    const shopWhere = scope.where;
     const todayStart = startOfDay(new Date());
     const yesterdayStart = startOfDay(subDays(new Date(), 1));
     const monthStart = startOfMonth(new Date());
@@ -233,53 +256,53 @@ export class PurchasesService {
       topSuppliersRaw, topProductsRaw, recentPurchases,
     ] = await Promise.all([
       this.prisma.purchase.aggregate({
-        where: { tenantId: user.tenantId, status: 'RECEIVED', purchasedAt: { gte: todayStart } },
+        where: { tenantId: user.tenantId, ...shopWhere, status: 'RECEIVED', purchasedAt: { gte: todayStart } },
         _sum: { total: true, paidAmount: true },
         _count: { _all: true },
       }),
       this.prisma.purchase.aggregate({
         where: {
-          tenantId: user.tenantId, status: 'RECEIVED',
+          tenantId: user.tenantId, ...shopWhere, status: 'RECEIVED',
           purchasedAt: { gte: yesterdayStart, lt: todayStart },
         },
         _sum: { total: true },
         _count: { _all: true },
       }),
       this.prisma.purchase.aggregate({
-        where: { tenantId: user.tenantId, status: 'RECEIVED', purchasedAt: { gte: monthStart } },
+        where: { tenantId: user.tenantId, ...shopWhere, status: 'RECEIVED', purchasedAt: { gte: monthStart } },
         _sum: { total: true, paidAmount: true },
         _count: { _all: true },
       }),
       this.prisma.purchase.aggregate({
         where: {
-          tenantId: user.tenantId, status: 'RECEIVED',
+          tenantId: user.tenantId, ...shopWhere, status: 'RECEIVED',
           purchasedAt: { gte: lastMonthStart, lt: monthStart },
         },
         _sum: { total: true },
       }),
       this.prisma.purchase.aggregate({
-        where: { tenantId: user.tenantId, status: 'RECEIVED' },
+        where: { tenantId: user.tenantId, ...shopWhere, status: 'RECEIVED' },
         _sum: { total: true, paidAmount: true },
       }),
-      this.prisma.purchase.count({ where: { tenantId: user.tenantId, status: 'RECEIVED' } }),
+      this.prisma.purchase.count({ where: { tenantId: user.tenantId, ...shopWhere, status: 'RECEIVED' } }),
       this.prisma.supplier.aggregate({
         where: { tenantId: user.tenantId, outstandingDue: { gt: 0 } },
         _sum: { outstandingDue: true },
         _count: { _all: true },
       }),
       this.prisma.purchase.findMany({
-        where: { tenantId: user.tenantId, status: 'RECEIVED', purchasedAt: { gte: sevenDaysAgo } },
+        where: { tenantId: user.tenantId, ...shopWhere, status: 'RECEIVED', purchasedAt: { gte: sevenDaysAgo } },
         select: { purchasedAt: true, total: true },
       }),
       this.prisma.purchase.groupBy({
         by: ['paymentMethod'],
-        where: { tenantId: user.tenantId, status: 'RECEIVED', purchasedAt: { gte: monthStart } },
+        where: { tenantId: user.tenantId, ...shopWhere, status: 'RECEIVED', purchasedAt: { gte: monthStart } },
         _sum: { total: true },
         _count: { _all: true },
       }),
       this.prisma.purchase.groupBy({
         by: ['supplierId'],
-        where: { tenantId: user.tenantId, status: 'RECEIVED' },
+        where: { tenantId: user.tenantId, ...shopWhere, status: 'RECEIVED' },
         _sum: { total: true },
         _count: { _all: true },
         orderBy: { _sum: { total: 'desc' } },
@@ -288,7 +311,10 @@ export class PurchasesService {
       this.prisma.purchaseItem.groupBy({
         by: ['productId'],
         where: {
-          purchase: { tenantId: user.tenantId, status: 'RECEIVED', purchasedAt: { gte: monthStart } },
+          purchase: {
+            tenantId: user.tenantId, ...shopWhere,
+            status: 'RECEIVED', purchasedAt: { gte: monthStart },
+          },
         },
         _sum: { quantity: true, total: true },
         _count: { _all: true },
@@ -296,10 +322,13 @@ export class PurchasesService {
         take: 5,
       }),
       this.prisma.purchase.findMany({
-        where: { tenantId: user.tenantId },
+        where: { tenantId: user.tenantId, ...shopWhere },
         orderBy: { purchasedAt: 'desc' },
         take: 5,
-        include: { supplier: { select: { name: true } } },
+        include: {
+          supplier: { select: { name: true } },
+          shop: { select: { id: true, name: true, isMain: true } },
+        },
       }),
     ]);
 
@@ -390,6 +419,7 @@ export class PurchasesService {
         purchaseNumber: p.purchaseNumber,
         total: p.total,
         supplierName: p.supplier?.name,
+        shop: p.shop,
         purchasedAt: p.purchasedAt,
       })),
     };

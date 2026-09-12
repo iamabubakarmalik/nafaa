@@ -118,7 +118,48 @@ export class ProductsService {
     return this.findOne(user, product.id);
   }
 
-  async findAll(user: AuthenticatedUser, query: QueryProductsDto) {
+  /**
+   * What one branch is actually holding, per product.
+   *
+   * A variant product has one row per variant, so the branch total is their
+   * sum. `alert` prefers the branch's own threshold when it keeps exactly one
+   * row (the ordinary non-variant case) and falls back to the product's.
+   */
+  private async branchStockMap(
+    tenantId: string,
+    shopId: string,
+  ): Promise<Map<string, { stock: number; alert: number | null }>> {
+    const rows = await this.prisma.shopStock.findMany({
+      where: { tenantId, shopId },
+      select: { productId: true, stock: true, lowStockAlert: true },
+    });
+
+    const map = new Map<string, { stock: number; alert: number | null; rows: number }>();
+    for (const r of rows) {
+      const cur = map.get(r.productId);
+      if (cur) {
+        cur.stock += Number(r.stock);
+        cur.rows += 1;
+        cur.alert = null; // more than one row — no single meaningful override
+      } else {
+        map.set(r.productId, {
+          stock: Number(r.stock),
+          alert: Number(r.lowStockAlert),
+          rows: 1,
+        });
+      }
+    }
+
+    return new Map(
+      [...map].map(([id, v]) => [id, { stock: v.stock, alert: v.alert }]),
+    );
+  }
+
+  async findAll(
+    user: AuthenticatedUser,
+    query: QueryProductsDto,
+    shopId?: string,
+  ) {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
@@ -126,6 +167,12 @@ export class ProductsService {
     const where: Prisma.ProductWhereInput = {
       tenantId: user.tenantId,
     };
+
+    // On a branch, "stock" means what sits on *that* shelf. Product.stock is
+    // the tenant-wide total and would show every branch the same numbers.
+    const branchStock = shopId
+      ? await this.branchStockMap(user.tenantId, shopId)
+      : null;
 
     if (query.search) {
       where.OR = [
@@ -152,9 +199,34 @@ export class ProductsService {
       if (query.maxPrice !== undefined) where.price.lte = query.maxPrice;
     }
 
-    if (query.stockStatus) {
-      if (query.stockStatus === 'out') where.stock = 0;
-      else if (query.stockStatus === 'in') where.stock = { gt: 0 };
+    if (query.stockStatus && query.stockStatus !== 'all') {
+      if (branchStock) {
+        // Filter on the branch's numbers, in the query, so pagination counts
+        // stay honest. A product with no row here simply has no stock here.
+        const withStock: string[] = [];
+        const lowHere: string[] = [];
+        for (const [productId, v] of branchStock) {
+          if (v.stock > 0) withStock.push(productId);
+        }
+
+        if (query.stockStatus === 'in') where.id = { in: withStock };
+        else if (query.stockStatus === 'out') where.id = { notIn: withStock };
+        else if (query.stockStatus === 'low') {
+          const products = await this.prisma.product.findMany({
+            where: { tenantId: user.tenantId, id: { in: withStock } },
+            select: { id: true, lowStockAlert: true },
+          });
+          for (const p of products) {
+            const v = branchStock.get(p.id)!;
+            const alert = v.alert ?? Number(p.lowStockAlert);
+            if (v.stock <= alert) lowHere.push(p.id);
+          }
+          where.id = { in: lowHere };
+        }
+      } else {
+        if (query.stockStatus === 'out') where.stock = 0;
+        else if (query.stockStatus === 'in') where.stock = { gt: 0 };
+      }
     }
 
     const [items, total] = await Promise.all([
@@ -177,14 +249,31 @@ export class ProductsService {
       this.prisma.product.count({ where }),
     ]);
 
-    let filtered = items;
-    if (query.stockStatus === 'low') {
-      filtered = items.filter((p) => p.stock > 0 && p.stock <= p.lowStockAlert);
+    // Swap the tenant-wide total for this branch's figure, keeping the total
+    // available as `tenantStock` for anything that wants the big picture.
+    let filtered: any[] = branchStock
+      ? items.map((p) => {
+          const v = branchStock.get(p.id);
+          return {
+            ...p,
+            stock: v?.stock ?? 0,
+            lowStockAlert: v?.alert ?? p.lowStockAlert,
+            tenantStock: p.stock,
+            shopId,
+          };
+        })
+      : items;
+
+    // The `low` case is already resolved in the query when scoped to a branch.
+    if (query.stockStatus === 'low' && !branchStock) {
+      filtered = filtered.filter((p) => p.stock > 0 && p.stock <= p.lowStockAlert);
     }
 
     return {
       items: filtered,
       meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+      /** null = sab shops ka mila hua */
+      shopId: shopId ?? null,
     };
   }
 

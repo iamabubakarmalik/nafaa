@@ -9,6 +9,7 @@ import { HealthController } from './health/health.controller';
 
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import { ShopScopeInterceptor } from './common/shop-scope/shop-scope.interceptor';
 import { PermissionsGuard } from './common/guards/permissions.guard';
 import { envValidationSchema } from './config/env.validation';
 
@@ -254,6 +255,8 @@ import { AiAssistantModule } from './marketplace/ai-assistant/ai-assistant.modul
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: PermissionsGuard },
     { provide: APP_GUARD, useClass: SubscriptionGuard },
+    // Resolves the active branch for every request before controllers run.
+    { provide: APP_INTERCEPTOR, useClass: ShopScopeInterceptor },
     { provide: APP_INTERCEPTOR, useClass: ResponseInterceptor },
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },
   ],

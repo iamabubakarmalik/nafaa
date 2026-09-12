@@ -2,6 +2,7 @@ import { Controller, Get, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../auth/decorators/get-user.decorator';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
+import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 import {
   ProfitReportService,
   type ProfitFilters,
@@ -18,6 +19,7 @@ export class ProfitReportController {
   @Get('by-product')
   byProduct(
     @GetUser() user: AuthenticatedUser,
+    @CurrentShop() shop: ShopScope,
     @Query('period') period?: ProfitPeriod,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
@@ -33,12 +35,13 @@ export class ProfitReportController {
       brandId,
       sortBy,
     };
-    return this.service.byProduct(user, filters);
+    return this.service.byProduct(user, shop, filters);
   }
 
   @Get('summary')
   summary(
     @GetUser() user: AuthenticatedUser,
+    @CurrentShop() shop: ShopScope,
     @Query('period') period?: ProfitPeriod,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
@@ -52,6 +55,6 @@ export class ProfitReportController {
       categoryId,
       brandId,
     };
-    return this.service.summary(user, filters);
+    return this.service.summary(user, shop, filters);
   }
 }

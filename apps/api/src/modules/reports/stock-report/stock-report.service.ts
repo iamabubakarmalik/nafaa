@@ -125,13 +125,20 @@ export class StockReportService {
     // Fetch carpet data (rolls + cut pieces aggregated)
     const productIds = products.map((p) => p.id);
 
-    const [carpetRolls, carpetCutPieces, imeis] = await Promise.all([
+    // On a branch every count below is "what is standing in THIS shop".
+    // `Product.stock`, rolls and IMEIs are all tenant-wide otherwise, which is
+    // why this report used to show every branch the same numbers.
+    const shopId = filters?.shopId;
+    const branchOnly = shopId ? { shopId } : {};
+
+    const [carpetRolls, carpetCutPieces, imeis, branchRows] = await Promise.all([
       this.prisma.carpetRoll.groupBy({
         by: ['productId'],
         where: {
           tenantId: user.tenantId,
           productId: { in: productIds },
           status: 'ACTIVE',
+          ...branchOnly,
         },
         _sum: { remainingSqft: true },
         _count: { id: true },
@@ -142,6 +149,7 @@ export class StockReportService {
           tenantId: user.tenantId,
           productId: { in: productIds },
           status: 'AVAILABLE',
+          ...branchOnly,
         },
         _sum: { totalSqft: true },
         _count: { id: true },
@@ -152,10 +160,34 @@ export class StockReportService {
           tenantId: user.tenantId,
           productId: { in: productIds },
           status: 'IN_STOCK',
+          ...branchOnly,
         },
         _count: { id: true },
       }),
+      shopId
+        ? this.prisma.shopStock.findMany({
+            where: { tenantId: user.tenantId, shopId, productId: { in: productIds } },
+            select: { productId: true, variantId: true, stock: true },
+          })
+        : Promise.resolve([] as Array<{ productId: string; variantId: string | null; stock: number }>),
     ]);
+
+    // One pass gives both the per-product total (variant rows summed) and the
+    // per-variant figure the expanded rows need.
+    const branchStockMap = new Map<string, number>();
+    const branchVariantMap = new Map<string, number>();
+    for (const r of branchRows) {
+      branchStockMap.set(
+        r.productId,
+        (branchStockMap.get(r.productId) ?? 0) + Number(r.stock),
+      );
+      if (r.variantId) {
+        branchVariantMap.set(
+          r.variantId,
+          (branchVariantMap.get(r.variantId) ?? 0) + Number(r.stock),
+        );
+      }
+    }
 
     const carpetRollsMap = new Map<string, { sqft: number; count: number }>();
     carpetRolls.forEach((r) => {
@@ -186,7 +218,9 @@ export class StockReportService {
       const isWeightBased = ['kg', 'gram', 'liter', 'ml'].includes(unit);
 
       let industryType: StockReportRow['industryType'] = 'STANDARD';
-      let stock = Number(p.stock || 0);
+      let stock = shopId
+        ? (branchStockMap.get(p.id) ?? 0)
+        : Number(p.stock || 0);
       let carpetRollCount: number | undefined;
       let carpetCutPiecesCount: number | undefined;
       let imeiCount: number | undefined;
@@ -251,7 +285,9 @@ export class StockReportService {
         variants: p.variants.map((v) => ({
           id: v.id,
           name: v.name,
-          stock: Number(v.stock || 0),
+          stock: shopId
+            ? (branchVariantMap.get(v.id) ?? 0)
+            : Number(v.stock || 0),
           imageUrl: v.imageUrl,
           colorHex: v.colorHex,
         })),

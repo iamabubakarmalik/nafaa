@@ -11,6 +11,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { QueryProductsDto } from './dto/query-products.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { ShopIdParam } from '../../../common/shop-scope';
 
 @ApiTags('Products')
 @ApiBearerAuth()
@@ -28,14 +29,18 @@ export class ProductsController {
   }
 
   @Get()
-  findAll(@GetUser() user: AuthenticatedUser, @Query() query: QueryProductsDto) {
-    return this.productsService.findAll(user, query);
+  findAll(
+    @GetUser() user: AuthenticatedUser,
+    @Query() query: QueryProductsDto,
+    @ShopIdParam() shopId?: string,
+  ) {
+    return this.productsService.findAll(user, query, shopId);
   }
 
   @Get('low-stock')
   async lowStock(
     @GetUser() user: AuthenticatedUser,
-    @Query('shopId') shopId?: string,
+    @ShopIdParam() shopId?: string,
   ) {
     // Non-owner locked to their shop
     if (user.role !== 'OWNER' && user.role !== 'SUPER_ADMIN' && user.shopId) {
@@ -49,13 +54,19 @@ export class ProductsController {
       });
       if (!shop) throw new NotFoundException('Shop not found');
 
-      const rows = await this.prisma.shopStock.findMany({
-        where: {
-          tenantId: user.tenantId,
-          shopId,
-          isActive: true,
-          stock: { lte: 10 },
-        },
+      // Compare against each row's own alert level, the same rule the
+      // tenant-wide branch below uses. A flat `stock <= 10` called a 12-pack
+      // healthy and a single spare tyre a crisis.
+      const rows = await this.prisma.$queryRaw<{ id: string }[]>`
+        SELECT id FROM "ShopStock"
+        WHERE "tenantId" = ${user.tenantId}
+          AND "shopId" = ${shopId}
+          AND "isActive" = true
+          AND stock <= "lowStockAlert"
+      `.then((r) => r.map((x) => x.id));
+
+      const lowRows = await this.prisma.shopStock.findMany({
+        where: { id: { in: rows } },
         include: {
           product: {
             select: {
@@ -69,7 +80,7 @@ export class ProductsController {
         take: 100,
       });
 
-      return rows.map((r) => ({
+      return lowRows.map((r) => ({
         id: r.product.id,
         name: r.product.name,
         sku: r.product.sku,
@@ -102,7 +113,7 @@ export class ProductsController {
   @Get('shop-stock')
   async shopStock(
     @GetUser() user: AuthenticatedUser,
-    @Query('shopId') shopId: string,
+    @ShopIdParam() shopId: string,
   ) {
     if (!shopId) throw new NotFoundException('shopId required');
 
@@ -138,7 +149,7 @@ export class ProductsController {
   async findByBarcode(
     @GetUser() user: AuthenticatedUser,
     @Param('code') code: string,
-    @Query('shopId') shopId?: string,
+    @ShopIdParam() shopId?: string,
   ) {
     if (user.role !== 'OWNER' && user.role !== 'SUPER_ADMIN' && user.shopId) {
       shopId = user.shopId;

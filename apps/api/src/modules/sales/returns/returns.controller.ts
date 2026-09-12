@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../auth/decorators/get-user.decorator';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
+import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 import { CreateReturnDto } from './dto/create-return.dto';
 import { ReturnsService } from './returns.service';
 
@@ -12,8 +13,8 @@ export class ReturnsController {
   constructor(private readonly service: ReturnsService) {}
 
   @Get()
-  list(@GetUser() user: AuthenticatedUser) {
-    return this.service.list(user);
+  list(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope) {
+    return this.service.list(user, shop);
   }
 
   @Get(':id')
@@ -22,7 +23,11 @@ export class ReturnsController {
   }
 
   @Post()
-  create(@GetUser() user: AuthenticatedUser, @Body() dto: CreateReturnDto) {
-    return this.service.create(user, dto);
+  create(
+    @GetUser() user: AuthenticatedUser,
+    @CurrentShop() shop: ShopScope,
+    @Body() dto: CreateReturnDto,
+  ) {
+    return this.service.create(user, shop, dto);
   }
 }

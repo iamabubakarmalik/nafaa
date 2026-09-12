@@ -7,9 +7,11 @@ export class OpenRegisterDto {
   @Min(0)
   openingBalance!: number;
 
+  /** Branch whose till is being opened. Defaults to the active shop. */
   @ApiPropertyOptional()
+  @IsOptional()
   @IsString()
-  shopId!: string;
+  shopId?: string;
 
   @ApiPropertyOptional()
   @IsOptional()

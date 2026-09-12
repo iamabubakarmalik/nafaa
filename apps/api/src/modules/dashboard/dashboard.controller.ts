@@ -1,7 +1,8 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../auth/decorators/get-user.decorator';
 import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
+import { ShopIdParam } from '../../common/shop-scope';
 import { DashboardService } from './dashboard.service';
 
 @ApiTags('Dashboard')
@@ -13,12 +14,11 @@ export class DashboardController {
   @Get('overview')
   getOverview(
     @GetUser() user: AuthenticatedUser,
-    @Query('shopId') shopId?: string,
+    @ShopIdParam() shopId?: string,
   ) {
-    // Non-owner can only see their own shop
-    if (user.role !== 'OWNER' && user.role !== 'SUPER_ADMIN' && user.shopId) {
-      shopId = user.shopId;
-    }
+    // ShopIdParam already applied the rules: an explicit ?shopId= wins, then
+    // the active branch, and a non-owner is locked to their own shop whatever
+    // the query string says. `undefined` means every branch.
     return this.dashboardService.getOverview(user.tenantId, shopId);
   }
 }

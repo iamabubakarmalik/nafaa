@@ -5,87 +5,70 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
+import {
+  ShopScope,
+  applyStockDelta,
+  readShopStock,
+  recacheProductStock,
+  resolveWriteShopId,
+} from '../../../common/shop-scope';
 import { CreateAdjustmentDto } from './dto/create-adjustment.dto';
 
 @Injectable()
 export class StockAdjustmentsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(user: AuthenticatedUser, dto: CreateAdjustmentDto) {
+  async create(
+    user: AuthenticatedUser,
+    scope: ShopScope,
+    dto: CreateAdjustmentDto,
+  ) {
     const product = await this.prisma.product.findFirst({
       where: { id: dto.productId, tenantId: user.tenantId },
     });
     if (!product) throw new NotFoundException('Product not found');
 
-    if (dto.carpetRollId) return this.adjustCarpetRoll(user, dto, product);
-    if (dto.imeiId) return this.adjustImei(user, dto, product);
-    if (dto.variantId) return this.adjustVariant(user, dto, product);
-    return this.adjustSimpleProduct(user, dto, product);
+    // Stock is corrected in one branch's books, never "everywhere at once".
+    const shopId = await resolveWriteShopId(
+      this.prisma,
+      user.tenantId,
+      scope,
+      dto.shopId,
+    );
+
+    if (dto.carpetRollId) return this.adjustCarpetRoll(user, shopId, dto, product);
+    if (dto.imeiId) return this.adjustImei(user, shopId, dto, product);
+    if (dto.variantId) return this.adjustVariant(user, shopId, dto, product);
+    return this.adjustSimpleProduct(user, shopId, dto, product);
   }
 
-
-  /**
-   * Shop ka apna stock (ShopStock) bhi theek karo.
-   *
-   * Pehle sirf `Product.stock` (global ginti) badalti thi. Jin
-   * industries ka poora hisab shop-wise chalta hai (electronics,
-   * mobile) unki stock report, low-stock aur POS ShopStock parhte
-   * hain — is liye durusti wahan nazar hi nahi aati thi.
-   *
-   * Row na ho to bana dete hain, warna sirf badha/ghata dete hain.
-   */
-  private async applyShopStock(
-    tx: any,
-    shopId: string | undefined,
-    productId: string,
-    variantId: string | null,
-    change: number,
-  ) {
-    if (!shopId || change === 0) return;
-
-    const row = await tx.shopStock.findFirst({
-      where: { shopId, productId, variantId },
-    });
-
-    if (row) {
-      await tx.shopStock.update({
-        where: { id: row.id },
-        // Ginti manfi na ho jaye — durusti hai, tabahi nahi
-        data: { stock: Math.max(0, Number(row.stock) + change) },
-      });
-      return;
-    }
-
-    // Row hai hi nahi: sirf tab banao jab stock barh raha ho
-    if (change > 0) {
-      await tx.shopStock.create({
-        data: { shopId, productId, variantId, stock: change },
-      });
-    }
-  }
 
   // ─── SIMPLE PRODUCT ─────────────────────────────────
-  private async adjustSimpleProduct(user: AuthenticatedUser, dto: CreateAdjustmentDto, product: any) {
+  private async adjustSimpleProduct(
+    user: AuthenticatedUser,
+    shopId: string,
+    dto: CreateAdjustmentDto,
+    product: any,
+  ) {
     const isIncrement = dto.type === 'ADJUSTMENT_IN';
     const change = isIncrement ? dto.quantity : -dto.quantity;
 
-    if (!isIncrement && product.stock < dto.quantity) {
-      throw new BadRequestException(
-        `Insufficient stock. Available: ${product.stock} ${product.unit}`,
-      );
+    // Checked against *this branch's* shelf, not the tenant-wide total —
+    // otherwise one shop could write off stock that is sitting in another.
+    if (!isIncrement) {
+      const available = await readShopStock(this.prisma, shopId, product.id, null);
+      if (available < dto.quantity) {
+        throw new BadRequestException(
+          `Is shop mein kaafi stock nahi hai. Available: ${available} ${product.unit}`,
+        );
+      }
     }
 
     return this.prisma.$transaction(async (tx) => {
-      const updated = await tx.product.update({
-        where: { id: product.id },
-        data: { stock: { increment: change } },
-      });
-
-      await this.applyShopStock(tx, dto.shopId, product.id, null, change);
-
       const adjustment = await tx.stockAdjustment.create({
         data: {
           tenantId: user.tenantId,
+          shopId,
           productId: product.id,
           createdById: user.id,
           type: dto.type,
@@ -99,16 +82,16 @@ export class StockAdjustmentsService {
         },
       });
 
-      await tx.stockMovement.create({
-        data: {
-          tenantId: user.tenantId,
-          productId: product.id,
-          type: dto.type,
-          quantity: change,
-          balanceAfter: updated.stock,
-          reference: `ADJ-${adjustment.id.slice(0, 8)}`,
-          note: `${dto.reason}${dto.note ? ' — ' + dto.note : ''}`,
-        },
+      await applyStockDelta({
+        tx,
+        tenantId: user.tenantId,
+        shopId,
+        productId: product.id,
+        variantId: null,
+        delta: change,
+        movementType: dto.type,
+        reference: `ADJ-${adjustment.id.slice(0, 8)}`,
+        note: `${dto.reason}${dto.note ? ' — ' + dto.note : ''}`,
       });
 
       return adjustment;
@@ -116,7 +99,12 @@ export class StockAdjustmentsService {
   }
 
   // ─── VARIANT ─────────────────────────────────────────
-  private async adjustVariant(user: AuthenticatedUser, dto: CreateAdjustmentDto, product: any) {
+  private async adjustVariant(
+    user: AuthenticatedUser,
+    shopId: string,
+    dto: CreateAdjustmentDto,
+    product: any,
+  ) {
     const variant = await this.prisma.productVariant.findFirst({
       where: { id: dto.variantId!, product: { tenantId: user.tenantId, id: product.id } },
     });
@@ -125,28 +113,25 @@ export class StockAdjustmentsService {
     const isIncrement = dto.type === 'ADJUSTMENT_IN';
     const change = isIncrement ? dto.quantity : -dto.quantity;
 
-    if (!isIncrement && variant.stock < dto.quantity) {
-      throw new BadRequestException(
-        `Insufficient variant stock. Available: ${variant.stock} ${variant.unit || product.unit}`,
+    if (!isIncrement) {
+      const available = await readShopStock(
+        this.prisma,
+        shopId,
+        product.id,
+        variant.id,
       );
+      if (available < dto.quantity) {
+        throw new BadRequestException(
+          `Is shop mein is variant ka kaafi stock nahi hai. Available: ${available} ${variant.unit || product.unit}`,
+        );
+      }
     }
 
     return this.prisma.$transaction(async (tx) => {
-      await tx.productVariant.update({
-        where: { id: variant.id },
-        data: { stock: { increment: change } },
-      });
-
-      const updatedProduct = await tx.product.update({
-        where: { id: product.id },
-        data: { stock: { increment: change } },
-      });
-
-      await this.applyShopStock(tx, dto.shopId, product.id, variant.id, change);
-
       const adjustment = await tx.stockAdjustment.create({
         data: {
           tenantId: user.tenantId,
+          shopId,
           productId: product.id,
           variantId: variant.id,
           createdById: user.id,
@@ -162,16 +147,16 @@ export class StockAdjustmentsService {
         },
       });
 
-      await tx.stockMovement.create({
-        data: {
-          tenantId: user.tenantId,
-          productId: product.id,
-          type: dto.type,
-          quantity: change,
-          balanceAfter: updatedProduct.stock,
-          reference: `ADJ-${adjustment.id.slice(0, 8)}`,
-          note: `[${variant.name}] ${dto.reason}${dto.note ? ' — ' + dto.note : ''}`,
-        },
+      await applyStockDelta({
+        tx,
+        tenantId: user.tenantId,
+        shopId,
+        productId: product.id,
+        variantId: variant.id,
+        delta: change,
+        movementType: dto.type,
+        reference: `ADJ-${adjustment.id.slice(0, 8)}`,
+        note: `[${variant.name}] ${dto.reason}${dto.note ? ' — ' + dto.note : ''}`,
       });
 
       return adjustment;
@@ -179,11 +164,20 @@ export class StockAdjustmentsService {
   }
 
   // ─── CARPET ROLL ─────────────────────────────────────
-  private async adjustCarpetRoll(user: AuthenticatedUser, dto: CreateAdjustmentDto, product: any) {
+  private async adjustCarpetRoll(
+    user: AuthenticatedUser,
+    fallbackShopId: string,
+    dto: CreateAdjustmentDto,
+    product: any,
+  ) {
     const roll = await this.prisma.carpetRoll.findFirst({
       where: { id: dto.carpetRollId!, tenantId: user.tenantId, productId: product.id },
     });
     if (!roll) throw new NotFoundException('Carpet roll not found');
+
+    // The roll physically sits somewhere — that branch's books move, whichever
+    // branch the user happens to be viewing.
+    const shopId = roll.shopId ?? fallbackShopId;
 
     const action = dto.rollAction || 'ADJUST_LENGTH';
 
@@ -249,14 +243,10 @@ export class StockAdjustmentsService {
         movementNote = `Roll ${roll.rollNumber}: ${changeFt > 0 ? '+' : ''}${changeFt.toFixed(2)}ft (${stockChange > 0 ? '+' : ''}${stockChange.toFixed(2)} sqft)`;
       }
 
-      const updatedProduct = await tx.product.update({
-        where: { id: product.id },
-        data: { stock: { increment: stockChange } },
-      });
-
       const adjustment = await tx.stockAdjustment.create({
         data: {
           tenantId: user.tenantId,
+          shopId,
           productId: product.id,
           carpetRollId: roll.id,
           createdById: user.id,
@@ -294,16 +284,16 @@ export class StockAdjustmentsService {
         },
       });
 
-      await tx.stockMovement.create({
-        data: {
-          tenantId: user.tenantId,
-          productId: product.id,
-          type: dto.type,
-          quantity: stockChange,
-          balanceAfter: updatedProduct.stock,
-          reference: `ADJ-${adjustment.id.slice(0, 8)}`,
-          note: `${movementNote}${dto.reason ? ' — ' + dto.reason : ''}`,
-        },
+      await applyStockDelta({
+        tx,
+        tenantId: user.tenantId,
+        shopId,
+        productId: product.id,
+        variantId: null,
+        delta: stockChange,
+        movementType: dto.type,
+        reference: `ADJ-${adjustment.id.slice(0, 8)}`,
+        note: `${movementNote}${dto.reason ? ' — ' + dto.reason : ''}`,
       });
 
       return adjustment;
@@ -311,7 +301,12 @@ export class StockAdjustmentsService {
   }
 
   // ─── IMEI ────────────────────────────────────────────
-  private async adjustImei(user: AuthenticatedUser, dto: CreateAdjustmentDto, product: any) {
+  private async adjustImei(
+    user: AuthenticatedUser,
+    fallbackShopId: string,
+    dto: CreateAdjustmentDto,
+    product: any,
+  ) {
     const imei = await this.prisma.productImei.findFirst({
       where: { id: dto.imeiId!, tenantId: user.tenantId, productId: product.id },
     });
@@ -320,6 +315,9 @@ export class StockAdjustmentsService {
     if (imei.status === 'SOLD') {
       throw new BadRequestException(`IMEI ${imei.imei1} is already SOLD — cannot adjust`);
     }
+
+    // A handset lives at one branch; that is the branch whose count changes.
+    const shopId = imei.shopId ?? fallbackShopId;
 
     return this.prisma.$transaction(async (tx) => {
       let newStatus: 'IN_STOCK' | 'DAMAGED' | 'LOST' | 'RETURNED' = imei.status as any;
@@ -345,24 +343,20 @@ export class StockAdjustmentsService {
         where: { tenantId: user.tenantId, productId: product.id, status: 'IN_STOCK' },
       });
 
-      await tx.product.update({
-        where: { id: product.id },
-        data: { stock: inStockCount },
-      });
-
-      if (imei.variantId) {
-        const variantInStock = await tx.productImei.count({
-          where: { tenantId: user.tenantId, productId: product.id, variantId: imei.variantId, status: 'IN_STOCK' },
-        });
-        await tx.productVariant.update({
-          where: { id: imei.variantId },
-          data: { stock: variantInStock },
-        });
-      }
+      // Serialised stock is counted, not incremented — so set the branch row to
+      // the live count and let recacheProductStock roll the totals back up.
+      await this.syncImeiShopStock(
+        tx,
+        user.tenantId,
+        shopId,
+        product.id,
+        imei.variantId,
+      );
 
       const adjustment = await tx.stockAdjustment.create({
         data: {
           tenantId: user.tenantId,
+          shopId,
           productId: product.id,
           variantId: imei.variantId,
           imeiId: imei.id,
@@ -384,6 +378,7 @@ export class StockAdjustmentsService {
         await tx.stockMovement.create({
           data: {
             tenantId: user.tenantId,
+            shopId,
             productId: product.id,
             type: dto.type,
             quantity: stockChange,
@@ -398,10 +393,50 @@ export class StockAdjustmentsService {
     });
   }
 
+  /**
+   * Recount a branch's serialised stock straight from the IMEI table, then
+   * re-derive the product/variant totals from every branch.
+   */
+  private async syncImeiShopStock(
+    tx: any,
+    tenantId: string,
+    shopId: string,
+    productId: string,
+    variantId: string | null,
+  ): Promise<void> {
+    const count = await tx.productImei.count({
+      where: {
+        tenantId,
+        productId,
+        shopId,
+        status: 'IN_STOCK',
+        ...(variantId ? { variantId } : {}),
+      },
+    });
+
+    const existing = await tx.shopStock.findFirst({
+      where: { shopId, productId, variantId },
+      select: { id: true },
+    });
+
+    if (existing) {
+      await tx.shopStock.update({
+        where: { id: existing.id },
+        data: { stock: count },
+      });
+    } else {
+      await tx.shopStock.create({
+        data: { tenantId, shopId, productId, variantId, stock: count, isActive: true },
+      });
+    }
+
+    await recacheProductStock(tx, productId, variantId);
+  }
+
   // ─── LIST ────────────────────────────────────────────
-  list(user: AuthenticatedUser) {
+  list(user: AuthenticatedUser, scope: ShopScope) {
     return this.prisma.stockAdjustment.findMany({
-      where: { tenantId: user.tenantId },
+      where: { tenantId: user.tenantId, ...scope.whereLoose },
       orderBy: { createdAt: 'desc' },
       include: {
         product: { select: { id: true, name: true, sku: true, unit: true } },
@@ -414,6 +449,7 @@ export class StockAdjustmentsService {
         },
         imei: { select: { id: true, imei1: true, status: true, color: true } },
         createdBy: { select: { id: true, fullName: true } },
+        shop: { select: { id: true, name: true, isMain: true } },
       },
       take: 200,
     });
