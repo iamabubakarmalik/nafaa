@@ -52,6 +52,8 @@ export class SubscriptionCronService {
       trialsExpired: 0,
       subsPastDue: 0,
       subsExpired: 0,
+      subsCancelled: 0,
+      invoicesOverdue: 0,
       trialWarnings: 0,
       subWarnings: 0,
       errors: 0,
@@ -81,10 +83,51 @@ export class SubscriptionCronService {
         }
       }
 
+      // ─── 1b. Unpaid invoices past their due date → OVERDUE ───
+      //     Nothing used to move invoices out of PENDING, so the "overdue"
+      //     counter on the billing page was permanently zero.
+      const overdueInvoices = await this.prisma.invoice.updateMany({
+        where: { status: 'PENDING', dueDate: { lt: now } },
+        data: { status: 'OVERDUE' },
+      });
+      stats.invoicesOverdue = overdueInvoices.count;
+
+      // ─── 1c. Subscriptions the owner asked to end → CANCELLED ───
+      //     `cancelAtPeriodEnd` was being set but never acted on, so a
+      //     cancelled plan silently rolled into PAST_DUE instead.
+      const dueToCancel = await this.prisma.subscription.findMany({
+        where: {
+          status: { in: ['ACTIVE', 'TRIAL'] },
+          cancelAtPeriodEnd: true,
+          currentPeriodEnd: { lt: now },
+        },
+        select: { id: true, tenantId: true },
+      });
+
+      for (const sub of dueToCancel) {
+        try {
+          await this.prisma.subscription.update({
+            where: { id: sub.id },
+            data: { status: 'CANCELLED', cancelledAt: now },
+          });
+          await this.notifications.create({
+            tenantId: sub.tenantId,
+            type: 'WARNING',
+            title: 'Subscription Cancel Ho Gayi',
+            message: 'Aap ki request par plan band kar diya gaya. Dobara subscribe kar sakte hain.',
+            link: '/plans',
+          });
+          stats.subsCancelled++;
+        } catch (e) {
+          stats.errors++;
+        }
+      }
+
       // ─── 2. Active subs that expired (status → PAST_DUE) ───
       const overdueActive = await this.prisma.subscription.findMany({
         where: {
           status: 'ACTIVE',
+          cancelAtPeriodEnd: false,
           currentPeriodEnd: { lt: now },
         },
         include: { tenant: true, plan: true },

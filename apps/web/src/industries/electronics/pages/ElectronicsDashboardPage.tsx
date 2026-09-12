@@ -533,7 +533,7 @@ export default function ElectronicsDashboardPage() {
             <StatBox label="Warranty Active" value={serials.warrantyActive} icon={Shield} tone="violet" />
           </div>
           <div className="px-4 pb-4">
-            <Link to="/electronics/serials" className="w-full inline-flex items-center justify-center gap-2 h-11 rounded-xl bg-gradient-to-r from-amber-600 to-orange-700 hover:from-amber-700 text-white font-extrabold text-sm shadow-md transition active:scale-[0.98]">
+            <Link to="/electronics/serials" className="w-full inline-flex items-center justify-center gap-2 h-11 rounded-xl bg-gradient-to-r from-amber-600 to-orange-700 hover:from-amber-700 hover:to-orange-700 text-white font-extrabold text-sm shadow-md transition active:scale-[0.98]">
               Serial Lookup <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -557,7 +557,7 @@ export default function ElectronicsDashboardPage() {
             <StatBox label="Is Mahine" value={warrantySummary?.thisMonth ?? 0} icon={Activity} tone="violet" />
           </div>
           <div className="px-4 pb-4">
-            <Link to="/electronics/warranty-claims" className="w-full inline-flex items-center justify-center gap-2 h-11 rounded-xl bg-gradient-to-r from-rose-600 to-red-700 hover:from-rose-700 text-white font-extrabold text-sm shadow-md transition active:scale-[0.98]">
+            <Link to="/electronics/warranty-claims" className="w-full inline-flex items-center justify-center gap-2 h-11 rounded-xl bg-gradient-to-r from-rose-600 to-red-700 hover:from-rose-700 hover:to-red-700 text-white font-extrabold text-sm shadow-md transition active:scale-[0.98]">
               Manage Claims <ArrowRight className="h-4 w-4" />
             </Link>
           </div>

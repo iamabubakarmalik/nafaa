@@ -95,13 +95,40 @@ export class BillingService {
   }
 
   async submitPayment(user: AuthenticatedUser, dto: SubmitPaymentDto) {
+    if (!dto.uploadId) {
+      throw new BadRequestException('Payment receipt ka screenshot upload karna zaroori hai');
+    }
+
     const invoice = await this.prisma.invoice.findFirst({
       where: { id: dto.invoiceId, tenantId: user.tenantId },
+      include: {
+        payments: { where: { status: 'PENDING' }, select: { id: true, createdAt: true } },
+      },
     });
     if (!invoice) throw new NotFoundException('Invoice not found');
 
     if (invoice.status === 'PAID') {
-      throw new BadRequestException('Invoice already paid');
+      throw new BadRequestException('Ye invoice pehle hi paid hai');
+    }
+    if (invoice.status === 'CANCELLED') {
+      throw new BadRequestException(
+        'Ye invoice cancel ho chuki hai. Plans page se naya plan choose karein.',
+      );
+    }
+
+    // One receipt at a time — otherwise the same transfer gets submitted twice
+    // and the admin approves it twice.
+    if (invoice.payments.length > 0) {
+      throw new BadRequestException(
+        `Is invoice ki ek payment pehle hi review mein hai. ` +
+          `Admin ke faisle ka intezaar karein — reject hone par dobara upload kar sakte hain.`,
+      );
+    }
+
+    if (dto.amount > invoice.amountDue) {
+      throw new BadRequestException(
+        `Amount invoice se zyada hai. Due amount Rs ${this.formatAmount(invoice.amountDue)} hai.`,
+      );
     }
 
     const payment = await this.prisma.payment.create({

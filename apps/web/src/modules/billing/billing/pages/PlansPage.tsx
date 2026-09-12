@@ -74,17 +74,22 @@ interface ConfirmModalProps {
   interval: BillingInterval;
   price: number;
   existingPending: any;
+  currentSub: any;
   onConfirm: () => void;
   onClose: () => void;
   loading: boolean;
 }
 
-function ConfirmUpgradeModal({ plan, interval, price, existingPending, onConfirm, onClose, loading }: ConfirmModalProps) {
+function ConfirmUpgradeModal({ plan, interval, price, existingPending, currentSub, onConfirm, onClose, loading }: ConfirmModalProps) {
   const pendingSub  = existingPending?.subscription ?? null;
   const pendingPlan = pendingSub?.plan ?? null;
   const pendingInv  = existingPending?.invoice ?? null;
   const hasPending  = !!pendingPlan;
   const isSamePlan  = hasPending && pendingPlan?.id === plan.id && pendingSub?.interval === interval;
+  const isRenewal =
+    !hasPending &&
+    currentSub?.plan?.id === plan.id &&
+    ['ACTIVE', 'PAST_DUE', 'EXPIRED'].includes(currentSub?.status ?? '');
 
   return (
     <div className="fixed inset-0 z-[100] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in" onClick={onClose}>
@@ -93,8 +98,9 @@ function ConfirmUpgradeModal({ plan, interval, price, existingPending, onConfirm
           <div className="absolute -top-8 -right-8 h-32 w-32 rounded-full bg-white/10 blur-2xl pointer-events-none" />
           <div className="relative">
             <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-widest border border-white/20 mb-3">
-              {isSamePlan ? (<><RefreshCw className="h-2.5 w-2.5 text-amber-300" />Same Plan</>) :
-               hasPending ? (<><AlertTriangle className="h-2.5 w-2.5 text-amber-300" />Switch Plan</>) :
+              {isSamePlan ? (<><RefreshCw className="h-2.5 w-2.5 text-amber-300" />Same Invoice</>) :
+               hasPending ? (<><RefreshCw className="h-2.5 w-2.5 text-amber-300" />Invoice Update</>) :
+               isRenewal ? (<><Clock className="h-2.5 w-2.5 text-amber-300" />Renew Plan</>) :
                (<><Sparkles className="h-2.5 w-2.5 text-amber-300" />Confirm Subscription</>)}
             </div>
             <h3 className="text-2xl font-extrabold">{plan.name}</h3>
@@ -118,13 +124,27 @@ function ConfirmUpgradeModal({ plan, interval, price, existingPending, onConfirm
             </div>
           ) : hasPending ? (
             <div className="rounded-2xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-300 dark:border-amber-500/40 p-4 flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-amber-700 dark:text-amber-400 shrink-0 mt-0.5" />
+              <RefreshCw className="h-5 w-5 text-amber-700 dark:text-amber-400 shrink-0 mt-0.5" />
               <div>
-                <div className="font-extrabold text-amber-900 dark:text-amber-200 text-sm">Pichla Pending Cancel Ho Jayega</div>
+                <div className="font-extrabold text-amber-900 dark:text-amber-200 text-sm">Wohi Invoice Update Ho Gi</div>
                 <p className="text-xs text-amber-800 dark:text-amber-300 mt-1 font-semibold leading-relaxed">
-                  Aap ka existing pending plan <strong>{pendingPlan?.name ?? 'Unknown'}</strong>
-                  {pendingInv ? (<> aur uska invoice <strong>{pendingInv.invoiceNumber ?? ''}</strong> ({formatPKR(pendingInv.amountDue ?? 0)})</>) : null}
-                  {' '}automatic cancel ho jayega.
+                  Aap ki open invoice{' '}
+                  {pendingInv ? <strong>{pendingInv.invoiceNumber ?? ''}</strong> : null}
+                  {' '}({pendingPlan?.name ?? 'Unknown'}
+                  {pendingInv ? ` — ${formatPKR(pendingInv.amountDue ?? 0)}` : ''})
+                  {' '}<strong>{plan.name} — {interval.toLowerCase()}</strong> ke hisaab se
+                  {' '}<strong>{formatPKR(price)}</strong> par update ho jayegi. Nayi invoice nahi banegi.
+                </p>
+              </div>
+            </div>
+          ) : isRenewal ? (
+            <div className="rounded-2xl bg-blue-50 dark:bg-blue-500/10 border-2 border-blue-200 dark:border-blue-500/40 p-4 flex items-start gap-3">
+              <Clock className="h-5 w-5 text-blue-700 dark:text-blue-400 shrink-0 mt-0.5" />
+              <div>
+                <div className="font-extrabold text-blue-900 dark:text-blue-200 text-sm">Renewal</div>
+                <p className="text-xs text-blue-800 dark:text-blue-300 mt-1 font-semibold leading-relaxed">
+                  Payment approve hote hi naya period shuru ho ga. Aap ke current period ke bache hue din
+                  zaya nahi honge — naye period mein add ho jayenge.
                 </p>
               </div>
             </div>
@@ -134,7 +154,8 @@ function ConfirmUpgradeModal({ plan, interval, price, existingPending, onConfirm
               <div>
                 <div className="font-extrabold text-emerald-900 dark:text-emerald-200 text-sm">Ready to Subscribe</div>
                 <p className="text-xs text-emerald-800 dark:text-emerald-300 mt-1 font-semibold leading-relaxed">
-                  Naya invoice generate hoga aur aap payment page par chale jayenge. Current trial/plan payment confirm hone tak chalta rahega.
+                  Invoice generate hogi aur aap payment page par chale jayenge. Current trial/plan
+                  payment confirm hone tak chalta rahega.
                 </p>
               </div>
             </div>
@@ -162,7 +183,11 @@ function ConfirmUpgradeModal({ plan, interval, price, existingPending, onConfirm
               onClick={onConfirm}
               loading={loading}
             >
-              {isSamePlan ? (<><ArrowRight className="h-4 w-4" />Go to Payment</>) : (<><Rocket className="h-4 w-4" />Confirm & Pay</>)}
+              {isSamePlan
+                ? (<><ArrowRight className="h-4 w-4" />Go to Payment</>)
+                : isRenewal
+                  ? (<><RefreshCw className="h-4 w-4" />Renew & Pay</>)
+                  : (<><Rocket className="h-4 w-4" />Confirm & Pay</>)}
             </Button>
           </div>
         </div>
@@ -190,14 +215,7 @@ export default function PlansPage() {
 
   const { data: pendingUpgrade } = useQuery({
     queryKey: ['subscription-pending'],
-    queryFn: async () => {
-      try {
-        const res = await apiClient.get('/subscriptions/pending-upgrade');
-        return res.data?.data ?? res.data ?? null;
-      } catch {
-        return null;
-      }
-    },
+    queryFn: subscriptionsApi.pendingUpgrade,
   });
 
   const startMutation = useMutation({
@@ -208,16 +226,16 @@ export default function PlansPage() {
       queryClient.invalidateQueries({ queryKey: ['subscription-pending'] });
       queryClient.invalidateQueries({ queryKey: ['billing-invoices'] });
 
-      if (data.reused) {
-        toast.success('Existing invoice par redirect kar rahe hain', {
-          description: 'Same plan ka pending invoice mil gaya',
+      if (data.repriced) {
+        toast.success('Invoice update ho gayi', {
+          description: `${data.invoice.invoiceNumber} ab ${formatPKR(data.invoice.amountDue)} ki hai — nayi invoice nahi bani`,
         });
-      } else if (data.cancelledCount > 0) {
-        toast.success(`✅ Plan switch ho gaya!`, {
-          description: `${data.cancelledCount} pichla pending automatic cancel ho gaya`,
+      } else if (data.reused) {
+        toast.success('Aap ki open invoice par le ja rahe hain', {
+          description: data.invoice.invoiceNumber,
         });
       } else {
-        toast.success('🎉 Plan selected! Ab payment karo');
+        toast.success('🎉 Plan select ho gaya! Ab payment karein');
       }
 
       setConfirmPlan(null);
@@ -267,6 +285,77 @@ export default function PlansPage() {
   const handleConfirm = () => {
     if (!confirmPlan) return;
     startMutation.mutate({ planId: confirmPlan.id, interval });
+  };
+
+  /* ── Renewal urgency ─────────────────────────────────────────────────── */
+  const daysLeft = useMemo(() => {
+    if (!current) return null;
+    const end =
+      current.status === 'TRIAL' && current.trialEndsAt
+        ? current.trialEndsAt
+        : current.currentPeriodEnd;
+    return Math.ceil((new Date(end).getTime() - Date.now()) / 86_400_000);
+  }, [current]);
+
+  const needsRenewal =
+    !!current &&
+    (current.status === 'PAST_DUE' ||
+      current.status === 'EXPIRED' ||
+      (current.status === 'ACTIVE' && (daysLeft ?? 99) <= 15));
+
+  const intervalWord: Record<BillingInterval, string> = {
+    MONTHLY: 'Monthly',
+    QUARTERLY: 'Quarterly',
+    YEARLY: 'Yearly',
+  };
+
+  /* ── What should this plan's button actually do right now? ─────────────
+     Interval is part of a subscription's identity. The old check was just
+     `current.plan.id === plan.id → disabled "Current Plan"`, which meant a
+     Basic-monthly customer could never buy Basic-yearly, and nobody could
+     ever renew the plan they were already on. */
+  const ctaFor = (plan: Plan) => {
+    if (plan.priceMonthly === 0) {
+      const onTrial = current?.status === 'TRIAL' && current?.plan?.id === plan.id;
+      return {
+        label: onTrial ? 'Aap Trial Par Hain' : 'Trial Plan',
+        disabled: true as const,
+      };
+    }
+
+    const pendingSub = pendingUpgrade?.subscription;
+    const pendingInvoiceId = pendingUpgrade?.invoice?.id;
+    if (
+      pendingInvoiceId &&
+      pendingSub?.plan?.id === plan.id &&
+      pendingSub?.interval === interval
+    ) {
+      return {
+        label: 'Continue Payment',
+        payInvoiceId: pendingInvoiceId as string,
+      };
+    }
+
+    const samePlan =
+      current?.plan?.id === plan.id &&
+      ['ACTIVE', 'PAST_DUE', 'EXPIRED'].includes(current?.status ?? '');
+
+    if (samePlan) {
+      return current?.interval === interval
+        ? { label: needsRenewal ? 'Renew Now' : `Extend ${intervalWord[interval]}` }
+        : { label: `Switch to ${intervalWord[interval]}` };
+    }
+
+    const currentMonthly =
+      current && current.status !== 'TRIAL' ? (current.plan?.priceMonthly ?? 0) : 0;
+
+    if (currentMonthly > 0 && plan.priceMonthly < currentMonthly) {
+      return { label: 'Downgrade' };
+    }
+    if (currentMonthly > 0 && plan.priceMonthly > currentMonthly) {
+      return { label: 'Upgrade Now' };
+    }
+    return { label: 'Subscribe Now' };
   };
 
   /* Keyboard shortcuts */
@@ -395,15 +484,70 @@ export default function PlansPage() {
             </div>
             <div>
               <div className="text-[10px] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-400">Current Plan</div>
-              <div className="font-extrabold text-emerald-900 dark:text-emerald-200">{current.plan?.name}</div>
+              <div className="font-extrabold text-emerald-900 dark:text-emerald-200">
+                {current.plan?.name}
+                {current.status !== 'TRIAL' && (
+                  <span className="ml-2 text-xs font-bold text-emerald-700 dark:text-emerald-400">
+                    · {intervalWord[current.interval]}
+                  </span>
+                )}
+              </div>
               <div className="text-xs text-emerald-700 dark:text-emerald-400 font-semibold mt-0.5">
-                Status: {current.status} • Expires: {new Date(current.currentPeriodEnd).toLocaleDateString('en-PK')}
+                Status: {current.status}
+                {' • '}
+                {daysLeft !== null && daysLeft > 0
+                  ? `${daysLeft} din baqi`
+                  : daysLeft === 0
+                    ? 'Aaj khatam'
+                    : 'Khatam ho chuka'}
+                {' • '}
+                {new Date(
+                  current.status === 'TRIAL' && current.trialEndsAt
+                    ? current.trialEndsAt
+                    : current.currentPeriodEnd,
+                ).toLocaleDateString('en-PK')}
               </div>
             </div>
           </div>
           <Button variant="secondary" onClick={() => navigate('/billing')}>
             View Billing
             <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+
+      {/* Renewal nudge — the old page had no way back onto the same plan */}
+      {needsRenewal && current?.plan && current.status !== 'TRIAL' && !pendingUpgrade && (
+        <div className="rounded-2xl bg-gradient-to-br from-rose-50 to-orange-50 dark:from-rose-500/10 dark:to-orange-500/10 border-2 border-rose-300 dark:border-rose-500/40 p-4 flex items-start justify-between gap-3 flex-wrap shadow-sm">
+          <div className="flex items-start gap-3 min-w-0 flex-1">
+            <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-rose-500 to-orange-600 text-white flex items-center justify-center shadow-lg shadow-rose-500/30 shrink-0">
+              <Clock className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-[10px] uppercase tracking-widest font-extrabold text-rose-700 dark:text-rose-400">
+                {current.status === 'ACTIVE' ? 'Renewal Due' : 'Service Rok Di Gayi'}
+              </div>
+              <div className="font-extrabold text-rose-900 dark:text-rose-200">
+                {current.plan.name} — {current.status === 'ACTIVE' && (daysLeft ?? 0) > 0
+                  ? `${daysLeft} din baqi`
+                  : 'expire ho chuka'}
+              </div>
+              <div className="text-xs text-rose-700 dark:text-rose-400 font-semibold mt-0.5">
+                Isi plan ko renew karein — baqi din zaya nahi honge, naye period mein add ho jayenge.
+              </div>
+            </div>
+          </div>
+          <Button
+            onClick={() => {
+              const plan = plans.find((p) => p.id === current.plan?.id);
+              if (!plan) return navigate('/billing');
+              setInterval(current.interval);
+              handleSubscribeClick(plan);
+            }}
+            className="bg-gradient-to-r from-rose-600 to-orange-600 hover:from-rose-700 hover:to-orange-700 font-extrabold shrink-0"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Renew {current.plan.name}
           </Button>
         </div>
       )}
@@ -418,13 +562,17 @@ export default function PlansPage() {
               </div>
               <div className="min-w-0">
                 <div className="text-[10px] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-400">
-                  Existing Pending Upgrade
+                  Open Invoice — {pendingUpgrade.invoice.invoiceNumber}
                 </div>
                 <div className="font-extrabold text-amber-900 dark:text-amber-200">
-                  {pendingUpgrade.subscription.plan.name} — {formatPKR(pendingUpgrade.invoice.amountDue)}
+                  {pendingUpgrade.subscription.plan.name}
+                  {' · '}
+                  {intervalWord[pendingUpgrade.subscription.interval as BillingInterval]}
+                  {' — '}
+                  {formatPKR(pendingUpgrade.invoice.amountDue)}
                 </div>
                 <div className="text-xs text-amber-700 dark:text-amber-400 font-semibold mt-0.5">
-                  Naya plan choose karne se ye automatic cancel ho jayega
+                  Doosra plan choose karenge to yehi invoice update ho jayegi — nayi nahi banegi
                 </div>
               </div>
             </div>
@@ -456,13 +604,18 @@ export default function PlansPage() {
           const Icon = planIcons[plan.slug] || Sparkles;
           const gradient = planGradients[plan.slug] || 'from-slate-500 to-slate-700';
           const glow = planGlows[plan.slug] || 'shadow-slate-500/30';
-          const isCurrent = current?.plan?.id === plan.id;
+          const isCurrent =
+            current?.plan?.id === plan.id &&
+            ['TRIAL', 'ACTIVE', 'PAST_DUE'].includes(current?.status ?? '');
           const isPro = plan.slug === 'pro';
           const isEnterprise = plan.slug === 'enterprise';
           const price = getPrice(plan);
           const savings = getSavings(plan);
           const isFree = plan.priceMonthly === 0;
-          const isPendingThis = !!pendingUpgrade?.subscription?.plan?.id && pendingUpgrade.subscription.plan.id === plan?.id;
+          const isPendingThis =
+            !!pendingUpgrade?.subscription?.plan?.id &&
+            pendingUpgrade.subscription.plan.id === plan.id;
+          const cta = ctaFor(plan);
 
           return (
             <div
@@ -488,13 +641,17 @@ export default function PlansPage() {
 
               {isPendingThis && (
                 <div className="absolute top-2 right-2 z-10 px-2 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-extrabold uppercase tracking-widest shadow-lg animate-pulse">
-                  ⏳ Pending
+                  ⏳ Pending {pendingUpgrade?.subscription?.interval
+                    ? intervalWord[pendingUpgrade.subscription.interval as BillingInterval]
+                    : ''}
                 </div>
               )}
 
-              {isCurrent && (
+              {isCurrent && !isPendingThis && (
                 <div className="absolute top-2 right-2 z-10 px-2 py-0.5 rounded-md bg-emerald-500 text-white text-[9px] font-extrabold uppercase tracking-widest shadow-lg">
-                  ✓ Active
+                  ✓ {current?.status === 'TRIAL'
+                    ? 'Trial'
+                    : `Active · ${intervalWord[current!.interval]}`}
                 </div>
               )}
 
@@ -560,31 +717,33 @@ export default function PlansPage() {
                 </div>
 
                 <div className="pt-5 border-t-2 border-slate-100 dark:border-slate-800">
-                  {isCurrent ? (
+                  {'disabled' in cta ? (
                     <Button className="w-full" variant="secondary" disabled>
                       <Check className="h-4 w-4" />
-                      Current Plan
+                      {cta.label}
                     </Button>
-                  ) : isFree ? (
-                    <Button className="w-full" variant="secondary" onClick={() => navigate('/billing')}>
-                      Already on Trial
-                    </Button>
-                  ) : isPendingThis && pendingUpgrade?.invoice?.id ? (
+                  ) : 'payInvoiceId' in cta ? (
                     <Button
                       className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 font-extrabold"
-                      onClick={() => navigate(`/billing/invoice/${pendingUpgrade.invoice.id}/pay`)}
+                      onClick={() => navigate(`/billing/invoice/${cta.payInvoiceId}/pay`)}
                     >
                       <ArrowRight className="h-4 w-4" />
-                      Continue Payment
+                      {cta.label}
                     </Button>
                   ) : (
                     <Button
                       className={`w-full shadow-lg bg-gradient-to-r ${gradient} hover:opacity-90 ${glow} font-extrabold`}
                       onClick={() => handleSubscribeClick(plan)}
                     >
-                      Subscribe Now
+                      {cta.label}
                       <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                     </Button>
+                  )}
+
+                  {isCurrent && current?.status !== 'TRIAL' && current?.interval !== interval && (
+                    <p className="mt-2 text-center text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                      Abhi {intervalWord[current!.interval]} par hain — baqi din naye period mein add ho jayenge.
+                    </p>
                   )}
                 </div>
               </div>
@@ -631,6 +790,7 @@ export default function PlansPage() {
           interval={interval}
           price={getPrice(confirmPlan)}
           existingPending={pendingUpgrade}
+          currentSub={current}
           onConfirm={handleConfirm}
           onClose={() => setConfirmPlan(null)}
           loading={startMutation.isPending}

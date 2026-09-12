@@ -283,7 +283,7 @@ export default function PlanUsagePage() {
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
       if (e.key.toLowerCase() === 't') { e.preventDefault(); setShowTeacher(true); }
       if (e.key.toLowerCase() === 'r') { e.preventDefault(); refetch(); }
-      if (e.key.toLowerCase() === 'u') { e.preventDefault(); navigate('/plan'); }
+      if (e.key.toLowerCase() === 'u') { e.preventDefault(); navigate('/plans'); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -453,7 +453,7 @@ export default function PlanUsagePage() {
                 <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
                 <span className="hidden sm:inline">Refresh</span>
               </button>
-              <Link to="/plan">
+              <Link to="/plans">
                 <button className="w-full h-10 px-3 rounded-xl bg-white text-slate-900 hover:bg-slate-100 text-xs font-extrabold inline-flex items-center gap-1.5 shadow-lg transition">
                   <Rocket className="h-4 w-4" /> <span className="hidden sm:inline">Upgrade</span>
                 </button>
@@ -480,7 +480,7 @@ export default function PlanUsagePage() {
               Aap ki dukan tezi se barh rahi hai. Higher plan choose karo aur bina ruke kaam karo. {summary.criticalItems.length > 0 && <>Affected: <strong>{summary.criticalItems.join(', ')}</strong></>}
             </p>
           </div>
-          <Link to="/plan" className="shrink-0">
+          <Link to="/plans" className="shrink-0">
             <Button className="bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 text-white shadow-lg shadow-rose-500/30 font-extrabold">
               <Rocket className="h-4 w-4" />
               Upgrade Now
@@ -602,7 +602,7 @@ export default function PlanUsagePage() {
                 </p>
               </div>
             </div>
-            <Link to="/plan" className="shrink-0">
+            <Link to="/plans" className="shrink-0">
               <Button size="lg" className="bg-white text-slate-900 hover:bg-slate-100 shadow-xl font-extrabold">
                 <Crown className="h-4 w-4" />
                 See All Plans

@@ -106,7 +106,22 @@ export const billingApi = {
       headers: { Authorization: `Bearer ${token}` },
       body: formData,
     });
-    if (!res.ok) throw new Error('Upload failed');
+
+    if (!res.ok) {
+      // Surface what the server actually said. Swallowing this is how
+      // "Upload fail — try again" hid a 402 from an expired trial for so long.
+      let detail = `Upload failed (${res.status})`;
+      try {
+        const body = await res.json();
+        if (body?.message) {
+          detail = Array.isArray(body.message) ? body.message.join(', ') : body.message;
+        }
+      } catch {
+        /* non-JSON error body — keep the status text */
+      }
+      throw new Error(detail);
+    }
+
     const json = await res.json();
     return json.data;
   },

@@ -155,7 +155,7 @@ export function AppLockSetupModal({ mode, onClose }: { mode: 'setup' | 'change' 
             onClick={submit} disabled={busy}
             className={[
               'w-full h-14 rounded-2xl text-white font-extrabold text-lg shadow-lg transition active:scale-95 disabled:opacity-50',
-              mode === 'disable' ? 'bg-gradient-to-r from-rose-600 to-red-700 hover:from-rose-700' : 'bg-gradient-to-r from-sky-600 to-cyan-700 hover:from-sky-700',
+              mode === 'disable' ? 'bg-gradient-to-r from-rose-600 to-red-700 hover:from-rose-700 hover:to-red-700' : 'bg-gradient-to-r from-sky-600 to-cyan-700 hover:from-sky-700 hover:to-cyan-700',
               'inline-flex items-center justify-center gap-2',
             ].join(' ')}
           >

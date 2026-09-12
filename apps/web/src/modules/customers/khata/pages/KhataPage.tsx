@@ -1,4 +1,8 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
+import {
+  ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+} from 'recharts';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import {
@@ -8,7 +12,7 @@ import {
   SkipForward, Copy, CheckCheck, Clock, Flame, ArrowLeft,
   Printer, ArrowRight, TrendingDown, TrendingUp, CalendarRange,
   CalendarDays, FileText, FileDown,
-  Sparkles, Award, Edit3, Zap, Wand2,
+  Sparkles, Award, Edit3, Zap, Wand2, User,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { offlineCustomersApi as customersApi } from '@core/lib/offline/offlineCustomers';
@@ -18,17 +22,19 @@ import { formatPKR } from '@core/lib/format';
 import { Button } from '@core/ui/Button';
 import { useCostHidden, PrivacyToggle } from '@core/ui/HiddenValue';
 import { AppLockGate } from '@core/security/AppLockGate';
-import { Plus, UserPlus, Loader2, ShieldAlert } from 'lucide-react';
+import { Plus, UserPlus, Loader2, ShieldAlert, History, Package, BarChart3, Users } from 'lucide-react';
 import { useAuthStore } from '@core/stores/auth.store';
 
 /* ═════════════════════════════════════════════════════════════
-   NAFAA GLOBAL KHATA — CLEAN v3
+   NAFAA GLOBAL KHATA — FULL BEST v11
    ─────────────────────────────────────────────────────────────
-   ✅ Quick Udhaar COMPLETELY REMOVED
-   ✅ Udhaar sirf POS se aata hai (as it should)
-   💬 Smart WhatsApp reminders (gender-aware)
-   🖨️ A4 PDF + 80mm thermal + CSV
-   📅 Custom date range • 🌙 Dark mode • ⌨️ Shortcuts
+   ➕ QUICK CUSTOMER — naam likho, nahi mila to wahin bana do
+   🟠 Naya Udhaar hero button (bina POS ke)
+   📔 Purana Khata — inline customer create ke sath
+   💬 Smart WhatsApp reminders (gender-aware, editable templates)
+   🧾 Thermal: single statement + POORI LIST ek print me
+   📄 A4 PDF + CSV • 📅 Custom range • 📊 Analytics tab
+   🌙 Dark/Light perfect • 📱 Mobile friendly • ⌨️ Shortcuts
    ═════════════════════════════════════════════════════════════ */
 
 const DAY = 864e5;
@@ -266,9 +272,14 @@ function GlobalKhataContent() {
   const [showPrintOptions, setShowPrintOptions] = useState(false);
   const [showTemplateEditor, setShowTemplateEditor] = useState(false);
   const [singleReminderCustomer, setSingleReminderCustomer] = useState<any>(null);
-  /* Naya: bina sale ke udhaar, aur purana khata (copy se software par) */
   const [udhaarModal, setUdhaarModal] = useState<any>(null);
   const [showOpening, setShowOpening] = useState(false);
+  const [khataFor, setKhataFor] = useState<any>(null);
+  const [view, setView] = useState<'khata' | 'analytics'>('khata');
+  /* ➕ Naya: bina POS ke udhaar — customer picker (inline create ke sath) */
+  const [showUdhaarPicker, setShowUdhaarPicker] = useState(false);
+  /* ➕ Naya: seedha naya customer banao (hero button) */
+  const [showQuickCustomer, setShowQuickCustomer] = useState(false);
 
   const [templates, setTemplates] = useState<Record<Tone, string>>(() => loadTemplates());
   useEffect(() => { saveTemplates(templates); }, [templates]);
@@ -333,8 +344,6 @@ function GlobalKhataContent() {
         ? Math.min(...pendingSales.map((s: any) => new Date(s.soldAt).getTime()))
         : 0;
       const ageDays = oldestDueAt > 0 ? Math.floor((Date.now() - oldestDueAt) / DAY) : 0;
-      // Ek shop select ho to API `shopBalance` bhejti hai — usi branch ka baqi.
-      // "All Shops" par ye field nahi aati aur `balance` hi kul baqi hota hai.
       const balance = Number(
         c.shopBalance !== undefined ? c.shopBalance : c.balance || 0,
       );
@@ -402,7 +411,6 @@ function GlobalKhataContent() {
     };
   }, [khataData]);
 
-  /* Bina sale ke udhaar — naye dukandar ke liye sab se zaroori */
   const udhaarMutation = useMutation({
     mutationFn: ({ customerId, amount, note }: { customerId: string; amount: number; note?: string }) =>
       customerLedgerApi.addUdhaar(customerId, { amount, note }),
@@ -433,6 +441,8 @@ function GlobalKhataContent() {
     queryClient.invalidateQueries({ queryKey: ['khata-summary'] });
     queryClient.invalidateQueries({ queryKey: ['customers-for-pos'] });
     queryClient.invalidateQueries({ queryKey: ['customers'] });
+    queryClient.invalidateQueries({ queryKey: ['khata-opening-search'] });
+    queryClient.invalidateQueries({ queryKey: ['udhaar-picker-search'] });
   };
 
   const reminderList = useMemo(() =>
@@ -613,6 +623,67 @@ function GlobalKhataContent() {
     toast.success('Report ready');
   };
 
+  /* ═══ 🧾 THERMAL LIST — saare customers ek hi print me ═══ */
+  const printThermalList = () => {
+    if (filtered.length === 0) return toast.error('Koi data nahi is filter me');
+
+    const rows = filtered.map((c, i) => `
+      <div style="margin:5px 0;">
+        <div class="row"><span class="k">${i + 1}. ${escapeHtml((c.name || 'Unknown').slice(0, 22))}</span><span class="v">${c.balance === 0 ? '—' : (c.isAdvance ? '+' : '−') + formatPKR(c.absBalance)}</span></div>
+        <div style="font-size:9px;display:flex;justify-content:space-between;">
+          <span>${c.phone ? escapeHtml(c.phone) : 'no phone'}${c.ageDays > 0 ? ` • ${c.ageDays}d` : ''}</span>
+          <span>${c.isAdvance ? 'ADVANCE' : c.balance > 0 ? 'UDHAAR' : 'CLEAR'}</span>
+        </div>
+      </div>
+      <div class="divider" style="margin:2px 0;"></div>
+    `).join('');
+
+    const html = `<!doctype html>
+<html><head><meta charset="utf-8"/><title>Khata List</title>
+<style>
+  @page { size: 80mm auto; margin: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 80mm; }
+  body { font-family: 'Courier New', monospace; padding: 5mm 4mm; color: #000; font-size: 11px; line-height: 1.4; background: #fff; }
+  .center { text-align: center; } .bold { font-weight: 700; }
+  .xl { font-size: 15px; font-weight: 800; letter-spacing: 1px; }
+  .huge { font-size: 18px; font-weight: 800; }
+  .divider { border-top: 1px dashed #000; margin: 8px 0; }
+  .double { border-top: 2px solid #000; margin: 8px 0; }
+  .row { display: flex; justify-content: space-between; gap: 6px; margin: 2px 0; align-items: baseline; }
+  .row .k { font-weight: 600; word-break: break-word; } .row .v { text-align: right; font-weight: 700; white-space: nowrap; }
+  .badge { display: inline-block; border: 1.5px solid #000; padding: 3px 10px; font-size: 10px; font-weight: 800; letter-spacing: 1.5px; margin: 6px 0; }
+  .amount-box { border: 2.5px solid #000; padding: 8px; margin: 8px 0; text-align: center; }
+  .sig-line { border-bottom: 1px solid #000; height: 14px; margin: 18px 0 2px; }
+  .sig-label { font-size: 9px; font-weight: 700; letter-spacing: 1px; }
+  @media print { body { padding: 3mm 3mm; } }
+</style></head><body>
+  <div class="center xl">${escapeHtml(tenantName)}</div>
+  ${shopPhone ? `<div class="center" style="font-size:10px;">Ph: ${escapeHtml(shopPhone)}</div>` : ''}
+  <div class="divider"></div>
+  <div class="center"><span class="badge">KHATA REPORT</span></div>
+  <div class="center bold" style="font-size:10px;">${escapeHtml(periodLabel)}</div>
+  <div class="center" style="font-size:9px;">${filtered.length} customers • ${new Date().toLocaleString('en-PK', { dateStyle: 'short', timeStyle: 'short' })}</div>
+  <div class="double"></div>
+  ${rows}
+  <div class="amount-box">
+    <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;">TOTAL UDHAAR</div>
+    <div class="huge">${formatPKR(stats.totalDue)}</div>
+  </div>
+  <div class="row"><span class="k">Advance jama:</span><span class="v">+${formatPKR(stats.totalAdvance)}</span></div>
+  <div class="row"><span class="k">30+ din purana:</span><span class="v">${formatPKR(stats.aging.old)}</span></div>
+  <div class="double"></div>
+  <div class="sig-line"></div>
+  <div class="row"><span class="sig-label">SIGNATURE:</span><span></span></div>
+  <div class="center bold" style="margin-top:10px;letter-spacing:2px;font-size:10px;">* * SHUKRIYA * *</div>
+  <script>window.onload=function(){setTimeout(function(){window.print();},300);};</script>
+</body></html>`;
+
+    const w = window.open('', '_blank', 'width=400,height=700');
+    if (!w) return toast.error('Popup blocked — allow popups!');
+    w.document.open(); w.document.write(html); w.document.close();
+  };
+
   const printCustomerStatement = (c: any) => {
     const salesHtml = c.allSales.length === 0
       ? `<div class="center" style="font-size:10px;margin:6px 0;">Koi purchase nahi</div>`
@@ -706,22 +777,28 @@ function GlobalKhataContent() {
         e.preventDefault(); searchRef.current?.focus();
       }
       if (e.key === 'Escape') {
-        if (showBulkReminder) setShowBulkReminder(false);
+        if (showQuickCustomer) setShowQuickCustomer(false);
+        else if (showUdhaarPicker) setShowUdhaarPicker(false);
+        else if (showBulkReminder) setShowBulkReminder(false);
         else if (showTeacher) setShowTeacher(false);
         else if (showPrintOptions) setShowPrintOptions(false);
         else if (showTemplateEditor) setShowTemplateEditor(false);
         else if (singleReminderCustomer) setSingleReminderCustomer(null);
         else if (paymentModal) setPaymentModal(null);
+        else if (udhaarModal) setUdhaarModal(null);
+        else if (showOpening) setShowOpening(false);
+        else if (khataFor) setKhataFor(null);
       }
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
       if (e.key.toLowerCase() === 'p') { e.preventDefault(); setShowPrintOptions(true); }
       if (e.key.toLowerCase() === 't') { e.preventDefault(); setShowTeacher(true); }
       if (e.key.toLowerCase() === 'n' && reminderList.length > 0) { e.preventDefault(); setShowBulkReminder(true); }
+      if (e.key.toLowerCase() === 'u') { e.preventDefault(); setShowUdhaarPicker(true); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
     // eslint-disable-next-line
-  }, [showBulkReminder, showTeacher, paymentModal, showPrintOptions, showTemplateEditor, singleReminderCustomer, udhaarModal, showOpening, reminderList.length]);
+  }, [showBulkReminder, showTeacher, paymentModal, showPrintOptions, showTemplateEditor, singleReminderCustomer, udhaarModal, showOpening, khataFor, showUdhaarPicker, showQuickCustomer, reminderList.length]);
 
   return (
     <>
@@ -744,10 +821,49 @@ function GlobalKhataContent() {
         />
       )}
 
+      {/* ➕ Naya Udhaar — pehle customer chuno (nahi hai to wahin banao) */}
+      {showUdhaarPicker && (
+        <CustomerPickerModal
+          title="Naya Udhaar"
+          subtitle="Customer chuno — nahi hai to abhi bana do"
+          accent="orange"
+          onClose={() => setShowUdhaarPicker(false)}
+          onPicked={(c: any) => { setShowUdhaarPicker(false); setUdhaarModal(c); }}
+          onChanged={invalidateAll}
+        />
+      )}
+
+      {/* ➕ Seedha naya customer */}
+      {showQuickCustomer && (
+        <QuickCustomerModal
+          initialName=""
+          onClose={() => setShowQuickCustomer(false)}
+          onCreated={(c: any) => {
+            setShowQuickCustomer(false);
+            invalidateAll();
+            toast.success(`"${c.name}" ban gaya ✓ — ab udhaar ya khata shuru karo`);
+          }}
+        />
+      )}
+
       {showOpening && (
         <OpeningBalanceModal
           onClose={() => setShowOpening(false)}
           onDone={() => { setShowOpening(false); invalidateAll(); }}
+        />
+      )}
+
+      {khataFor && (
+        <CustomerKhataModal
+          customer={khataFor}
+          hideCost={hideCost}
+          shopName={tenantName}
+          shopPhone={shopPhone}
+          shopAddress={shopAddress}
+          onClose={() => setKhataFor(null)}
+          onPayment={() => { setPaymentModal(khataFor); setKhataFor(null); }}
+          onUdhaar={() => { setUdhaarModal(khataFor); setKhataFor(null); }}
+          onReminder={() => { setSingleReminderCustomer(khataFor); setKhataFor(null); }}
         />
       )}
 
@@ -796,6 +912,7 @@ function GlobalKhataContent() {
           totalDue={stats.totalDue}
           periodLabel={periodLabel}
           onA4={() => { printA4Report(); setShowPrintOptions(false); }}
+          onThermalList={() => { printThermalList(); setShowPrintOptions(false); }}
           onCSV={() => { exportCSV(); setShowPrintOptions(false); }}
           onClose={() => setShowPrintOptions(false)}
         />
@@ -869,6 +986,22 @@ function GlobalKhataContent() {
               >
                 <Printer className="h-4 w-4" /> Print <Kbd>P</Kbd>
               </button>
+              {/* ➕ Naya Customer — seedha */}
+              <button
+                onClick={() => setShowQuickCustomer(true)}
+                title="Naya customer banao"
+                className="h-11 px-4 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 text-white text-sm font-black inline-flex items-center gap-1.5 shadow-lg shadow-blue-500/40 transition active:scale-95"
+              >
+                <UserPlus className="h-4 w-4" /> Customer
+              </button>
+              {/* 🟠 Naya Udhaar — bina POS */}
+              <button
+                onClick={() => setShowUdhaarPicker(true)}
+                title="Bina sale ke udhaar chadhayein (U)"
+                className="h-11 px-4 rounded-2xl bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-500 text-white text-sm font-black inline-flex items-center gap-1.5 shadow-lg shadow-orange-500/40 transition active:scale-95"
+              >
+                <Plus className="h-4 w-4" /> Udhaar <Kbd>U</Kbd>
+              </button>
               <button
                 onClick={() => setShowOpening(true)}
                 title="Purana khata shuru karein (copy se software par)"
@@ -914,6 +1047,8 @@ function GlobalKhataContent() {
           <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[10px] font-black items-center">
             <Kbd>/</Kbd><span className="text-white/60">Search</span>
             <span className="text-white/30 mx-1">•</span>
+            <Kbd>U</Kbd><span className="text-white/60">Naya Udhaar</span>
+            <span className="text-white/30 mx-1">•</span>
             <Kbd>N</Kbd><span className="text-white/60">Reminders</span>
             <span className="text-white/30 mx-1">•</span>
             <Kbd>P</Kbd><span className="text-white/60">Print</span>
@@ -930,7 +1065,28 @@ function GlobalKhataContent() {
           <Kpi icon={Flame} label="30+ Din" value={stats.aging.oldCount} sub={hideCost ? '••••' : formatPKR(stats.aging.old)} tone="rose" active={filter === 'aging30'} onClick={() => setFilter(filter === 'aging30' ? 'pending' : 'aging30')} />
         </section>
 
-        {stats.withDues > 0 && !hideCost && (
+        {/* ═══ KHATA / ANALYTICS ═══ */}
+        <section className="rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-2 flex gap-1.5">
+          {([
+            { v: 'khata', label: 'Khata', icon: BookOpen },
+            { v: 'analytics', label: 'Analytics', icon: BarChart3 },
+          ] as { v: 'khata' | 'analytics'; label: string; icon: any }[]).map((k) => (
+            <button key={k.v} onClick={() => setView(k.v)}
+              className={`flex-1 h-11 rounded-2xl text-sm font-black inline-flex items-center justify-center gap-2 transition ${
+                view === k.v
+                  ? 'bg-gradient-to-r from-purple-700 to-fuchsia-700 text-white shadow-lg shadow-purple-500/30'
+                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}>
+              <k.icon className="h-4 w-4" /> {k.label}
+            </button>
+          ))}
+        </section>
+
+        {view === 'analytics' && (
+          <KhataAnalytics khataData={khataData} stats={stats} hideCost={hideCost} />
+        )}
+
+        {view === 'khata' && stats.withDues > 0 && !hideCost && (
           <section className="rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4">
             <div className="flex items-center gap-2 mb-3">
               <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-fuchsia-500 via-purple-500 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-purple-500/40">
@@ -950,6 +1106,8 @@ function GlobalKhataContent() {
         )}
 
         {/* Period */}
+        {view === 'khata' && (
+        <>
         <section className="rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-3 space-y-3">
           <div className="flex gap-1.5 flex-wrap items-center">
             <div className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mr-1">Period:</div>
@@ -1013,6 +1171,10 @@ function GlobalKhataContent() {
                     {p.l}
                   </button>
                 ))}
+              </div>
+              <div className="text-[11px] font-bold text-cyan-800 dark:text-cyan-200 bg-cyan-100 dark:bg-cyan-500/20 rounded-lg px-3 py-2 inline-flex items-center gap-2">
+                <Calendar className="h-3.5 w-3.5" />
+                Showing: <strong>{formatDate(customFrom)}</strong> se <strong>{formatDate(customTo)}</strong>
               </div>
             </div>
           )}
@@ -1092,10 +1254,18 @@ function GlobalKhataContent() {
               {filter === 'pending' && stats.withDues === 0
                 ? 'Kisi ka udhaar nahi — zabardast!'
                 : search ? 'Doosra naam try karo'
-                : 'POS se udhaar sale karo — customer ka khaata yahan aa jayega'}
+                : 'Naya customer banao ya POS se udhaar sale karo — khata yahan aa jayega'}
             </p>
             <div className="mt-4 flex gap-2 justify-center flex-wrap">
               {search && <Button variant="secondary" className="font-black" onClick={() => setSearch('')}><X className="h-4 w-4" /> Clear</Button>}
+              <button onClick={() => setShowQuickCustomer(true)}
+                className="h-11 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-700 text-white text-xs font-black inline-flex items-center gap-1.5 shadow-lg shadow-blue-500/40 transition">
+                <UserPlus className="h-4 w-4" /> Naya Customer Banao
+              </button>
+              <button onClick={() => setShowUdhaarPicker(true)}
+                className="h-11 px-4 rounded-xl bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-600 text-white text-xs font-black inline-flex items-center gap-1.5 shadow-lg shadow-orange-500/40 transition">
+                <Plus className="h-4 w-4" /> Pehla Udhaar
+              </button>
               <Link to="/pos">
                 <button className="h-11 px-4 rounded-xl bg-gradient-to-r from-fuchsia-600 to-purple-700 hover:from-fuchsia-500 hover:to-purple-600 text-white text-xs font-black inline-flex items-center gap-1.5 shadow-lg shadow-fuchsia-500/40 transition">
                   <ShoppingCart className="h-4 w-4" /> POS Khol Ke Sale Karo
@@ -1112,13 +1282,365 @@ function GlobalKhataContent() {
                 onPayment={() => setPaymentModal(c)}
                 onReminder={() => setSingleReminderCustomer(c)}
                 onUdhaar={() => setUdhaarModal(c)}
+                onOpenKhata={() => setKhataFor(c)}
                 onPrintStatement={() => printCustomerStatement(c)}
               />
             ))}
           </div>
         )}
+        </>
+        )}
       </div>
     </>
+  );
+}
+
+/* ═════════════════════════════════════════════════════════════
+   ➕ QUICK CUSTOMER MODAL — naam likho, foran ban jaye
+   ─────────────────────────────────────────────────────────────
+   Jahan bhi customer chahiye (udhaar, purana khata) aur wo
+   mojood nahi — yahin bana do. Naam zaroori, phone optional.
+   ═════════════════════════════════════════════════════════════ */
+function QuickCustomerModal({ initialName, initialPhone, onClose, onCreated }: {
+  initialName?: string;
+  initialPhone?: string;
+  onClose: () => void;
+  onCreated: (c: any) => void;
+}) {
+  const [name, setName] = useState(initialName || '');
+  const [phone, setPhone] = useState(initialPhone || '');
+  const [creditLimit, setCreditLimit] = useState<string>('');
+  const nameRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => { setTimeout(() => nameRef.current?.focus(), 100); }, []);
+
+  const phoneOk = !phone || /^(\+?92|0)?3[0-9]{9}$/.test(phone.replace(/[\s-]/g, ''));
+
+  const createMutation = useMutation({
+    mutationFn: () =>
+      (customersApi as any).create({
+        name: name.trim(),
+        ...(phone.trim() ? { phone: phone.trim() } : {}),
+        ...(Number(creditLimit) > 0 ? { creditLimit: Number(creditLimit) } : {}),
+      }),
+    onSuccess: (created: any) => onCreated(created),
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Customer nahi bana'),
+  });
+
+  const submit = () => {
+    if (!name.trim()) return toast.error('Naam likhna zaroori hai');
+    if (!phoneOk) return toast.error('Sahi mobile likho (03XX-XXXXXXX) ya khali chhodo');
+    createMutation.mutate();
+  };
+
+  return (
+    <div className="fixed inset-0 z-[70] bg-black/70 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
+      <div
+        className="w-full sm:max-w-md bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[94vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); submit(); } }}
+      >
+        <div className="shrink-0 relative bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 text-white px-5 py-4 overflow-hidden">
+          <div className="absolute -top-10 -right-10 h-36 w-36 rounded-full bg-blue-400/25 blur-2xl" />
+          <div className="relative flex items-start justify-between gap-3">
+            <div>
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur px-2.5 py-0.5 text-[10px] font-black border border-white/30">
+                <UserPlus className="h-3 w-3" /> Quick Add
+              </div>
+              <h3 className="text-xl font-black mt-2">Naya Customer</h3>
+              <p className="text-xs text-white/85 font-bold mt-1">Sirf naam zaroori — 5 second me ready</p>
+            </div>
+            <button onClick={onClose} className="h-10 w-10 rounded-2xl bg-white/20 hover:bg-white/30 active:scale-95 flex items-center justify-center transition shrink-0">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-5 space-y-4">
+          <div>
+            <label className="block text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">
+              Naam *
+            </label>
+            <input
+              ref={nameRef}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); submit(); } }}
+              placeholder="Ali Raza, Faiza Baji..."
+              maxLength={60}
+              className="h-13 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-base font-black text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500 transition"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">
+              Phone <span className="text-slate-400 normal-case font-bold">(optional — WhatsApp reminders ke liye)</span>
+            </label>
+            <div className="relative">
+              <Phone className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="0300-1234567"
+                inputMode="tel"
+                className={`h-12 w-full rounded-xl border-2 bg-white dark:bg-slate-800 pl-10 pr-3 text-sm font-bold font-mono text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none transition ${
+                  phone && !phoneOk
+                    ? 'border-rose-400 dark:border-rose-500/50 focus:border-rose-500'
+                    : 'border-slate-200 dark:border-slate-700 focus:border-blue-500'
+                }`}
+              />
+            </div>
+            {phone && !phoneOk && (
+              <div className="mt-1 text-[11px] font-black text-rose-600 dark:text-rose-400 flex items-center gap-1">
+                <AlertTriangle className="h-3 w-3" /> Sahi mobile likho (03XX-XXXXXXX)
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">
+              Credit Limit <span className="text-slate-400 normal-case font-bold">(optional — 0 = unlimited udhaar)</span>
+            </label>
+            <input
+              type="number" min={0} value={creditLimit}
+              onChange={(e) => setCreditLimit(e.target.value)}
+              placeholder="0"
+              className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-sm font-black tabular-nums text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500 transition"
+            />
+            {Number(creditLimit) > 0 && (
+              <div className="mt-1.5 text-[11px] font-bold text-blue-700 dark:text-blue-300">
+                ✓ Is customer ko max <strong>{formatPKR(Number(creditLimit))}</strong> tak udhaar milega
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-xl bg-blue-50 dark:bg-blue-500/10 border-2 border-blue-200 dark:border-blue-500/30 p-3 text-xs font-semibold text-blue-900 dark:text-blue-200 flex items-start gap-2">
+            <Sparkles className="h-4 w-4 shrink-0 mt-0.5" />
+            <span>Baqi details (address, CNIC, photo) baad me customer page se add kar sakte ho. Abhi bas naam — kaam shuru!</span>
+          </div>
+        </div>
+
+        <div className="shrink-0 border-t-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 p-4 flex gap-2">
+          <Button variant="secondary" className="flex-1 h-12" onClick={onClose}>
+            <X className="h-4 w-4" /> Cancel
+          </Button>
+          <button
+            onClick={submit}
+            disabled={!name.trim() || createMutation.isPending}
+            className="flex-[2] h-12 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 disabled:opacity-50 text-white text-sm font-black inline-flex items-center justify-center gap-2 shadow-lg shadow-blue-500/40 transition active:scale-[0.98]"
+          >
+            {createMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+            Customer Banao
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═════════════════════════════════════════════════════════════
+   🔍 CUSTOMER PICKER — search + INLINE CREATE
+   ─────────────────────────────────────────────────────────────
+   Naam likho → mile to select karo → na mile to "Banao" dabao,
+   wahin ban jata hai aur seedha select bhi ho jata hai.
+   ═════════════════════════════════════════════════════════════ */
+function CustomerPickerModal({ title, subtitle, accent, onClose, onPicked, onChanged }: {
+  title: string;
+  subtitle: string;
+  accent: 'orange' | 'violet';
+  onClose: () => void;
+  onPicked: (c: any) => void;
+  onChanged: () => void;
+}) {
+  const [search, setSearch] = useState('');
+  const [creating, setCreating] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['udhaar-picker-search', search],
+    queryFn: () => customersApi.list({ search, page: 1, limit: 30 }),
+  });
+  const customers: any[] = (data as any)?.items ?? [];
+
+  const q = search.trim().toLowerCase();
+  const exactMatch = customers.some((c) => (c.name || '').trim().toLowerCase() === q);
+  const canQuickCreate = q.length >= 2 && !exactMatch;
+
+  const ACCENTS = {
+    orange: {
+      grad: 'from-orange-600 to-red-700',
+      ring: 'focus:border-orange-500',
+      btn: 'from-orange-600 to-red-700 hover:from-orange-500 hover:to-red-700',
+      soft: 'bg-orange-50 dark:bg-orange-500/10 border-orange-200 dark:border-orange-500/30 text-orange-900 dark:text-orange-200',
+    },
+    violet: {
+      grad: 'from-violet-600 to-purple-700',
+      ring: 'focus:border-violet-500',
+      btn: 'from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-700',
+      soft: 'bg-violet-50 dark:bg-violet-500/10 border-violet-200 dark:border-violet-500/30 text-violet-900 dark:text-violet-200',
+    },
+  };
+  const A = ACCENTS[accent];
+
+  useEffect(() => { setTimeout(() => searchInputRef.current?.focus(), 100); }, []);
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()}
+        className="w-full sm:max-w-lg bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[94vh] flex flex-col">
+
+        <div className={`px-5 py-4 bg-gradient-to-r ${A.grad} text-white flex items-center justify-between shrink-0`}>
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shrink-0">
+              <Users className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-[10px] uppercase tracking-wider font-black text-white/70">{title}</div>
+              <h3 className="font-black truncate">{subtitle}</h3>
+            </div>
+          </div>
+          <button onClick={onClose} className="h-9 w-9 rounded-xl hover:bg-white/20 flex items-center justify-center transition shrink-0">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-5 space-y-3">
+          <div className="relative">
+            <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              ref={searchInputRef}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Naam ya phone likho..."
+              className={`h-12 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white pl-9 pr-3 text-sm font-black focus:outline-none ${A.ring} transition`}
+            />
+          </div>
+
+          <div className="rounded-xl border-2 border-slate-200 dark:border-slate-700 max-h-72 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+            {isLoading ? (
+              <div className="p-6 text-center"><Loader2 className="h-5 w-5 animate-spin mx-auto text-slate-400" /></div>
+            ) : customers.length === 0 ? (
+              <div className="p-6 text-center">
+                <User className="h-8 w-8 text-slate-300 mx-auto mb-2" />
+                <p className="text-sm font-black text-slate-700 dark:text-slate-300">
+                  {q ? `"${search}" nahi mila` : 'Koi customer nahi'}
+                </p>
+                <p className="text-[11px] font-bold text-slate-500 mt-0.5">Neeche se abhi bana lo</p>
+              </div>
+            ) : customers.map((c) => (
+              <button key={c.id} onClick={() => onPicked(c)}
+                className="w-full px-3 py-2.5 flex items-center gap-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+                <div className={`h-9 w-9 rounded-full bg-gradient-to-br ${A.grad} text-white flex items-center justify-center font-black text-sm shrink-0`}>
+                  {(c.name || '?').charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-black text-slate-900 dark:text-white text-sm truncate">{c.name}</div>
+                  <div className="text-[11px] font-bold text-slate-500 flex items-center gap-2">
+                    <span>{c.phone ?? '—'}</span>
+                    {Number(c.shopBalance ?? c.balance ?? 0) > 0 && (
+                      <span className="text-rose-600 dark:text-rose-400">baqi {formatPKR(Number(c.shopBalance ?? c.balance ?? 0))}</span>
+                    )}
+                  </div>
+                </div>
+                <ChevronRight className="h-4 w-4 text-slate-300 shrink-0" />
+              </button>
+            ))}
+          </div>
+
+          {/* ➕ INLINE CREATE — naam already search box me hai */}
+          {canQuickCreate && !creating && (
+            <button
+              onClick={() => setCreating(true)}
+              className={`w-full rounded-xl border-2 border-dashed p-3.5 flex items-center gap-3 transition hover:scale-[1.01] active:scale-[0.99] ${A.soft}`}
+            >
+              <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${A.grad} text-white flex items-center justify-center shrink-0 shadow-md`}>
+                <UserPlus className="h-5 w-5" />
+              </div>
+              <div className="text-left flex-1 min-w-0">
+                <div className="font-black text-sm truncate">"{search.trim()}" — naya customer banao</div>
+                <div className="text-[11px] font-bold opacity-80">1 click me ban jayega aur select bhi</div>
+              </div>
+              <Plus className="h-5 w-5 shrink-0" />
+            </button>
+          )}
+
+          {creating && (
+            <InlineCustomerCreate
+              initialName={search.trim()}
+              accent={accent}
+              onCancel={() => setCreating(false)}
+              onCreated={(c: any) => { onChanged(); onPicked(c); }}
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ➕ Picker ke andar ka mini create form */
+function InlineCustomerCreate({ initialName, accent, onCancel, onCreated }: any) {
+  const [name, setName] = useState(initialName);
+  const [phone, setPhone] = useState('');
+  const phoneOk = !phone || /^(\+?92|0)?3[0-9]{9}$/.test(phone.replace(/[\s-]/g, ''));
+
+  const createMutation = useMutation({
+    mutationFn: () =>
+      (customersApi as any).create({
+        name: name.trim(),
+        ...(phone.trim() ? { phone: phone.trim() } : {}),
+      }),
+    onSuccess: (created: any) => {
+      toast.success(`"${created?.name || name.trim()}" ban gaya ✓`);
+      onCreated(created);
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Nahi bana'),
+  });
+
+  const btnGrad = accent === 'violet' ? 'from-violet-600 to-purple-700' : 'from-orange-600 to-red-700';
+
+  return (
+    <div className={`rounded-2xl border-2 p-4 space-y-3 ${accent === 'violet' ? 'border-violet-300 dark:border-violet-500/40 bg-violet-50/60 dark:bg-violet-500/5' : 'border-orange-300 dark:border-orange-500/40 bg-orange-50/60 dark:bg-orange-500/5'}`}>
+      <div className="text-[10px] uppercase tracking-widest font-black text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+        <Sparkles className="h-3 w-3" /> Naya Customer — yahin banao
+      </div>
+      <input
+        autoFocus
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="Naam *"
+        maxLength={60}
+        className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-black text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 transition"
+      />
+      <input
+        value={phone}
+        onChange={(e) => setPhone(e.target.value)}
+        placeholder="Phone (optional) — 03XX-XXXXXXX"
+        inputMode="tel"
+        className={`h-11 w-full rounded-xl border-2 bg-white dark:bg-slate-800 px-3 text-sm font-bold font-mono text-slate-900 dark:text-white focus:outline-none transition ${
+          phone && !phoneOk ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700 focus:border-blue-500'
+        }`}
+      />
+      {phone && !phoneOk && (
+        <div className="text-[10px] font-black text-rose-600 flex items-center gap-1">
+          <AlertTriangle className="h-3 w-3" /> Sahi mobile likho ya khali chhodo
+        </div>
+      )}
+      <div className="flex gap-2">
+        <button onClick={onCancel}
+          className="h-10 px-4 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-xs font-black text-slate-600 dark:text-slate-300 transition">
+          Wapas
+        </button>
+        <button
+          onClick={() => createMutation.mutate()}
+          disabled={!name.trim() || !phoneOk || createMutation.isPending}
+          className={`flex-1 h-10 rounded-xl bg-gradient-to-r ${btnGrad} text-white text-xs font-black inline-flex items-center justify-center gap-1.5 shadow-md disabled:opacity-50 transition active:scale-95`}
+        >
+          {createMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+          Banao & Select Karo
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -1293,7 +1815,7 @@ function SingleReminderModal({ customer, shopName, templates, onEditTemplates, o
           <div className="rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-3 text-xs font-semibold text-emerald-800 dark:text-emerald-200 flex items-start gap-2">
             <Sparkles className="h-3.5 w-3.5 shrink-0 mt-0.5" />
             <span>
-              <strong>Smart:</strong> Naam ke hisaab se salutation auto-set — "Faiza baji" ✓ (bhai nahi lagega), "Uncle Shuja" ✓ (extra bhai nahi). Message me bhi manually edit kar sakte ho.
+              <strong>Smart:</strong> Naam ke hisaab se salutation auto-set — "Faiza baji" ✓ (bhai nahi lagega), "Uncle Shuja" ✓ (extra bhai nahi). Message manually edit bhi kar sakte ho.
             </span>
           </div>
         </div>
@@ -1333,13 +1855,7 @@ function TemplateEditorModal({ templates, onSave, onReset, onClose, shopName }: 
     { k: '{phone}', d: 'Phone number' },
   ];
 
-  const sampleCustomer = {
-    name: 'Faiza',
-    balance: 5500,
-    ageDays: 12,
-    phone: '03001234567',
-  };
-
+  const sampleCustomer = { name: 'Faiza', balance: 5500, ageDays: 12, phone: '03001234567' };
   const preview = fillTemplate(drafts[activeTone], sampleCustomer, shopName, 'auto');
 
   const insertPlaceholder = (p: string) => {
@@ -1442,7 +1958,7 @@ function TemplateEditorModal({ templates, onSave, onReset, onClose, shopName }: 
           </button>
           <Button variant="secondary" className="flex-1 h-12" onClick={onClose}><X className="h-4 w-4" /> Cancel</Button>
           <Button
-            className="flex-1 h-12 bg-gradient-to-r from-fuchsia-600 to-purple-700 hover:from-fuchsia-500 font-black shadow-lg shadow-fuchsia-500/40"
+            className="flex-1 h-12 bg-gradient-to-r from-fuchsia-600 to-purple-700 hover:from-fuchsia-500 hover:to-purple-700 font-black shadow-lg shadow-fuchsia-500/40"
             onClick={() => onSave(drafts)}
           >
             <CheckCircle2 className="h-4 w-4" /> Save Templates
@@ -1672,7 +2188,7 @@ function BulkReminderWizard({ customers, shopName, templates, onEditTemplates, o
 /* ═════════════════════════════════════════════════════════════
    🖨️ PRINT OPTIONS MODAL
    ═════════════════════════════════════════════════════════════ */
-function PrintOptionsModal({ filtered, totalDue, periodLabel, onA4, onCSV, onClose }: any) {
+function PrintOptionsModal({ filtered, totalDue, periodLabel, onA4, onThermalList, onCSV, onClose }: any) {
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div className="w-full sm:max-w-lg bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
@@ -1704,7 +2220,25 @@ function PrintOptionsModal({ filtered, totalDue, periodLabel, onA4, onCSV, onClo
                   <span className="px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[9px] font-black uppercase">PDF</span>
                 </div>
                 <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 leading-relaxed">
-                  Colored PDF, KPIs, aging, complete table, signatures.
+                  Colored PDF, KPIs, aging breakdown, complete table, signatures.
+                </p>
+              </div>
+              <ChevronRight className="h-6 w-6 text-slate-400 shrink-0 self-center group-hover:translate-x-1 transition" />
+            </div>
+          </button>
+
+          <button onClick={onThermalList} className="w-full group rounded-2xl border-2 border-amber-300 dark:border-amber-500/40 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10 hover:border-amber-500 hover:shadow-xl transition-all p-5 text-left active:scale-[0.98]">
+            <div className="flex items-start gap-4">
+              <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-lg shrink-0 group-hover:scale-110 transition">
+                <Printer className="h-7 w-7" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  <h4 className="text-base font-black text-slate-900 dark:text-white">Thermal List (80mm)</h4>
+                  <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-black uppercase">Sab Ek Print Me</span>
+                </div>
+                <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 leading-relaxed">
+                  Saare customers ka khata ek hi lambi thermal print pe — naam, phone, balance, aging. Aik aik nahi nikalna!
                 </p>
               </div>
               <ChevronRight className="h-6 w-6 text-slate-400 shrink-0 self-center group-hover:translate-x-1 transition" />
@@ -1731,7 +2265,8 @@ function PrintOptionsModal({ filtered, totalDue, periodLabel, onA4, onCSV, onClo
             <div className="text-[10px] uppercase tracking-widest font-black text-slate-500 dark:text-slate-400 mb-1">💡 Tips</div>
             <TipRow><strong>PDF:</strong> A4 → print dialog me "Save as PDF"</TipRow>
             <TipRow><strong>Colored:</strong> "Background graphics" ON karo</TipRow>
-            <TipRow><strong>Per customer:</strong> Row me 🖨️ dabao → 80mm thermal</TipRow>
+            <TipRow><strong>Per customer:</strong> Row me 🖨️ dabao → 80mm thermal statement</TipRow>
+            <TipRow><strong>Poori list thermal:</strong> Upar "Thermal List" — sab ek print me</TipRow>
           </div>
         </div>
 
@@ -1760,20 +2295,26 @@ function KhataTeacher({ onClose, onStartBulk, onEditTemplates, hasDues }: any) {
         </div>
 
         <div className="p-5 space-y-4">
+          <div className="rounded-2xl border-2 border-orange-300 dark:border-orange-500/40 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-500/10 dark:to-red-500/10 p-4 space-y-2">
+            <div className="text-[10px] uppercase tracking-widest font-black text-orange-800 dark:text-orange-200 flex items-center gap-1">
+              <Plus className="h-3 w-3" /> 🟠 Naya Udhaar (Bina POS Ke)
+            </div>
+            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+              <TipRow>Hero me <strong>"Udhaar"</strong> dabao → customer chuno → amount → done</TipRow>
+              <TipRow>Customer nahi hai? Naam likho → <strong>"Banao"</strong> — wahin ban jata hai, kahin aur jane ki zaroorat nahi</TipRow>
+              <TipRow><strong>"Customer"</strong> button — seedha naya customer banao</TipRow>
+            </div>
+          </div>
+
           <div className="rounded-2xl border-2 border-fuchsia-300 dark:border-fuchsia-500/40 bg-gradient-to-br from-fuchsia-50 to-purple-50 dark:from-fuchsia-500/10 dark:to-purple-500/10 p-4 space-y-2">
             <div className="text-[10px] uppercase tracking-widest font-black text-fuchsia-800 dark:text-fuchsia-200 flex items-center gap-1">
               <ShoppingCart className="h-3 w-3" /> 🛒 Udhaar Sale Kaise?
             </div>
             <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
               <TipRow>POS pe jao → customer choose karo → "Udhaar" / partial payment select karo</TipRow>
-              <TipRow>Sale complete karo — udhaar automatic yahan khaate mein aa jayega</TipRow>
-              <TipRow>Wapas milne pe "Paisay Wasool" button dabao — khata clear</TipRow>
+              <TipRow>Sale complete karo — udhaar automatic khaate mein aa jayega</TipRow>
+              <TipRow>Wapas milne pe "Paisay Wasool" dabao — khata clear</TipRow>
             </div>
-            <Link to="/pos">
-              <button className="mt-2 h-10 px-4 rounded-xl bg-gradient-to-r from-fuchsia-600 to-purple-700 text-white text-xs font-black inline-flex items-center gap-1.5 shadow-md">
-                <ShoppingCart className="h-3.5 w-3.5" /> POS Kholo
-              </button>
-            </Link>
           </div>
 
           <div className="rounded-2xl border-2 border-emerald-300 dark:border-emerald-500/40 bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-500/10 dark:to-green-500/10 p-4 space-y-2">
@@ -1781,10 +2322,10 @@ function KhataTeacher({ onClose, onStartBulk, onEditTemplates, hasDues }: any) {
               <MessageCircle className="h-3 w-3" /> 💬 Smart Reminders
             </div>
             <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
-              <TipRow><strong>AI naam pehchan leta hai</strong> — Faiza baji ✓ (bhai nahi), Uncle Shuja ✓ (extra bhai nahi lagega)</TipRow>
-              <TipRow>Message manually <strong>edit</strong> kar sakte ho har reminder bhejne se pehle</TipRow>
+              <TipRow><strong>AI naam pehchan leta hai</strong> — Faiza baji ✓ (bhai nahi), Uncle Shuja ✓</TipRow>
+              <TipRow>Message har baar <strong>edit</strong> kar sakte ho bhejne se pehle</TipRow>
               <TipRow>3 tones: 😊 Polite • 💼 Firm • ⚠️ Final (age ke hisab se auto)</TipRow>
-              <TipRow><strong>Templates fully customizable</strong> — apni marzi ka message likho</TipRow>
+              <TipRow><strong>Templates fully customizable</strong> — apna message likho</TipRow>
               <button onClick={onEditTemplates} className="mt-2 h-10 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 text-white text-xs font-black inline-flex items-center gap-1.5 shadow-md">
                 <Edit3 className="h-3.5 w-3.5" /> Templates Edit Karo
               </button>
@@ -1796,8 +2337,9 @@ function KhataTeacher({ onClose, onStartBulk, onEditTemplates, hasDues }: any) {
               <Printer className="h-3 w-3" /> 🖨️ Print & PDF
             </div>
             <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
-              <TipRow>"Print" → A4 colored PDF (Save as PDF chuno)</TipRow>
-              <TipRow>Per-customer 80mm thermal statement — row me 🖨️</TipRow>
+              <TipRow>📄 <strong>A4 colored PDF</strong> — KPIs, aging, table, signatures</TipRow>
+              <TipRow>🧾 <strong>Thermal List (80mm)</strong> — saare customers EK print me</TipRow>
+              <TipRow>🧾 Per-customer statement — row me 🖨️</TipRow>
               <TipRow>"Background graphics" ON karo colors ke liye</TipRow>
             </div>
           </div>
@@ -1805,6 +2347,7 @@ function KhataTeacher({ onClose, onStartBulk, onEditTemplates, hasDues }: any) {
           <div className="rounded-xl bg-slate-900 dark:bg-slate-950 border border-slate-700 p-3 text-xs font-semibold text-slate-200">
             <div className="text-[10px] uppercase tracking-widest font-black text-fuchsia-300 mb-2">⌨️ Shortcuts</div>
             <div className="grid grid-cols-2 gap-1.5 text-[11px]">
+              <div><kbd className="px-1.5 py-0.5 bg-slate-700 rounded font-mono">U</kbd> Naya udhaar</div>
               <div><kbd className="px-1.5 py-0.5 bg-slate-700 rounded font-mono">P</kbd> Print / PDF</div>
               <div><kbd className="px-1.5 py-0.5 bg-slate-700 rounded font-mono">N</kbd> Bulk reminders</div>
               <div><kbd className="px-1.5 py-0.5 bg-slate-700 rounded font-mono">/</kbd> Search</div>
@@ -1815,12 +2358,12 @@ function KhataTeacher({ onClose, onStartBulk, onEditTemplates, hasDues }: any) {
 
           <div className="grid grid-cols-2 gap-2">
             <Link to="/pos" className="contents">
-              <Button className="bg-gradient-to-r from-fuchsia-600 to-purple-700 hover:from-fuchsia-500 font-black shadow-lg shadow-fuchsia-500/40 h-12 w-full">
+              <Button className="bg-gradient-to-r from-fuchsia-600 to-purple-700 hover:from-fuchsia-500 hover:to-purple-700 font-black shadow-lg shadow-fuchsia-500/40 h-12 w-full">
                 <ShoppingCart className="h-4 w-4" /> POS
               </Button>
             </Link>
             {hasDues ? (
-              <Button className="bg-gradient-to-r from-emerald-600 to-green-700 hover:from-emerald-500 font-black shadow-lg shadow-emerald-500/40 h-12" onClick={onStartBulk}>
+              <Button className="bg-gradient-to-r from-emerald-600 to-green-700 hover:from-emerald-500 hover:to-green-700 font-black shadow-lg shadow-emerald-500/40 h-12" onClick={onStartBulk}>
                 <BellRing className="h-4 w-4" /> Reminders
               </Button>
             ) : (
@@ -1838,7 +2381,7 @@ function KhataTeacher({ onClose, onStartBulk, onEditTemplates, hasDues }: any) {
 /* ═════════════════════════════════════════════════════════════
    CUSTOMER ROW
    ═════════════════════════════════════════════════════════════ */
-function CustomerKhataRow({ customer, expanded, hideCost, onToggle, onPayment, onReminder, onUdhaar, onPrintStatement }: any) {
+function CustomerKhataRow({ customer, expanded, hideCost, onToggle, onPayment, onReminder, onUdhaar, onOpenKhata, onPrintStatement }: any) {
   const hasBalance = customer.balance > 0;
   const isAdvance = customer.balance < 0;
   const isHigh = customer.balance > 10000;
@@ -1924,12 +2467,16 @@ function CustomerKhataRow({ customer, expanded, hideCost, onToggle, onPayment, o
         )}
         {customer.phone && hasBalance && (
           <button onClick={onReminder} title="Smart WhatsApp reminder"
-            className="h-11 px-4 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 text-white text-sm font-black inline-flex items-center gap-1.5 shadow-sm shadow-green-500/40 active:scale-95 transition">
+            className="h-11 px-4 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-600 text-white text-sm font-black inline-flex items-center gap-1.5 shadow-sm shadow-green-500/40 active:scale-95 transition">
             <MessageCircle className="h-4 w-4" /> Reminder
           </button>
         )}
+        <button onClick={onOpenKhata} title="Poora khata — har entry ki tafseel"
+          className="h-11 px-4 rounded-xl bg-gradient-to-r from-purple-600 to-fuchsia-700 hover:from-purple-500 hover:to-fuchsia-700 text-white text-sm font-black inline-flex items-center gap-1.5 shadow-sm shadow-purple-500/40 active:scale-95 transition">
+          <BookOpen className="h-4 w-4" /> Poori Khata
+        </button>
         <button onClick={onUdhaar} title="Bina sale ke udhaar chadhayein"
-          className="h-11 px-4 rounded-xl bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-400 text-white text-sm font-black inline-flex items-center gap-1.5 shadow-sm shadow-orange-500/40 active:scale-95 transition">
+          className="h-11 px-4 rounded-xl bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-600 text-white text-sm font-black inline-flex items-center gap-1.5 shadow-sm shadow-orange-500/40 active:scale-95 transition">
           <Plus className="h-4 w-4" /> Udhaar
         </button>
         <button onClick={onPrintStatement} title="Print statement"
@@ -2097,7 +2644,7 @@ function PaymentModal({ customer, loading, onClose, onConfirm }: any) {
 
         <div className="shrink-0 p-4 border-t-4 border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
           <button onClick={() => onConfirm(payAmount, note)} disabled={!isValid || loading}
-            className="w-full h-14 sm:h-16 rounded-2xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 text-white font-black shadow-2xl shadow-emerald-500/50 transition active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between px-5">
+            className="w-full h-14 sm:h-16 rounded-2xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-600 text-white font-black shadow-2xl shadow-emerald-500/50 transition active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between px-5">
             <div className="text-left">
               <div className="text-[10px] uppercase font-black text-white/80 tracking-wider">
                 {loading ? 'Save...' : 'Payment confirm'}
@@ -2186,18 +2733,13 @@ function Kpi({ icon: Icon, label, value, sub, tone, highlight, onClick, active }
 
 /* ═════════════════════════════════════════════════════════════
    UDHAAR MODAL — bina sale ke udhaar chadhana
-   ─────────────────────────────────────────────────────────────
-   Pehle khata sirf POS se sale karne par banta tha. Jo dukandar
-   copy se software par aa raha ho, ya jisne bina bill koi cheez
-   di ho — uske liye ye zaroori tha.
    ═════════════════════════════════════════════════════════════ */
-
 function UdhaarModal({ customer, loading, onClose, onConfirm }: any) {
   const [amount, setAmount] = useState<number | ''>('');
   const [note, setNote] = useState('');
 
   const amt = Number(amount || 0);
-  const current = Number(customer.balance || 0);
+  const current = Number(customer.balance ?? customer.shopBalance ?? 0);
   const after = current + amt;
   const limit = Number(customer.creditLimit || 0);
   const willExceed = limit > 0 && after > limit;
@@ -2227,7 +2769,7 @@ function UdhaarModal({ customer, loading, onClose, onConfirm }: any) {
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-3 flex items-center justify-between">
             <span className="text-sm font-bold text-slate-600 dark:text-slate-300">Abhi baqi</span>
-            <span className="text-xl font-black text-slate-900 dark:text-white tabular-nums">{formatPKR(current)}</span>
+            <span className="text-xl font-black text-slate-900 dark:text-white tabular-nums">{formatPKR(Math.max(current, 0))}</span>
           </div>
 
           <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-3 flex items-start gap-2">
@@ -2297,22 +2839,25 @@ function UdhaarModal({ customer, loading, onClose, onConfirm }: any) {
 }
 
 /* ═════════════════════════════════════════════════════════════
-   PURANA KHATA — copy se software par
-   ─────────────────────────────────────────────────────────────
-   Balance SET hota hai, jurta nahi. Har customer ka sirf ek bar.
+   PURANA KHATA — copy se software par (INLINE CREATE ke sath)
    ═════════════════════════════════════════════════════════════ */
-
 function OpeningBalanceModal({ onClose, onDone }: any) {
   const [search, setSearch] = useState('');
   const [chosen, setChosen] = useState<any>(null);
   const [balance, setBalance] = useState<number | ''>('');
   const [note, setNote] = useState('');
+  const [creating, setCreating] = useState(false);
+  const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
     queryKey: ['khata-opening-search', search],
     queryFn: () => customersApi.list({ search, page: 1, limit: 30 }),
   });
   const customers: any[] = (data as any)?.items ?? [];
+
+  const q = search.trim().toLowerCase();
+  const exactMatch = customers.some((c) => (c.name || '').trim().toLowerCase() === q);
+  const canQuickCreate = q.length >= 2 && !exactMatch && !chosen;
 
   const mutation = useMutation({
     mutationFn: () => customerLedgerApi.setOpeningBalance(chosen.id, {
@@ -2352,7 +2897,7 @@ function OpeningBalanceModal({ onClose, onDone }: any) {
             <div className="text-xs font-semibold text-violet-900 dark:text-violet-200">
               Pehle copy par khata likhte the? Har customer ka <b>purana baqi</b> yahan ek bar
               likh dein — uske baad software khud hisab rakhega. Har customer ka
-              <b> sirf ek bar</b> lagta hai.
+              <b> sirf ek bar</b> lagta hai. Customer nahi hai? Naam likho, yahin ban jayega.
             </div>
           </div>
 
@@ -2387,13 +2932,10 @@ function OpeningBalanceModal({ onClose, onDone }: any) {
                 <div className="rounded-xl border-2 border-slate-200 dark:border-slate-700 max-h-52 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
                   {isLoading ? (
                     <div className="p-6 text-center"><Loader2 className="h-5 w-5 animate-spin mx-auto text-slate-400" /></div>
-                  ) : customers.length === 0 ? (
+                  ) : customers.length === 0 && !canQuickCreate ? (
                     <div className="p-6 text-center">
                       <p className="text-sm font-bold text-slate-700 dark:text-slate-300">Koi customer nahi mila</p>
-                      <Link to="/customers/new"
-                        className="mt-2 inline-flex items-center gap-1 text-xs font-black text-violet-700 dark:text-violet-400 hover:underline">
-                        <UserPlus className="h-3.5 w-3.5" /> Naya customer banayein
-                      </Link>
+                      <p className="text-[11px] font-bold text-slate-500 mt-0.5">Naam likho — neeche bana sakte ho</p>
                     </div>
                   ) : customers.map((c) => (
                     <button key={c.id} onClick={() => { setChosen(c); setBalance(c.balance || ''); }}
@@ -2411,6 +2953,39 @@ function OpeningBalanceModal({ onClose, onDone }: any) {
                     </button>
                   ))}
                 </div>
+
+                {/* ➕ INLINE CREATE */}
+                {canQuickCreate && !creating && (
+                  <button
+                    onClick={() => setCreating(true)}
+                    className="mt-2 w-full rounded-xl border-2 border-dashed border-violet-300 dark:border-violet-500/40 bg-violet-50 dark:bg-violet-500/10 p-3 flex items-center gap-3 text-violet-900 dark:text-violet-200 transition hover:scale-[1.01] active:scale-[0.99]"
+                  >
+                    <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-violet-600 to-purple-700 text-white flex items-center justify-center shrink-0 shadow-md">
+                      <UserPlus className="h-4 w-4" />
+                    </div>
+                    <div className="text-left flex-1 min-w-0">
+                      <div className="font-black text-sm truncate">"{search.trim()}" — naya customer banao</div>
+                      <div className="text-[10px] font-bold opacity-80">Phir seedha purana khata set karo</div>
+                    </div>
+                    <Plus className="h-4 w-4 shrink-0" />
+                  </button>
+                )}
+
+                {creating && (
+                  <div className="mt-2">
+                    <InlineCustomerCreate
+                      initialName={search.trim()}
+                      accent="violet"
+                      onCancel={() => setCreating(false)}
+                      onCreated={(c: any) => {
+                        queryClient.invalidateQueries({ queryKey: ['khata-opening-search'] });
+                        setCreating(false);
+                        setChosen(c);
+                        setBalance('');
+                      }}
+                    />
+                  </div>
+                )}
               </>
             )}
           </div>
@@ -2435,7 +3010,7 @@ function OpeningBalanceModal({ onClose, onDone }: any) {
                   Note <span className="text-slate-400 normal-case font-bold">(optional)</span>
                 </label>
                 <input value={note} onChange={(e) => setNote(e.target.value)}
-                  placeholder="jaise: Jan 2026 tak ka purana hisab"
+                  placeholder="jaise: Sep 2026 tak ka purana hisab"
                   className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-3 text-sm font-bold focus:outline-none focus:border-violet-500 transition" />
               </div>
             </>
@@ -2453,6 +3028,649 @@ function OpeningBalanceModal({ onClose, onDone }: any) {
             Khata Shuru Karein
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═════════════════════════════════════════════════════════════
+   POORI KHATA — ek customer ka mukammal hisab
+   ═════════════════════════════════════════════════════════════ */
+
+type KhataFilter = 'all' | 'udhaar' | 'wasooli' | 'purchase';
+
+interface TimelineRow {
+  id: string;
+  at: number;
+  kind: 'SALE_CREDIT' | 'PAYMENT_RECEIVED' | 'ADJUSTMENT' | 'OPENING_BALANCE' | 'SALE_PAID';
+  delta: number;
+  balanceAfter?: number;
+  title: string;
+  sub?: string;
+  reference?: string | null;
+  note?: string | null;
+  by?: string | null;
+  sale?: any;
+}
+
+const KIND_META: Record<TimelineRow['kind'], {
+  label: string; chip: string; icon: any; dir: 'up' | 'down' | 'flat';
+}> = {
+  OPENING_BALANCE:  { label: 'Purana khata',   chip: 'bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-300',    icon: BookOpen,      dir: 'up' },
+  SALE_CREDIT:      { label: 'Udhaar par saman', chip: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300',       icon: ShoppingCart,  dir: 'up' },
+  ADJUSTMENT:       { label: 'Udhaar chadhaya', chip: 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300',    icon: Plus,          dir: 'up' },
+  PAYMENT_RECEIVED: { label: 'Wasooli',         chip: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300', icon: Banknote,     dir: 'down' },
+  SALE_PAID:        { label: 'Naqad kharidari', chip: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',           icon: ShoppingCart,  dir: 'flat' },
+};
+
+function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder, hideCost, shopName, shopPhone, shopAddress }: any) {
+  const [filter, setFilter] = useState<KhataFilter>('all');
+  const [openSale, setOpenSale] = useState<string | null>(null);
+  /* Print se pehle: note, wada ki tareekh, aur kaunsa kaghaz */
+  const [showPrintOpts, setShowPrintOpts] = useState(false);
+  const [printNote, setPrintNote] = useState('');
+  const [promiseDate, setPromiseDate] = useState('');
+  const [paper, setPaper] = useState<'a4' | 'thermal'>('a4');
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['customer-ledger', customer.id],
+    queryFn: () => customerLedgerApi.list(customer.id),
+  });
+
+  const timeline = useMemo<TimelineRow[]>(() => {
+    const rows: TimelineRow[] = [];
+
+    for (const l of (data?.ledgers ?? [])) {
+      const kind = (l.type as TimelineRow['kind']) ?? 'ADJUSTMENT';
+      rows.push({
+        id: `l-${l.id}`,
+        at: new Date(l.createdAt).getTime(),
+        kind,
+        delta: Number(l.amount) || 0,
+        balanceAfter: Number(l.balanceAfter) || 0,
+        title: KIND_META[kind]?.label ?? 'Entry',
+        reference: l.reference,
+        note: l.note,
+        by: l.createdBy?.fullName ?? null,
+      });
+    }
+
+    const ledgerRefs = new Set(
+      (data?.ledgers ?? []).map((l: any) => (l.reference ?? '').trim()).filter(Boolean),
+    );
+    for (const s of (customer.allSales ?? [])) {
+      const credit = Number(s.creditAmount || 0);
+      if (credit > 0 && ledgerRefs.has((s.saleNumber ?? '').trim())) {
+        const hit = rows.find((r) => r.reference === s.saleNumber);
+        if (hit) { hit.sale = s; hit.sub = `${(s.items ?? []).length} cheezein`; continue; }
+      }
+      rows.push({
+        id: `s-${s.id}`,
+        at: new Date(s.soldAt).getTime(),
+        kind: credit > 0 ? 'SALE_CREDIT' : 'SALE_PAID',
+        delta: credit > 0 ? credit : 0,
+        title: credit > 0 ? 'Udhaar par saman' : 'Naqad kharidari',
+        sub: `${(s.items ?? []).length} cheezein · bill ${formatPKR(s.total)}`,
+        reference: s.saleNumber,
+        sale: s,
+      });
+    }
+
+    return rows.sort((a, b) => b.at - a.at);
+  }, [data, customer.allSales]);
+
+  const visible = useMemo(() => {
+    if (filter === 'all') return timeline;
+    if (filter === 'udhaar') return timeline.filter((r) => r.kind === 'SALE_CREDIT' || r.kind === 'ADJUSTMENT' || r.kind === 'OPENING_BALANCE');
+    if (filter === 'wasooli') return timeline.filter((r) => r.kind === 'PAYMENT_RECEIVED');
+    return timeline.filter((r) => !!r.sale);
+  }, [timeline, filter]);
+
+  const totals = useMemo(() => {
+    let liya = 0, diya = 0, kharida = 0;
+    for (const r of timeline) {
+      if (r.delta > 0) liya += r.delta;
+      if (r.delta < 0) diya += Math.abs(r.delta);
+      if (r.sale) kharida += Number(r.sale.total || 0);
+    }
+    return { liya, diya, kharida };
+  }, [timeline]);
+
+  const bal = Number(customer.balance || 0);
+  const isAdvance = bal < 0;
+
+  const printFull = () => {
+    const isThermal = paper === 'thermal';
+    const rowsHtml = timeline.length === 0
+      ? '<div class="center dim">Koi entry nahi</div>'
+      : timeline.slice().reverse().map((r) => {
+          const m = KIND_META[r.kind];
+          const amt = r.delta === 0
+            ? (r.sale ? formatPKR(Number(r.sale.total || 0)) : '—')
+            : `${r.delta > 0 ? '+' : '−'}${formatPKR(Math.abs(r.delta))}`;
+          const items = r.sale?.items?.length
+            ? `<div class="items">${r.sale.items.slice(0, 8).map((it: any) =>
+                `${escapeHtml(it.product?.name ?? 'Item')} ×${it.quantity}`).join(', ')}${r.sale.items.length > 8 ? ' …' : ''}</div>`
+            : '';
+          return `<div class="e">
+            <div class="e1"><span>${escapeHtml(m?.label ?? '')}${r.reference ? ` · ${escapeHtml(r.reference)}` : ''}</span><span class="${r.delta > 0 ? 'up' : r.delta < 0 ? 'dn' : ''}">${amt}</span></div>
+            <div class="e2"><span>${new Date(r.at).toLocaleString('en-PK', { dateStyle: 'short', timeStyle: 'short' })}</span>${r.balanceAfter !== undefined ? `<span>baqi ${formatPKR(r.balanceAfter)}</span>` : ''}</div>
+            ${r.note ? `<div class="note">${escapeHtml(r.note)}</div>` : ''}
+            ${items}
+          </div>`;
+        }).join('');
+
+    const html = `<!doctype html><html><head><meta charset="utf-8"/><title>Khata — ${escapeHtml(customer.name)}</title>
+<style>
+  @page { size: ${isThermal ? '80mm auto' : 'A4'}; margin: ${isThermal ? '0' : '12mm'}; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  ${isThermal ? "html, body { width: 80mm; }" : ''}
+  body { font-family: ${isThermal ? "'Courier New', monospace" : "'Segoe UI', Arial, sans-serif"}; color: #000; font-size: ${isThermal ? '11px' : '12px'}; line-height: 1.45; ${isThermal ? 'padding: 5mm 4mm;' : ''} }
+  ${isThermal ? '.grid { flex-direction: column; } .bal .v { font-size: 20px; } .shop { font-size: 15px; }' : ''}
+  .center { text-align: center; } .dim { color: #666; }
+  .shop { font-size: 20px; font-weight: 800; letter-spacing: .5px; }
+  .sub { font-size: 11px; color: #444; }
+  .divider { border-top: 1px dashed #999; margin: 10px 0; }
+  .double { border-top: 2px solid #000; margin: 10px 0; }
+  .who { font-size: 16px; font-weight: 800; margin-top: 4px; }
+  .grid { display: flex; gap: 8px; margin: 10px 0; }
+  .box { flex: 1; border: 1.5px solid #000; padding: 8px; text-align: center; }
+  .box .l { font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #444; }
+  .box .v { font-size: 15px; font-weight: 800; margin-top: 2px; }
+  .bal { border: 2.5px solid #000; padding: 12px; text-align: center; margin: 10px 0; }
+  .bal .l { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; }
+  .bal .v { font-size: 26px; font-weight: 800; margin-top: 3px; }
+  .head { font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; border-bottom: 1.5px solid #000; padding-bottom: 3px; margin: 12px 0 6px; }
+  .e { border-bottom: 1px dotted #bbb; padding: 5px 0; page-break-inside: avoid; }
+  .e1 { display: flex; justify-content: space-between; gap: 10px; font-weight: 700; }
+  .e2 { display: flex; justify-content: space-between; gap: 10px; font-size: 10px; color: #555; }
+  .note { font-size: 10px; font-style: italic; color: #444; margin-top: 2px; }
+  .items { font-size: 10px; color: #333; margin-top: 2px; }
+  .foot { margin-top: 14px; font-size: 10px; color: #555; text-align: center; }
+  .promise { border: 2px dashed #000; padding: 8px; text-align: center; margin: 10px 0; }
+  .promise .l { font-size: 9px; font-weight: 800; letter-spacing: 1.5px; }
+  .promise .v { font-size: 15px; font-weight: 800; margin-top: 2px; }
+  .pnote { border-left: 3px solid #000; padding: 6px 8px; margin: 8px 0; font-size: 11px; background: #f6f6f6; }
+  .sign { margin-top: 22px; display: flex; gap: 20px; }
+  .sign > div { flex: 1; border-top: 1px solid #000; padding-top: 4px; font-size: 9px; text-align: center; color: #555; }
+</style></head><body>
+  <div class="center">
+    <div class="shop">${escapeHtml(shopName || 'Meri Dukaan')}</div>
+    ${shopAddress ? `<div class="sub">${escapeHtml(shopAddress)}</div>` : ''}
+    ${shopPhone ? `<div class="sub">${escapeHtml(shopPhone)}</div>` : ''}
+  </div>
+  <div class="double"></div>
+  <div class="center">
+    <div class="sub">KHATA STATEMENT</div>
+    <div class="who">${escapeHtml(customer.name)}</div>
+    ${customer.phone ? `<div class="sub">${escapeHtml(customer.phone)}</div>` : ''}
+    <div class="sub">${new Date().toLocaleString('en-PK')}</div>
+  </div>
+  <div class="grid">
+    <div class="box"><div class="l">Kul Liya</div><div class="v">${formatPKR(totals.liya)}</div></div>
+    <div class="box"><div class="l">Kul Diya</div><div class="v">${formatPKR(totals.diya)}</div></div>
+    <div class="box"><div class="l">Kharidari</div><div class="v">${formatPKR(totals.kharida)}</div></div>
+  </div>
+  <div class="bal">
+    <div class="l">${isAdvance ? 'ADVANCE JAMA' : 'KUL BAQI'}</div>
+    <div class="v">${formatPKR(Math.abs(bal))}</div>
+  </div>
+  ${promiseDate ? `<div class="promise">
+    <div class="l">ADAIGI KA WADA</div>
+    <div class="v">${new Date(promiseDate).toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+  </div>` : ''}
+
+  ${printNote ? `<div class="pnote"><b>Note:</b> ${escapeHtml(printNote)}</div>` : ''}
+
+  <div class="head">Poora Hisab (${timeline.length} entries)</div>
+  ${rowsHtml}
+  ${isThermal ? '' : `<div class="sign"><div>Customer ke dastkhat</div><div>Dukandar ke dastkhat</div></div>`}
+
+  <div class="foot">
+    Ye statement ${new Date().toLocaleDateString('en-PK')} tak ka hai.<br/>
+    Koi ikhtilaf ho to dukan se rabta karein. — Powered by Nafaa POS
+  </div>
+  <script>window.onload=()=>{window.print();setTimeout(()=>window.close(),400);}</script>
+</body></html>`;
+    const w = window.open('', '_blank', isThermal ? 'width=380,height=900' : 'width=820,height=900');
+    if (!w) return toast.error('Popup block ho gaya — allow karein');
+    w.document.write(html);
+    w.document.close();
+  };
+
+  const COUNTS = {
+    all: timeline.length,
+    udhaar: timeline.filter((r) => r.kind === 'SALE_CREDIT' || r.kind === 'ADJUSTMENT' || r.kind === 'OPENING_BALANCE').length,
+    wasooli: timeline.filter((r) => r.kind === 'PAYMENT_RECEIVED').length,
+    purchase: timeline.filter((r) => !!r.sale).length,
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()}
+        className="w-full sm:max-w-3xl bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col">
+
+        <div className={`px-5 py-4 text-white shrink-0 ${
+          isAdvance ? 'bg-gradient-to-r from-emerald-600 to-teal-700' : 'bg-gradient-to-r from-purple-700 to-fuchsia-700'
+        }`}>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="h-12 w-12 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center font-black text-lg shrink-0">
+                {customer.name?.charAt(0).toUpperCase()}
+              </div>
+              <div className="min-w-0">
+                <div className="text-[10px] uppercase tracking-wider font-black text-white/70">Poora Khata</div>
+                <h3 className="text-xl font-black truncate">{customer.name}</h3>
+                <div className="text-[11px] font-bold text-white/80 flex items-center gap-2 flex-wrap">
+                  {customer.phone && <span>📞 {customer.phone}</span>}
+                  {customer.creditLimit > 0 && <span>Limit {formatPKR(customer.creditLimit)}</span>}
+                </div>
+              </div>
+            </div>
+            <button onClick={onClose} className="h-10 w-10 rounded-xl bg-white/15 hover:bg-white/25 flex items-center justify-center transition shrink-0">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <MiniBox label={isAdvance ? 'Advance jama' : 'Abhi baqi'} value={formatPKR(Math.abs(bal))} big />
+            <MiniBox label="Kul liya" value={hideCost ? '••••' : formatPKR(totals.liya)} />
+            <MiniBox label="Kul diya" value={hideCost ? '••••' : formatPKR(totals.diya)} />
+            <MiniBox label="Kharidari" value={hideCost ? '••••' : formatPKR(totals.kharida)} />
+          </div>
+        </div>
+
+        <div className="px-5 py-3 border-b-2 border-slate-100 dark:border-slate-800 flex gap-1.5 overflow-x-auto shrink-0">
+          {([
+            { v: 'all', label: 'Sab', icon: History },
+            { v: 'udhaar', label: 'Udhaar', icon: TrendingDown },
+            { v: 'wasooli', label: 'Wasooli', icon: Banknote },
+            { v: 'purchase', label: 'Kharidari', icon: ShoppingCart },
+          ] as { v: KhataFilter; label: string; icon: any }[]).map((k) => (
+            <button key={k.v} onClick={() => setFilter(k.v)}
+              className={`h-9 px-3 rounded-lg text-xs font-black inline-flex items-center gap-1.5 shrink-0 transition border-2 ${
+                filter === k.v
+                  ? 'bg-gradient-to-r from-purple-700 to-fuchsia-700 text-white border-transparent shadow'
+                  : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-purple-300'
+              }`}>
+              <k.icon className="h-3.5 w-3.5" /> {k.label}
+              <span className={`px-1.5 rounded-full text-[10px] tabular-nums ${filter === k.v ? 'bg-black/20' : 'bg-slate-100 dark:bg-slate-700'}`}>
+                {COUNTS[k.v]}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-slate-50 dark:bg-slate-950/40">
+          {isLoading ? (
+            <div className="py-16 text-center"><Loader2 className="h-6 w-6 animate-spin mx-auto text-slate-400" /></div>
+          ) : visible.length === 0 ? (
+            <div className="py-16 text-center">
+              <BookOpen className="h-10 w-10 text-slate-300 mx-auto mb-2" />
+              <p className="text-sm font-black text-slate-700 dark:text-slate-300">
+                {filter === 'all' ? 'Abhi koi hisab nahi' : 'Is filter me kuch nahi'}
+              </p>
+              <p className="text-xs font-semibold text-slate-500 mt-0.5">
+                {filter === 'all' ? 'Udhaar chadhayein ya POS se sale karein' : 'Doosra filter dekhein'}
+              </p>
+            </div>
+          ) : visible.map((r) => {
+            const m = KIND_META[r.kind];
+            const Icon = m?.icon ?? History;
+            const isOpen = openSale === r.id;
+            return (
+              <div key={r.id} className="rounded-xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 overflow-hidden">
+                <div className="p-3 flex items-start gap-3">
+                  <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${m?.chip}`}>
+                    <Icon className="h-4 w-4" />
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-black text-slate-900 dark:text-white text-sm">{r.title}</span>
+                      {r.reference && (
+                        <span className="font-mono text-[10px] font-black text-slate-500 dark:text-slate-400">{r.reference}</span>
+                      )}
+                    </div>
+                    <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-2 flex-wrap">
+                      <span className="inline-flex items-center gap-1">
+                        <Calendar className="h-2.5 w-2.5" />
+                        {new Date(r.at).toLocaleString('en-PK', { dateStyle: 'medium', timeStyle: 'short' })}
+                      </span>
+                      {r.by && <span>· {r.by}</span>}
+                    </div>
+                    {r.note && (
+                      <div className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 italic mt-0.5">{r.note}</div>
+                    )}
+                    {r.sub && !r.note && (
+                      <div className="text-[11px] font-semibold text-slate-500 mt-0.5">{r.sub}</div>
+                    )}
+                  </div>
+
+                  <div className="text-right shrink-0">
+                    {r.delta !== 0 ? (
+                      <div className={`text-base font-black tabular-nums ${r.delta > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                        {r.delta > 0 ? '+' : '−'}{formatPKR(Math.abs(r.delta))}
+                      </div>
+                    ) : r.sale ? (
+                      <div className="text-base font-black tabular-nums text-slate-700 dark:text-slate-200">
+                        {formatPKR(Number(r.sale.total || 0))}
+                      </div>
+                    ) : null}
+                    {r.balanceAfter !== undefined && (
+                      <div className="text-[10px] font-bold text-slate-400 tabular-nums">
+                        baqi {formatPKR(r.balanceAfter)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {r.sale && (
+                  <>
+                    <button onClick={() => setOpenSale(isOpen ? null : r.id)}
+                      className="w-full px-3 py-2 border-t-2 border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] font-black text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                      <span className="inline-flex items-center gap-1.5">
+                        <Package className="h-3 w-3" /> {(r.sale.items ?? []).length} cheezein
+                      </span>
+                      {isOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                    </button>
+                    {isOpen && (
+                      <div className="px-3 pb-3 space-y-1 bg-slate-50 dark:bg-slate-800/40">
+                        {(r.sale.items ?? []).map((it: any) => (
+                          <div key={it.id} className="flex items-center justify-between gap-2 text-[11px] py-1 border-b border-slate-100 dark:border-slate-800 last:border-0">
+                            <span className="font-bold text-slate-700 dark:text-slate-200 truncate">
+                              {it.product?.name ?? it.note ?? 'Item'}
+                            </span>
+                            <span className="font-bold text-slate-500 shrink-0 tabular-nums">
+                              {it.quantity} × {formatPKR(it.price)}
+                            </span>
+                            <span className="font-black text-slate-900 dark:text-white shrink-0 tabular-nums">
+                              {formatPKR(it.total)}
+                            </span>
+                          </div>
+                        ))}
+                        <Link to={`/sales/${r.sale.id}/receipt`}
+                          className="mt-1 inline-flex items-center gap-1 text-[11px] font-black text-fuchsia-700 dark:text-fuchsia-400 hover:underline">
+                          Receipt kholein <ArrowRight className="h-3 w-3" />
+                        </Link>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="px-4 py-3 border-t-2 border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex gap-2 flex-wrap shrink-0">
+          <button onClick={() => setShowPrintOpts(true)}
+            className="h-11 px-4 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-600 text-white text-sm font-black inline-flex items-center gap-1.5 shadow-lg transition">
+            <Printer className="h-4 w-4" /> Statement Print
+          </button>
+          {customer.phone && (
+            <button onClick={onReminder}
+              className="h-11 px-4 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 text-white text-sm font-black inline-flex items-center gap-1.5 shadow transition">
+              <MessageCircle className="h-4 w-4" /> Reminder
+            </button>
+          )}
+          <div className="flex-1" />
+          <button onClick={onUdhaar}
+            className="h-11 px-4 rounded-xl bg-gradient-to-r from-orange-500 to-red-600 text-white text-sm font-black inline-flex items-center gap-1.5 shadow transition">
+            <Plus className="h-4 w-4" /> Udhaar
+          </button>
+          {bal > 0 && (
+            <button onClick={onPayment}
+              className="h-11 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 text-white text-sm font-black inline-flex items-center gap-1.5 shadow-lg transition">
+              <Banknote className="h-4 w-4" /> Paisay Wasool
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MiniBox({ label, value, big }: { label: string; value: string; big?: boolean }) {
+  return (
+    <div className={`rounded-xl backdrop-blur border p-2.5 ${big ? 'bg-white/25 border-white/40' : 'bg-white/10 border-white/20'}`}>
+      <div className="text-[9px] uppercase font-black text-white/70 tracking-wider truncate">{label}</div>
+      <div className={`font-black tabular-nums truncate ${big ? 'text-lg' : 'text-sm'}`}>{value}</div>
+    </div>
+  );
+}
+
+/* ═════════════════════════════════════════════════════════════
+   KHATA ANALYTICS
+   ═════════════════════════════════════════════════════════════ */
+function KhataAnalytics({ khataData, stats, hideCost }: any) {
+  const rows: any[] = khataData ?? [];
+  const due = useMemo(() => rows.filter((c) => c.balance > 0), [rows]);
+
+  const aging = useMemo(() => ([
+    { name: '0-7 din',  value: Math.round(stats.aging.fresh), fill: '#10b981' },
+    { name: '7-30 din', value: Math.round(stats.aging.week),  fill: '#f59e0b' },
+    { name: '30+ din',  value: Math.round(stats.aging.old),   fill: '#e11d48' },
+  ].filter((b) => b.value > 0)), [stats]);
+
+  const top = useMemo(
+    () => [...due].sort((a, b) => b.balance - a.balance).slice(0, 8).map((c) => ({
+      name: (c.name ?? '').length > 12 ? c.name.slice(0, 11) + '…' : c.name,
+      Baqi: Math.round(c.balance),
+      over: c.creditLimit > 0 && c.balance > c.creditLimit,
+    })),
+    [due],
+  );
+
+  const recovery = useMemo(() => {
+    const kharida = rows.reduce((a, c) => a + Number(c.totalSales || 0), 0);
+    const wasool = rows.reduce((a, c) => a + Number(c.totalPaid || 0), 0);
+    const pct = kharida > 0 ? (wasool / kharida) * 100 : 0;
+    return { kharida, wasool, pct };
+  }, [rows]);
+
+  const oldest = useMemo(
+    () => [...due].filter((c) => c.ageDays > 0).sort((a, b) => b.ageDays - a.ageDays).slice(0, 6),
+    [due],
+  );
+
+  const concentration = useMemo(() => {
+    const sorted = [...due].sort((a, b) => b.balance - a.balance);
+    const total = sorted.reduce((a, c) => a + c.balance, 0);
+    if (total <= 0) return { topShare: 0, topCount: 0 };
+    let run = 0, n = 0;
+    for (const c of sorted) {
+      run += c.balance; n++;
+      if (run / total >= 0.8) break;
+    }
+    return { topShare: 80, topCount: n };
+  }, [due]);
+
+  if (due.length === 0 && rows.length === 0) {
+    return (
+      <section className="rounded-3xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 p-12 text-center">
+        <BarChart3 className="h-12 w-12 text-slate-300 mx-auto mb-3" />
+        <h3 className="font-black text-slate-900 dark:text-white text-lg">Abhi data nahi</h3>
+        <p className="text-sm font-semibold text-slate-500 mt-1">
+          Kuch sales ya udhaar hone par yahan poori reports aayengi
+        </p>
+      </section>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <section className="rounded-3xl bg-gradient-to-br from-slate-950 via-purple-900 to-fuchsia-800 text-white p-5 shadow-xl">
+        <div className="flex items-center gap-2 mb-3">
+          <Zap className="h-4 w-4 text-amber-300" />
+          <span className="text-[10px] uppercase font-black tracking-wider text-white/80">Wasooli Ki Sehat</span>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <AnaBox label="Customers ne khareeda" value={hideCost ? '••••' : formatPKR(recovery.kharida)} />
+          <AnaBox label="Wasool ho gaya" value={hideCost ? '••••' : formatPKR(recovery.wasool)} tone="emerald" />
+          <AnaBox label="Abhi baqi" value={hideCost ? '••••' : formatPKR(stats.totalDue)} tone="rose" big />
+          <AnaBox
+            label="Wasooli rate"
+            value={`${recovery.pct.toFixed(1)}%`}
+            sub={recovery.pct >= 85 ? 'bohot acha 👍' : recovery.pct >= 70 ? 'theek hai' : 'behtar karein ⚠️'}
+            big
+          />
+        </div>
+        <div className="mt-4 h-2 rounded-full bg-white/15 overflow-hidden">
+          <div className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-teal-400 transition-all"
+            style={{ width: `${Math.min(100, recovery.pct)}%` }} />
+        </div>
+      </section>
+
+      <div className="grid lg:grid-cols-2 gap-3">
+        <section className="rounded-3xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="h-9 w-9 rounded-xl bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 flex items-center justify-center">
+              <Clock className="h-4 w-4" />
+            </div>
+            <div>
+              <h3 className="font-black text-slate-900 dark:text-white text-sm">Paisa Kitna Purana</h3>
+              <p className="text-[10px] font-bold text-slate-500">Jitna purana, utni mushkil wasooli</p>
+            </div>
+          </div>
+          {aging.length === 0 ? (
+            <p className="py-12 text-center text-sm font-bold text-slate-500">Koi udhaar nahi 🎉</p>
+          ) : (
+            <div className="h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={aging} dataKey="value" nameKey="name" innerRadius={50} outerRadius={85} paddingAngle={3}>
+                    {aging.map((a, i) => <Cell key={i} fill={a.fill} />)}
+                  </Pie>
+                  <Tooltip formatter={(v: any, n: any) => [formatPKR(Number(v)), n]}
+                    contentStyle={{ borderRadius: 12, border: '2px solid #e2e8f0', fontWeight: 700, fontSize: 12 }} />
+                  <Legend wrapperStyle={{ fontSize: 11, fontWeight: 700 }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </section>
+
+        <section className="rounded-3xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="h-9 w-9 rounded-xl bg-fuchsia-100 dark:bg-fuchsia-500/20 text-fuchsia-700 dark:text-fuchsia-300 flex items-center justify-center">
+              <BarChart3 className="h-4 w-4" />
+            </div>
+            <div>
+              <h3 className="font-black text-slate-900 dark:text-white text-sm">Sab Se Bara Udhaar</h3>
+              <p className="text-[10px] font-bold text-slate-500">Laal = credit limit se upar</p>
+            </div>
+          </div>
+          {top.length === 0 ? (
+            <p className="py-12 text-center text-sm font-bold text-slate-500">Kisi par udhaar nahi</p>
+          ) : (
+            <div className="h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={top} margin={{ top: 4, right: 8, left: -12, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                  <XAxis dataKey="name" tick={{ fontSize: 10, fontWeight: 700 }} stroke="#64748b"
+                    interval={0} angle={-14} height={46} textAnchor="end" tickLine={false} axisLine={false} />
+                  <YAxis tick={{ fontSize: 10, fontWeight: 700 }} stroke="#64748b" width={52} tickLine={false} axisLine={false}
+                    tickFormatter={(v) => (Math.abs(v) >= 1000 ? `${Math.round(v / 1000)}k` : String(v))} />
+                  <Tooltip formatter={(v: any) => formatPKR(Number(v))}
+                    contentStyle={{ borderRadius: 12, border: '2px solid #e2e8f0', fontWeight: 700, fontSize: 12 }} />
+                  <Bar dataKey="Baqi" radius={[6, 6, 0, 0]}>
+                    {top.map((r, i) => <Cell key={i} fill={r.over ? '#e11d48' : '#a855f7'} />)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </section>
+      </div>
+
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <InsightCard
+          icon={Users} tone="violet" title="Bojh kitne logon par"
+          main={concentration.topCount > 0 ? `${concentration.topCount} customers` : '—'}
+          sub={concentration.topCount > 0
+            ? `80% baqi paisa inhi ke zimme hai — inpar dhyan dein`
+            : 'Koi udhaar nahi'}
+        />
+        <InsightCard
+          icon={Flame} tone="rose" title="30+ din purana"
+          main={`${stats.aging.oldCount} customers`}
+          sub={hideCost ? '••••' : `${formatPKR(stats.aging.old)} phansa hua`}
+        />
+        <InsightCard
+          icon={TrendingUp} tone="emerald" title="Advance jama"
+          main={`${stats.advanceCount} customers`}
+          sub={hideCost ? '••••' : `${formatPKR(stats.totalAdvance)} pehle se mila hua`}
+        />
+      </div>
+
+      {oldest.length > 0 && (
+        <section className="rounded-3xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div className="p-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-2">
+            <div className="h-9 w-9 rounded-xl bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 flex items-center justify-center">
+              <Clock className="h-4 w-4" />
+            </div>
+            <div>
+              <h3 className="font-black text-slate-900 dark:text-white text-sm">Sab Se Purana Udhaar</h3>
+              <p className="text-[10px] font-bold text-slate-500">Inhe pehle yaad dilana chahiye</p>
+            </div>
+          </div>
+          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+            {oldest.map((c) => (
+              <div key={c.id} className="px-4 py-3 flex items-center gap-3">
+                <div className="h-9 w-9 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center font-black text-sm shrink-0">
+                  {c.name?.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-black text-slate-900 dark:text-white text-sm truncate">{c.name}</div>
+                  <div className="text-[11px] font-bold text-slate-500">
+                    {c.ageDays} din se baqi{c.phone ? ` · ${c.phone}` : ''}
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <div className="font-black text-rose-600 tabular-nums">
+                    {hideCost ? '••••' : formatPKR(c.balance)}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
+  );
+}
+
+function AnaBox({ label, value, sub, tone, big }: any) {
+  const tones: Record<string, string> = {
+    emerald: 'text-emerald-300', rose: 'text-rose-300',
+  };
+  return (
+    <div className={`rounded-2xl backdrop-blur border p-3 ${big ? 'bg-white/25 border-white/40 shadow-lg' : 'bg-white/10 border-white/20'}`}>
+      <div className="text-[10px] uppercase font-black text-white/70 tracking-wider truncate">{label}</div>
+      <div className={`mt-1 font-black tabular-nums truncate ${big ? 'text-2xl' : 'text-lg'} ${tones[tone] ?? ''}`}>
+        {value}
+      </div>
+      {sub && <div className="text-[10px] font-bold text-white/70 truncate">{sub}</div>}
+    </div>
+  );
+}
+
+const INS_TONES: Record<string, string> = {
+  violet: 'from-violet-500 to-purple-600',
+  rose: 'from-rose-500 to-red-600',
+  emerald: 'from-emerald-500 to-teal-600',
+};
+
+function InsightCard({ icon: Icon, tone, title, main, sub }: any) {
+  return (
+    <div className="rounded-2xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 flex items-center gap-3">
+      <div className={`h-11 w-11 rounded-xl bg-gradient-to-br ${INS_TONES[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
+        <Icon className="h-5 w-5" />
+      </div>
+      <div className="min-w-0">
+        <div className="text-[10px] uppercase font-black text-slate-500 tracking-wider">{title}</div>
+        <div className="font-black text-slate-900 dark:text-white truncate">{main}</div>
+        {sub && <div className="text-[11px] font-bold text-slate-500 truncate">{sub}</div>}
       </div>
     </div>
   );

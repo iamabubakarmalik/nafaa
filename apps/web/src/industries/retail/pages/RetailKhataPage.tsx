@@ -850,7 +850,7 @@ function CustomerKhataRow({ customer, expanded, hideCost, onToggle, onPayment, o
         {hasBalance && (
           <button
             onClick={onPayment}
-            className="flex-1 min-w-[120px] h-11 rounded-xl bg-gradient-to-r from-emerald-600 to-green-700 hover:from-emerald-700 text-white text-sm font-extrabold inline-flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/30 active:scale-95 transition"
+            className="flex-1 min-w-[120px] h-11 rounded-xl bg-gradient-to-r from-emerald-600 to-green-700 hover:from-emerald-700 hover:to-green-700 text-white text-sm font-extrabold inline-flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/30 active:scale-95 transition"
           >
             <Banknote className="h-4 w-4" /> Paisay Wasool
           </button>
@@ -1110,7 +1110,7 @@ function PaymentModal({ customer, loading, onClose, onConfirm }: any) {
             onClick={() => onConfirm(payAmount, note)}
             disabled={!isValid || loading}
             className={[
-              'w-full h-14 sm:h-16 rounded-2xl bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700',
+              'w-full h-14 sm:h-16 rounded-2xl bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-600',
               'text-white font-extrabold shadow-2xl transition active:scale-[0.98]',
               'disabled:opacity-50 disabled:cursor-not-allowed',
               'flex items-center justify-between px-5',

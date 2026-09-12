@@ -19,6 +19,8 @@ export interface Expense {
   paymentMethod: PaymentMethod;
   status: 'PENDING' | 'PAID' | 'CANCELLED';
   expenseDate: string;
+  /** Bill/receipt ki tasveer */
+  attachmentUrl?: string | null;
   category?: ExpenseCategory | null;
   /** Kis branch ka kharcha */
   shop?: ShopStamp | null;
@@ -30,7 +32,15 @@ export interface CreateExpensePayload {
   amount: number;
   categoryId?: string;
   paymentMethod: PaymentMethod;
+  /** Kharcha kis din hua — na do to aaj */
+  expenseDate?: string;
+  /** Bill/receipt ki tasveer ka URL */
+  attachmentUrl?: string;
+  status?: 'PENDING' | 'PAID' | 'CANCELLED';
 }
+
+/** Sirf jo badla hai wohi bhejein */
+export type UpdateExpensePayload = Partial<CreateExpensePayload>;
 
 export interface CreateExpenseCategoryPayload {
   name: string;
@@ -134,6 +144,36 @@ export const expensesApi = {
     }
   },
 
+  /**
+   * Expense edit. Pehle ye method tha hi nahi — page `expensesApi.update`
+   * call karta tha jo undefined hone ki wajah se crash kar jata tha.
+   */
+  update: async (id: string, payload: UpdateExpensePayload): Promise<Expense> => {
+    try {
+      return await apiClient.patch<{ data: Expense }>(`/expenses/${id}`, payload).then(unwrap);
+    } catch (e) {
+      if (!isNetFail(e)) throw e;
+      const { db } = await import('@core/lib/offline/db');
+      const { queueGenericMutation } = await import('@core/lib/offline/syncEngine');
+      const existing: any = await db.expenses.get(id);
+      if (!existing) throw e;
+      const merged: any = {
+        ...existing,
+        ...payload,
+        amount: payload.amount !== undefined ? Number(payload.amount) || 0 : existing.amount,
+        _localDirty: true,
+      };
+      await db.expenses.put(merged);
+      await queueGenericMutation({
+        type: 'UPDATE_EXPENSE',
+        payload,
+        endpoint: `/expenses/${id}`,
+        method: 'PATCH',
+      });
+      return merged as Expense;
+    }
+  },
+
   remove: async (id: string): Promise<{ message: string }> => {
     try {
       return await apiClient.delete<{ data: { message: string } }>(`/expenses/${id}`).then(unwrap);
@@ -221,6 +261,7 @@ export const expenseCategoriesApi = {
       return { id: tempId, name: payload.name, color: payload.color || '#f59e0b', icon: payload.icon || null };
     }
   },
+
 
   remove: async (id: string): Promise<{ message: string }> => {
     try {

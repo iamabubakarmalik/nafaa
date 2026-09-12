@@ -766,7 +766,7 @@ export default function MobilePosPage() {
                 if (!newCustomer.name.trim()) return toast.error('Naam likhein');
                 addCustomerMutation.mutate({ name: newCustomer.name.trim(), phone: newCustomer.phone.trim() || undefined } as any);
               }} disabled={addCustomerMutation.isPending}
-                className="w-full h-16 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 active:scale-95 font-extrabold text-white text-xl shadow-lg transition disabled:opacity-50">
+                className="w-full h-16 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-700 active:scale-95 font-extrabold text-white text-xl shadow-lg transition disabled:opacity-50">
                 Add Karein
               </button>
             </div>
@@ -982,7 +982,7 @@ export default function MobilePosPage() {
                   )}
                 </div>
                 <button onClick={() => setScannerOpen(true)}
-                  className="h-14 sm:h-16 w-16 sm:w-20 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-700 dark:to-slate-800 hover:from-slate-800 active:scale-95 text-white flex flex-col items-center justify-center gap-0.5 shadow-lg transition shrink-0">
+                  className="h-14 sm:h-16 w-16 sm:w-20 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-700 dark:to-slate-800 hover:from-slate-800 hover:to-slate-800 active:scale-95 text-white flex flex-col items-center justify-center gap-0.5 shadow-lg transition shrink-0">
                   <Camera className="h-5 w-5 sm:h-6 sm:w-6" />
                   <span className="text-[9px] sm:text-[10px] font-extrabold uppercase">Scan</span>
                 </button>

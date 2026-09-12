@@ -10,7 +10,6 @@ import {
 } from 'lucide-react';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { useBusinessFeatures } from '@core/hooks/useBusinessFeatures';
-import { CustomerMobileHistory } from '@industries/mobile/components/CustomerMobileHistory';
 import { Button } from '@core/ui/Button';
 import { formatPKR } from '@core/lib/format';
 import { useAuthStore } from '@core/stores/auth.store';
@@ -23,7 +22,7 @@ import { toast } from 'sonner';
    💬 Smart WhatsApp (udhaar reminder vs thank-you)
    🎂 Birthday highlight • 📊 Credit limit progress bar
    ⏱️  "Kitne din se nahi aya" insight • ⌨️ E=edit, Esc=back
-   📱 Mobile tab (IMEI industry) • 📥 Ledger CSV
+   📥 Ledger CSV — har industry me bilkul ek jaisa page
    ═════════════════════════════════════════════════════════════ */
 
 const formatDate = (v: string) =>
@@ -49,8 +48,6 @@ export default function CustomerDetailPage() {
   const tenantName = useAuthStore((s) => s.tenant?.name) || 'Meri Dukaan';
 
   const { has } = useBusinessFeatures();
-  const hasMobile = has('imei');
-  const [activeTab, setActiveTab] = useState<'overview' | 'mobile'>('overview');
   const [showDelete, setShowDelete] = useState(false);
   const [showTeacher, setShowTeacher] = useState(false);
 
@@ -408,29 +405,7 @@ export default function CustomerDetailPage() {
         </div>
       )}
 
-      {/* ═══ TABS (mobile industry) ═══ */}
-      {hasMobile && (
-        <div className="flex gap-2 border-b-2 border-slate-200 dark:border-slate-800 print:hidden">
-          {(['overview', 'mobile'] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => setActiveTab(t)}
-              className={`px-4 py-2.5 text-sm font-extrabold border-b-2 -mb-0.5 transition inline-flex items-center gap-2 ${
-                activeTab === t
-                  ? 'border-blue-600 text-blue-700 dark:text-blue-300'
-                  : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-              }`}
-            >
-              {t === 'mobile' && <Smartphone className="h-4 w-4" />}
-              {t === 'overview' ? 'Overview' : 'Mobile History'}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {hasMobile && activeTab === 'mobile' ? (
-        <CustomerMobileHistory customerId={customer.id} />
-      ) : (
+      {(
         <>
           {/* ═══ KPIs ═══ */}
           <section className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">

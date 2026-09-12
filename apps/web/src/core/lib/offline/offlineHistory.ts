@@ -4,7 +4,7 @@ export type HistoryEventType =
   | 'PRODUCT_CREATED' | 'PRODUCT_UPDATED' | 'PRODUCT_DELETED'
   | 'CUSTOMER_CREATED' | 'CUSTOMER_UPDATED' | 'CUSTOMER_DELETED'
   | 'CUSTOMER_PAYMENT' | 'CATEGORY_ADDED' | 'BRAND_ADDED'
-  | 'EXPENSE_CREATED' | 'EXPENSE_DELETED' | 'SALE_OFFLINE'
+  | 'EXPENSE_CREATED' | 'EXPENSE_UPDATED' | 'EXPENSE_DELETED' | 'SALE_OFFLINE'
   | 'SALE_SYNCED' | 'SALE_FAILED' | 'OTHER';
 
 export interface HistoryEvent {
@@ -31,6 +31,7 @@ const typeMap: Record<string, { cat: HistoryEvent['category']; label: string }> 
   DELETE_CUSTOMER: { cat: 'customer', label: 'Customer delete kiya' },
   PAYMENT_CUSTOMER: { cat: 'customer', label: 'Customer payment (khata)' },
   CREATE_EXPENSE: { cat: 'expense', label: 'Expense banaya' },
+  UPDATE_EXPENSE: { cat: 'expense', label: 'Expense edit kiya' },
   DELETE_EXPENSE: { cat: 'expense', label: 'Expense delete kiya' },
   UPDATE_PRODUCT_STOCK: { cat: 'product', label: 'Stock adjust' },
   CREATE_LEDGER: { cat: 'customer', label: 'Ledger entry' },
@@ -46,6 +47,7 @@ function mapType(t: string): HistoryEventType {
   if (t === 'DELETE_CUSTOMER') return 'CUSTOMER_DELETED';
   if (t === 'PAYMENT_CUSTOMER') return 'CUSTOMER_PAYMENT';
   if (t === 'CREATE_EXPENSE') return 'EXPENSE_CREATED';
+  if (t === 'UPDATE_EXPENSE') return 'EXPENSE_UPDATED';
   if (t === 'DELETE_EXPENSE') return 'EXPENSE_DELETED';
   return 'OTHER';
 }

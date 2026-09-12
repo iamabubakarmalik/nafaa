@@ -28,20 +28,41 @@ import { PrismaService } from '../../../../prisma/prisma.service';
  */
 @Injectable()
 export class SubscriptionGuard implements CanActivate {
-  // Path prefixes that should NEVER be blocked
+  /**
+   * Path prefixes that must NEVER be blocked.
+   *
+   * These are matched as *segment* prefixes: `/api/uploads` matches both
+   * `/api/uploads` and `/api/uploads/abc`, but not `/api/uploads-xyz`.
+   * Storing them without a trailing slash matters — `POST /api/uploads`
+   * (receipt screenshot) has no trailing slash, so a `startsWith('/api/uploads/')`
+   * check used to block it and the user could never upload proof of payment
+   * once the trial expired.
+   */
   private readonly BYPASS_PATHS = [
-    '/api/auth/',
-    '/api/admin/',
-    '/api/subscriptions/',
+    '/api/auth',
+    '/api/admin',
+    '/api/subscriptions',
     '/api/plans',
-    '/api/billing/',
-    '/api/stripe/',
-    '/api/uploads/',
-    '/api/notifications/',
+    '/api/billing',
+    '/api/stripe',
+    '/api/uploads',
+    '/api/notifications',
     '/api/notification-prefs',
     '/api/feature-gating',
+    '/api/plan-usage',
+    '/api/tenants/me',
+    '/api/users/me',
+    '/api/shops',
     '/health',
   ];
+
+  private isBypassed(path: string): boolean {
+    // Strip query string — `req.url` keeps it, `req.path` does not.
+    const clean = path.split('?')[0].replace(/\/+$/, '') || '/';
+    return this.BYPASS_PATHS.some(
+      (prefix) => clean === prefix || clean.startsWith(`${prefix}/`),
+    );
+  }
 
   // Grace period (days) after PAST_DUE before hard block
   private readonly GRACE_PERIOD_DAYS = 3;
@@ -56,9 +77,7 @@ export class SubscriptionGuard implements CanActivate {
 
     // 1. Bypass check by path prefix
     const path: string = req.path || req.url || '';
-    if (this.BYPASS_PATHS.some((prefix) => path.startsWith(prefix))) {
-      return true;
-    }
+    if (this.isBypassed(path)) return true;
 
     // 2. No authenticated user (public routes) — let other guards handle it
     const user = req.user;
@@ -67,8 +86,11 @@ export class SubscriptionGuard implements CanActivate {
     // 3. Super admin bypass
     if (user.role === 'SUPER_ADMIN') return true;
 
-    // 4. Find current subscription (most recent ACTIVE/TRIAL/PAST_DUE/EXPIRED)
-    const sub = await this.prisma.subscription.findFirst({
+    // 4. Find the tenant's *best* subscription.
+    //    Ranked, not just newest: a stale EXPIRED row must never lock out a
+    //    customer who also has a live ACTIVE one (that happened whenever an
+    //    old trial was left behind by an upgrade).
+    const candidates = await this.prisma.subscription.findMany({
       where: {
         tenantId: user.tenantId,
         status: { in: ['ACTIVE', 'TRIAL', 'PAST_DUE', 'EXPIRED'] },
@@ -82,6 +104,16 @@ export class SubscriptionGuard implements CanActivate {
         plan: { select: { name: true } },
       },
     });
+
+    const RANK: Record<string, number> = {
+      ACTIVE: 0,
+      TRIAL: 1,
+      PAST_DUE: 2,
+      EXPIRED: 3,
+    };
+    const sub = candidates.sort(
+      (a, b) => RANK[a.status] - RANK[b.status],
+    )[0];
 
     if (!sub) {
       // No subscription at all — block

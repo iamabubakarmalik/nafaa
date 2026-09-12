@@ -558,7 +558,7 @@ export default function CarpetPosPage() {
                 )}
               </div>
               <button onClick={() => setScannerOpen(true)}
-                className="h-14 sm:h-16 w-16 sm:w-20 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 hover:from-slate-800 active:scale-95 text-white flex flex-col items-center justify-center gap-0.5 shadow-lg transition shrink-0">
+                className="h-14 sm:h-16 w-16 sm:w-20 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-800 active:scale-95 text-white flex flex-col items-center justify-center gap-0.5 shadow-lg transition shrink-0">
                 <Camera className="h-5 w-5" />
                 <span className="text-[9px] font-extrabold uppercase">Scan</span>
               </button>

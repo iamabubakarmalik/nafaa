@@ -342,7 +342,7 @@ export default function ShoeProductWizardPage() {
 
           {draft.step < 5 ? (
             <button onClick={nextStep} disabled={!canGoNext}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-700 hover:from-orange-700 text-white text-sm font-extrabold shadow-md disabled:opacity-50 transition">
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-700 hover:from-orange-700 hover:to-amber-700 text-white text-sm font-extrabold shadow-md disabled:opacity-50 transition">
               Next <ArrowRight className="h-4 w-4" />
             </button>
           ) : (

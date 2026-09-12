@@ -53,7 +53,19 @@ export const subscriptionsApi = {
   start: (planId: string, interval: BillingInterval) =>
     apiClient
       .post('/subscriptions/start', { planId, interval })
-      .then((r) => unwrap<{ subscription: Subscription; invoice: any; reused: boolean }>(r)),
+      .then((r) =>
+        unwrap<{
+          subscription: Subscription;
+          invoice: any;
+          /** The tenant's open invoice was handed back instead of a new one. */
+          reused: boolean;
+          /** That open invoice was re-priced in place (plan or interval changed). */
+          repriced: boolean;
+          /** A receipt is under review, so the invoice could not be changed. */
+          locked: boolean;
+          cancelledCount: number;
+        }>(r),
+      ),
 
   cancelPending: (subscriptionId: string) =>
     apiClient.delete(`/subscriptions/pending/${subscriptionId}`).then((r) => unwrap<any>(r)),

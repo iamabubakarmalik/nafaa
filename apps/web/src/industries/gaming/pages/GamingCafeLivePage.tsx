@@ -250,7 +250,7 @@ function StationCard({ station, session, now, onStart, onEnd, onPauseResume }: a
 
         {!hasSession && !isMaint && (
           <button onClick={onStart}
-            className="w-full h-12 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 text-white font-extrabold text-sm shadow-md inline-flex items-center justify-center gap-2 transition">
+            className="w-full h-12 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-sm shadow-md inline-flex items-center justify-center gap-2 transition">
             <Play className="h-4 w-4" /> Start Session
           </button>
         )}

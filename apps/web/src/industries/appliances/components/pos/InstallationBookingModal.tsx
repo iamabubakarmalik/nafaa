@@ -95,7 +95,7 @@ export function InstallationBookingModal({ line, onConfirm, onClose }: Props) {
             Cancel
           </button>
           <button onClick={() => onConfirm(date, slot)} disabled={!canConfirm}
-            className="flex-1 h-14 rounded-2xl bg-gradient-to-r from-amber-600 to-orange-700 hover:from-amber-700 text-white font-extrabold shadow-md disabled:opacity-50 transition inline-flex items-center justify-center gap-2">
+            className="flex-1 h-14 rounded-2xl bg-gradient-to-r from-amber-600 to-orange-700 hover:from-amber-700 hover:to-orange-700 text-white font-extrabold shadow-md disabled:opacity-50 transition inline-flex items-center justify-center gap-2">
             <CheckCircle2 className="h-5 w-5" /> Confirm Booking
           </button>
         </div>

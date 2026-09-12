@@ -3,7 +3,7 @@ import { startOfDay, startOfMonth } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { ShopScope, resolveWriteShopId } from '../../../common/shop-scope';
-import { CreateExpenseDto } from './dto/create-expense.dto';
+import { CreateExpenseDto, UpdateExpenseDto } from './dto/create-expense.dto';
 
 @Injectable()
 export class ExpensesService {
@@ -43,7 +43,45 @@ export class ExpensesService {
         description: dto.description,
         amount: dto.amount,
         paymentMethod: dto.paymentMethod,
-        status: 'PAID',
+        // Tareekh na di ho to aaj — lekin purana bill bhi darj ho sake
+        ...(dto.expenseDate ? { expenseDate: new Date(dto.expenseDate) } : {}),
+        attachmentUrl: dto.attachmentUrl,
+        status: dto.status ?? 'PAID',
+      },
+      include: { category: true },
+    });
+  }
+
+  /**
+   * Expense edit. Pehle ye endpoint tha hi nahi — page par "Edit"
+   * ka button tha jo `expensesApi.update` call karta tha, aur wo
+   * method maujood na hone par crash kar jata tha.
+   */
+  async update(user: AuthenticatedUser, id: string, dto: UpdateExpenseDto) {
+    const existing = await this.prisma.expense.findFirst({
+      where: { id, tenantId: user.tenantId },
+    });
+    if (!existing) throw new NotFoundException('Expense not found');
+
+    if (dto.categoryId) {
+      const cat = await this.prisma.expenseCategory.findFirst({
+        where: { id: dto.categoryId, tenantId: user.tenantId },
+      });
+      if (!cat) throw new NotFoundException('Expense category not found');
+    }
+
+    return this.prisma.expense.update({
+      where: { id },
+      data: {
+        ...(dto.title !== undefined && { title: dto.title }),
+        ...(dto.description !== undefined && { description: dto.description }),
+        ...(dto.amount !== undefined && { amount: dto.amount }),
+        // Khaali string bheji jaye to category hata do
+        ...(dto.categoryId !== undefined && { categoryId: dto.categoryId || null }),
+        ...(dto.paymentMethod !== undefined && { paymentMethod: dto.paymentMethod }),
+        ...(dto.expenseDate !== undefined && { expenseDate: new Date(dto.expenseDate) }),
+        ...(dto.attachmentUrl !== undefined && { attachmentUrl: dto.attachmentUrl || null }),
+        ...(dto.status !== undefined && { status: dto.status }),
       },
       include: { category: true },
     });

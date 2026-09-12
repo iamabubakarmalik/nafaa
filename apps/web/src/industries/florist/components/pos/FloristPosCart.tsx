@@ -176,7 +176,7 @@ export function FloristPosCart(p: Props) {
           </div>
 
           <button onClick={p.onProceed} disabled={!p.canProceed}
-            className="w-full h-[76px] sm:h-[88px] rounded-3xl font-extrabold text-white shadow-2xl transition-all active:scale-[0.98] bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 disabled:opacity-50 flex items-center justify-between px-5 sm:px-6">
+            className="w-full h-[76px] sm:h-[88px] rounded-3xl font-extrabold text-white shadow-2xl transition-all active:scale-[0.98] bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-600 disabled:opacity-50 flex items-center justify-between px-5 sm:px-6">
             <div className="text-left">
               <div className="text-[10px] sm:text-xs uppercase font-extrabold text-white/80 tracking-wider inline-flex items-center gap-1">
                 <Truck className="h-3 w-3" /> {p.hasDelivery ? 'Update delivery' : 'Delivery details'} <span className="hidden sm:inline">(F9)</span>

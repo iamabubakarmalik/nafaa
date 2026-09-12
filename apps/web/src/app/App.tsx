@@ -84,7 +84,7 @@ import GlobalImeiInventoryPage from '@industries/mobile/pages/GlobalImeiInventor
 import UsedPhonesPage from '@industries/mobile/pages/UsedPhonesPage';
 
 // ─── Customers ─────────────────────────────────────────────────
-import CustomersListGate from '@modules/customers/customers/pages/CustomersListGate';
+import CustomersListPage from '@modules/customers/customers/pages/CustomersListPage';
 import CustomerFormPage from '@modules/customers/customers/pages/CustomerFormPage';
 import CustomerDetailPage from '@modules/customers/customers/pages/CustomerDetailPage';
 
@@ -625,7 +625,7 @@ export default function App() {
                   <Route path="/customers/new" element={secure(PERMISSIONS.CUSTOMERS_EDIT, <CustomerFormPage />)} />
                   <Route path="/customers/:id/edit" element={secure(PERMISSIONS.CUSTOMERS_EDIT, <CustomerFormPage />)} />
                   <Route path="/customers/:id" element={secure(PERMISSIONS.CUSTOMERS_VIEW, <CustomerDetailPage />)} />
-                  <Route path="/customers" element={secure(PERMISSIONS.CUSTOMERS_VIEW, <CustomersListGate />)} />
+                  <Route path="/customers" element={secure(PERMISSIONS.CUSTOMERS_VIEW, <CustomersListPage />)} />
 
                   {/* ── Sales / POS ────────────────────────────── */}
                   <Route path="/pos" element={secure(PERMISSIONS.POS_USE, <PosGate />)} />

@@ -10,6 +10,7 @@ import { EmailService } from '../../modules/email/email.service';
 import { NotificationsService } from '../../modules/notifications/notifications.service';
 import { ReferralsService } from '../../modules/customers/referrals/referrals.service';
 import { SmsService } from '../../modules/sms/sms.service';
+import { SubscriptionsService } from '../../modules/billing/subscriptions/subscriptions.service';
 
 @Injectable()
 export class AdminBillingService {
@@ -19,6 +20,7 @@ export class AdminBillingService {
     private readonly referrals: ReferralsService,
     private readonly emailService: EmailService,
     private readonly smsService: SmsService,
+    private readonly subscriptions: SubscriptionsService,
   ) {}
 
   async stats() {
@@ -104,7 +106,12 @@ export class AdminBillingService {
       throw new BadRequestException('Payment already processed');
     }
 
-    const result = await this.prisma.$transaction(async (tx) => {
+    let fullyPaid = false;
+    const subscriptionId = payment.subscriptionId ?? payment.invoice?.subscriptionId;
+
+    // Approving the payment and activating the plan commit together — an
+    // approved payment must never be left without the subscription it bought.
+    const { result, activated } = await this.prisma.$transaction(async (tx) => {
       const approved = await tx.payment.update({
         where: { id: payment.id },
         data: {
@@ -120,7 +127,7 @@ export class AdminBillingService {
         const invoice = payment.invoice!;
         const newPaid = invoice.amountPaid + payment.amount;
         const newDue = Math.max(invoice.total - newPaid, 0);
-        const fullyPaid = newDue === 0;
+        fullyPaid = newDue === 0;
 
         await tx.invoice.update({
           where: { id: invoice.id },
@@ -131,87 +138,55 @@ export class AdminBillingService {
             paidAt: fullyPaid ? new Date() : null,
           },
         });
-
-        if (fullyPaid && invoice.subscriptionId) {
-          await tx.subscription.update({
-            where: { id: invoice.subscriptionId },
-            data: { status: 'ACTIVE' },
-          });
-          await tx.tenant.update({
-            where: { id: payment.tenantId },
-            data: { status: 'ACTIVE' },
-          });
-        }
       }
 
-      return approved;
+      // Activation lives in ONE place (SubscriptionsService) so the manual and
+      // Stripe paths can never drift: it re-anchors the billing period at
+      // approval time, stacks a same-plan renewal onto the remaining days, and
+      // supersedes the leftover trial / replaced plan.
+      const act =
+        fullyPaid && subscriptionId
+          ? await this.subscriptions.activateWithin(
+              tx,
+              subscriptionId,
+              payment.invoiceId ?? undefined,
+            )
+          : null;
+
+      return { result: approved, activated: act };
     });
 
-    await this.notifications.create({
-      tenantId: payment.tenantId,
-      type: 'PAYMENT_APPROVED',
-      title: 'Payment Approved ✅',
-      message: `Aap ka Rs ${payment.amount} payment approve ho gaya. Subscription active hai.`,
-      link: '/billing',
-    });
+    // Post-commit: notification + email for the newly active plan.
+    if (activated) {
+      await this.subscriptions.announceActivation(activated);
+    }
 
-    // Send email + SMS to tenant owner
+    if (!fullyPaid) {
+      // Partial payment — no activation happened, so say exactly that.
+      await this.notifications.create({
+        tenantId: payment.tenantId,
+        type: 'PAYMENT_APPROVED',
+        title: 'Partial Payment Approved ✅',
+        message: `Rs ${payment.amount} receive ho gaya. Baqi amount pay karne par plan activate hoga.`,
+        link: '/billing',
+      });
+    }
+
+    // SMS to tenant owner (the email is sent by activateFromPayment)
     const tenant = await this.prisma.tenant.findUnique({
       where: { id: payment.tenantId },
-      include: {
-        users: { where: { role: 'OWNER', isActive: true }, take: 1 },
-      },
+      select: { phone: true },
     });
 
-    const owner = tenant?.users[0];
-    if (owner) {
-      // Fetch subscription + plan details for richer email
-      const subDetails = await this.prisma.subscription.findFirst({
-        where: { tenantId: payment.tenantId, status: 'ACTIVE' },
-        orderBy: { updatedAt: 'desc' },
-        include: { plan: { select: { name: true } } },
-      });
-
-      const appUrl = process.env.APP_URL || 'http://localhost:5173';
-      const formatAmount = (n: number) =>
-        new Intl.NumberFormat('en-PK').format(n);
-      const formatDate = (d: Date) =>
-        new Intl.DateTimeFormat('en-PK', {
-          dateStyle: 'long', timeZone: 'Asia/Karachi',
-        }).format(d);
-
-      this.emailService
+    if (tenant?.phone) {
+      this.smsService
         .send({
           tenantId: payment.tenantId,
           templateSlug: 'payment-approved',
-          toEmail: owner.email,
-          toName: owner.fullName,
-          variables: {
-            name: owner.fullName,
-            shopName: tenant?.name || 'Aap ki dukan',
-            planName: subDetails?.plan?.name || 'Premium Plan',
-            amount: formatAmount(payment.amount),
-            interval: subDetails?.interval || 'MONTHLY',
-            periodEnd: subDetails?.currentPeriodEnd
-              ? formatDate(subDetails.currentPeriodEnd)
-              : '—',
-            appUrl,
-          },
+          toPhone: tenant.phone,
+          variables: { amount: payment.amount.toString() },
         })
-        .catch((e) => console.error('Payment approved email failed:', e.message));
-
-      if (tenant?.phone) {
-        this.smsService
-          .send({
-            tenantId: payment.tenantId,
-            templateSlug: 'payment-approved',
-            toPhone: tenant.phone,
-            variables: {
-              amount: payment.amount.toString(),
-            },
-          })
-          .catch((e) => console.error('Payment approved SMS failed:', e.message));
-      }
+        .catch((e) => console.error('Payment approved SMS failed:', e.message));
     }
 
     if (payment.invoice) {
@@ -243,8 +218,10 @@ export class AdminBillingService {
       tenantId: payment.tenantId,
       type: 'PAYMENT_REJECTED',
       title: 'Payment Rejected ❌',
-      message: `Aap ka Rs ${payment.amount} payment reject ho gaya. Reason: ${reason || 'Not specified'}`,
-      link: '/billing',
+      message:
+        `Aap ka Rs ${payment.amount} payment reject ho gaya. Reason: ${reason || 'Not specified'}. ` +
+        `Invoice abhi bhi open hai — sahi receipt dobara upload karein.`,
+      link: payment.invoiceId ? `/billing/invoice/${payment.invoiceId}/pay` : '/billing',
     });
 
     // Send email + SMS to tenant owner about rejection

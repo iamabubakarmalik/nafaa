@@ -178,7 +178,7 @@ export default function GiftFinderPage() {
 
         {/* SEARCH BUTTON */}
         <button onClick={() => findGifts.mutate()} disabled={!canSearch || findGifts.isPending}
-          className="w-full h-16 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-700 hover:from-violet-700 text-white font-extrabold text-lg shadow-xl inline-flex items-center justify-center gap-2 disabled:opacity-50">
+          className="w-full h-16 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-700 hover:from-violet-700 hover:to-fuchsia-700 text-white font-extrabold text-lg shadow-xl inline-flex items-center justify-center gap-2 disabled:opacity-50">
           {findGifts.isPending ? (
             <>Searching...</>
           ) : (

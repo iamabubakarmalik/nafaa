@@ -29,8 +29,31 @@ export interface StartSubscriptionResult {
     amountDue: number;
     status: string;
   };
+  /** The tenant's open invoice was handed back instead of a new one. */
   reused: boolean;
+  /** That open invoice was re-priced in place (plan or interval changed). */
+  repriced: boolean;
+  /** A receipt is already under review, so the invoice could not be changed. */
+  locked: boolean;
   cancelledCount: number;
+}
+
+export interface PendingUpgrade {
+  subscription: {
+    id: string;
+    plan: Plan;
+    interval: BillingInterval;
+    amount: number;
+    createdAt: string;
+  };
+  invoice: {
+    id: string;
+    invoiceNumber: string;
+    status: string;
+    total: number;
+    amountDue: number;
+    dueDate: string;
+  };
 }
 
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
@@ -39,13 +62,27 @@ export const subscriptionsApi = {
   current: () =>
     apiClient.get<{ data: Subscription | null }>('/subscriptions/current').then(unwrap),
 
+  pendingUpgrade: async (): Promise<PendingUpgrade | null> => {
+    try {
+      const res = await apiClient.get<{ data: PendingUpgrade | null }>(
+        '/subscriptions/pending-upgrade',
+      );
+      return res.data?.data ?? null;
+    } catch {
+      return null;
+    }
+  },
+
   start: (planId: string, interval: BillingInterval) =>
     apiClient
       .post<{ data: StartSubscriptionResult }>('/subscriptions/start', { planId, interval })
       .then(unwrap),
 
   cancel: () =>
-    apiClient.post<{ data: any }>('/subscriptions/cancel').then(unwrap),
+    apiClient.post<{ data: Subscription }>('/subscriptions/cancel').then(unwrap),
+
+  reactivate: () =>
+    apiClient.post<{ data: Subscription }>('/subscriptions/reactivate').then(unwrap),
 
   cleanupPending: () =>
     apiClient

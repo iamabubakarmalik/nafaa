@@ -750,7 +750,7 @@ function CartPanel({
           </div>
 
           <button onClick={onCheckout} disabled={!canCheckout}
-            className="w-full h-[76px] sm:h-[88px] rounded-3xl font-extrabold text-white shadow-2xl transition-all active:scale-[0.98] bg-gradient-to-r from-pink-600 to-rose-700 hover:from-pink-700 disabled:opacity-50 flex items-center justify-between px-5 sm:px-6">
+            className="w-full h-[76px] sm:h-[88px] rounded-3xl font-extrabold text-white shadow-2xl transition-all active:scale-[0.98] bg-gradient-to-r from-pink-600 to-rose-700 hover:from-pink-700 hover:to-rose-700 disabled:opacity-50 flex items-center justify-between px-5 sm:px-6">
             <div className="text-left">
               <div className="text-[10px] sm:text-xs uppercase font-extrabold text-white/80 tracking-wider">
                 Checkout

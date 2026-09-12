@@ -5,10 +5,12 @@ import { useAuthStore } from '@core/stores/auth.store';
 
 export function TrialExpiredModal() {
   const navigate = useNavigate();
-  const { needsUpgrade, subscription } = useSubscriptionStatus();
+  const { isBlocked, subscription } = useSubscriptionStatus();
   const logout = useAuthStore((s) => s.logout);
 
-  if (!needsUpgrade) return null;
+  // Only lock the screen once the API would actually refuse the request —
+  // during the PAST_DUE grace window the banner is enough.
+  if (!isBlocked) return null;
 
   const isPastDue = subscription?.status === 'PAST_DUE';
 
@@ -72,7 +74,7 @@ export function TrialExpiredModal() {
 
         {/* Actions */}
         <button
-          onClick={() => navigate('/plan')}
+          onClick={() => navigate('/plans')}
           className="group w-full h-14 rounded-2xl bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 transition-all flex items-center justify-center gap-2 mb-3 shadow-2xl shadow-emerald-600/50 hover:scale-[1.02]"
         >
           <Sparkles className="h-5 w-5 text-white group-hover:rotate-12 transition-transform" />

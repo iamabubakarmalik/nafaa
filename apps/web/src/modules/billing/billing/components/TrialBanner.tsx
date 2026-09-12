@@ -32,7 +32,7 @@ export function TrialBanner() {
 
   return (
     <Link
-      to="/plan"
+      to="/plans"
       className={`group block mx-4 my-2 rounded-2xl bg-gradient-to-r ${gradient} shadow-lg ${shadow} hover:shadow-xl hover:scale-[1.01] transition-all overflow-hidden relative`}
     >
       {/* Animated shine effect */}

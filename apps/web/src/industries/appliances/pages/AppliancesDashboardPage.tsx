@@ -273,7 +273,7 @@ export default function AppliancesDashboardPage() {
             <StatBox label="This Month" value={installSummary?.thisMonthCount ?? 0} icon={Activity} tone="violet" />
           </div>
           <div className="px-4 pb-4">
-            <Link to="/appliances/installations" className="w-full inline-flex items-center justify-center gap-2 h-11 rounded-xl bg-gradient-to-r from-amber-600 to-orange-700 hover:from-amber-700 text-white font-extrabold text-sm shadow-md transition">
+            <Link to="/appliances/installations" className="w-full inline-flex items-center justify-center gap-2 h-11 rounded-xl bg-gradient-to-r from-amber-600 to-orange-700 hover:from-amber-700 hover:to-orange-700 text-white font-extrabold text-sm shadow-md transition">
               Manage Installations <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -296,7 +296,7 @@ export default function AppliancesDashboardPage() {
             <StatBox label="This Month" value={serviceSummary?.thisMonthCount ?? 0} icon={Activity} tone="blue" />
           </div>
           <div className="px-4 pb-4">
-            <Link to="/appliances/service-requests" className="w-full inline-flex items-center justify-center gap-2 h-11 rounded-xl bg-gradient-to-r from-rose-600 to-red-700 hover:from-rose-700 text-white font-extrabold text-sm shadow-md transition">
+            <Link to="/appliances/service-requests" className="w-full inline-flex items-center justify-center gap-2 h-11 rounded-xl bg-gradient-to-r from-rose-600 to-red-700 hover:from-rose-700 hover:to-red-700 text-white font-extrabold text-sm shadow-md transition">
               Manage Service <ArrowRight className="h-4 w-4" />
             </Link>
           </div>

@@ -418,7 +418,7 @@ export default function FloristPosPage() {
                 )}
               </div>
               <button onClick={() => setScanner(true)}
-                className="h-14 sm:h-16 w-16 sm:w-20 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 hover:from-slate-800 text-white flex flex-col items-center justify-center gap-0.5 shadow-lg shrink-0">
+                className="h-14 sm:h-16 w-16 sm:w-20 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-800 text-white flex flex-col items-center justify-center gap-0.5 shadow-lg shrink-0">
                 <Camera className="h-5 w-5 sm:h-6 sm:w-6" />
                 <span className="text-[9px] font-extrabold uppercase">Scan</span>
               </button>

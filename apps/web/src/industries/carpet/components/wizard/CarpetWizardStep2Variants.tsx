@@ -225,7 +225,7 @@ export function CarpetWizardStep2Variants({
                 type="button"
                 onClick={addCustom}
                 disabled={!customName.trim()}
-                className="h-11 px-5 rounded-xl bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-700 text-white font-extrabold text-sm inline-flex items-center gap-1 disabled:opacity-50 shadow-md active:scale-95 transition"
+                className="h-11 px-5 rounded-xl bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-700 hover:to-purple-700 text-white font-extrabold text-sm inline-flex items-center gap-1 disabled:opacity-50 shadow-md active:scale-95 transition"
               >
                 <Plus className="h-4 w-4" /> Add
               </button>

@@ -56,14 +56,7 @@ export default function BillingPage() {
 
   const { data: pendingUpgradeRaw } = useQuery({
     queryKey: ['subscription-pending'],
-    queryFn: async () => {
-      try {
-        const res = await apiClient.get('/subscriptions/pending-upgrade');
-        return res.data?.data ?? res.data ?? null;
-      } catch {
-        return null;
-      }
-    },
+    queryFn: subscriptionsApi.pendingUpgrade,
   });
 
   const pendingUpgrade =
@@ -94,6 +87,42 @@ export default function BillingPage() {
     },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Cleanup fail'),
   });
+
+  const cancelMutation = useMutation({
+    mutationFn: subscriptionsApi.cancel,
+    onSuccess: () => {
+      toast.success('Plan period ke end par band ho jayega', {
+        description: 'Us waqt tak full access chalta rahega. Kabhi bhi wapas on kar sakte hain.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['subscription-current'] });
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Cancel fail'),
+  });
+
+  const reactivateMutation = useMutation({
+    mutationFn: subscriptionsApi.reactivate,
+    onSuccess: () => {
+      toast.success('Auto-renew wapas on ho gaya');
+      queryClient.invalidateQueries({ queryKey: ['subscription-current'] });
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Reactivate fail'),
+  });
+
+  /** Days until the current period (or trial) runs out — negative once past. */
+  const daysLeft = useMemo(() => {
+    if (!current) return null;
+    const end =
+      current.status === 'TRIAL' && current.trialEndsAt
+        ? current.trialEndsAt
+        : current.currentPeriodEnd;
+    return getDaysUntilDue(end);
+  }, [current]);
+
+  const needsRenewal =
+    !!current &&
+    (current.status === 'PAST_DUE' ||
+      current.status === 'EXPIRED' ||
+      (current.status === 'ACTIVE' && (daysLeft ?? 99) <= 15));
 
   const pendingInvoices = invoices.filter((i) => i.status === 'PENDING' || i.status === 'OVERDUE');
   const paidInvoices = invoices.filter((i) => i.status === 'PAID');
@@ -382,10 +411,14 @@ export default function BillingPage() {
             >
               <FileDown className="h-4 w-4" /> <span className="hidden sm:inline">Full PDF</span>
             </button>
-            <Link to="/plan">
+            <Link to="/plans">
               <button className="h-11 px-4 rounded-xl bg-white text-slate-900 hover:bg-slate-100 text-sm font-extrabold inline-flex items-center gap-1.5 shadow-lg transition">
                 <Sparkles className="h-4 w-4" />
-                {current?.status === 'TRIAL' ? 'Upgrade' : 'Plans'}
+                {current?.status === 'TRIAL'
+                  ? 'Upgrade'
+                  : needsRenewal
+                    ? 'Renew'
+                    : 'Plans'}
               </button>
             </Link>
           </div>
@@ -521,9 +554,16 @@ export default function BillingPage() {
                       </p>
                     </div>
                   </div>
-                  <Link to="/plan" className="shrink-0">
-                    <Button variant="secondary">
-                      {current.status === 'TRIAL' ? 'Upgrade' : 'Change Plan'}
+                  <Link to="/plans" className="shrink-0">
+                    <Button
+                      variant={needsRenewal ? 'primary' : 'secondary'}
+                      className={needsRenewal ? 'bg-gradient-to-r from-rose-600 to-orange-600 hover:from-rose-700 hover:to-orange-700 font-extrabold' : ''}
+                    >
+                      {current.status === 'TRIAL'
+                        ? 'Upgrade'
+                        : needsRenewal
+                          ? `Renew ${current.plan.name}`
+                          : 'Change Plan'}
                       <ArrowRight className="h-4 w-4" />
                     </Button>
                   </Link>
@@ -551,9 +591,75 @@ export default function BillingPage() {
                     label="Billing"
                     value={current.interval || '—'}
                     color="violet"
-                    sub={current.autoRenew ? '✓ Auto-renew on' : 'Manual'}
+                    sub={
+                      current.cancelAtPeriodEnd
+                        ? '⚠️ Period end par band'
+                        : current.autoRenew
+                          ? '✓ Auto-renew on'
+                          : 'Manual'
+                    }
                   />
                 </div>
+
+                {/* Renewal nudge — manual payments mean nothing auto-charges,
+                    so the reminder has to live where the plan is shown. */}
+                {needsRenewal && current.status !== 'TRIAL' && !pendingUpgrade && (
+                  <div className="mt-4 rounded-2xl border-2 border-rose-300 dark:border-rose-500/40 bg-rose-50 dark:bg-rose-500/10 p-4 flex items-start gap-3 flex-wrap">
+                    <AlertTriangle className="h-5 w-5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-extrabold text-rose-900 dark:text-rose-200 text-sm">
+                        {current.status === 'ACTIVE'
+                          ? `Renewal ${(daysLeft ?? 0) > 0 ? `${daysLeft} din mein` : 'aaj'} due hai`
+                          : 'Plan renew karna zaroori hai'}
+                      </div>
+                      <p className="text-xs text-rose-800 dark:text-rose-300 mt-1 font-semibold leading-relaxed">
+                        Payment manual hai — khud renew karna hoga. Bache hue din zaya nahi honge,
+                        naye period mein add ho jayenge.
+                      </p>
+                    </div>
+                    <Link to="/plans" className="shrink-0">
+                      <Button className="bg-gradient-to-r from-rose-600 to-orange-600 hover:from-rose-700 hover:to-orange-700 font-extrabold">
+                        <RefreshCw className="h-4 w-4" />
+                        Renew Now
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+
+                {/* Cancel / resume — the endpoints existed but had no UI */}
+                {(current.status === 'ACTIVE' || current.status === 'TRIAL') && (
+                  <div className="mt-4 pt-4 border-t-2 border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 flex-wrap">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
+                      {current.cancelAtPeriodEnd
+                        ? `Ye plan ${formatDate(current.currentPeriodEnd)} ko band ho jayega — data safe rahega.`
+                        : 'Kabhi bhi band kar sakte hain — period end tak access chalta rahega.'}
+                    </p>
+                    {current.cancelAtPeriodEnd ? (
+                      <Button
+                        variant="secondary"
+                        loading={reactivateMutation.isPending}
+                        onClick={() => reactivateMutation.mutate()}
+                      >
+                        <RefreshCw className="h-4 w-4" />
+                        Wapas Chalu Karein
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        loading={cancelMutation.isPending}
+                        onClick={() => {
+                          if (confirm('Plan period ke end par band kar dein? Us waqt tak access chalta rahega.')) {
+                            cancelMutation.mutate();
+                          }
+                        }}
+                        className="text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10"
+                      >
+                        <XCircle className="h-4 w-4" />
+                        Cancel Subscription
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
             </section>
           ) : null}

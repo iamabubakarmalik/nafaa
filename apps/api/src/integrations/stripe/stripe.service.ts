@@ -5,6 +5,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
 import { NotificationsService } from '../../modules/notifications/notifications.service';
 import { ReferralsService } from '../../modules/customers/referrals/referrals.service';
+import { SubscriptionsService } from '../../modules/billing/subscriptions/subscriptions.service';
 
 type StripeClient = InstanceType<typeof StripeLib>;
 type StripeEvent = ReturnType<StripeClient['webhooks']['constructEvent']>;
@@ -18,6 +19,7 @@ export class StripeService {
     private readonly prisma: PrismaService,
     private readonly notifications: NotificationsService,
     private readonly referrals: ReferralsService,
+    private readonly subscriptions: SubscriptionsService,
   ) {
     const key = this.configService.get<string>('STRIPE_SECRET_KEY');
     if (key && !key.includes('replace_me')) {
@@ -164,29 +166,37 @@ export class StripeService {
         },
       });
 
-      if (invoice.subscriptionId) {
-        await tx.subscription.update({
-          where: { id: invoice.subscriptionId },
+      // Same activation path as manual approval — correct period anchoring,
+      // same-plan renewal stacking, and the leftover trial superseded.
+      const subscriptionId = args.subscriptionId || invoice.subscriptionId;
+      const activated = subscriptionId
+        ? await this.subscriptions.activateWithin(tx, subscriptionId, invoice.id)
+        : null;
+
+      if (!activated) {
+        await tx.tenant.update({
+          where: { id: args.tenantId },
           data: { status: 'ACTIVE' },
         });
       }
 
-      await tx.tenant.update({
-        where: { id: args.tenantId },
-        data: { status: 'ACTIVE' },
-      });
-
-      return result;
+      return { result, activated };
     });
 
     if (updated) {
-      await this.notifications.create({
-        tenantId: args.tenantId,
-        type: 'PAYMENT_APPROVED',
-        title: 'Payment Successful! ✅',
-        message: `Rs ${args.amount} payment receive ho gayi. Aap ki subscription active hai.`,
-        link: '/billing',
-      });
+      const { activated } = updated;
+      if (activated) {
+        // announceActivation owns the success notification + email.
+        await this.subscriptions.announceActivation(activated);
+      } else {
+        await this.notifications.create({
+          tenantId: args.tenantId,
+          type: 'PAYMENT_APPROVED',
+          title: 'Payment Successful! ✅',
+          message: `Rs ${args.amount} payment receive ho gayi.`,
+          link: '/billing',
+        });
+      }
 
       await this.referrals.convertReferral(args.tenantId, args.amount);
     }

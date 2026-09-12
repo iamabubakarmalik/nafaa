@@ -311,7 +311,7 @@ export default function FurnitureProductWizardPage() {
 
           {draft.step < 4 ? (
             <button onClick={nextStep} disabled={!canGoNext}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-700 to-orange-800 hover:from-amber-800 text-white text-sm font-extrabold shadow-md disabled:opacity-50 transition">
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-700 to-orange-800 hover:from-amber-800 hover:to-orange-800 text-white text-sm font-extrabold shadow-md disabled:opacity-50 transition">
               Next <ArrowRight className="h-4 w-4" />
             </button>
           ) : (

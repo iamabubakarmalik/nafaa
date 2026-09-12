@@ -67,16 +67,16 @@ export default function PlansScreen() {
       queryClient.invalidateQueries({ queryKey: ['subscription-pending'] });
       queryClient.invalidateQueries({ queryKey: ['billing-invoices'] });
 
-      if (data.reused) {
-        Toast.show({ type: 'success', text1: 'Existing invoice pay karein' });
-      } else if (data.cancelledCount > 0) {
+      if (data.repriced) {
         Toast.show({
           type: 'success',
-          text1: 'Plan switch ho gaya!',
-          text2: `${data.cancelledCount} pichla pending cancel`,
+          text1: 'Invoice update ho gayi',
+          text2: `${data.invoice.invoiceNumber} — nayi invoice nahi bani`,
         });
+      } else if (data.reused) {
+        Toast.show({ type: 'success', text1: 'Aap ki open invoice pay karein' });
       } else {
-        Toast.show({ type: 'success', text1: 'Plan selected! Ab payment karein' });
+        Toast.show({ type: 'success', text1: 'Plan select ho gaya! Ab payment karein' });
       }
 
       setConfirmPlan(null);
@@ -116,6 +116,47 @@ export default function PlansScreen() {
     const savings = monthlyTotal - actualPrice;
     const pct = (savings / monthlyTotal) * 100;
     return { amount: savings, percent: pct };
+  };
+
+  const intervalWord: Record<BillingInterval, string> = {
+    MONTHLY: 'Monthly',
+    QUARTERLY: 'Quarterly',
+    YEARLY: 'Yearly',
+  };
+
+  /* Interval is part of a subscription's identity — the old check disabled the
+     button on plan id alone, so a monthly customer could never switch to
+     yearly and nobody could renew the plan they were already on. */
+  const ctaFor = (plan: any) => {
+    if (plan.priceMonthly === 0) {
+      const onTrial = current?.status === 'TRIAL' && current?.plan?.id === plan.id;
+      return { label: onTrial ? 'Aap Trial Par Hain' : 'Trial Plan', disabled: true };
+    }
+
+    const pendingSub = pendingUpgrade?.subscription;
+    if (
+      pendingUpgrade?.invoice?.id &&
+      pendingSub?.plan?.id === plan.id &&
+      pendingSub?.interval === interval
+    ) {
+      return { label: 'Continue Payment', payInvoiceId: pendingUpgrade.invoice.id };
+    }
+
+    const samePlan =
+      current?.plan?.id === plan.id &&
+      ['ACTIVE', 'PAST_DUE', 'EXPIRED'].includes(current?.status ?? '');
+
+    if (samePlan) {
+      return current?.interval === interval
+        ? { label: `Renew ${intervalWord[interval]}` }
+        : { label: `Switch to ${intervalWord[interval]}` };
+    }
+
+    const currentMonthly =
+      current && current.status !== 'TRIAL' ? (current.plan?.priceMonthly ?? 0) : 0;
+    if (currentMonthly > 0 && plan.priceMonthly < currentMonthly) return { label: 'Downgrade' };
+    if (currentMonthly > 0 && plan.priceMonthly > currentMonthly) return { label: 'Upgrade Now' };
+    return { label: 'Subscribe Now' };
   };
 
   const intervalLabel = {
@@ -286,7 +327,10 @@ export default function PlansScreen() {
           {plans.map((plan) => {
             const Icon = planIcons[plan.slug] || Sparkles;
             const color = planColors[plan.slug] || '#737373';
-            const isCurrent = current?.plan.id === plan.id;
+            const isCurrent =
+              current?.plan?.id === plan.id &&
+              ['TRIAL', 'ACTIVE', 'PAST_DUE'].includes(current?.status ?? '');
+            const cta: any = ctaFor(plan);
             const isPopular = plan.slug === 'pro';
             const isFree = plan.priceMonthly === 0;
             const price = getPrice(plan);
@@ -321,7 +365,15 @@ export default function PlansScreen() {
                 {isPendingThis && (
                   <View className="absolute top-2 right-2 z-10 px-2 py-0.5 rounded-md bg-amber-500">
                     <Text className="text-white text-[9px] font-extrabold uppercase tracking-wider">
-                      ⏳ Pending
+                      ⏳ Pending {intervalWord[pendingUpgrade?.subscription?.interval as BillingInterval] ?? ''}
+                    </Text>
+                  </View>
+                )}
+
+                {isCurrent && !isPendingThis && (
+                  <View className="absolute top-2 right-2 z-10 px-2 py-0.5 rounded-md bg-emerald-500">
+                    <Text className="text-white text-[9px] font-extrabold uppercase tracking-wider">
+                      ✓ {current?.status === 'TRIAL' ? 'Trial' : `Active · ${intervalWord[current!.interval]}`}
                     </Text>
                   </View>
                 )}
@@ -403,26 +455,19 @@ export default function PlansScreen() {
                     <FeatureRow enabled={plan.featureSupport24x7} label="24/7 Priority Support" />
                   </View>
 
-                  {isCurrent ? (
+                  {cta.disabled ? (
                     <View className="h-12 rounded-xl bg-emerald-100 items-center justify-center flex-row gap-2">
                       <Check size={16} color="#15803d" />
-                      <Text className="font-extrabold text-emerald-800">Current Plan</Text>
+                      <Text className="font-extrabold text-emerald-800">{cta.label}</Text>
                     </View>
-                  ) : isFree ? (
+                  ) : cta.payInvoiceId ? (
                     <Pressable
-                      onPress={() => router.push('/billing')}
-                      className="h-12 rounded-xl bg-slate-100 items-center justify-center"
-                    >
-                      <Text className="font-extrabold text-slate-700">Already on Trial</Text>
-                    </Pressable>
-                  ) : isPendingThis ? (
-                    <Pressable
-                      onPress={() => router.push(`/billing/invoice/${pendingUpgrade.invoice.id}`)}
+                      onPress={() => router.push(`/billing/invoice/${cta.payInvoiceId}`)}
                       className="h-12 rounded-xl items-center justify-center flex-row gap-2"
                       style={{ backgroundColor: '#d97706' }}
                     >
                       <ArrowRight size={16} color="#ffffff" />
-                      <Text className="text-white font-extrabold">Continue Payment</Text>
+                      <Text className="text-white font-extrabold">{cta.label}</Text>
                     </Pressable>
                   ) : (
                     <Pressable
@@ -439,7 +484,7 @@ export default function PlansScreen() {
                         elevation: 4,
                       }}
                     >
-                      <Text className="text-white font-extrabold">Subscribe Now</Text>
+                      <Text className="text-white font-extrabold">{cta.label}</Text>
                       <ArrowRight size={16} color="#ffffff" />
                     </Pressable>
                   )}

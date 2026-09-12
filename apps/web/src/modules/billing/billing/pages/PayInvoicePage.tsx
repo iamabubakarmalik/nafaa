@@ -110,8 +110,10 @@ export default function PayInvoicePage() {
       setUploadId(result.id);
       setUploadUrl(result.url);
       toast.success('Receipt upload ho gayi!');
-    } catch {
-      toast.error('Upload fail — try again');
+    } catch (e: any) {
+      toast.error('Receipt upload nahi ho saki', {
+        description: e?.message || 'Dobara koshish karein.',
+      });
       setFile(null);
       setFilePreview(null);
     } finally {
@@ -255,6 +257,14 @@ export default function PayInvoicePage() {
 
   const isPaid = invoice.status === 'PAID';
   const isCancelled = invoice.status === 'CANCELLED';
+
+  // The API only accepts one receipt per invoice at a time. Reflect that here
+  // instead of letting the user fill the whole form and hit a 400 at the end.
+  const pendingPayment = invoice.payments?.find((p) => p.status === 'PENDING') ?? null;
+  const lastRejected = !pendingPayment
+    ? (invoice.payments?.find((p) => p.status === 'REJECTED') ?? null)
+    : null;
+  const canSubmit = !isPaid && !isCancelled && !pendingPayment;
   const daysUntilDue = getDaysUntilDue(invoice.dueDate);
   const isOverdue = daysUntilDue < 0;
 
@@ -365,7 +375,7 @@ export default function PayInvoicePage() {
         </div>
 
         {/* Progress stepper */}
-        {!isPaid && !isCancelled && (
+        {canSubmit && (
           <div className="relative mt-5 grid grid-cols-3 gap-2">
             {[
               { n: 1, label: 'Method', done: steps.s1, icon: Wallet },
@@ -422,7 +432,63 @@ export default function PayInvoicePage() {
         </div>
       )}
 
-      {!isPaid && !isCancelled && (
+      {/* Receipt already submitted — waiting on the admin */}
+      {pendingPayment && (
+        <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10 border-2 border-amber-300 dark:border-amber-500/40 p-8 text-center shadow-lg">
+          <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center mx-auto shadow-2xl shadow-amber-500/40">
+            <Clock className="h-10 w-10" />
+          </div>
+          <h3 className="mt-5 text-2xl font-extrabold text-amber-900 dark:text-amber-200">
+            Payment Review Mein Hai ⏳
+          </h3>
+          <p className="mt-2 text-amber-800 dark:text-amber-300 font-semibold max-w-md mx-auto leading-relaxed">
+            Aap ne {formatPKR(pendingPayment.amount)} ki receipt{' '}
+            {formatDate(pendingPayment.createdAt)} ko submit ki thi. Admin 24 hours mein
+            approve karega — approve hote hi plan turant activate ho jayega.
+          </p>
+          {pendingPayment.transactionId && (
+            <p className="mt-2 text-xs font-mono font-extrabold text-amber-700 dark:text-amber-400">
+              Ref: {pendingPayment.transactionId}
+            </p>
+          )}
+          <div className="mt-5 flex items-center justify-center gap-2 flex-wrap">
+            {pendingPayment.upload?.url && (
+              <a
+                href={pendingPayment.upload.url}
+                target="_blank"
+                rel="noreferrer"
+                className="h-11 px-4 rounded-xl bg-white dark:bg-slate-900 border-2 border-amber-300 dark:border-amber-500/40 text-amber-800 dark:text-amber-300 text-sm font-extrabold inline-flex items-center gap-1.5 shadow-sm transition hover:bg-amber-100 dark:hover:bg-amber-500/20"
+              >
+                <ImageIcon className="h-4 w-4" /> Receipt Dekhein
+              </a>
+            )}
+            <Link to="/billing">
+              <Button variant="secondary">
+                Back to Billing
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Previous attempt was rejected — say why, then let them retry */}
+      {lastRejected && (
+        <div className="rounded-2xl sm:rounded-3xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-300 dark:border-rose-500/40 p-5 flex items-start gap-3">
+          <AlertTriangle className="h-5 w-5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+          <div className="min-w-0">
+            <div className="font-extrabold text-rose-900 dark:text-rose-200 text-sm">
+              Pichli Payment Reject Ho Gayi Thi
+            </div>
+            <p className="text-xs text-rose-800 dark:text-rose-300 mt-1 font-semibold leading-relaxed">
+              Reason: {lastRejected.rejectionReason || 'Details verify nahi ho sake.'}
+              {' '}Sahi receipt dobara upload karein — invoice abhi bhi open hai.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {canSubmit && (
         <>
           {/* ═══ STRIPE INSTANT PAY ═══ */}
           {stripeConfig?.enabled && (
