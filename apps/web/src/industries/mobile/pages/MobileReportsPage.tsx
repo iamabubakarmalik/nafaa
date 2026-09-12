@@ -16,7 +16,7 @@ import {
 import { toast } from 'sonner';
 import { Button } from '@core/ui/Button';
 import { formatPKR } from '@core/lib/format';
-import { useAuthStore } from '@core/stores/auth.store';
+import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { useReportsData } from '@modules/reports/reports/hooks/useReportsData';
 import {
   ReportsHero, TabSwitcher, KpiCard, ChartCard, EmptyChart,
@@ -80,7 +80,7 @@ export default function MobileReportsPage() {
 
   const tenantName = useAuthStore((s: any) => s.tenant?.name);
   const shopName = useAuthStore((s: any) => s.user?.assignedShop?.name);
-  const currentShopId = useAuthStore((s) => s.currentShopId);
+  const currentShopId = useShopParam();
 
   const reports = useReportsData(days);
 

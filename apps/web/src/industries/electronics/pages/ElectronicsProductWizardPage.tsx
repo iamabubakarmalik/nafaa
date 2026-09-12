@@ -18,13 +18,13 @@ import { ElectronicsWizardSummary } from '../components/wizard/ElectronicsWizard
 import { saveElectronicsWizard, type ElectronicsWizardSaveResult } from '../api/electronics-wizard.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { electronicsProductsApi } from '../api/products.api';
-import { useAuthStore } from '@core/stores/auth.store';
+import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 
 export default function ElectronicsProductWizardPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { id } = useParams();
-  const currentShopId = useAuthStore((st) => st.currentShopId);
+  const currentShopId = useShopParam();
   const isEdit = Boolean(id);
 
   const [showTeacher, setShowTeacher] = useState(false);

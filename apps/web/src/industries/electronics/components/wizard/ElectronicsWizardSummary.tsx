@@ -1,8 +1,10 @@
+import { useQuery } from '@tanstack/react-query';
 import {
   Cpu, Boxes, Barcode, TrendingUp, DollarSign, Shield,
-  AlertTriangle, CheckCircle2, Sparkles, Award,
+  AlertTriangle, CheckCircle2, Sparkles, Award, Tag,
 } from 'lucide-react';
 import { formatPKRFull } from '@core/lib/format';
+import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
 import type { ElectronicsWizardDraft } from '../../hooks/useElectronicsWizard';
 
 interface Props {
@@ -22,6 +24,10 @@ interface Props {
 export function ElectronicsWizardSummary({ draft, stats, allValid }: Props) {
   const hasName = !!draft.basic.name.trim();
   const hasPrice = Number(draft.basic.retailPrice || 0) > 0;
+
+  /* Category ka asli naam — pehle yahan andar wala enum dikhta tha */
+  const { data: cats = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list });
+  const categoryName = (cats as any[]).find((c) => c.id === draft.basic.categoryId)?.name ?? '';
 
   return (
     <aside className="flex flex-col gap-3 xl:sticky xl:top-4 xl:self-start">
@@ -51,10 +57,10 @@ export function ElectronicsWizardSummary({ draft, stats, allValid }: Props) {
               <div className="text-xs font-bold text-white/70">retail price</div>
             </div>
           )}
-          {draft.basic.categoryType && (
+          {categoryName && (
             <div className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-white/15 backdrop-blur px-2 py-1 text-[10px] font-extrabold uppercase tracking-wider">
-              <Cpu className="h-3 w-3" />
-              {draft.basic.categoryType.replace(/_/g, ' ')}
+              <Tag className="h-3 w-3" />
+              {categoryName}
             </div>
           )}
           {draft.basic.conditionType && draft.basic.conditionType !== 'BRAND_NEW' && (
@@ -142,7 +148,6 @@ export function ElectronicsWizardSummary({ draft, stats, allValid }: Props) {
         </div>
         <Chk done={hasName} label="Product name" />
         <Chk done={hasPrice} label="Retail price" />
-        <Chk done={!!draft.basic.categoryType} label="Category type" />
         <Chk done={!!draft.basic.electronicsBrandId} label="Brand" />
         <Chk done={stats.totalStock > 0} label="Stock added" />
       </div>

@@ -10,7 +10,7 @@ import {
 import { toast } from 'sonner';
 import { formatPKR } from '@core/lib/format';
 import { Button } from '@core/ui/Button';
-import { useAuthStore } from '@core/stores/auth.store';
+import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { useCatalogCart } from '@modules/catalog/hooks/useCatalogCart';
 import { useWishlist } from '@modules/catalog/hooks/useWishlist';
 import { CatalogCartDrawer } from '@modules/catalog/components/CatalogCartDrawer';
@@ -40,7 +40,7 @@ const PRICE_RANGES = [
 type Sort = 'featured' | 'cheap' | 'costly' | 'new';
 
 export default function ElectronicsCatalogPage() {
-  const currentShopId = useAuthStore((s) => s.currentShopId);
+  const currentShopId = useShopParam();
   const shopName = useAuthStore((s: any) => s.user?.assignedShop?.name);
   const tenantName = useAuthStore((s: any) => s.tenant?.name);
   const tenantPhone = useAuthStore((s: any) => s.tenant?.phone);

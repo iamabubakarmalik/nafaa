@@ -10,7 +10,7 @@ import {
 import { toast } from 'sonner';
 import { Button } from '@core/ui/Button';
 import { formatPKR } from '@core/lib/format';
-import { useAuthStore } from '@core/stores/auth.store';
+import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { useCostHidden, PrivacyToggle } from '@core/ui/HiddenValue';
 import { PrintStyles } from '@core/components/print/PrintStyles';
 import {
@@ -51,7 +51,7 @@ const REASONS = [
 export default function ElectronicsStockAdjustmentsPage() {
   const qc = useQueryClient();
   const hideCost = useCostHidden();
-  const currentShopId = useAuthStore((s) => s.currentShopId);
+  const currentShopId = useShopParam();
   const tenantName = useAuthStore((s: any) => s.tenant?.name);
 
   const [tab, setTab] = useState<Tab>('log');
@@ -185,7 +185,7 @@ export default function ElectronicsStockAdjustmentsPage() {
       <PrintStyles orientation="landscape" title="Electronics Stock Durusti" subtitle="Ginti aur serial units ka record" />
       {showTeacher && <AdjustTeacher onClose={() => setShowTeacher(false)} />}
       {showShortcuts && <ShortcutsModal onClose={() => setShowShortcuts(false)} />}
-      {showNew && <NewAdjustmentModal onClose={() => setShowNew(false)} shopId={currentShopId} />}
+      {showNew && <NewAdjustmentModal onClose={() => setShowNew(false)} shopId={currentShopId ?? null} />}
       {serialAction && (
         <SerialActionModal
           serial={serialAction.serial}

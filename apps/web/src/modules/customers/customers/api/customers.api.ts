@@ -24,6 +24,12 @@ export interface Customer {
   isVip: boolean;
   createdAt: string;
   updatedAt: string;
+  /** Jis branch ne is customer ko register kiya */
+  shopId?: string | null;
+  /** Ek shop select ho to is branch ka baqi udhaar */
+  shopBalance?: number;
+  /** Sab branches milakar kul baqi */
+  totalBalance?: number;
 }
 
 export interface CustomerSale {
@@ -111,6 +117,12 @@ export interface UpsertCustomerPayload {
 }
 
 export interface CustomersListParams {
+  /**
+   * `branch` (default) — is branch ke customers.
+   * `all` — tenant ke saare customers.
+   * Search hamesha sab mein hoti hai, chahe scope kuch bhi ho.
+   */
+  scope?: 'branch' | 'all';
   search?: string;
   city?: string;
   hasCredit?: boolean;

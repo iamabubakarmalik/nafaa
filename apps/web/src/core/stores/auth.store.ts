@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { isAllShops, shopParam } from '@core/lib/shopScope';
 
 export interface AuthUser {
   id: string;
@@ -59,11 +60,11 @@ interface AuthState {
  * - Owner/SuperAdmin: use currently-persisted currentShopId, otherwise assignedShop.id (main)
  */
 function resolveShopId(user: AuthUser, previousShopId: string | null): string | null {
-  // Non-owners locked to assigned shop
+  // Non-owners locked to assigned shop — 'All Shops' is never theirs to pick
   if (user.role !== 'OWNER' && user.role !== 'SUPER_ADMIN') {
     return user.shopId ?? user.assignedShop?.id ?? null;
   }
-  // Owner — keep previous choice if still available, else fallback to assigned (main)
+  // Owner — keep previous choice (including the ALL_SHOPS sentinel), else main
   if (previousShopId) return previousShopId;
   return user.shopId ?? user.assignedShop?.id ?? null;
 }
@@ -118,7 +119,7 @@ export const useAuthStore = create<AuthState>()(
         }),
       setCurrentShop: (shopId) => {
         const state = get();
-        // Non-owner cannot switch away from assigned shop
+        // Non-owner cannot switch away from assigned shop (nor pick All Shops)
         if (
           state.user &&
           state.user.role !== 'OWNER' &&
@@ -128,7 +129,29 @@ export const useAuthStore = create<AuthState>()(
         ) {
           return; // silently ignore
         }
+        const previous = state.currentShopId;
+        if (shopId === previous) return;
+
         set({ currentShopId: shopId });
+
+        // Only a real *switch* needs the cache thrown away. Picking the first
+        // branch on load (null → shop) has nothing stale to clear, and doing it
+        // there would wipe the very queries that are still loading.
+        if (!previous) return;
+
+        // Every server response now belongs to a different branch. Almost no
+        // query key carries the shop id, so the cache has to go — otherwise
+        // the new branch renders the old branch's sales, stock and khata.
+        import('@core/lib/queryClient')
+          .then(({ resetServerCache }) => resetServerCache())
+          .catch(() => {});
+
+        // Offline mirror is per-branch too — pull the new branch's data down.
+        if (typeof window !== 'undefined' && navigator.onLine) {
+          import('@core/lib/offline/syncEngine')
+            .then(({ downloadAllData }) => downloadAllData(true).catch(() => {}))
+            .catch(() => {});
+        }
       },
       logout: async () => {
         try {
@@ -160,10 +183,23 @@ export const useAuthStore = create<AuthState>()(
 
 /**
  * Helper hook — returns the effective active shopId
- * (respects role-based locking)
+ * (respects role-based locking). Can be the ALL_SHOPS sentinel for owners.
  */
 export function useActiveShopId(): string | null {
   return useAuthStore((s) => s.currentShopId);
+}
+
+/**
+ * The active shopId for use as a query param / body field — `undefined` when
+ * the owner is viewing All Shops or hasn't picked a branch yet.
+ */
+export function useShopParam(): string | undefined {
+  return useAuthStore((s) => shopParam(s.currentShopId));
+}
+
+/** True when the owner is on the consolidated cross-branch view. */
+export function useIsAllShops(): boolean {
+  return useAuthStore((s) => isAllShops(s.currentShopId));
 }
 
 /**

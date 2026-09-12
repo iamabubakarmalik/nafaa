@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Baby, DollarSign, Image as ImageIcon, Sparkles, Star, TrendingUp,
@@ -13,6 +13,7 @@ import { categoriesApi } from '@modules/inventory/categories/api/categories.api'
 import { tagsApi } from '@modules/inventory/tags/api/tags.api';
 import { formatPKRFull } from '@core/lib/format';
 import type { ToyWizardBasic } from '../../hooks/useToyWizard';
+import { CategoryPicker, makeCategoryTypeResolver } from '@modules/inventory/categories/components/CategoryPicker';
 
 interface Props {
   basic: ToyWizardBasic;
@@ -145,7 +146,47 @@ const POPULAR_FRANCHISES = [
   'PAW Patrol', 'Frozen', 'Spider-Man', 'Pokemon', 'Minecraft', 'Star Wars',
 ];
 
+
+/* Category ke NAAM se andar wala `categoryType` — pehle ye alag
+   se poochha jata tha jo confusing tha (aur kuch values DB me
+   thin hi nahi). Match na ho to fallback. */
+const resolveCategoryType = makeCategoryTypeResolver<string>([
+  [/puzzle|jigsaw/i, "PUZZLE"],
+  [/board\s?game|ludo/i, "BOARD_GAME"],
+  [/card\s?game/i, "CARD_GAME"],
+  [/lego|block/i, "BUILDING_BLOCKS"],
+  [/doll|barbie|guriya/i, "DOLL"],
+  [/stuff|plush|teddy/i, "STUFFED_ANIMAL"],
+  [/rc\s?car|remote.*car/i, "RC_CAR"],
+  [/rc\s?(heli|drone)|drone/i, "RC_DRONE"],
+  [/action\s?figure/i, "ACTION_FIGURE"],
+  [/art|craft|paint|draw/i, "ART_CRAFT"],
+  [/clay|dough/i, "CLAY_DOUGH"],
+  [/music/i, "MUSICAL_TOY"],
+  [/outdoor|garden/i, "OUTDOOR_TOY"],
+  [/ride|tricycle|scooter|bike|cycle/i, "RIDE_ON"],
+  [/ball/i, "BALL"],
+  [/baby|infant|rattle|teether/i, "BABY_TOY"],
+  [/bath/i, "BATH_TOY"],
+  [/kitchen|playset|pretend/i, "PRETEND_PLAY"],
+  [/dress|costume/i, "DRESS_UP"],
+  [/science|stem|robot/i, "SCIENCE_KIT"],
+  [/book|flash\s?card/i, "BOOK_KIDS"],
+  [/birthday|party/i, "BIRTHDAY_PARTY"],
+  [/gift/i, "GIFT_PACK"],
+  [/edu|learn/i, "EDUCATIONAL"],
+], 'OTHER');
+
 export function ToyWizardStep1Basic({ basic, onChange, errors }: Props) {
+  const { data: catsForType = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list });
+  /* Category chunte hi andar wala type set ho jata hai */
+  useEffect(() => {
+    const name = (catsForType as any[]).find((c) => c.id === basic.categoryId)?.name;
+    const derived = resolveCategoryType(name);
+    if (derived !== basic.categoryType) onChange({ categoryType: derived } as any);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [basic.categoryId, catsForType]);
+
   const [scan, setScan] = useState(false);
   const [adv, setAdv] = useState(Boolean(basic.mrp || basic.taxRate || basic.discountedPrice));
 
@@ -306,28 +347,14 @@ export function ToyWizardStep1Basic({ basic, onChange, errors }: Props) {
 
       {/* 4 — CATEGORY */}
       <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-3">
-        <Head icon={Tag} n="4" t="Category Type" d="Toy type" />
-        <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
-          {CATEGORY_GROUPS.map((grp) => (
-            <div key={grp.group}>
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500 mb-1.5">{grp.group}</div>
-              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
-                {grp.items.map((c) => {
-                  const a = basic.categoryType === c.v;
-                  return (
-                    <button key={c.v} type="button" onClick={() => onChange({ categoryType: c.v })}
-                      className={['p-2.5 rounded-xl border-2 transition flex flex-col items-center justify-center gap-0.5 min-h-[68px]',
-                        a ? 'border-pink-600 bg-pink-600 text-white shadow-md scale-[1.03]'
-                          : 'border-slate-200 bg-white text-slate-700 hover:border-pink-400'].join(' ')}>
-                      <span className="text-xl leading-none">{c.e}</span>
-                      <span className="text-[10px] font-extrabold text-center leading-tight">{c.l}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
+        <Head icon={Tag} n="4" t="Category" d="Aap ki apni category" />
+
+        <CategoryPicker
+          value={basic.categoryId}
+          onChange={(categoryId) => onChange({ categoryId })}
+          tone="pink"
+          examples="jaise Puzzles, Dolls, RC Cars"
+        />
       </section>
 
       {/* 5 — BRAND & FRANCHISE */}
@@ -451,14 +478,6 @@ export function ToyWizardStep1Basic({ basic, onChange, errors }: Props) {
       {/* 7 — CATEGORY / DESCRIPTION */}
       <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-4">
         <Head icon={Tag} n="7" t="Category & Description" d="Optional but helps search" />
-        <div>
-          <Lbl>Shop Category</Lbl>
-          <select value={basic.categoryId} onChange={(e) => onChange({ categoryId: e.target.value })}
-            className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-pink-500">
-            <option value="">None</option>
-            {(cats as any[]).map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
-          </select>
-        </div>
         <div>
           <Lbl>Description <Opt /></Lbl>
           <textarea rows={2} value={basic.description} onChange={(e) => onChange({ description: e.target.value })}

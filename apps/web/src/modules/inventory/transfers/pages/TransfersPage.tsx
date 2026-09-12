@@ -7,7 +7,7 @@ import { Button } from '@core/ui/Button';
 import { shopsApi } from '@modules/organization/shops/api/shops.api';
 import { productsApi, type Product } from '@modules/inventory/products/api/products.api';
 import { transfersApi, type StockTransfer, type TransferStatus } from '@modules/inventory/transfers/api/transfers.api';
-import { useAuthStore } from '@core/stores/auth.store';
+import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { formatPKR } from '@core/lib/format';
 import { toast } from 'sonner';
 import { useIndustryStockPresets } from '@industries/_shared/presets';
@@ -30,7 +30,7 @@ const statusConfig: Record<TransferStatus, { label: string; tone: string; icon: 
 
 export default function TransfersPage() {
   const queryClient = useQueryClient();
-  const currentShopId = useAuthStore((s) => s.currentShopId);
+  const currentShopId = useShopParam();
   const industryStock = useIndustryStockPresets();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<TransferStatus | 'all'>('all');

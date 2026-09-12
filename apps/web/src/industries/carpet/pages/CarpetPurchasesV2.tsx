@@ -15,7 +15,7 @@ import { Input } from '@core/ui/Input';
 import { formatPKR } from '@core/lib/format';
 import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { toast } from 'sonner';
-import { useAuthStore } from '@core/stores/auth.store';
+import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { usePurchasesData } from '@modules/purchasing/purchases/hooks/usePurchasesData';
 import {
   PurchasesHero, TabSwitcher, PurchaseStatCard, ComparisonCard,
@@ -45,7 +45,7 @@ const TABS = [
 ];
 
 export default function CarpetPurchasesV2() {
-  const currentShopId = useAuthStore((s) => s.currentShopId);
+  const currentShopId = useShopParam();
   const {
     purchases, summary, suppliers, products,
     isRefetching, refetch, createMutation,

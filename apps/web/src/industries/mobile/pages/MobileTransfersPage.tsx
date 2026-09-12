@@ -10,7 +10,7 @@ import {
 import { toast } from 'sonner';
 import { Button } from '@core/ui/Button';
 import { formatPKR } from '@core/lib/format';
-import { useAuthStore } from '@core/stores/auth.store';
+import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { shopsApi } from '@modules/organization/shops/api/shops.api';
 import {
@@ -69,7 +69,7 @@ const formatDate = (iso: string) =>
 
 export default function MobileTransfersPage() {
   const queryClient = useQueryClient();
-  const currentShopId = useAuthStore((s) => s.currentShopId);
+  const currentShopId = useShopParam();
   const shopName = useAuthStore((s: any) => s.user?.assignedShop?.name);
   const tenantName = useAuthStore((s: any) => s.tenant?.name);
 

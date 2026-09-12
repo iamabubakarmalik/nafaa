@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatPKR } from '@core/lib/format';
-import { useAuthStore } from '@core/stores/auth.store';
+import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { mobileReportsApi } from '../api/mobile-reports.api';
 import { PrintStyles } from '@core/components/print/PrintStyles';
 
@@ -26,7 +26,7 @@ import { PrintStyles } from '@core/components/print/PrintStyles';
 type Tab = 'all' | 'phones' | 'accessories';
 
 export default function MobileLowStockPage() {
-  const currentShopId = useAuthStore((s) => s.currentShopId);
+  const currentShopId = useShopParam();
   const shopName = useAuthStore((s: any) => s.user?.assignedShop?.name);
   const tenantName = useAuthStore((s: any) => s.tenant?.name);
 

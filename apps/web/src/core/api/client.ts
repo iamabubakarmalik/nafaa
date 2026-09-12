@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { useAuthStore } from '@core/stores/auth.store';
+import { SHOP_HEADER } from '@core/lib/shopScope';
 
 export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000/api',
@@ -7,9 +8,17 @@ export const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().accessToken;
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  const { accessToken, currentShopId } = useAuthStore.getState();
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
+  }
+
+  // ─── Active branch ───────────────────────────────────────────
+  // Every tenant-scoped endpoint narrows by this. `all` asks for the owner's
+  // consolidated view; omitting it entirely means the same thing, so requests
+  // made before a shop is picked still behave like the old single-shop app.
+  if (currentShopId) {
+    config.headers[SHOP_HEADER] = currentShopId;
   }
   return config;
 });

@@ -11,7 +11,7 @@ import {
 import { toast } from 'sonner';
 import { Button } from '@core/ui/Button';
 import { formatPKR } from '@core/lib/format';
-import { useAuthStore } from '@core/stores/auth.store';
+import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { PrintStyles } from '@core/components/print/PrintStyles';
 import { electronicsAnalyticsApi, type LowStockRow } from '../api/analytics.api';
 import { CATEGORY_META, CONDITION_META, type CategoryType, type ConditionType } from '../constants';
@@ -29,7 +29,7 @@ import { CATEGORY_META, CONDITION_META, type CategoryType, type ConditionType } 
 type Tab = 'all' | 'serial' | 'normal';
 
 export default function ElectronicsLowStockPage() {
-  const currentShopId = useAuthStore((s) => s.currentShopId);
+  const currentShopId = useShopParam();
   const shopName = useAuthStore((s: any) => s.user?.assignedShop?.name);
   const tenantName = useAuthStore((s: any) => s.tenant?.name);
 

@@ -1,20 +1,75 @@
 import { memo, useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard, Package, Sparkles, Users, ShoppingCart, Receipt, PackagePlus, Tag, Wallet, Activity, BarChart3, Settings as SettingsIcon,
-  ScanLine, BookOpen, ClipboardCheck, AlertTriangle,Cloud,
-  ArrowRightLeft, Download, Database, RotateCcw, Award, Percent, TrendingUp, Gift, Gauge, Hash, UserCircle, LifeBuoy, ScrollText, Eye,
-  UserCog, CheckCircle2, Wallet2,
-  BookmarkPlus, ChevronDown, ChevronRight, ShieldCheck, CreditCard, Bell, Building2, Truck,
-  Search, X, Star, StarOff, PanelLeftClose, Settings,
-  Store, Megaphone, MessageCircle, Brain, Bike, Globe, Trophy, Navigation, Zap,FileText, Shield,
-  Command, Clock,
+  Activity,
+  AlertTriangle,
+  ArrowRightLeft,
+  Award,
+  BarChart3,
+  Bell,
+  Bike,
+  BookOpen,
+  BookmarkPlus,
+  Brain,
+  Building2,
+  CheckCircle2,
+  ChevronDown,
+  ChevronRight,
+  ClipboardCheck,
+  Clock,
+  Cloud,
+  Command,
+  CreditCard,
+  Database,
+  Download,
+  Eye,
+  FileText,
+  Gauge,
+  Gift,
+  Globe,
+  Hash,
+  Layers,
+  LayoutDashboard,
+  LifeBuoy,
+  Megaphone,
+  MessageCircle,
+  Navigation,
+  Package,
+  PackagePlus,
+  PanelLeftClose,
+  Percent,
+  Receipt,
+  RotateCcw,
+  ScanLine,
+  ScrollText,
+  Search,
+  Settings,
+  Settings as SettingsIcon,
+  Shield,
+  ShieldCheck,
+  ShoppingCart,
+  Sparkles,
+  Star,
+  StarOff,
+  Store,
+  Tag,
+  TrendingUp,
+  Trophy,
+  Truck,
+  UserCircle,
+  UserCog,
+  Users,
+  Wallet,
+  Wallet2,
+  X,
+  Zap,
 } from 'lucide-react';
 import { Logo } from '@core/components/brand/Logo';
 import { hasPermission, isOwner, isOwnerOnlyPath, PERMISSIONS, type PermissionKey } from '@core/lib/permissions';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import type { IndustryNavGroup, IndustryNavItem } from '@industries/_shared/types/industry-pack';
 import { useWorkspaceStore, WORKSPACES } from '@core/stores/workspace.store';
+import { useIsAllShops } from '@core/stores/auth.store';
 
 const SIDEBAR_SCROLL_KEY = 'nafaa-sidebar-scroll';
 const SIDEBAR_GROUPS_KEY = 'nafaa-sidebar-groups-v7';
@@ -29,6 +84,11 @@ type NavItem = {
   permission?: PermissionKey;
   badge?: string;
   hot?: boolean;
+  /**
+   * Screen can only act on one counter — POS, the till, stock corrections.
+   * Hidden while the owner is on the consolidated "All Shops" view.
+   */
+  needsShop?: boolean;
 };
 
 type NavGroup = {
@@ -59,7 +119,7 @@ const posNavGroups: NavGroup[] = [
     label: 'Sales & Orders', icon: ShoppingCart, emoji: '🛒', color: '#059669',
     defaultOpen: true, order: 5,
     items: [
-      { to: '/pos', label: 'POS Counter', icon: ShoppingCart, permission: PERMISSIONS.POS_USE, hot: true },
+      { to: '/pos', label: 'POS Counter', icon: ShoppingCart, permission: PERMISSIONS.POS_USE, hot: true, needsShop: true },
       { to: '/sales', label: 'Sales History', icon: Receipt, permission: PERMISSIONS.SALES_VIEW },
       { to: '/bookings', label: 'Bookings', icon: BookmarkPlus, permission: PERMISSIONS.SALES_VIEW },
       { to: '/returns', label: 'Returns', icon: RotateCcw, permission: PERMISSIONS.RETURNS_VIEW },
@@ -67,7 +127,7 @@ const posNavGroups: NavGroup[] = [
       { to: '/khata', label: 'Khata (Udhaar)', icon: BookOpen, permission: PERMISSIONS.KHATA_VIEW },
       { to: '/loyalty', label: 'Loyalty', icon: Award, permission: PERMISSIONS.LOYALTY_VIEW },
       { to: '/discounts', label: 'Discounts', icon: Percent, permission: PERMISSIONS.DISCOUNTS_VIEW },
-      { to: '/cash-register', label: 'Cash Register', icon: Wallet, permission: PERMISSIONS.CASH_REGISTER_VIEW },
+      { to: '/cash-register', label: 'Cash Register', icon: Wallet, permission: PERMISSIONS.CASH_REGISTER_VIEW, needsShop: true },
     ],
   },
   {
@@ -83,7 +143,7 @@ const posNavGroups: NavGroup[] = [
       { to: '/suppliers', label: 'Suppliers', icon: Truck, permission: PERMISSIONS.SUPPLIERS_VIEW },
       { to: '/purchases', label: 'Purchases', icon: PackagePlus, permission: PERMISSIONS.PURCHASES_VIEW },
       { to: '/stock-movements', label: 'Movements', icon: Activity, permission: PERMISSIONS.STOCK_MOVEMENTS_VIEW },
-      { to: '/stock-adjustments', label: 'Adjustments', icon: ClipboardCheck, permission: PERMISSIONS.STOCK_ADJUSTMENTS_MANAGE },
+      { to: '/stock-adjustments', label: 'Adjustments', icon: ClipboardCheck, permission: PERMISSIONS.STOCK_ADJUSTMENTS_MANAGE, needsShop: true },
       { to: '/transfers', label: 'Transfers', icon: ArrowRightLeft, permission: PERMISSIONS.STOCK_TRANSFERS_MANAGE },
       { to: '/barcode-labels', label: 'Barcode Labels', icon: ScanLine, permission: PERMISSIONS.BARCODE_LABELS_VIEW },
     ],
@@ -117,8 +177,7 @@ const posNavGroups: NavGroup[] = [
       { to: '/fbr/invoices', label: 'FBR Invoices', icon: FileText },
       { to: '/fbr/reports', label: 'Monthly Reports', icon: TrendingUp },
       { to: '/fbr/analytics', label: 'Analytics', icon: BarChart3 },
-      { to: '/shops', label: 'Shops / Branches', icon: Building2, permission: PERMISSIONS.SHOPS_VIEW },
-      { to: '/shops/overview', label: 'Shops / Branches', icon: Building2, permission: PERMISSIONS.SHOPS_VIEW },
+      { to: '/shops', label: 'Branches', icon: Building2, permission: PERMISSIONS.SHOPS_VIEW },
       { to: '/exports', label: 'Exports', icon: Download, permission: PERMISSIONS.EXPORTS_VIEW },
       { to: '/backup', label: 'Backup', icon: Database, permission: PERMISSIONS.BACKUP_MANAGE },
       { to: '/activity-log', label: 'Activity Log', icon: Activity, permission: PERMISSIONS.ACTIVITY_VIEW },
@@ -126,6 +185,68 @@ const posNavGroups: NavGroup[] = [
       { to: '/profile', label: 'My Profile', icon: UserCircle },
       { to: '/help', label: 'Help', icon: LifeBuoy },
       { to: '/legal', label: 'Terms & Privacy', icon: ScrollText },
+    ],
+  },
+];
+
+// ═══════════════════════════════════════════════════════════════
+// ALL SHOPS WORKSPACE
+// ═══════════════════════════════════════════════════════════════
+// The owner looking at every branch at once is asking different questions from
+// the person behind a counter: not "ring this up" but "which branch is doing
+// well, who is sitting on udhaar, where is stock running out". So this is a
+// deliberately short, owner-level menu rather than the full operational one —
+// the counter screens (POS, till, stock corrections) need a single branch and
+// are simply absent here.
+const allShopsNavGroups: NavGroup[] = [
+  {
+    label: 'All Shops', icon: Layers, emoji: '🏬', color: '#7c3aed', order: 10,
+    defaultOpen: true,
+    items: [
+      { to: '/dashboard', label: 'Overview', icon: LayoutDashboard },
+      { to: '/shops/overview', label: 'Branch Analytics', icon: BarChart3, permission: PERMISSIONS.SHOPS_VIEW },
+    ],
+  },
+  {
+    label: 'Reports', icon: BarChart3, emoji: '📊', color: '#10b981', order: 20,
+    defaultOpen: true,
+    items: [
+      { to: '/reports', label: 'All Reports', icon: BarChart3, permission: PERMISSIONS.REPORTS_VIEW },
+      { to: '/profit-report', label: 'Profit by Product', icon: TrendingUp, permission: PERMISSIONS.PROFIT_REPORT_VIEW },
+      { to: '/stock-report', label: 'Stock Report', icon: Package, permission: PERMISSIONS.REPORTS_VIEW },
+      { to: '/sales', label: 'Sales History', icon: Receipt, permission: PERMISSIONS.SALES_VIEW },
+      { to: '/returns', label: 'Returns', icon: RotateCcw, permission: PERMISSIONS.RETURNS_VIEW },
+      { to: '/stock-movements', label: 'Stock Movements', icon: Activity, permission: PERMISSIONS.STOCK_MOVEMENTS_VIEW },
+    ],
+  },
+  {
+    label: 'Paisa', icon: Wallet, emoji: '💰', color: '#f59e0b', order: 30,
+    defaultOpen: true,
+    items: [
+      { to: '/khata', label: 'Khata (Udhaar)', icon: BookOpen, permission: PERMISSIONS.KHATA_VIEW },
+      { to: '/customers', label: 'Customers', icon: Users, permission: PERMISSIONS.CUSTOMERS_VIEW },
+      { to: '/expenses', label: 'Expenses', icon: Wallet, permission: PERMISSIONS.EXPENSES_VIEW },
+    ],
+  },
+  {
+    label: 'Stock & Supply', icon: Package, emoji: '📦', color: '#0891b2', order: 40,
+    items: [
+      { to: '/products', label: 'Products', icon: Package, permission: PERMISSIONS.PRODUCTS_VIEW },
+      { to: '/low-stock', label: 'Low Stock', icon: AlertTriangle, permission: PERMISSIONS.LOW_STOCK_VIEW },
+      { to: '/transfers', label: 'Transfers', icon: ArrowRightLeft, permission: PERMISSIONS.STOCK_TRANSFERS_MANAGE },
+      { to: '/purchases', label: 'Purchases', icon: PackagePlus, permission: PERMISSIONS.PURCHASES_VIEW },
+      { to: '/suppliers', label: 'Suppliers', icon: Truck, permission: PERMISSIONS.SUPPLIERS_VIEW },
+    ],
+  },
+  {
+    label: 'Team & Setup', icon: UserCog, emoji: '⚙️', color: '#64748b', order: 50,
+    items: [
+      { to: '/staff', label: 'All Staff', icon: UserCog, permission: PERMISSIONS.STAFF_VIEW },
+      { to: '/team', label: 'App Users', icon: ShieldCheck, permission: PERMISSIONS.TEAM_VIEW },
+      { to: '/billing', label: 'Billing', icon: CreditCard, permission: PERMISSIONS.BILLING_VIEW },
+      { to: '/plan-usage', label: 'Plan Usage', icon: Gauge, permission: PERMISSIONS.PLAN_USAGE_VIEW },
+      { to: '/activity-log', label: 'Activity Log', icon: Activity, permission: PERMISSIONS.ACTIVITY_VIEW },
+      { to: '/settings', label: 'Settings', icon: SettingsIcon, permission: PERMISSIONS.SETTINGS_VIEW },
     ],
   },
 ];
@@ -272,6 +393,7 @@ export const Sidebar = memo(function Sidebar({
   const { activeWorkspace } = useWorkspaceStore();
   const workspace = WORKSPACES[activeWorkspace];
   const isMarketplace = activeWorkspace === 'marketplace';
+  const isAllShops = useIsAllShops();
 
   // Track recent visits
   useEffect(() => {
@@ -301,11 +423,17 @@ export const Sidebar = memo(function Sidebar({
     if (isMarketplace) {
       return [...marketplaceNavGroups].sort((a, b) => (a.order ?? 100) - (b.order ?? 100));
     }
+    // Consolidated view gets its own short, owner-level menu. Industry packs
+    // are left out on purpose — their screens are counter workflows that
+    // belong to one branch.
+    if (isAllShops) {
+      return [...allShopsNavGroups].sort((a, b) => (a.order ?? 100) - (b.order ?? 100));
+    }
     const industryGroups = industry?.navGroups?.map(fromIndustryGroup) ?? [];
     return [...posNavGroups, ...industryGroups].sort(
       (a, b) => (a.order ?? 100) - (b.order ?? 100),
     );
-  }, [industry, isMarketplace]);
+  }, [industry, isMarketplace, isAllShops]);
 
   const allItemsByPath = useMemo(() => {
     const map = new Map<string, NavItem>();
@@ -319,6 +447,8 @@ export const Sidebar = memo(function Sidebar({
       .map((group) => ({
         ...group,
         items: group.items.filter((item) => {
+          // A counter screen has no meaning across every branch at once
+          if (isAllShops && item.needsShop) return false;
           // Non-owners can never see Owner-only paths
           if (!userIsOwner && isOwnerOnlyPath(item.to)) return false;
           // Standard permission check
@@ -326,7 +456,7 @@ export const Sidebar = memo(function Sidebar({
         }),
       }))
       .filter((group) => group.items.length > 0);
-  }, [allGroups, role, permissions]);
+  }, [allGroups, role, permissions, isAllShops]);
 
   const visiblePathSet = useMemo(() => {
     const set = new Set<string>();

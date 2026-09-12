@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
+import { PosShopGuard } from '@modules/pos/components';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Wallet, PlayCircle, StopCircle, ArrowDownToLine, ArrowUpFromLine,
@@ -13,7 +14,7 @@ import { Button } from '@core/ui/Button';
 import { Input } from '@core/ui/Input';
 import { formatPKR } from '@core/lib/format';
 import { toast } from 'sonner';
-import { useAuthStore } from '@core/stores/auth.store';
+import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 
 /* ═════════════════════════════════════════════════════════════
    NAFAA CASH REGISTER — GLOBAL FULL BEST v3
@@ -61,7 +62,7 @@ const txTypeConfig: Record<string, { label: string; tone: string; darkTone: stri
 
 export default function CashRegisterPage() {
   const queryClient = useQueryClient();
-  const currentShopId = useAuthStore((s) => s.currentShopId);
+  const currentShopId = useShopParam();
 
   const openingRef = useRef<HTMLInputElement>(null);
   const txAmountRef = useRef<HTMLInputElement>(null);
@@ -244,6 +245,12 @@ export default function CashRegisterPage() {
   }, [showTeacher, showDenomCalc]);
 
   const netCashFlow = current ? current.totalCashIn - current.totalCashOut : 0;
+
+  // A till belongs to one counter — the consolidated "All Shops" view has no
+  // register to open, close or count.
+  if (!currentShopId) {
+    return <PosShopGuard action="cash register chalane" />;
+  }
 
   return (
     <div className="space-y-4 sm:space-y-5 pb-10">

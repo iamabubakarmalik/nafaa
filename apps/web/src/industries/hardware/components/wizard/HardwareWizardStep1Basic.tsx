@@ -12,6 +12,7 @@ import { tagsApi } from '@modules/inventory/tags/api/tags.api';
 import { hardwareBrandsApi } from '../../api/brands.api';
 import { formatPKRFull } from '@core/lib/format';
 import type { HardwareWizardBasic, CategoryType } from '../../hooks/useHardwareWizard';
+import { CategoryPicker, makeCategoryTypeResolver } from '@modules/inventory/categories/components/CategoryPicker';
 
 interface Props {
   basic: HardwareWizardBasic;
@@ -81,7 +82,63 @@ const UNIT_PRESETS = [
   { value: 'trip', label: 'Trip', hint: '🚚' },
 ];
 
+
+/* Category ke NAAM se andar wala `categoryType` — pehle ye alag se
+   poochha jata tha jo confusing tha. Match na ho to fallback. */
+const resolveCategoryType = makeCategoryTypeResolver<string>([
+  [/cement/i, "CEMENT"],
+  [/rebar|sarya/i, "STEEL_REBAR"],
+  [/steel.*sheet/i, "STEEL_SHEET"],
+  [/steel.*pipe/i, "STEEL_PIPE"],
+  [/brick|eent/i, "BRICKS"],
+  [/block/i, "BLOCKS"],
+  [/sand|reti/i, "SAND"],
+  [/gravel|bajri/i, "GRAVEL"],
+  [/crush/i, "CRUSH"],
+  [/tile.*floor/i, "TILES_FLOOR"],
+  [/tile.*wall/i, "TILES_WALL"],
+  [/tile/i, "TILES_FLOOR"],
+  [/marble/i, "MARBLE"],
+  [/granite/i, "GRANITE"],
+  [/sanitary|bath/i, "SANITARY_WARE"],
+  [/plumb.*pipe|pipe/i, "PLUMBING_PIPE"],
+  [/plumb/i, "PLUMBING_FITTING"],
+  [/wire|taar/i, "ELECTRIC_WIRE"],
+  [/switch/i, "ELECTRIC_SWITCH"],
+  [/conduit/i, "ELECTRIC_CONDUIT"],
+  [/paint|rang/i, "PAINT"],
+  [/primer/i, "PRIMER"],
+  [/thinner/i, "THINNER"],
+  [/wood|lumber|lakri/i, "WOOD_LUMBER"],
+  [/ply/i, "PLYWOOD"],
+  [/mdf/i, "MDF"],
+  [/power\s?tool/i, "POWER_TOOL"],
+  [/hand\s?tool/i, "HAND_TOOL"],
+  [/tool|auzar/i, "HARDWARE_TOOL"],
+  [/fastener|screw|nail|bolt/i, "FASTENER"],
+  [/adhesive|glue/i, "ADHESIVE"],
+  [/waterproof/i, "WATERPROOFING"],
+  [/insulat/i, "INSULATION"],
+  [/door|darwaza/i, "DOOR"],
+  [/window|khirki/i, "WINDOW"],
+  [/glass|sheesha/i, "GLASS"],
+  [/aluminum|aluminium/i, "ALUMINUM"],
+  [/iron/i, "IRON_FABRICATION"],
+  [/roof/i, "ROOFING"],
+  [/safety/i, "SAFETY_EQUIPMENT"],
+], 'OTHER');
+
 export function HardwareWizardStep1Basic({ basic, onChange, onToggleTag, errors }: Props) {
+  const { data: catsForType = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list });
+
+  /* Category chunte hi andar wala type khud set ho jata hai */
+  useEffect(() => {
+    const name = (catsForType as any[]).find((c) => c.id === basic.categoryId)?.name;
+    const derived = resolveCategoryType(name);
+    if (derived !== basic.categoryType) onChange({ categoryType: derived } as any);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [basic.categoryId, catsForType]);
+
   const { data: categories = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list });
   const { data: brands = [] } = useQuery({ queryKey: ['brands'], queryFn: () => brandsApi.list() });
   const { data: allTags = [] } = useQuery({ queryKey: ['tags'], queryFn: tagsApi.list });
@@ -119,34 +176,13 @@ export function HardwareWizardStep1Basic({ basic, onChange, onToggleTag, errors 
 
       {/* Category Type Selector */}
       <section className="rounded-2xl border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-white p-5 space-y-4">
-        <SectionHeader icon={Package} title="Category Type *" desc="Ye kis cheez ka product hai? — Step 2 specs isi se dependent hain" tone="amber" />
-        <div className="space-y-3">
-          {Object.entries(groupedCategories).map(([group, items]) => (
-            <div key={group}>
-              <div className="text-[10px] uppercase font-extrabold text-slate-600 mb-1.5">{group}</div>
-              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-1.5">
-                {items.map((c) => {
-                  const active = basic.categoryType === c.value;
-                  return (
-                    <button
-                      key={c.value} type="button"
-                      onClick={() => onChange({ categoryType: c.value })}
-                      className={[
-                        'p-2 rounded-lg border-2 text-center transition',
-                        active
-                          ? 'border-amber-600 bg-amber-600 text-white shadow-md'
-                          : 'border-slate-200 bg-white text-slate-700 hover:border-amber-400',
-                      ].join(' ')}
-                    >
-                      <div className="text-lg">{c.emoji}</div>
-                      <div className="text-[9px] font-extrabold mt-0.5">{c.label}</div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
+        <SectionHeader icon={Package} title="Category" desc="Aap ki apni category" tone="amber" />
+        <CategoryPicker
+          value={basic.categoryId}
+          onChange={(categoryId) => onChange({ categoryId })}
+          tone="orange"
+          examples="jaise Cement, Tiles, Paint"
+        />
       </section>
 
       {/* Identity */}
@@ -170,17 +206,6 @@ export function HardwareWizardStep1Basic({ basic, onChange, onToggleTag, errors 
           />
         </div>
         <div className="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-bold text-slate-700 mb-1.5">Category</label>
-            <select
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm focus:outline-none focus:border-amber-500"
-              value={basic.categoryId}
-              onChange={(e) => onChange({ categoryId: e.target.value })}
-            >
-              <option value="">Select category</option>
-              {categories.map((c: any) => (<option key={c.id} value={c.id}>{c.name}</option>))}
-            </select>
-          </div>
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-1.5">Hardware Brand (Fauji/Lucky/DG etc)</label>
             <select

@@ -10,7 +10,7 @@ import {
 import { toast } from 'sonner';
 import { Button } from '@core/ui/Button';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
-import { useAuthStore } from '@core/stores/auth.store';
+import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { salonServicesApi, type SalonService, type ServiceCategory } from '../api/services.api';
 import { staffProfilesApi } from '../api/staff-profiles.api';
 import { appointmentsApi } from '../api/appointments.api';
@@ -53,7 +53,7 @@ const cartLineId = () => `sln-${Date.now()}-${Math.random().toString(36).slice(2
 export default function SalonPosPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const currentShopId = useAuthStore((s) => s.currentShopId);
+  const currentShopId = useShopParam();
 
   const [screen, setScreen] = useState<Screen>('customer');
   const [customerId, setCustomerId] = useState('');

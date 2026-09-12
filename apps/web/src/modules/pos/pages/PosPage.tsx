@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { PosShopGuard } from '@modules/pos/components';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import {
   Search, ShoppingCart, Receipt, ScanLine, Camera, Package, User,
@@ -26,7 +27,7 @@ import { PosCheckoutPanel } from '../components/PosCheckoutPanel';
 import { PosUniversalSearchPanel } from '../components/PosUniversalSearchPanel';
 import { PosOptionsPanel, loadPosPreferences, type PosPreferences } from '../components/PosOptionsPanel';
 import { useBusinessFeatures } from '@core/hooks/useBusinessFeatures';
-import { useAuthStore } from '@core/stores/auth.store';
+import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { useOfflineCarpetSummary } from '@industries/carpet/hooks/useOfflineCarpetSummary';
 import { usePosFastSearch } from '../hooks/usePosFastSearch';
 import { ImeiPickerModal } from '@industries/mobile/components/ImeiPickerModal';
@@ -55,7 +56,7 @@ import { useIndustryDetection } from '@industries/_shared/registry/useIndustryDe
 export default function PosPage() {
   const queryClient = useQueryClient();
   const { features: businessFeatures, businessType } = useBusinessFeatures();
-  const currentShopId = useAuthStore((s) => s.currentShopId);
+  const currentShopId = useShopParam();
   const industryDetection = useIndustryDetection();
   const activeIndustryId = industryDetection.id; // 'carpet' | 'mobile' | 'restaurant' | 'retail' | 'hotel' | ...
 // isRetail now derived from posIndustry above
@@ -736,24 +737,9 @@ export default function PosPage() {
     [products, carpetSummaryMap, isCarpetProduct],
   );
 
-  // POS_SHOP_GUARD_MARKER — must have an active shop
+  // POS_SHOP_GUARD_MARKER — must have one concrete shop (never "All Shops")
   if (!currentShopId) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh] p-6">
-        <div className="max-w-md w-full rounded-3xl bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-300 p-8 text-center shadow-lg">
-          <div className="mx-auto h-16 w-16 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-lg">
-            <Store className="h-8 w-8" />
-          </div>
-          <h2 className="mt-4 text-2xl font-extrabold text-amber-900">Pehle Shop Select Karein</h2>
-          <p className="mt-2 text-sm text-amber-800 font-semibold">
-            POS use karne ke liye topbar se shop select karein.
-          </p>
-          <p className="mt-4 text-xs text-amber-700">
-            Agar koi shop nahi hai to <a href="/shops" className="underline font-bold">Shops page</a> se naya banayein.
-          </p>
-        </div>
-      </div>
-    );
+    return <PosShopGuard action="POS use karne" />;
   }
 
   return (

@@ -19,14 +19,14 @@ import {
   type BulkImportPreviewResponse,
   type BulkImportApplyResponse,
 } from '../api/carpet-rolls.api';
-import { useAuthStore } from '@core/stores/auth.store';
+import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 
 type ImportStep = 'upload' | 'preview' | 'result';
 type InputMode = 'excel' | 'manual';
 
 export default function CarpetBulkImportPage() {
   const navigate = useNavigate();
-  const currentShopId = useAuthStore((s) => s.currentShopId);
+  const currentShopId = useShopParam();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [step, setStep] = useState<ImportStep>('upload');

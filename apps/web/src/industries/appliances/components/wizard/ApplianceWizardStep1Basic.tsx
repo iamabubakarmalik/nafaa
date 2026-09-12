@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Home, DollarSign, Image as ImageIcon, Sparkles, Star, TrendingUp,
@@ -14,6 +14,7 @@ import { tagsApi } from '@modules/inventory/tags/api/tags.api';
 import { applianceBrandsApi } from '../../api/brands.api';
 import { formatPKRFull } from '@core/lib/format';
 import type { ApplianceWizardBasic } from '../../hooks/useApplianceWizard';
+import { CategoryPicker, makeCategoryTypeResolver } from '@modules/inventory/categories/components/CategoryPicker';
 
 interface Props {
   basic: ApplianceWizardBasic;
@@ -88,7 +89,60 @@ const COLOR_PRESETS = [
   { name: 'Stainless', hex: '#a8a8a8' },
 ];
 
+
+/* Category ke NAAM se andar wala `categoryType` — pehle ye alag se
+   poochha jata tha jo confusing tha. Match na ho to fallback. */
+const resolveCategoryType = makeCategoryTypeResolver<string>([
+  [/fridge|refrig/i, "REFRIGERATOR"],
+  [/freezer/i, "DEEP_FREEZER"],
+  [/ac.*invert|invert.*ac/i, "AIR_CONDITIONER_INVERTER"],
+  [/ac.*split|split/i, "AIR_CONDITIONER_SPLIT"],
+  [/ac.*window|window\s?ac/i, "AIR_CONDITIONER_WINDOW"],
+  [/\bac\b|air\s?cond/i, "AIR_CONDITIONER_SPLIT"],
+  [/wash.*front/i, "WASHING_MACHINE_FRONT_LOAD"],
+  [/wash.*twin/i, "WASHING_MACHINE_TWIN_TUB"],
+  [/wash/i, "WASHING_MACHINE_TOP_LOAD"],
+  [/dryer/i, "DRYER"],
+  [/dish\s?wash/i, "DISHWASHER"],
+  [/smart\s?tv/i, "SMART_TV"],
+  [/led\s?tv|tv\b/i, "LED_TV"],
+  [/microwave/i, "MICROWAVE_OVEN"],
+  [/oven|otg/i, "OTG_OVEN"],
+  [/stove.*gas|gas.*stove|chulha/i, "GAS_STOVE"],
+  [/stove|cooker/i, "ELECTRIC_STOVE"],
+  [/hood|chimney/i, "RANGE_HOOD"],
+  [/dispenser/i, "WATER_DISPENSER"],
+  [/purifier.*water|water.*purif/i, "WATER_PURIFIER"],
+  [/geyser.*gas/i, "GEYSER_GAS"],
+  [/geyser/i, "GEYSER_ELECTRIC"],
+  [/air\s?cooler|cooler/i, "AIR_COOLER"],
+  [/air\s?purif/i, "AIR_PURIFIER"],
+  [/heater/i, "ROOM_HEATER"],
+  [/vacuum/i, "VACUUM_CLEANER"],
+  [/blender|grinder/i, "BLENDER"],
+  [/juicer/i, "JUICER"],
+  [/iron.*steam/i, "IRON_STEAM"],
+  [/iron|istri/i, "IRON_DRY"],
+  [/fan.*ceiling|ceiling/i, "FAN_CEILING"],
+  [/fan|pankha/i, "FAN_PEDESTAL"],
+  [/ups/i, "UPS"],
+  [/solar.*panel/i, "SOLAR_PANEL"],
+  [/solar|invert/i, "SOLAR_INVERTER"],
+  [/battery/i, "BATTERY"],
+  [/generator/i, "GENERATOR"],
+], 'OTHER');
+
 export function ApplianceWizardStep1Basic({ basic, onChange, errors }: Props) {
+  const { data: catsForType = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list });
+
+  /* Category chunte hi andar wala type khud set ho jata hai */
+  useEffect(() => {
+    const name = (catsForType as any[]).find((c) => c.id === basic.categoryId)?.name;
+    const derived = resolveCategoryType(name);
+    if (derived !== basic.categoryType) onChange({ categoryType: derived } as any);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [basic.categoryId, catsForType]);
+
   const qc = useQueryClient();
   const [scan, setScan] = useState(false);
   const [adv, setAdv] = useState(Boolean(basic.wholesalePrice || basic.mrp || basic.emiStartingFrom));
@@ -190,27 +244,13 @@ export function ApplianceWizardStep1Basic({ basic, onChange, errors }: Props) {
 
       {/* 2 — CATEGORY TYPE */}
       <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-3">
-        <Head icon={Tag} n="2" t="Category Type" d="Kis type ki appliance hai?" />
-        <div className="space-y-3 max-h-96 overflow-y-auto">
-          {CATEGORY_TYPES.map((grp) => (
-            <div key={grp.grp}>
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500 mb-1.5">{grp.grp}</div>
-              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
-                {grp.items.map((c) => {
-                  const a = basic.categoryType === c.v;
-                  return (
-                    <button key={c.v} type="button" onClick={() => onChange({ categoryType: c.v })}
-                      className={['p-2.5 rounded-xl border-2 transition flex flex-col items-center justify-center gap-0.5 min-h-[70px]',
-                        a ? 'border-cyan-600 bg-cyan-600 text-white shadow-md scale-[1.03]' : 'border-slate-200 bg-white text-slate-700 hover:border-cyan-400'].join(' ')}>
-                      <span className="text-xl leading-none">{c.e}</span>
-                      <span className="text-[10px] font-extrabold text-center leading-tight">{c.l}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
+        <Head icon={Tag} n="2" t="Category" d="Aap ki apni category" />
+        <CategoryPicker
+          value={basic.categoryId}
+          onChange={(categoryId) => onChange({ categoryId })}
+          tone="teal"
+          examples="jaise Fridge, AC, Washing Machine"
+        />
       </section>
 
       {/* 3 — BRAND */}
@@ -360,15 +400,6 @@ export function ApplianceWizardStep1Basic({ basic, onChange, errors }: Props) {
       {/* 6 — CATEGORY / DESCRIPTION */}
       <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-4">
         <Head icon={Tag} n="6" t="Category & Details" d="Dhundne mein asaan (optional)" />
-
-        <div>
-          <Lbl>Category</Lbl>
-          <select value={basic.categoryId} onChange={(e) => onChange({ categoryId: e.target.value })}
-            className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-cyan-500">
-            <option value="">Koi nahi</option>
-            {(cats as any[]).map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
-          </select>
-        </div>
 
         <div>
           <Lbl>Description <Opt /></Lbl>

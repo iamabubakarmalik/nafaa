@@ -1,4 +1,5 @@
 import { Route } from 'react-router-dom';
+import { RequireShop } from '@modules/pos/components';
 import { IndustryRegistry } from './IndustryRegistry';
 import type { IndustryRoute } from '../types/industry-pack';
 import type { ReactElement } from 'react';
@@ -24,11 +25,24 @@ export function industryRoutes(): ReactElement[] {
   for (const pack of packs) {
     for (const r of pack.routes) {
       const Component = r.element as any;
+
+      // A counter screen can only sell from one branch. Every pack's POS lives
+      // at /pos, so gate it here once instead of in 25 separate pages.
+      const needsOneShop = r.path === '/pos' || r.path.startsWith('/pos/');
+
       nodes.push(
         <Route
           key={`${pack.id}::${r.path}`}
           path={r.path}
-          element={<Component />}
+          element={
+            needsOneShop ? (
+              <RequireShop action="POS use karne">
+                <Component />
+              </RequireShop>
+            ) : (
+              <Component />
+            )
+          }
         />,
       );
     }

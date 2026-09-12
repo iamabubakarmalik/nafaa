@@ -1,18 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  Users, Plus, Search, Star, Phone, MapPin, TrendingUp, Wallet,
-  Crown, SlidersHorizontal, Trash2, Edit3, X, Eye, Sparkles,
-  MessageCircle, Mail, Download, GraduationCap, CheckCircle2,
-  AlertTriangle, RefreshCw, Printer, ChevronLeft, ChevronRight,
-  CreditCard, CalendarDays,
-} from 'lucide-react';
+import { AlertTriangle, CalendarDays, CheckCircle2, ChevronLeft, ChevronRight, CreditCard, Crown, Download, Edit3, Eye, GraduationCap, Layers, Mail, MapPin, MessageCircle, Phone, Plus, Printer, RefreshCw, Search, SlidersHorizontal, Sparkles, Star, Store, Trash2, TrendingUp, Users, Wallet, X } from 'lucide-react';
 import { customersApi, type CustomersListParams } from '@modules/customers/customers/api/customers.api';
 import { Button } from '@core/ui/Button';
 import { formatPKR } from '@core/lib/format';
 import { toast } from 'sonner';
-import { useAuthStore } from '@core/stores/auth.store';
+import { useAuthStore, useIsAllShops } from '@core/stores/auth.store';
 
 /* ═════════════════════════════════════════════════════════════
    NAFAA CUSTOMERS LIST — FULL BEST v4
@@ -36,6 +30,7 @@ export default function CustomersListPage() {
     sortBy: 'createdAt',
     sortOrder: 'desc',
   });
+  const isAllShops = useIsAllShops();
   const [showFilters, setShowFilters] = useState(false);
   const [showTeacher, setShowTeacher] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
@@ -242,6 +237,46 @@ export default function CustomersListPage() {
           <Kbd>Esc</Kbd><span className="text-white/60">Band</span>
         </div>
       </section>
+
+      {/* ═══ Branch scope ═══
+          Ek customer record sab branches mein sanjha rehta hai (ek banda, ek
+          balance, ek loyalty) — badalta sirf ye hai ke list kis branch ki hai. */}
+      {!isAllShops && (
+        <section className="flex items-center gap-2 flex-wrap print:hidden">
+          <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
+            Dikhayein
+          </span>
+          <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1">
+            <button
+              onClick={() => setParams((p) => ({ ...p, scope: 'branch', page: 1 }))}
+              className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${
+                params.scope !== 'all'
+                  ? 'bg-brand-600 text-white shadow'
+                  : 'text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              <Store className="h-3.5 w-3.5 inline mr-1 -mt-0.5" />
+              Is shop ke customers
+            </button>
+            <button
+              onClick={() => setParams((p) => ({ ...p, scope: 'all', page: 1 }))}
+              className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${
+                params.scope === 'all'
+                  ? 'bg-brand-600 text-white shadow'
+                  : 'text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              <Layers className="h-3.5 w-3.5 inline mr-1 -mt-0.5" />
+              Saare customers
+            </button>
+          </div>
+          {params.search && (
+            <span className="text-[11px] font-semibold text-slate-500">
+              Search hamesha saari branches mein hoti hai
+            </span>
+          )}
+        </section>
+      )}
 
       {/* ═══ KPIs ═══ */}
       <section className="grid grid-cols-2 xl:grid-cols-4 gap-2 sm:gap-3 print:hidden">

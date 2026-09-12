@@ -3,7 +3,14 @@ import { apiClient } from '@core/api/client';
 export interface ServiceChargeItem {
   type: string;
   label: string;
+  /** Customer se liya gaya charge */
   amount: number;
+  /**
+   * Is service par dukan ka apna kharcha (jaise rider ko diya paisa).
+   * Backend isay costOfGoods me jorta hai — warna delivery charge
+   * har report me poora munafa gina jata tha.
+   */
+  cost?: number;
   note?: string;
 }
 

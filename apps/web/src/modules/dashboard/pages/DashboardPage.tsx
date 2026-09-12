@@ -13,7 +13,8 @@ import {
   BarChart, Bar, PieChart, Pie, Cell, Legend,
 } from 'recharts';
 import { dashboardApi } from '@modules/dashboard/api/dashboard.api';
-import { useAuthStore } from '@core/stores/auth.store';
+import { useAuthStore, useIsAllShops, useShopParam } from '@core/stores/auth.store';
+import AllShopsDashboard from '@modules/dashboard/components/AllShopsDashboard';
 import { bookingsApi } from '@modules/bookings/api/bookings.api';
 import { Button } from '@core/ui/Button';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
@@ -42,7 +43,8 @@ const PAYMENT_ICONS: Record<string, any> = {
 };
 
 export default function DashboardPage() {
-  const currentShopId = useAuthStore((s) => s.currentShopId);
+  const currentShopId = useShopParam();
+  const isAllShops = useIsAllShops();
   const userRole = useAuthStore((s) => s.user?.role);
   const isOwner = userRole === 'OWNER' || userRole === 'SUPER_ADMIN';
 
@@ -86,6 +88,16 @@ export default function DashboardPage() {
 
   const growthVsYesterday = stats?.salesGrowthVsYesterday ?? 0;
   const growthVsLastMonth = stats?.salesGrowthVsLastMonth ?? 0;
+
+  // On "All Shops" the question is no longer "how did today go" but "which
+  // branch needs me" — so the owner gets the comparison view instead of this
+  // page's single-shop tiles stretched over a tenant-wide total.
+  //
+  // Placed *after* every hook above: an early return before them would change
+  // the number of hooks React sees when the user switches branches.
+  if (isAllShops && isOwner) {
+    return <AllShopsDashboard />;
+  }
 
   return (
     <div className="space-y-6">

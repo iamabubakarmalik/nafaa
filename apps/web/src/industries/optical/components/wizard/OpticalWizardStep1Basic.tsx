@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Glasses, DollarSign, Image as ImageIcon, Sparkles, Star, TrendingUp,
@@ -13,6 +13,7 @@ import { categoriesApi } from '@modules/inventory/categories/api/categories.api'
 import { tagsApi } from '@modules/inventory/tags/api/tags.api';
 import { formatPKRFull } from '@core/lib/format';
 import type { OpticalWizardBasic } from '../../hooks/useOpticalWizard';
+import { CategoryPicker, makeCategoryTypeResolver } from '@modules/inventory/categories/components/CategoryPicker';
 
 interface Props {
   basic: OpticalWizardBasic;
@@ -70,7 +71,46 @@ const POPULAR_BRANDS = [
   'Local Brand',
 ];
 
+
+/* Category ke NAAM se andar wala `categoryType` — pehle ye alag
+   se poochha jata tha jo confusing tha (aur kuch values DB me
+   thin hi nahi). Match na ho to fallback. */
+const resolveCategoryType = makeCategoryTypeResolver<string>([
+  [/full\s?rim/i, "FRAME_FULL_RIM"],
+  [/half\s?rim/i, "FRAME_HALF_RIM"],
+  [/rimless/i, "FRAME_RIMLESS"],
+  [/sport/i, "FRAME_SPORTS"],
+  [/kid|bach|child/i, "FRAME_KIDS"],
+  [/reading|padhai/i, "FRAME_READING"],
+  [/frame|chashma/i, "FRAME_FULL_RIM"],
+  [/polariz/i, "SUNGLASSES_POLARIZED"],
+  [/sun\s?glass|dhoop|goggle/i, "SUNGLASSES"],
+  [/single\s?vision/i, "LENS_SINGLE_VISION"],
+  [/bifocal/i, "LENS_BIFOCAL"],
+  [/progressive/i, "LENS_PROGRESSIVE"],
+  [/photochrom/i, "LENS_PHOTOCHROMIC"],
+  [/blue\s?cut/i, "LENS_BLUE_CUT"],
+  [/anti.*glare/i, "LENS_ANTI_GLARE"],
+  [/cylind/i, "LENS_CYLINDRICAL"],
+  [/contact.*(month)/i, "CONTACT_LENS_MONTHLY"],
+  [/contact.*(dail)/i, "CONTACT_LENS_DAILY"],
+  [/contact.*(color|rang)/i, "CONTACT_LENS_COLORED"],
+  [/contact/i, "CONTACT_LENS_MONTHLY"],
+  [/solution|cleaning/i, "CLEANING_SOLUTION"],
+  [/case/i, "LENS_CASE"],
+  [/lens/i, "LENS_SINGLE_VISION"],
+], 'OTHER');
+
 export function OpticalWizardStep1Basic({ basic, onChange, errors }: Props) {
+  const { data: catsForType = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list });
+  /* Category chunte hi andar wala type set ho jata hai */
+  useEffect(() => {
+    const name = (catsForType as any[]).find((c) => c.id === basic.categoryId)?.name;
+    const derived = resolveCategoryType(name);
+    if (derived !== basic.categoryType) onChange({ categoryType: derived } as any);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [basic.categoryId, catsForType]);
+
   const [scan, setScan] = useState(false);
   const [adv, setAdv] = useState(Boolean(basic.mrp || basic.taxRate || basic.discountedPrice));
   const [showTryOn, setShowTryOn] = useState(Boolean(basic.tryOnUrl));
@@ -162,28 +202,14 @@ export function OpticalWizardStep1Basic({ basic, onChange, errors }: Props) {
 
       {/* 2 — CATEGORY TYPE */}
       <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-3">
-        <Head icon={Tag} n="2" t="Category Type" d="Frame, lens, contact lens or accessory?" />
-        <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
-          {CATEGORY_GROUPS.map((grp) => (
-            <div key={grp.group}>
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500 mb-1.5">{grp.group}</div>
-              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
-                {grp.items.map((c) => {
-                  const a = basic.categoryType === c.v;
-                  return (
-                    <button key={c.v} type="button" onClick={() => onChange({ categoryType: c.v })}
-                      className={['p-2.5 rounded-xl border-2 transition flex flex-col items-center justify-center gap-0.5 min-h-[68px]',
-                        a ? 'border-cyan-600 bg-cyan-600 text-white shadow-md scale-[1.03]'
-                          : 'border-slate-200 bg-white text-slate-700 hover:border-cyan-400'].join(' ')}>
-                      <span className="text-xl leading-none">{c.e}</span>
-                      <span className="text-[10px] font-extrabold text-center leading-tight">{c.l}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
+        <Head icon={Tag} n="2" t="Category" d="Aap ki apni category" />
+
+        <CategoryPicker
+          value={basic.categoryId}
+          onChange={(categoryId) => onChange({ categoryId })}
+          tone="blue"
+          examples="jaise Frames, Sunglasses, Lenses"
+        />
       </section>
 
       {/* 3 — GENDER */}
@@ -303,14 +329,6 @@ export function OpticalWizardStep1Basic({ basic, onChange, errors }: Props) {
       {/* 6 — CATEGORY / DESCRIPTION */}
       <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-4">
         <Head icon={Tag} n="6" t="Shop Category & Description" d="Optional — for search" />
-        <div>
-          <Lbl>Shop Category</Lbl>
-          <select value={basic.categoryId} onChange={(e) => onChange({ categoryId: e.target.value })}
-            className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-cyan-500">
-            <option value="">None</option>
-            {(cats as any[]).map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
-          </select>
-        </div>
         <div>
           <Lbl>Description <Opt /></Lbl>
           <textarea rows={2} value={basic.description} onChange={(e) => onChange({ description: e.target.value })}

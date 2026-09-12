@@ -35,6 +35,51 @@ export interface ShopWithOverview extends Shop {
   registerOpenedAt: string | null;
 }
 
+/** Har branch ka muqabla — "All Shops" view isi par bana hai. */
+export interface ShopAnalyticsRow extends ShopWithOverview {
+  yesterdaySales: number;
+  /** Kal ke muqable kitne % upar/neeche */
+  growthVsYesterday: number;
+  weekSales: number;
+  weekProfit: number;
+  weekOrders: number;
+  avgOrderValue: number;
+  todayExpenses: number;
+  monthExpenses: number;
+  /** Sales − cost − kharche */
+  todayNetProfit: number;
+  monthNetProfit: number;
+  /** Is branch ka diya hua udhaar jo abhi baqi hai */
+  outstandingCredit: number;
+  staffCount: number;
+  /** Is mahine ki kul bikri mein is branch ka hissa (%) */
+  monthShare: number;
+  /** 1 = sab se zyada bikri */
+  rank: number;
+}
+
+export interface ShopAnalyticsTotals {
+  todaySales: number;
+  todayOrders: number;
+  todayNetProfit: number;
+  todayExpenses: number;
+  monthSales: number;
+  monthNetProfit: number;
+  outstandingCredit: number;
+  lowStockCount: number;
+  totalStock: number;
+  registersOpen: number;
+  staffCount: number;
+  shopCount: number;
+}
+
+export interface ShopAnalytics {
+  shops: ShopAnalyticsRow[];
+  totals: ShopAnalyticsTotals;
+  best: ShopAnalyticsRow | null;
+  needsAttention: Array<{ shopId: string; name: string; reasons: string[] }>;
+}
+
 export interface CreateShopPayload {
   name: string;
   address?: string;
@@ -83,7 +128,12 @@ const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
 
 export const shopsApi = {
   list: () => apiClient.get<{ data: Shop[] }>('/shops').then(unwrap),
-  overview: () => apiClient.get<{ data: ShopWithOverview[] }>('/shops/overview').then(unwrap),
+  /** Per-branch rows. Carries every analytics field — see ShopAnalyticsRow. */
+  overview: () => apiClient.get<{ data: ShopAnalyticsRow[] }>('/shops/overview').then(unwrap),
+
+  /** Sab branches ka muqabla + mila hua total */
+  analytics: () =>
+    apiClient.get<{ data: ShopAnalytics }>('/shops/analytics').then(unwrap),
   get: (id: string) => apiClient.get<{ data: Shop }>(`/shops/${id}`).then(unwrap),
   create: (payload: CreateShopPayload) =>
     apiClient.post<{ data: Shop & { manager?: any; productsBackfilled?: number } }>('/shops', payload).then(unwrap),

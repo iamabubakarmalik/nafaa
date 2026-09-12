@@ -5,8 +5,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Printer, ArrowLeft, MessageCircle, CheckCircle2, Copy, Check, RefreshCw,
   Share2, ReceiptText, Minimize2, Maximize2, MapPin, Phone, User,
-  CalendarClock, Cpu, ShieldCheck, ShieldAlert, Hash, Tag, TrendingUp,
-  Loader2, AlertTriangle, Wallet, X, Barcode,
+  CalendarClock, Cpu, ShieldCheck, ShieldAlert, Tag, TrendingUp,
+  Loader2, AlertTriangle, Wallet, X, Barcode, Package,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { salesApi } from '@modules/sales/sales/api/sales.api';
@@ -16,12 +16,14 @@ import { formatPKR } from '@core/lib/format';
 import { FbrReceiptBadge } from '@integrations/fbr';
 
 /* ════════════════════════════════════════════════════════════
-   🔌 NAFAA ELECTRONICS RECEIPT
+   🔌 NAFAA ELECTRONICS RECEIPT — FINAL v2
    ────────────────────────────────────────────────────────────
    🖨️  A4 + 80mm + 58mm • Short/Full • auto-print • offline-safe
    🔖 Har serial/IMEI/MAC receipt par — customer ka sabot
-   🛡️  WARRANTY CARD — kab tak chalegi, saaf likha hua
-   📲 WhatsApp par serial + warranty sameet poori receipt
+   🛡️  WARRANTY CARD — endDate ya months, dono se ban jata hai
+   📋 Serial copy button (screen) • ⌨️ P = print
+   📲 WhatsApp — customer phone ho ya na ho, dono chalta hai
+   🎁 Bundle items pe BUNDLE badge • 🚚 Service charges lines
    🤝 "Powered by Nafaa POS" HAMESHA
    ════════════════════════════════════════════════════════════ */
 
@@ -46,12 +48,19 @@ interface ReceiptItem {
   name: string; qty: number; price: number; total: number;
   unit?: string; discount?: number; note?: string;
   serials: ReceiptSerial[];
+  bundleName?: string;
+}
+interface ReceiptService {
+  label: string;
+  amount: number;
+  note?: string;
 }
 interface ReceiptData {
   id: string; invoiceNo: string; shortNo: string; createdAt: string;
   customerName?: string; customerPhone?: string;
   cashierName?: string; paymentMethod?: string;
   items: ReceiptItem[];
+  services: ReceiptService[];
   subtotal: number; billDiscount: number; tax: number; total: number;
   paid: number; change: number; dueAmount: number;
   isVoided: boolean; hasFbr: boolean;
@@ -79,6 +88,14 @@ const dateOnly = (iso?: string) => {
   return isNaN(d.getTime()) ? '' : d.toLocaleDateString('en-PK');
 };
 
+/* Sale date + months → warranty end (jab backend endDate na bheje) */
+const addMonths = (isoDate: string, months: number): string | undefined => {
+  const d = new Date(isoDate);
+  if (isNaN(d.getTime()) || months <= 0) return undefined;
+  d.setMonth(d.getMonth() + months);
+  return d.toISOString();
+};
+
 function makeShortNo(invoiceNo: string, id: string): string {
   const src = invoiceNo || id;
   if (!src) return '—';
@@ -87,8 +104,15 @@ function makeShortNo(invoiceNo: string, id: string): string {
   return `#${tail}`;
 }
 
-function normalizeSerial(raw: any): ReceiptSerial {
-  const end = str(raw?.warrantyEndDate ?? '') || undefined;
+const BUNDLE_NOTE_RE = /^part of bundle:\s*(.+)$/i;
+
+function normalizeSerial(raw: any, soldAt: string): ReceiptSerial {
+  let end = str(raw?.warrantyEndDate ?? '') || undefined;
+  /* Fallback: sirf months mile to sale date se end nikaalo */
+  if (!end) {
+    const months = num(raw?.warrantyMonths ?? 0);
+    if (months > 0) end = addMonths(soldAt, months);
+  }
   return {
     serialNumber: str(raw?.serialNumber ?? raw?.serial ?? ''),
     imei: str(raw?.imei ?? raw?.imei1 ?? '') || undefined,
@@ -103,20 +127,35 @@ function normalizeSerial(raw: any): ReceiptSerial {
 }
 
 function normalizeSale(raw: any): ReceiptData {
+  const soldAt = str(raw?.createdAt ?? raw?.soldAt ?? raw?.date ?? new Date().toISOString());
+
   const items: ReceiptItem[] = (raw?.items ?? raw?.saleItems ?? raw?.lines ?? []).map((it: any) => {
     const qty = num(it.qty ?? it.quantity ?? 1);
     const price = num(it.price ?? it.unitPrice ?? it.rate ?? it.priceOverride ?? 0);
-    const serials: ReceiptSerial[] = Array.isArray(it.serials) ? it.serials.map(normalizeSerial) : [];
+    const serials: ReceiptSerial[] = Array.isArray(it.serials) ? it.serials.map((s: any) => normalizeSerial(s, soldAt)) : [];
+    const rawNote = str(it.note ?? '') || undefined;
+    const bundleMatch = rawNote?.match(BUNDLE_NOTE_RE);
     return {
       name: str(it.name ?? it.productName ?? it.product?.name ?? '') || 'Item',
       qty, price,
       total: num(it.total ?? it.lineTotal ?? it.amount ?? qty * price),
       unit: str(it.unit ?? it.unitName ?? it.product?.unit ?? '') || undefined,
       discount: num(it.discount ?? it.discountAmount ?? 0) || undefined,
-      note: str(it.note ?? '') || undefined,
+      note: bundleMatch ? undefined : rawNote,
       serials,
+      bundleName: bundleMatch ? bundleMatch[1] : undefined,
     };
   });
+
+  /* Delivery / installation waghera — sale par lagti hain, item par nahi */
+  const services: ReceiptService[] = (Array.isArray(raw?.serviceChargesBreakdown)
+    ? raw.serviceChargesBreakdown
+    : []
+  ).map((sc: any) => ({
+    label: str(sc?.label ?? sc?.type ?? 'Service'),
+    amount: num(sc?.amount),
+    note: str(sc?.note ?? '') || undefined,
+  })).filter((sc: ReceiptService) => sc.amount > 0);
 
   const subtotal = num(raw?.subtotal ?? raw?.subTotal ?? items.reduce((s, i) => s + i.total, 0));
   const billDiscount = num(raw?.billDiscount ?? raw?.discount ?? raw?.discountAmount ?? 0);
@@ -131,12 +170,12 @@ function normalizeSale(raw: any): ReceiptData {
     id,
     invoiceNo,
     shortNo: makeShortNo(invoiceNo, id),
-    createdAt: str(raw?.createdAt ?? raw?.soldAt ?? raw?.date ?? new Date().toISOString()),
+    createdAt: soldAt,
     customerName: str(raw?.customerName ?? raw?.customer?.name ?? '') || undefined,
     customerPhone: str(raw?.customerPhone ?? raw?.customer?.phone ?? '') || undefined,
     cashierName: str(raw?.cashierName ?? raw?.createdBy?.fullName ?? raw?.createdBy?.name ?? '') || undefined,
     paymentMethod: str(raw?.paymentMethod ?? raw?.payment?.method ?? 'Cash') || undefined,
-    items, subtotal, billDiscount, tax, total, paid,
+    items, services, subtotal, billDiscount, tax, total, paid,
     change: num(raw?.change ?? raw?.changeAmount ?? Math.max(0, paid - total)),
     dueAmount: num(raw?.dueAmount ?? raw?.creditAmount ?? raw?.due ?? Math.max(0, total - paid)),
     isVoided: status === 'VOIDED',
@@ -231,6 +270,17 @@ export default function ElectronicsReceiptPage() {
     }
   }, [sale, isLoading, searchParams, shop.autoPrint, doPrint, isAutoOpened]);
 
+  /* ⌨️ P = print shortcut */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const tag = document.activeElement?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (e.key.toLowerCase() === 'p' && !e.ctrlKey && !e.metaKey) { e.preventDefault(); doPrint(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [doPrint]);
+
   /* ── Void ── */
   const voidMutation = useMutation({
     mutationFn: (reason: string) => salesApi.voidSale(id!, reason),
@@ -253,21 +303,26 @@ export default function ElectronicsReceiptPage() {
     } catch { toast.error('Copy nahi hua'); }
   };
 
+  const copySerial = async (sn: string) => {
+    try {
+      await navigator.clipboard.writeText(sn);
+      toast.success(`Serial copy: ${sn}`, { duration: 1200 });
+    } catch { toast.error('Copy nahi hua'); }
+  };
+
   const shareNative = async () => {
     if (navigator.share) {
       try { await navigator.share({ title: 'Receipt', url: receiptUrl }); } catch { /* cancelled */ }
     } else copyLink();
   };
 
+  /* WhatsApp — phone ho to direct, na ho to contact picker */
   const shareWhatsApp = () => {
     if (!sale) return;
-    if (!sale.customerPhone) return toast.error('Customer phone available nahi');
-    const phone = sale.customerPhone.replace(/[^0-9]/g, '');
-    const clean = phone.startsWith('92') ? phone : phone.startsWith('0') ? '92' + phone.slice(1) : '92' + phone;
 
     const lines: string[] = [
       `🔌 *${shop.businessName}*`, '',
-      `Assalam-o-Alaikum ${sale.customerName ?? ''}!`,
+      `Assalam-o-Alaikum ${sale.customerName ?? ''}!`.trim(),
       'Aap ki kharidari ka shukriya 🙏', '',
       `*Invoice:* ${sale.shortNo}`,
       `*Date:* ${formatDate(sale.createdAt)}`, '',
@@ -275,6 +330,7 @@ export default function ElectronicsReceiptPage() {
     ];
     sale.items.forEach((it, i) => {
       lines.push(`${i + 1}. ${it.name} × ${it.qty} = ${formatPKR(it.total)}`);
+      if (it.bundleName) lines.push(`   🎁 Bundle: ${it.bundleName}`);
       it.serials.forEach((sn) => {
         if (sn.serialNumber) lines.push(`   🔖 Serial: \`${sn.serialNumber}\``);
         if (sn.imei) lines.push(`   📱 IMEI: \`${sn.imei}\``);
@@ -288,12 +344,21 @@ export default function ElectronicsReceiptPage() {
     });
     lines.push('', `Subtotal: ${formatPKR(sale.subtotal)}`);
     if (sale.billDiscount > 0) lines.push(`Discount: -${formatPKR(sale.billDiscount)}`);
+    sale.services.forEach((sc) => lines.push(`${sc.label}: ${formatPKR(sc.amount)}`));
     lines.push(`*TOTAL: ${formatPKR(sale.total)}*`, `Paid: ${formatPKR(sale.paid)}`);
     if (sale.change > 0) lines.push(`Change: ${formatPKR(sale.change)}`);
     if (sale.dueAmount > 0) lines.push(`⚠️ Baqi: ${formatPKR(sale.dueAmount)}`);
     lines.push('', '_Warranty claim ke liye ye invoice aur serial number zaroori hai._', '_Powered by Nafaa POS_');
 
-    window.open(`https://wa.me/${clean}?text=${encodeURIComponent(lines.join('\n'))}`, '_blank');
+    const text = encodeURIComponent(lines.join('\n'));
+    if (sale.customerPhone) {
+      const phone = sale.customerPhone.replace(/[^0-9]/g, '');
+      const clean = phone.startsWith('92') ? phone : phone.startsWith('0') ? '92' + phone.slice(1) : '92' + phone;
+      window.open(`https://wa.me/${clean}?text=${text}`, '_blank');
+    } else {
+      /* Phone nahi — user khud contact chune */
+      window.open(`https://wa.me/?text=${text}`, '_blank');
+    }
   };
 
   const savings = useMemo(
@@ -350,7 +415,9 @@ export default function ElectronicsReceiptPage() {
             <div className="flex-1 min-w-0">
               <div className="font-extrabold">Sale Complete! 🔌</div>
               <div className="text-xs text-white/90">
-                {hasSerials ? 'Serial + warranty wali invoice print karein ya WhatsApp bhejein' : 'Receipt print karein ya WhatsApp bhejein'}
+                {hasSerials
+                  ? `${allSerials.length} serial${allSerials.length > 1 ? 's' : ''} wali invoice — print karein ya WhatsApp bhejein`
+                  : 'Receipt print karein ya WhatsApp bhejein'}
               </div>
             </div>
             <Link to="/pos" className="text-xs font-extrabold underline shrink-0">→ Nayi Sale</Link>
@@ -390,8 +457,9 @@ export default function ElectronicsReceiptPage() {
               ))}
             </div>
 
-            <button onClick={shareWhatsApp} disabled={!sale.customerPhone}
-              className="p-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-40" aria-label="WhatsApp">
+            <button onClick={shareWhatsApp}
+              className="p-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"
+              aria-label="WhatsApp" title={sale.customerPhone ? 'Customer ko WhatsApp' : 'WhatsApp pe share'}>
               <MessageCircle className="h-4 w-4" />
             </button>
             <button onClick={shareNative} className="p-2 rounded-xl border dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800" aria-label="Share">
@@ -438,6 +506,10 @@ export default function ElectronicsReceiptPage() {
               {allSerials.filter((s) => s.warrantyEndDate).map((s, i) => (
                 <div key={i} className="flex items-center gap-2 flex-wrap text-xs">
                   <span className="font-mono font-extrabold text-neutral-900 dark:text-neutral-100">{s.serialNumber}</span>
+                  <button onClick={() => copySerial(s.serialNumber)}
+                    className="p-1 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800" title="Serial copy">
+                    <Copy className="h-3 w-3 text-neutral-400" />
+                  </button>
                   <span className={`px-2 py-0.5 rounded-lg font-extrabold ${
                     s.daysLeft != null && s.daysLeft < 0
                       ? 'bg-neutral-200 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400'
@@ -510,21 +582,30 @@ export default function ElectronicsReceiptPage() {
               <div className="rc-iname">
                 <span className="rc-inum">{i + 1}.</span> {it.name}
                 {it.serials.length > 0 && <span className="rc-badge">SERIAL</span>}
+                {it.bundleName && <span className="rc-badge rc-badge-bundle">BUNDLE</span>}
               </div>
 
-              {/* 🔖 Serial / identifiers */}
+              {/* 🔖 Serial / identifiers — screen pe copy button, print me nahi */}
               {it.serials.map((sn, j) => (
                 <div key={j} className="rc-serial">
                   {sn.serialNumber && (
                     <div className="rc-serial-row">
                       <span className="rc-serial-label">S/N</span>
                       <b className="rc-mono">{sn.serialNumber}</b>
+                      <button onClick={() => copySerial(sn.serialNumber)}
+                        className="print:hidden p-0.5 rounded hover:bg-neutral-100 -mt-0.5" title="Copy serial">
+                        <Copy className="h-3 w-3 text-neutral-400" />
+                      </button>
                     </div>
                   )}
                   {sn.imei && (
                     <div className="rc-serial-row">
                       <span className="rc-serial-label">IMEI</span>
                       <span className="rc-mono">{sn.imei}</span>
+                      <button onClick={() => copySerial(sn.imei!)}
+                        className="print:hidden p-0.5 rounded hover:bg-neutral-100 -mt-0.5" title="Copy IMEI">
+                        <Copy className="h-3 w-3 text-neutral-400" />
+                      </button>
                     </div>
                   )}
                   {full && sn.imei2 && (
@@ -554,6 +635,9 @@ export default function ElectronicsReceiptPage() {
                 </div>
               ))}
 
+              {it.bundleName && (
+                <div className="rc-idetail rc-dim" style={{ paddingLeft: 12 }}>🎁 {it.bundleName} ka hissa</div>
+              )}
               {full && it.note && it.serials.length === 0 && (
                 <div className="rc-idetail rc-dim" style={{ paddingLeft: 12 }}>{it.note}</div>
               )}
@@ -583,6 +667,12 @@ export default function ElectronicsReceiptPage() {
               <span className="tabular-nums">−{formatPKR(sale.billDiscount)}</span>
             </div>
           )}
+          {sale.services.map((sc, i) => (
+            <div key={i} className="rc-row">
+              <span>🚚 {sc.label}{full && sc.note ? ` (${sc.note})` : ''}</span>
+              <span className="tabular-nums">{formatPKR(sc.amount)}</span>
+            </div>
+          ))}
           {full && sale.tax > 0 && (
             <div className="rc-row"><span>Tax</span><span className="tabular-nums">{formatPKR(sale.tax)}</span></div>
           )}
@@ -615,7 +705,7 @@ export default function ElectronicsReceiptPage() {
             </div>
           )}
 
-          {/* ── 🛡️ WARRANTY CARD — electronics ki asli zaroorat ── */}
+          {/* ── 🛡️ WARRANTY CARD ── */}
           {hasWarranty && (
             <>
               <div className="rc-div-dash" />
@@ -623,7 +713,7 @@ export default function ElectronicsReceiptPage() {
                 <div className="rc-wcard-title">🛡️ WARRANTY CARD</div>
                 {allSerials.filter((s) => s.warrantyEndDate).map((s, i) => (
                   <div key={i} className="rc-wcard-row">
-                    <span className="rc-mono">{s.serialNumber}</span>
+                    <span className="rc-mono">{s.serialNumber || s.imei || '—'}</span>
                     <b>{s.daysLeft != null && s.daysLeft < 0 ? 'KHATAM' : dateOnly(s.warrantyEndDate)}</b>
                   </div>
                 ))}
@@ -681,6 +771,11 @@ export default function ElectronicsReceiptPage() {
           {/* ── Footer ── */}
           <div className="rc-center rc-sub">{shop.receiptFooter}</div>
           <div className="rc-center" style={{ fontWeight: 800, marginTop: 4 }}>🔌 Shukriya! 🙏</div>
+          {full && hasSerials && (
+            <div className="rc-center rc-sub" style={{ marginTop: 2 }}>
+              Warranty check ke liye shop pe serial scan karwayein
+            </div>
+          )}
 
           <div className="rc-powered">
             <span className="rc-powered-star">✦</span> Powered by <b>Nafaa POS</b> <span className="rc-powered-star">✦</span>
@@ -699,8 +794,8 @@ export default function ElectronicsReceiptPage() {
             className="flex-1 inline-flex justify-center items-center gap-2 rounded-xl bg-indigo-600 text-white py-3 text-sm font-extrabold">
             <Printer className="h-4 w-4" /> Print
           </button>
-          <button onClick={shareWhatsApp} disabled={!sale.customerPhone}
-            className="flex-1 inline-flex justify-center items-center gap-2 rounded-xl bg-emerald-600 text-white py-3 text-sm font-extrabold disabled:opacity-40">
+          <button onClick={shareWhatsApp}
+            className="flex-1 inline-flex justify-center items-center gap-2 rounded-xl bg-emerald-600 text-white py-3 text-sm font-extrabold">
             <MessageCircle className="h-4 w-4" /> WhatsApp
           </button>
         </div>
@@ -740,6 +835,7 @@ function ReceiptPrintStyles() {
       .rc-iname { font-weight: 700; }
       .rc-inum { color: #888; font-weight: 400; font-size: 10px; }
       .rc-badge { display: inline-block; margin-left: 4px; padding: 0 4px; font-size: 8px; font-weight: 800; border: 1px solid #000; border-radius: 3px; vertical-align: middle; }
+      .rc-badge-bundle { border-style: dashed; }
       .rc-idetail { font-size: 11px; }
       .rc-dim { color: #555; }
       .rc-mono { font-family: Consolas, 'Courier New', monospace; }
@@ -802,6 +898,7 @@ function ReceiptPrintStyles() {
         #receipt-paper .rc-logo { filter: grayscale(1) contrast(2) !important; }
         #receipt-paper .rc-bar { background: #000 !important; }
         #receipt-paper svg { display: none; }
+        #receipt-paper button { display: none !important; }
 
         @page { margin: 0; size: auto; }
         body[data-paper="58"] #receipt-paper { width: 58mm !important; font-size: 10px; }

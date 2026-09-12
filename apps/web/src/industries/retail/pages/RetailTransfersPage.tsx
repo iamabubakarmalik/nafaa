@@ -11,7 +11,7 @@ import { Button } from '@core/ui/Button';
 import { shopsApi } from '@modules/organization/shops/api/shops.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { transfersApi, type StockTransfer, type TransferStatus } from '@modules/inventory/transfers/api/transfers.api';
-import { useAuthStore } from '@core/stores/auth.store';
+import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { toast } from 'sonner';
 
 /* ═════════════════════════════════════════════════════════════
@@ -67,7 +67,7 @@ interface CartLine {
 
 export default function RetailTransfersPage() {
   const queryClient = useQueryClient();
-  const currentShopId = useAuthStore((s) => s.currentShopId);
+  const currentShopId = useShopParam();
   const tenantName = useAuthStore((s) => s.tenant?.name);
   const shopName = useAuthStore((s) => s.user?.assignedShop?.name);
   const productSearchRef = useRef<HTMLInputElement>(null);

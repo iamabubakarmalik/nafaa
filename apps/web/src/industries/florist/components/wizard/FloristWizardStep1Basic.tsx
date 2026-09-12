@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Flower2, DollarSign, Image as ImageIcon, Sparkles, Star, TrendingUp,
@@ -13,6 +13,7 @@ import { categoriesApi } from '@modules/inventory/categories/api/categories.api'
 import { tagsApi } from '@modules/inventory/tags/api/tags.api';
 import { formatPKRFull } from '@core/lib/format';
 import type { FloristWizardBasic } from '../../hooks/useFloristWizard';
+import { CategoryPicker, makeCategoryTypeResolver } from '@modules/inventory/categories/components/CategoryPicker';
 
 interface Props {
   basic: FloristWizardBasic;
@@ -108,7 +109,56 @@ const UNITS = [
 
 const MARKUPS = [30, 50, 75, 100, 150, 200];
 
+
+/* Category ke NAAM se andar wala `categoryType` — pehle ye alag
+   se poochha jata tha jo confusing tha (aur kuch values DB me
+   thin hi nahi). Match na ho to fallback. */
+const resolveCategoryType = makeCategoryTypeResolver<string>([
+  [/rose.*(red|laal)/i, "ROSE_RED"],
+  [/rose.*white/i, "ROSE_WHITE"],
+  [/rose.*pink/i, "ROSE_PINK"],
+  [/rose|gulab/i, "ROSE_MIXED"],
+  [/tulip/i, "TULIP"],
+  [/lily/i, "LILY"],
+  [/orchid/i, "ORCHID"],
+  [/sunflower/i, "SUNFLOWER"],
+  [/carnation/i, "CARNATION"],
+  [/gerbera/i, "GERBERA"],
+  [/jasmine|motia|chambeli/i, "JASMINE"],
+  [/marigold|genda/i, "MARIGOLD"],
+  [/bridal|dulhan/i, "BRIDAL_BOUQUET"],
+  [/wedding|shadi|mehndi/i, "BOUQUET_WEDDING"],
+  [/birthday/i, "BOUQUET_BIRTHDAY"],
+  [/anniversar/i, "BOUQUET_ANNIVERSARY"],
+  [/condolence|funeral|wreath/i, "FUNERAL_WREATH"],
+  [/bouquet|guldasta/i, "BOUQUET_MIXED"],
+  [/basket/i, "BASKET_ARRANGEMENT"],
+  [/vase/i, "VASE_ARRANGEMENT"],
+  [/box/i, "BOX_ARRANGEMENT"],
+  [/garland|haar/i, "WEDDING_GARLAND"],
+  [/car\s?decor/i, "CAR_DECORATION"],
+  [/stage|decor/i, "STAGE_DECORATION"],
+  [/plant|pot|paudha/i, "POTTED_PLANT_INDOOR"],
+  [/succulent/i, "SUCCULENT"],
+  [/bonsai/i, "BONSAI"],
+  [/chocolate/i, "CHOCOLATE_BOX"],
+  [/teddy/i, "TEDDY_BEAR"],
+  [/balloon|ghubara/i, "BALLOON"],
+  [/card/i, "GREETING_CARD"],
+  [/ribbon/i, "RIBBON"],
+  [/gift/i, "GIFT_ITEM"],
+], 'OTHER');
+
 export function FloristWizardStep1Basic({ basic, onChange, errors }: Props) {
+  const { data: catsForType = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list });
+  /* Category chunte hi andar wala type set ho jata hai */
+  useEffect(() => {
+    const name = (catsForType as any[]).find((c) => c.id === basic.categoryId)?.name;
+    const derived = resolveCategoryType(name);
+    if (derived !== basic.categoryType) onChange({ categoryType: derived } as any);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [basic.categoryId, catsForType]);
+
   const [scan, setScan] = useState(false);
   const [adv, setAdv] = useState(Boolean(basic.mrp || basic.taxRate || basic.wholesalePrice || basic.weddingPrice));
 
@@ -210,28 +260,14 @@ export function FloristWizardStep1Basic({ basic, onChange, errors }: Props) {
 
       {/* 2 — CATEGORY */}
       <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-3">
-        <Head icon={Tag} n="2" t="Category Type" d="What kind of florist product is this?" />
-        <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
-          {CATEGORY_GROUPS.map((grp) => (
-            <div key={grp.group}>
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500 mb-1.5">{grp.group}</div>
-              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
-                {grp.items.map((c) => {
-                  const a = basic.categoryType === c.v;
-                  return (
-                    <button key={c.v} type="button" onClick={() => onChange({ categoryType: c.v })}
-                      className={['p-2.5 rounded-xl border-2 transition flex flex-col items-center justify-center gap-0.5 min-h-[68px]',
-                        a ? 'border-pink-600 bg-pink-600 text-white shadow-md scale-[1.03]'
-                          : 'border-slate-200 bg-white text-slate-700 hover:border-pink-400'].join(' ')}>
-                      <span className="text-xl leading-none">{c.e}</span>
-                      <span className="text-[10px] font-extrabold text-center leading-tight">{c.l}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
+        <Head icon={Tag} n="2" t="Category" d="Aap ki apni category" />
+
+        <CategoryPicker
+          value={basic.categoryId}
+          onChange={(categoryId) => onChange({ categoryId })}
+          tone="rose"
+          examples="jaise Roses, Bouquets, Plants"
+        />
       </section>
 
       {/* 3 — FRESHNESS GRADE */}
@@ -341,14 +377,6 @@ export function FloristWizardStep1Basic({ basic, onChange, errors }: Props) {
       {/* 5 — CATEGORY / DESCRIPTION */}
       <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-4">
         <Head icon={Tag} n="5" t="Category & Description" d="Optional but helps search" />
-        <div>
-          <Lbl>Shop Category</Lbl>
-          <select value={basic.categoryId} onChange={(e) => onChange({ categoryId: e.target.value })}
-            className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-pink-500">
-            <option value="">None</option>
-            {(cats as any[]).map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
-          </select>
-        </div>
         <div>
           <Lbl>Description <Opt /></Lbl>
           <textarea rows={2} value={basic.description} onChange={(e) => onChange({ description: e.target.value })}

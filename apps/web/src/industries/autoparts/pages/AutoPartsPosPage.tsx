@@ -9,7 +9,7 @@ import {
 import { toast } from 'sonner';
 import { Button } from '@core/ui/Button';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
-import { useAuthStore } from '@core/stores/auth.store';
+import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { productsApi, type Product } from '@modules/inventory/products/api/products.api';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
@@ -37,7 +37,7 @@ const PART_CATEGORIES: { value: PartCategory | 'all'; label: string; emoji: stri
 export default function AutoPartsPosPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const currentShopId = useAuthStore((s) => s.currentShopId);
+  const currentShopId = useShopParam();
 
   const [scannerOpen, setScannerOpen] = useState(false);
   const [search, setSearch] = useState('');

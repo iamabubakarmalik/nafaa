@@ -283,7 +283,6 @@ export function useElectronicsWizard(opts: UseElectronicsWizardOpts = {}) {
     const step1Errors: string[] = [];
     if (!draft.basic.name.trim()) step1Errors.push('Product name required');
     if (!draft.basic.retailPrice || Number(draft.basic.retailPrice) <= 0) step1Errors.push('Retail price required');
-    if (!draft.basic.categoryType) step1Errors.push('Category type required');
 
     const step2Errors: string[] = [];
     // Specs step is optional — no strict validation

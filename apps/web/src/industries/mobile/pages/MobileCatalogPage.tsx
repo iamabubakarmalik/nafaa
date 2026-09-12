@@ -12,7 +12,7 @@ import { Button } from '@core/ui/Button';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
 import { brandsApi } from '@modules/inventory/brands/api/brands.api';
-import { useAuthStore } from '@core/stores/auth.store';
+import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { useCatalogCart } from '@modules/catalog/hooks/useCatalogCart';
 import { useWishlist } from '@modules/catalog/hooks/useWishlist';
 import { CatalogCartDrawer } from '@modules/catalog/components/CatalogCartDrawer';
@@ -29,7 +29,7 @@ const PRICE_RANGES = [
 
 export default function MobileCatalogPage() {
   const tenant = useAuthStore((s) => s.tenant);
-  const currentShopId = useAuthStore((s) => s.currentShopId);
+  const currentShopId = useShopParam();
   const cart = useCatalogCart();
   const wishlist = useWishlist();
 

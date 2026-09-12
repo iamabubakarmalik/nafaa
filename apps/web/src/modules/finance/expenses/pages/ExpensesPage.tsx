@@ -1,14 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  Receipt, Plus, Trash2, Search, TrendingDown,
-  Calendar, Tag, X, RefreshCw,
-  Download, Printer, GraduationCap, CheckCircle2, AlertTriangle,
-  Wallet, PieChart as PieIcon, Activity, Copy,
-  BarChart3, ChevronRight, Clock, FileDown, Eye,
-  Settings2, FileText, Zap, Sparkles, Flame,
-  CalendarRange, CalendarDays,
-} from 'lucide-react';
+import { Receipt, Plus, Trash2, Search, TrendingDown, Calendar, Tag, X, RefreshCw, Download, Printer, GraduationCap, CheckCircle2, AlertTriangle, Wallet, PieChart as PieIcon, Activity, Copy, BarChart3, ChevronRight, Clock, FileDown, Eye, Settings2, FileText, Zap, Sparkles, Flame, CalendarRange, CalendarDays, Store } from 'lucide-react';
 import {
   ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -1007,7 +999,7 @@ export default function ExpensesPage() {
 
   const exportCSV = () => {
     if (filtered.length === 0) return toast.error('Koi data nahi');
-    const head = ['#', 'Voucher', 'Date', 'Title', 'Description', 'Category', 'Payment', 'Status', 'Amount (Rs)'];
+    const head = ['#', 'Voucher', 'Date', 'Title', 'Description', 'Category', 'Shop', 'Payment', 'Status', 'Amount (Rs)'];
     const rows = filtered.map((e, i) => [
       String(i + 1),
       e.expenseNumber,
@@ -1015,6 +1007,7 @@ export default function ExpensesPage() {
       e.title,
       e.description || '',
       catName(e),
+      e.shop?.name || '',
       paymentLabel(e.paymentMethod),
       e.status,
       Number(e.amount).toFixed(2),
@@ -1559,6 +1552,16 @@ export default function ExpensesPage() {
                                 <span>{paymentLabel(e.paymentMethod)}</span>
                                 <span className="opacity-50">•</span>
                                 <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{formatRelative(e.expenseDate)}</span>
+                                {/* Kis branch ka kharcha */}
+                                {e.shop?.name && (
+                                  <>
+                                    <span className="opacity-50">•</span>
+                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 text-[10px] font-extrabold">
+                                      <Store className="h-2.5 w-2.5" />
+                                      {e.shop.name}
+                                    </span>
+                                  </>
+                                )}
                               </div>
                               {e.description && (
                                 <div className="text-xs text-slate-600 dark:text-slate-300 mt-1 font-semibold line-clamp-1">📝 {e.description}</div>

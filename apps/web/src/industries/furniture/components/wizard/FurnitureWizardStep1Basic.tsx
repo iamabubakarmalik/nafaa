@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Sofa, DollarSign, Image as ImageIcon, Sparkles, Star, TrendingUp,
@@ -13,6 +13,7 @@ import { categoriesApi } from '@modules/inventory/categories/api/categories.api'
 import { tagsApi } from '@modules/inventory/tags/api/tags.api';
 import { formatPKRFull } from '@core/lib/format';
 import type { FurnitureWizardBasic } from '../../hooks/useFurnitureWizard';
+import { CategoryPicker, makeCategoryTypeResolver } from '@modules/inventory/categories/components/CategoryPicker';
 
 interface Props {
   basic: FurnitureWizardBasic;
@@ -115,7 +116,59 @@ const MARKUPS = [15, 20, 25, 30, 40, 50];
 
 const COUNTRIES = ['Pakistan', 'Malaysia', 'Indonesia', 'China', 'India', 'Turkey', 'Italy', 'USA', 'Germany'];
 
+
+/* Category ke NAAM se andar wala `categoryType` — pehle ye alag
+   se poochha jata tha jo confusing tha (aur kuch values DB me
+   thin hi nahi). Match na ho to fallback. */
+const resolveCategoryType = makeCategoryTypeResolver<string>([
+  [/sofa.*l\s?shape|l\s?shape/i, "SOFA_L_SHAPE"],
+  [/recliner/i, "SOFA_RECLINER"],
+  [/sofa.*bed/i, "SOFA_BED"],
+  [/sofa/i, "SOFA_SET"],
+  [/bed.*(king)/i, "BED_KING"],
+  [/bed.*(queen)/i, "BED_QUEEN"],
+  [/bed.*(double)/i, "BED_DOUBLE"],
+  [/bed.*(single)/i, "BED_SINGLE"],
+  [/bunk/i, "BED_BUNK"],
+  [/mattress|gadda/i, "MATTRESS"],
+  [/bed|palang/i, "BED_DOUBLE"],
+  [/wardrobe|almari/i, "WARDROBE"],
+  [/dressing/i, "DRESSING_TABLE"],
+  [/dining.*chair/i, "DINING_CHAIR"],
+  [/dining/i, "DINING_SET"],
+  [/center|centre/i, "CENTER_TABLE"],
+  [/side\s?table/i, "SIDE_TABLE"],
+  [/study/i, "STUDY_TABLE"],
+  [/office.*chair/i, "OFFICE_CHAIR"],
+  [/office|desk/i, "OFFICE_DESK"],
+  [/book\s?shelf|shelf/i, "BOOKSHELF"],
+  [/tv|console/i, "TV_CONSOLE"],
+  [/shoe\s?rack/i, "SHOE_RACK"],
+  [/cabinet/i, "CABINET"],
+  [/cupboard/i, "CUPBOARD"],
+  [/kid|bach|baby|cot/i, "KIDS_FURNITURE"],
+  [/outdoor|garden/i, "OUTDOOR_FURNITURE"],
+  [/bean\s?bag/i, "BEAN_BAG"],
+  [/curtain|parda/i, "CURTAINS"],
+  [/rug|carpet/i, "RUG"],
+  [/mirror|sheesha/i, "MIRROR"],
+  [/light/i, "LIGHTING"],
+  [/decor/i, "DECOR"],
+  [/custom/i, "CUSTOM_FURNITURE"],
+  [/chair|kursi/i, "DINING_CHAIR"],
+  [/table|mez/i, "CENTER_TABLE"],
+], 'OTHER');
+
 export function FurnitureWizardStep1Basic({ basic, onChange, errors }: Props) {
+  const { data: catsForType = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list });
+  /* Category chunte hi andar wala type set ho jata hai */
+  useEffect(() => {
+    const name = (catsForType as any[]).find((c) => c.id === basic.categoryId)?.name;
+    const derived = resolveCategoryType(name);
+    if (derived !== basic.categoryType) onChange({ categoryType: derived } as any);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [basic.categoryId, catsForType]);
+
   const [scan, setScan] = useState(false);
   const [adv, setAdv] = useState(Boolean(basic.mrp || basic.taxRate || basic.discountedPrice || basic.emiStartingFrom));
   const [showShowroom, setShowShowroom] = useState(Boolean(basic.showroomLocation || basic.showroomFloor));
@@ -202,28 +255,14 @@ export function FurnitureWizardStep1Basic({ basic, onChange, errors }: Props) {
 
       {/* 2 — CATEGORY */}
       <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-3">
-        <Head icon={Tag} n="2" t="Category" d="What kind of furniture is this?" />
-        <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
-          {CATEGORY_GROUPS.map((grp) => (
-            <div key={grp.group}>
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500 mb-1.5">{grp.group}</div>
-              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
-                {grp.items.map((c) => {
-                  const a = basic.categoryType === c.v;
-                  return (
-                    <button key={c.v} type="button" onClick={() => onChange({ categoryType: c.v })}
-                      className={['p-2.5 rounded-xl border-2 transition flex flex-col items-center justify-center gap-0.5 min-h-[68px]',
-                        a ? 'border-amber-600 bg-amber-600 text-white shadow-md scale-[1.03]'
-                          : 'border-slate-200 bg-white text-slate-700 hover:border-amber-400'].join(' ')}>
-                      <span className="text-xl leading-none">{c.e}</span>
-                      <span className="text-[10px] font-extrabold text-center leading-tight">{c.l}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
+        <Head icon={Tag} n="2" t="Category" d="Aap ki apni category" />
+
+        <CategoryPicker
+          value={basic.categoryId}
+          onChange={(categoryId) => onChange({ categoryId })}
+          tone="amber"
+          examples="jaise Sofa, Beds, Dining"
+        />
       </section>
 
       {/* 3 — CONDITION */}
@@ -395,14 +434,6 @@ export function FurnitureWizardStep1Basic({ basic, onChange, errors }: Props) {
       {/* 7 — CATEGORY & DESCRIPTION */}
       <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-4">
         <Head icon={Tag} n="7" t="Shop Category & Description" d="Optional but helps search" />
-        <div>
-          <Lbl>Shop Category</Lbl>
-          <select value={basic.categoryId} onChange={(e) => onChange({ categoryId: e.target.value })}
-            className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-amber-500">
-            <option value="">None</option>
-            {(cats as any[]).map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
-          </select>
-        </div>
         <div>
           <Lbl>Description <Opt /></Lbl>
           <textarea rows={2} value={basic.description} onChange={(e) => onChange({ description: e.target.value })}

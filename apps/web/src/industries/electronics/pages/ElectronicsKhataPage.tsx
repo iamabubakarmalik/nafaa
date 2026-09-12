@@ -3,38 +3,55 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
+  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell,
+} from 'recharts';
+import {
   HandCoins, Users, Search, RefreshCw, FileSpreadsheet, Printer, X,
   GraduationCap, Keyboard, CheckCircle2, Sparkles, Wallet, TrendingUp,
-  AlertTriangle, Phone, ArrowRight, Loader2, Plus, Receipt, ShieldAlert,
-  Store, MessageCircle, Barcode,
+  AlertTriangle, Phone, ArrowRight, Loader2, Plus, Minus, ShieldAlert,
+  MessageCircle, Barcode, BookOpen, Clock, History, BarChart3, Crown,
+  TrendingDown, UserPlus, Upload, ArrowDownLeft, ArrowUpRight,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@core/ui/Button';
 import { formatPKR } from '@core/lib/format';
-import { useAuthStore } from '@core/stores/auth.store';
+import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { PrintStyles } from '@core/components/print/PrintStyles';
-import { customerLedgerApi } from '@modules/customers/khata/api/customer-ledger.api';
+import {
+  customerLedgerApi, type Debtor, type LedgerType,
+} from '@modules/customers/khata/api/customer-ledger.api';
+import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { salesApi } from '@modules/sales/sales/api/sales.api';
 
 /* ═════════════════════════════════════════════════════════════
    NAFAA ELECTRONICS — UDHAAR KHATA
    ─────────────────────────────────────────────────────────────
-   💰 Kis ka kitna paisa baqi hai
-   ⚠️ Credit limit se upar gaye customers ka alert
-   🔖 Jis sale me serial unit gaya tha wo alag nazar aata hai —
-      mehngi cheez udhaar par gayi ho to pata hona chahiye
+   💰 Kis ka kitna baqi — poori list, sirf top 20 nahi
+   ➕ Udhaar seedha chadhayein — sale ke baghair bhi
+   📖 Purana khata (copy se software par) — opening balance
+   📊 Is mahine kitna udhaar gaya, kitna wasool hua
+   ⏰ Jo 30+ din se khamosh hain — unhe yaad dilayein
    ═════════════════════════════════════════════════════════════ */
 
-type Tab = 'all' | 'over' | 'big';
+type Tab = 'all' | 'over' | 'stale' | 'activity';
+
+const LEDGER_META: Record<LedgerType, { label: string; chip: string; icon: any }> = {
+  SALE_CREDIT:      { label: 'Sale par udhaar', chip: 'bg-amber-100 text-amber-700',   icon: ArrowUpRight },
+  ADJUSTMENT:       { label: 'Udhaar chadhaya', chip: 'bg-orange-100 text-orange-700', icon: Plus },
+  PAYMENT_RECEIVED: { label: 'Wasooli',         chip: 'bg-emerald-100 text-emerald-700', icon: ArrowDownLeft },
+  OPENING_BALANCE:  { label: 'Purana khata',    chip: 'bg-violet-100 text-violet-700', icon: BookOpen },
+};
 
 export default function ElectronicsKhataPage() {
   const qc = useQueryClient();
-  const currentShopId = useAuthStore((s) => s.currentShopId);
+  const currentShopId = useShopParam();
   const tenantName = useAuthStore((s: any) => s.tenant?.name);
 
   const [tab, setTab] = useState<Tab>('all');
   const [search, setSearch] = useState('');
-  const [payFor, setPayFor] = useState<{ id: string; name: string; balance: number } | null>(null);
+  const [action, setAction] = useState<
+    { kind: 'pay' | 'udhaar'; customer: Debtor } | { kind: 'opening' } | null
+  >(null);
   const [showTeacher, setShowTeacher] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -49,6 +66,12 @@ export default function ElectronicsKhataPage() {
     queryFn: () => salesApi.list(currentShopId || undefined),
   });
 
+  const refreshAll = () => {
+    qc.invalidateQueries({ queryKey: ['customer-ledger-summary'] });
+    qc.invalidateQueries({ queryKey: ['customers'] });
+    qc.invalidateQueries({ queryKey: ['customers-stats'] });
+  };
+
   /* ─── Shortcuts ─── */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -57,78 +80,94 @@ export default function ElectronicsKhataPage() {
       if (e.key === 'Escape') {
         if (showShortcuts) return setShowShortcuts(false);
         if (showTeacher) return setShowTeacher(false);
-        if (payFor) return setPayFor(null);
+        if (action) return setAction(null);
         return;
       }
       if (typing || e.ctrlKey || e.metaKey) return;
       if (e.key === '/') { e.preventDefault(); searchRef.current?.focus(); }
+      if (e.key === 'n') setAction({ kind: 'opening' });
       if (e.key === 'g') setShowTeacher(true);
       if (e.key === 'r') refetch();
       if (e.key === 'p') window.print();
       if (e.key === '?') setShowShortcuts((v) => !v);
+      if (['1', '2', '3', '4'].includes(e.key)) {
+        const t: Tab[] = ['all', 'over', 'stale', 'activity'];
+        setTab(t[Number(e.key) - 1]);
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showTeacher, showShortcuts, payFor]);
+  }, [showTeacher, showShortcuts, action]);
 
-  const anyModal = showTeacher || showShortcuts || !!payFor;
+  const anyModal = showTeacher || showShortcuts || !!action;
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = anyModal ? 'hidden' : prev;
     return () => { document.body.style.overflow = prev; };
   }, [anyModal]);
 
-  /* Credit wali sales — kis customer ne kya udhaar liya */
-  const creditSales = useMemo(
-    () => sales.filter((s) => (s.creditAmount ?? 0) > 0),
-    [sales],
-  );
-
   /* Kis customer ki udhaar wali sale me serial unit gaya tha */
   const serialCreditByCustomer = useMemo(() => {
     const m = new Map<string, number>();
-    for (const s of creditSales) {
-      if (!s.customer?.id) continue;
+    for (const s of sales) {
+      if ((s.creditAmount ?? 0) <= 0 || !s.customer?.id) continue;
       const n = (s.items ?? []).reduce((a: number, it: any) => a + (it.serials?.length ?? 0), 0);
       if (n > 0) m.set(s.customer.id, (m.get(s.customer.id) ?? 0) + n);
     }
     return m;
-  }, [creditSales]);
+  }, [sales]);
 
   const debtors = summary?.topDebtors ?? [];
+  const stale = summary?.staleDebtors ?? [];
 
   const counts = useMemo(() => ({
     all: debtors.length,
     over: debtors.filter((d) => d.creditLimit > 0 && d.balance > d.creditLimit).length,
-    big: debtors.filter((d) => d.balance >= 50000).length,
-  }), [debtors]);
+    stale: stale.length,
+    activity: summary?.recentActivity?.length ?? 0,
+  }), [debtors, stale, summary]);
 
   const list = useMemo(() => {
-    let l = [...debtors];
+    let l: Debtor[] = tab === 'stale' ? stale : debtors;
     if (tab === 'over') l = l.filter((d) => d.creditLimit > 0 && d.balance > d.creditLimit);
-    if (tab === 'big') l = l.filter((d) => d.balance >= 50000);
     const q = search.toLowerCase().trim();
     if (q) l = l.filter((d) => d.name.toLowerCase().includes(q) || (d.phone ?? '').includes(q));
-    return l.sort((a, b) => b.balance - a.balance);
-  }, [debtors, tab, search]);
+    return [...l].sort((a, b) => b.balance - a.balance);
+  }, [debtors, stale, tab, search]);
+
+  /* Top 8 ka chart */
+  const chartRows = useMemo(
+    () => debtors.slice(0, 8).map((d) => ({
+      name: d.name.length > 12 ? d.name.slice(0, 11) + '…' : d.name,
+      Baqi: Math.round(d.balance),
+      over: d.creditLimit > 0 && d.balance > d.creditLimit,
+    })),
+    [debtors],
+  );
 
   const exportCsv = () => {
     const out: string[][] = [
-      [`${tenantName ?? 'Nafaa'} — Electronics Udhaar Khata`],
+      [`${tenantName ?? 'Nafaa'} — Udhaar Khata`],
       [new Date().toLocaleString('en-PK')],
       [],
       ['KHULASA'],
       ['Kul baqi', String(Math.round(summary?.totalOutstanding ?? 0))],
+      ['Udhaar wale customers', String(summary?.customersWithCredit ?? 0)],
       ['Kul customers', String(summary?.totalCustomers ?? 0)],
-      ['Udhaar wale', String(summary?.customersWithCredit ?? 0)],
+      ['Is mahine udhaar gaya', String(Math.round(summary?.thisMonth.udhaar ?? 0))],
+      ['Is mahine wasool hua', String(Math.round(summary?.thisMonth.wasooli ?? 0))],
+      ['Limit se upar', String(summary?.overLimitCount ?? 0)],
+      ['30+ din se khamosh', String(summary?.staleCount ?? 0)],
+      ['Advance jama', String(Math.round(summary?.advance.amount ?? 0))],
       [],
-      ['Naam', 'Phone', 'Baqi', 'Credit Limit', 'Limit se upar', 'Serial units udhaar par'],
+      ['Naam', 'Phone', 'Baqi', 'Credit Limit', 'Limit se upar', 'Kitne din se khamosh', 'Serial units udhaar par'],
       ...list.map((d) => [
         d.name, d.phone ?? '',
         String(Math.round(d.balance)),
         String(Math.round(d.creditLimit)),
         d.creditLimit > 0 && d.balance > d.creditLimit ? 'HAAN' : '',
+        d.daysSinceActivity != null ? String(d.daysSinceActivity) : '',
         String(serialCreditByCustomer.get(d.id) ?? 0),
       ]),
     ];
@@ -136,7 +175,7 @@ export default function ElectronicsKhataPage() {
     const url = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' }));
     const a = document.createElement('a');
     a.href = url;
-    a.download = `electronics-khata-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `khata-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
     toast.success('CSV download ho gaya');
@@ -157,23 +196,30 @@ export default function ElectronicsKhataPage() {
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <div className="h-44 rounded-3xl bg-slate-200 animate-pulse" />
+        <div className="h-48 rounded-3xl bg-slate-200 animate-pulse" />
         <div className="h-96 rounded-3xl bg-slate-200 animate-pulse" />
       </div>
     );
   }
 
+  const net = (summary?.thisMonth.wasooli ?? 0) - (summary?.thisMonth.udhaar ?? 0);
+
   return (
     <div className="space-y-5 pb-10 print:space-y-3">
-      <PrintStyles orientation="portrait" title="Electronics Udhaar Khata" subtitle="Kis ka kitna baqi hai" />
+      <PrintStyles orientation="portrait" title="Udhaar Khata" subtitle="Kis ka kitna baqi hai" />
       {showTeacher && <KhataTeacher onClose={() => setShowTeacher(false)} />}
       {showShortcuts && <ShortcutsModal onClose={() => setShowShortcuts(false)} />}
-      {payFor && (
-        <PaymentModal
-          customer={payFor}
-          onClose={() => setPayFor(null)}
-          onDone={() => { qc.invalidateQueries({ queryKey: ['customer-ledger-summary'] }); setPayFor(null); }}
-        />
+      {action?.kind === 'pay' && (
+        <AmountModal kind="pay" customer={action.customer}
+          onClose={() => setAction(null)} onDone={() => { refreshAll(); setAction(null); }} />
+      )}
+      {action?.kind === 'udhaar' && (
+        <AmountModal kind="udhaar" customer={action.customer}
+          onClose={() => setAction(null)} onDone={() => { refreshAll(); setAction(null); }} />
+      )}
+      {action?.kind === 'opening' && (
+        <OpeningBalanceModal onClose={() => setAction(null)}
+          onDone={() => { refreshAll(); setAction(null); }} />
       )}
 
       {/* ═══ HERO ═══ */}
@@ -187,11 +233,15 @@ export default function ElectronicsKhataPage() {
               </div>
               <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">💰 Kis Ka Kitna Baqi?</h1>
               <p className="mt-2 text-sm text-white/85 font-semibold">
-                Electronics mehngi hoti hai — udhaar par gaya maal wapas aana zaroori hai
+                Sale se bhi, aur seedha bhi — poora khata ek jagah
               </p>
             </div>
 
             <div className="flex items-center gap-1.5 flex-wrap print:hidden">
+              <button onClick={() => setAction({ kind: 'opening' })} title="Purana khata (N)"
+                className="h-11 px-4 rounded-xl bg-white text-slate-900 hover:bg-slate-100 text-xs font-extrabold inline-flex items-center gap-1.5 shadow-lg transition">
+                <BookOpen className="h-4 w-4" /> Purana Khata
+              </button>
               <button onClick={() => setShowTeacher(true)}
                 className="h-11 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-900 text-xs font-extrabold inline-flex items-center gap-1.5 shadow-lg transition" title="Guide (G)">
                 <GraduationCap className="h-4 w-4" /> Guide
@@ -225,26 +275,86 @@ export default function ElectronicsKhataPage() {
               </div>
               <div className="mt-1 text-[11px] font-bold text-white/75">
                 {summary?.customersWithCredit ?? 0} customers ke zimme
+                {(summary?.advance.count ?? 0) > 0 && (
+                  <> · <span className="text-emerald-300">
+                    {summary?.advance.count} ne {formatPKR(summary?.advance.amount ?? 0)} advance diya
+                  </span></>
+                )}
               </div>
             </div>
-            <HeroStat label="Kul Customers" value={String(summary?.totalCustomers ?? 0)} icon={Users} />
-            <HeroStat label="Limit Se Upar" value={String(counts.over)} icon={AlertTriangle}
-              highlight={counts.over > 0} sub={counts.over > 0 ? 'dhyan dein' : 'sab theek'} />
+            <HeroStat label="Is Mahine Udhaar" value={formatPKR(summary?.thisMonth.udhaar ?? 0)}
+              icon={ArrowUpRight} sub="bahar gaya" />
+            <HeroStat label="Is Mahine Wasooli" value={formatPKR(summary?.thisMonth.wasooli ?? 0)}
+              icon={ArrowDownLeft} highlight={net >= 0}
+              sub={net >= 0 ? `${formatPKR(net)} zyada wasool` : `${formatPKR(-net)} zyada udhaar`} />
           </div>
         </div>
       </section>
 
-      {counts.over > 0 && (
-        <div className="rounded-2xl bg-rose-50 border-2 border-rose-300 p-4 flex items-start gap-3 print:hidden">
-          <ShieldAlert className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
-          <div className="flex-1 text-sm font-semibold text-rose-900">
-            <b>{counts.over} customers apni credit limit se upar ja chuke hain.</b> Naya udhaar dene
-            se pehle purana wasool karein — electronics me ek laptop ka udhaar bhi bhaari parta hai.
+      {/* ═══ ALERTS ═══ */}
+      {((summary?.overLimitCount ?? 0) > 0 || (summary?.staleCount ?? 0) > 0) && (
+        <div className="grid sm:grid-cols-2 gap-3 print:hidden">
+          {(summary?.overLimitCount ?? 0) > 0 && (
+            <div className="rounded-2xl bg-rose-50 border-2 border-rose-300 p-4 flex items-center gap-3">
+              <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-rose-500 to-red-600 text-white flex items-center justify-center shadow-lg shrink-0">
+                <ShieldAlert className="h-5 w-5" />
+              </div>
+              <div className="flex-1 text-sm font-semibold text-rose-900 min-w-0">
+                <b>{summary?.overLimitCount} customers limit se upar ja chuke hain.</b> Naya udhaar
+                dene se pehle purana wasool karein.
+              </div>
+              <button onClick={() => setTab('over')}
+                className="px-3 h-9 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold shrink-0 transition">
+                Dekho
+              </button>
+            </div>
+          )}
+          {(summary?.staleCount ?? 0) > 0 && (
+            <div className="rounded-2xl bg-amber-50 border-2 border-amber-300 p-4 flex items-center gap-3">
+              <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-lg shrink-0">
+                <Clock className="h-5 w-5" />
+              </div>
+              <div className="flex-1 text-sm font-semibold text-amber-900 min-w-0">
+                <b>{summary?.staleCount} customers 30+ din se khamosh hain.</b> Na kuch liya, na
+                kuch diya — inhe yaad dila dein.
+              </div>
+              <button onClick={() => setTab('stale')}
+                className="px-3 h-9 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-extrabold shrink-0 transition">
+                Dekho
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ═══ CHART ═══ */}
+      {chartRows.length > 1 && (
+        <div className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-5 print:hidden">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="h-9 w-9 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center">
+              <BarChart3 className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-slate-900">Sab Se Bara Udhaar</h3>
+              <p className="text-[11px] font-bold text-slate-500">Laal = credit limit se upar</p>
+            </div>
           </div>
-          <button onClick={() => setTab('over')}
-            className="px-3 h-9 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold shrink-0 transition">
-            Dekho
-          </button>
+          <div className="h-56 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartRows} margin={{ top: 4, right: 8, left: -12, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                <XAxis dataKey="name" tick={{ fontSize: 10, fontWeight: 700 }} stroke="#64748b"
+                  interval={0} angle={-12} height={44} textAnchor="end" tickLine={false} axisLine={false} />
+                <YAxis tick={{ fontSize: 10, fontWeight: 700 }} stroke="#64748b" width={52} tickLine={false} axisLine={false}
+                  tickFormatter={(v) => (Math.abs(v) >= 1000 ? `${Math.round(v / 1000)}k` : String(v))} />
+                <Tooltip formatter={(v: any) => formatPKR(Number(v))}
+                  contentStyle={{ borderRadius: 12, border: '2px solid #e2e8f0', fontWeight: 700, fontSize: 12 }} />
+                <Bar dataKey="Baqi" radius={[6, 6, 0, 0]}>
+                  {chartRows.map((r, i) => <Cell key={i} fill={r.over ? '#e11d48' : '#f97316'} />)}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       )}
 
@@ -254,9 +364,10 @@ export default function ElectronicsKhataPage() {
           {([
             { v: 'all', label: 'Sab', icon: Users, n: counts.all },
             { v: 'over', label: 'Limit Se Upar', icon: AlertTriangle, n: counts.over },
-            { v: 'big', label: 'Bara Udhaar', icon: TrendingUp, n: counts.big },
-          ] as { v: Tab; label: string; icon: any; n: number }[]).map((k) => (
-            <button key={k.v} onClick={() => setTab(k.v)}
+            { v: 'stale', label: 'Khamosh', icon: Clock, n: counts.stale },
+            { v: 'activity', label: 'Hal Ki Harkat', icon: History, n: counts.activity },
+          ] as { v: Tab; label: string; icon: any; n: number }[]).map((k, i) => (
+            <button key={k.v} onClick={() => setTab(k.v)} title={`Shortcut: ${i + 1}`}
               className={`h-9 px-3 rounded-lg text-xs font-extrabold inline-flex items-center gap-1.5 transition border-2 ${
                 tab === k.v ? 'bg-gradient-to-r from-rose-600 to-orange-700 text-white border-transparent shadow'
                   : 'bg-white border-slate-200 text-slate-600 hover:border-rose-300'
@@ -266,25 +377,71 @@ export default function ElectronicsKhataPage() {
             </button>
           ))}
         </div>
-        <div className="relative">
-          <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)}
-            placeholder="Naam ya phone... (/)"
-            className="h-10 w-full sm:w-64 rounded-xl border-2 border-slate-200 bg-white pl-9 pr-3 text-sm font-bold text-slate-900 focus:outline-none focus:border-rose-500 transition" />
-        </div>
+        {tab !== 'activity' && (
+          <div className="relative">
+            <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)}
+              placeholder="Naam ya phone... (/)"
+              className="h-10 w-full sm:w-64 rounded-xl border-2 border-slate-200 bg-white pl-9 pr-3 text-sm font-bold text-slate-900 focus:outline-none focus:border-rose-500 transition" />
+          </div>
+        )}
       </div>
 
-      {/* ═══ LIST ═══ */}
-      {list.length === 0 ? (
-        <div className="rounded-3xl bg-white border-2 border-slate-200 p-12 text-center shadow-sm">
-          <CheckCircle2 className="h-12 w-12 text-emerald-400 mx-auto mb-3" />
-          <h3 className="font-extrabold text-slate-900 text-lg">
-            {search || tab !== 'all' ? 'Kuch nahi mila' : 'Kisi par koi udhaar nahi 🎉'}
-          </h3>
-          <p className="text-sm font-semibold text-slate-500 mt-1.5">
-            {search || tab !== 'all' ? 'Filter hata kar dekhein' : 'Sab customers clear hain'}
-          </p>
-        </div>
+      {/* ═══ ACTIVITY ═══ */}
+      {tab === 'activity' ? (
+        (summary?.recentActivity ?? []).length === 0 ? (
+          <Empty icon={History} title="Abhi koi harkat nahi"
+            desc="Udhaar ya wasooli hote hi yahan nazar aayegi" />
+        ) : (
+          <div className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm overflow-hidden divide-y divide-slate-100">
+            {(summary?.recentActivity ?? []).map((a) => {
+              const meta = LEDGER_META[a.type] ?? LEDGER_META.ADJUSTMENT;
+              const isIn = a.amount < 0;
+              return (
+                <div key={a.id} className="px-4 py-3 flex items-center gap-3">
+                  <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${meta.chip}`}>
+                    <meta.icon className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Link to={a.customer?.id ? `/customers/${a.customer.id}` : '#'}
+                        className="font-extrabold text-slate-900 text-sm hover:underline truncate">
+                        {a.customer?.name ?? 'Customer'}
+                      </Link>
+                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold ${meta.chip}`}>
+                        {meta.label}
+                      </span>
+                    </div>
+                    <div className="mt-0.5 text-[11px] font-bold text-slate-500 truncate">
+                      {a.note}
+                      {a.reference && <span className="font-mono"> · {a.reference}</span>}
+                    </div>
+                    <div className="text-[10px] font-bold text-slate-400">
+                      {new Date(a.createdAt).toLocaleString('en-PK', {
+                        day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit',
+                      })}
+                      {a.createdBy?.fullName && ` · ${a.createdBy.fullName}`}
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className={`text-base font-extrabold tabular-nums ${isIn ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      {isIn ? '−' : '+'}{formatPKR(Math.abs(a.amount))}
+                    </div>
+                    <div className="text-[10px] font-bold text-slate-400 tabular-nums">
+                      baqi {formatPKR(a.balanceAfter)}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )
+      ) : list.length === 0 ? (
+        <Empty icon={CheckCircle2} tone="emerald"
+          title={search ? 'Kuch nahi mila' : tab === 'all' ? 'Kisi par koi udhaar nahi 🎉' : 'Is filter me koi nahi'}
+          desc={tab === 'all' && !search
+            ? 'Sab customers clear hain. Purana khata shuru karna ho to upar "Purana Khata" dabayein.'
+            : 'Filter hata kar dekhein'} />
       ) : (
         <div className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm overflow-hidden divide-y divide-slate-100">
           {list.map((d) => {
@@ -304,9 +461,19 @@ export default function ElectronicsKhataPage() {
                     <Link to={`/customers/${d.id}`} className="font-extrabold text-slate-900 text-sm hover:text-rose-700 hover:underline truncate">
                       {d.name}
                     </Link>
+                    {d.isVip && (
+                      <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-extrabold inline-flex items-center gap-0.5">
+                        <Crown className="h-2.5 w-2.5" /> VIP
+                      </span>
+                    )}
                     {over && (
                       <span className="px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 text-[9px] font-extrabold inline-flex items-center gap-0.5">
                         <AlertTriangle className="h-2.5 w-2.5" /> Limit se upar
+                      </span>
+                    )}
+                    {d.daysSinceActivity != null && d.daysSinceActivity >= 30 && (
+                      <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-extrabold inline-flex items-center gap-0.5">
+                        <Clock className="h-2.5 w-2.5" /> {d.daysSinceActivity} din khamosh
                       </span>
                     )}
                     {serialUnits > 0 && (
@@ -341,9 +508,13 @@ export default function ElectronicsKhataPage() {
                       <MessageCircle className="h-4 w-4" />
                     </button>
                   )}
-                  <button onClick={() => setPayFor({ id: d.id, name: d.name, balance: d.balance })}
+                  <button onClick={() => setAction({ kind: 'udhaar', customer: d })} title="Aur udhaar chadhayein"
+                    className="h-10 w-10 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-700 flex items-center justify-center transition">
+                    <Plus className="h-4 w-4" />
+                  </button>
+                  <button onClick={() => setAction({ kind: 'pay', customer: d })}
                     className="h-10 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 text-white text-xs font-extrabold inline-flex items-center gap-1.5 shadow hover:shadow-lg transition">
-                    <Plus className="h-3.5 w-3.5" /> Wasooli
+                    <Minus className="h-3.5 w-3.5" /> Wasooli
                   </button>
                 </div>
               </div>
@@ -351,56 +522,62 @@ export default function ElectronicsKhataPage() {
           })}
         </div>
       )}
-
-      {creditSales.length > 0 && (
-        <Link to="/sales"
-          className="inline-flex items-center gap-1.5 text-sm font-extrabold text-rose-700 hover:underline print:hidden">
-          Udhaar wali {creditSales.length} sales dekhein <ArrowRight className="h-4 w-4" />
-        </Link>
-      )}
     </div>
   );
 }
 
 /* ═════════════════════════════════════════════════════════════
-   WASOOLI MODAL
+   WASOOLI / UDHAAR MODAL
    ═════════════════════════════════════════════════════════════ */
 
-function PaymentModal({ customer, onClose, onDone }: {
-  customer: { id: string; name: string; balance: number };
+function AmountModal({ kind, customer, onClose, onDone }: {
+  kind: 'pay' | 'udhaar';
+  customer: Debtor;
   onClose: () => void; onDone: () => void;
 }) {
+  const isPay = kind === 'pay';
   const [amount, setAmount] = useState<number | ''>('');
+  const [reference, setReference] = useState('');
   const [note, setNote] = useState('');
 
   const mutation = useMutation({
-    mutationFn: () => customerLedgerApi.receivePayment(customer.id, {
-      amount: Number(amount), note: note || undefined,
-    }),
+    mutationFn: () => (isPay
+      ? customerLedgerApi.receivePayment(customer.id, {
+          amount: Number(amount), reference: reference || undefined, note: note || undefined,
+        })
+      : customerLedgerApi.addUdhaar(customer.id, {
+          amount: Number(amount), reference: reference || undefined, note: note || undefined,
+        })),
     onSuccess: () => {
-      toast.success(`${formatPKR(Number(amount))} wasool ho gaya`);
+      toast.success(isPay
+        ? `${formatPKR(Number(amount))} wasool ho gaya`
+        : `${formatPKR(Number(amount))} udhaar chadh gaya`);
       onDone();
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Wasooli fail hui'),
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Kaam nahi hua'),
   });
 
   const amt = Number(amount || 0);
-  const remaining = Math.max(0, customer.balance - amt);
-  const valid = amt > 0 && amt <= customer.balance && !mutation.isPending;
-
-  const QUICK = [1000, 5000, 10000, 25000];
+  const after = isPay ? Math.max(0, customer.balance - amt) : customer.balance + amt;
+  const tooMuch = isPay && amt > customer.balance;
+  const valid = amt > 0 && !tooMuch && !mutation.isPending;
+  const QUICK = [500, 1000, 5000, 10000, 25000];
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden">
-        <div className="px-5 py-4 bg-gradient-to-r from-emerald-600 to-teal-700 text-white flex items-center justify-between">
+        className="w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[94vh] flex flex-col">
+        <div className={`px-5 py-4 text-white flex items-center justify-between shrink-0 ${
+          isPay ? 'bg-gradient-to-r from-emerald-600 to-teal-700' : 'bg-gradient-to-r from-orange-600 to-red-700'
+        }`}>
           <div className="flex items-center gap-3 min-w-0">
             <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shrink-0">
-              <HandCoins className="h-5 w-5" />
+              {isPay ? <ArrowDownLeft className="h-5 w-5" /> : <ArrowUpRight className="h-5 w-5" />}
             </div>
             <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70">Wasooli</div>
+              <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70">
+                {isPay ? 'Wasooli — paisa mila' : 'Udhaar chadhayein'}
+              </div>
               <h3 className="font-extrabold truncate">{customer.name}</h3>
             </div>
           </div>
@@ -409,67 +586,259 @@ function PaymentModal({ customer, onClose, onDone }: {
           </button>
         </div>
 
-        <div className="p-5 space-y-4">
-          <div className="rounded-2xl bg-rose-50 border-2 border-rose-200 p-3 flex items-center justify-between">
-            <span className="text-sm font-bold text-rose-900">Abhi baqi</span>
-            <span className="text-xl font-extrabold text-rose-700 tabular-nums">{formatPKR(customer.balance)}</span>
+        <div className="flex-1 overflow-y-auto p-5 space-y-4">
+          <div className="rounded-2xl bg-slate-50 border-2 border-slate-200 p-3 flex items-center justify-between">
+            <span className="text-sm font-bold text-slate-600">Abhi baqi</span>
+            <span className="text-xl font-extrabold text-slate-900 tabular-nums">{formatPKR(customer.balance)}</span>
           </div>
 
+          {!isPay && (
+            <div className="rounded-xl bg-amber-50 border-2 border-amber-200 p-3 flex items-start gap-2">
+              <Sparkles className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+              <div className="text-xs font-semibold text-amber-900">
+                Ye udhaar bina sale ke chadh raha hai — jaise koi cheez bina bill ke di,
+                ya purana hisab reh gaya tha.
+              </div>
+            </div>
+          )}
+
           <div>
-            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-1.5">
-              Kitna Paisa Mila?
-            </label>
-            <input type="number" autoFocus value={amount} min={0} max={customer.balance}
+            <Lbl>{isPay ? 'Kitna Paisa Mila?' : 'Kitna Udhaar?'}</Lbl>
+            <input type="number" autoFocus value={amount} min={0}
+              max={isPay ? customer.balance : undefined}
               onChange={(e) => setAmount(e.target.value === '' ? '' : Number(e.target.value))}
               placeholder="0"
-              className="h-16 w-full rounded-2xl border-2 border-emerald-400 bg-white px-4 text-center text-3xl font-extrabold tabular-nums text-emerald-900 focus:outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-200 transition" />
+              className={`h-16 w-full rounded-2xl border-2 bg-white px-4 text-center text-3xl font-extrabold tabular-nums focus:outline-none focus:ring-4 transition ${
+                isPay
+                  ? 'border-emerald-400 text-emerald-900 focus:border-emerald-600 focus:ring-emerald-200'
+                  : 'border-orange-400 text-orange-900 focus:border-orange-600 focus:ring-orange-200'
+              }`} />
             <div className="mt-2 flex flex-wrap gap-1.5">
-              {QUICK.filter((q) => q <= customer.balance).map((q) => (
+              {QUICK.filter((q) => !isPay || q <= customer.balance).map((q) => (
                 <button key={q} onClick={() => setAmount(q)}
-                  className="px-3 py-1.5 rounded-xl bg-white border-2 border-emerald-200 hover:border-emerald-400 text-emerald-800 text-xs font-extrabold transition">
+                  className={`px-3 py-1.5 rounded-xl bg-white border-2 text-xs font-extrabold transition ${
+                    isPay ? 'border-emerald-200 hover:border-emerald-400 text-emerald-800'
+                      : 'border-orange-200 hover:border-orange-400 text-orange-800'
+                  }`}>
                   {formatPKR(q)}
                 </button>
               ))}
-              <button onClick={() => setAmount(customer.balance)}
-                className="px-3 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-extrabold hover:bg-emerald-700 transition">
-                Poora ({formatPKR(customer.balance)})
-              </button>
+              {isPay && customer.balance > 0 && (
+                <button onClick={() => setAmount(customer.balance)}
+                  className="px-3 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-extrabold hover:bg-emerald-700 transition">
+                  Poora ({formatPKR(customer.balance)})
+                </button>
+              )}
             </div>
           </div>
 
-          {amt > 0 && (
+          {amt > 0 && !tooMuch && (
             <div className="rounded-xl bg-slate-50 border-2 border-slate-200 p-3 flex items-center justify-between">
-              <span className="text-sm font-bold text-slate-600">Wasooli ke baad baqi</span>
-              <span className={`text-lg font-extrabold tabular-nums ${remaining === 0 ? 'text-emerald-600' : 'text-slate-900'}`}>
-                {remaining === 0 ? 'Clear ✅' : formatPKR(remaining)}
+              <span className="text-sm font-bold text-slate-600">Iske baad baqi</span>
+              <span className={`text-lg font-extrabold tabular-nums ${
+                after === 0 ? 'text-emerald-600' : isPay ? 'text-slate-900' : 'text-rose-600'
+              }`}>
+                {after === 0 ? 'Clear ✅' : formatPKR(after)}
               </span>
             </div>
           )}
 
-          {amt > customer.balance && (
+          {tooMuch && (
             <div className="rounded-xl bg-rose-50 border-2 border-rose-200 p-3 text-sm font-semibold text-rose-900 flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 shrink-0" /> Baqi se zyada paisa nahi liya ja sakta
             </div>
           )}
 
-          <div>
-            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-1.5">
-              Note <span className="text-slate-400 normal-case font-bold">(optional)</span>
-            </label>
-            <input value={note} onChange={(e) => setNote(e.target.value)}
-              placeholder="jaise: cash mila"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500 transition" />
+          {!isPay && customer.creditLimit > 0 && after > customer.creditLimit && (
+            <div className="rounded-xl bg-amber-50 border-2 border-amber-200 p-3 text-sm font-semibold text-amber-900 flex items-start gap-2">
+              <ShieldAlert className="h-4 w-4 shrink-0 mt-0.5" />
+              <span>Is se customer apni credit limit ({formatPKR(customer.creditLimit)}) se upar chala jayega.</span>
+            </div>
+          )}
+
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div>
+              <Lbl>Parchi / Bill # <span className="text-slate-400 normal-case font-bold">(optional)</span></Lbl>
+              <input value={reference} onChange={(e) => setReference(e.target.value)}
+                placeholder="jaise: 1204"
+                className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-slate-400 transition" />
+            </div>
+            <div>
+              <Lbl>Note <span className="text-slate-400 normal-case font-bold">(optional)</span></Lbl>
+              <input value={note} onChange={(e) => setNote(e.target.value)}
+                placeholder={isPay ? 'jaise: cash mila' : 'jaise: charger bina bill'}
+                className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-slate-400 transition" />
+            </div>
           </div>
         </div>
 
-        <div className="px-5 py-3.5 border-t-2 border-slate-100 bg-slate-50 flex gap-2 justify-end">
+        <div className="px-5 py-3.5 border-t-2 border-slate-100 bg-slate-50 flex gap-2 justify-end shrink-0">
           <button onClick={onClose} className="h-11 px-4 rounded-xl bg-white border-2 border-slate-200 text-slate-700 text-sm font-extrabold hover:bg-slate-100 transition">
             Cancel
           </button>
           <Button onClick={() => mutation.mutate()} disabled={!valid}
-            className="bg-gradient-to-r from-emerald-600 to-teal-700 font-extrabold shadow-lg">
+            className={isPay
+              ? 'bg-gradient-to-r from-emerald-600 to-teal-700 font-extrabold shadow-lg'
+              : 'bg-gradient-to-r from-orange-600 to-red-700 font-extrabold shadow-lg'}>
             {mutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-            Wasooli Darj Karein
+            {isPay ? 'Wasooli Darj Karein' : 'Udhaar Chadhayein'}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═════════════════════════════════════════════════════════════
+   PURANA KHATA — copy se software par
+   ═════════════════════════════════════════════════════════════ */
+
+function OpeningBalanceModal({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
+  const [search, setSearch] = useState('');
+  const [chosen, setChosen] = useState<{ id: string; name: string; phone?: string | null; balance: number } | null>(null);
+  const [balance, setBalance] = useState<number | ''>('');
+  const [note, setNote] = useState('');
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['customers', 'opening-balance', search],
+    queryFn: () => customersApi.list({ search, page: 1, limit: 30 }),
+  });
+  const customers = (data as any)?.items ?? [];
+
+  const mutation = useMutation({
+    mutationFn: () => customerLedgerApi.setOpeningBalance(chosen!.id, {
+      balance: Number(balance), note: note || undefined,
+    }),
+    onSuccess: () => {
+      toast.success(`${chosen!.name} ka purana khata shuru ho gaya`);
+      onDone();
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Khata shuru nahi hua'),
+  });
+
+  const valid = !!chosen && Number(balance || 0) >= 0 && balance !== '' && !mutation.isPending;
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()}
+        className="w-full sm:max-w-lg bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[94vh] flex flex-col">
+        <div className="px-5 py-4 bg-gradient-to-r from-violet-600 to-purple-700 text-white flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur">
+              <BookOpen className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70">Purana Khata</div>
+              <h3 className="font-extrabold">Copy Se Software Par</h3>
+            </div>
+          </div>
+          <button onClick={onClose} className="h-9 w-9 rounded-xl hover:bg-white/20 flex items-center justify-center transition">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-5 space-y-4">
+          <div className="rounded-xl bg-violet-50 border-2 border-violet-200 p-3 flex items-start gap-2">
+            <Upload className="h-4 w-4 text-violet-600 shrink-0 mt-0.5" />
+            <div className="text-xs font-semibold text-violet-900">
+              Pehle copy par khata likhte the? Yahan har customer ka <b>purana baqi</b> ek bar
+              likh dein — uske baad software khud hisab rakhega. Ye har customer ka
+              <b> sirf ek bar</b> lagta hai.
+            </div>
+          </div>
+
+          <div>
+            <Lbl>Customer</Lbl>
+            {chosen ? (
+              <div className="rounded-xl border-2 border-violet-300 bg-violet-50 p-3 flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center font-extrabold shrink-0">
+                  {chosen.name.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-extrabold text-slate-900 text-sm truncate">{chosen.name}</div>
+                  <div className="text-[11px] font-bold text-slate-600">
+                    {chosen.phone ?? 'phone nahi'} · abhi {formatPKR(chosen.balance)} baqi
+                  </div>
+                </div>
+                <button onClick={() => setChosen(null)}
+                  className="h-9 w-9 rounded-lg bg-white hover:bg-slate-100 text-slate-500 flex items-center justify-center shrink-0 transition">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="relative mb-2">
+                  <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input value={search} onChange={(e) => setSearch(e.target.value)} autoFocus
+                    placeholder="Naam ya phone se dhoondein..."
+                    className="h-11 w-full rounded-xl border-2 border-slate-200 pl-9 pr-3 text-sm font-bold focus:outline-none focus:border-violet-500 transition" />
+                </div>
+                <div className="rounded-xl border-2 border-slate-200 max-h-52 overflow-y-auto divide-y divide-slate-100">
+                  {isLoading ? (
+                    <div className="p-6 text-center text-sm font-bold text-slate-500">
+                      <Loader2 className="h-5 w-5 animate-spin mx-auto" />
+                    </div>
+                  ) : customers.length === 0 ? (
+                    <div className="p-6 text-center">
+                      <p className="text-sm font-bold text-slate-700">Koi customer nahi mila</p>
+                      <Link to="/customers/new"
+                        className="mt-2 inline-flex items-center gap-1 text-xs font-extrabold text-violet-700 hover:underline">
+                        <UserPlus className="h-3.5 w-3.5" /> Naya customer banayein
+                      </Link>
+                    </div>
+                  ) : customers.map((c: any) => (
+                    <button key={c.id} onClick={() => { setChosen(c); setBalance(c.balance || ''); }}
+                      className="w-full px-3 py-2.5 flex items-center gap-3 text-left hover:bg-violet-50 transition">
+                      <div className="h-8 w-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-extrabold text-sm shrink-0">
+                        {c.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-extrabold text-slate-900 text-sm truncate">{c.name}</div>
+                        <div className="text-[11px] font-bold text-slate-500">{c.phone ?? '—'}</div>
+                      </div>
+                      {c.balance > 0 && (
+                        <span className="text-xs font-extrabold text-rose-600 tabular-nums shrink-0">
+                          {formatPKR(c.balance)}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          {chosen && (
+            <>
+              <div>
+                <Lbl>Purana Baqi Kitna Hai?</Lbl>
+                <input type="number" min={0} value={balance}
+                  onChange={(e) => setBalance(e.target.value === '' ? '' : Number(e.target.value))}
+                  placeholder="0"
+                  className="h-16 w-full rounded-2xl border-2 border-violet-400 bg-white px-4 text-center text-3xl font-extrabold tabular-nums text-violet-900 focus:outline-none focus:border-violet-600 focus:ring-4 focus:ring-violet-200 transition" />
+                <p className="mt-1.5 text-[11px] font-semibold text-slate-500">
+                  Ye balance <b>set</b> hoga — jurta nahi. Copy me jo likha hai wohi likhein.
+                </p>
+              </div>
+
+              <div>
+                <Lbl>Note <span className="text-slate-400 normal-case font-bold">(optional)</span></Lbl>
+                <input value={note} onChange={(e) => setNote(e.target.value)}
+                  placeholder="jaise: Jan 2026 tak ka purana hisab"
+                  className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-violet-500 transition" />
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="px-5 py-3.5 border-t-2 border-slate-100 bg-slate-50 flex gap-2 justify-end shrink-0">
+          <button onClick={onClose} className="h-11 px-4 rounded-xl bg-white border-2 border-slate-200 text-slate-700 text-sm font-extrabold hover:bg-slate-100 transition">
+            Cancel
+          </button>
+          <Button onClick={() => mutation.mutate()} disabled={!valid}
+            className="bg-gradient-to-r from-violet-600 to-purple-700 font-extrabold shadow-lg">
+            {mutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <BookOpen className="h-4 w-4" />}
+            Khata Shuru Karein
           </Button>
         </div>
       </div>
@@ -481,16 +850,30 @@ function PaymentModal({ customer, onClose, onDone }: {
    HELPERS
    ═════════════════════════════════════════════════════════════ */
 
+function Lbl({ children }: any) {
+  return <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-1.5">{children}</label>;
+}
+
 function HeroStat({ label, value, sub, icon: Icon, highlight }: any) {
   return (
     <div className={`rounded-2xl backdrop-blur border p-4 ${
       highlight ? 'bg-white/25 border-white/40 shadow-lg' : 'bg-white/10 border-white/20'
     }`}>
       <div className="flex items-center gap-1.5 text-[10px] uppercase font-extrabold text-white/70 tracking-wider">
-        <Icon className="h-3.5 w-3.5" /> {label}
+        <Icon className="h-3.5 w-3.5" /> <span className="truncate">{label}</span>
       </div>
-      <div className="mt-1 text-2xl font-extrabold tabular-nums">{value}</div>
-      {sub && <div className="mt-0.5 text-[11px] font-bold text-white/70">{sub}</div>}
+      <div className="mt-1 text-2xl font-extrabold tabular-nums truncate">{value}</div>
+      {sub && <div className="mt-0.5 text-[11px] font-bold text-white/70 truncate">{sub}</div>}
+    </div>
+  );
+}
+
+function Empty({ icon: Icon, title, desc, tone = 'slate' }: any) {
+  return (
+    <div className="rounded-3xl bg-white border-2 border-slate-200 p-12 text-center shadow-sm">
+      <Icon className={`h-12 w-12 mx-auto mb-3 ${tone === 'emerald' ? 'text-emerald-400' : 'text-slate-300'}`} />
+      <h3 className="font-extrabold text-slate-900 text-lg">{title}</h3>
+      <p className="text-sm font-semibold text-slate-500 mt-1.5 max-w-md mx-auto">{desc}</p>
     </div>
   );
 }
@@ -498,24 +881,24 @@ function HeroStat({ label, value, sub, icon: Icon, highlight }: any) {
 function KhataTeacher({ onClose }: { onClose: () => void }) {
   const steps = [
     {
-      icon: Wallet, title: 'Kul baqi',
-      body: 'Sab customers ka mila kar kitna paisa bahar hai. Electronics me ek laptop ya camera ka udhaar hi bara hota hai — is liye ye number roz dekhna chahiye.',
-      tips: ['List me sab se bara udhaar upar aata hai'],
+      icon: BookOpen, title: 'Copy se software par — purana khata',
+      body: 'Agar aap pehle copy par khata likhte the, to upar "Purana Khata" dabayein. Har customer ka jo baqi copy me likha hai wo ek bar daal dein — uske baad software khud hisab rakhega.',
+      tips: ['Har customer ka sirf ek bar lagta hai', 'Balance SET hota hai, jurta nahi'],
     },
     {
-      icon: AlertTriangle, title: 'Credit limit se upar',
-      body: 'Har customer ki ek limit set ki ja sakti hai. Jo us se upar chala gaya uska naam laal me aata hai — usse naya udhaar dene se pehle purana wasool karein.',
-      tips: ['Neeche wali patti batati hai limit ka kitna hissa istemal hua'],
+      icon: Plus, title: 'Bina sale ke udhaar',
+      body: 'Kisi ko cheez bina bill ke de di? Customer ke naam ke aage ➕ dabayein aur raqam likh dein. POS se sale kiye baghair bhi udhaar chadh jata hai.',
+      tips: ['Parchi ka number bhi likh sakte hain', 'Limit se upar jaye to warning aata hai'],
     },
     {
-      icon: Barcode, title: 'Serial unit ka badge',
-      body: 'Agar kisi customer ne udhaar par serial wali cheez (laptop, camera) li hai to uske naam ke sath badge aata hai. Ye jaanna zaroori hai — wo mehngi cheez bahar hai.',
-      tips: ['Sales page se poori tafseel mil jati hai'],
+      icon: ArrowDownLeft, title: 'Wasooli',
+      body: 'Paisa mile to "Wasooli" dabayein — balance foran kam ho jata hai aur record me chala jata hai. "Poora" button se ek click me poora khata clear.',
+      tips: ['Hal Ki Harkat tab me har entry ka record'],
     },
     {
-      icon: MessageCircle, title: 'Wasooli aur yaad dahani',
-      body: 'Wasooli button se paisa darj karein — balance foran kam ho jata hai. WhatsApp button se customer ko izzat ke sath yaad dila sakte hain.',
-      tips: ['P dabao to poori list print', 'CSV me sab kuch Excel ke liye'],
+      icon: Clock, title: 'Khamosh customers',
+      body: 'Jo 30+ din se na kuch le rahe hain na de rahe, wo "Khamosh" tab me alag hain. Ye wahi log hote hain jo bhool jate hain — WhatsApp button se izzat ke sath yaad dila dein.',
+      tips: ['Is mahine ka udhaar vs wasooli upar dikhta hai', 'CSV me poora khata Excel ke liye'],
     },
   ];
 
@@ -569,8 +952,8 @@ function KhataTeacher({ onClose }: { onClose: () => void }) {
 
 function ShortcutsModal({ onClose }: { onClose: () => void }) {
   const sc = [
-    ['/', 'Search par jao'], ['G', 'Guide kholo'], ['R', 'Refresh'],
-    ['P', 'Print'], ['?', 'Ye list'], ['Esc', 'Band karo'],
+    ['N', 'Purana khata shuru'], ['/', 'Search par jao'], ['1 – 4', 'Tab badlein'],
+    ['G', 'Guide kholo'], ['R', 'Refresh'], ['P', 'Print'], ['?', 'Ye list'], ['Esc', 'Band karo'],
   ];
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>

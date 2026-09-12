@@ -136,3 +136,62 @@ export const BOX_CONTENT_OPTIONS = [
   'Carry Case', 'Extra Tips', 'Screen Protector', 'Adapter', 'Remote',
   'Batteries', 'Mounting Kit',
 ];
+
+/**
+ * Global Category ke naam se andar wala `categoryType` khud nikal lena.
+ *
+ * Pehle wizard me DO category poochhi jati thin — ek hardcoded "Category
+ * Type" aur ek dukandar ki apni Category. Ye confusing tha. Ab dukandar
+ * sirf apni category chunta hai, aur `categoryType` (jo POS chips,
+ * reports aur stock report ko chalata hai) yahan se khud lag jata hai.
+ *
+ * Match na ho to `OTHER` — koi nuqsan nahi, sirf grouping aam ho jati hai.
+ */
+const NAME_HINTS: [RegExp, CategoryType][] = [
+  [/head\s?phone|headset(?!.*vr)|over.?ear/i, 'HEADPHONE'],
+  [/ear\s?bud|ear\s?phone|handsfree|air\s?pod|tws/i, 'EARBUD'],
+  [/bluetooth.*speak|bt.*speak/i, 'BLUETOOTH_SPEAKER'],
+  [/speaker|sound\s?bar|woofer/i, 'SPEAKER'],
+  [/mic(rophone)?\b/i, 'MICROPHONE'],
+  [/power\s?bank|pawer\s?bank/i, 'POWER_BANK'],
+  [/charger|charging|adapter\s?plug|wall\s?plug/i, 'CHARGER'],
+  [/cable|taar|wire|cord/i, 'CABLE'],
+  [/converter/i, 'CONVERTER'],
+  [/adapter|adaptor/i, 'ADAPTER'],
+  [/smart\s?watch|watch/i, 'SMARTWATCH'],
+  [/fitness|band\b|tracker/i, 'FITNESS_BAND'],
+  [/vr\b|virtual\s?reality/i, 'VR_HEADSET'],
+  [/drone|quad\s?copter/i, 'DRONE'],
+  [/dslr/i, 'DSLR'],
+  [/action\s?cam|go\s?pro/i, 'ACTION_CAMERA'],
+  [/web\s?cam/i, 'WEBCAM'],
+  [/camera|cam\b/i, 'CAMERA'],
+  [/tripod|stand\b/i, 'TRIPOD'],
+  [/gimbal|stabilizer/i, 'GIMBAL'],
+  [/key\s?board/i, 'KEYBOARD'],
+  [/mouse|mice/i, 'MOUSE'],
+  [/monitor|screen|display|led\s?tv/i, 'MONITOR'],
+  [/projector/i, 'PROJECTOR'],
+  [/laptop|notebook|macbook/i, 'LAPTOP_ACCESSORY'],
+  [/router|wi.?fi|modem|net\s?gear/i, 'ROUTER'],
+  [/memory\s?card|sd\s?card|micro\s?sd/i, 'MEMORY_CARD'],
+  [/usb\s?(drive|stick)|flash\s?drive|pen\s?drive/i, 'USB_DRIVE'],
+  [/hard\s?(disk|drive)|hdd|external\s?drive/i, 'HARD_DRIVE'],
+  [/ssd|solid\s?state/i, 'SSD'],
+  [/screen\s?(protector|guard)|glass|tempered/i, 'SCREEN_PROTECTOR'],
+  [/cover|case\b|pouch|back\s?cover/i, 'MOBILE_CASE'],
+  [/tablet|ipad/i, 'TABLET_ACCESSORY'],
+  [/car\b|gari|dash\s?cam/i, 'CAR_ACCESSORY'],
+  [/smart\s?home|alexa|google\s?home/i, 'SMART_HOME'],
+  [/led|light|bulb|lamp/i, 'LED_LIGHT'],
+  [/phone|mobile/i, 'PHONE_ACCESSORY'],
+];
+
+export function categoryTypeFromName(name?: string | null): CategoryType {
+  const n = (name ?? '').trim();
+  if (!n) return 'OTHER';
+  for (const [re, type] of NAME_HINTS) {
+    if (re.test(n)) return type;
+  }
+  return 'OTHER';
+}

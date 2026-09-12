@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Store, ChevronDown, Check, MapPin, Phone, Plus, Lock } from 'lucide-react';
+import { Store, ChevronDown, Check, MapPin, Phone, Plus, Lock, Layers } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { shopsApi } from '@modules/organization/shops/api/shops.api';
 import { useAuthStore } from '@core/stores/auth.store';
+import { ALL_SHOPS } from '@core/lib/shopScope';
 import { toast } from 'sonner';
 
 export default function ShopSelector() {
@@ -84,6 +85,7 @@ export default function ShopSelector() {
   }
 
   const activeShops = shops.filter((s) => s.isActive);
+  const isAll = currentShopId === ALL_SHOPS;
   const currentShop = shops.find((s) => s.id === currentShopId);
 
   if (activeShops.length === 0) {
@@ -102,7 +104,10 @@ export default function ShopSelector() {
     setCurrentShop(shopId);
     setOpen(false);
     toast.success(`Switched to ${shopName}`, {
-      description: 'POS, cash register, and reports will use this shop',
+      description:
+        shopId === ALL_SHOPS
+          ? 'Reports aur lists ab sab branches ka data dikhayengi'
+          : 'POS, cash register, aur reports ab is shop ka data dikhayenge',
     });
   };
 
@@ -113,17 +118,28 @@ export default function ShopSelector() {
         className={`h-10 inline-flex items-center gap-2 px-3 rounded-xl border-2 text-sm font-bold transition ${
           open
             ? 'border-brand-500 bg-brand-50 text-brand-900'
+            : isAll
+            ? 'border-violet-400 bg-violet-50 text-violet-900 hover:border-violet-500'
             : currentShop?.isMain
             ? 'border-emerald-400 bg-emerald-50 text-emerald-900 hover:border-emerald-500'
             : 'border-slate-200 bg-white hover:border-brand-400 text-slate-900'
         }`}
         title="Switch shop"
       >
-        <Store className={`h-4 w-4 ${currentShop?.isMain ? 'text-emerald-600' : 'text-brand-600'}`} />
+        {isAll ? (
+          <Layers className="h-4 w-4 text-violet-600" />
+        ) : (
+          <Store className={`h-4 w-4 ${currentShop?.isMain ? 'text-emerald-600' : 'text-brand-600'}`} />
+        )}
         <span className="hidden sm:inline max-w-[140px] truncate">
-          {currentShop?.name || 'Select Shop'}
+          {isAll ? 'All Shops' : currentShop?.name || 'Select Shop'}
         </span>
-        {currentShop?.isMain && (
+        {isAll && (
+          <span className="hidden md:inline px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-violet-600 text-white">
+            {activeShops.length}
+          </span>
+        )}
+        {!isAll && currentShop?.isMain && (
           <span className="hidden md:inline px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-emerald-600 text-white">
             MAIN
           </span>
@@ -143,6 +159,35 @@ export default function ShopSelector() {
           </div>
 
           <div className="max-h-[400px] overflow-y-auto p-2">
+            {activeShops.length > 1 && (
+              <button
+                onClick={() => handleSelect(ALL_SHOPS, 'All Shops')}
+                className={`w-full flex items-start gap-3 p-3 rounded-xl transition mb-1 ${
+                  isAll ? 'bg-violet-50 border-2 border-violet-300' : 'border-2 border-transparent hover:bg-slate-50'
+                }`}
+              >
+                <div
+                  className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${
+                    isAll ? 'bg-gradient-to-br from-violet-500 to-violet-700 shadow' : 'bg-slate-100'
+                  }`}
+                >
+                  <Layers className={`h-5 w-5 ${isAll ? 'text-white' : 'text-slate-500'}`} />
+                </div>
+                <div className="flex-1 min-w-0 text-left">
+                  <div className="font-bold text-slate-900 text-sm">All Shops</div>
+                  <div className="text-[11px] text-slate-500 mt-0.5">
+                    Sab {activeShops.length} branches ka mila hua data — POS aur cash register ke liye
+                    ek shop chunni paregi
+                  </div>
+                </div>
+                {isAll && (
+                  <div className="h-6 w-6 rounded-full bg-violet-600 text-white flex items-center justify-center shrink-0">
+                    <Check className="h-3.5 w-3.5" />
+                  </div>
+                )}
+              </button>
+            )}
+
             {activeShops.map((shop) => {
               const active = shop.id === currentShopId;
               return (

@@ -17,7 +17,7 @@ import {
 import { toast } from 'sonner';
 import { Button } from '@core/ui/Button';
 import { formatPKR } from '@core/lib/format';
-import { useAuthStore } from '@core/stores/auth.store';
+import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { useCostHidden, PrivacyToggle } from '@core/ui/HiddenValue';
 import { PrintStyles } from '@core/components/print/PrintStyles';
 import { useReportsData } from '@modules/reports/reports/hooks/useReportsData';
@@ -60,7 +60,7 @@ const BUCKET_HEX: Record<string, string> = {
 
 export default function ElectronicsReportsPage() {
   const hideCost = useCostHidden();
-  const currentShopId = useAuthStore((s) => s.currentShopId);
+  const currentShopId = useShopParam();
   const shopName = useAuthStore((s: any) => s.user?.assignedShop?.name);
   const tenantName = useAuthStore((s: any) => s.tenant?.name);
 

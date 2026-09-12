@@ -11,7 +11,7 @@ import {
 import { toast } from 'sonner';
 import { Button } from '@core/ui/Button';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
-import { useAuthStore } from '@core/stores/auth.store';
+import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { tablesApi, type RestaurantTable, type TableStatus } from '../api/tables.api';
 import { menuItemsApi } from '../api/menu-items.api';
 import { ordersApi, type OrderMode, type OrderItem } from '../api/orders.api';
@@ -45,7 +45,7 @@ type Screen = 'mode' | 'tables' | 'menu';
 export default function RestaurantPosPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const currentShopId = useAuthStore((s) => s.currentShopId);
+  const currentShopId = useShopParam();
 
   const [screen, setScreen] = useState<Screen>('mode');
   const [mode, setMode] = useState<OrderMode>('DINE_IN');

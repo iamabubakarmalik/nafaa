@@ -28,7 +28,7 @@ const PAYMENT_METHODS: { id: PaymentMethod; label: string; icon: any; color: str
 
 const QUICK_AMOUNTS = [100, 200, 500, 1000, 2000, 5000];
 
-export function RetailQuickCash({
+export function PosQuickCash({
   total, itemCount, loading, customerName, customerBalance = 0, hasCustomer,
   onConfirm, onClose,
 }: Props) {

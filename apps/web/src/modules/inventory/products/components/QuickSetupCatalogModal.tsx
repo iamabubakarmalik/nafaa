@@ -13,7 +13,7 @@ import {
   type PriceOverride,
 } from '../api/quick-setup.api';
 import { forceRefreshProducts } from '@core/lib/offline/offlineProducts';
-import { useAuthStore } from '@core/stores/auth.store';
+import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 
 interface Props {
   onClose: () => void;
@@ -23,7 +23,7 @@ type Step = 'select' | 'review' | 'importing' | 'done';
 
 export function QuickSetupCatalogModal({ onClose }: Props) {
   const queryClient = useQueryClient();
-  const currentShopId = useAuthStore((s) => s.currentShopId);
+  const currentShopId = useShopParam();
   const shopName = useAuthStore((s) => s.user?.assignedShop?.name ?? null);
 
   const [step, setStep] = useState<Step>('select');

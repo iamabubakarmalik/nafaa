@@ -9,7 +9,7 @@ import {
 import { toast } from 'sonner';
 import { Button } from '@core/ui/Button';
 import { formatPKR } from '@core/lib/format';
-import { useAuthStore } from '@core/stores/auth.store';
+import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { productsApi, type Product } from '@modules/inventory/products/api/products.api';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
@@ -33,7 +33,7 @@ const heldId = () => `h-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
 
 export default function CarpetPosPage() {
   const queryClient = useQueryClient();
-  const currentShopId = useAuthStore((s) => s.currentShopId);
+  const currentShopId = useShopParam();
   const tenant = useAuthStore((s) => s.tenant);
 
   const [activeTab, setActiveTab] = useState<Tab>(() => (localStorage.getItem(VIEW_KEY) as Tab) || 'rolls');

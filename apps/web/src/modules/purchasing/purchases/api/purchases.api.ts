@@ -1,4 +1,5 @@
 import { apiClient } from '@core/api/client';
+import type { ShopStamp } from '@core/lib/shopScope';
 import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 
 export interface PurchaseItem {
@@ -61,6 +62,8 @@ export interface Purchase {
     fullName: string;
     email: string;
   } | null;
+  /** Kis branch/godown mein maal aaya */
+  shop?: ShopStamp | null;
   items: PurchaseItem[];
   carpetRolls?: PurchaseCarpetRoll[];
   createdRollsByItem?: Record<string, string[]>;

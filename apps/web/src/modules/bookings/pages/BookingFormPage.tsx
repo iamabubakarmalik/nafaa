@@ -15,7 +15,7 @@ import { productVariantsApi } from '@modules/inventory/products/api/product-vari
 import { Button } from '@core/ui/Button';
 import { Input } from '@core/ui/Input';
 import { formatPKR } from '@core/lib/format';
-import { useAuthStore } from '@core/stores/auth.store';
+import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { useBusinessFeatures } from '@core/hooks/useBusinessFeatures';
 import { ServiceChargesPanel } from '@modules/pos/components/ServiceChargesPanel';
 import { CarpetRollPicker } from '@/industries/carpet/components/pos-extensions/CarpetRollPicker';
@@ -64,7 +64,7 @@ const toLocalDateTime = (d: Date) => {
 
 export default function BookingFormPage() {
   const navigate = useNavigate();
-  const currentShopId = useAuthStore((s) => s.currentShopId);
+  const currentShopId = useShopParam();
   const { businessType, features } = useBusinessFeatures();
 
   const isCarpetBusiness = useMemo(() => {

@@ -1,19 +1,15 @@
 import { useState, useMemo } from 'react';
 import {
   Sparkles, Wifi, Battery, Monitor, Ruler, Droplets, Cable, Plus, X,
-  Check, ChevronDown, ChevronUp, Zap, Smartphone, Lightbulb, Eye, EyeOff,
+  Check, ChevronDown, ChevronUp, Lightbulb, Eye, EyeOff,
 } from 'lucide-react';
 import { Input } from '@core/ui/Input';
 import type { ElectronicsWizardSpecs } from '../../hooks/useElectronicsWizard';
 import { CATEGORY_META, type CategoryType } from '../../constants';
 
 /* ═════════════════════════════════════════════════════════════
-   STEP 2 — TECH SPECS (category ke hisab se)
-   ─────────────────────────────────────────────────────────────
-   Pehle har product par saari 6 sections khulti thin — headphone
-   ke liye bhi "Refresh Rate" poochha jata tha. Ab jo category
-   chuni hai sirf uske kaam ki sections upar aati hain, baqi
-   "Aur cheezein" me chhup jati hain.
+   ⚡ STEP 2 — TECH SPECS (FULL BEST v2)
+   🌙 Dark mode • 📱 touch targets • Sirf category-relevant sections
    ═════════════════════════════════════════════════════════════ */
 
 interface Props {
@@ -25,7 +21,6 @@ interface Props {
 
 type SectionKey = 'battery' | 'connectivity' | 'display' | 'compat' | 'durability' | 'size';
 
-/* Kis category me kaun si sections kaam ki hain */
 const RELEVANT: Partial<Record<CategoryType, SectionKey[]>> = {
   HEADPHONE:        ['battery', 'connectivity', 'durability', 'size'],
   EARBUD:           ['battery', 'connectivity', 'durability', 'size'],
@@ -85,10 +80,10 @@ const RESOLUTIONS = [
   'Retina', 'Super Retina XDR', 'AMOLED FHD+', 'Dynamic AMOLED',
 ];
 const COMPAT_PRESETS = ['iPhone', 'Samsung', 'Android phones', 'iPad', 'MacBook', 'Windows Laptop', 'PS5', 'Xbox', 'Smart TV'];
-
-/* Aam battery presets — bar bar type karne se bachne ke liye */
 const BATTERY_PRESETS = ['300 mAh', '500 mAh', '1000 mAh', '5000 mAh', '10000 mAh', '20000 mAh'];
 const POWER_PRESETS = ['5W', '10W', '18W', '20W', '33W', '45W', '65W USB-C PD', '100W', '120W'];
+
+const IN = 'h-12 sm:h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none transition';
 
 export function ElectronicsWizardStep2Specs({ specs, onChange, categoryType }: Props) {
   const [showAll, setShowAll] = useState(false);
@@ -104,7 +99,6 @@ export function ElectronicsWizardStep2Specs({ specs, onChange, categoryType }: P
 
   const hidden = useMemo(() => ALL_SECTIONS.filter((s) => !relevant.includes(s)), [relevant]);
 
-  /* Kitne khaane bhare hain — user ko progress ka pata chale */
   const filled = useMemo(() => {
     let n = 0;
     if (specs.batteryCapacity) n++;
@@ -137,34 +131,31 @@ export function ElectronicsWizardStep2Specs({ specs, onChange, categoryType }: P
     setCompatInput('');
   };
 
-  /* ── Sections ─────────────────────────────────────────── */
-  const SECTIONS: Record<SectionKey, { n: number; title: string; hint: string; icon: any; tone: string; body: React.ReactNode }> = {
+  const SECTIONS: Record<SectionKey, { title: string; hint: string; icon: any; tone: string; body: React.ReactNode }> = {
     battery: {
-      n: 1, title: 'Battery & Power', tone: 'emerald', icon: Battery,
+      title: 'Battery & Power', tone: 'emerald', icon: Battery,
       hint: 'Customer sab se pehle yehi poochta hai — kitni chalti hai',
       body: (
-        <div className="space-y-3">
-          <div className="grid sm:grid-cols-2 gap-3">
-            <div>
-              <Input label="Battery Capacity" placeholder="5000 mAh" value={specs.batteryCapacity}
-                onChange={(e) => onChange({ batteryCapacity: e.target.value })} />
-              <Chips items={BATTERY_PRESETS} onPick={(v) => onChange({ batteryCapacity: v })} active={specs.batteryCapacity} />
-            </div>
-            <Input label="Battery Life (ghante)" type="number" placeholder="24" value={specs.batteryLifeHours}
-              onChange={(e) => onChange({ batteryLifeHours: e.target.value === '' ? '' : Number(e.target.value) })} />
-            <Input label="Charging Time (minute)" type="number" placeholder="90" value={specs.chargingTimeMinutes}
-              onChange={(e) => onChange({ chargingTimeMinutes: e.target.value === '' ? '' : Number(e.target.value) })} />
-            <div>
-              <Input label="Power Rating" placeholder="65W USB-C PD" value={specs.powerRating}
-                onChange={(e) => onChange({ powerRating: e.target.value })} />
-              <Chips items={POWER_PRESETS} onPick={(v) => onChange({ powerRating: v })} active={specs.powerRating} />
-            </div>
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div>
+            <Input label="Battery Capacity" placeholder="5000 mAh" value={specs.batteryCapacity}
+              onChange={(e) => onChange({ batteryCapacity: e.target.value })} />
+            <Chips items={BATTERY_PRESETS} onPick={(v) => onChange({ batteryCapacity: v })} active={specs.batteryCapacity} />
+          </div>
+          <Input label="Battery Life (ghante)" type="number" placeholder="24" value={specs.batteryLifeHours}
+            onChange={(e) => onChange({ batteryLifeHours: e.target.value === '' ? '' : Number(e.target.value) })} />
+          <Input label="Charging Time (minute)" type="number" placeholder="90" value={specs.chargingTimeMinutes}
+            onChange={(e) => onChange({ chargingTimeMinutes: e.target.value === '' ? '' : Number(e.target.value) })} />
+          <div>
+            <Input label="Power Rating" placeholder="65W USB-C PD" value={specs.powerRating}
+              onChange={(e) => onChange({ powerRating: e.target.value })} />
+            <Chips items={POWER_PRESETS} onPick={(v) => onChange({ powerRating: v })} active={specs.powerRating} />
           </div>
         </div>
       ),
     },
     connectivity: {
-      n: 2, title: 'Connectivity', tone: 'blue', icon: Wifi,
+      title: 'Connectivity', tone: 'blue', icon: Wifi,
       hint: 'Kaunsi taar/wireless chalti hai — customer ka pehla sawal',
       body: (
         <div className="flex flex-wrap gap-2">
@@ -172,8 +163,8 @@ export function ElectronicsWizardStep2Specs({ specs, onChange, categoryType }: P
             const a = specs.connectivity?.includes(opt);
             return (
               <button key={opt} type="button" onClick={() => tog('connectivity', opt)}
-                className={['px-3 py-1.5 rounded-full border-2 text-xs font-extrabold transition inline-flex items-center gap-1',
-                  a ? 'border-blue-500 bg-blue-500 text-white shadow' : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300'].join(' ')}>
+                className={['px-3 py-2 rounded-full border-2 text-xs font-extrabold transition active:scale-95 inline-flex items-center gap-1',
+                  a ? 'border-blue-500 bg-blue-500 text-white shadow' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-blue-300 dark:hover:border-blue-500/50'].join(' ')}>
                 {a && <Check className="h-3 w-3" />} {opt}
               </button>
             );
@@ -182,7 +173,7 @@ export function ElectronicsWizardStep2Specs({ specs, onChange, categoryType }: P
       ),
     },
     display: {
-      n: 3, title: 'Display / Screen', tone: 'violet', icon: Monitor,
+      title: 'Display / Screen', tone: 'violet', icon: Monitor,
       hint: 'Sirf un cheezon ke liye jin me screen hoti hai',
       body: (
         <div className="grid sm:grid-cols-3 gap-3">
@@ -191,8 +182,7 @@ export function ElectronicsWizardStep2Specs({ specs, onChange, categoryType }: P
           <div>
             <Lbl>Resolution</Lbl>
             <input list="elec-resolutions" value={specs.resolution} onChange={(e) => onChange({ resolution: e.target.value })}
-              placeholder="e.g. 2K"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-violet-500 transition" />
+              placeholder="e.g. 2K" className={`${IN} focus:border-violet-500`} />
             <datalist id="elec-resolutions">
               {RESOLUTIONS.map((r) => <option key={r} value={r} />)}
             </datalist>
@@ -200,7 +190,7 @@ export function ElectronicsWizardStep2Specs({ specs, onChange, categoryType }: P
           <div>
             <Lbl>Refresh Rate</Lbl>
             <select value={specs.refreshRate} onChange={(e) => onChange({ refreshRate: e.target.value })}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-violet-500 transition">
+              className={`${IN} focus:border-violet-500`}>
               <option value="">Nahi bataya</option>
               {REFRESH_RATES.map((r) => <option key={r} value={r}>{r}</option>)}
             </select>
@@ -209,7 +199,7 @@ export function ElectronicsWizardStep2Specs({ specs, onChange, categoryType }: P
       ),
     },
     compat: {
-      n: 4, title: 'Kis Ke Saath Chalta Hai', tone: 'amber', icon: Cable,
+      title: 'Kis Ke Saath Chalta Hai', tone: 'amber', icon: Cable,
       hint: 'Accessories bechte waqt sab se ahem — "mera phone chalega?"',
       body: (
         <div className="space-y-4">
@@ -220,15 +210,14 @@ export function ElectronicsWizardStep2Specs({ specs, onChange, categoryType }: P
                 const a = specs.compatibleOS?.includes(opt);
                 return (
                   <button key={opt} type="button" onClick={() => tog('compatibleOS', opt)}
-                    className={['px-3 py-1.5 rounded-full border-2 text-xs font-extrabold transition inline-flex items-center gap-1',
-                      a ? 'border-amber-500 bg-amber-500 text-white shadow' : 'border-slate-200 bg-white text-slate-700 hover:border-amber-300'].join(' ')}>
+                    className={['px-3 py-2 rounded-full border-2 text-xs font-extrabold transition active:scale-95 inline-flex items-center gap-1',
+                      a ? 'border-amber-500 bg-amber-500 text-white shadow' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-amber-300 dark:hover:border-amber-500/50'].join(' ')}>
                     {a && <Check className="h-3 w-3" />} {opt}
                   </button>
                 );
               })}
             </div>
           </div>
-
           <div>
             <Lbl>Kaun Se Device <Opt /></Lbl>
             <div className="flex flex-wrap gap-2 mb-2">
@@ -236,8 +225,8 @@ export function ElectronicsWizardStep2Specs({ specs, onChange, categoryType }: P
                 const a = specs.compatibleWith?.includes(opt);
                 return (
                   <button key={opt} type="button" onClick={() => tog('compatibleWith', opt)}
-                    className={['px-3 py-1.5 rounded-full border-2 text-xs font-extrabold transition inline-flex items-center gap-1',
-                      a ? 'border-amber-500 bg-amber-500 text-white shadow' : 'border-slate-200 bg-white text-slate-700 hover:border-amber-300'].join(' ')}>
+                    className={['px-3 py-2 rounded-full border-2 text-xs font-extrabold transition active:scale-95 inline-flex items-center gap-1',
+                      a ? 'border-amber-500 bg-amber-500 text-white shadow' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-amber-300 dark:hover:border-amber-500/50'].join(' ')}>
                     {a && <Check className="h-3 w-3" />} {opt}
                   </button>
                 );
@@ -247,18 +236,18 @@ export function ElectronicsWizardStep2Specs({ specs, onChange, categoryType }: P
               <input value={compatInput} onChange={(e) => setCompatInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCompat(); } }}
                 placeholder="Apna model likhein — jaise iPhone 15 Pro"
-                className="h-11 flex-1 rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-amber-500 transition" />
+                className={`${IN} flex-1 focus:border-amber-500`} />
               <button type="button" onClick={addCompat}
-                className="h-11 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-extrabold inline-flex items-center gap-1.5 transition">
+                className="h-12 sm:h-11 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-extrabold inline-flex items-center gap-1.5 transition active:scale-95 shrink-0">
                 <Plus className="h-4 w-4" /> Add
               </button>
             </div>
             {(specs.compatibleWith ?? []).filter((c) => !COMPAT_PRESETS.includes(c)).length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {(specs.compatibleWith ?? []).filter((c) => !COMPAT_PRESETS.includes(c)).map((c) => (
-                  <span key={c} className="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-extrabold inline-flex items-center gap-1">
+                  <span key={c} className="px-2.5 py-1.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-200 text-xs font-extrabold inline-flex items-center gap-1">
                     {c}
-                    <button type="button" onClick={() => tog('compatibleWith', c)} className="hover:text-amber-950">
+                    <button type="button" onClick={() => tog('compatibleWith', c)} className="hover:text-amber-950 dark:hover:text-amber-100">
                       <X className="h-3 w-3" />
                     </button>
                   </span>
@@ -270,18 +259,18 @@ export function ElectronicsWizardStep2Specs({ specs, onChange, categoryType }: P
       ),
     },
     durability: {
-      n: 5, title: 'Mazbooti', tone: 'sky', icon: Droplets,
+      title: 'Mazbooti', tone: 'sky', icon: Droplets,
       hint: 'Pani se bachao aur range — sports/outdoor wale poochte hain',
       body: (
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
             <Lbl>Water Resistance</Lbl>
             <select value={specs.waterResistance} onChange={(e) => onChange({ waterResistance: e.target.value })}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-sky-500 transition">
+              className={`${IN} focus:border-sky-500`}>
               <option value="">Pani se bachao nahi</option>
               {WATER_RATINGS.map((r) => <option key={r} value={r}>{r}</option>)}
             </select>
-            <p className="mt-1.5 text-[11px] font-semibold text-slate-500">
+            <p className="mt-1.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
               IPX4 = chheenta chalega · IP67/68 = pani me doob kar bhi theek
             </p>
           </div>
@@ -291,7 +280,7 @@ export function ElectronicsWizardStep2Specs({ specs, onChange, categoryType }: P
       ),
     },
     size: {
-      n: 6, title: 'Nap Tol', tone: 'slate', icon: Ruler,
+      title: 'Nap Tol', tone: 'slate', icon: Ruler,
       hint: 'Courier/delivery ke liye wazan zaroori hota hai',
       body: (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -311,7 +300,7 @@ export function ElectronicsWizardStep2Specs({ specs, onChange, categoryType }: P
   const renderSection = (k: SectionKey, i: number) => {
     const s = SECTIONS[k];
     return (
-      <section key={k} className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-4">
+      <section key={k} className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/80 p-4 sm:p-5 space-y-4">
         <Head icon={s.icon} n={i + 1} t={s.title} d={s.hint} tone={s.tone} />
         {s.body}
       </section>
@@ -319,17 +308,17 @@ export function ElectronicsWizardStep2Specs({ specs, onChange, categoryType }: P
   };
 
   return (
-    <div className="space-y-5">
-      {/* ── Intro ── */}
-      <div className="rounded-2xl bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-200 p-4">
+    <div className="space-y-4 sm:space-y-5">
+      {/* Intro */}
+      <div className="rounded-2xl bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-500/10 dark:to-cyan-500/10 border-2 border-blue-200 dark:border-blue-500/30 p-4">
         <div className="flex items-start gap-3">
           <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-700 text-white flex items-center justify-center shadow-md shrink-0">
             <Sparkles className="h-5 w-5" />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="font-extrabold text-blue-950 flex items-center gap-2 flex-wrap">
+            <div className="font-extrabold text-blue-950 dark:text-blue-100 flex items-center gap-2 flex-wrap">
               Tech Specs
-              <span className="px-2 py-0.5 rounded-full bg-white/70 text-[10px] font-extrabold text-blue-700 uppercase tracking-wider">
+              <span className="px-2 py-0.5 rounded-full bg-white/70 dark:bg-slate-800 text-[10px] font-extrabold text-blue-700 dark:text-blue-300 uppercase tracking-wider">
                 Sab optional
               </span>
               {filled > 0 && (
@@ -338,7 +327,7 @@ export function ElectronicsWizardStep2Specs({ specs, onChange, categoryType }: P
                 </span>
               )}
             </div>
-            <p className="text-sm font-semibold text-blue-900/80 mt-1 leading-relaxed">
+            <p className="text-sm font-semibold text-blue-900/80 dark:text-blue-200/80 mt-1 leading-relaxed">
               Ye sab chhoda bhi ja sakta hai — product phir bhi save ho jayega. Lekin jitna
               bharenge, POS aur product page par customer ko utna hi behtar bata payenge.
               {meta && <> Neeche sirf <b>{meta.emoji} {meta.label}</b> ke kaam ki cheezein dikha rahe hain.</>}
@@ -347,22 +336,22 @@ export function ElectronicsWizardStep2Specs({ specs, onChange, categoryType }: P
         </div>
       </div>
 
-      {/* ── Relevant sections ── */}
+      {/* Relevant sections */}
       {relevant.map((k, i) => renderSection(k, i))}
 
-      {/* ── Baqi sections ── */}
+      {/* Baqi sections */}
       {hidden.length > 0 && (
-        <div className="rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 overflow-hidden">
+        <div className="rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/40 overflow-hidden">
           <button type="button" onClick={() => setShowAll((v) => !v)}
-            className="w-full px-5 py-3.5 flex items-center gap-3 text-left hover:bg-slate-100 transition">
-            <div className="h-9 w-9 rounded-xl bg-slate-200 text-slate-600 flex items-center justify-center shrink-0">
+            className="w-full px-5 py-3.5 flex items-center gap-3 text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+            <div className="h-9 w-9 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0">
               {showAll ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="font-extrabold text-slate-800 text-sm">
+              <div className="font-extrabold text-slate-800 dark:text-slate-100 text-sm">
                 {showAll ? 'Baqi cheezein chhupa dein' : `Aur ${hidden.length} sections — agar zaroorat ho`}
               </div>
-              <div className="text-[11px] font-semibold text-slate-500">
+              <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
                 {meta ? `${meta.label} me aam tor par inki zaroorat nahi hoti` : 'Zaroorat ho to yahan se bhar lein'}
               </div>
             </div>
@@ -377,10 +366,10 @@ export function ElectronicsWizardStep2Specs({ specs, onChange, categoryType }: P
         </div>
       )}
 
-      {/* ── Tip ── */}
-      <div className="rounded-2xl bg-amber-50 border-2 border-amber-200 p-4 flex items-start gap-3">
-        <Lightbulb className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
-        <div className="text-sm font-semibold text-amber-900">
+      {/* Tip */}
+      <div className="rounded-2xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-4 flex items-start gap-3">
+        <Lightbulb className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+        <div className="text-sm font-semibold text-amber-900 dark:text-amber-200">
           <b>Mashwara:</b> Jaldi me ho to sirf <b>Connectivity</b> aur <b>Battery</b> bhar dein —
           customer sab se zyada yehi do cheezein poochta hai. Baqi baad me product page se
           kabhi bhi edit ho sakta hai.
@@ -390,10 +379,7 @@ export function ElectronicsWizardStep2Specs({ specs, onChange, categoryType }: P
   );
 }
 
-/* ═════════════════════════════════════════════════════════════
-   HELPERS — Step 1 jaisa hi look
-   ═════════════════════════════════════════════════════════════ */
-
+/* ══════════ HELPERS ══════════ */
 function Head({ icon: Icon, n, t, d, tone = 'slate' }: any) {
   const g: Record<string, string> = {
     slate: 'from-slate-500 to-slate-700',
@@ -404,34 +390,33 @@ function Head({ icon: Icon, n, t, d, tone = 'slate' }: any) {
     sky: 'from-sky-500 to-blue-700',
   };
   return (
-    <div className="flex items-center gap-3 pb-2 border-b-2 border-slate-100">
+    <div className="flex items-center gap-3 pb-2 border-b-2 border-slate-100 dark:border-slate-800">
       <div className={['h-10 w-10 rounded-xl text-white flex items-center justify-center shadow-md bg-gradient-to-br shrink-0', g[tone]].join(' ')}>
         <Icon className="h-5 w-5" />
       </div>
       <div className="min-w-0">
-        <h3 className="font-extrabold text-slate-900 text-base leading-tight">
-          <span className="text-slate-400">{n}.</span> {t}
+        <h3 className="font-extrabold text-slate-900 dark:text-white text-base leading-tight">
+          <span className="text-slate-400 dark:text-slate-500">{n}.</span> {t}
         </h3>
-        <p className="text-xs text-slate-500 font-semibold">{d}</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">{d}</p>
       </div>
     </div>
   );
 }
 
 function Lbl({ children }: any) {
-  return <label className="block text-xs font-extrabold uppercase tracking-wider mb-1.5 text-slate-600">{children}</label>;
+  return <label className="block text-xs font-extrabold uppercase tracking-wider mb-1.5 text-slate-600 dark:text-slate-400">{children}</label>;
 }
-function Opt() { return <span className="text-slate-400 normal-case font-bold">(optional)</span>; }
+function Opt() { return <span className="text-slate-400 dark:text-slate-500 normal-case font-bold">(optional)</span>; }
 
-/** Chhote preset buttons — bar bar type karne se bachao */
 function Chips({ items, onPick, active }: { items: string[]; onPick: (v: string) => void; active?: string }) {
   return (
     <div className="mt-1.5 flex flex-wrap gap-1">
       {items.map((v) => (
         <button key={v} type="button" onClick={() => onPick(v)}
-          className={['px-2 py-0.5 rounded-lg border text-[10px] font-extrabold transition',
+          className={['px-2.5 py-1 rounded-lg border-2 text-[10px] font-extrabold transition active:scale-95',
             active === v ? 'border-emerald-500 bg-emerald-500 text-white'
-              : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-emerald-400 hover:text-emerald-700'].join(' ')}>
+              : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300'].join(' ')}>
           {v}
         </button>
       ))}

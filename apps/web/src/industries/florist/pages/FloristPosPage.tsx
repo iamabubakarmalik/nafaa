@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatPKR } from '@core/lib/format';
-import { useAuthStore } from '@core/stores/auth.store';
+import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { offlineProductsApi as productsApi } from '@core/lib/offline/offlineProducts';
 import { offlineCustomersApi as customersApi } from '@core/lib/offline/offlineCustomers';
 import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
@@ -33,7 +33,7 @@ const OCCASIONS = ['Birthday', 'Anniversary', 'Wedding', 'Sympathy', 'Congratula
 
 export default function FloristPosPage() {
   const qc = useQueryClient();
-  const shopId = useAuthStore((s) => s.currentShopId);
+  const shopId = useShopParam();
   const tenant = useAuthStore((s) => s.tenant);
 
   const [hidePrices, setHidePrices] = useState(() => localStorage.getItem(HIDE_KEY) === 'true');

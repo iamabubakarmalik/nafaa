@@ -13,6 +13,7 @@ import { collectionsApi } from '../../api/collections.api';
 import { sizeChartsApi } from '../../api/size-charts.api';
 import { formatPKRFull } from '@core/lib/format';
 import type { GarmentWizardBasic } from '../../hooks/useGarmentWizard';
+import { CategoryPicker, makeCategoryTypeResolver } from '@modules/inventory/categories/components/CategoryPicker';
 
 interface Props {
   basic: GarmentWizardBasic;
@@ -102,7 +103,56 @@ const SEASONS = [
   { value: 'ALL_SEASON', label: 'All Season', emoji: '🌍' },
 ];
 
+
+/* Category ke NAAM se andar wala `categoryType` — pehle ye alag se
+   poochha jata tha jo confusing tha. Match na ho to fallback. */
+const resolveCategoryType = makeCategoryTypeResolver<string>([
+  [/t.?shirt/i, "T_SHIRT"],
+  [/polo/i, "POLO"],
+  [/shirt|qameez/i, "SHIRT"],
+  [/kurta.*shalwar|shalwar.*kameez/i, "KURTA_SHALWAR"],
+  [/kurta/i, "KURTA"],
+  [/three.*piece|3.*piece/i, "THREE_PIECE"],
+  [/two.*piece|2.*piece/i, "TWO_PIECE"],
+  [/waist\s?coat/i, "WAISTCOAT"],
+  [/suit/i, "SUIT"],
+  [/jeans/i, "JEANS"],
+  [/trouser|pant|pajama/i, "TROUSER"],
+  [/short/i, "SHORTS"],
+  [/skirt/i, "SKIRT"],
+  [/frock/i, "FROCK"],
+  [/gown/i, "GOWN"],
+  [/abaya/i, "ABAYA"],
+  [/hijab|scarf/i, "HIJAB"],
+  [/dupatta/i, "DUPATTA"],
+  [/saree|sari/i, "SAREE"],
+  [/lehenga/i, "LEHENGA"],
+  [/maxi/i, "MAXI"],
+  [/jacket/i, "JACKET"],
+  [/coat/i, "COAT"],
+  [/sweater|jersey/i, "SWEATER"],
+  [/hoodie/i, "HOODIE"],
+  [/track/i, "TRACK_SUIT"],
+  [/night|sleep/i, "NIGHTWEAR"],
+  [/under|inner/i, "UNDERGARMENT"],
+  [/sock|jurab/i, "SOCKS"],
+  [/shoe|joota/i, "SHOES"],
+  [/sandal|chappal/i, "SANDALS"],
+  [/fabric|cloth|kapra/i, "FABRIC"],
+  [/top/i, "TOP"],
+], 'OTHER');
+
 export function GarmentWizardStep1Basic({ basic, onChange, errors }: Props) {
+  const { data: catsForType = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list });
+
+  /* Category chunte hi andar wala type khud set ho jata hai */
+  useEffect(() => {
+    const name = (catsForType as any[]).find((c) => c.id === basic.categoryId)?.name;
+    const derived = resolveCategoryType(name);
+    if (derived !== basic.categoryType) onChange({ categoryType: derived } as any);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [basic.categoryId, catsForType]);
+
   const { data: categories = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list });
   const { data: brands = [] } = useQuery({ queryKey: ['brands'], queryFn: () => brandsApi.list() });
   const { data: allTags = [] } = useQuery({ queryKey: ['tags'], queryFn: tagsApi.list });
@@ -164,17 +214,6 @@ export function GarmentWizardStep1Basic({ basic, onChange, errors }: Props) {
 
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-1.5">Category</label>
-            <select
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm focus:outline-none focus:border-pink-500"
-              value={basic.categoryId}
-              onChange={(e) => onChange({ categoryId: e.target.value })}
-            >
-              <option value="">Select category</option>
-              {categories.map((c: any) => (<option key={c.id} value={c.id}>{c.name}</option>))}
-            </select>
-          </div>
-          <div>
             <label className="block text-sm font-bold text-slate-700 mb-1.5">Brand</label>
             <select
               className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm focus:outline-none focus:border-pink-500"
@@ -197,55 +236,13 @@ export function GarmentWizardStep1Basic({ basic, onChange, errors }: Props) {
 
       {/* Gender + Category Type */}
       <section className="rounded-2xl border-2 border-fuchsia-200 bg-gradient-to-br from-fuchsia-50 to-white p-5 space-y-4">
-        <SectionHeader icon={Users} title="Target Audience & Type" desc="Gender aur category" tone="fuchsia" />
-
-        <div>
-          <label className="block text-sm font-bold text-slate-700 mb-2">Gender</label>
-          <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
-            {GENDERS.map((g) => {
-              const active = basic.gender === g.value;
-              return (
-                <button
-                  key={g.value} type="button"
-                  onClick={() => onChange({ gender: g.value as any })}
-                  className={[
-                    'p-2 rounded-xl border-2 text-center transition',
-                    active
-                      ? 'border-fuchsia-600 bg-fuchsia-600 text-white shadow-md'
-                      : 'border-slate-200 bg-white text-slate-700 hover:border-fuchsia-400',
-                  ].join(' ')}
-                >
-                  <div className="text-xl">{g.emoji}</div>
-                  <div className="text-[10px] font-extrabold mt-0.5">{g.label}</div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-bold text-slate-700 mb-2">Garment Category</label>
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 max-h-64 overflow-y-auto">
-            {CATEGORY_TYPES.map((c) => {
-              const active = basic.categoryType === c.value;
-              return (
-                <button
-                  key={c.value} type="button"
-                  onClick={() => onChange({ categoryType: c.value as any })}
-                  className={[
-                    'p-2 rounded-xl border-2 text-center transition',
-                    active
-                      ? 'border-fuchsia-600 bg-fuchsia-600 text-white shadow-md'
-                      : 'border-slate-200 bg-white text-slate-700 hover:border-fuchsia-400',
-                  ].join(' ')}
-                >
-                  <div className="text-xl">{c.emoji}</div>
-                  <div className="text-[10px] font-extrabold mt-0.5">{c.label}</div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <SectionHeader icon={Users} title="Category" desc="Aap ki apni category" tone="fuchsia" />
+        <CategoryPicker
+          value={basic.categoryId}
+          onChange={(categoryId) => onChange({ categoryId })}
+          tone="pink"
+          examples="jaise Shirts, Kurta, Jeans"
+        />
       </section>
 
       {/* Fabric & Work */}

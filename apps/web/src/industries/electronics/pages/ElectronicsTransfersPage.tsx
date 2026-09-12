@@ -10,7 +10,7 @@ import {
 import { toast } from 'sonner';
 import { Button } from '@core/ui/Button';
 import { formatPKR } from '@core/lib/format';
-import { useAuthStore } from '@core/stores/auth.store';
+import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { PrintStyles } from '@core/components/print/PrintStyles';
 import { transfersApi, type StockTransfer, type CreateTransferItemPayload } from '@modules/inventory/transfers/api/transfers.api';
 import { shopsApi } from '@modules/organization/shops/api/shops.api';
@@ -41,7 +41,7 @@ const warrantyLeft = (iso?: string | null) =>
 
 export default function ElectronicsTransfersPage() {
   const qc = useQueryClient();
-  const currentShopId = useAuthStore((s) => s.currentShopId);
+  const currentShopId = useShopParam();
   const tenantName = useAuthStore((s: any) => s.tenant?.name);
 
   const [tab, setTab] = useState<Tab>('all');
@@ -199,7 +199,7 @@ export default function ElectronicsTransfersPage() {
       <PrintStyles orientation="landscape" title="Electronics Transfers" subtitle="Shop se shop maal ka safar" />
       {showTeacher && <TransfersTeacher onClose={() => setShowTeacher(false)} />}
       {showShortcuts && <ShortcutsModal onClose={() => setShowShortcuts(false)} />}
-      {showNew && <NewTransferModal onClose={() => setShowNew(false)} currentShopId={currentShopId} />}
+      {showNew && <NewTransferModal onClose={() => setShowNew(false)} currentShopId={currentShopId ?? null} />}
 
       {/* ═══ HERO ═══ */}
       <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-violet-900 to-fuchsia-700 text-white p-6 shadow-2xl print:hidden">

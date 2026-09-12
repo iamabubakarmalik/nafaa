@@ -5,7 +5,7 @@ import { Dumbbell, Search, X, Users, UserPlus, LogIn, Award, Flame, Calendar, Do
 import { toast } from 'sonner';
 import { Button } from '@core/ui/Button';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
-import { useAuthStore } from '@core/stores/auth.store';
+import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { offlineSalesApi } from '@core/lib/offline/offlineSales';
@@ -17,7 +17,7 @@ import { productsApi } from '@modules/inventory/products/api/products.api';
 
 export default function GymPosPage() {
   const queryClient = useQueryClient();
-  const currentShopId = useAuthStore((s) => s.currentShopId);
+  const currentShopId = useShopParam();
 
   const [mode, setMode] = useState<'checkin' | 'plan' | 'shop'>('checkin');
   const [scanInput, setScanInput] = useState('');

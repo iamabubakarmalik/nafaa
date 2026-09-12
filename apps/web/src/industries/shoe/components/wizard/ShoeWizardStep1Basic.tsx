@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Footprints, Sparkles, Star, TrendingUp, AlertCircle, Award,
@@ -12,6 +12,7 @@ import { categoriesApi } from '@modules/inventory/categories/api/categories.api'
 import { tagsApi } from '@modules/inventory/tags/api/tags.api';
 import { shoeBrandsApi } from '../../api/brands.api';
 import type { ShoeWizardBasic } from '../../hooks/useShoeWizard';
+import { CategoryPicker, makeCategoryTypeResolver } from '@modules/inventory/categories/components/CategoryPicker';
 
 interface Props {
   basic: ShoeWizardBasic;
@@ -108,7 +109,53 @@ const COLOR_PRESETS = [
   { name: 'Rose Gold', hex: '#b76e79' }, { name: 'Beige', hex: '#f5f5dc' },
 ];
 
+
+/* Category ke NAAM se andar wala `categoryType` — pehle ye alag
+   se poochha jata tha jo confusing tha (aur kuch values DB me
+   thin hi nahi). Match na ho to fallback. */
+const resolveCategoryType = makeCategoryTypeResolver<string>([
+  [/men.*(sneaker|joggers?)/i, "MENS_SNEAKERS"],
+  [/men.*(formal|dress)/i, "MENS_FORMAL"],
+  [/men.*loafer/i, "MENS_LOAFERS"],
+  [/men.*boot/i, "MENS_BOOTS"],
+  [/men.*(sandal|chappal)/i, "MENS_SANDALS"],
+  [/men.*(slipper|khussa)/i, "MENS_SLIPPERS"],
+  [/peshawari/i, "MENS_PESHAWARI"],
+  [/khussa/i, "MENS_KHUSSA"],
+  [/(women|ladies).*heel/i, "WOMENS_HEELS"],
+  [/(women|ladies).*(flat|pump)/i, "WOMENS_FLATS"],
+  [/(women|ladies).*sneaker/i, "WOMENS_SNEAKERS"],
+  [/(women|ladies).*boot/i, "WOMENS_BOOTS"],
+  [/(women|ladies).*sandal/i, "WOMENS_SANDALS"],
+  [/(women|ladies).*(slipper|wedge)/i, "WOMENS_SLIPPERS"],
+  [/bridal|shadi/i, "BRIDAL_SHOES"],
+  [/kid|bach|child|school/i, "KIDS_SCHOOL"],
+  [/baby/i, "BABY_SHOES"],
+  [/running|jogg/i, "RUNNING_SHOES"],
+  [/cricket/i, "CRICKET_SPIKES"],
+  [/football|stud/i, "FOOTBALL_STUDS"],
+  [/safety|work/i, "SAFETY_SHOES"],
+  [/hiking|trek/i, "HIKING_BOOTS"],
+  [/polish/i, "SHOE_POLISH"],
+  [/lace|feeta/i, "SHOE_LACE"],
+  [/insole/i, "SHOE_INSOLE"],
+  [/sock|jurab/i, "SOCK"],
+  [/sneaker|jogger/i, "MENS_SNEAKERS"],
+  [/sandal|chappal/i, "MENS_SANDALS"],
+  [/slipper/i, "MENS_SLIPPERS"],
+  [/boot/i, "MENS_BOOTS"],
+], 'OTHER');
+
 export function ShoeWizardStep1Basic({ basic, onChange, errors }: Props) {
+  const { data: catsForType = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list });
+  /* Category chunte hi andar wala type set ho jata hai */
+  useEffect(() => {
+    const name = (catsForType as any[]).find((c) => c.id === basic.categoryId)?.name;
+    const derived = resolveCategoryType(name);
+    if (derived !== basic.categoryType) onChange({ categoryType: derived } as any);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [basic.categoryId, catsForType]);
+
   const qc = useQueryClient();
   const [scan, setScan] = useState(false);
   const [newBrand, setNewBrand] = useState('');
@@ -241,28 +288,14 @@ export function ShoeWizardStep1Basic({ basic, onChange, errors }: Props) {
 
       {/* 3 — CATEGORY */}
       <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-3">
-        <Head icon={Tag} n="3" t="Category Type" d="What kind of shoe?" />
-        <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
-          {CATEGORY_GROUPS.map((grp) => (
-            <div key={grp.group}>
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500 mb-1.5">{grp.group}</div>
-              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
-                {grp.items.map((c) => {
-                  const a = basic.categoryType === c.v;
-                  return (
-                    <button key={c.v} type="button" onClick={() => onChange({ categoryType: c.v })}
-                      className={['p-2.5 rounded-xl border-2 transition flex flex-col items-center justify-center gap-0.5 min-h-[68px]',
-                        a ? 'border-orange-600 bg-orange-600 text-white shadow-md scale-[1.03]'
-                          : 'border-slate-200 bg-white text-slate-700 hover:border-orange-400'].join(' ')}>
-                      <span className="text-xl leading-none">{c.e}</span>
-                      <span className="text-[10px] font-extrabold text-center leading-tight">{c.l}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
+        <Head icon={Tag} n="3" t="Category" d="Aap ki apni category" />
+
+        <CategoryPicker
+          value={basic.categoryId}
+          onChange={(categoryId) => onChange({ categoryId })}
+          tone="orange"
+          examples="jaise Men's Shoes, Women's Heels, Kids School"
+        />
       </section>
 
       {/* 4 — BRAND */}
@@ -355,14 +388,6 @@ export function ShoeWizardStep1Basic({ basic, onChange, errors }: Props) {
       {/* 7 — DESCRIPTION + CATEGORY */}
       <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-4">
         <Head icon={Tag} n="7" t="Shop Category & Description" d="Optional (helps search)" />
-        <div>
-          <Lbl>Shop Category</Lbl>
-          <select value={basic.categoryId} onChange={(e) => onChange({ categoryId: e.target.value })}
-            className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-orange-500">
-            <option value="">None</option>
-            {(cats as any[]).map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
-          </select>
-        </div>
         <div>
           <Lbl>Description <Opt /></Lbl>
           <textarea rows={2} value={basic.description} onChange={(e) => onChange({ description: e.target.value })}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   PawPrint, DollarSign, Image as ImageIcon, Sparkles, Star, TrendingUp,
@@ -13,6 +13,7 @@ import { categoriesApi } from '@modules/inventory/categories/api/categories.api'
 import { tagsApi } from '@modules/inventory/tags/api/tags.api';
 import { formatPKRFull } from '@core/lib/format';
 import type { PetshopWizardBasic } from '../../hooks/usePetshopWizard';
+import { CategoryPicker, makeCategoryTypeResolver } from '@modules/inventory/categories/components/CategoryPicker';
 
 interface Props {
   basic: PetshopWizardBasic;
@@ -104,7 +105,54 @@ const LIFE_STAGES = [
 
 const MARKUPS = [10, 15, 20, 25, 30, 40];
 
+
+/* Category ke NAAM se andar wala `categoryType` — pehle ye alag
+   se poochha jata tha jo confusing tha (aur kuch values DB me
+   thin hi nahi). Match na ho to fallback. */
+const resolveCategoryType = makeCategoryTypeResolver<string>([
+  [/dog.*(dry|kibble)/i, "DOG_FOOD_DRY"],
+  [/dog.*wet|dog.*can/i, "DOG_FOOD_WET"],
+  [/dog.*treat/i, "DOG_TREATS"],
+  [/dog.*(leash|collar)/i, "DOG_LEASH_COLLAR"],
+  [/dog.*toy/i, "DOG_TOY"],
+  [/dog.*bed/i, "DOG_BED"],
+  [/dog|kutta/i, "DOG_ACCESSORY"],
+  [/cat.*(dry|kibble)/i, "CAT_FOOD_DRY"],
+  [/cat.*wet/i, "CAT_FOOD_WET"],
+  [/cat.*treat/i, "CAT_TREATS"],
+  [/(cat.*litter|litter)/i, "CAT_LITTER"],
+  [/cat.*(scratch)/i, "CAT_SCRATCH_POST"],
+  [/cat.*toy/i, "CAT_TOY"],
+  [/cat.*bed/i, "CAT_BED"],
+  [/cat|billi/i, "CAT_ACCESSORY"],
+  [/bird.*food|bird.*seed/i, "BIRD_FOOD"],
+  [/(bird.*cage|cage|pinjra)/i, "BIRD_CAGE"],
+  [/bird|parind|tota/i, "BIRD_ACCESSORY"],
+  [/fish.*food/i, "FISH_FOOD"],
+  [/aquarium.*filter/i, "AQUARIUM_FILTER"],
+  [/aquarium.*(decor|plant)/i, "AQUARIUM_DECOR"],
+  [/aquarium|tank|machli/i, "AQUARIUM_TANK"],
+  [/rabbit|khargosh/i, "RABBIT_FOOD"],
+  [/hamster/i, "HAMSTER_FOOD"],
+  [/reptile/i, "REPTILE_FOOD"],
+  [/medicine|vaccine|dewormer/i, "VET_MEDICINE"],
+  [/shampoo|groom|hygiene/i, "VET_GROOMING"],
+  [/supplement/i, "VET_SUPPLEMENT"],
+  [/train/i, "TRAINING_TOOL"],
+  [/carrier|transport/i, "CARRIER"],
+  [/(dry|food)/i, "DOG_FOOD_DRY"],
+], 'OTHER');
+
 export function PetshopWizardStep1Basic({ basic, onChange, errors }: Props) {
+  const { data: catsForType = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list });
+  /* Category chunte hi andar wala type set ho jata hai */
+  useEffect(() => {
+    const name = (catsForType as any[]).find((c) => c.id === basic.categoryId)?.name;
+    const derived = resolveCategoryType(name);
+    if (derived !== basic.categoryType) onChange({ categoryType: derived } as any);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [basic.categoryId, catsForType]);
+
   const [scan, setScan] = useState(false);
   const [adv, setAdv] = useState(Boolean(basic.mrp || basic.taxRate || basic.discountedPrice));
 
@@ -204,28 +252,14 @@ export function PetshopWizardStep1Basic({ basic, onChange, errors }: Props) {
 
       {/* 2 — CATEGORY */}
       <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-3">
-        <Head icon={Tag} n="2" t="Category Type" d="What kind of product is this?" />
-        <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
-          {CATEGORY_GROUPS.map((grp) => (
-            <div key={grp.group}>
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500 mb-1.5">{grp.group}</div>
-              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-2">
-                {grp.items.map((c) => {
-                  const a = basic.categoryType === c.v;
-                  return (
-                    <button key={c.v} type="button" onClick={() => onChange({ categoryType: c.v })}
-                      className={['p-2.5 rounded-xl border-2 transition flex flex-col items-center justify-center gap-0.5 min-h-[68px]',
-                        a ? 'border-amber-600 bg-amber-600 text-white shadow-md scale-[1.03]'
-                          : 'border-slate-200 bg-white text-slate-700 hover:border-amber-400'].join(' ')}>
-                      <span className="text-xl leading-none">{c.e}</span>
-                      <span className="text-[10px] font-extrabold text-center leading-tight">{c.l}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
+        <Head icon={Tag} n="2" t="Category" d="Aap ki apni category" />
+
+        <CategoryPicker
+          value={basic.categoryId}
+          onChange={(categoryId) => onChange({ categoryId })}
+          tone="amber"
+          examples="jaise Dog Food, Cat Litter, Aquarium"
+        />
       </section>
 
       {/* 3 — SPECIES */}
@@ -351,14 +385,6 @@ export function PetshopWizardStep1Basic({ basic, onChange, errors }: Props) {
       {/* 6 — CATEGORY / DESCRIPTION */}
       <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-4">
         <Head icon={Tag} n="6" t="Category & Description" d="Optional, helps search" />
-        <div>
-          <Lbl>Shop Category</Lbl>
-          <select value={basic.categoryId} onChange={(e) => onChange({ categoryId: e.target.value })}
-            className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-amber-500">
-            <option value="">None</option>
-            {(cats as any[]).map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
-          </select>
-        </div>
         <div>
           <Lbl>Description <Opt /></Lbl>
           <textarea rows={2} value={basic.description} onChange={(e) => onChange({ description: e.target.value })}

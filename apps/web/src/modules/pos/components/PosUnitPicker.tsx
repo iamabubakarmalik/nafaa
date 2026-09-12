@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { X, Scale, Package, Boxes, Hash, Sparkles } from 'lucide-react';
 import { formatPKR } from '@core/lib/format';
-import { BigNumpad } from './BigNumpad';
+import { BigNumpad } from './PosNumpad';
 
 export interface RetailUnitOption {
   id: string;
@@ -50,7 +50,7 @@ const QTY_PRESETS: Record<string, number[]> = {
   bag: [1, 2, 5],
 };
 
-export function RetailUnitPicker({
+export function PosUnitPicker({
   productName, productImage, baseUnit, baseStock,
   units, onConfirm, onClose,
 }: Props) {

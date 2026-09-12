@@ -1,4 +1,5 @@
 import { apiClient } from '@core/api/client';
+import type { ShopStamp } from '@core/lib/shopScope';
 import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 
 export interface ExpenseCategory {
@@ -19,6 +20,8 @@ export interface Expense {
   status: 'PENDING' | 'PAID' | 'CANCELLED';
   expenseDate: string;
   category?: ExpenseCategory | null;
+  /** Kis branch ka kharcha */
+  shop?: ShopStamp | null;
 }
 
 export interface CreateExpensePayload {

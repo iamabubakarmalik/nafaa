@@ -10,7 +10,7 @@ import {
 import { toast } from 'sonner';
 import { Button } from '@core/ui/Button';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
-import { useAuthStore } from '@core/stores/auth.store';
+import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { productsApi, type Product } from '@modules/inventory/products/api/products.api';
 import { productVariantsApi } from '@modules/inventory/products/api/product-variants.api';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
@@ -45,7 +45,7 @@ const CATEGORY_TYPES = [
 export default function GarmentPosPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const currentShopId = useAuthStore((s) => s.currentShopId);
+  const currentShopId = useShopParam();
 
   const [scannerOpen, setScannerOpen] = useState(false);
   const [search, setSearch] = useState('');

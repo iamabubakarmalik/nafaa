@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Gamepad2, DollarSign, Image as ImageIcon, Sparkles, Star, TrendingUp,
@@ -13,6 +13,7 @@ import { categoriesApi } from '@modules/inventory/categories/api/categories.api'
 import { tagsApi } from '@modules/inventory/tags/api/tags.api';
 import { formatPKRFull } from '@core/lib/format';
 import type { GamingWizardBasic } from '../../hooks/useGamingWizard';
+import { CategoryPicker, makeCategoryTypeResolver } from '@modules/inventory/categories/components/CategoryPicker';
 
 interface Props {
   basic: GamingWizardBasic;
@@ -111,7 +112,55 @@ const CONDITIONS = [
 
 const MARKUPS = [10, 15, 20, 25, 30, 40];
 
+
+/* Category ke NAAM se andar wala `categoryType` — pehle ye alag
+   se poochha jata tha jo confusing tha (aur kuch values DB me
+   thin hi nahi). Match na ho to fallback. */
+const resolveCategoryType = makeCategoryTypeResolver<string>([
+  [/ps\s?5|playstation\s?5/i, "CONSOLE_PS5"],
+  [/ps\s?4|playstation\s?4/i, "CONSOLE_PS4"],
+  [/xbox.*series/i, "CONSOLE_XBOX_SERIES"],
+  [/xbox/i, "CONSOLE_XBOX_ONE"],
+  [/switch|nintendo/i, "CONSOLE_NINTENDO_SWITCH"],
+  [/retro/i, "CONSOLE_RETRO"],
+  [/console/i, "CONSOLE_PS5"],
+  [/game.*disc|disc|cd|game\b/i, "GAME_DISC"],
+  [/controller|joystick|pad/i, "CONTROLLER"],
+  [/head\s?set|headphone/i, "HEADSET_GAMING"],
+  [/key\s?board/i, "KEYBOARD_GAMING"],
+  [/mouse\s?pad/i, "MOUSEPAD"],
+  [/mouse/i, "MOUSE_GAMING"],
+  [/chair/i, "CHAIR_GAMING"],
+  [/desk/i, "DESK_GAMING"],
+  [/monitor|screen/i, "MONITOR_GAMING"],
+  [/gpu|graphic/i, "GPU"],
+  [/cpu|processor/i, "CPU"],
+  [/ram|memory/i, "RAM"],
+  [/mother\s?board/i, "MOTHERBOARD"],
+  [/psu|power\s?supply/i, "PSU"],
+  [/ssd/i, "STORAGE_SSD"],
+  [/hdd|hard/i, "STORAGE_HDD"],
+  [/cool|fan/i, "COOLING"],
+  [/case|cabinet/i, "PC_CASE"],
+  [/rgb/i, "RGB_ACCESSORY"],
+  [/pc\b|desktop/i, "PC_PREBUILT"],
+  [/vr\b/i, "VR_HEADSET"],
+  [/top\s?up|topup/i, "DIGITAL_TOPUP"],
+  [/subscription/i, "DIGITAL_SUBSCRIPTION"],
+  [/gift\s?card/i, "GIFT_CARD"],
+  [/merch/i, "MERCHANDISE"],
+], 'OTHER');
+
 export function GamingWizardStep1Basic({ basic, onChange, errors }: Props) {
+  const { data: catsForType = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list });
+  /* Category chunte hi andar wala type set ho jata hai */
+  useEffect(() => {
+    const name = (catsForType as any[]).find((c) => c.id === basic.categoryId)?.name;
+    const derived = resolveCategoryType(name);
+    if (derived !== basic.categoryType) onChange({ categoryType: derived } as any);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [basic.categoryId, catsForType]);
+
   const [scan, setScan] = useState(false);
   const [adv, setAdv] = useState(Boolean(basic.mrp || basic.taxRate || basic.discountedPrice));
   const [showUsed, setShowUsed] = useState(Boolean(basic.usedPrice || basic.tradeInValue));
@@ -197,28 +246,14 @@ export function GamingWizardStep1Basic({ basic, onChange, errors }: Props) {
 
       {/* 2 — CATEGORY */}
       <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-3">
-        <Head icon={Tag} n="2" t="Category Type" d="What kind of item is this?" />
-        <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
-          {CATEGORY_GROUPS.map((grp) => (
-            <div key={grp.group}>
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500 mb-1.5">{grp.group}</div>
-              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
-                {grp.items.map((c) => {
-                  const a = basic.categoryType === c.v;
-                  return (
-                    <button key={c.v} type="button" onClick={() => onChange({ categoryType: c.v })}
-                      className={['p-2.5 rounded-xl border-2 transition flex flex-col items-center justify-center gap-0.5 min-h-[68px]',
-                        a ? 'border-violet-600 bg-violet-600 text-white shadow-md scale-[1.03]'
-                          : 'border-slate-200 bg-white text-slate-700 hover:border-violet-400'].join(' ')}>
-                      <span className="text-xl leading-none">{c.e}</span>
-                      <span className="text-[10px] font-extrabold text-center leading-tight">{c.l}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
+        <Head icon={Tag} n="2" t="Category" d="Aap ki apni category" />
+
+        <CategoryPicker
+          value={basic.categoryId}
+          onChange={(categoryId) => onChange({ categoryId })}
+          tone="violet"
+          examples="jaise Consoles, Games, PC Parts"
+        />
       </section>
 
       {/* 3 — PLATFORM */}
@@ -361,14 +396,6 @@ export function GamingWizardStep1Basic({ basic, onChange, errors }: Props) {
       {/* 6 — CATEGORY / DESCRIPTION */}
       <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-4">
         <Head icon={Tag} n="6" t="Category & Description" d="Optional but helps search" />
-        <div>
-          <Lbl>Shop Category</Lbl>
-          <select value={basic.categoryId} onChange={(e) => onChange({ categoryId: e.target.value })}
-            className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
-            <option value="">None</option>
-            {(cats as any[]).map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
-          </select>
-        </div>
         <div>
           <Lbl>Description <Opt /></Lbl>
           <textarea rows={2} value={basic.description} onChange={(e) => onChange({ description: e.target.value })}

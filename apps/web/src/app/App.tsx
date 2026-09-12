@@ -1,7 +1,6 @@
 // apps/web/src/App.tsx
 import { OwnerOnly } from '@app/router/RoleGuard';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
-import { QueryClient } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { queryCachePersister } from '@core/lib/offline/queryPersister';
 import { Toaster } from 'sonner';
@@ -523,6 +522,7 @@ import ToystoreSafetyReviewPage from '@industries/toystore/pages/ToySafetyReview
 
 // ─── Route Guards & Layout ─────────────────────────────────────
 import { ProtectedRoute, PublicOnlyRoute } from '@app/router/ProtectedRoute';
+import { queryClient } from '@core/lib/queryClient';
 import OnboardingGate from '@app/router/OnboardingGate';
 import AppShell from '@app/layout/AppShell';
 import PermissionRoute from '@app/router/PermissionRoute';
@@ -533,28 +533,15 @@ import '@app/providers/registerIndustries';
 import { IndustryProvider } from '@industries/_shared/registry/IndustryProvider';
 import { industryRoutes } from '@industries/_shared/registry/IndustryRoutes';
 
-// ─── React Query Client ────────────────────────────────────────
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-      staleTime: 30_000,
-      // ── OFFLINE-FIRST ──
-      gcTime: 1000 * 60 * 60 * 24 * 7,   // 7 din cache rakho (persistence ke liye)
-      networkMode: 'offlineFirst',        // offline me queries pause NAHI — API layer fallback karega
-    },
-    mutations: {
-      networkMode: 'offlineFirst',        // offline mutations bhi chalein (queue handle karta hai)
-    },
-  },
-});
+// ─── React Query Client (defined in @core/lib/queryClient) ─────
 
 /* ═══ Persistence config — sirf successful queries save hoti hain ═══ */
 const persistOptions = {
   persister: queryCachePersister,
   maxAge: 1000 * 60 * 60 * 24 * 7, // 7 din
-  buster: 'nafaa-offline-v1',      // schema badlo to yahan version badha do
+  // v2: pre-multishop caches hold one branch's numbers under branch-agnostic
+  // keys, so they have to be dropped once when multi-shop ships.
+  buster: 'nafaa-offline-v2',      // schema badlo to yahan version badha do
   dehydrateOptions: {
     shouldDehydrateQuery: (q: any) => q.state?.status === 'success',
     shouldDehydrateMutation: () => false,
