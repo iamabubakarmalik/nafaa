@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Shirt, DollarSign, Image as ImageIcon, Sparkles, Star, Eye,
