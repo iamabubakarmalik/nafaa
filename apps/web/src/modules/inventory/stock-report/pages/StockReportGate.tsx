@@ -4,6 +4,7 @@ import StockReportPage from './StockReportPage';
 import RetailStockReportPage from '@industries/retail/pages/RetailStockReportPage';
 import MobileStockReportPage from '@industries/mobile/pages/MobileStockReportPage';
 import ElectronicsStockReportPage from '@industries/electronics/pages/ElectronicsStockReportPage';
+import AppliancesStockReportPage from '@industries/appliances/pages/AppliancesStockReportPage';
 
 /**
  * StockReportGate — routes /stock-report to the correct
@@ -26,6 +27,8 @@ export default function StockReportGate() {
 
     case 'electronics':
       return <ElectronicsStockReportPage />;
+    case 'appliances':
+      return <AppliancesStockReportPage />;
 
     // Future: alag industries ka custom report yahan add karo
     // case 'carpet':

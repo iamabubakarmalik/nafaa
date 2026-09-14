@@ -192,31 +192,96 @@ export class AmcContractsService {
     });
   }
 
+  /**
+   * Summary — paisa aur tanbeeh dono.
+   *
+   * Pehle `expired` sirf `expiryDate < now` se ginta tha, is liye
+   * cancel aur renew ho chuke contracts bhi "expired" me shumar hote thay.
+   */
   async summary(user: AuthenticatedUser) {
+    const tenantId = user.tenantId;
     const now = new Date();
-    const in30Days = new Date();
-    in30Days.setDate(in30Days.getDate() + 30);
+    const in30Days = new Date(); in30Days.setDate(in30Days.getDate() + 30);
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const [active, expiringSoon, expired, cancelled, revenue] = await Promise.all([
-      this.prisma.applianceAmcContract.count({ where: { tenantId: user.tenantId, status: 'ACTIVE' } }),
-      this.prisma.applianceAmcContract.count({
-        where: { tenantId: user.tenantId, status: 'ACTIVE', expiryDate: { gte: now, lte: in30Days } },
+    const [byStatus, activeRows, newThisMonth] = await Promise.all([
+      this.prisma.applianceAmcContract.groupBy({
+        by: ['status'], where: { tenantId }, _count: { _all: true },
       }),
-      this.prisma.applianceAmcContract.count({ where: { tenantId: user.tenantId, expiryDate: { lt: now } } }),
-      this.prisma.applianceAmcContract.count({ where: { tenantId: user.tenantId, status: 'CANCELLED' } }),
-      this.prisma.applianceAmcContract.aggregate({
-        where: { tenantId: user.tenantId, status: 'ACTIVE' },
-        _sum: { contractValue: true, paidAmount: true },
+      this.prisma.applianceAmcContract.findMany({
+        where: { tenantId, status: 'ACTIVE' },
+        select: {
+          id: true, contractNumber: true, amcType: true, customerName: true, customerPhone: true,
+          expiryDate: true, contractValue: true, paidAmount: true,
+          freeVisitsAllowed: true, freeVisitsUsed: true, autoRenew: true,
+          totalPartsClaimed: true, totalLaborSaved: true,
+        },
+      }),
+      this.prisma.applianceAmcContract.findMany({
+        where: { tenantId, createdAt: { gte: monthStart } },
+        select: { contractValue: true, paidAmount: true },
       }),
     ]);
 
+    const map = Object.fromEntries(byStatus.map((r) => [r.status, r._count._all]));
+
+    const billed = activeRows.reduce((s, r) => s + Number(r.contractValue), 0);
+    const collected = activeRows.reduce((s, r) => s + Number(r.paidAmount), 0);
+
+    const expiringRows = activeRows
+      .filter((r) => new Date(r.expiryDate) >= now && new Date(r.expiryDate) <= in30Days)
+      .map((r) => ({
+        ...r,
+        daysLeft: Math.floor((new Date(r.expiryDate).getTime() - now.getTime()) / 86_400_000),
+        visitsLeft: Math.max(r.freeVisitsAllowed - r.freeVisitsUsed, 0),
+        pending: Number(r.contractValue) - Number(r.paidAmount),
+      }))
+      .sort((a, b) => a.daysLeft - b.daysLeft);
+
+    // Jo contract tareekh guzarne ke bawajood ACTIVE para hai — is par
+    // kaam roz hota reh sakta hai jabke paisa khatam ho chuka
+    const staleActive = activeRows.filter((r) => new Date(r.expiryDate) < now);
+
+    const byType = new Map<string, { type: string; count: number; value: number; collected: number }>();
+    for (const r of activeRows) {
+      const t = byType.get(r.amcType) ?? { type: r.amcType, count: 0, value: 0, collected: 0 };
+      t.count += 1;
+      t.value += Number(r.contractValue);
+      t.collected += Number(r.paidAmount);
+      byType.set(r.amcType, t);
+    }
+
     return {
-      active,
-      expiringSoon,
-      expired,
-      cancelled,
-      totalContractValue: revenue._sum.contractValue ?? 0,
-      totalCollected: revenue._sum.paidAmount ?? 0,
+      // Purane naam waise hi
+      active: map['ACTIVE'] ?? 0,
+      expiringSoon: expiringRows.length,
+      expired: map['EXPIRED'] ?? 0,
+      cancelled: map['CANCELLED'] ?? 0,
+      totalContractValue: billed,
+      totalCollected: collected,
+
+      renewed: map['RENEWED'] ?? 0,
+      suspended: map['SUSPENDED'] ?? 0,
+      /** Contract ka baqi paisa */
+      pendingAmount: billed - collected,
+      /** Tareekh guzar chuki lekin status abhi ACTIVE hai */
+      staleActive: staleActive.length,
+      /** In par free visits khatam ho chuki hain */
+      visitsExhausted: activeRows.filter((r) => r.freeVisitsUsed >= r.freeVisitsAllowed).length,
+      autoRenewCount: activeRows.filter((r) => r.autoRenew).length,
+      /** Customer ne AMC se kitna bachaya — bechne ki sab se achhi daleel */
+      customerSaved: activeRows.reduce(
+        (s, r) => s + Number(r.totalPartsClaimed) + Number(r.totalLaborSaved), 0,
+      ),
+
+      month: {
+        newContracts: newThisMonth.length,
+        billed: newThisMonth.reduce((s, r) => s + Number(r.contractValue), 0),
+        collected: newThisMonth.reduce((s, r) => s + Number(r.paidAmount), 0),
+      },
+
+      byType: [...byType.values()].sort((a, b) => b.value - a.value),
+      expiringList: expiringRows.slice(0, 30),
     };
   }
 }

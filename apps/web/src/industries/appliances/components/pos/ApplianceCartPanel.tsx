@@ -1,5 +1,6 @@
 import { ShoppingCart, X, Pause, User, UserPlus, ChevronDown, MapPin, Trash2, Plus, Minus, HardHat, Shield, ArrowRight, Percent, Home } from 'lucide-react';
 import { formatPKR } from '@core/lib/format';
+import { PosDeliveryPanel, PosDiscountBar, type PosDeliveryState } from '@modules/pos/components';
 
 interface Props {
   isMobile: boolean;
@@ -13,7 +14,15 @@ interface Props {
   installsBooked: number;
   discountPct: number;
   setDiscountPct: (v: number) => void;
+  discountRs: number;
+  setDiscountRs: (v: number) => void;
+  discountMode: 'pct' | 'rs';
+  setDiscountMode: (v: 'pct' | 'rs') => void;
   discountAmount: number;
+  /** Ghar bhejne ka charge — customer se liya aur rider ko diya, dono alag */
+  delivery: PosDeliveryState;
+  setDelivery: (v: PosDeliveryState) => void;
+  deliveryFee: number;
   hidePrices: boolean;
   customers: any[];
   customerId: string;
@@ -201,21 +210,32 @@ export function ApplianceCartPanel(props: Props) {
             </div>
           )}
 
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 text-[11px] sm:text-xs font-extrabold text-slate-600 shrink-0">
-              <Percent className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-600" />
-              <span className="hidden sm:inline">Discount:</span>
+          {/* Discount — % bhi, rupay bhi */}
+          <PosDiscountBar
+            subtotal={props.subtotal}
+            mode={props.discountMode}
+            pct={props.discountPct}
+            rs={props.discountRs}
+            onMode={props.setDiscountMode}
+            onPct={props.setDiscountPct}
+            onRs={props.setDiscountRs}
+            tone="emerald"
+          />
+
+          {/* 🚚 Ghar bhejna hai? — bhari saman me ye aam hai */}
+          <PosDeliveryPanel
+            value={props.delivery}
+            onChange={props.setDelivery}
+            tone="emerald"
+            compact={props.isMobile}
+          />
+
+          {props.deliveryFee > 0 && !props.hidePrices && (
+            <div className="text-xs font-extrabold text-emerald-700 tabular-nums flex justify-between px-1">
+              <span>+ Delivery</span>
+              <span>{formatPKR(props.deliveryFee)}</span>
             </div>
-            <div className="flex gap-1 flex-1">
-              {[0, 5, 10, 15, 20].map((d) => (
-                <button key={d} onClick={() => props.setDiscountPct(d)}
-                  className={['flex-1 h-9 sm:h-10 rounded-xl text-[11px] sm:text-xs font-extrabold transition',
-                    props.discountPct === d ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'].join(' ')}>
-                  {d === 0 ? 'None' : `${d}%`}
-                </button>
-              ))}
-            </div>
-          </div>
+          )}
 
           <button onClick={props.onCheckout} disabled={!props.canCheckout}
             className={['w-full h-[76px] sm:h-[88px] rounded-3xl font-extrabold text-white shadow-2xl transition-all active:scale-[0.98]',

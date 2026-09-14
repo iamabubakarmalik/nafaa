@@ -4,6 +4,7 @@ import {
   Search, ShoppingCart, Package, X, Camera, ScanLine,
   CheckCircle2, ArrowRight, Printer, Pause, Play,
   Home, Wifi, WifiOff, HardHat, UserPlus,
+  Barcode, Wrench, ShieldCheck,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatPKR } from '@core/lib/format';
@@ -14,15 +15,25 @@ import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api
 import { offlineSalesApi } from '@core/lib/offline/offlineSales';
 import type { Product } from '@modules/inventory/products/api/products.api';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
-import { RetailQuickCash } from '@industries/retail/components/pos';
+import {
+  PosQuickCash, PosDeliveryPanel, PosDiscountBar,
+  emptyDelivery, deliveryAmount, deliveryServiceCharge,
+  type PosDeliveryState,
+} from '@modules/pos/components';
+import type { ServiceChargeItem } from '@modules/sales/sales/api/sales.api';
 import { applianceProductsApi } from '../api/products.api';
 import { applianceSerialApi } from '../api/serial-tracking.api';
 import { installationsApi } from '../api/installations.api';
+import { serviceRequestsApi } from '../api/service-requests.api';
+import { offlineAppliancesApi } from '../api/offline-appliances';
 import { ApplianceProductTile } from '../components/pos/ApplianceProductTile';
 import { ApplianceCartPanel } from '../components/pos/ApplianceCartPanel';
 import { InstallationBookingModal } from '../components/pos/InstallationBookingModal';
 import { NewCustomerModal } from '../components/pos/NewCustomerModal';
 import { CategoryChips } from '../components/pos/CategoryChips';
+import {
+  PosTabBtn, SerialTab, RepairTab, AmcTab, type PosTab,
+} from '../components/pos/PosTabs';
 
 const HIDE_PRICES_KEY = 'nafaa.appliances-pos.hide-prices';
 
@@ -71,6 +82,11 @@ export default function AppliancesPosPage() {
   const [customerId, setCustomerId] = useState('');
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [discountPct, setDiscountPct] = useState(0);
+  const [discountRs, setDiscountRs] = useState(0);
+  const [discountMode, setDiscountMode] = useState<'pct' | 'rs'>('pct');
+  const [delivery, setDelivery] = useState<PosDeliveryState>(emptyDelivery());
+  /** POS ke chaar khanay — maal, serial, repair ka paisa, AMC */
+  const [posTab, setPosTab] = useState<PosTab>('goods');
   const [scannerOpen, setScannerOpen] = useState(false);
   const [barcodeInput, setBarcodeInput] = useState('');
   const [showCheckout, setShowCheckout] = useState(false);
@@ -111,6 +127,16 @@ export default function AppliancesPosPage() {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'F2') { e.preventDefault(); setScannerOpen(true); }
       if (e.key === 'F9') { e.preventDefault(); if (cart.length > 0) setShowCheckout(true); }
+      // F7/F8 — khanon ke darmiyan aana jana (mobile POS jaisa)
+      if (e.key === 'F7' || e.key === 'F8') {
+        e.preventDefault();
+        const order: PosTab[] = ['goods', 'serial', 'repair', 'amc'];
+        setPosTab((cur) => {
+          const i = order.indexOf(cur);
+          const next = e.key === 'F8' ? (i + 1) % order.length : (i - 1 + order.length) % order.length;
+          return order[next];
+        });
+      }
       if (e.key === 'Escape') {
         if (scannerOpen) setScannerOpen(false);
         if (showCheckout) setShowCheckout(false);
@@ -182,11 +208,102 @@ export default function AppliancesPosPage() {
     cart.filter((l) => l.bookInstallation && !l.installationCovered).reduce((s, l) => s + Number(l.installationCharge || 0), 0),
     [cart]
   );
-  const discountAmount = useMemo(() => (subtotal * discountPct) / 100, [subtotal, discountPct]);
-  const total = useMemo(() => subtotal - discountAmount + installationCharges, [subtotal, discountAmount, installationCharges]);
+  const discountAmount = useMemo(
+    () => (discountMode === 'pct'
+      ? (subtotal * discountPct) / 100
+      : Math.min(Number(discountRs) || 0, subtotal)),
+    [subtotal, discountPct, discountRs, discountMode],
+  );
+  const deliveryFee = useMemo(() => deliveryAmount(delivery), [delivery]);
+  /**
+   * Installation aur delivery discount ke BAAD jurte hain — ye
+   * services hain, maal nahi, is liye in par discount nahi lagta.
+   */
+  const total = useMemo(
+    () => Math.max(subtotal - discountAmount, 0) + installationCharges + deliveryFee,
+    [subtotal, discountAmount, installationCharges, deliveryFee],
+  );
+
+  /**
+   * Installation + delivery ko sale ke sath service charge ban kar
+   * jana hota hai.
+   *
+   * Pehle ye sirf `total` me jur jate thay lekin payload me jate hi
+   * nahi thay — is liye customer 5,000 ka installation de deta tha
+   * aur sale me wo overpayment ban jata tha, kamai kahin darj hi
+   * nahi hoti thi.
+   */
+  const serviceCharges = useMemo<ServiceChargeItem[] | undefined>(() => {
+    const lines: ServiceChargeItem[] = [];
+    for (const l of cart) {
+      if (l.bookInstallation && !l.installationCovered && Number(l.installationCharge) > 0) {
+        lines.push({
+          type: 'INSTALLATION',
+          label: `Installation — ${l.name}`,
+          amount: Number(l.installationCharge) || 0,
+          note: l.installationScheduledDate
+            ? `${l.installationScheduledDate}${l.installationTimeSlot ? ` ${l.installationTimeSlot}` : ''}`
+            : undefined,
+        });
+      }
+    }
+    const del = deliveryServiceCharge(delivery);
+    if (del) lines.push(...del);
+    return lines.length > 0 ? lines : undefined;
+  }, [cart, delivery]);
   const itemCount = cart.length;
   const totalQty = useMemo(() => cart.reduce((s, l) => s + l.quantity, 0), [cart]);
   const installsBooked = useMemo(() => cart.filter((l) => l.bookInstallation).length, [cart]);
+
+  /* Tab badges — Repair par laal nishan tab hi jab paisa baqi ho */
+  const { data: unpaidRepairs } = useQuery({
+    queryKey: ['pos-repairs-unpaid'],
+    queryFn: () => serviceRequestsApi.list({ status: 'COMPLETED', unpaidOnly: true, limit: 100 }),
+    staleTime: 20_000,
+  });
+  const { data: serialStock } = useQuery({
+    queryKey: ['pos-serials-in-stock'],
+    queryFn: () => applianceSerialApi.list({ status: 'IN_STOCK', limit: 300 }),
+    staleTime: 30_000,
+  });
+  const unpaidCount = unpaidRepairs?.items?.length ?? 0;
+  const serialCount = serialStock?.items?.length ?? 0;
+
+  /**
+   * Serial tab se seedha ek exact unit cart me.
+   * Product ki poori tafseel serial ke sath aati hai, is liye
+   * product list me dobara dhoondne ki zaroorat nahi.
+   */
+  const addSerialToCart = (s: any) => {
+    if (cart.some((l) => l.serialTrackingId === s.id)) {
+      toast.error(`Serial ${s.serialNumber} pehle se cart me hai`);
+      return;
+    }
+    const prod = s.product;
+    if (!prod) { toast.error('Is serial ka product nahi mila'); return; }
+    setCart((prev) => [...prev, {
+      id: lineId(),
+      productId: s.productId,
+      name: prod.name,
+      image: prod.image ?? undefined,
+      modelNumber: s.modelNumber ?? prod.modelNumber ?? undefined,
+      brandName: prod.brand ?? undefined,
+      capacity: prod.capacity ?? undefined,
+      unitPrice: Number(prod.price) || 0,
+      quantity: 1,
+      baseStock: 1,
+      lineTotal: Number(prod.price) || 0,
+      serialTrackingId: s.id,
+      serialNumber: s.serialNumber,
+      warrantyMonths: prod.warrantyMonths ?? undefined,
+      requiresInstallation: prod.requiresInstallation ?? false,
+      installationCharge: Number(prod.installationCharge) || 0,
+      installationCovered: false,
+      bookInstallation: false,
+    }]);
+    toast.success(`🔖 ${s.serialNumber} cart me`, { duration: 900 });
+    setPosTab('goods');
+  };
 
   const addProductLine = (product: Product, qty: number, profile?: any, serial?: any) => {
     const existing = cart.find((l) => l.productId === product.id && (!serial || l.serialTrackingId === serial.id));
@@ -250,7 +367,11 @@ export default function AppliancesPosPage() {
   };
 
   const removeLine = (id: string) => setCart((prev) => prev.filter((l) => l.id !== id));
-  const clearCart = () => { setCart([]); setCustomerId(''); setDiscountPct(0); setDeliveryAddress(''); };
+  const clearCart = () => {
+    setCart([]); setCustomerId('');
+    setDiscountPct(0); setDiscountRs(0); setDiscountMode('pct');
+    setDeliveryAddress(''); setDelivery(emptyDelivery());
+  };
 
   const toggleInstallation = (line: CartLine) => {
     if (!line.bookInstallation) {
@@ -324,14 +445,18 @@ export default function AppliancesPosPage() {
         paymentMethod: data.paymentMethod,
         paidAmount: data.paidAmount,
         discount: discountAmount,
+        ...(serviceCharges ? { serviceCharges } : {}),
         items,
       });
 
       let installationsBooked = 0;
+      let queuedOffline = 0;
       for (const line of cart) {
         if (line.bookInstallation && line.installationScheduledDate) {
           try {
-            await installationsApi.create({
+            // Offline ho to ye queue me chala jata hai — pehle
+            // `catch {}` isay khamoshi se nigal leta tha
+            const res = await offlineAppliancesApi.createInstallation({
               productId: line.productId,
               productName: line.name,
               serialNumber: line.serialNumber,
@@ -340,18 +465,22 @@ export default function AppliancesPosPage() {
               customerId: customerId || undefined,
               customerName: selectedCustomer?.name || 'Walk-in',
               customerPhone: selectedCustomer?.phone || '',
-              customerAddress: deliveryAddress || selectedCustomer?.address || '',
+              customerAddress: delivery.address || deliveryAddress || selectedCustomer?.address || '',
               serviceType: 'INSTALLATION',
               scheduledDate: line.installationScheduledDate,
               scheduledTimeSlot: line.installationTimeSlot,
             });
-            installationsBooked++;
-          } catch {}
+            if (res.synced) installationsBooked++;
+            else queuedOffline++;
+          } catch {
+            // Asli error (ghalat data waghera) — sale phir bhi ho chuki hai
+            queuedOffline++;
+          }
         }
 
         if (line.serialTrackingId) {
           try {
-            await applianceSerialApi.update(line.serialTrackingId, {
+            await offlineAppliancesApi.updateSerial(line.serialTrackingId, {
               status: 'SOLD',
               soldPrice: line.unitPrice,
               soldAt: new Date().toISOString(),
@@ -360,15 +489,15 @@ export default function AppliancesPosPage() {
               customerPhone: selectedCustomer?.phone,
               saleId: sale.id,
               invoiceNumber: sale.saleNumber,
-              deliveryAddress,
+              deliveryAddress: delivery.address || deliveryAddress || undefined,
             } as any);
           } catch {}
         }
       }
 
-      return { sale, installationsBooked };
+      return { sale, installationsBooked, queuedOffline };
     },
-    onSuccess: ({ sale, installationsBooked }, vars) => {
+    onSuccess: ({ sale, installationsBooked, queuedOffline }, vars) => {
       const change = Math.max(vars.paidAmount - total, 0);
       setLastSale({ id: sale.id, number: sale.saleNumber, change, total, installationsBooked });
       setShowCheckout(false);
@@ -377,6 +506,9 @@ export default function AppliancesPosPage() {
       queryClient.invalidateQueries({ queryKey: ['products-for-appliances-pos'] });
       queryClient.invalidateQueries({ queryKey: ['sales-list'] });
       queryClient.invalidateQueries({ queryKey: ['installations-list'] });
+      if (queuedOffline > 0) {
+        toast.info(`📴 ${queuedOffline} installation queue me — internet aate hi khud book ho jayegi`);
+      }
       const autoOpen = localStorage.getItem('nafaa.pos.auto-open-receipt') !== 'false';
       if (autoOpen) window.open(`/sales/${sale.id}/receipt?auto=1`, '_blank');
     },
@@ -404,7 +536,7 @@ export default function AppliancesPosPage() {
       )}
 
       {showCheckout && (
-        <RetailQuickCash
+        <PosQuickCash
           total={total}
           itemCount={itemCount}
           loading={checkoutMutation.isPending}
@@ -470,15 +602,49 @@ export default function AppliancesPosPage() {
               onChange={setBarcodeInput}
               onSubmit={() => { if (barcodeInput.trim()) { handleBarcode(barcodeInput); setBarcodeInput(''); } }}
             />
-            <CategoryChips
-              value={categoryType}
-              onChange={setCategoryType}
-              productCount={products.length}
-            />
+            {posTab === 'goods' && (
+              <CategoryChips
+                value={categoryType}
+                onChange={setCategoryType}
+                productCount={products.length}
+              />
+            )}
           </div>
 
-          <div ref={scrollRef} onScroll={handleScroll} className="lg:flex-1 lg:overflow-y-auto p-2 sm:p-3 bg-slate-50/50 lg:min-h-0">
-            {loadingProducts ? (
+          {/* ═══ CHAAR KHANAY — counter par har tarah ka kaam ═══ */}
+          <div className="shrink-0 px-2 sm:px-3 py-2 bg-white dark:bg-slate-900 border-b-2 border-slate-100 dark:border-slate-800">
+            <div className="flex gap-1 rounded-2xl bg-slate-100 dark:bg-slate-800 p-1">
+              <PosTabBtn active={posTab === 'goods'} onClick={() => setPosTab('goods')}
+                icon={Package} label="Maal" count={filteredProducts.length} color="cyan" shortcut="F7" />
+              <PosTabBtn active={posTab === 'serial'} onClick={() => setPosTab('serial')}
+                icon={Barcode} label="Serial" count={serialCount} color="violet" shortcut="F8" />
+              <PosTabBtn active={posTab === 'repair'} onClick={() => setPosTab('repair')}
+                icon={Wrench} label="Repair" count={unpaidCount} color="amber" highlight={unpaidCount > 0} />
+              <PosTabBtn active={posTab === 'amc'} onClick={() => setPosTab('amc')}
+                icon={ShieldCheck} label="AMC" color="emerald" />
+            </div>
+          </div>
+
+          <div ref={scrollRef} onScroll={handleScroll} className="lg:flex-1 lg:overflow-y-auto p-2 sm:p-3 bg-slate-50/50 dark:bg-slate-900/40 lg:min-h-0">
+            {posTab === 'serial' ? (
+              <SerialTab search={debouncedSearch} hidePrices={hidePrices} onPick={addSerialToCart} />
+            ) : posTab === 'repair' ? (
+              <RepairTab
+                search={debouncedSearch}
+                onPaid={() => {
+                  queryClient.invalidateQueries({ queryKey: ['pos-repairs-unpaid'] });
+                  queryClient.invalidateQueries({ queryKey: ['appliance-service-summary'] });
+                }}
+              />
+            ) : posTab === 'amc' ? (
+              <AmcTab
+                customer={selectedCustomer}
+                onSold={() => {
+                  queryClient.invalidateQueries({ queryKey: ['appliance-amc-summary'] });
+                  setPosTab('goods');
+                }}
+              />
+            ) : loadingProducts ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
                 {Array.from({ length: 12 }).map((_, i) => <div key={i} className="aspect-[3/4] rounded-2xl bg-slate-200 animate-pulse" />)}
               </div>
@@ -515,6 +681,13 @@ export default function AppliancesPosPage() {
           installsBooked={installsBooked}
           discountPct={discountPct}
           setDiscountPct={setDiscountPct}
+          discountRs={discountRs}
+          setDiscountRs={setDiscountRs}
+          discountMode={discountMode}
+          setDiscountMode={setDiscountMode}
+          delivery={delivery}
+          setDelivery={setDelivery}
+          deliveryFee={deliveryFee}
           discountAmount={discountAmount}
           hidePrices={hidePrices}
           customers={customers}

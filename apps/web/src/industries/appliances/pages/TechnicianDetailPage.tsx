@@ -1,442 +1,506 @@
-import { useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useState, useMemo } from 'react';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
-  ArrowLeft, Zap, Phone, MapPin, Star, Award, TrendingUp,
-  Calendar, HardHat, Wrench, CheckCircle2, Clock, DollarSign,
-  User, FileText, BarChart3, Activity,
+  ArrowLeft, Phone, MapPin, Star, Wallet, Briefcase, Clock, Award,
+  RefreshCw, MessageCircle, FileDown, TrendingUp, Wrench, HardHat,
+  CheckCircle2, AlertTriangle, CalendarDays, Zap, BarChart3, Percent,
 } from 'lucide-react';
 import {
-  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
+  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 } from 'recharts';
-import { techniciansApi } from '../api/technicians.api';
-import { installationsApi } from '../api/installations.api';
-import { serviceRequestsApi } from '../api/service-requests.api';
+import { toast } from 'sonner';
 import { formatPKR } from '@core/lib/format';
+import { Button } from '@core/ui/Button';
+import { useAuthStore } from '@core/stores/auth.store';
+import { techniciansApi } from '../api/technicians.api';
+import {
+  ApplianceHero, Kpi, Panel, Teacher, Empty, StatusBadge, useShortcuts,
+  printHtml, downloadCsv, a4Shell, escapeHtml, toDateInput, fmtDate, fmtDuration,
+  guideAction, printAction, Kbd,
+} from '../components/shared';
+import { svcStatusMeta, instStatusMeta, svcTypeMeta, catLabel } from '../constants';
 
-type Tab = 'overview' | 'installations' | 'service' | 'schedule';
+/* ═════════════════════════════════════════════════════════════
+   TECHNICIAN DETAIL — ek banday ka poora record
+   ─────────────────────────────────────────────────────────────
+   Commission dete waqt, ya ye faisla karte waqt ke "ye banda
+   chal raha hai ya nahi", yahi safha kaam aata hai.
+   ═════════════════════════════════════════════════════════════ */
+
+const DAYS = ['Itwar', 'Peer', 'Mangal', 'Budh', 'Jumeraat', 'Juma', 'Hafta'];
+const TOOLTIP: React.CSSProperties = {
+  borderRadius: 12, border: '2px solid #334155', background: '#0f172a',
+  color: '#fff', fontSize: 12, fontWeight: 700,
+};
 
 export default function TechnicianDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<Tab>('overview');
+  const shopName = useAuthStore((s) => s.tenant?.name) || 'Meri Dukaan';
+  const shopPhone = useAuthStore((s: any) => s.tenant?.phone || '');
 
-  const { data: tech, isLoading } = useQuery({
-    queryKey: ['technician', id],
+  const [showTeacher, setShowTeacher] = useState(false);
+  const [days, setDays] = useState(30);
+
+  const range = useMemo(() => {
+    const to = new Date();
+    const from = new Date();
+    from.setDate(from.getDate() - days);
+    return { from: toDateInput(from), to: toDateInput(to) };
+  }, [days]);
+
+  const { data: t, isLoading, refetch, isFetching } = useQuery({
+    queryKey: ['appliance-technician', id],
     queryFn: () => techniciansApi.getOne(id!),
     enabled: !!id,
   });
 
-  const { data: installs = [] } = useQuery({
-    queryKey: ['installations-by-tech', id],
-    queryFn: () => installationsApi.list({ technicianId: id }),
+  const { data: work } = useQuery({
+    queryKey: ['appliance-technician-workload', id, range],
+    queryFn: () => techniciansApi.workload(id!, range.from, range.to),
     enabled: !!id,
   });
 
-  const { data: serviceReqs = [] } = useQuery({
-    queryKey: ['service-by-tech', id],
-    queryFn: () => serviceRequestsApi.list({ technicianId: id }),
-    enabled: !!id,
-  });
+  useShortcuts({
+    t: () => setShowTeacher(true),
+    p: () => printA4(),
+    Escape: () => { if (showTeacher) setShowTeacher(false); else navigate('/appliances/technicians'); },
+  }, [showTeacher, t, work]);
 
-  const stats = useMemo(() => {
-    const completed = installs.filter((i: any) => i.status === 'COMPLETED').length +
-      serviceReqs.filter((s: any) => s.status === 'COMPLETED').length;
-    const pending = installs.filter((i: any) => ['PENDING', 'SCHEDULED', 'ASSIGNED', 'IN_PROGRESS'].includes(i.status)).length +
-      serviceReqs.filter((s: any) => ['REQUESTED', 'SCHEDULED', 'TECHNICIAN_ASSIGNED', 'ON_SITE', 'IN_PROGRESS'].includes(s.status)).length;
+  const wa = () => {
+    if (!t) return;
+    const digits = String(t.phone).replace(/[^0-9]/g, '');
+    const phone = digits.startsWith('92') ? digits : digits.startsWith('0') ? '92' + digits.slice(1) : '92' + digits;
+    const open = t.activeServiceRequests?.length ?? 0;
+    const msg = open > 0
+      ? `Assalam-o-Alaikum ${t.name}! 🙏\n\nAap ke paas abhi *${open}* kaam khula hai. Zara dekh lein.\n\n${shopName}`
+      : `Assalam-o-Alaikum ${t.name}! 🙏\n\n${shopName}`;
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+  };
 
-    const now = Date.now();
-    const monthAgo = now - 30 * 86400000;
-    const monthlyRevenue = [
-      ...installs.filter((i: any) => new Date(i.completedAt || 0).getTime() >= monthAgo),
-      ...serviceReqs.filter((s: any) => new Date(s.completedAt || 0).getTime() >= monthAgo),
-    ].reduce((sum: number, item: any) => sum + Number(item.totalCharge || 0), 0);
+  const exportCsv = () => {
+    if (!t) return;
+    const jobs = [
+      ...(work?.installations ?? []).map((i: any) => ({
+        kind: 'Installation', num: i.installationNumber, customer: i.customerName, product: i.productName,
+        status: instStatusMeta(i.status).label, date: i.scheduledDate, total: i.totalCharge, paid: i.paidByCustomer,
+      })),
+      ...(work?.serviceRequests ?? []).map((s: any) => ({
+        kind: 'Repair', num: s.requestNumber, customer: s.customerName, product: s.productName,
+        status: svcStatusMeta(s.status).label, date: s.scheduledDate, total: s.totalCharge, paid: s.paidAmount,
+      })),
+    ].sort((a, b) => new Date(a.date ?? 0).getTime() - new Date(b.date ?? 0).getTime());
 
-    return { completed, pending, monthlyRevenue };
-  }, [installs, serviceReqs]);
+    downloadCsv(`technician-${t.employeeCode}-${range.from}-to-${range.to}.csv`, [
+      [`${t.name} (${t.employeeCode}) — ${shopName}`],
+      [`${fmtDate(range.from)} se ${fmtDate(range.to)} tak`],
+      [`Rating: ${t.avgRating?.toFixed(1) ?? '—'} • Commission: ${t.commissionPct}%`],
+      [],
+      ['Qism', 'Number', 'Customer', 'Cheez', 'Halat', 'Tareekh', 'Kul bill', 'Wusool'],
+      ...jobs.map((j) => [j.kind, j.num, j.customer, j.product, j.status, j.date ? fmtDate(j.date) : '', j.total, j.paid]),
+      [],
+      ['Kul kaam', jobs.length],
+      ['Kul kamai', work?.totals.revenue ?? 0],
+      ['Commission', work?.totals.commission ?? 0],
+    ]);
+    toast.success('Record export ho gaya');
+  };
 
-  const chartData = useMemo(() => {
-    const buckets: Record<string, { day: string; jobs: number; revenue: number }> = {};
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      d.setHours(0, 0, 0, 0);
-      const key = d.toISOString().slice(0, 10);
-      buckets[key] = { day: `${d.getDate()}/${d.getMonth() + 1}`, jobs: 0, revenue: 0 };
-    }
-    [...installs, ...serviceReqs].forEach((item: any) => {
-      if (item.completedAt) {
-        const key = new Date(item.completedAt).toISOString().slice(0, 10);
-        if (buckets[key]) {
-          buckets[key].jobs += 1;
-          buckets[key].revenue += Number(item.totalCharge || 0);
-        }
-      }
-    });
-    return Object.values(buckets);
-  }, [installs, serviceReqs]);
+  const printA4 = () => {
+    if (!t) return;
+    const jobs = [
+      ...(work?.installations ?? []).map((i: any) => ({
+        kind: '🔧 Installation', num: i.installationNumber, customer: i.customerName, product: i.productName,
+        status: instStatusMeta(i.status).label, date: i.scheduledDate, total: i.totalCharge,
+      })),
+      ...(work?.serviceRequests ?? []).map((s: any) => ({
+        kind: '🛠️ Repair', num: s.requestNumber, customer: s.customerName, product: s.productName,
+        status: svcStatusMeta(s.status).label, date: s.scheduledDate, total: s.totalCharge,
+      })),
+    ].sort((a, b) => new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime());
 
-  if (isLoading || !tech) {
+    const body = `
+      <h2 class="sec">👷 Technician</h2>
+      <table>
+        <tbody>
+          <tr><td class="main" style="width:30%">Naam</td><td>${escapeHtml(t.name)} (${escapeHtml(t.employeeCode)})</td></tr>
+          <tr><td class="main">Phone</td><td>${escapeHtml(t.phone)}${t.cnic ? ` • CNIC ${escapeHtml(t.cnic)}` : ''}</td></tr>
+          <tr><td class="main">Ilaqa</td><td>${escapeHtml(t.currentZone ?? '—')}</td></tr>
+          <tr><td class="main">Maharat</td><td>${escapeHtml((t.specializations ?? []).join(', ') || '—')}</td></tr>
+          <tr><td class="main">Commission</td><td>${t.commissionPct}% • Visit rate ${formatPKR(t.visitChargeRate)} • Ghanta ${formatPKR(t.hourlyRate)}</td></tr>
+          <tr><td class="main">Rating</td><td>${t.avgRating ? `${t.avgRating.toFixed(1)} ★ (${t.totalReviews} raye)` : '—'}</td></tr>
+        </tbody>
+      </table>
+
+      <h2 class="sec">📋 Is Arse Ka Kaam (${fmtDate(range.from)} — ${fmtDate(range.to)})</h2>
+      <table>
+        <thead><tr><th>#</th><th>Qism / Number</th><th>Customer</th><th>Cheez</th><th class="c">Halat</th><th>Tareekh</th><th class="r">Bill</th></tr></thead>
+        <tbody>
+          ${jobs.map((j, i) => `
+            <tr>
+              <td class="num">${i + 1}</td>
+              <td><div class="main">${j.kind}</div><div class="sub">${escapeHtml(j.num)}</div></td>
+              <td>${escapeHtml(j.customer)}</td>
+              <td>${escapeHtml(j.product)}</td>
+              <td class="c"><span class="pill">${escapeHtml(j.status)}</span></td>
+              <td>${j.date ? fmtDate(j.date) : '—'}</td>
+              <td class="r">${formatPKR(j.total)}</td>
+            </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;padding:14px;color:#94a3b8;">Is arse me koi kaam nahi</td></tr>'}
+          <tr class="grand">
+            <td colspan="6" style="text-align:right;padding-right:12px;">KUL KAMAI</td>
+            <td class="r" style="color:#a5f3fc !important;">${formatPKR(work?.totals.revenue ?? 0)}</td>
+          </tr>
+          <tr class="grand">
+            <td colspan="6" style="text-align:right;padding-right:12px;">COMMISSION (${t.commissionPct}%)</td>
+            <td class="r" style="color:#c4b5fd !important;">${formatPKR(work?.totals.commission ?? 0)}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="margin-top:26px;display:flex;justify-content:space-between;gap:40px;">
+        <div style="flex:1;border-top:1.5px solid #0f172a;padding-top:5px;text-align:center;font-size:10px;font-weight:700;">Technician ke dastakhat</div>
+        <div style="flex:1;border-top:1.5px solid #0f172a;padding-top:5px;text-align:center;font-size:10px;font-weight:700;">Malik ke dastakhat</div>
+      </div>`;
+
+    const ok = printHtml(a4Shell({
+      title: `${t.name} — ${shopName}`,
+      heading: `👷 ${escapeHtml(t.name)}`,
+      shopName, shopPhone, badge: 'Commission Statement',
+      kpis: [
+        { label: '📋 Kaam', value: String(work?.totals.totalJobs ?? 0), sub: `${work?.totals.completed ?? 0} mukammal`, tone: 'blue' },
+        { label: '💰 Kamai', value: formatPKR(work?.totals.revenue ?? 0), tone: 'green' },
+        { label: '🎯 Commission', value: formatPKR(work?.totals.commission ?? 0), sub: `${t.commissionPct}%`, tone: 'amber' },
+        { label: '⭐ Rating', value: t.avgRating ? t.avgRating.toFixed(1) : '—', sub: `${t.totalReviews} raye`, tone: 'rose' },
+      ],
+      body,
+    }));
+    if (!ok) toast.error('Popup block hai — allow karein');
+  };
+
+  if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-24">
-        <div className="h-12 w-12 rounded-full border-4 border-violet-200 border-t-violet-600 animate-spin" />
+      <div className="space-y-4">
+        <div className="h-40 rounded-3xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {[1, 2, 3, 4].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+        </div>
       </div>
     );
   }
 
+  if (!t) {
+    return (
+      <Empty icon={AlertTriangle} title="Technician nahi mila"
+        hint="Shayad delete ho chuka hai ya link ghalat hai"
+        action={<Link to="/appliances/technicians"><Button variant="secondary"><ArrowLeft className="h-4 w-4" /> Wapas</Button></Link>} />
+    );
+  }
+
+  const openJobs = (t.activeServiceRequests?.length ?? 0);
+  const m = t.month;
+  const dayChart = (work?.byDay ?? []).map((d: any) => ({
+    date: new Date(d.date).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' }),
+    Repair: d.services,
+    Installation: d.installations,
+  }));
+
   return (
-    <div className="space-y-5">
-      <button onClick={() => navigate('/appliances/technicians')}
-        className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-violet-600 font-bold">
-        <ArrowLeft className="h-4 w-4" /> All Technicians
-      </button>
+    <div className="space-y-4 sm:space-y-5 pb-10">
+      {showTeacher && <DetailTeacher onClose={() => setShowTeacher(false)} />}
 
-      {/* HERO */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-violet-900 to-purple-700 text-white shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-violet-400/20 blur-3xl" />
+      <Link to="/appliances/technicians"
+        className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-cyan-600 dark:hover:text-cyan-400 font-extrabold transition">
+        <ArrowLeft className="h-4 w-4" /> Saare technicians
+      </Link>
 
-        <div className="relative grid lg:grid-cols-[240px_1fr] gap-6 p-6">
-          <div className="mx-auto lg:mx-0">
-            {tech.photoUrl ? (
-              <img src={tech.photoUrl} alt={tech.name} className="h-48 w-48 rounded-3xl object-cover border-4 border-white/20 shadow-xl" />
-            ) : (
-              <div className="h-48 w-48 rounded-3xl bg-gradient-to-br from-violet-500 to-purple-700 text-white flex items-center justify-center font-extrabold text-6xl shadow-xl border-4 border-white/20">
-                {tech.name.charAt(0)}
-              </div>
-            )}
-          </div>
+      <ApplianceHero
+        badge={t.isActive ? 'Active Technician' : 'Band Technician'}
+        badgeIcon={<Briefcase className="h-3.5 w-3.5 text-amber-300" />}
+        title={`👷 ${t.name}`}
+        subtitle={
+          <>
+            <span className="font-mono">{t.employeeCode}</span>
+            <span className="opacity-50 mx-1.5">•</span>
+            <span className="font-mono">{t.phone}</span>
+            {t.currentZone && <><span className="opacity-50 mx-1.5">•</span>📍 {t.currentZone}</>}
+            {t.avgRating ? <><span className="opacity-50 mx-1.5">•</span><strong className="text-amber-300">⭐ {t.avgRating.toFixed(1)}</strong></> : null}
+          </>
+        }
+        actions={[
+          guideAction(() => setShowTeacher(true)),
+          { key: 'refresh', label: 'Refresh', icon: <RefreshCw className="h-4 w-4" />, onClick: () => refetch(), spinning: isFetching, hideLabelOnMobile: true },
+          { key: 'wa', label: 'WhatsApp', icon: <MessageCircle className="h-4 w-4" />, onClick: wa, variant: 'accent', hideLabelOnMobile: true },
+          { key: 'csv', label: 'CSV', icon: <FileDown className="h-4 w-4" />, onClick: exportCsv, hideLabelOnMobile: true },
+          printAction(printA4),
+        ]}
+        shortcuts={[{ keys: 'P', label: 'Commission statement' }, { keys: 'T', label: 'Guide' }, { keys: 'Esc', label: 'Wapas' }]}
+      />
 
-          <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Zap className="h-3.5 w-3.5 text-amber-300" /> Technician
-              {tech.isActive ? (
-                <span className="text-emerald-300">• ACTIVE</span>
-              ) : (
-                <span className="text-rose-300">• INACTIVE</span>
-              )}
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">{tech.name}</h1>
-            <div className="mt-2 text-sm font-mono font-bold text-white/70">{tech.employeeCode}</div>
-
-            <div className="mt-4 grid sm:grid-cols-2 gap-2 text-sm">
-              <a href={`tel:${tech.phone}`} className="inline-flex items-center gap-2 font-bold text-emerald-300 hover:underline">
-                <Phone className="h-4 w-4" /> {tech.phone}
-              </a>
-              {tech.currentZone && (
-                <div className="inline-flex items-center gap-2 font-bold text-white/80">
-                  <MapPin className="h-4 w-4" /> {tech.currentZone}
-                </div>
-              )}
-              {tech.experienceYears && (
-                <div className="inline-flex items-center gap-2 font-bold text-white/80">
-                  <Award className="h-4 w-4" /> {tech.experienceYears} years exp
-                </div>
-              )}
-              {tech.avgRating && (
-                <div className="inline-flex items-center gap-2 font-bold text-amber-300">
-                  <Star className="h-4 w-4 fill-current" /> {tech.avgRating.toFixed(1)} ({tech.totalReviews} reviews)
-                </div>
-              )}
-            </div>
-
-            <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <HeroStat icon={CheckCircle2} label="Completed" value={String(stats.completed)} tone="emerald" />
-              <HeroStat icon={Clock} label="Pending" value={String(stats.pending)} tone="amber" />
-              <HeroStat icon={TrendingUp} label="Total Jobs" value={String(tech.totalJobs)} tone="blue" />
-              <HeroStat icon={DollarSign} label="Total Revenue" value={formatPKR(tech.totalRevenue)} tone="violet" />
-            </div>
-          </div>
-        </div>
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+        <Kpi icon={Briefcase} tone={openJobs === 0 ? 'emerald' : openJobs > 5 ? 'rose' : 'amber'}
+          label="Abhi Khula Kaam" value={openJobs}
+          sub={openJobs === 0 ? '🟢 khali hai — kaam dein' : openJobs > 5 ? '🔴 bojh ziyada' : '🟡 kaam chal raha'}
+          alert={openJobs > 5} />
+        <Kpi icon={TrendingUp} tone="cyan" label="Is Mahine Kamai" value={formatPKR(m?.revenue ?? 0)} sub={`${m?.jobs ?? 0} kaam mukammal`} />
+        <Kpi icon={Wallet} tone="violet" label="Is Mahine Commission" value={formatPKR(m?.commission ?? 0)} sub={`${t.commissionPct}% rate`} />
+        <Kpi icon={Clock} tone="blue" label="Ausat Waqt" value={fmtDuration(m?.avgResolutionHours ?? 0)} sub="request se mukammal tak" />
       </section>
 
-      {/* SPECIALIZATIONS */}
-      {tech.specializations?.length > 0 && (
-        <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-5">
-          <div className="flex items-center gap-2 mb-3">
-            <Award className="h-5 w-5 text-violet-700" />
-            <h3 className="font-extrabold text-slate-900">Specializations</h3>
+      {/* Lifetime */}
+      <Panel icon={Award} title="Ab Tak Ka Record" hint="Jab se ye team me hai" tone="violet">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <Box label="Kul Kaam" value={String(t.totalJobs)} />
+          <Box label="Mukammal" value={String(t.completedJobs)} sub={`${(t.completionRate ?? 0).toFixed(0)}%`} tone="emerald" />
+          <Box label="Kul Kamai" value={formatPKR(t.totalRevenue)} tone="cyan" />
+          <Box label="Kul Commission" value={formatPKR(t.totalCommission)} tone="violet" />
+        </div>
+        <div className="mt-3">
+          <div className="flex items-center justify-between text-[11px] font-extrabold mb-1">
+            <span className="text-slate-600 dark:text-slate-300">Mukammal karne ki shirah</span>
+            <span className={(t.completionRate ?? 0) >= 80 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}>
+              {(t.completionRate ?? 0).toFixed(0)}%
+            </span>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {tech.specializations.map((s: string) => (
-              <span key={s} className="px-3 py-1.5 rounded-lg bg-violet-100 text-violet-800 text-sm font-extrabold">
-                {s}
-              </span>
+          <div className="h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+            <div className={`h-full rounded-full transition-all ${
+              (t.completionRate ?? 0) >= 80 ? 'bg-gradient-to-r from-emerald-400 to-teal-500' : 'bg-gradient-to-r from-amber-400 to-orange-500'
+            }`} style={{ width: `${Math.min(t.completionRate ?? 0, 100)}%` }} />
+          </div>
+        </div>
+      </Panel>
+
+      {/* Profile */}
+      <div className="grid lg:grid-cols-2 gap-3 sm:gap-4">
+        <Panel icon={Zap} title="Maharat" hint="Kaam dete waqt system isi ko dekhta hai" tone="amber">
+          {(t.specializations ?? []).length === 0 && (t.categoriesExpertise ?? []).length === 0 ? (
+            <p className="text-xs font-bold text-slate-400 py-4 text-center">Koi maharat darj nahi — edit kar ke bharein</p>
+          ) : (
+            <>
+              {(t.specializations ?? []).length > 0 && (
+                <div className="flex gap-1.5 flex-wrap mb-3">
+                  {t.specializations.map((s) => (
+                    <span key={s} className="px-2.5 py-1 rounded-lg bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 text-[11px] font-extrabold">{s}</span>
+                  ))}
+                </div>
+              )}
+              {(t.categoriesExpertise ?? []).length > 0 && (
+                <div className="flex gap-1.5 flex-wrap">
+                  {t.categoriesExpertise.map((c: any) => (
+                    <span key={c} className="px-2.5 py-1 rounded-lg bg-cyan-100 dark:bg-cyan-500/20 text-cyan-800 dark:text-cyan-300 text-[11px] font-extrabold">
+                      {catLabel(c)}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+          {(t.certifications ?? []).length > 0 && (
+            <div className="mt-3">
+              <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Certificates</div>
+              <div className="flex gap-1.5 flex-wrap">
+                {t.certifications.map((c) => (
+                  <span key={c} className="px-2 py-0.5 rounded-lg bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[10px] font-extrabold">🏅 {c}</span>
+                ))}
+              </div>
+            </div>
+          )}
+        </Panel>
+
+        <Panel icon={CalendarDays} title="Kaam Ka Waqt" tone="blue">
+          <div className="flex gap-1.5 flex-wrap mb-3">
+            {DAYS.map((d, i) => (
+              <span key={d} className={`px-2.5 py-1 rounded-lg text-[11px] font-extrabold ${
+                (t.workingDays ?? []).includes(i)
+                  ? 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-400 line-through'
+              }`}>{d}</span>
             ))}
           </div>
+          <div className="grid grid-cols-2 gap-2">
+            <Box label="Waqt" value={`${t.workStartTime} – ${t.workEndTime}`} />
+            <Box label="Tajurba" value={t.experienceYears ? `${t.experienceYears} saal` : '—'} />
+            <Box label="Visit Rate" value={formatPKR(t.visitChargeRate)} />
+            <Box label="Ghanta Rate" value={formatPKR(t.hourlyRate)} />
+          </div>
+          {t.address && (
+            <div className="mt-3 flex items-start gap-1.5 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+              <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0 text-slate-400" /> {t.address}
+            </div>
+          )}
+          {t.notes && (
+            <div className="mt-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-2.5 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+              {t.notes}
+            </div>
+          )}
+        </Panel>
+      </div>
+
+      {/* Range */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">Kaam ka arsa</span>
+        {[7, 30, 90].map((d) => (
+          <button key={d} onClick={() => setDays(d)}
+            className={`px-3 py-1.5 rounded-xl text-[11px] font-extrabold border-2 transition ${
+              days === d ? 'bg-cyan-600 border-cyan-600 text-white shadow'
+                : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-cyan-400'
+            }`}>{d === 7 ? '7 din' : d === 30 ? '1 mahina' : '3 mahine'}</button>
+        ))}
+      </div>
+
+      {work && (
+        <section className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+          <Kpi icon={Briefcase} tone="cyan" label="Kul Kaam" value={work.totals.totalJobs} sub={`${work.totals.completed} mukammal`} />
+          <Kpi icon={HardHat} tone="blue" label="Installations" value={work.totals.installations} />
+          <Kpi icon={Wrench} tone="amber" label="Repairs" value={work.totals.serviceRequests} />
+          <Kpi icon={Percent} tone="violet" label="Is Arse Ki Commission" value={formatPKR(work.totals.commission)} sub={`kamai ${formatPKR(work.totals.revenue)}`} />
         </section>
       )}
 
-      {/* RATES */}
-      <section className="grid grid-cols-3 gap-3">
-        <RateCard label="Visit Charge" value={formatPKR(tech.visitChargeRate)} icon={HardHat} tone="amber" />
-        <RateCard label="Hourly Rate" value={tech.hourlyRate > 0 ? formatPKR(tech.hourlyRate) : '—'} icon={Clock} tone="blue" />
-        <RateCard label="Commission" value={`${tech.commissionPct}%`} icon={TrendingUp} tone="emerald" />
-      </section>
-
-      {/* TABS */}
-      <section className="rounded-2xl bg-white border-2 border-slate-200 shadow-sm p-2 overflow-x-auto">
-        <div className="flex gap-1.5 min-w-max">
-          {[
-            { id: 'overview' as Tab, label: 'Overview', icon: BarChart3 },
-            { id: 'installations' as Tab, label: 'Installations', count: installs.length, icon: HardHat },
-            { id: 'service' as Tab, label: 'Service Requests', count: serviceReqs.length, icon: Wrench },
-            { id: 'schedule' as Tab, label: 'Schedule', icon: Calendar },
-          ].map((t) => {
-            const active = tab === t.id;
-            const Icon = t.icon;
-            return (
-              <button key={t.id} onClick={() => setTab(t.id)}
-                className={['px-4 py-2.5 rounded-xl text-sm font-extrabold inline-flex items-center gap-2 transition',
-                  active ? 'bg-gradient-to-br from-violet-600 to-purple-700 text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'].join(' ')}>
-                <Icon className="h-4 w-4" />
-                {t.label}
-                {t.count !== undefined && (
-                  <span className={['px-1.5 rounded-full text-[10px] font-extrabold', active ? 'bg-white/25' : 'bg-slate-200 text-slate-700'].join(' ')}>
-                    {t.count}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* OVERVIEW */}
-      {tab === 'overview' && (
-        <div className="space-y-5">
-          <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-5">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-700 text-white flex items-center justify-center shadow-md">
-                <BarChart3 className="h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="font-extrabold text-slate-900 text-lg">30-Day Performance</h3>
-                <p className="text-xs text-slate-500 font-semibold">
-                  Monthly revenue: <strong className="text-emerald-700">{formatPKR(stats.monthlyRevenue)}</strong>
-                </p>
-              </div>
-            </div>
-            <div className="h-[240px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis dataKey="day" stroke="#64748b" fontSize={10} interval={4} />
-                  <YAxis stroke="#64748b" fontSize={10} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-                  <Tooltip formatter={((v: any, name: any) => name === 'Revenue' ? formatPKR(Number(v)) : v) as any} contentStyle={{ borderRadius: 12 }} />
-                  <Bar dataKey="revenue" name="Revenue" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </section>
-
-          <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-5">
-            <div className="flex items-center gap-2 mb-3">
-              <FileText className="h-5 w-5 text-slate-700" />
-              <h3 className="font-extrabold text-slate-900">Additional Info</h3>
-            </div>
-            <div className="grid sm:grid-cols-2 gap-3">
-              {tech.cnic && <InfoBox label="CNIC" value={tech.cnic} mono />}
-              {tech.address && <InfoBox label="Address" value={tech.address} />}
-              <InfoBox label="Work Hours" value={`${tech.workStartTime} - ${tech.workEndTime}`} />
-              {tech.certifications?.length > 0 && (
-                <InfoBox label="Certifications" value={tech.certifications.join(', ')} />
-              )}
-            </div>
-            {tech.notes && (
-              <div className="mt-3">
-                <div className="text-xs font-extrabold uppercase text-slate-500 mb-1">Notes</div>
-                <div className="text-sm text-slate-700 font-semibold p-3 bg-slate-50 rounded-xl">{tech.notes}</div>
-              </div>
-            )}
-          </section>
-        </div>
+      {dayChart.length > 0 && (
+        <Panel icon={BarChart3} title="Din Ke Hisab Se Bojh" hint="Kaunse din ziyada kaam para" tone="cyan">
+          <ResponsiveContainer width="100%" height={240}>
+            <BarChart data={dayChart} margin={{ top: 10, right: 10, left: -18, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#94a3b833" />
+              <XAxis dataKey="date" tick={{ fontSize: 10, fontWeight: 700 }} stroke="#94a3b8" />
+              <YAxis allowDecimals={false} tick={{ fontSize: 10, fontWeight: 700 }} stroke="#94a3b8" />
+              <Tooltip contentStyle={TOOLTIP} />
+              <Legend wrapperStyle={{ fontSize: 11, fontWeight: 700 }} />
+              <Bar dataKey="Repair" stackId="a" fill="#f59e0b" radius={[0, 0, 0, 0]} />
+              <Bar dataKey="Installation" stackId="a" fill="#3b82f6" radius={[6, 6, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </Panel>
       )}
 
-      {/* INSTALLATIONS TAB */}
-      {tab === 'installations' && (
-        <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b-2 border-slate-100 bg-gradient-to-r from-amber-50 to-orange-50">
-            <h3 className="font-extrabold text-slate-900">Installations ({installs.length})</h3>
+      {/* Active jobs */}
+      <Panel icon={AlertTriangle} title={`Abhi Khula Kaam (${openJobs})`} hint="Ye kaam abhi is banday ke sar par hai"
+        tone={openJobs > 5 ? 'rose' : 'amber'}>
+        {openJobs === 0 ? (
+          <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 py-6 text-center">
+            🟢 Koi kaam baqi nahi — isay naya kaam de sakte hain
+          </p>
+        ) : (
+          <div className="space-y-1.5">
+            {t.activeServiceRequests.map((s: any) => (
+              <Link key={s.id} to="/appliances/service-requests"
+                className="flex items-center gap-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 px-2.5 py-2 transition">
+                <div className="min-w-0 flex-1">
+                  <div className="text-[11px] font-extrabold text-slate-900 dark:text-white truncate">{s.customerName} — {s.productName}</div>
+                  <div className="text-[10px] font-bold text-slate-400 truncate">
+                    {s.requestNumber} • {s.reportedIssue}
+                    {s.scheduledDate ? ` • ${fmtDate(s.scheduledDate)}` : ''}
+                  </div>
+                </div>
+                <StatusBadge meta={svcStatusMeta(s.status)} size="xs" />
+              </Link>
+            ))}
           </div>
-          {installs.length === 0 ? (
-            <div className="p-12 text-center text-sm text-slate-500 font-semibold">No installations assigned</div>
+        )}
+      </Panel>
+
+      {/* Recent work */}
+      <div className="grid lg:grid-cols-2 gap-3 sm:gap-4">
+        <Panel icon={Wrench} title={`Haal ke Repairs (${t.recentServices?.length ?? 0})`} tone="amber">
+          {(t.recentServices ?? []).length === 0 ? (
+            <p className="text-xs font-bold text-slate-400 py-6 text-center">Abhi koi repair nahi kiya</p>
           ) : (
-            <div className="divide-y divide-slate-100 max-h-[500px] overflow-y-auto">
-              {installs.map((inst: any) => (
-                <div key={inst.id} className="px-5 py-3 flex items-center gap-3 hover:bg-amber-50/40">
-                  <div className="h-10 w-10 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
-                    <HardHat className="h-4 w-4" />
+            <div className="space-y-1.5 max-h-80 overflow-y-auto">
+              {t.recentServices.map((s: any) => (
+                <div key={s.id} className="flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 px-2.5 py-2">
+                  <span className="text-base shrink-0">{svcTypeMeta(s.serviceType).emoji}</span>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[11px] font-extrabold text-slate-900 dark:text-white truncate">{s.customerName}</div>
+                    <div className="text-[10px] font-bold text-slate-400 truncate">{s.productName} • {fmtDate(s.requestedAt)}</div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-mono font-extrabold text-sm text-slate-900">{inst.installationNumber}</span>
-                      <StatusBadge status={inst.status} />
-                    </div>
-                    <div className="text-xs font-bold text-slate-700 mt-0.5 truncate">
-                      {inst.productName} • {inst.customerName}
-                    </div>
-                    {inst.scheduledDate && (
-                      <div className="text-[10px] text-slate-500 font-bold">
-                        📅 {new Date(inst.scheduledDate).toLocaleDateString('en-PK')}
-                        {inst.scheduledTimeSlot && ` • ${inst.scheduledTimeSlot}`}
-                      </div>
-                    )}
-                  </div>
-                  <div className="text-right shrink-0">
-                    {inst.totalCharge > 0 && (
-                      <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(inst.totalCharge)}</div>
-                    )}
+                  <StatusBadge meta={svcStatusMeta(s.status)} size="xs" />
+                  <div className="text-[11px] font-extrabold tabular-nums text-slate-700 dark:text-slate-200 shrink-0 w-16 text-right">
+                    {formatPKR(s.totalCharge)}
                   </div>
                 </div>
               ))}
             </div>
           )}
-        </section>
-      )}
+        </Panel>
 
-      {/* SERVICE TAB */}
-      {tab === 'service' && (
-        <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b-2 border-slate-100 bg-gradient-to-r from-rose-50 to-red-50">
-            <h3 className="font-extrabold text-slate-900">Service Requests ({serviceReqs.length})</h3>
-          </div>
-          {serviceReqs.length === 0 ? (
-            <div className="p-12 text-center text-sm text-slate-500 font-semibold">No service requests assigned</div>
+        <Panel icon={HardHat} title={`Haal ki Installations (${t.recentJobs?.length ?? 0})`} tone="blue">
+          {(t.recentJobs ?? []).length === 0 ? (
+            <p className="text-xs font-bold text-slate-400 py-6 text-center">Abhi koi installation nahi ki</p>
           ) : (
-            <div className="divide-y divide-slate-100 max-h-[500px] overflow-y-auto">
-              {serviceReqs.map((req: any) => (
-                <div key={req.id} className="px-5 py-3 flex items-center gap-3 hover:bg-rose-50/40">
-                  <div className="h-10 w-10 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
-                    <Wrench className="h-4 w-4" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-mono font-extrabold text-sm text-slate-900">{req.requestNumber}</span>
-                      <StatusBadge status={req.status} />
+            <div className="space-y-1.5 max-h-80 overflow-y-auto">
+              {t.recentJobs.map((j: any) => (
+                <div key={j.id} className="flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 px-2.5 py-2">
+                  <span className="text-base shrink-0">{svcTypeMeta(j.serviceType).emoji}</span>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[11px] font-extrabold text-slate-900 dark:text-white truncate">{j.customerName}</div>
+                    <div className="text-[10px] font-bold text-slate-400 truncate">
+                      {j.productName} • {fmtDate(j.scheduledDate || j.createdAt)}
+                      {j.demoGiven ? ' • demo ✓' : ''}
                     </div>
-                    <div className="text-xs font-bold text-slate-700 mt-0.5 truncate">
-                      {req.productName} • {req.customerName}
-                    </div>
-                    <div className="text-[10px] text-slate-500 italic line-clamp-1">"{req.reportedIssue}"</div>
                   </div>
-                  <div className="text-right shrink-0">
-                    {req.totalCharge > 0 && (
-                      <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(req.totalCharge)}</div>
-                    )}
+                  <StatusBadge meta={instStatusMeta(j.status)} size="xs" />
+                  <div className="text-[11px] font-extrabold tabular-nums text-slate-700 dark:text-slate-200 shrink-0 w-16 text-right">
+                    {formatPKR(j.totalCharge)}
                   </div>
                 </div>
               ))}
             </div>
           )}
-        </section>
-      )}
-
-      {/* SCHEDULE TAB */}
-      {tab === 'schedule' && (
-        <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-5">
-          <div className="flex items-center gap-2 mb-3">
-            <Calendar className="h-5 w-5 text-cyan-700" />
-            <h3 className="font-extrabold text-slate-900">Upcoming Schedule</h3>
-          </div>
-          <div className="space-y-2">
-            {[...installs.filter((i: any) => ['SCHEDULED', 'ASSIGNED'].includes(i.status)),
-              ...serviceReqs.filter((s: any) => ['SCHEDULED', 'TECHNICIAN_ASSIGNED'].includes(s.status))]
-              .sort((a: any, b: any) => new Date(a.scheduledDate || 0).getTime() - new Date(b.scheduledDate || 0).getTime())
-              .slice(0, 15)
-              .map((item: any, i: number) => (
-                <div key={i} className="rounded-xl border-2 border-slate-200 p-3 flex items-center gap-3">
-                  <div className="h-11 w-11 rounded-xl bg-cyan-100 text-cyan-700 flex items-center justify-center shrink-0">
-                    <Calendar className="h-5 w-5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-extrabold text-sm text-slate-900 truncate">{item.productName}</div>
-                    <div className="text-xs font-bold text-slate-600 truncate">
-                      {item.customerName} • {item.customerPhone}
-                    </div>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <div className="text-xs font-extrabold text-cyan-700">
-                      {item.scheduledDate && new Date(item.scheduledDate).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}
-                    </div>
-                    <div className="text-[10px] font-bold text-slate-500">{item.scheduledTimeSlot}</div>
-                  </div>
-                </div>
-              ))}
-            {installs.filter((i: any) => ['SCHEDULED', 'ASSIGNED'].includes(i.status)).length === 0 &&
-             serviceReqs.filter((s: any) => ['SCHEDULED', 'TECHNICIAN_ASSIGNED'].includes(s.status)).length === 0 && (
-              <div className="text-center py-8 text-sm text-slate-500 font-semibold">No upcoming schedule</div>
-            )}
-          </div>
-        </section>
-      )}
-    </div>
-  );
-}
-
-function HeroStat({ icon: Icon, label, value, tone }: any) {
-  const tones: Record<string, string> = {
-    emerald: 'from-emerald-400/30 to-emerald-600/20 border-emerald-300/40',
-    amber: 'from-amber-400/30 to-amber-600/20 border-amber-300/40',
-    blue: 'from-blue-400/30 to-blue-600/20 border-blue-300/40',
-    violet: 'from-violet-400/30 to-violet-600/20 border-violet-300/40',
-  };
-  return (
-    <div className={`rounded-xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-3`}>
-      <div className="flex items-center gap-1.5 mb-1">
-        <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
-      </div>
-      <div className="text-xl font-extrabold text-white tabular-nums leading-none">{value}</div>
-    </div>
-  );
-}
-
-function RateCard({ label, value, icon: Icon, tone }: any) {
-  const tones: Record<string, string> = {
-    amber: 'from-amber-500 to-orange-600',
-    blue: 'from-blue-500 to-blue-700',
-    emerald: 'from-emerald-500 to-emerald-700',
-  };
-  return (
-    <div className="rounded-2xl bg-white border-2 border-slate-200 shadow-sm p-4">
-      <div className="flex items-center justify-between gap-2">
-        <div>
-          <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
-          <div className="text-xl font-extrabold text-slate-900 tabular-nums mt-1">{value}</div>
-        </div>
-        <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md`}>
-          <Icon className="h-4 w-4" />
-        </div>
+        </Panel>
       </div>
     </div>
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const colors: Record<string, string> = {
-    PENDING: 'bg-slate-100 text-slate-700',
-    SCHEDULED: 'bg-amber-100 text-amber-700',
-    ASSIGNED: 'bg-blue-100 text-blue-700',
-    TECHNICIAN_ASSIGNED: 'bg-blue-100 text-blue-700',
-    IN_PROGRESS: 'bg-cyan-100 text-cyan-700',
-    COMPLETED: 'bg-emerald-100 text-emerald-700',
-    CANCELLED: 'bg-rose-100 text-rose-700',
-    REQUESTED: 'bg-slate-100 text-slate-700',
-    EN_ROUTE: 'bg-violet-100 text-violet-700',
-    ON_SITE: 'bg-cyan-100 text-cyan-700',
+function Box({ label, value, sub, tone = 'slate' }: { label: string; value: string; sub?: string; tone?: 'slate' | 'cyan' | 'emerald' | 'violet' }) {
+  const tones: Record<string, string> = {
+    slate: 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200',
+    cyan: 'bg-cyan-50 dark:bg-cyan-500/10 border-cyan-200 dark:border-cyan-500/30 text-cyan-700 dark:text-cyan-300',
+    emerald: 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300',
+    violet: 'bg-violet-50 dark:bg-violet-500/10 border-violet-200 dark:border-violet-500/30 text-violet-700 dark:text-violet-300',
   };
   return (
-    <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase ${colors[status] || 'bg-slate-100'}`}>
-      {status.replace(/_/g, ' ')}
-    </span>
+    <div className={`rounded-xl border px-2.5 py-2 ${tones[tone]}`}>
+      <div className="text-[9px] font-extrabold uppercase tracking-wider opacity-75">{label}</div>
+      <div className="text-sm font-extrabold tabular-nums truncate">{value}</div>
+      {sub && <div className="text-[9px] font-bold opacity-70">{sub}</div>}
+    </div>
   );
 }
 
-function InfoBox({ label, value, mono }: any) {
+function DetailTeacher({ onClose }: { onClose: () => void }) {
   return (
-    <div className="rounded-xl bg-slate-50 border-2 border-slate-200 p-3">
-      <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
-      <div className={['text-sm font-extrabold text-slate-900 mt-0.5', mono ? 'font-mono' : ''].join(' ')}>{value}</div>
-    </div>
+    <Teacher
+      title="Technician Ka Record Kaise Parhein?"
+      intro={<>Ye safha ek banday ka <strong>poora hisab</strong> hai — kaam, kamai, commission aur rating.</>}
+      blocks={[
+        {
+          title: '💰 Commission dena',
+          tone: 'violet',
+          tips: [
+            <>Upar <strong>"Kaam ka arsa"</strong> chunein (7 din / 1 mahina / 3 mahine)</>,
+            <><Kbd dark>P</Kbd> dabayein — <strong>commission statement</strong> A4 par nikal aayega, har kaam ki tafseel aur dono dastakhaton ki jagah ke sath</>,
+            <>Commission <strong>kul bill ka %</strong> hoti hai — parts/material ka kharcha bhi shamil hota hai</>,
+          ],
+        },
+        {
+          title: '📊 Kaarkardagi parakhna',
+          tone: 'cyan',
+          tips: [
+            <><strong>Mukammal karne ki shirah</strong> 80% se upar honi chahiye. Kam ho to dekhein kaam ghalat qism ka to nahi mil raha</>,
+            <><strong>Ausat waqt</strong> — ye banda request milne se mukammal karne tak kitna waqt leta hai</>,
+            <><strong>Din ke hisab se bojh</strong> — agar sirf 2 din par saara kaam hai to baqi din zaya ho rahe hain</>,
+            <><strong>Rating</strong> khud banti hai jab kaam mukammal karte waqt customer ki rating daalte hain</>,
+          ],
+        },
+      ]}
+      shortcuts={[
+        { keys: 'P', label: 'Commission statement' },
+        { keys: 'T', label: 'Ye guide' },
+        { keys: 'Esc', label: 'Wapas' },
+      ]}
+      golden={<><strong>Sunahri usool:</strong> Commission <strong>waqt par</strong> dein. Technician sab se ziyada isi cheez par dukaan badalte hain.</>}
+      onClose={onClose}
+    />
   );
 }

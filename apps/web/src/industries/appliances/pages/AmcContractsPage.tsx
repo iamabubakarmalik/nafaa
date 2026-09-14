@@ -76,7 +76,7 @@ export default function AmcContractsPage() {
             </div>
             <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">📄 AMC Contracts</h1>
             <p className="mt-2 text-sm text-white/80">
-              {summary?.activeCount ?? 0} active • {summary?.expiringSoonCount ?? 0} expiring soon • Revenue{' '}
+              {summary?.active ?? 0} active • {summary?.expiringSoon ?? 0} expiring soon • Revenue{' '}
               <strong className="text-emerald-300">{formatPKR(summary?.totalCollected ?? 0)}</strong>
             </p>
           </div>
@@ -96,9 +96,9 @@ export default function AmcContractsPage() {
 
       {summary && (
         <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <Kpi icon={CheckCircle2} label="Active" value={summary.activeCount ?? 0} sub="Currently running" tone="emerald" />
-          <Kpi icon={AlertTriangle} label="Expiring Soon" value={summary.expiringSoonCount ?? 0} sub="Next 30 days" tone="amber" onClick={() => setExpiringOnly(true)} />
-          <Kpi icon={XCircle} label="Expired" value={summary.expiredCount ?? 0} sub="Renewal opportunity" tone="rose" />
+          <Kpi icon={CheckCircle2} label="Active" value={summary.active ?? 0} sub="Currently running" tone="emerald" />
+          <Kpi icon={AlertTriangle} label="Expiring Soon" value={summary.expiringSoon ?? 0} sub="Next 30 days" tone="amber" onClick={() => setExpiringOnly(true)} />
+          <Kpi icon={XCircle} label="Expired" value={summary.expired ?? 0} sub="Renewal opportunity" tone="rose" />
           <Kpi icon={DollarSign} label="Total Value" value={formatPKR(summary.totalContractValue ?? 0)} sub="Active contracts" tone="violet" />
         </section>
       )}

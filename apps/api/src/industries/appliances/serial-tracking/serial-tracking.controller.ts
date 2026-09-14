@@ -4,7 +4,7 @@ import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { ApplianceSerialService } from './serial-tracking.service';
-import { UpsertApplianceSerialDto } from './dto/upsert-serial.dto';
+import { BulkSerialDto, UpsertApplianceSerialDto } from './dto/upsert-serial.dto';
 
 @ApiTags('Appliances - Serial Tracking')
 @ApiBearerAuth()
@@ -13,13 +13,62 @@ import { UpsertApplianceSerialDto } from './dto/upsert-serial.dto';
 export class ApplianceSerialController {
   constructor(private readonly service: ApplianceSerialService) {}
 
-  @Post() create(@GetUser() user: AuthenticatedUser, @Body() dto: UpsertApplianceSerialDto) { return this.service.create(user, dto); }
-  @Get() list(@GetUser() user: AuthenticatedUser, @Query('productId') productId?: string, @Query('status') status?: string, @Query('installationStatus') installationStatus?: string, @Query('search') search?: string) {
-    return this.service.list(user, { productId, status, installationStatus, search });
+  @Post()
+  create(@GetUser() user: AuthenticatedUser, @Body() dto: UpsertApplianceSerialDto) {
+    return this.service.create(user, dto);
   }
-  @Get('lookup/:code') lookup(@GetUser() user: AuthenticatedUser, @Param('code') code: string) { return this.service.lookupBySerial(user, code); }
-  @Get('warranty-check/:code') warranty(@GetUser() user: AuthenticatedUser, @Param('code') code: string) { return this.service.warrantyCheck(user, code); }
-  @Get(':id') getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(user, id); }
-  @Patch(':id') update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpsertApplianceSerialDto) { return this.service.update(user, id, dto); }
-  @Delete(':id') remove(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.remove(user, id); }
+
+  /** Aik shipment ke saare serial ek sath. */
+  @Post('bulk')
+  bulk(@GetUser() user: AuthenticatedUser, @Body() dto: BulkSerialDto) {
+    return this.service.bulkCreate(user, dto);
+  }
+
+  @Get()
+  list(
+    @GetUser() user: AuthenticatedUser,
+    @Query('productId') productId?: string,
+    @Query('status') status?: string,
+    @Query('installationStatus') installationStatus?: string,
+    @Query('warranty') warranty?: 'active' | 'expiring' | 'expired',
+    @Query('search') search?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.service.list(user, {
+      productId, status, installationStatus, warranty, search,
+      page: page ? Number(page) : undefined,
+      limit: limit ? Number(limit) : undefined,
+    });
+  }
+
+  @Get('summary')
+  summary(@GetUser() user: AuthenticatedUser) {
+    return this.service.summary(user);
+  }
+
+  @Get('lookup/:code')
+  lookup(@GetUser() user: AuthenticatedUser, @Param('code') code: string) {
+    return this.service.lookupBySerial(user, code);
+  }
+
+  @Get('warranty-check/:code')
+  warranty(@GetUser() user: AuthenticatedUser, @Param('code') code: string) {
+    return this.service.warrantyCheck(user, code);
+  }
+
+  @Get(':id')
+  getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.service.getOne(user, id);
+  }
+
+  @Patch(':id')
+  update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpsertApplianceSerialDto) {
+    return this.service.update(user, id, dto);
+  }
+
+  @Delete(':id')
+  remove(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.service.remove(user, id);
+  }
 }

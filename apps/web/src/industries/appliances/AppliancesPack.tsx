@@ -1,6 +1,7 @@
 import {
   LayoutDashboard, Wrench, Award, Shield, Home, Package,
   Truck, CalendarClock, HardHat, FileSignature, Zap,
+  Barcode, BarChart3, PackageX, Boxes, TrendingUp,
 } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
@@ -9,7 +10,6 @@ import AppliancesProductsPage from './pages/AppliancesProductsPage';
 import ApplianceProductWizardPage from './pages/ApplianceProductWizardPage';
 import ApplianceProductDetailPage from './pages/ApplianceProductDetailPage';
 import AppliancesPosPage from './pages/AppliancesPosPage';
-import ApplianceBrandsPage from './pages/ApplianceBrandsPage';
 import InstallationsPage from './pages/InstallationsPage';
 import ServiceRequestsPage from './pages/ServiceRequestsPage';
 import TechniciansPage from './pages/TechniciansPage';
@@ -17,6 +17,12 @@ import TechnicianDetailPage from './pages/TechnicianDetailPage';
 import AmcContractsPage from './pages/AmcContractsPage';
 import AmcContractFormPage from './pages/AmcContractFormPage';
 import DeliveriesPage from './pages/DeliveriesPage';
+import ApplianceSerialsPage from './pages/ApplianceSerialsPage';
+import ApplianceWarrantyClaimsPage from './pages/ApplianceWarrantyClaimsPage';
+import AppliancesReportsPage from './pages/AppliancesReportsPage';
+import AppliancesLowStockPage from './pages/AppliancesLowStockPage';
+import AppliancesStockReportPage from './pages/AppliancesStockReportPage';
+import AppliancesProfitReportPage from './pages/AppliancesProfitReportPage';
 
 export const AppliancesPack: IndustryPack = {
   id: 'appliances',
@@ -46,13 +52,17 @@ export const AppliancesPack: IndustryPack = {
       color: '#0891b2',
       order: 20,
       items: [
-        { to: '/appliances/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { to: '/appliances/brands', label: 'Brands', icon: Award },
+        // Brands yahan se hata diya gaya (2026-09-14) — ab global
+        // /brands page hai. Do alag brand tables ki wajah se ek hi
+        // "Haier" do jagah alag record ban jati thi.
         { to: '/appliances/installations', label: 'Installations', icon: HardHat, badge: 'LIVE' },
         { to: '/appliances/service-requests', label: 'Service Requests', icon: Wrench },
         { to: '/appliances/technicians', label: 'Technicians', icon: Zap },
         { to: '/appliances/amc-contracts', label: 'AMC Contracts', icon: FileSignature },
         { to: '/appliances/deliveries', label: 'Deliveries', icon: Truck },
+        { to: '/appliances/serials', label: 'Serial Register', icon: Barcode },
+        { to: '/appliances/warranty-claims', label: 'Warranty Claims', icon: Shield, badge: 'NEW' },
+        { to: '/appliances/reports', label: 'Reports', icon: BarChart3, badge: 'NEW' },
       ],
     },
   ],
@@ -68,7 +78,8 @@ export const AppliancesPack: IndustryPack = {
     { path: '/appliances', element: AppliancesDashboardPage },
     { path: '/appliances/dashboard', element: AppliancesDashboardPage },
 
-    { path: '/appliances/brands', element: ApplianceBrandsPage },
+    // /appliances/brands hata diya gaya — global /brands istemal hota hai.
+    // ApplianceBrandsPage file apni jagah pari hai, sirf route nahi raha.
 
     { path: '/appliances/installations', element: InstallationsPage },
     { path: '/appliances/service-requests', element: ServiceRequestsPage },
@@ -81,6 +92,14 @@ export const AppliancesPack: IndustryPack = {
     { path: '/appliances/amc-contracts/:id/edit', element: AmcContractFormPage },
 
     { path: '/appliances/deliveries', element: DeliveriesPage },
+
+    { path: '/appliances/serials', element: ApplianceSerialsPage },
+    { path: '/appliances/warranty-claims', element: ApplianceWarrantyClaimsPage },
+
+    { path: '/appliances/reports', element: AppliancesReportsPage },
+    { path: '/appliances/low-stock', element: AppliancesLowStockPage },
+    { path: '/appliances/stock-report', element: AppliancesStockReportPage },
+    { path: '/appliances/profit-report', element: AppliancesProfitReportPage },
   ],
 
   dashboardComponent: AppliancesDashboardPage,

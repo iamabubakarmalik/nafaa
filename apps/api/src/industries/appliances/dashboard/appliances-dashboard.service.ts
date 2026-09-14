@@ -19,7 +19,7 @@ export class AppliancesDashboardService {
       pendingInstallations, todayInstallations, activeAmc, expiringAmc,
       pendingServiceRequests, activeTechnicians, pendingDeliveries,
     ] = await Promise.all([
-      this.prisma.applianceBrand.count({ where: { tenantId: user.tenantId, isActive: true } }),
+      this.prisma.brand.count({ where: { tenantId: user.tenantId, isActive: true } }),
       this.prisma.applianceProductProfile.count({ where: { tenantId: user.tenantId } }),
       this.prisma.applianceSerialTracking.count({ where: { tenantId: user.tenantId } }),
       this.prisma.applianceSerialTracking.count({ where: { tenantId: user.tenantId, status: 'SOLD' } }),

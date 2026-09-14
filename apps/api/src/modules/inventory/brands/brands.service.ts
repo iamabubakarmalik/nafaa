@@ -40,12 +40,12 @@ export class BrandsService {
 
     return this.prisma.brand.create({
       data: {
+        // Poora dto spread hota hai — pehle yahan fields ginn ginn kar
+        // likhe thay, is liye dealer/after-sales aur appliance wale
+        // naye fields khamoshi se gir jate thay.
+        ...dto,
         tenantId: user.tenantId,
-        name: dto.name,
         slug,
-        description: dto.description,
-        logoUrl: dto.logoUrl,
-        website: dto.website,
         isActive: dto.isActive ?? true,
       },
     });

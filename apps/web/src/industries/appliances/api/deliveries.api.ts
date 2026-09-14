@@ -44,13 +44,29 @@ export interface ApplianceDelivery {
 
 const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
 
+export interface DeliverySummary {
+  pending: number; scheduled: number; dispatched: number; delivered: number;
+  todayScheduled: number;
+  arrived: number; cancelled: number; open: number;
+  /** Gaari abhi tak nahi lagi */
+  noVehicle: number;
+  /** Tareekh guzar gayi lekin maal nahi pohancha */
+  overdue: number;
+  /** Maal pohanch gaya lekin installation abhi book nahi hui */
+  installationPending: number;
+  month: {
+    trips: number; revenue: number; avgTrip: number;
+    breakdown: { delivery: number; loading: number; unloading: number; floor: number };
+  };
+}
+
 export const deliveriesApi = {
   create: (data: any) =>
     apiClient.post('/appliances/deliveries', data).then(unwrap<ApplianceDelivery>),
   list: (params?: { status?: string; customerId?: string; from?: string; to?: string; search?: string }) =>
     apiClient.get('/appliances/deliveries', { params }).then(unwrap<ApplianceDelivery[]>),
   summary: () =>
-    apiClient.get('/appliances/deliveries/summary').then(unwrap<any>),
+    apiClient.get('/appliances/deliveries/summary').then(unwrap<DeliverySummary>),
   getOne: (id: string) =>
     apiClient.get('/appliances/deliveries/' + id).then(unwrap<ApplianceDelivery>),
   updateStatus: (id: string, data: { status: string; notes?: string }) =>

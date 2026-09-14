@@ -50,7 +50,7 @@ export class ApplianceProductsService {
         },
         include: { images: { where: { isPrimary: true }, take: 1 }, category: true },
       }),
-      this.prisma.applianceBrand.findMany({ where: { id: { in: brandIds } } }),
+      this.prisma.brand.findMany({ where: { id: { in: brandIds }, tenantId: user.tenantId } }),
     ]);
 
     const productsMap = new Map(products.map((p) => [p.id, p]));
@@ -66,7 +66,7 @@ export class ApplianceProductsService {
   async byProduct(user: AuthenticatedUser, productId: string) {
     const profile = await this.prisma.applianceProductProfile.findFirst({ where: { productId, tenantId: user.tenantId } });
     if (!profile) return null;
-    const brand = profile.brandId ? await this.prisma.applianceBrand.findUnique({ where: { id: profile.brandId } }) : null;
+    const brand = profile.brandId ? await this.prisma.brand.findFirst({ where: { id: profile.brandId, tenantId: user.tenantId } }) : null;
     return { ...profile, brand };
   }
 

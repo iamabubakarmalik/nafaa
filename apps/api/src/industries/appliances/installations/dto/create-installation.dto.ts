@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ApplianceInstallationStatus, ApplianceServiceType } from '@prisma/client';
-import { IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class CreateInstallationDto {
   @ApiPropertyOptional() @IsOptional() @IsString() serialTrackingId?: string;
@@ -53,7 +53,19 @@ export class CompleteInstallationDto {
   @ApiPropertyOptional() @IsOptional() @IsString() customerSignatureUrl?: string;
   @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() photosBeforeUrls?: string[];
   @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() photosAfterUrls?: string[];
-  @ApiPropertyOptional() @IsOptional() @IsInt() customerRating?: number;
+  @ApiPropertyOptional({ minimum: 1, maximum: 5 }) @IsOptional() @IsInt() @Min(1) @Max(5) customerRating?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() customerFeedback?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() installationCertificateNumber?: string;
+}
+
+/** Installation ka baqi paisa wusool karne ke liye */
+export class AddInstallationPaymentDto {
+  @ApiProperty({ example: 2500 }) @IsNumber() @Min(1) amount!: number;
+  @ApiPropertyOptional() @IsOptional() @IsString() note?: string;
+}
+
+/** Nayi tareekh par kaam rakhne ke liye */
+export class RescheduleInstallationDto {
+  @ApiProperty({ example: '2026-09-20' }) @IsString() newDate!: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() reason?: string;
 }

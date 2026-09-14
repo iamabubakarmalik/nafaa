@@ -23,6 +23,13 @@ export interface Brand {
   isFeatured?: boolean;
   displayOrder?: number;
 
+  /* ── Appliances ────────────────────────────────────────────
+     ApplianceBrand ko yahin mila diya gaya (2026-09-14). AC aur
+     geyser wale brand ke liye ye teen baatein matter karti hain. */
+  serviceCenter?: string | null;
+  installationIncluded?: boolean;
+  demoIncluded?: boolean;
+
   createdAt: string;
   updatedAt: string;
   _count?: { products: number };
@@ -43,6 +50,9 @@ export interface UpsertBrandPayload {
   warrantyPolicy?: string;
   isFeatured?: boolean;
   displayOrder?: number;
+  serviceCenter?: string;
+  installationIncluded?: boolean;
+  demoIncluded?: boolean;
 }
 
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;

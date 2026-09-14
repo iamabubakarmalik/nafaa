@@ -18,6 +18,10 @@ import { offlineCustomersApi as customersApi } from '@core/lib/offline/offlineCu
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
 import { type PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { offlineSalesApi } from '@core/lib/offline/offlineSales';
+import {
+  PosDeliveryPanel, emptyDelivery, deliveryAmount, deliveryServiceCharge,
+  type PosDeliveryState,
+} from '@modules/pos/components';
 import type { Product } from '@modules/inventory/products/api/products.api';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { productUnitsApi } from '../api/product-units.api';
@@ -118,6 +122,9 @@ interface PrintPayload {
   lines: Array<{ name: string; qty: number; unit: string; price: number; total: number }>;
   subtotal: number;
   discount: number;
+  /** Ghar bhejne ka charge — receipt par alag line banti hai */
+  deliveryCharge?: number;
+  deliveryAddress?: string;
   total: number;
   paid: number;
   paymentLabel: string;
@@ -192,6 +199,11 @@ function printReceiptDirect(p: PrintPayload, widthMm: '80' | '58'): boolean {
   ${p.discount > 0 ? `
     <div class="row"><span>Subtotal</span><span class="v">${formatPKR(p.subtotal)}</span></div>
     <div class="row"><span>Discount</span><span class="v">−${formatPKR(p.discount)}</span></div>
+  ` : ''}
+  ${p.deliveryCharge && p.deliveryCharge > 0 ? `
+    ${p.discount > 0 ? '' : `<div class="row"><span>Subtotal</span><span class="v">${formatPKR(p.subtotal)}</span></div>`}
+    <div class="row"><span>Delivery</span><span class="v">+${formatPKR(p.deliveryCharge)}</span></div>
+    ${p.deliveryAddress ? `<div class="sub" style="margin:1px 0 3px;">📍 ${escapeHtml(p.deliveryAddress)}</div>` : ''}
   ` : ''}
   <div class="dbl"></div>
   <div class="total-row"><span>TOTAL</span><span>${formatPKR(p.total)}</span></div>
@@ -273,6 +285,7 @@ export default function RetailPosPage() {
   const [cart, setCart] = useState<CartLine[]>([]);
   const [customerId, setCustomerId] = useState('');
 
+  const [delivery, setDelivery] = useState<PosDeliveryState>(emptyDelivery());
   const [discountMode, setDiscountMode] = useState<DiscountMode>('pct');
   const [discountPct, setDiscountPct] = useState(0);
   const [discountRs, setDiscountRs] = useState(0);
@@ -413,7 +426,12 @@ export default function RetailPosPage() {
   const discountAmount = useMemo(() =>
     discountMode === 'pct' ? (subtotal * discountPct) / 100 : Math.min(Number(discountRs || 0), subtotal),
     [subtotal, discountPct, discountRs, discountMode]);
-  const total = useMemo(() => Math.max(subtotal - discountAmount, 0), [subtotal, discountAmount]);
+  /** Ghar bhejne ka charge — discount ke BAAD jurta hai, us par discount nahi lagta */
+  const deliveryFee = useMemo(() => deliveryAmount(delivery), [delivery]);
+  const total = useMemo(
+    () => Math.max(subtotal - discountAmount, 0) + deliveryFee,
+    [subtotal, discountAmount, deliveryFee],
+  );
   const totalSavings = useMemo(() => cart.reduce((s, l) => s + (l.savings || 0) * l.quantity, 0), [cart]);
   const itemCount = cart.length;
   const totalQty = useMemo(() => cart.reduce((s, l) => s + l.quantity, 0), [cart]);
@@ -536,7 +554,7 @@ export default function RetailPosPage() {
   };
 
   const removeLine = (id: string) => setCart((prev) => prev.filter((l) => l.id !== id));
-  const clearCart = useCallback(() => { setCart([]); setCustomerId(''); setDiscountPct(0); setDiscountRs(0); }, []);
+  const clearCart = useCallback(() => { setCart([]); setCustomerId(''); setDiscountPct(0); setDiscountRs(0); setDelivery(emptyDelivery()); }, []);
 
   const handleBarcode = async (code: string) => {
     setScannerOpen(false);
@@ -723,6 +741,7 @@ export default function RetailPosPage() {
         paymentMethod: data.paymentMethod,
         paidAmount: data.paidAmount,
         discount: discountAmount,
+        serviceCharges: deliveryServiceCharge(delivery),
         items,
       });
     },
@@ -741,6 +760,8 @@ export default function RetailPosPage() {
           name: l.name, qty: l.quantity, unit: l.unitName, price: l.unitPrice, total: l.lineTotal,
         })),
         subtotal, discount: discountAmount, total,
+        deliveryCharge: deliveryFee || undefined,
+        deliveryAddress: delivery.on ? (delivery.address || undefined) : undefined,
         paid: vars.paidAmount,
         paymentLabel: `Paid (${payLabel})`,
       };
@@ -1237,6 +1258,7 @@ export default function RetailPosPage() {
           discountRs={Number(discountRs) || 0} discountAmount={discountAmount}
           onOpenDiscount={() => setShowDiscountModal(true)}
           onClearDiscount={() => { setDiscountPct(0); setDiscountRs(0); }}
+          delivery={delivery} onDeliveryChange={setDelivery} deliveryFee={deliveryFee}
           hidePrices={hidePrices}
           customers={customers} customerId={customerId} setCustomerId={setCustomerId}
           selectedCustomer={selectedCustomer}
@@ -2247,6 +2269,7 @@ function EmptyState({ icon: Icon, title, hint, onClear }: any) {
 function CartPanel({
   isMobile, onCloseMobile, cart, itemCount, totalQty, subtotal, total, totalSavings,
   discountMode, discountPct, discountRs, discountAmount, onOpenDiscount, onClearDiscount,
+  delivery, onDeliveryChange, deliveryFee,
   hidePrices, customers, customerId, setCustomerId, selectedCustomer, onAddCustomer,
   onHold, onClear, onChangeQty, onSetQty, onRemove, priceEditId, onStartPriceEdit,
   onSetPrice, onCheckout, onInstantCash, canCheckout, checkoutPending,
@@ -2384,6 +2407,16 @@ function CartPanel({
             <div className="text-xs font-bold text-slate-500 dark:text-slate-400 tabular-nums flex justify-between px-1">
               <span>Subtotal</span>
               <span className="line-through">{formatPKR(subtotal)}</span>
+            </div>
+          )}
+
+          {/* 🚚 Ghar bhejna hai? — customer se liya aur rider ko diya, dono alag */}
+          <PosDeliveryPanel value={delivery} onChange={onDeliveryChange} tone="emerald" compact={isMobile} />
+
+          {deliveryFee > 0 && !hidePrices && (
+            <div className="text-xs font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums flex justify-between px-1">
+              <span>+ Delivery</span>
+              <span>{formatPKR(deliveryFee)}</span>
             </div>
           )}
 

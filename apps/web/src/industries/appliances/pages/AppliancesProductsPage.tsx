@@ -1,555 +1,1010 @@
-import { useMemo, useState } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  Home, Plus, Search, X, RefreshCw, Download, Grid3x3, List,
-  Package, AlertTriangle, DollarSign, Eye, Edit3, Trash2,
-  Barcode, ShoppingCart, CheckCircle2, Star, Award, Zap,
-  TrendingUp, PackageX, Shield, HardHat, Truck,
+  Package, Plus, Search, X, RefreshCw, Filter, LayoutGrid, List as ListIcon,
+  Barcode, ShieldCheck, HardHat, Zap, Wallet, TrendingUp, AlertTriangle,
+  FileDown, Printer, CheckCircle2, Pencil, Trash2, Star, Flame, Sparkles,
+  BarChart3, ChevronRight, Boxes, Truck, Percent,
 } from 'lucide-react';
+import {
+  ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+} from 'recharts';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
 import { formatPKR } from '@core/lib/format';
-import { productsApi } from '@modules/inventory/products/api/products.api';
+import { Button } from '@core/ui/Button';
+import { useAuthStore } from '@core/stores/auth.store';
+import { productsApi, type Product } from '@modules/inventory/products/api/products.api';
+import { brandsApi } from '@modules/inventory/brands/api/brands.api';
 import { applianceProductsApi } from '../api/products.api';
-import { applianceBrandsApi } from '../api/brands.api';
-import { PrivacyToggle, useCostHidden } from '@core/ui/HiddenValue';
+import {
+  ApplianceHero, Kpi, Panel, Teacher, Empty, useShortcuts, printHtml,
+  downloadCsv, a4Shell, escapeHtml, toDateInput, guideAction, printAction,
+  Kbd, inputCls, ChipRow,
+} from '../components/shared';
+import {
+  catMeta, catLabel, catEmoji, CATEGORY_GROUPS, energyMeta,
+} from '../constants';
 
-type ViewMode = 'grid' | 'table';
-type StockFilter = 'all' | 'in' | 'low' | 'out';
-type SortKey = 'name' | 'stock-low' | 'stock-high' | 'price-low' | 'price-high' | 'newest';
+/* ═════════════════════════════════════════════════════════════
+   APPLIANCES PRODUCTS — maal ki poori fehrist
+   ─────────────────────────────────────────────────────────────
+   Appliance ki dukaan me har product par teen cheezein matter
+   karti hain jo aam POS nahi dikhata:
+     • serial rakhna parta hai ya nahi
+     • lagana parta hai ya nahi (aur uska charge)
+     • warranty kitne mahine — main, compressor, motor
+   Ye page unhi ko numaya karta hai.
+   ═════════════════════════════════════════════════════════════ */
+
+const VIEW_KEY = 'nafaa:appliances:products:view';
+const PIE_COLORS = ['#06b6d4', '#3b82f6', '#10b981', '#f59e0b', '#a855f7', '#ef4444', '#14b8a6', '#f97316', '#64748b'];
+const TOOLTIP: React.CSSProperties = {
+  borderRadius: 12, border: '2px solid #334155', background: '#0f172a',
+  color: '#fff', fontSize: 12, fontWeight: 700,
+};
+
+type Tab = 'list' | 'analytics';
 
 export default function AppliancesProductsPage() {
-  const queryClient = useQueryClient();
-  const hideCost = useCostHidden();
+  const qc = useQueryClient();
+  const shopName = useAuthStore((s) => s.tenant?.name) || 'Meri Dukaan';
+  const shopPhone = useAuthStore((s: any) => s.tenant?.phone || '');
+  const searchRef = useRef<HTMLInputElement>(null);
 
-  const [search, setSearch] = useState('');
-  const [categoryType, setCategoryType] = useState('all');
-  const [brandId, setBrandId] = useState('all');
-  const [stockFilter, setStockFilter] = useState<StockFilter>('all');
-  const [sortKey, setSortKey] = useState<SortKey>('name');
-  const [view, setView] = useState<ViewMode>('grid');
-  const [selected, setSelected] = useState<Set<string>>(new Set());
-
-  const { data, isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['appliances-products-list'],
-    queryFn: () => productsApi.list({ page: 1, limit: 1000 } as any),
+  const [tab, setTab] = useState<Tab>('list');
+  const [view, setView] = useState<'grid' | 'list'>(() => {
+    try { return (localStorage.getItem(VIEW_KEY) as 'grid' | 'list') || 'grid'; } catch { return 'grid'; }
   });
-  const products: any[] = (data as any)?.items ?? [];
+  const [showTeacher, setShowTeacher] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [search, setSearch] = useState('');
+  const [group, setGroup] = useState<string | null>(null);
+  const [brandId, setBrandId] = useState('');
+  const [flag, setFlag] = useState<'serial' | 'install' | 'low' | 'out' | null>(null);
+  const [picked, setPicked] = useState<Set<string>>(new Set());
+
+  const setViewSafe = (v: 'grid' | 'list') => {
+    setView(v);
+    try { localStorage.setItem(VIEW_KEY, v); } catch { /* private mode */ }
+  };
+
+  const { data, isLoading, refetch, isFetching } = useQuery({
+    queryKey: ['appliance-products-list'],
+    queryFn: () => productsApi.list({ page: 1, limit: 500 }),
+  });
 
   const { data: profiles = [] } = useQuery({
-    queryKey: ['appliance-profiles-all'],
+    queryKey: ['appliance-profiles'],
     queryFn: () => applianceProductsApi.list(),
   });
 
   const { data: brands = [] } = useQuery({
-    queryKey: ['appliance-brands'],
-    queryFn: () => applianceBrandsApi.list({ active: true }),
+    queryKey: ['brands'],
+    queryFn: () => brandsApi.list(),
   });
 
-  const profileByProduct = useMemo(() => {
-    const map = new Map<string, any>();
-    (profiles as any[]).forEach((p) => map.set(p.productId, p));
-    return map;
-  }, [profiles]);
+  const profileBy = useMemo(
+    () => new Map(profiles.map((p: any) => [p.productId, p])),
+    [profiles],
+  );
+  const brandName = useMemo(
+    () => new Map((brands as any[]).map((b) => [b.id, b.name])),
+    [brands],
+  );
 
-  const stats = useMemo(() => {
-    const totalStock = products.reduce((a, p) => a + Number(p.stock || 0), 0);
-    const stockValue = products.reduce((a, p) => a + Number(p.stock || 0) * Number(p.price || 0), 0);
-    const low = products.filter((p) => Number(p.stock || 0) > 0 && Number(p.stock || 0) <= Number(p.lowStockAlert ?? 3));
-    const out = products.filter((p) => Number(p.stock || 0) <= 0);
-    return {
-      total: products.length,
-      totalStock, stockValue,
-      lowCount: low.length,
-      outCount: out.length,
-    };
-  }, [products]);
+  /** Product + appliance profile, ek hi row me */
+  const rows = useMemo(() => {
+    const items: any[] = (data as any)?.items ?? [];
+    return items.map((p) => {
+      const prof: any = profileBy.get(p.id);
+      const stock = Number(p.stock) || 0;
+      const alert = Number(p.lowStockAlert) || 0;
+      return {
+        ...p,
+        prof,
+        categoryType: prof?.categoryType ?? null,
+        brandLabel: p.brand?.name ?? (prof?.brandId ? brandName.get(prof.brandId) : null) ?? null,
+        modelNumber: prof?.modelNumber ?? null,
+        capacity: prof?.capacity ?? null,
+        energy: prof?.isInverter ? 'INVERTER' : (prof?.energyRating ?? null),
+        requiresSerial: prof?.requiresSerial ?? false,
+        requiresInstallation: prof?.requiresInstallation ?? false,
+        installationCharge: Number(prof?.installationCharge) || 0,
+        warrantyMonths: prof?.warrantyMonths ?? null,
+        compressorWarrantyMonths: prof?.compressorWarrantyMonths ?? null,
+        motorWarrantyMonths: prof?.motorWarrantyMonths ?? null,
+        heavy: prof?.requiresLargeVehicle ?? catMeta(prof?.categoryType).heavy,
+        isFeatured: prof?.isFeatured ?? false,
+        isBestSeller: prof?.isBestSeller ?? false,
+        isNewArrival: prof?.isNewArrival ?? false,
+        stock, alert,
+        isLow: stock > 0 && alert > 0 && stock <= alert,
+        isOut: stock <= 0,
+        stockValue: stock * (Number(p.costPrice) || 0),
+        retailValue: stock * (Number(p.price) || 0),
+        hasProfile: !!prof,
+      };
+    });
+  }, [data, profileBy, brandName]);
 
   const filtered = useMemo(() => {
-    let list = [...products];
-    const q = search.toLowerCase().trim();
-    if (q) {
-      list = list.filter((p) =>
-        (p.name || '').toLowerCase().includes(q) ||
-        (p.sku || '').toLowerCase().includes(q) ||
-        (p.barcode || '').toLowerCase().includes(q),
+    const q = search.trim().toLowerCase();
+    return rows.filter((r) => {
+      if (group && catMeta(r.categoryType).group !== group) return false;
+      if (brandId && r.brand?.id !== brandId && r.prof?.brandId !== brandId) return false;
+      if (flag === 'serial' && !r.requiresSerial) return false;
+      if (flag === 'install' && !r.requiresInstallation) return false;
+      if (flag === 'low' && !r.isLow) return false;
+      if (flag === 'out' && !r.isOut) return false;
+      if (!q) return true;
+      return (
+        r.name.toLowerCase().includes(q) ||
+        (r.sku ?? '').toLowerCase().includes(q) ||
+        (r.barcode ?? '').toLowerCase().includes(q) ||
+        (r.brandLabel ?? '').toLowerCase().includes(q) ||
+        (r.modelNumber ?? '').toLowerCase().includes(q) ||
+        catLabel(r.categoryType).toLowerCase().includes(q)
       );
-    }
-    if (categoryType !== 'all') {
-      list = list.filter((p) => {
-        const profile = profileByProduct.get(p.id);
-        return profile?.categoryType === categoryType;
-      });
-    }
-    if (brandId !== 'all') {
-      list = list.filter((p) => {
-        const profile = profileByProduct.get(p.id);
-        return profile?.brandId === brandId;
-      });
-    }
-    if (stockFilter !== 'all') {
-      list = list.filter((p) => {
-        const s = Number(p.stock || 0);
-        const alert = Number(p.lowStockAlert ?? 3);
-        if (stockFilter === 'out') return s <= 0;
-        if (stockFilter === 'low') return s > 0 && s <= alert;
-        return s > alert;
-      });
-    }
-    list.sort((a, b) => {
-      switch (sortKey) {
-        case 'stock-low': return Number(a.stock || 0) - Number(b.stock || 0);
-        case 'stock-high': return Number(b.stock || 0) - Number(a.stock || 0);
-        case 'price-low': return Number(a.price || 0) - Number(b.price || 0);
-        case 'price-high': return Number(b.price || 0) - Number(a.price || 0);
-        case 'newest': return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
-        default: return (a.name || '').localeCompare(b.name || '');
-      }
     });
-    return list;
-  }, [products, search, categoryType, brandId, stockFilter, sortKey, profileByProduct]);
+  }, [rows, search, group, brandId, flag]);
 
-  const bulkDelete = useMutation({
-    mutationFn: async () => {
-      const ids = Array.from(selected);
-      const res = await Promise.allSettled(ids.map((id) => productsApi.remove(id, false)));
-      return { ok: res.filter((r) => r.status === 'fulfilled').length };
+  const groupCounts = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const r of rows) {
+      const g = catMeta(r.categoryType).group;
+      m.set(g, (m.get(g) ?? 0) + 1);
+    }
+    return m;
+  }, [rows]);
+
+  const stats = useMemo(() => {
+    const src = filtered;
+    return {
+      count: src.length,
+      units: src.reduce((s, r) => s + r.stock, 0),
+      value: src.reduce((s, r) => s + r.stockValue, 0),
+      retail: src.reduce((s, r) => s + r.retailValue, 0),
+      serial: src.filter((r) => r.requiresSerial).length,
+      install: src.filter((r) => r.requiresInstallation).length,
+      low: src.filter((r) => r.isLow).length,
+      out: src.filter((r) => r.isOut).length,
+      noProfile: src.filter((r) => !r.hasProfile).length,
+      installIncome: src.reduce((s, r) => s + (r.requiresInstallation ? r.installationCharge * r.stock : 0), 0),
+    };
+  }, [filtered]);
+
+  const pickedRows = useMemo(() => filtered.filter((r) => picked.has(r.id)), [filtered, picked]);
+  const printRows = pickedRows.length ? pickedRows : filtered;
+  const allPicked = filtered.length > 0 && filtered.every((r) => picked.has(r.id));
+
+  const toggle = (id: string) =>
+    setPicked((p) => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n; });
+
+  const removeMut = useMutation({
+    mutationFn: (id: string) => productsApi.remove(id),
+    onSuccess: () => {
+      toast.success('Product delete ho gaya');
+      qc.invalidateQueries({ queryKey: ['appliance-products-list'] });
+      qc.invalidateQueries({ queryKey: ['appliance-profiles'] });
     },
-    onSuccess: ({ ok }) => {
-      if (ok) toast.success(`${ok} products delete ho gaye`);
-      setSelected(new Set());
-      queryClient.invalidateQueries({ queryKey: ['appliances-products-list'] });
-    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Delete nahi hua — bikri ka record ho sakta hai'),
   });
 
-  const forceDeleteAllMutation = useMutation({
-    mutationFn: async (ids: string[]) => {
-      const res = await Promise.allSettled(ids.map((id) => productsApi.remove(id, true)));
-      return {
-        ok: res.filter((r) => r.status === 'fulfilled').length,
-        fail: res.length - res.filter((r) => r.status === 'fulfilled').length,
-      };
-    },
-    onSuccess: ({ ok, fail }) => {
-      if (ok) toast.success(`${ok} products force-deleted (cascade)`);
-      if (fail) toast.error(`${fail} still failed`);
-      setSelected(new Set());
-      queryClient.invalidateQueries();
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Force delete failed'),
-  });
+  const clearFilters = () => { setSearch(''); setGroup(null); setBrandId(''); setFlag(null); };
+  const hasFilters = !!(search || group || brandId || flag);
 
-  const exportCSV = () => {
-    if (filtered.length === 0) return toast.error('Koi data nahi');
-    const head = ['Name', 'Model', 'SKU', 'Barcode', 'Brand', 'Category', 'Capacity', 'Cost', 'Retail', 'Stock', 'Warranty'];
-    const body = filtered.map((p) => {
-      const prof = profileByProduct.get(p.id);
-      const brand = (brands as any[]).find((b) => b.id === prof?.brandId);
-      return [
-        p.name, prof?.modelNumber || '', p.sku || '', p.barcode || '',
-        brand?.name || '', prof?.categoryType || '', prof?.capacity || '',
-        Number(p.costPrice || 0).toFixed(2), Number(p.price || 0).toFixed(2),
-        Number(p.stock || 0), prof?.warrantyMonths ? `${prof.warrantyMonths}m` : '',
-      ];
-    });
-    const csv = [head, ...body].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
-    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = `appliances-products-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success('Exported!');
+  /* ─── CSV ─── */
+  const exportCsv = () => {
+    if (!printRows.length) return toast.error('Koi product nahi');
+    downloadCsv(`appliance-products-${toDateInput(new Date())}.csv`, [
+      [`Products — ${shopName}`],
+      [`Nikala gaya: ${new Date().toLocaleString('en-PK')}`],
+      [`${stats.count} products • ${stats.units} units • lagat ${stats.value.toFixed(0)}`],
+      [],
+      ['Naam', 'Qism', 'Brand', 'Model', 'SKU', 'Barcode', 'Capacity', 'Energy',
+       'Stock', 'Alert', 'Lagat/unit', 'Bechne ka rate', 'Kul lagat', 'Bechne par',
+       'Serial chahiye', 'Lagana parta', 'Installation charge',
+       'Warranty (mah)', 'Compressor (mah)', 'Motor (mah)', 'Bhari saman'],
+      ...printRows.map((r) => [
+        r.name, catLabel(r.categoryType), r.brandLabel ?? '', r.modelNumber ?? '',
+        r.sku ?? '', r.barcode ?? '', r.capacity ?? '',
+        r.energy ? energyMeta(r.energy).label : '',
+        r.stock, r.alert, r.costPrice, r.price, r.stockValue, r.retailValue,
+        r.requiresSerial ? 'Haan' : 'Nahi',
+        r.requiresInstallation ? 'Haan' : 'Nahi', r.installationCharge,
+        r.warrantyMonths ?? '', r.compressorWarrantyMonths ?? '', r.motorWarrantyMonths ?? '',
+        r.heavy ? 'Haan' : 'Nahi',
+      ]),
+    ]);
+    toast.success(`${printRows.length} products export ho gaye`);
   };
 
+  /* ─── A4 ─── */
+  const printA4 = () => {
+    if (!printRows.length) return toast.error('Koi product nahi');
+    const body = `
+      <h2 class="sec">📦 Products${pickedRows.length ? ' (chuni hui)' : ''}</h2>
+      <table>
+        <thead><tr>
+          <th>#</th><th>Cheez</th><th>Brand / Model</th><th class="c">Stock</th>
+          <th class="c">Serial</th><th class="c">Install</th><th class="r">Lagat</th><th class="r">Bechna</th>
+        </tr></thead>
+        <tbody>
+          ${printRows.map((r, i) => `
+            <tr>
+              <td class="num">${i + 1}</td>
+              <td>
+                <div class="main">${catEmoji(r.categoryType)} ${escapeHtml(r.name)}</div>
+                <div class="sub">${escapeHtml(catLabel(r.categoryType))}${r.capacity ? ` • ${escapeHtml(r.capacity)}` : ''}${r.sku ? ` • ${escapeHtml(r.sku)}` : ''}</div>
+              </td>
+              <td>${escapeHtml(r.brandLabel ?? '—')}${r.modelNumber ? `<div class="sub">${escapeHtml(r.modelNumber)}</div>` : ''}</td>
+              <td class="c" style="font-weight:800;color:${r.isOut ? '#b91c1c' : r.isLow ? '#d97706' : '#0f172a'}">${r.stock}</td>
+              <td class="c">${r.requiresSerial ? '✓' : '—'}</td>
+              <td class="c">${r.requiresInstallation ? formatPKR(r.installationCharge) : '—'}</td>
+              <td class="r">${formatPKR(r.costPrice)}</td>
+              <td class="r">${formatPKR(r.price)}</td>
+            </tr>`).join('')}
+          <tr class="grand">
+            <td colspan="6" style="text-align:right;padding-right:12px;">KUL LAGAT</td>
+            <td class="r" style="color:#a5f3fc !important;">${formatPKR(printRows.reduce((s, r) => s + r.stockValue, 0))}</td>
+            <td class="r" style="color:#86efac !important;">${formatPKR(printRows.reduce((s, r) => s + r.retailValue, 0))}</td>
+          </tr>
+        </tbody>
+      </table>`;
+
+    const ok = printHtml(a4Shell({
+      title: `Products — ${shopName}`,
+      heading: '📦 Product List',
+      shopName, shopPhone, badge: 'Product Report',
+      kpis: [
+        { label: '📦 Products', value: String(stats.count), sub: `${stats.units} units`, tone: 'blue' },
+        { label: '💰 Stock Ki Lagat', value: formatPKR(stats.value), tone: 'green' },
+        { label: '🔖 Serial Wale', value: String(stats.serial), sub: `${stats.install} lagane wale`, tone: 'amber' },
+        { label: '⚠️ Kam / Khatam', value: `${stats.low} / ${stats.out}`, tone: 'rose' },
+      ],
+      body,
+    }));
+    if (!ok) toast.error('Popup block hai — allow karein');
+  };
+
+  useShortcuts({
+    '/': () => { setTab('list'); setTimeout(() => searchRef.current?.focus(), 0); },
+    n: () => { window.location.href = '/appliance-products/new'; },
+    t: () => setShowTeacher(true),
+    p: () => printA4(),
+    g: () => setViewSafe(view === 'grid' ? 'list' : 'grid'),
+    f: () => setShowFilters((v) => !v),
+    a: () => setTab((v) => (v === 'analytics' ? 'list' : 'analytics')),
+    Escape: () => {
+      if (showTeacher) setShowTeacher(false);
+      else if (showFilters) setShowFilters(false);
+      else if (picked.size) setPicked(new Set());
+    },
+  }, [showTeacher, showFilters, picked.size, view, printRows]);
+
   return (
-    <div className="space-y-5 pb-6">
-      {/* HERO */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-cyan-900 to-teal-700 text-white p-6 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-cyan-400/20 blur-3xl" />
-        <div className="relative flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Home className="h-3.5 w-3.5 text-amber-300" /> Appliances Store
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">Products</h1>
-            <p className="mt-2 text-sm text-white/80">
-              {stats.total} products • {stats.totalStock} pcs stock • Value{' '}
-              <strong className="text-emerald-300">{formatPKR(stats.stockValue)}</strong>
-            </p>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching}
-              className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-4 py-2.5 text-sm font-bold backdrop-blur">
-              <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} /> Refresh
-            </button>
-            <PrivacyToggle />
-            <Link to="/appliance-products/new"
-              className="inline-flex items-center gap-2 rounded-xl bg-white text-slate-900 hover:bg-slate-100 px-5 py-2.5 text-sm font-extrabold shadow-lg">
-              <Plus className="h-4 w-4" /> New Product
-            </Link>
+    <div className="space-y-4 sm:space-y-5 pb-10">
+      {showTeacher && <ProductsTeacher onClose={() => setShowTeacher(false)} />}
+
+      <ApplianceHero
+        badge="Products"
+        badgeIcon={<Package className="h-3.5 w-3.5 text-amber-300" />}
+        title="📦 Maal"
+        subtitle={
+          <>
+            <strong className="text-cyan-200">{stats.count}</strong> products
+            <span className="opacity-50 mx-1.5">•</span>
+            <strong className="text-emerald-300">{formatPKR(stats.value)}</strong> ka stock
+            {stats.out > 0 && (
+              <><span className="opacity-50 mx-1.5">•</span><strong className="text-rose-300">{stats.out}</strong> khatam</>
+            )}
+          </>
+        }
+        actions={[
+          guideAction(() => setShowTeacher(true)),
+          { key: 'refresh', label: 'Refresh', icon: <RefreshCw className="h-4 w-4" />, onClick: () => refetch(), spinning: isFetching, hideLabelOnMobile: true },
+          { key: 'csv', label: 'CSV', icon: <FileDown className="h-4 w-4" />, onClick: exportCsv, disabled: !printRows.length, hideLabelOnMobile: true },
+          printAction(printA4, !printRows.length),
+          { key: 'new', label: 'Naya Product', icon: <Plus className="h-4 w-4" />, shortcut: 'N', href: '/appliance-products/new', variant: 'solid' },
+        ]}
+        shortcuts={[
+          { keys: '/', label: 'Search' }, { keys: 'N', label: 'Naya' },
+          { keys: 'G', label: 'Grid/List' }, { keys: 'A', label: 'Analytics' },
+          { keys: 'F', label: 'Filters' }, { keys: 'P', label: 'Print' },
+          { keys: 'T', label: 'Guide' },
+        ]}
+      />
+
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+        <Kpi icon={Boxes} tone="cyan" label="Stock Ki Lagat" value={formatPKR(stats.value)}
+          sub={`${stats.units} units • bechne par ${formatPKR(stats.retail)}`} />
+        <Kpi icon={Barcode} tone="violet" label="Serial Wale" value={stats.serial}
+          sub="in ka serial register rakhna parta hai"
+          onClick={() => setFlag(flag === 'serial' ? null : 'serial')} active={flag === 'serial'} />
+        <Kpi icon={HardHat} tone="blue" label="Lagane Wale" value={stats.install}
+          sub={stats.installIncome > 0 ? `stock par ${formatPKR(stats.installIncome)} installation` : 'installation charge lagta hai'}
+          onClick={() => setFlag(flag === 'install' ? null : 'install')} active={flag === 'install'} />
+        <Kpi icon={AlertTriangle} tone="rose" label="Kam / Khatam" value={`${stats.low} / ${stats.out}`}
+          sub="alert level se neeche" alert={stats.out > 0}
+          onClick={() => setFlag(flag === 'out' ? null : 'out')} active={flag === 'out'} />
+      </section>
+
+      {stats.noProfile > 0 && (
+        <div className="rounded-2xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-3 flex items-start gap-2.5">
+          <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+          <div className="text-xs font-bold text-amber-900 dark:text-amber-200">
+            <strong>{stats.noProfile} products</strong> ki appliance tafseel adhoori hai — warranty, installation
+            charge aur serial ki setting nahi lagi. Aise product par POS installation book nahi kar sakta.
+            Card par <span className="px-1.5 py-0.5 rounded bg-amber-200 dark:bg-amber-500/30 text-[10px] font-black">TAFSEEL BAQI</span> likha hota hai.
           </div>
         </div>
-      </section>
+      )}
 
-      {/* KPIs */}
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Kpi icon={Package} label="Total Products" value={stats.total} sub={`${stats.totalStock} pcs`} tone="cyan" />
-        <Kpi icon={DollarSign} label="Stock Value" value={formatPKR(stats.stockValue)} sub="Retail value" tone="emerald" />
-        <Kpi icon={AlertTriangle} label="Low Stock" value={stats.lowCount} sub="Reorder soon" tone="amber"
-          onClick={() => setStockFilter('low')} />
-        <Kpi icon={PackageX} label="Out of Stock" value={stats.outCount} sub="Restock now" tone="rose"
-          onClick={() => setStockFilter('out')} />
-      </section>
+      {/* Tabs */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-1 shadow-sm">
+          <TabBtn active={tab === 'list'} onClick={() => setTab('list')} icon={Package} label="Maal" />
+          <TabBtn active={tab === 'analytics'} onClick={() => setTab('analytics')} icon={BarChart3} label="Analytics" />
+        </div>
+        {tab === 'list' && (
+          <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-1">
+            <button onClick={() => setViewSafe('grid')}
+              className={`px-3 py-2 rounded-xl transition ${view === 'grid' ? 'bg-cyan-600 text-white shadow' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>
+              <LayoutGrid className="h-4 w-4" />
+            </button>
+            <button onClick={() => setViewSafe('list')}
+              className={`px-3 py-2 rounded-xl transition ${view === 'list' ? 'bg-cyan-600 text-white shadow' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>
+              <ListIcon className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+        <div className="text-xs font-extrabold text-slate-500 dark:text-slate-400 tabular-nums px-1">{filtered.length} products</div>
+      </div>
 
-      {/* TOOLBAR */}
-      <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-4 space-y-3">
-        <div className="flex gap-2 flex-wrap">
-          <div className="relative flex-1 min-w-[240px]">
-            <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input autoFocus value={search} onChange={(e) => setSearch(e.target.value)}
-              placeholder="Naam, model, SKU, barcode..."
-              className="h-12 w-full rounded-2xl border-2 border-slate-200 bg-white pl-11 pr-10 text-sm font-semibold focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200" />
-            {search && (
-              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 flex items-center justify-center">
+      {tab === 'analytics' ? (
+        <ProductAnalytics rows={rows} />
+      ) : (
+        <>
+          {/* Toolbar */}
+          <div className="flex gap-2 flex-wrap items-center">
+            <div className="flex-1 min-w-[220px] relative">
+              <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input ref={searchRef} className={inputCls('h-12 pl-10 pr-10 text-sm font-semibold')}
+                placeholder="Naam, brand, model, SKU, barcode... (/)"
+                value={search} onChange={(e) => setSearch(e.target.value)} />
+              {search && (
+                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                  <X className="h-4 w-4 text-slate-400" />
+                </button>
+              )}
+            </div>
+            <button onClick={() => setShowFilters(!showFilters)}
+              className={`h-12 px-4 rounded-2xl border-2 text-xs font-extrabold inline-flex items-center gap-1.5 transition ${
+                showFilters || hasFilters
+                  ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-500/15 text-cyan-700 dark:text-cyan-300'
+                  : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-cyan-300'
+              }`}>
+              <Filter className="h-4 w-4" /> <span className="hidden sm:inline">Filters</span>
+              {hasFilters && <span className="h-5 w-5 rounded-full bg-cyan-600 text-white text-[10px] font-bold flex items-center justify-center">!</span>}
+            </button>
+          </div>
+
+          {showFilters && (
+            <Panel className="space-y-3">
+              <div>
+                <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Qism</div>
+                <ChipRow
+                  options={CATEGORY_GROUPS.filter((g) => groupCounts.get(g)).map((g) => ({ value: g, label: g, count: groupCounts.get(g) }))}
+                  value={group} onChange={setGroup} allLabel={`Sab (${rows.length})`} />
+              </div>
+              <div>
+                <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Khaas</div>
+                <ChipRow
+                  options={[
+                    { value: 'serial', label: 'Serial wale', emoji: '🔖' },
+                    { value: 'install', label: 'Lagane wale', emoji: '🔧' },
+                    { value: 'low', label: 'Stock kam', emoji: '⚠️' },
+                    { value: 'out', label: 'Khatam', emoji: '🚫' },
+                  ]}
+                  value={flag as any} onChange={(v) => setFlag(v as any)} allLabel="Sab" />
+              </div>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div>
+                  <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Brand</div>
+                  <select className={inputCls('h-11 text-xs font-extrabold')} value={brandId} onChange={(e) => setBrandId(e.target.value)}>
+                    <option value="">Sab brands</option>
+                    {(brands as any[]).map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+                  </select>
+                </div>
+              </div>
+              {hasFilters && (
+                <button onClick={clearFilters} className="text-xs font-extrabold text-rose-600 dark:text-rose-400 inline-flex items-center gap-1">
+                  <X className="h-3 w-3" /> Sab filters clear karo
+                </button>
+              )}
+            </Panel>
+          )}
+
+          {/* Bulk bar */}
+          {picked.size > 0 && (
+            <div className="sticky top-2 z-30 rounded-2xl bg-gradient-to-r from-slate-900 to-cyan-900 dark:from-slate-950 dark:to-cyan-950 text-white border-2 border-cyan-400/40 shadow-2xl p-3 flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-2 mr-1">
+                <div className="h-9 w-9 rounded-xl bg-white/15 flex items-center justify-center font-extrabold tabular-nums text-sm">{picked.size}</div>
+                <div className="text-xs font-extrabold leading-tight">
+                  chune hue<br />
+                  <span className="text-white/60 font-bold">lagat {formatPKR(pickedRows.reduce((s, r) => s + r.stockValue, 0))}</span>
+                </div>
+              </div>
+              <button onClick={() => setPicked(allPicked ? new Set() : new Set(filtered.map((r) => r.id)))}
+                className="h-10 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-[11px] font-extrabold transition">
+                {allPicked ? 'Sab hatao' : 'Sab chuno'}
+              </button>
+              <button onClick={exportCsv} className="h-10 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white text-[11px] font-extrabold inline-flex items-center gap-1.5 transition">
+                <FileDown className="h-3.5 w-3.5" /> CSV
+              </button>
+              <button onClick={printA4} className="h-10 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-[11px] font-extrabold inline-flex items-center gap-1.5 transition">
+                <Printer className="h-3.5 w-3.5" /> Print
+              </button>
+              <button onClick={() => setPicked(new Set())} className="h-10 w-10 ml-auto rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
                 <X className="h-4 w-4" />
               </button>
-            )}
-          </div>
-          <div className="inline-flex rounded-2xl border-2 border-slate-200 bg-white overflow-hidden">
-            <button onClick={() => setView('grid')}
-              className={`px-4 h-12 text-xs font-extrabold transition ${view === 'grid' ? 'bg-cyan-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`}>
-              <Grid3x3 className="h-4 w-4" />
-            </button>
-            <button onClick={() => setView('table')}
-              className={`px-4 h-12 text-xs font-extrabold border-l-2 border-slate-200 transition ${view === 'table' ? 'bg-cyan-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`}>
-              <List className="h-4 w-4" />
-            </button>
-          </div>
-          <button onClick={exportCSV}
-            className="h-12 px-4 rounded-2xl border-2 border-slate-200 hover:border-cyan-300 bg-white text-sm font-bold text-slate-700 inline-flex items-center gap-1.5">
-            <Download className="h-4 w-4" /> Export
-          </button>
-        </div>
+            </div>
+          )}
 
-        <div className="flex gap-2 flex-wrap items-center">
-          <select value={brandId} onChange={(e) => setBrandId(e.target.value)}
-            className="h-10 rounded-xl border-2 border-slate-200 bg-white px-3 text-xs font-bold focus:outline-none focus:border-cyan-500">
-            <option value="all">All Brands</option>
-            {(brands as any[]).map((b) => (<option key={b.id} value={b.id}>{b.name}</option>))}
-          </select>
-
-          <select value={categoryType} onChange={(e) => setCategoryType(e.target.value)}
-            className="h-10 rounded-xl border-2 border-slate-200 bg-white px-3 text-xs font-bold focus:outline-none focus:border-cyan-500">
-            <option value="all">All Categories</option>
-            <option value="REFRIGERATOR">🧊 Refrigerator</option>
-            <option value="AIR_CONDITIONER_SPLIT">❄️ AC Split</option>
-            <option value="AIR_CONDITIONER_INVERTER">⚡ AC Inverter</option>
-            <option value="WASHING_MACHINE_FRONT_LOAD">👔 W/M Front Load</option>
-            <option value="WASHING_MACHINE_TOP_LOAD">👕 W/M Top Load</option>
-            <option value="LED_TV">📺 LED TV</option>
-            <option value="SMART_TV">📱 Smart TV</option>
-            <option value="MICROWAVE_OVEN">📡 Microwave</option>
-            <option value="WATER_DISPENSER">💧 Water Dispenser</option>
-            <option value="GEYSER_ELECTRIC">♨️ Geyser</option>
-            <option value="FAN_CEILING">🌀 Fan</option>
-          </select>
-
-          <div className="flex gap-1 bg-slate-100 rounded-xl p-1">
-            {[
-              { v: 'all' as StockFilter, l: 'All' },
-              { v: 'in' as StockFilter, l: 'In stock' },
-              { v: 'low' as StockFilter, l: 'Low' },
-              { v: 'out' as StockFilter, l: 'Out' },
-            ].map((o) => (
-              <button key={o.v} onClick={() => setStockFilter(o.v)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${
-                  stockFilter === o.v ? 'bg-cyan-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
-                }`}>{o.l}</button>
-            ))}
-          </div>
-
-          <select value={sortKey} onChange={(e) => setSortKey(e.target.value as SortKey)}
-            className="h-10 rounded-xl border-2 border-slate-200 bg-white px-3 text-xs font-bold focus:outline-none focus:border-cyan-500">
-            <option value="name">A → Z</option>
-            <option value="newest">Newest</option>
-            <option value="stock-low">Stock low</option>
-            <option value="stock-high">Stock high</option>
-            <option value="price-low">Cheap first</option>
-            <option value="price-high">Expensive first</option>
-          </select>
-
-          <div className="ml-auto text-xs font-extrabold text-slate-500">{filtered.length} products</div>
-        </div>
-      </section>
-
-      {selected.size > 0 && (
-        <section className="sticky top-2 z-20 rounded-2xl bg-slate-900 text-white shadow-2xl p-3 flex items-center gap-2 flex-wrap">
-          <div className="font-extrabold text-sm px-2">{selected.size} selected</div>
-          <button onClick={() => {
-                const ids = Array.from(selected);
-                const label = `${ids.length} item(s)`;
-                const c1 = confirm(`⚠️ DANGER: ${label} aur unki saari sales/purchase history delete ho jayegi.
-
-Ye irreversible hai. Continue?`);
-                if (!c1) return;
-                const c2 = confirm('Bilkul sure? Test/demo cleanup ke liye hi.');
-                if (!c2) return;
-                bulkDelete.mutate(undefined, {
-                  onSuccess: ({ fail }: any) => {
-                    if (fail && fail > 0) {
-                      const useForce = confirm(`${fail} products delete nahi ho paye (sales/purchase history hai). Force Delete (cascade) karein?`);
-                      if (useForce) forceDeleteAllMutation.mutate(ids);
-                    }
-                  },
-                });
-              }}
-            className="px-3 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-xs font-extrabold inline-flex items-center gap-1">
-            <Trash2 className="h-3.5 w-3.5" /> Delete
-          </button>
-          <button onClick={() => setSelected(new Set())}
-            className="ml-auto px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-extrabold">Clear</button>
-        </section>
-      )}
-
-      {isLoading ? (
-        <div className="grid gap-3">
-          {Array.from({ length: 8 }).map((_, i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 animate-pulse" />)}
-        </div>
-      ) : filtered.length === 0 ? (
-        <section className="rounded-3xl bg-white border-2 border-dashed border-slate-300 p-16 text-center">
-          <div className="mx-auto h-20 w-20 rounded-3xl bg-gradient-to-br from-cyan-100 to-teal-200 flex items-center justify-center">
-            <Home className="h-9 w-9 text-cyan-600" />
-          </div>
-          <h3 className="mt-5 text-xl font-extrabold text-slate-900">No products found</h3>
-          <p className="text-sm text-slate-500 mt-2 font-semibold">Add karo pehla product</p>
-          <Link to="/appliance-products/new">
-            <Button className="mt-5 bg-gradient-to-r from-cyan-600 to-teal-700">
-              <Plus className="h-4 w-4" /> Add Product
-            </Button>
-          </Link>
-        </section>
-      ) : view === 'grid' ? (
-        <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-          {filtered.map((p) => {
-            const profile = profileByProduct.get(p.id);
-            return (
-              <ProductCard key={p.id} p={p} profile={profile} selected={selected.has(p.id)}
-                onToggle={() => {
-                  setSelected((prev) => {
-                    const n = new Set(prev);
-                    n.has(p.id) ? n.delete(p.id) : n.add(p.id);
-                    return n;
-                  });
-                }} />
-            );
-          })}
-        </section>
-      ) : (
-        <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 border-b-2 border-slate-200">
-                <tr>
-                  <th className="px-3 py-3 w-10"></th>
-                  <Th>Product</Th>
-                  <Th>Brand</Th>
-                  <Th>Capacity</Th>
-                  <Th className="text-right">Retail</Th>
-                  <Th className="text-right">Stock</Th>
-                  <Th className="text-center">Warranty</Th>
-                  <Th className="text-right">Actions</Th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filtered.map((p) => {
-                  const profile = profileByProduct.get(p.id);
-                  const brand = (brands as any[]).find((b) => b.id === profile?.brandId);
-                  const stock = Number(p.stock || 0);
-                  const isOut = stock <= 0;
-                  const isLow = !isOut && stock <= Number(p.lowStockAlert ?? 3);
-                  return (
-                    <tr key={p.id} className="hover:bg-cyan-50/40 transition">
-                      <td className="px-3 py-2.5">
-                        <input type="checkbox" checked={selected.has(p.id)}
-                          onChange={() => {
-                            setSelected((prev) => {
-                              const n = new Set(prev);
-                              n.has(p.id) ? n.delete(p.id) : n.add(p.id);
-                              return n;
-                            });
-                          }}
-                          className="h-4 w-4 rounded" />
-                      </td>
-                      <td className="px-3 py-2.5">
-                        <Link to={`/appliance-products/${p.id}`} className="flex items-center gap-2.5 group">
-                          <div className="h-10 w-10 rounded-lg bg-slate-100 overflow-hidden shrink-0">
-                            {p.images?.[0]?.url ? (
-                              <img src={p.images[0].url} className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center"><Home className="h-4 w-4 text-slate-400" /></div>
-                            )}
-                          </div>
-                          <div className="min-w-0">
-                            <div className="font-extrabold text-slate-900 text-sm truncate group-hover:text-cyan-700">{p.name}</div>
-                            <div className="text-[10px] font-mono text-slate-500 truncate">{profile?.modelNumber || p.sku || '—'}</div>
-                          </div>
-                        </Link>
-                      </td>
-                      <td className="px-3 py-2.5 text-xs font-bold text-slate-700">{brand?.name || '—'}</td>
-                      <td className="px-3 py-2.5 text-xs font-bold text-slate-600">{profile?.capacity || '—'}</td>
-                      <td className="px-3 py-2.5 text-right font-extrabold text-emerald-700 tabular-nums">{formatPKR(p.price || 0)}</td>
-                      <td className="px-3 py-2.5 text-right">
-                        <span className={`font-extrabold tabular-nums text-sm ${isOut ? 'text-rose-700' : isLow ? 'text-amber-700' : 'text-slate-900'}`}>
-                          {stock}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2.5 text-center">
-                        {profile?.warrantyMonths ? (
-                          <span className="px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-700 text-[10px] font-extrabold">
-                            {profile.warrantyMonths}m
-                          </span>
-                        ) : '—'}
-                      </td>
-                      <td className="px-3 py-2.5">
-                        <div className="flex items-center justify-end gap-1">
-                          <Link to={`/appliance-products/${p.id}`} className="h-8 w-8 rounded-lg bg-cyan-50 hover:bg-cyan-100 text-cyan-700 flex items-center justify-center">
-                            <Eye className="h-3.5 w-3.5" />
-                          </Link>
-                          <Link to={`/appliance-products/${p.id}/edit`} className="h-8 w-8 rounded-lg bg-violet-50 hover:bg-violet-100 text-violet-700 flex items-center justify-center">
-                            <Edit3 className="h-3.5 w-3.5" />
-                          </Link>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </section>
+          {/* List */}
+          {isLoading ? (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => <div key={i} className="h-56 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+            </div>
+          ) : filtered.length === 0 ? (
+            <Empty
+              icon={Package}
+              title={rows.length === 0 ? 'Abhi koi product nahi' : 'Koi product nahi mila'}
+              hint={
+                rows.length === 0
+                  ? 'Naya product banayein — wizard me warranty, installation charge aur serial ki setting bhi bhar dein'
+                  : 'Search ya filter badal kar dekhein'
+              }
+              action={
+                rows.length === 0
+                  ? <Link to="/appliance-products/new"><Button className="bg-gradient-to-r from-cyan-600 to-teal-700 font-extrabold shadow-lg shadow-cyan-500/40"><Plus className="h-4 w-4" /> Pehla Product</Button></Link>
+                  : <Button variant="secondary" onClick={clearFilters}><X className="h-4 w-4" /> Filters Clear</Button>
+              }
+            />
+          ) : view === 'grid' ? (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+              {filtered.map((r) => (
+                <ProductCard key={r.id} r={r} checked={picked.has(r.id)} onToggle={() => toggle(r.id)}
+                  onDelete={() => { if (confirm(`"${r.name}" delete karein?`)) removeMut.mutate(r.id); }} />
+              ))}
+            </div>
+          ) : (
+            <ProductTable rows={filtered} picked={picked} allPicked={allPicked} onToggle={toggle}
+              onToggleAll={() => setPicked(allPicked ? new Set() : new Set(filtered.map((r) => r.id)))}
+              onDelete={(r: any) => { if (confirm(`"${r.name}" delete karein?`)) removeMut.mutate(r.id); }} />
+          )}
+        </>
       )}
     </div>
   );
 }
 
-function ProductCard({ p, profile, selected, onToggle }: any) {
-  const stock = Number(p.stock || 0);
-  const alert = Number(p.lowStockAlert ?? 3);
-  const isOut = stock <= 0;
-  const isLow = !isOut && stock <= alert;
+function TabBtn({ active, onClick, icon: Icon, label }: any) {
+  return (
+    <button onClick={onClick}
+      className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-extrabold inline-flex items-center gap-1.5 transition ${
+        active ? 'bg-slate-900 dark:bg-cyan-600 text-white shadow' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+      }`}>
+      <Icon className="h-4 w-4" /> {label}
+    </button>
+  );
+}
+
+/* ═════════════ CARD ═════════════ */
+function ProductCard({ r, checked, onToggle, onDelete }: any) {
+  const cm = catMeta(r.categoryType);
+  const img = Array.isArray(r.images) ? r.images[0] : null;
+  const margin = r.price > 0 ? ((r.price - r.costPrice) / r.price) * 100 : 0;
 
   return (
-    <div className={[
-      'group relative rounded-2xl bg-white border-2 overflow-hidden transition-all hover:shadow-lg hover:-translate-y-0.5',
-      selected ? 'border-cyan-500 ring-2 ring-cyan-200' : isOut ? 'border-rose-200' : isLow ? 'border-amber-200' : 'border-slate-200',
-    ].join(' ')}>
-      <button onClick={onToggle}
-        className={[
-          'absolute top-2 left-2 z-10 h-6 w-6 rounded-lg border-2 flex items-center justify-center transition',
-          selected ? 'bg-cyan-600 border-cyan-600 text-white' : 'bg-white/90 border-slate-300 opacity-0 group-hover:opacity-100',
-        ].join(' ')}>
-        {selected && <CheckCircle2 className="h-3.5 w-3.5" />}
+    <div className={`group relative rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 shadow-sm hover:shadow-xl hover:-translate-y-0.5 transition-all overflow-hidden ${
+      checked ? 'border-cyan-500 dark:border-cyan-400 ring-2 ring-cyan-200 dark:ring-cyan-500/25'
+        : r.isOut ? 'border-rose-300 dark:border-rose-500/40'
+        : r.isLow ? 'border-amber-300 dark:border-amber-500/40'
+        : 'border-slate-200 dark:border-slate-800 hover:border-cyan-300 dark:hover:border-cyan-500/50'
+    }`}>
+      <button onClick={onToggle} title="Chunein"
+        className={`absolute top-2.5 right-2.5 z-10 h-7 w-7 rounded-lg border-2 flex items-center justify-center transition ${
+          checked ? 'bg-cyan-600 border-cyan-600 text-white shadow'
+            : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-transparent hover:border-cyan-400'
+        }`}>
+        <CheckCircle2 className="h-4 w-4" />
       </button>
 
-      <Link to={`/appliance-products/${p.id}`} className="block">
-        <div className="aspect-square bg-slate-100 overflow-hidden relative">
-          {p.images?.[0]?.url ? (
-            <img src={p.images[0].url} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+      <Link to={`/appliance-products/${r.id}`} className="block p-4">
+        <div className="flex items-start gap-3 pr-8">
+          {img ? (
+            <img src={img} alt={r.name} className="h-14 w-14 rounded-xl object-cover shadow shrink-0" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <Home className="h-10 w-10 text-slate-300" />
+            <div className="h-14 w-14 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-2xl shrink-0">
+              {cm.emoji}
             </div>
           )}
-          {profile?.isFeatured && (
-            <div className="absolute top-2 right-2 h-6 w-6 rounded-full bg-amber-500 flex items-center justify-center shadow">
-              <Star className="h-3 w-3 fill-white text-white" />
+          <div className="min-w-0 flex-1">
+            <h3 className="font-extrabold text-slate-900 dark:text-white text-sm truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">
+              {r.name}
+            </h3>
+            <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate">
+              {r.brandLabel ? `${r.brandLabel} • ` : ''}{cm.label}{r.capacity ? ` • ${r.capacity}` : ''}
             </div>
-          )}
-          {profile?.isInverter && (
-            <div className="absolute top-2 left-8 h-6 px-1.5 rounded bg-blue-600 flex items-center gap-0.5 shadow text-[9px] font-extrabold text-white uppercase">
-              <Zap className="h-2.5 w-2.5" /> INVERTER
-            </div>
-          )}
-          {(isOut || isLow) && (
-            <div className={[
-              'absolute inset-x-0 bottom-0 py-1 text-center text-[10px] font-extrabold text-white',
-              isOut ? 'bg-rose-600' : 'bg-amber-500',
-            ].join(' ')}>
-              {isOut ? 'OUT OF STOCK' : `ONLY ${stock} LEFT`}
-            </div>
-          )}
+            {r.modelNumber && (
+              <div className="font-mono text-[10px] font-bold text-slate-400 dark:text-slate-500 truncate">{r.modelNumber}</div>
+            )}
+          </div>
         </div>
 
-        <div className="p-2.5">
-          <div className="font-extrabold text-slate-900 text-xs leading-tight line-clamp-2 min-h-[2rem]">{p.name}</div>
-          {profile?.capacity && (
-            <div className="mt-1 text-[9px] font-mono text-cyan-700 font-extrabold truncate">{profile.capacity}</div>
+        {/* Badges — appliance ki khaas baatein */}
+        <div className="mt-2.5 flex gap-1 flex-wrap">
+          {!r.hasProfile && (
+            <span className="px-1.5 py-0.5 rounded-md bg-amber-200 dark:bg-amber-500/30 text-amber-800 dark:text-amber-200 text-[9px] font-black">TAFSEEL BAQI</span>
           )}
-          <div className="mt-1.5 flex items-end justify-between gap-1">
-            <div>
-              <div className="text-base font-extrabold text-emerald-700 tabular-nums leading-none">{formatPKR(p.price || 0)}</div>
-            </div>
-            <div className="text-right">
-              <div className={[
-                'text-sm font-extrabold tabular-nums leading-none',
-                isOut ? 'text-rose-700' : isLow ? 'text-amber-700' : 'text-slate-700',
-              ].join(' ')}>{stock}</div>
-              <div className="text-[9px] font-bold text-slate-500">pcs</div>
+          {r.requiresSerial && (
+            <span className="px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 text-[10px] font-extrabold inline-flex items-center gap-1">
+              <Barcode className="h-3 w-3" /> Serial
+            </span>
+          )}
+          {r.requiresInstallation && (
+            <span className="px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 text-[10px] font-extrabold inline-flex items-center gap-1">
+              <HardHat className="h-3 w-3" /> {r.installationCharge > 0 ? formatPKR(r.installationCharge) : 'Lagani'}
+            </span>
+          )}
+          {r.heavy && (
+            <span className="px-2 py-0.5 rounded-full bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-300 text-[10px] font-extrabold inline-flex items-center gap-1">
+              <Truck className="h-3 w-3" /> Bhari
+            </span>
+          )}
+          {r.energy && (
+            <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[10px] font-extrabold">
+              {energyMeta(r.energy).emoji} {energyMeta(r.energy).label}
+            </span>
+          )}
+          {r.isBestSeller && <span className="px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-[10px] font-extrabold inline-flex items-center gap-1"><Flame className="h-3 w-3" /> Hit</span>}
+          {r.isNewArrival && <span className="px-2 py-0.5 rounded-full bg-cyan-100 dark:bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 text-[10px] font-extrabold inline-flex items-center gap-1"><Sparkles className="h-3 w-3" /> Naya</span>}
+        </div>
+
+        {/* Warranty — teen alag */}
+        {(r.warrantyMonths || r.compressorWarrantyMonths || r.motorWarrantyMonths) && (
+          <div className="mt-2 flex gap-1.5 flex-wrap text-[10px] font-bold text-slate-500 dark:text-slate-400">
+            {r.warrantyMonths ? <span>🛡️ {r.warrantyMonths}m</span> : null}
+            {r.compressorWarrantyMonths ? <span>❄️ Comp {r.compressorWarrantyMonths}m</span> : null}
+            {r.motorWarrantyMonths ? <span>⚙️ Motor {r.motorWarrantyMonths}m</span> : null}
+          </div>
+        )}
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <div className={`rounded-xl px-2.5 py-2 border ${
+            r.isOut ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30'
+              : r.isLow ? 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30'
+              : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700'
+          }`}>
+            <div className={`text-[9px] font-extrabold uppercase tracking-wider ${
+              r.isOut ? 'text-rose-700 dark:text-rose-400' : r.isLow ? 'text-amber-700 dark:text-amber-400' : 'text-slate-500 dark:text-slate-400'
+            }`}>Stock</div>
+            <div className={`text-sm font-extrabold tabular-nums ${
+              r.isOut ? 'text-rose-700 dark:text-rose-300' : r.isLow ? 'text-amber-700 dark:text-amber-300' : 'text-slate-800 dark:text-slate-100'
+            }`}>
+              {r.isOut ? 'Khatam' : `${r.stock} ${r.unit ?? 'pcs'}`}
             </div>
           </div>
-          <div className="mt-1.5 flex items-center gap-1 flex-wrap">
-            {profile?.warrantyMonths ? (
-              <div className="inline-flex items-center gap-0.5 text-[9px] font-extrabold px-1.5 py-0.5 rounded-md bg-cyan-100 text-cyan-700">
-                <Shield className="h-2 w-2" /> {profile.warrantyMonths}m
-              </div>
-            ) : null}
-            {profile?.installationCovered && (
-              <div className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-700">
-                🎁 Install
-              </div>
-            )}
-            {profile?.freeDelivery && (
-              <div className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-md bg-blue-100 text-blue-700">
-                🚚 Free
-              </div>
-            )}
+          <div className="rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 px-2.5 py-2">
+            <div className="text-[9px] text-emerald-700 dark:text-emerald-400 font-extrabold uppercase tracking-wider">Rate</div>
+            <div className="text-sm font-extrabold text-emerald-700 dark:text-emerald-300 tabular-nums truncate">{formatPKR(r.price)}</div>
           </div>
         </div>
+
+        <div className="mt-2 flex items-center justify-between text-[10px] font-bold text-slate-400 dark:text-slate-500">
+          <span>Lagat {formatPKR(r.costPrice)}</span>
+          <span className={margin >= 15 ? 'text-emerald-600 dark:text-emerald-400' : margin > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400'}>
+            {margin.toFixed(0)}% margin
+          </span>
+        </div>
       </Link>
+
+      <div className="px-3 py-2 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 flex items-center justify-between gap-1">
+        <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 truncate">
+          {r.sku || r.barcode || '—'}
+        </div>
+        <div className="flex items-center gap-1 shrink-0">
+          <Link to={`/appliance-products/${r.id}`}
+            className="h-8 px-2.5 rounded-lg bg-slate-200/70 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-[10px] font-extrabold inline-flex items-center gap-1 transition">
+            Detail <ChevronRight className="h-3 w-3" />
+          </Link>
+          <Link to={`/appliance-products/${r.id}/edit`}
+            className="h-8 w-8 rounded-lg bg-cyan-100 dark:bg-cyan-500/15 hover:bg-cyan-200 dark:hover:bg-cyan-500/25 text-cyan-700 dark:text-cyan-300 flex items-center justify-center transition" title="Edit">
+            <Pencil className="h-3.5 w-3.5" />
+          </Link>
+          <button onClick={(e) => { e.preventDefault(); onDelete(); }}
+            className="h-8 w-8 rounded-lg bg-rose-100 dark:bg-rose-500/15 hover:bg-rose-200 dark:hover:bg-rose-500/25 text-rose-700 dark:text-rose-400 flex items-center justify-center transition" title="Delete">
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
 
-function Th({ children, className = '' }: any) {
-  return <th className={`px-3 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700 ${className}`}>{children}</th>;
+/* ═════════════ TABLE ═════════════ */
+function ProductTable({ rows, picked, allPicked, onToggle, onToggleAll, onDelete }: any) {
+  return (
+    <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm min-w-[980px]">
+          <thead>
+            <tr className="bg-slate-50 dark:bg-slate-800/80 border-b-2 border-slate-200 dark:border-slate-700">
+              <th className="px-3 py-3 w-10">
+                <button onClick={onToggleAll}
+                  className={`h-6 w-6 rounded-md border-2 flex items-center justify-center transition ${
+                    allPicked ? 'bg-cyan-600 border-cyan-600 text-white'
+                      : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-transparent hover:border-cyan-400'
+                  }`}>
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                </button>
+              </th>
+              <Th className="text-left">Cheez</Th>
+              <Th className="text-left">Brand / Model</Th>
+              <Th className="text-center">Khaas</Th>
+              <Th className="text-center">Warranty</Th>
+              <Th className="text-center">Stock</Th>
+              <Th className="text-right">Lagat</Th>
+              <Th className="text-right">Rate</Th>
+              <Th className="text-right pr-4">Actions</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r: any) => {
+              const on = picked.has(r.id);
+              return (
+                <tr key={r.id} className={`border-b border-slate-100 dark:border-slate-800 transition ${
+                  on ? 'bg-cyan-50 dark:bg-cyan-500/10' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                }`}>
+                  <td className="px-3 py-2.5">
+                    <button onClick={() => onToggle(r.id)}
+                      className={`h-6 w-6 rounded-md border-2 flex items-center justify-center transition ${
+                        on ? 'bg-cyan-600 border-cyan-600 text-white'
+                          : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-transparent hover:border-cyan-400'
+                      }`}>
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                    </button>
+                  </td>
+                  <td className="px-3 py-2.5">
+                    <Link to={`/appliance-products/${r.id}`} className="flex items-center gap-2 group">
+                      <span className="text-lg shrink-0">{catEmoji(r.categoryType)}</span>
+                      <div className="min-w-0">
+                        <div className="text-[13px] font-extrabold text-slate-900 dark:text-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">
+                          {r.name}
+                        </div>
+                        <div className="text-[10px] font-bold text-slate-400">
+                          {catLabel(r.categoryType)}{r.capacity ? ` • ${r.capacity}` : ''}{r.sku ? ` • ${r.sku}` : ''}
+                        </div>
+                      </div>
+                    </Link>
+                  </td>
+                  <td className="px-3 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300">
+                    {r.brandLabel || '—'}
+                    {r.modelNumber && <div className="font-mono text-[10px] text-slate-400">{r.modelNumber}</div>}
+                  </td>
+                  <td className="px-3 py-2.5">
+                    <div className="flex items-center justify-center gap-1">
+                      {r.requiresSerial && <span title="Serial rakhna parta hai">🔖</span>}
+                      {r.requiresInstallation && <span title={`Lagani parti hai — ${formatPKR(r.installationCharge)}`}>🔧</span>}
+                      {r.heavy && <span title="Bhari saman">🚚</span>}
+                      {!r.hasProfile && <span title="Appliance tafseel adhoori" className="text-amber-500">⚠️</span>}
+                    </div>
+                  </td>
+                  <td className="px-3 py-2.5 text-center text-[10px] font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                    {r.warrantyMonths ? `${r.warrantyMonths}m` : '—'}
+                    {r.compressorWarrantyMonths ? ` / ${r.compressorWarrantyMonths}m` : ''}
+                  </td>
+                  <td className="px-3 py-2.5 text-center">
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-extrabold tabular-nums ${
+                      r.isOut ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
+                        : r.isLow ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300'
+                        : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                    }`}>{r.stock}</span>
+                  </td>
+                  <td className="px-3 py-2.5 text-right text-xs font-bold tabular-nums text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatPKR(r.costPrice)}</td>
+                  <td className="px-3 py-2.5 text-right text-xs font-extrabold tabular-nums text-emerald-700 dark:text-emerald-400 whitespace-nowrap">{formatPKR(r.price)}</td>
+                  <td className="px-3 py-2.5 pr-4">
+                    <div className="flex items-center justify-end gap-1">
+                      <Link to={`/appliance-products/${r.id}`}
+                        className="h-8 w-8 rounded-lg bg-slate-200/70 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 flex items-center justify-center transition" title="Detail">
+                        <ChevronRight className="h-3.5 w-3.5" />
+                      </Link>
+                      <Link to={`/appliance-products/${r.id}/edit`}
+                        className="h-8 w-8 rounded-lg bg-cyan-100 dark:bg-cyan-500/15 hover:bg-cyan-200 dark:hover:bg-cyan-500/25 text-cyan-700 dark:text-cyan-300 flex items-center justify-center transition" title="Edit">
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Link>
+                      <button onClick={() => onDelete(r)}
+                        className="h-8 w-8 rounded-lg bg-rose-100 dark:bg-rose-500/15 hover:bg-rose-200 dark:hover:bg-rose-500/25 text-rose-700 dark:text-rose-400 flex items-center justify-center transition" title="Delete">
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+          <tfoot>
+            <tr className="bg-slate-900 dark:bg-slate-950 text-white">
+              <td colSpan={6} className="px-3 py-3 text-right text-[11px] font-extrabold uppercase tracking-widest">
+                {rows.length} products ka total
+              </td>
+              <td className="px-3 py-3 text-right text-xs font-extrabold text-cyan-300 tabular-nums whitespace-nowrap">
+                {formatPKR(rows.reduce((s: number, r: any) => s + r.stockValue, 0))}
+              </td>
+              <td className="px-3 py-3 text-right text-xs font-extrabold text-emerald-300 tabular-nums whitespace-nowrap">
+                {formatPKR(rows.reduce((s: number, r: any) => s + r.retailValue, 0))}
+              </td>
+              <td />
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  );
 }
 
-function Kpi({ icon: Icon, label, value, sub, tone, onClick }: any) {
-  const tones: Record<string, string> = {
-    cyan: 'from-cyan-500 to-teal-700 shadow-cyan-500/30',
-    emerald: 'from-emerald-500 to-emerald-700 shadow-emerald-500/30',
-    amber: 'from-amber-500 to-orange-600 shadow-amber-500/30',
-    rose: 'from-rose-500 to-rose-700 shadow-rose-500/30',
-  };
-  const Comp: any = onClick ? 'button' : 'div';
+function Th({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <Comp onClick={onClick}
-      className={[
-        'rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm text-left w-full',
-        onClick ? 'hover:border-cyan-300 hover:shadow-md transition' : '',
-      ].join(' ')}>
-      <div className="flex items-center justify-between gap-2">
-        <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-wider text-slate-500 font-extrabold">{label}</div>
-          <div className="mt-1.5 text-xl font-extrabold text-slate-900 tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[10px] text-slate-500 font-bold mt-0.5 truncate">{sub}</div>}
-        </div>
-        <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
-          <Icon className="h-5 w-5" />
-        </div>
+    <th className={`px-3 py-3 text-[10px] font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400 whitespace-nowrap ${className}`}>
+      {children}
+    </th>
+  );
+}
+
+/* ═════════════ ANALYTICS ═════════════ */
+function ProductAnalytics({ rows }: { rows: any[] }) {
+  const a = useMemo(() => {
+    const byCat = new Map<string, { name: string; count: number; value: number; units: number }>();
+    for (const r of rows) {
+      const key = catMeta(r.categoryType).group;
+      const c = byCat.get(key) ?? { name: key, count: 0, value: 0, units: 0 };
+      c.count += 1; c.value += r.stockValue; c.units += r.stock;
+      byCat.set(key, c);
+    }
+
+    const byBrand = new Map<string, { name: string; count: number; value: number }>();
+    for (const r of rows) {
+      const key = r.brandLabel ?? 'Bina brand';
+      const b = byBrand.get(key) ?? { name: key, count: 0, value: 0 };
+      b.count += 1; b.value += r.stockValue;
+      byBrand.set(key, b);
+    }
+
+    const margins = rows.filter((r) => r.price > 0).map((r) => ({
+      ...r, margin: ((r.price - r.costPrice) / r.price) * 100,
+    }));
+
+    return {
+      byCat: [...byCat.values()].sort((x, y) => y.value - x.value),
+      byBrand: [...byBrand.values()].sort((x, y) => y.value - x.value).slice(0, 10),
+      lowMargin: margins.filter((r) => r.margin < 10).sort((x, y) => x.margin - y.margin).slice(0, 10),
+      topMargin: [...margins].sort((x, y) => y.margin - x.margin).slice(0, 10),
+      noProfile: rows.filter((r) => !r.hasProfile),
+      noWarranty: rows.filter((r) => r.hasProfile && !r.warrantyMonths),
+      installNoCharge: rows.filter((r) => r.requiresInstallation && r.installationCharge <= 0),
+      value: rows.reduce((s, r) => s + r.stockValue, 0),
+    };
+  }, [rows]);
+
+  return (
+    <div className="space-y-3 sm:space-y-4">
+      <div className="grid lg:grid-cols-2 gap-3 sm:gap-4">
+        <Panel icon={Boxes} title="Qism Ke Hisab Se Paisa" hint="Kis cheez me sab se ziyada stock phansa hai" tone="cyan">
+          {a.byCat.length === 0 ? (
+            <p className="text-xs font-bold text-slate-400 py-8 text-center">Abhi koi product nahi</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={280}>
+              <PieChart>
+                <Pie data={a.byCat} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={52} outerRadius={92} paddingAngle={2}>
+                  {a.byCat.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+                </Pie>
+                <Tooltip contentStyle={TOOLTIP} formatter={(v: any) => formatPKR(Number(v))} />
+                <Legend wrapperStyle={{ fontSize: 10, fontWeight: 700 }} />
+              </PieChart>
+            </ResponsiveContainer>
+          )}
+        </Panel>
+
+        <Panel icon={Star} title="Brand Ke Hisab Se" hint="Kaunse brand me sab se ziyada paisa laga hai" tone="violet">
+          {a.byBrand.length === 0 ? (
+            <p className="text-xs font-bold text-slate-400 py-8 text-center">Abhi koi product nahi</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={Math.max(240, a.byBrand.length * 30)}>
+              <BarChart data={a.byBrand} layout="vertical" margin={{ top: 0, right: 16, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#94a3b833" horizontal={false} />
+                <XAxis type="number" tick={{ fontSize: 10, fontWeight: 700 }} stroke="#94a3b8"
+                  tickFormatter={(v) => (Math.abs(v) >= 1000 ? `${Math.round(v / 1000)}k` : String(v))} />
+                <YAxis type="category" dataKey="name" width={110} tick={{ fontSize: 10, fontWeight: 700 }} stroke="#94a3b8" />
+                <Tooltip contentStyle={TOOLTIP} formatter={(v: any) => formatPKR(Number(v))} />
+                <Bar dataKey="value" name="Stock ki lagat" fill="#a855f7" radius={[0, 5, 5, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </Panel>
       </div>
-    </Comp>
+
+      {/* Jin par kaam chahiye */}
+      <div className="grid lg:grid-cols-3 gap-3 sm:gap-4">
+        <Panel icon={AlertTriangle} title={`Tafseel Adhoori (${a.noProfile.length})`}
+          hint="In par POS installation book nahi kar sakta" tone="amber">
+          {a.noProfile.length === 0 ? (
+            <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 py-6 text-center">✅ Sab ki tafseel poori hai</p>
+          ) : (
+            <div className="space-y-1.5 max-h-64 overflow-y-auto">
+              {a.noProfile.slice(0, 15).map((r: any) => (
+                <Link key={r.id} to={`/appliance-products/${r.id}/edit`}
+                  className="flex items-center gap-2 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 px-2.5 py-2 hover:shadow transition">
+                  <span className="text-base shrink-0">{catEmoji(r.categoryType)}</span>
+                  <span className="text-[11px] font-extrabold text-slate-900 dark:text-white truncate flex-1">{r.name}</span>
+                  <Pencil className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                </Link>
+              ))}
+            </div>
+          )}
+        </Panel>
+
+        <Panel icon={ShieldCheck} title={`Warranty Nahi Lagi (${a.noWarranty.length})`}
+          hint="Bikne par warranty ki tareekh nahi banegi" tone="violet">
+          {a.noWarranty.length === 0 ? (
+            <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 py-6 text-center">✅ Sab par warranty lagi hai</p>
+          ) : (
+            <div className="space-y-1.5 max-h-64 overflow-y-auto">
+              {a.noWarranty.slice(0, 15).map((r: any) => (
+                <Link key={r.id} to={`/appliance-products/${r.id}/edit`}
+                  className="flex items-center gap-2 rounded-xl bg-violet-50 dark:bg-violet-500/10 border border-violet-200 dark:border-violet-500/30 px-2.5 py-2 hover:shadow transition">
+                  <span className="text-base shrink-0">{catEmoji(r.categoryType)}</span>
+                  <span className="text-[11px] font-extrabold text-slate-900 dark:text-white truncate flex-1">{r.name}</span>
+                  <Pencil className="h-3.5 w-3.5 text-violet-600 dark:text-violet-400 shrink-0" />
+                </Link>
+              ))}
+            </div>
+          )}
+        </Panel>
+
+        <Panel icon={HardHat} title={`Installation Charge 0 (${a.installNoCharge.length})`}
+          hint="Lagani parti hai lekin paisa set nahi" tone="blue">
+          {a.installNoCharge.length === 0 ? (
+            <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 py-6 text-center">✅ Sab par charge laga hai</p>
+          ) : (
+            <div className="space-y-1.5 max-h-64 overflow-y-auto">
+              {a.installNoCharge.slice(0, 15).map((r: any) => (
+                <Link key={r.id} to={`/appliance-products/${r.id}/edit`}
+                  className="flex items-center gap-2 rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 px-2.5 py-2 hover:shadow transition">
+                  <span className="text-base shrink-0">{catEmoji(r.categoryType)}</span>
+                  <span className="text-[11px] font-extrabold text-slate-900 dark:text-white truncate flex-1">{r.name}</span>
+                  <Pencil className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+                </Link>
+              ))}
+            </div>
+          )}
+        </Panel>
+      </div>
+
+      {/* Margin */}
+      <div className="grid lg:grid-cols-2 gap-3 sm:gap-4">
+        <Panel icon={Percent} title="Sab Se Kam Margin" hint="In ka rate ya purchase dobara dekhein" tone="rose">
+          {a.lowMargin.length === 0 ? (
+            <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 py-6 text-center">✅ Har product ka margin 10% se upar</p>
+          ) : (
+            <div className="space-y-1">
+              {a.lowMargin.map((r: any) => (
+                <Link key={r.id} to={`/appliance-products/${r.id}`}
+                  className="flex items-center gap-2.5 rounded-xl px-2 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+                  <span className="text-base shrink-0">{catEmoji(r.categoryType)}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-extrabold text-slate-900 dark:text-white truncate">{r.name}</div>
+                    <div className="text-[10px] font-bold text-slate-400">
+                      Lagat {formatPKR(r.costPrice)} → Bechna {formatPKR(r.price)}
+                    </div>
+                  </div>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold shrink-0 ${
+                    r.margin < 0 ? 'bg-rose-600 text-white' : 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
+                  }`}>{r.margin.toFixed(0)}%</span>
+                </Link>
+              ))}
+            </div>
+          )}
+        </Panel>
+
+        <Panel icon={TrendingUp} title="Sab Se Acha Margin" hint="Inhe customer ko pehle dikhayein" tone="emerald">
+          {a.topMargin.length === 0 ? (
+            <p className="text-xs font-bold text-slate-400 py-6 text-center">Abhi data nahi</p>
+          ) : (
+            <div className="space-y-1">
+              {a.topMargin.map((r: any, i: number) => (
+                <Link key={r.id} to={`/appliance-products/${r.id}`}
+                  className="flex items-center gap-2.5 rounded-xl px-2 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+                  <span className={`h-6 w-6 rounded-lg text-[10px] font-extrabold flex items-center justify-center shrink-0 ${
+                    i === 0 ? 'bg-emerald-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                  }`}>{i + 1}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-extrabold text-slate-900 dark:text-white truncate">{r.name}</div>
+                    <div className="text-[10px] font-bold text-slate-400">{formatPKR(r.price - r.costPrice)} per unit</div>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 shrink-0">
+                    {r.margin.toFixed(0)}%
+                  </span>
+                </Link>
+              ))}
+            </div>
+          )}
+        </Panel>
+      </div>
+    </div>
+  );
+}
+
+/* ═════════════ TEACHER ═════════════ */
+function ProductsTeacher({ onClose }: { onClose: () => void }) {
+  return (
+    <Teacher
+      title="Products Page — Appliances Me Kya Alag Hai?"
+      intro={
+        <>
+          Aam dukaan me product ka naam, rate aur stock kaafi hota hai. Appliance me <strong>teen aur
+          cheezein</strong> zaroori hain — warna POS aur warranty dono adhoore reh jate hain.
+        </>
+      }
+      blocks={[
+        {
+          title: '🔑 Teen zaroori settings',
+          tone: 'cyan',
+          tips: [
+            <><span className="px-1.5 py-0.5 rounded bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 text-[10px] font-black">🔖 Serial</span> — AC, fridge, washing machine ka <strong>serial register</strong> rakha jata hai. Is se warranty aur repair ka poora record milta hai</>,
+            <><span className="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 text-[10px] font-black">🔧 Lagani</span> — POS par bechte waqt <strong>installation khud book ho jati hai</strong> aur charge bill me jurta hai</>,
+            <><strong>🛡️ Warranty</strong> — main, compressor aur motor teenon ke mahine. Bikne par tareekhein khud lag jati hain</>,
+            <><span className="px-1.5 py-0.5 rounded bg-amber-200 dark:bg-amber-500/30 text-amber-800 dark:text-amber-200 text-[9px] font-black">TAFSEEL BAQI</span> ka matlab ye settings nahi lagin — edit kar ke bhar dein</>,
+          ],
+        },
+        {
+          title: '📊 Analytics tab',
+          tone: 'violet',
+          tips: [
+            <><Kbd dark>A</Kbd> — <strong>"Tafseel adhoori"</strong>, <strong>"Warranty nahi lagi"</strong> aur <strong>"Installation charge 0"</strong> ki teen lists. Har naam par click kar ke seedha edit kholta hai</>,
+            <><strong>Sab se kam margin</strong> — jin ka margin 10% se neeche hai. Purchase rate ya bechne ka rate dobara dekhein</>,
+            <><strong>Qism aur brand ke chart</strong> — paisa kis cheez me phansa hai</>,
+          ],
+        },
+        {
+          title: '⚡ Tez kaam',
+          tone: 'emerald',
+          tips: [
+            <><Kbd dark>G</Kbd> — cards aur table me switch. Table me warranty aur khaas nishaniyan ek nazar me</>,
+            <><strong>☑️ Chunein</strong> phir CSV ya print — sirf chuni hui cheezon ki list</>,
+            <><strong>Khaas filters</strong> — serial wale, lagane wale, stock kam, khatam</>,
+            <><Kbd dark>P</Kbd> — A4 product list, stock aur installation charge ke sath</>,
+          ],
+        },
+      ]}
+      shortcuts={[
+        { keys: '/', label: 'Search' },
+        { keys: 'N', label: 'Naya product' },
+        { keys: 'G', label: 'Grid / List' },
+        { keys: 'A', label: 'Analytics' },
+        { keys: 'F', label: 'Filters' },
+        { keys: 'P', label: 'Print' },
+        { keys: 'T', label: 'Ye guide' },
+      ]}
+      golden={
+        <>
+          <strong>Sunahri usool:</strong> Naya product banate waqt <strong>warranty aur installation charge
+          usi waqt bhar dein</strong>. Baad me yaad nahi rehta, aur phir har bikri par kaam adhoora reh jata hai.
+        </>
+      }
+      onClose={onClose}
+    />
   );
 }

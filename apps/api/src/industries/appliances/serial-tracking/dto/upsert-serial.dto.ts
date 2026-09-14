@@ -17,6 +17,22 @@ export class UpsertApplianceSerialDto {
   @ApiPropertyOptional() @IsOptional() @IsString() installationScheduledFor?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() warrantyStartDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() warrantyEndDate?: string;
+  @ApiPropertyOptional({ description: 'Compressor ki alag warranty — fridge/AC me aam hai' })
+  @IsOptional() @IsString() compressorWarrantyEndDate?: string;
+  @ApiPropertyOptional({ description: 'Motor ki alag warranty — washing machine me aam hai' })
+  @IsOptional() @IsString() motorWarrantyEndDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() notes?: string;
   @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() imageUrls?: string[];
+}
+
+/** Aik shipment ke saare serial ek sath register karne ke liye */
+export class BulkSerialDto {
+  @ApiProperty() @IsString() productId!: string;
+  @ApiProperty({ type: [String], example: ['SN-001', 'SN-002'] })
+  @IsArray() @IsString({ each: true }) serialNumbers!: string[];
+  @ApiPropertyOptional() @IsOptional() @IsString() modelNumber?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() batchNumber?: string;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() purchasePrice?: number;
+  @ApiPropertyOptional() @IsOptional() @IsString() purchaseDate?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() supplierRef?: string;
 }

@@ -1,550 +1,551 @@
-import { useQuery } from '@tanstack/react-query';
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import {
-  Home, TrendingUp, DollarSign, Package, Shield, HardHat,
-  Wrench, Award, RefreshCw, ArrowRight, AlertTriangle,
-  Truck, FileSignature, Users, BarChart3, ShoppingCart, Plus,
-  CheckCircle2, Clock, Activity, Star, Calendar, Zap,
+  Home, RefreshCw, Wrench, HardHat, Truck, ShieldCheck, Users, Boxes,
+  PackageX, Wallet, TrendingUp, AlertTriangle, Clock, Star, ShoppingCart,
+  BarChart3, ChevronRight, Zap, CalendarDays, Plus, Barcode, Receipt,
+  CheckCircle2, Percent,
 } from 'lucide-react';
 import {
-  ResponsiveContainer, AreaChart, Area, BarChart, Bar,
-  XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, Legend,
+  ResponsiveContainer, ComposedChart, Bar, Line, Area,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 } from 'recharts';
-import { appliancesDashboardApi } from '../api/dashboard.api';
-import { installationsApi } from '../api/installations.api';
-import { serviceRequestsApi } from '../api/service-requests.api';
-import { amcContractsApi } from '../api/amc-contracts.api';
-import { techniciansApi } from '../api/technicians.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
-import { PrivacyToggle, useCostHidden } from '@core/ui/HiddenValue';
+import { useAuthStore } from '@core/stores/auth.store';
+import { appliancesAnalyticsApi } from '../api/analytics.api';
+import { serviceRequestsApi } from '../api/service-requests.api';
+import { installationsApi } from '../api/installations.api';
+import { techniciansApi } from '../api/technicians.api';
+import { amcContractsApi } from '../api/amc-contracts.api';
+import { deliveriesApi } from '../api/deliveries.api';
+import { applianceSerialApi } from '../api/serial-tracking.api';
+import { warrantyClaimsApi } from '../api/warranty-claims.api';
+import {
+  ApplianceHero, Kpi, Panel, Teacher, StatusBadge, useShortcuts,
+  fmtDate, fmtDuration, guideAction, Kbd, toDateInput,
+} from '../components/shared';
+import { svcStatusMeta, instStatusMeta, catEmoji, catLabel, prioMeta } from '../constants';
+
+/* ═════════════════════════════════════════════════════════════
+   APPLIANCES DASHBOARD — dukaan ka command center
+   ─────────────────────────────────────────────────────────────
+   Subah kholte hi teen sawal ka jawab milna chahiye:
+     1. Aaj karna kya hai?
+     2. Kahan paisa atka hua hai?
+     3. Kaam theek chal raha hai ya nahi?
+   ═════════════════════════════════════════════════════════════ */
+
+const TOOLTIP: React.CSSProperties = {
+  borderRadius: 12, border: '2px solid #334155', background: '#0f172a',
+  color: '#fff', fontSize: 12, fontWeight: 700,
+};
 
 export default function AppliancesDashboardPage() {
-  const hideCost = useCostHidden();
+  const shopName = useAuthStore((s) => s.tenant?.name) || 'Meri Dukaan';
+  const [showTeacher, setShowTeacher] = useState(false);
 
-  const { data: overview, isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['appliances-dashboard-overview'],
-    queryFn: () => appliancesDashboardApi.overview(),
-    refetchInterval: 60_000,
-  });
+  const range = useMemo(() => {
+    const to = new Date();
+    const from = new Date();
+    from.setDate(from.getDate() - 30);
+    return { from: toDateInput(from), to: toDateInput(to) };
+  }, []);
 
-  const { data: installSummary } = useQuery({
-    queryKey: ['installations-summary'],
-    queryFn: () => installationsApi.summary(),
-    refetchInterval: 2 * 60_000,
-  });
+  const profitQ = useQuery({ queryKey: ['appliance-profit', range], queryFn: () => appliancesAnalyticsApi.profit(range) });
+  const svcSumQ = useQuery({ queryKey: ['appliance-service-summary'], queryFn: serviceRequestsApi.summary });
+  const instSumQ = useQuery({ queryKey: ['appliance-install-summary'], queryFn: installationsApi.summary });
+  const techSumQ = useQuery({ queryKey: ['appliance-tech-summary'], queryFn: techniciansApi.summary });
+  const amcSumQ = useQuery({ queryKey: ['appliance-amc-summary'], queryFn: amcContractsApi.summary });
+  const delSumQ = useQuery({ queryKey: ['appliance-delivery-summary'], queryFn: deliveriesApi.summary });
+  const serialSumQ = useQuery({ queryKey: ['appliance-serial-summary'], queryFn: applianceSerialApi.summary });
+  const lowQ = useQuery({ queryKey: ['appliance-low-stock'], queryFn: appliancesAnalyticsApi.lowStock });
+  const claimQ = useQuery({ queryKey: ['appliance-claim-summary'], queryFn: warrantyClaimsApi.summary });
+  const svcQueueQ = useQuery({ queryKey: ['appliance-service-queue'], queryFn: serviceRequestsApi.queue });
+  const instTodayQ = useQuery({ queryKey: ['appliance-install-today'], queryFn: installationsApi.today });
 
-  const { data: serviceSummary } = useQuery({
-    queryKey: ['service-requests-summary'],
-    queryFn: () => serviceRequestsApi.summary(),
-    refetchInterval: 2 * 60_000,
-  });
+  const p = profitQ.data;
+  const svc = svcSumQ.data;
+  const inst = instSumQ.data;
+  const tech = techSumQ.data;
+  const amc = amcSumQ.data;
+  const del = delSumQ.data;
+  const serial = serialSumQ.data;
+  const low = lowQ.data;
+  const claims = claimQ.data;
 
-  const { data: amcSummary } = useQuery({
-    queryKey: ['amc-contracts-summary'],
-    queryFn: () => amcContractsApi.summary(),
-    refetchInterval: 5 * 60_000,
-  });
+  const anyFetching = profitQ.isFetching || svcSumQ.isFetching || instSumQ.isFetching;
+  const refreshAll = () => {
+    [profitQ, svcSumQ, instSumQ, techSumQ, amcSumQ, delSumQ, serialSumQ, lowQ, claimQ, svcQueueQ, instTodayQ]
+      .forEach((q) => q.refetch());
+  };
 
-  const { data: topTechs = [] } = useQuery({
-    queryKey: ['top-technicians'],
-    queryFn: () => techniciansApi.topPerformers(5),
-  });
+  /* Aaj ka kaam — repair queue + aaj ki installations, mila kar */
+  const todayWork = useMemo(() => {
+    const svcRows = (svcQueueQ.data ?? []).slice(0, 8).map((s) => ({
+      id: s.id, kind: 'repair' as const, title: s.customerName, sub: `${s.productName} — ${s.reportedIssue}`,
+      num: s.requestNumber, status: svcStatusMeta(s.status), tech: s.technicianName,
+      time: s.scheduledTimeSlot, overdue: s.isOverdue, priority: s.priority,
+      to: '/appliances/service-requests',
+    }));
+    const instRows = (instTodayQ.data ?? []).slice(0, 8).map((i) => ({
+      id: i.id, kind: 'install' as const, title: i.customerName, sub: i.productName,
+      num: i.installationNumber, status: instStatusMeta(i.status), tech: i.technicianName,
+      time: i.scheduledTimeSlot, overdue: false, priority: 'NORMAL',
+      to: '/appliances/installations',
+    }));
+    return [...instRows, ...svcRows].slice(0, 12);
+  }, [svcQueueQ.data, instTodayQ.data]);
 
-  const { data: todaySchedule = [] } = useQuery({
-    queryKey: ['today-installations'],
-    queryFn: () => installationsApi.today(),
-  });
+  /* Foran tawajjo */
+  const alerts = useMemo(() => {
+    const out: { icon: any; tone: 'rose' | 'amber' | 'violet'; label: string; value: string; to: string }[] = [];
+    if ((svc?.overdue ?? 0) > 0) out.push({ icon: Clock, tone: 'rose', label: 'Repair late', value: `${svc!.overdue} kaam`, to: '/appliances/service-requests' });
+    if ((inst?.overdue ?? 0) > 0) out.push({ icon: HardHat, tone: 'rose', label: 'Installation late', value: `${inst!.overdue} kaam`, to: '/appliances/installations' });
+    if ((svc?.unassigned ?? 0) + (inst?.unassigned ?? 0) > 0) {
+      out.push({ icon: Users, tone: 'amber', label: 'Bina banday ke kaam', value: `${(svc?.unassigned ?? 0) + (inst?.unassigned ?? 0)}`, to: '/appliances/service-requests' });
+    }
+    const due = (svc?.month.outstanding ?? 0) + (inst?.month.outstanding ?? 0);
+    if (due > 0) out.push({ icon: Wallet, tone: 'amber', label: 'Service ka baqi paisa', value: formatPKR(due), to: '/appliances/service-requests' });
+    if ((low?.summary.totalOut ?? 0) > 0) out.push({ icon: PackageX, tone: 'rose', label: 'Stock khatam', value: `${low!.summary.totalOut} cheezein`, to: '/appliances/low-stock' });
+    if ((serial?.installation.pending ?? 0) > 0) out.push({ icon: HardHat, tone: 'amber', label: 'Bik gaya, laga nahi', value: `${serial!.installation.pending} units`, to: '/appliances/installations' });
+    if ((serial?.warrantyExpiringSoon ?? 0) > 0) out.push({ icon: ShieldCheck, tone: 'violet', label: 'Warranty khatam ho rahi', value: `${serial!.warrantyExpiringSoon} units`, to: '/appliances/serials' });
+    if ((amc?.expiringSoon ?? 0) > 0) out.push({ icon: ShieldCheck, tone: 'violet', label: 'AMC khatam ho rahe', value: `${amc!.expiringSoon}`, to: '/appliances/amc-contracts' });
+    if ((del?.noVehicle ?? 0) > 0) out.push({ icon: Truck, tone: 'amber', label: 'Gaari nahi lagi', value: `${del!.noVehicle} trips`, to: '/appliances/deliveries' });
+    if ((tech?.overloaded ?? 0) > 0) out.push({ icon: AlertTriangle, tone: 'amber', label: 'Bande par bojh ziyada', value: `${tech!.overloaded}`, to: '/appliances/technicians' });
+    // Warranty ka kaam free kiya lekin brand se claim nahi kiya — chupka nuqsan
+    if ((claims?.missing.count ?? 0) > 0) {
+      out.push({ icon: ShieldCheck, tone: 'rose', label: 'Warranty claim banaya hi nahi',
+        value: formatPKR(claims!.missing.recoverable), to: '/appliances/warranty-claims' });
+    }
+    if ((claims?.money.pending ?? 0) > 0) {
+      out.push({ icon: Wallet, tone: 'violet', label: 'Brand ke paas atka paisa',
+        value: formatPKR(claims!.money.pending), to: '/appliances/warranty-claims' });
+    }
+    return out;
+  }, [svc, inst, low, serial, amc, del, tech, claims]);
 
-  const today = overview?.today ?? { revenue: 0, profit: 0, orders: 0, itemsSold: 0 };
-  const week = overview?.week ?? { revenue: 0, profit: 0, orders: 0 };
-  const month = overview?.month ?? { revenue: 0, profit: 0, orders: 0 };
-  const inventory = overview?.inventory ?? { totalProducts: 0, totalStock: 0, lowStock: 0, outOfStock: 0, stockValue: 0 };
-  const salesByCategory = overview?.salesByCategory ?? [];
-  const dailyTrend = overview?.dailyTrend7Days ?? [];
-  const topProducts = overview?.topProducts ?? [];
+  useShortcuts({
+    t: () => setShowTeacher(true),
+    r: () => refreshAll(),
+    Escape: () => { if (showTeacher) setShowTeacher(false); },
+  }, [showTeacher]);
 
-  const showCost = (v: number) => hideCost ? '••••' : formatPKR(v);
+  const servicesRevenue = (p?.streams ?? []).filter((s) => s.key !== 'GOODS').reduce((x, s) => x + s.revenue, 0);
+  const servicesShare = p?.totals.revenue ? (servicesRevenue / p.totals.revenue) * 100 : 0;
+  const loading = profitQ.isLoading;
 
-  if (isLoading) {
-    return (
-      <div className="grid gap-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-32 rounded-3xl bg-slate-100 animate-pulse" />
+  const QUICK = [
+    { to: '/pos', icon: ShoppingCart, label: 'POS', hint: 'bikri karein', tone: 'from-emerald-500 to-teal-600' },
+    { to: '/appliances/service-requests', icon: Wrench, label: 'Nayi Repair', hint: 'kaam darj karein', tone: 'from-amber-500 to-orange-600' },
+    { to: '/appliances/installations', icon: HardHat, label: 'Installation', hint: 'lagane ka kaam', tone: 'from-blue-500 to-indigo-600' },
+    { to: '/appliance-products/new', icon: Plus, label: 'Naya Product', hint: 'maal add karein', tone: 'from-cyan-500 to-blue-600' },
+    { to: '/appliances/serials', icon: Barcode, label: 'Serial Register', hint: 'unit ka safar', tone: 'from-violet-500 to-purple-600' },
+    { to: '/appliances/reports', icon: BarChart3, label: 'Reports', hint: 'poora hisab', tone: 'from-slate-500 to-slate-700' },
+  ];
+
+  return (
+    <div className="space-y-4 sm:space-y-5 pb-10">
+      {showTeacher && <DashTeacher onClose={() => setShowTeacher(false)} />}
+
+      <ApplianceHero
+        badge="Home Appliances"
+        badgeIcon={<Home className="h-3.5 w-3.5 text-amber-300" />}
+        title={`🏠 ${shopName}`}
+        subtitle={
+          p ? (
+            <>
+              30 din me <strong className="text-cyan-200">{formatPKR(p.totals.revenue)}</strong> kamai
+              <span className="opacity-50 mx-1.5">•</span>
+              <strong className="text-emerald-300">{formatPKR(p.totals.profit)}</strong> munafa
+              <span className="opacity-50 mx-1.5">•</span>
+              <strong className="text-amber-300">{servicesShare.toFixed(0)}%</strong> services se
+            </>
+          ) : 'Maal, installation, repair, AMC aur delivery — sab ek jagah'
+        }
+        actions={[
+          guideAction(() => setShowTeacher(true)),
+          { key: 'refresh', label: 'Refresh', icon: <RefreshCw className="h-4 w-4" />, onClick: refreshAll, spinning: anyFetching, shortcut: 'R', hideLabelOnMobile: true },
+          { key: 'reports', label: 'Reports', icon: <BarChart3 className="h-4 w-4" />, href: '/appliances/reports', hideLabelOnMobile: true },
+          { key: 'pos', label: 'POS Kholein', icon: <ShoppingCart className="h-4 w-4" />, href: '/pos', variant: 'solid' },
+        ]}
+        shortcuts={[{ keys: 'R', label: 'Refresh' }, { keys: 'T', label: 'Guide' }]}
+      />
+
+      {/* Quick actions */}
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+        {QUICK.map((q) => (
+          <Link key={q.to} to={q.to}
+            className="group flex flex-col items-center gap-1.5 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/80 p-3 hover:border-cyan-400 hover:shadow-lg hover:-translate-y-0.5 transition-all">
+            <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${q.tone} text-white flex items-center justify-center shadow group-hover:scale-110 transition`}>
+              <q.icon className="h-4.5 w-4.5" />
+            </div>
+            <div className="text-center min-w-0">
+              <div className="text-[11px] font-extrabold text-slate-800 dark:text-slate-100 truncate">{q.label}</div>
+              <div className="text-[9px] font-bold text-slate-400 truncate hidden sm:block">{q.hint}</div>
+            </div>
+          </Link>
         ))}
       </div>
-    );
-  }
 
-  return (
-    <div className="space-y-5">
-      {/* HERO */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-cyan-900 to-teal-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-cyan-400/20 blur-3xl" />
-        <div className="absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-teal-400/15 blur-3xl" />
-
-        <div className="relative flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Home className="h-3.5 w-3.5 text-amber-300" />
-              Home Appliances
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">
-              🏠 Appliances Dashboard
-            </h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">
-              Sales, installations, service requests, AMC contracts — sab ek jagah
-            </p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button
-              onClick={() => refetch()}
-              disabled={isRefetching}
-              className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20"
-            >
-              <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} /> Refresh
-            </button>
-            <PrivacyToggle />
-            <Link to="/pos">
-              <Button className="bg-white text-slate-900 hover:bg-slate-100">
-                <ShoppingCart className="h-4 w-4" /> Open POS
-              </Button>
-            </Link>
-          </div>
+      {/* Money KPIs */}
+      {loading ? (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {[1, 2, 3, 4].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
         </div>
-
-        {/* Hero KPIs */}
-        <div className="relative mt-6 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-          <HeroTile icon={DollarSign} label="Aaj ki Sales" value={formatPKR(today.revenue)} sub={`${today.orders} orders`} tone="emerald" />
-          <HeroTile icon={TrendingUp} label="Aaj ka Profit" value={showCost(today.profit)} sub={hideCost ? 'PIN se dekho' : 'Net'} tone="cyan" />
-          <HeroTile icon={HardHat} label="Installations" value={String(installSummary?.pendingCount ?? 0)} sub="Pending today" tone="amber" />
-          <HeroTile icon={Wrench} label="Service Requests" value={String(serviceSummary?.pendingCount ?? 0)} sub="Open" tone="rose" />
-        </div>
-      </section>
-
-      {/* QUICK ACTIONS */}
-      <section className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3">
-        <QuickAction to="/pos" icon={ShoppingCart} label="POS" tone="cyan" />
-        <QuickAction to="/appliance-products/new" icon={Plus} label="Add Product" tone="emerald" />
-        <QuickAction to="/appliances/installations" icon={HardHat} label="Installations" tone="amber" />
-        <QuickAction to="/appliances/service-requests" icon={Wrench} label="Service" tone="rose" />
-        <QuickAction to="/appliances/technicians" icon={Zap} label="Technicians" tone="violet" />
-        <QuickAction to="/appliances/amc-contracts" icon={FileSignature} label="AMC" tone="pink" />
-      </section>
-
-      {/* ALERTS */}
-      {(inventory.lowStock > 0 || inventory.outOfStock > 0 || (amcSummary?.expiringSoonCount ?? 0) > 0 || (installSummary?.pendingCount ?? 0) > 0) && (
-        <section className="rounded-3xl bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 border-2 border-amber-300 p-4 sm:p-5">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="h-10 w-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-lg">
-              <AlertTriangle className="h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="font-extrabold text-amber-900">Zaroori Alerts</h3>
-              <p className="text-xs text-amber-800 font-bold">Foran attention chahiye</p>
-            </div>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {inventory.outOfStock > 0 && (
-              <AlertCard to="/appliance-products?filter=out" icon={Package} title={`${inventory.outOfStock} Out of Stock`} desc="Foran restock" tone="rose" />
-            )}
-            {inventory.lowStock > 0 && (
-              <AlertCard to="/appliance-products?filter=low" icon={AlertTriangle} title={`${inventory.lowStock} Low Stock`} desc="Reorder ka waqt" tone="amber" />
-            )}
-            {(installSummary?.pendingCount ?? 0) > 0 && (
-              <AlertCard to="/appliances/installations" icon={HardHat} title={`${installSummary.pendingCount} Installations`} desc="Pending schedule" tone="blue" />
-            )}
-            {(amcSummary?.expiringSoonCount ?? 0) > 0 && (
-              <AlertCard to="/appliances/amc-contracts?filter=expiring" icon={FileSignature} title={`${amcSummary.expiringSoonCount} AMC Expiring`} desc="Renew karo" tone="violet" />
-            )}
-          </div>
+      ) : (
+        <section className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+          <Kpi icon={Wallet} tone="cyan" label="30 Din Ki Kamai" value={formatPKR(p?.totals.revenue ?? 0)} sub={`${p?.totals.salesCount ?? 0} bikri`} />
+          <Kpi icon={TrendingUp} tone="emerald" label="Munafa" value={formatPKR(p?.totals.profit ?? 0)} sub={`${(p?.totals.margin ?? 0).toFixed(1)}% margin`} />
+          <Kpi icon={Percent} tone="violet" label="Services Ka Hissa" value={`${servicesShare.toFixed(0)}%`} sub={formatPKR(servicesRevenue)} />
+          <Kpi icon={AlertTriangle} tone="rose" label="Baqi Paisa"
+            value={formatPKR((svc?.month.outstanding ?? 0) + (inst?.month.outstanding ?? 0))}
+            sub="service ka udhaar"
+            alert={((svc?.month.outstanding ?? 0) + (inst?.month.outstanding ?? 0)) > 0} />
         </section>
       )}
 
-      {/* CHARTS ROW */}
-      <section className="grid lg:grid-cols-[1.5fr_1fr] gap-4 sm:gap-6">
-        <div className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-5 sm:p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-extrabold text-slate-900">7-Day Sales Trend</h3>
-              <p className="text-xs text-slate-500 font-bold">Daily revenue + profit</p>
-            </div>
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-cyan-500 to-teal-700 text-white flex items-center justify-center shadow-md">
-              <BarChart3 className="h-5 w-5" />
-            </div>
-          </div>
-          {dailyTrend.length > 0 ? (
-            <div className="h-[280px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={dailyTrend}>
-                  <defs>
-                    <linearGradient id="applRev" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#0891b2" stopOpacity={0.5} />
-                      <stop offset="100%" stopColor="#0891b2" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="applProfit" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#10b981" stopOpacity={0.4} />
-                      <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis dataKey="date" stroke="#64748b" fontSize={11} />
-                  <YAxis stroke="#64748b" fontSize={11} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-                  <Tooltip formatter={(v: any) => formatPKR(Number(v))} contentStyle={{ borderRadius: 12, border: '2px solid #e2e8f0' }} />
-                  <Legend wrapperStyle={{ fontSize: 11 }} />
-                  <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#0891b2" fill="url(#applRev)" strokeWidth={2.5} />
-                  {!hideCost && <Area type="monotone" dataKey="profit" name="Profit" stroke="#10b981" fill="url(#applProfit)" strokeWidth={2} />}
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          ) : (
-            <div className="h-[280px] flex flex-col items-center justify-center gap-2">
-              <BarChart3 className="h-10 w-10 text-slate-300" />
-              <p className="text-sm font-extrabold text-slate-500">Need more data</p>
-            </div>
-          )}
-        </div>
-
-        <div className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-5 sm:p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-extrabold text-slate-900">Sales by Category</h3>
-              <p className="text-xs text-slate-500 font-bold">This month</p>
-            </div>
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-700 text-white flex items-center justify-center shadow-md">
-              <Home className="h-5 w-5" />
-            </div>
-          </div>
-          {salesByCategory.length > 0 ? (
-            <div className="h-[280px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={salesByCategory}
-                    cx="50%" cy="45%" outerRadius={90} innerRadius={50}
-                    dataKey="revenue" nameKey="category"
-                    label={(entry: any) => {
-                      const total = salesByCategory.reduce((s: number, c: any) => s + c.revenue, 0);
-                      return total > 0 ? `${((entry.revenue / total) * 100).toFixed(0)}%` : '';
-                    }}
-                    labelLine={false}
-                  >
-                    {salesByCategory.map((_: any, idx: number) => (
-                      <Cell key={idx} fill={['#0891b2', '#8b5cf6', '#f59e0b', '#10b981', '#ec4899', '#06b6d4', '#f97316'][idx % 7]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(v: any) => formatPKR(Number(v))} contentStyle={{ borderRadius: 12 }} />
-                  <Legend wrapperStyle={{ fontSize: 10, paddingTop: 8 }} iconType="circle" />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          ) : (
-            <div className="h-[280px] flex flex-col items-center justify-center gap-2">
-              <Home className="h-10 w-10 text-slate-300" />
-              <p className="text-sm font-extrabold text-slate-500">No category data</p>
-            </div>
-          )}
-        </div>
+      {/* Work KPIs */}
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+        <Kpi icon={Wrench} tone="amber" label="Repair Khula" value={svc?.open ?? 0}
+          sub={`${svc?.completedToday ?? 0} aaj mukammal`} onClick={() => {}} />
+        <Kpi icon={HardHat} tone="blue" label="Installation Baqi" value={inst?.open ?? 0} sub={`${inst?.todayJobs ?? 0} aaj`} />
+        <Kpi icon={Users} tone="teal" label="Khali Bande" value={tech?.free ?? 0} sub={`${tech?.active ?? 0} active technician`} />
+        <Kpi icon={Star} tone="orange" label="Rating" value={tech?.avgTeamRating ? tech.avgTeamRating.toFixed(1) : '—'}
+          sub={svc?.month.avgResolutionHours ? `ausat ${fmtDuration(svc.month.avgResolutionHours)}` : 'customer ki raye'} />
       </section>
 
-      {/* PERIOD COMPARISON */}
-      <section className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <PeriodCard label="Today" revenue={today.revenue} profit={today.profit} orders={today.orders} tone="emerald" hideCost={hideCost} />
-        <PeriodCard label="This Week" revenue={week.revenue} profit={week.profit} orders={week.orders} tone="cyan" hideCost={hideCost} />
-        <PeriodCard label="This Month" revenue={month.revenue} profit={month.profit} orders={month.orders} tone="violet" hideCost={hideCost} />
-      </section>
+      {/* Alerts */}
+      {alerts.length > 0 && (
+        <Panel icon={AlertTriangle} title="Foran Tawajjo Chahiye" hint="Har box par click karein — seedha wahin pohanch jayenge" tone="rose">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            {alerts.map((al, i) => {
+              const tones = {
+                rose: 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-300',
+                amber: 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30 text-amber-700 dark:text-amber-300',
+                violet: 'bg-violet-50 dark:bg-violet-500/10 border-violet-200 dark:border-violet-500/30 text-violet-700 dark:text-violet-300',
+              };
+              return (
+                <Link key={i} to={al.to}
+                  className={`flex items-center gap-2.5 rounded-xl border-2 px-3 py-2.5 hover:shadow-md transition group ${tones[al.tone]}`}>
+                  <al.icon className="h-4 w-4 shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[11px] font-extrabold truncate">{al.label}</div>
+                    <div className="text-sm font-extrabold tabular-nums">{al.value}</div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 shrink-0 opacity-50 group-hover:translate-x-0.5 transition" />
+                </Link>
+              );
+            })}
+          </div>
+        </Panel>
+      )}
 
-      {/* SERVICE OPERATIONS */}
-      <section className="grid lg:grid-cols-2 gap-4 sm:gap-6">
-        <div className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b-2 border-slate-100 bg-gradient-to-r from-amber-50 to-orange-50 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-700 text-white flex items-center justify-center shadow-md">
-              <HardHat className="h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="font-extrabold text-slate-900">🔧 Installations</h3>
-              <p className="text-xs text-slate-500 font-bold">Today's schedule</p>
-            </div>
+      {/* Aaj ka kaam */}
+      <Panel icon={CalendarDays} title="Aaj Ka Kaam" hint="Installation aur repair — dono mila kar, zaroori pehle" tone="cyan"
+        right={
+          <Link to="/appliances/service-requests" className="text-[11px] font-extrabold text-cyan-700 dark:text-cyan-400 hover:underline inline-flex items-center gap-1">
+            Sab dekhein <ChevronRight className="h-3.5 w-3.5" />
+          </Link>
+        }>
+        {todayWork.length === 0 ? (
+          <div className="py-8 text-center">
+            <CheckCircle2 className="h-10 w-10 mx-auto text-emerald-400" />
+            <p className="mt-2 text-sm font-extrabold text-emerald-600 dark:text-emerald-400">Koi kaam baqi nahi 🎉</p>
+            <p className="text-xs font-bold text-slate-400 mt-0.5">Sab kuch mukammal hai — naya kaam aane par yahan nazar aayega</p>
           </div>
-          <div className="p-4 grid grid-cols-2 gap-3">
-            <StatBox label="Pending" value={installSummary?.pendingCount ?? 0} icon={Clock} tone="amber" />
-            <StatBox label="Today" value={installSummary?.todayCount ?? 0} icon={Calendar} tone="blue" />
-            <StatBox label="Completed" value={installSummary?.completedCount ?? 0} icon={CheckCircle2} tone="emerald" />
-            <StatBox label="This Month" value={installSummary?.thisMonthCount ?? 0} icon={Activity} tone="violet" />
-          </div>
-          <div className="px-4 pb-4">
-            <Link to="/appliances/installations" className="w-full inline-flex items-center justify-center gap-2 h-11 rounded-xl bg-gradient-to-r from-amber-600 to-orange-700 hover:from-amber-700 hover:to-orange-700 text-white font-extrabold text-sm shadow-md transition">
-              Manage Installations <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </div>
-
-        <div className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b-2 border-slate-100 bg-gradient-to-r from-rose-50 to-red-50 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-rose-500 to-red-700 text-white flex items-center justify-center shadow-md">
-              <Wrench className="h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="font-extrabold text-slate-900">🛠️ Service Requests</h3>
-              <p className="text-xs text-slate-500 font-bold">Repair & maintenance</p>
-            </div>
-          </div>
-          <div className="p-4 grid grid-cols-2 gap-3">
-            <StatBox label="Open" value={serviceSummary?.pendingCount ?? 0} icon={Clock} tone="rose" />
-            <StatBox label="Urgent" value={serviceSummary?.urgentCount ?? 0} icon={AlertTriangle} tone="amber" />
-            <StatBox label="Resolved" value={serviceSummary?.resolvedCount ?? 0} icon={CheckCircle2} tone="emerald" />
-            <StatBox label="This Month" value={serviceSummary?.thisMonthCount ?? 0} icon={Activity} tone="blue" />
-          </div>
-          <div className="px-4 pb-4">
-            <Link to="/appliances/service-requests" className="w-full inline-flex items-center justify-center gap-2 h-11 rounded-xl bg-gradient-to-r from-rose-600 to-red-700 hover:from-rose-700 hover:to-red-700 text-white font-extrabold text-sm shadow-md transition">
-              Manage Service <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* TODAY'S SCHEDULE */}
-      {todaySchedule.length > 0 && (
-        <section className="rounded-3xl bg-white border-2 border-cyan-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b-2 border-slate-100 bg-gradient-to-r from-cyan-50 to-teal-50 flex items-center justify-between gap-2 flex-wrap">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-cyan-500 to-teal-700 text-white flex items-center justify-center shadow-md">
-                <Calendar className="h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="font-extrabold text-slate-900">📅 Today's Schedule ({todaySchedule.length})</h3>
-                <p className="text-xs text-slate-500 font-bold">Aaj ki installations</p>
-              </div>
-            </div>
-            <Link to="/appliances/installations" className="text-xs font-extrabold text-cyan-700 hover:underline inline-flex items-center gap-1">
-              View all <ArrowRight className="h-3 w-3" />
-            </Link>
-          </div>
-          <div className="divide-y divide-slate-100 max-h-[300px] overflow-y-auto">
-            {todaySchedule.slice(0, 6).map((inst: any) => (
-              <div key={inst.id} className="px-5 py-3 flex items-center gap-3 hover:bg-cyan-50/40 transition">
-                <div className="h-10 w-10 rounded-lg bg-cyan-100 text-cyan-700 flex items-center justify-center shrink-0">
-                  <HardHat className="h-4 w-4" />
+        ) : (
+          <div className="space-y-1.5">
+            {todayWork.map((w) => (
+              <Link key={`${w.kind}-${w.id}`} to={w.to}
+                className={`flex items-center gap-2.5 rounded-xl border px-2.5 py-2 hover:shadow-md transition group ${
+                  w.overdue ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30'
+                    : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700'
+                }`}>
+                <div className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 ${
+                  w.kind === 'install' ? 'bg-blue-100 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400'
+                    : 'bg-amber-100 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                }`}>
+                  {w.kind === 'install' ? <HardHat className="h-4 w-4" /> : <Wrench className="h-4 w-4" />}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-extrabold text-sm text-slate-900 truncate">{inst.productName}</div>
-                  <div className="text-[10px] text-slate-500 font-bold truncate">
-                    {inst.customerName} • 📞 {inst.customerPhone}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[12px] font-extrabold text-slate-900 dark:text-white truncate">{w.title}</span>
+                    {w.overdue && <span className="px-1.5 py-0.5 rounded-md text-[9px] font-black bg-rose-600 text-white">LATE</span>}
+                    {w.priority === 'URGENT' && <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-black ${prioMeta('URGENT').cls}`}>FORAN</span>}
+                  </div>
+                  <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 truncate">
+                    {w.num} • {w.sub}
                   </div>
                 </div>
-                <div className="text-right shrink-0">
-                  <div className="text-[10px] font-extrabold text-cyan-700">{inst.scheduledTimeSlot || 'TBD'}</div>
-                  <div className="text-[10px] font-bold text-slate-500">{inst.technicianName || 'Unassigned'}</div>
+                <div className="hidden sm:block text-[10px] font-bold text-slate-400 shrink-0 text-right">
+                  {w.tech || <span className="text-amber-600 dark:text-amber-400">banda nahi laga</span>}
+                  {w.time && <div>{w.time}</div>}
                 </div>
-              </div>
+                <StatusBadge meta={w.status} size="xs" />
+              </Link>
             ))}
           </div>
-        </section>
+        )}
+      </Panel>
+
+      {/* Revenue chart */}
+      {p && p.daily.length > 0 && (
+        <Panel icon={BarChart3} title="30 Din Ki Kamai" hint="Neela = kul, hara = services, peela = munafa" tone="blue">
+          <ResponsiveContainer width="100%" height={260}>
+            <ComposedChart data={p.daily} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#94a3b833" />
+              <XAxis dataKey="date" tick={{ fontSize: 10, fontWeight: 700 }} stroke="#94a3b8"
+                tickFormatter={(d) => new Date(d).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })} />
+              <YAxis tick={{ fontSize: 10, fontWeight: 700 }} stroke="#94a3b8"
+                tickFormatter={(v) => (Math.abs(v) >= 1000 ? `${Math.round(v / 1000)}k` : String(v))} />
+              <Tooltip contentStyle={TOOLTIP}
+                labelFormatter={(d) => new Date(d as string).toLocaleDateString('en-PK', { dateStyle: 'medium' })}
+                formatter={(v: any) => formatPKR(Number(v))} />
+              <Legend wrapperStyle={{ fontSize: 11, fontWeight: 700 }} />
+              <Area type="monotone" dataKey="services" name="Services" fill="#10b98133" stroke="#10b981" strokeWidth={2} />
+              <Bar dataKey="revenue" name="Kul kamai" fill="#06b6d4" radius={[5, 5, 0, 0]} />
+              <Line type="monotone" dataKey="profit" name="Munafa" stroke="#f59e0b" strokeWidth={2.5} dot={false} />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </Panel>
       )}
 
-      {/* TOP PRODUCTS + TECHNICIANS */}
-      <section className="grid lg:grid-cols-2 gap-4 sm:gap-6">
-        <div className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b-2 border-slate-100 bg-gradient-to-r from-emerald-50 to-teal-50 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white flex items-center justify-center shadow-md">
-              <Award className="h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="font-extrabold text-slate-900">🏆 Top Selling</h3>
-              <p className="text-xs text-slate-500 font-bold">This month</p>
-            </div>
-          </div>
-          <div className="divide-y-2 divide-slate-100 max-h-[400px] overflow-y-auto">
-            {topProducts.length === 0 ? (
-              <div className="p-12 text-center text-sm text-slate-500 font-semibold">No sales yet this month</div>
-            ) : (
-              topProducts.slice(0, 8).map((p: any, i: number) => (
-                <Link key={p.productId} to={`/appliance-products/${p.productId}`} className="px-5 py-3 flex items-center gap-3 hover:bg-slate-50 transition group">
-                  <div className={`h-8 w-8 rounded-lg text-white flex items-center justify-center font-extrabold text-xs shrink-0 ${
-                    i === 0 ? 'bg-amber-500' : i === 1 ? 'bg-slate-400' : i === 2 ? 'bg-orange-600' : 'bg-slate-300'
-                  }`}>
-                    {i < 3 ? <Star className="h-4 w-4 fill-white" /> : i + 1}
-                  </div>
-                  <div className="h-10 w-10 rounded-lg bg-slate-100 overflow-hidden flex items-center justify-center shrink-0">
-                    {p.product?.images?.[0]?.url ? (
-                      <img src={p.product.images[0].url} alt="" className="h-full w-full object-cover" />
-                    ) : (
-                      <Home className="h-5 w-5 text-slate-400" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-extrabold text-sm truncate text-slate-900 group-hover:text-cyan-700">{p.product?.name}</div>
-                    <div className="text-[10px] text-slate-500 font-bold">{p.quantitySold} bike</div>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <div className="font-extrabold text-emerald-700 text-sm tabular-nums">{formatPKR(p.revenue)}</div>
-                  </div>
-                </Link>
-              ))
-            )}
-          </div>
-        </div>
+      {/* Module cards */}
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+        <ModuleCard
+          to="/appliances/service-requests" icon={Wrench} title="Repair / Service" tone="from-amber-500 to-orange-600"
+          rows={[
+            ['Khula kaam', String(svc?.open ?? 0)],
+            ['Late', String(svc?.overdue ?? 0)],
+            ['Is mahine kamai', formatPKR(svc?.month.revenue ?? 0)],
+            ['Baqi paisa', formatPKR(svc?.month.outstanding ?? 0)],
+          ]}
+        />
+        <ModuleCard
+          to="/appliances/installations" icon={HardHat} title="Installations" tone="from-blue-500 to-indigo-600"
+          rows={[
+            ['Lagana baqi', String(inst?.open ?? 0)],
+            ['Aaj', String(inst?.todayJobs ?? 0)],
+            ['Is mahine kamai', formatPKR(inst?.month.revenue ?? 0)],
+            ['Demo diye', String(inst?.month.demosGiven ?? 0)],
+          ]}
+        />
+        <ModuleCard
+          to="/appliances/technicians" icon={Users} title="Technicians" tone="from-violet-500 to-purple-600"
+          rows={[
+            ['Active', String(tech?.active ?? 0)],
+            ['Khali', String(tech?.free ?? 0)],
+            ['Is mahine commission', formatPKR(tech?.month.commission ?? 0)],
+            ['Team rating', tech?.avgTeamRating ? tech.avgTeamRating.toFixed(1) : '—'],
+          ]}
+        />
+        <ModuleCard
+          to="/appliances/amc-contracts" icon={ShieldCheck} title="AMC Contracts" tone="from-purple-500 to-fuchsia-600"
+          rows={[
+            ['Chal rahe', String(amc?.active ?? 0)],
+            ['Khatam ho rahe', String(amc?.expiringSoon ?? 0)],
+            ['Wusool hua', formatPKR(amc?.totalCollected ?? 0)],
+            ['Baqi', formatPKR(amc?.pendingAmount ?? 0)],
+          ]}
+        />
+        <ModuleCard
+          to="/appliances/deliveries" icon={Truck} title="Deliveries" tone="from-teal-500 to-emerald-600"
+          rows={[
+            ['Baqi', String(del?.open ?? 0)],
+            ['Aaj', String(del?.todayScheduled ?? 0)],
+            ['Gaari nahi lagi', String(del?.noVehicle ?? 0)],
+            ['Is mahine kamai', formatPKR(del?.month.revenue ?? 0)],
+          ]}
+        />
+        <ModuleCard
+          to="/appliances/warranty-claims" icon={ShieldCheck} title="Warranty Claims" tone="from-rose-500 to-pink-600"
+          rows={[
+            ['Khule claims', String(claims?.open ?? 0)],
+            ['Brand ke paas', formatPKR(claims?.money.pending ?? 0)],
+            ['Wapas mil chuka', formatPKR(claims?.money.received ?? 0)],
+            ['Banaya hi nahi', String(claims?.missing.count ?? 0)],
+          ]}
+        />
+        <ModuleCard
+          to="/appliances/serials" icon={Barcode} title="Serial Register" tone="from-slate-500 to-slate-700"
+          rows={[
+            ['Stock me', String(serial?.inStock.units ?? 0)],
+            ['Bik chuke', String(serial?.sold.units ?? 0)],
+            ['Stock ki lagat', formatPKR(serial?.inStock.value ?? 0)],
+            ['Warranty khatam ho rahi', String(serial?.warrantyExpiringSoon ?? 0)],
+          ]}
+        />
+      </div>
 
-        <div className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b-2 border-slate-100 bg-gradient-to-r from-violet-50 to-purple-50 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-700 text-white flex items-center justify-center shadow-md">
-              <Zap className="h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="font-extrabold text-slate-900">⚡ Top Technicians</h3>
-              <p className="text-xs text-slate-500 font-bold">By revenue</p>
-            </div>
-          </div>
-          <div className="divide-y-2 divide-slate-100 max-h-[400px] overflow-y-auto">
-            {topTechs.length === 0 ? (
-              <div className="p-12 text-center text-sm text-slate-500 font-semibold">
-                <p>No technicians</p>
-                <Link to="/appliances/technicians" className="mt-2 inline-block text-cyan-600 font-extrabold hover:underline">Add technicians →</Link>
+      {/* Stock snapshot */}
+      <div className="grid lg:grid-cols-2 gap-3 sm:gap-4">
+        <Panel icon={PackageX} title="Kya Khatam Ho Raha Hai" hint="Order dene se pehle yahan dekh lein" tone="amber"
+          right={
+            <Link to="/appliances/low-stock" className="text-[11px] font-extrabold text-cyan-700 dark:text-cyan-400 hover:underline inline-flex items-center gap-1">
+              Sab dekhein <ChevronRight className="h-3.5 w-3.5" />
+            </Link>
+          }>
+          {(low?.items ?? []).length === 0 ? (
+            <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 py-6 text-center">✅ Sab stock theek hai</p>
+          ) : (
+            <>
+              <div className="grid grid-cols-3 gap-2 mb-3">
+                <Mini label="Kam ho gayin" value={String(low!.summary.totalLow)} tone="amber" />
+                <Mini label="Bilkul khatam" value={String(low!.summary.totalOut)} tone="rose" />
+                <Mini label="Order ka kharcha" value={formatPKR(low!.summary.reorderCost)} tone="cyan" />
               </div>
-            ) : (
-              topTechs.map((t: any, i: number) => (
-                <Link key={t.id} to={`/appliances/technicians/${t.id}`} className="px-5 py-3 flex items-center gap-3 hover:bg-slate-50 transition">
-                  <div className={`h-9 w-9 rounded-lg text-white flex items-center justify-center font-extrabold text-xs shrink-0 ${
-                    i === 0 ? 'bg-amber-500' : i === 1 ? 'bg-slate-400' : i === 2 ? 'bg-orange-600' : 'bg-violet-500'
-                  }`}>
-                    {i + 1}
-                  </div>
-                  {t.photoUrl ? (
-                    <img src={t.photoUrl} alt="" className="h-10 w-10 rounded-lg object-cover border border-slate-200 shrink-0" />
-                  ) : (
-                    <div className="h-10 w-10 rounded-lg bg-violet-100 text-violet-700 flex items-center justify-center font-extrabold text-sm shrink-0">
-                      {t.name.charAt(0)}
+              <div className="space-y-1.5">
+                {low!.items.slice(0, 6).map((r) => (
+                  <Link key={r.productId} to={`/appliance-products/${r.productId}`}
+                    className="flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 px-2.5 py-2 transition">
+                    <span className="text-base shrink-0">{catEmoji(r.categoryType)}</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[11px] font-extrabold text-slate-900 dark:text-white truncate">{r.name}</div>
+                      <div className="text-[10px] font-bold text-slate-400 truncate">{catLabel(r.categoryType)}{r.brand ? ` • ${r.brand}` : ''}</div>
                     </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <div className="font-extrabold text-sm truncate text-slate-900">{t.name}</div>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className="text-[10px] text-slate-500 font-bold">{t.completedJobs || 0} jobs</span>
-                      {t.avgRating && (
-                        <span className="text-[10px] font-extrabold text-amber-700 inline-flex items-center gap-0.5">
-                          <Star className="h-2.5 w-2.5 fill-current" /> {t.avgRating.toFixed(1)}
-                        </span>
-                      )}
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold tabular-nums shrink-0 ${
+                      r.isOut ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
+                        : 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300'
+                    }`}>{r.isOut ? 'Khatam' : `${r.stock} bachay`}</span>
+                  </Link>
+                ))}
+              </div>
+            </>
+          )}
+        </Panel>
+
+        <Panel icon={Zap} title="Kamai Kahan Se Aa Rahi" hint="Paanch raste — kis ka kitna hissa" tone="emerald">
+          {!p || p.streams.length === 0 ? (
+            <p className="text-xs font-bold text-slate-400 py-8 text-center">Abhi koi bikri nahi</p>
+          ) : (
+            <div className="space-y-2">
+              {p.streams.filter((s) => s.revenue > 0).map((s) => {
+                const share = p.totals.revenue ? (s.revenue / p.totals.revenue) * 100 : 0;
+                const colors: Record<string, string> = {
+                  GOODS: '#06b6d4', INSTALLATION: '#3b82f6', SERVICE: '#f59e0b',
+                  AMC: '#a855f7', DELIVERY: '#10b981', POS_SERVICES: '#64748b',
+                };
+                return (
+                  <div key={s.key}>
+                    <div className="flex items-center justify-between text-[11px] font-extrabold mb-1">
+                      <span className="text-slate-700 dark:text-slate-200">{s.label}</span>
+                      <span className="tabular-nums text-slate-500 dark:text-slate-400">
+                        {formatPKR(s.revenue)} <span className="opacity-60">({share.toFixed(0)}%)</span>
+                      </span>
+                    </div>
+                    <div className="h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                      <div className="h-full rounded-full transition-all duration-500"
+                        style={{ width: `${Math.min(share, 100)}%`, background: colors[s.key] }} />
                     </div>
                   </div>
-                  <div className="text-right shrink-0">
-                    <div className="font-extrabold text-violet-700 text-sm tabular-nums">{formatPKR(t.totalRevenue || 0)}</div>
-                  </div>
-                </Link>
-              ))
-            )}
+                );
+              })}
+              <Link to="/appliances/profit-report"
+                className="mt-3 inline-flex items-center gap-1.5 text-xs font-extrabold text-cyan-700 dark:text-cyan-400 hover:underline">
+                <TrendingUp className="h-3.5 w-3.5" /> Poori munafa report
+              </Link>
+            </div>
+          )}
+        </Panel>
+      </div>
+    </div>
+  );
+}
+
+function ModuleCard({ to, icon: Icon, title, tone, rows }: {
+  to: string; icon: any; title: string; tone: string; rows: [string, string][];
+}) {
+  return (
+    <Link to={to}
+      className="group rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 hover:shadow-xl hover:-translate-y-0.5 hover:border-cyan-300 dark:hover:border-cyan-500/50 transition-all">
+      <div className="flex items-center gap-2.5 mb-3">
+        <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tone} text-white flex items-center justify-center shadow group-hover:scale-110 transition`}>
+          <Icon className="h-4.5 w-4.5" />
+        </div>
+        <h3 className="text-sm font-extrabold text-slate-900 dark:text-white group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition flex-1">{title}</h3>
+        <ChevronRight className="h-4 w-4 text-slate-300 dark:text-slate-600 group-hover:translate-x-1 group-hover:text-cyan-500 transition" />
+      </div>
+      <div className="space-y-1.5">
+        {rows.map(([k, v]) => (
+          <div key={k} className="flex items-center justify-between text-[11px]">
+            <span className="font-bold text-slate-500 dark:text-slate-400">{k}</span>
+            <span className="font-extrabold tabular-nums text-slate-800 dark:text-slate-100">{v}</span>
           </div>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-function HeroTile({ icon: Icon, label, value, sub, tone }: any) {
-  const tones: Record<string, string> = {
-    emerald: 'from-emerald-400/30 to-emerald-600/20 border-emerald-300/40',
-    cyan: 'from-cyan-400/30 to-cyan-600/20 border-cyan-300/40',
-    amber: 'from-amber-400/30 to-amber-600/20 border-amber-300/40',
-    rose: 'from-rose-400/30 to-rose-600/20 border-rose-300/40',
-  };
-  return (
-    <div className={`rounded-xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-3 sm:p-4`}>
-      <div className="flex items-center gap-1.5 mb-1">
-        <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
+        ))}
       </div>
-      <div className="text-lg sm:text-xl font-extrabold text-white tabular-nums leading-none truncate">{value}</div>
-      <div className="text-[10px] font-bold text-white/70 mt-0.5 truncate">{sub}</div>
-    </div>
-  );
-}
-
-function QuickAction({ to, icon: Icon, label, tone }: any) {
-  const tones: Record<string, string> = {
-    cyan: 'from-cyan-500 to-teal-700',
-    emerald: 'from-emerald-500 to-teal-700',
-    amber: 'from-amber-500 to-orange-700',
-    rose: 'from-rose-500 to-red-700',
-    violet: 'from-violet-500 to-purple-700',
-    pink: 'from-pink-500 to-rose-700',
-  };
-  return (
-    <Link to={to} className="group rounded-2xl bg-white border-2 border-slate-200 hover:border-cyan-300 hover:shadow-lg hover:-translate-y-0.5 transition-all p-3 sm:p-4 text-center">
-      <div className={`h-11 w-11 sm:h-12 sm:w-12 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md mx-auto mb-2 group-hover:scale-110 transition-transform`}>
-        <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
-      </div>
-      <div className="text-xs sm:text-sm font-extrabold text-slate-900">{label}</div>
     </Link>
   );
 }
 
-function AlertCard({ to, icon: Icon, title, desc, tone }: any) {
-  const tones: Record<string, string> = {
-    rose: 'from-rose-500 to-red-700 bg-rose-50 border-rose-200',
-    amber: 'from-amber-500 to-orange-700 bg-amber-50 border-amber-200',
-    blue: 'from-blue-500 to-cyan-700 bg-blue-50 border-blue-200',
-    violet: 'from-violet-500 to-purple-700 bg-violet-50 border-violet-200',
-  };
-  const parts = tones[tone].split(' ');
-  return (
-    <Link to={to} className={`rounded-2xl bg-white border-2 ${parts.slice(2, 4).join(' ')} p-4 flex items-center gap-3 hover:shadow-md transition group`}>
-      <div className={`h-11 w-11 rounded-xl bg-gradient-to-br ${parts[0]} ${parts[1]} text-white flex items-center justify-center shadow-md shrink-0`}>
-        <Icon className="h-5 w-5" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="font-extrabold text-slate-900 text-sm">{title}</div>
-        <div className="text-xs text-slate-600 font-bold truncate">{desc}</div>
-      </div>
-      <ArrowRight className="h-4 w-4 text-slate-400 shrink-0 group-hover:translate-x-1 transition" />
-    </Link>
-  );
-}
-
-function StatBox({ label, value, icon: Icon, tone }: any) {
-  const tones: Record<string, string> = {
-    amber: 'bg-amber-50 border-amber-200 text-amber-700',
-    emerald: 'bg-emerald-50 border-emerald-200 text-emerald-700',
-    blue: 'bg-blue-50 border-blue-200 text-blue-700',
-    violet: 'bg-violet-50 border-violet-200 text-violet-700',
-    rose: 'bg-rose-50 border-rose-200 text-rose-700',
+function Mini({ label, value, tone }: { label: string; value: string; tone: 'amber' | 'rose' | 'cyan' }) {
+  const tones = {
+    amber: 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30 text-amber-700 dark:text-amber-300',
+    rose: 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-300',
+    cyan: 'bg-cyan-50 dark:bg-cyan-500/10 border-cyan-200 dark:border-cyan-500/30 text-cyan-700 dark:text-cyan-300',
   };
   return (
-    <div className={`rounded-xl border-2 p-3 ${tones[tone]}`}>
-      <div className="flex items-center gap-1.5 mb-1">
-        <Icon className="h-3 w-3" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold">{label}</div>
-      </div>
-      <div className="text-xl font-extrabold tabular-nums text-slate-900">{value}</div>
+    <div className={`rounded-xl border px-2 py-1.5 ${tones[tone]}`}>
+      <div className="text-[9px] font-extrabold uppercase tracking-wider opacity-75">{label}</div>
+      <div className="text-sm font-extrabold tabular-nums truncate">{value}</div>
     </div>
   );
 }
 
-function PeriodCard({ label, revenue, profit, orders, tone, hideCost }: any) {
-  const tones: Record<string, string> = {
-    emerald: 'from-emerald-500 to-teal-700 border-emerald-300',
-    cyan: 'from-cyan-500 to-teal-700 border-cyan-300',
-    violet: 'from-violet-500 to-purple-700 border-violet-300',
-  };
-  const parts = tones[tone].split(' ');
+function DashTeacher({ onClose }: { onClose: () => void }) {
   return (
-    <div className={`rounded-3xl bg-gradient-to-br from-white to-slate-50 border-2 ${parts[2]} p-4 shadow-sm`}>
-      <div className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-white bg-gradient-to-r ${parts[0]} ${parts[1]}`}>
-        {label}
-      </div>
-      <div className="mt-3 grid grid-cols-3 gap-2">
-        <div>
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">Revenue</div>
-          <div className="text-base font-extrabold text-slate-900 tabular-nums leading-none mt-1">{formatPKR(revenue)}</div>
-        </div>
-        <div>
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">Profit</div>
-          <div className="text-base font-extrabold text-emerald-700 tabular-nums leading-none mt-1">{hideCost ? '••••' : formatPKR(profit)}</div>
-        </div>
-        <div>
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">Orders</div>
-          <div className="text-base font-extrabold text-cyan-700 tabular-nums leading-none mt-1">{orders}</div>
-        </div>
-      </div>
-    </div>
+    <Teacher
+      title="Dashboard Kaise Istemal Karein?"
+      intro={
+        <>
+          Ye safha roz subah kholein. Teen sawal ka jawab yahin milta hai:
+          <strong> aaj karna kya hai</strong>, <strong>paisa kahan atka hai</strong>,
+          aur <strong>kaam theek chal raha hai ya nahi</strong>.
+        </>
+      }
+      blocks={[
+        {
+          title: '🚨 "Foran tawajjo chahiye"',
+          tone: 'rose',
+          tips: [
+            <>Sab se pehle yahi box dekhein — isme sirf wo cheezein aati hain jo <strong>aap ka paisa ya naam kha rahi hain</strong></>,
+            <><strong>Late kaam</strong> — customer intezar kar raha hai</>,
+            <><strong>Bina banday ke kaam</strong> — ye subah hi kisi ko de dein, warna sara din latak jayega</>,
+            <><strong>Baqi paisa</strong> — kaam ho gaya lekin wusooli nahi hui. Ye aap ka apna paisa hai</>,
+            <>Har box par click — seedha usi page par</>,
+          ],
+        },
+        {
+          title: '📅 "Aaj ka kaam"',
+          tone: 'cyan',
+          tips: [
+            <>Installation aur repair <strong>dono mila kar</strong> — jo zaroori hai wo upar</>,
+            <><span className="px-1.5 py-0.5 rounded bg-rose-600 text-white text-[9px] font-black">LATE</span> aur <span className="px-1.5 py-0.5 rounded bg-rose-600 text-white text-[9px] font-black">FORAN</span> wale pehle</>,
+            <>Jis kaam par <strong>"banda nahi laga"</strong> likha ho, usay foran technician dein</>,
+          ],
+        },
+        {
+          title: '💰 "Kamai kahan se aa rahi"',
+          tone: 'emerald',
+          tips: [
+            <>Ye batata hai ke aap ki kamai me <strong>maal ka hissa kitna hai aur services ka kitna</strong></>,
+            <>Agar <strong>services ka hissa 25% se kam</strong> hai to installation aur AMC par tawajjo dein — wahan margin sab se ziyada hai</>,
+            <>Har module card par mahine ki kamai likhi hai — ek nazar me pata chal jata hai kaunsa hissa chal raha hai</>,
+          ],
+        },
+      ]}
+      shortcuts={[
+        { keys: 'R', label: 'Sab refresh' },
+        { keys: 'T', label: 'Ye guide' },
+        { keys: 'Esc', label: 'Band' },
+      ]}
+      golden={
+        <>
+          <strong>Sunahri usool:</strong> Subah 10 minute ye safha dekhein — laal box khatam karein, bina banday ke
+          kaam baant dein. Bas itna karne se <strong>aadhi shikayat khud khatam</strong> ho jati hai.
+        </>
+      }
+      onClose={onClose}
+    />
   );
 }

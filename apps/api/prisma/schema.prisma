@@ -913,6 +913,13 @@ model Brand {
   supportEmail     String?
   warrantyPolicy   String? @db.Text
 
+  // ─── Appliances ───
+  // ApplianceBrand ko yahin mila diya gaya hai (2026-09-14). AC/geyser
+  // wale brand ke liye ye teen baatein matter karti hain.
+  serviceCenter        String?
+  installationIncluded Boolean @default(false)
+  demoIncluded         Boolean @default(false)
+
   isFeatured   Boolean @default(false)
   displayOrder Int     @default(0)
 
@@ -17547,6 +17554,101 @@ model ApplianceAmcContract {
   @@index([tenantId, status])
   @@index([customerId])
   @@index([expiryDate])
+}
+
+enum ApplianceClaimStatus {
+  DRAFT
+  SUBMITTED
+  BRAND_REVIEWING
+  APPROVED
+  PARTIALLY_APPROVED
+  REJECTED
+  SETTLED
+}
+
+/**
+ * Brand se paisa wapas lene ka record.
+ *
+ * Appliance ki dukaan warranty wala repair FREE karti hai — parts
+ * aur labor ka kharcha dukaan apni jeb se bhardti hai. Us ke baad
+ * company/brand se wo paisa claim kiya jata hai.
+ *
+ * Pehle sirf ServiceRequest par `warrantyClaimNumber` ka ek khana
+ * tha aur bas — claim kahan pohancha, brand ne kitna diya, kitna
+ * baqi hai, iska koi record nahi tha. Wo paisa aksar zaya ho jata.
+ */
+model ApplianceWarrantyClaim {
+  id       String @id @default(uuid())
+  tenantId String
+
+  claimNumber String
+
+  // Kis unit par claim hai
+  serialTrackingId String?
+  serialNumber     String?
+  productId        String?
+  productName      String
+  brandId          String?
+  brandName        String?
+  modelNumber      String?
+
+  // Kis kaam se juda hai
+  serviceRequestId     String?
+  serviceRequestNumber String?
+
+  // Customer
+  customerId    String?
+  customerName  String
+  customerPhone String?
+
+  purchaseDate  DateTime?
+  invoiceNumber String?
+
+  claimDate     DateTime @default(now())
+  issue         String   @db.Text
+  issueCategory String?
+  /** MAIN / COMPRESSOR / MOTOR — kaunsi warranty par claim hai */
+  warrantyKind  String?
+
+  status ApplianceClaimStatus @default(DRAFT)
+
+  // Brand ke sath raabta
+  submittedAt      DateTime?
+  brandRef         String?
+  brandContact     String?
+  brandRespondedAt DateTime?
+  brandResponse    String?   @db.Text
+
+  // Paisa — dukaan ne kitna lagaya, brand ne kitna diya
+  partsCost      Float @default(0)
+  laborCost      Float @default(0)
+  otherCost      Float @default(0)
+  /** Dukaan ki kul lagat (parts + labor + baqi) */
+  claimedAmount  Float @default(0)
+  /** Brand ne jitna manzoor kiya */
+  approvedAmount Float @default(0)
+  /** Brand se jitna paisa asal me mila */
+  receivedAmount Float @default(0)
+
+  settledAt      DateTime?
+  rejectionReason String? @db.Text
+
+  /** Part badla gaya to naya serial */
+  replacementSerialNumber String?
+
+  documentUrls String[] @default([])
+  imageUrls    String[] @default([])
+  notes        String?  @db.Text
+
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([tenantId, claimNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([serviceRequestId])
+  @@index([customerId])
 }
 
 model ApplianceDelivery {

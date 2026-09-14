@@ -11,7 +11,10 @@ import { UploadDropzone } from '@core/components/uploads';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
 import { tagsApi } from '@modules/inventory/tags/api/tags.api';
-import { applianceBrandsApi } from '../../api/brands.api';
+// Brand ab global table se aata hai — ApplianceBrand ko 2026-09-14 ko
+// global Brand me mila diya gaya. Warna naya brand us table me banta
+// jo ab kahin padha hi nahi jata.
+import { brandsApi } from '@modules/inventory/brands/api/brands.api';
 import { formatPKRFull } from '@core/lib/format';
 import type { ApplianceWizardBasic } from '../../hooks/useApplianceWizard';
 import { CategoryPicker, makeCategoryTypeResolver } from '@modules/inventory/categories/components/CategoryPicker';
@@ -150,7 +153,7 @@ export function ApplianceWizardStep1Basic({ basic, onChange, errors }: Props) {
   const [showBrand, setShowBrand] = useState(false);
 
   const { data: cats = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list });
-  const { data: brands = [] } = useQuery({ queryKey: ['appliance-brands'], queryFn: () => applianceBrandsApi.list({ active: true }) });
+  const { data: brands = [] } = useQuery({ queryKey: ['brands'], queryFn: () => brandsApi.list() });
   const { data: tags = [] } = useQuery({ queryKey: ['tags'], queryFn: tagsApi.list });
 
   const cost = Number(basic.costPrice || 0);
@@ -160,12 +163,12 @@ export function ApplianceWizardStep1Basic({ basic, onChange, errors }: Props) {
   const loss = cost > 0 && sale > 0 && profit < 0;
 
   const mkBrand = useMutation({
-    mutationFn: () => applianceBrandsApi.create({ name: newBrand.trim(), isActive: true }),
+    mutationFn: () => brandsApi.create({ name: newBrand.trim(), isActive: true }),
     onSuccess: (b: any) => {
       toast.success(`"${b.name}" ban gaya`);
       onChange({ applianceBrandId: b.id });
       setNewBrand(''); setShowBrand(false);
-      qc.invalidateQueries({ queryKey: ['appliance-brands'] });
+      qc.invalidateQueries({ queryKey: ['brands'] });
     },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Nahi bana'),
   });

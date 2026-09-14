@@ -235,7 +235,11 @@ export interface SyncQueueItem {
     | 'CREATE_CUSTOMER' | 'UPDATE_CUSTOMER' | 'DELETE_CUSTOMER' | 'PAYMENT_CUSTOMER'
     | 'CREATE_PRODUCT' | 'UPDATE_PRODUCT' | 'DELETE_PRODUCT' | 'TOGGLE_PRODUCT_ACTIVE' | 'TOGGLE_PRODUCT_FEATURED'
     | 'CREATE_EXPENSE' | 'UPDATE_EXPENSE' | 'DELETE_EXPENSE'
-    | 'UPDATE_PRODUCT_STOCK' | 'CREATE_LEDGER' | 'OTHER';
+    | 'UPDATE_PRODUCT_STOCK' | 'CREATE_LEDGER'
+    // Appliances — sale ke baad ke kaam. Offline me ye khamoshi se
+    // zaya ho jate thay (try/catch ne error nigal liya tha).
+    | 'CREATE_INSTALLATION' | 'CREATE_SERVICE_REQUEST' | 'UPDATE_APPLIANCE_SERIAL'
+    | 'OTHER';
   payload: any;
   endpoint: string;
   method: 'POST' | 'PATCH' | 'PUT' | 'DELETE';

@@ -8,6 +8,7 @@ import {
   Info, Plus, CheckCircle2, XCircle, Shield, Award, Battery, Monitor,
   Ruler, Zap, Palette, HardHat, Truck, Wrench, FileSignature,
   Snowflake, Wind, ExternalLink, CreditCard, Flame, Droplets,
+  Printer, GraduationCap, FileDown,
 } from 'lucide-react';
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid,
@@ -21,10 +22,17 @@ import { productImagesApi } from '@modules/inventory/products/api/product-images
 import { salesApi } from '@modules/sales/sales/api/sales.api';
 import { stockMovementsApi } from '@modules/inventory/stock-movements/api/stock-movements.api';
 import { applianceProductsApi } from '../api/products.api';
-import { applianceBrandsApi } from '../api/brands.api';
+// Brand global table se — ApplianceBrand 2026-09-14 ko Brand me mila
+// diya gaya tha (ek hi "Haier" do jagah alag record ban jati thi).
+import { brandsApi } from '@modules/inventory/brands/api/brands.api';
 import { applianceSerialApi } from '../api/serial-tracking.api';
 import { installationsApi } from '../api/installations.api';
 import { PrivacyToggle, useCostHidden } from '@core/ui/HiddenValue';
+import {
+  Teacher, useShortcuts, printHtml, downloadCsv, a4Shell,
+  escapeHtml, toDateInput, fmtDate, Kbd,
+} from '../components/shared';
+import { catLabel, catEmoji, energyMeta } from '../constants';
 
 type Tab = 'overview' | 'specs' | 'warranty' | 'variants' | 'serials' | 'sales' | 'installations' | 'log';
 
@@ -36,6 +44,7 @@ export default function ApplianceProductDetailPage() {
 
   const [tab, setTab] = useState<Tab>('overview');
   const [imgIndex, setImgIndex] = useState(0);
+  const [showTeacher, setShowTeacher] = useState(false);
 
   const { data: product, isLoading } = useQuery({
     queryKey: ['product', id],
@@ -50,8 +59,8 @@ export default function ApplianceProductDetailPage() {
   });
 
   const { data: brand } = useQuery({
-    queryKey: ['appliance-brand', profile?.brandId],
-    queryFn: () => applianceBrandsApi.getOne(profile!.brandId!),
+    queryKey: ['brand', profile?.brandId],
+    queryFn: () => brandsApi.getOne(profile!.brandId!),
     enabled: !!profile?.brandId,
   });
 
@@ -68,11 +77,13 @@ export default function ApplianceProductDetailPage() {
     enabled: !!id,
   });
 
-  const { data: serials = [] } = useQuery({
+  // list ab paginated hai ({ items, meta }) — seedha array nahi
+  const { data: serialPage } = useQuery({
     queryKey: ['product-appliance-serials', id],
-    queryFn: () => applianceSerialApi.list({ productId: id! }),
+    queryFn: () => applianceSerialApi.list({ productId: id!, limit: 200 }),
     enabled: !!id,
   });
+  const serials = serialPage?.items ?? [];
 
   const { data: allSales = [] } = useQuery({
     queryKey: ['sales-list-for-product'],
@@ -80,11 +91,13 @@ export default function ApplianceProductDetailPage() {
     enabled: !!id,
   });
 
-  const { data: allInstalls = [] } = useQuery({
+  // list ab { items, meta } deti hai — seedha array nahi
+  const { data: installPage } = useQuery({
     queryKey: ['installations-list'],
-    queryFn: () => installationsApi.list(),
+    queryFn: () => installationsApi.list({ limit: 200 }),
     enabled: !!id,
   });
+  const allInstalls = installPage?.items ?? [];
 
   const { data: movementsRaw } = useQuery({
     queryKey: ['stock-movements-for-product', id],
@@ -97,6 +110,145 @@ export default function ApplianceProductDetailPage() {
     const arr = Array.isArray(raw) ? raw : (raw?.items ?? []);
     return arr.filter((m: any) => !m.productId || m.productId === id).slice(0, 40);
   }, [movementsRaw, id]);
+
+  /* ═══ Spec sheet — customer ko dikhane wala kaghaz ═══ */
+  const printSpecSheet = () => {
+    if (!product) return;
+    const pf: any = profile ?? {};
+    const row = (k: string, v: any) =>
+      v === null || v === undefined || v === '' || v === false
+        ? '' : `<tr><td class="k">${escapeHtml(k)}</td><td class="v">${escapeHtml(String(v))}</td></tr>`;
+
+    const general = [
+      row('Qism', catLabel(pf.categoryType)),
+      row('Brand', brand?.name),
+      row('Model', pf.modelNumber),
+      row('Model year', pf.modelYear),
+      row('Rang', pf.colorName),
+      row('Capacity', pf.capacity),
+      row('Bijli ka kharch', pf.powerConsumption),
+      row('Voltage', pf.voltage),
+      row('Wazan', pf.weightKg ? `${pf.weightKg} kg` : ''),
+      row('Size', pf.dimensions),
+    ].join('');
+
+    const energy = [
+      row('Energy rating', pf.energyRating ? energyMeta(pf.energyRating).label : ''),
+      row('Inverter', pf.isInverter ? 'Haan' : ''),
+      row('Energy Star', pf.isEnergyStar ? 'Haan' : ''),
+      row('BEE rating', pf.bee_rating),
+    ].join('');
+
+    const ac = [
+      row('Tonnage', pf.acTonnage), row('AC ki qism', pf.acType),
+      row('Cooling capacity', pf.coolingCapacity), row('Heating capacity', pf.heatingCapacity),
+      row('Refrigerant', pf.refrigerantType), row('EER', pf.eer),
+    ].join('');
+
+    const fridge = [
+      row('Capacity (litre)', pf.fridgeCapacityLiters),
+      row('Fridge ki qism', pf.refrigeratorType),
+      row('Darwaze', pf.doorCount), row('Compressor', pf.compressorType),
+    ].join('');
+
+    const wash = [
+      row('Capacity (kg)', pf.washingCapacityKg), row('Washing ki qism', pf.washingType),
+      row('RPM', pf.rpm), row('Programs', pf.numberOfPrograms),
+    ].join('');
+
+    const tv = [
+      row('Screen (inch)', pf.screenSizeInch), row('Display', pf.displayType),
+      row('Resolution', pf.resolution), row('Refresh rate', pf.refreshRate),
+      row('Smart OS', pf.smartOS), row('HDMI ports', pf.hdmiPorts), row('USB ports', pf.usbPorts),
+    ].join('');
+
+    const sec = (title: string, body: string) =>
+      body ? `<h2 class="sec">${title}</h2><table class="kv">${body}</table>` : '';
+
+    const list = (title: string, arr?: string[]) =>
+      arr && arr.length
+        ? `<h2 class="sec">${title}</h2><ul class="feat">${arr.map((f) => `<li>${escapeHtml(f)}</li>`).join('')}</ul>`
+        : '';
+
+    const body = `
+      ${sec('📋 Aam Tafseel', general)}
+      ${sec('⚡ Bijli / Energy', energy)}
+      ${sec('❄️ Air Conditioner', ac)}
+      ${sec('🧊 Refrigerator', fridge)}
+      ${sec('🫧 Washing Machine', wash)}
+      ${sec('📺 TV / Display', tv)}
+      <h2 class="sec">🛡️ Warranty aur Installation</h2>
+      <table class="kv">
+        ${row('Main warranty', pf.warrantyMonths ? `${pf.warrantyMonths} mahine` : '')}
+        ${row('Compressor warranty', pf.compressorWarrantyMonths ? `${pf.compressorWarrantyMonths} mahine` : '')}
+        ${row('Motor warranty', pf.motorWarrantyMonths ? `${pf.motorWarrantyMonths} mahine` : '')}
+        ${row('Lagani parti hai', pf.requiresInstallation ? 'Haan' : 'Nahi')}
+        ${row('Installation charge', pf.installationCharge ? formatPKR(pf.installationCharge) : '')}
+        ${row('Installation free hai', pf.installationCovered ? 'Haan' : '')}
+        ${row('Electrician chahiye', pf.requiresElectrician ? 'Haan' : '')}
+        ${row('Plumbing chahiye', pf.requiresPlumbing ? 'Haan' : '')}
+        ${row('Gas connection chahiye', pf.requiresGasConnection ? 'Haan' : '')}
+        ${row('Bhari gaari chahiye', pf.requiresLargeVehicle ? 'Haan' : '')}
+      </table>
+      ${list('✨ Khoobiyan', pf.features)}
+      ${list('📶 Smart features', pf.smartFeatures)}
+      ${list('🛡️ Safety features', pf.safetyFeatures)}
+      ${list('📦 Dabbay me kya hai', pf.boxContents)}
+      <h2 class="sec">💰 Rate</h2>
+      <table class="kv">
+        ${row('Bechne ka rate', formatPKR(product.price))}
+        ${pf.mrp ? row('MRP', formatPKR(pf.mrp)) : ''}
+        ${pf.emiStartingFrom ? row('EMI shuru', formatPKR(pf.emiStartingFrom)) : ''}
+      </table>`;
+
+    const ok = printHtml(a4Shell({
+      title: `${product.name} — Spec Sheet`,
+      heading: `${catEmoji(pf.categoryType)} ${escapeHtml(product.name)}`,
+      shopName: brand?.name ? `${brand.name}` : 'Spec Sheet',
+      badge: 'Product Spec Sheet',
+      kpis: [
+        { label: '🏷️ Rate', value: formatPKR(product.price), tone: 'green' },
+        { label: '📦 Stock', value: String(product.stock), sub: product.unit, tone: 'blue' },
+        { label: '🛡️ Warranty', value: pf.warrantyMonths ? `${pf.warrantyMonths} mah` : '—', tone: 'amber' },
+        { label: '🔧 Installation', value: pf.requiresInstallation ? formatPKR(pf.installationCharge || 0) : 'Nahi', tone: 'rose' },
+      ],
+      body: `<style>
+        table.kv { width:100%; border-collapse:collapse; margin-bottom:10px; }
+        table.kv td { padding:5px 6px; border-bottom:1px solid #e2e8f0; font-size:10px; }
+        table.kv td.k { width:34%; font-weight:700; color:#475569; }
+        table.kv td.v { font-weight:700; }
+        ul.feat { margin:4px 0 10px 18px; font-size:10px; font-weight:600; }
+        ul.feat li { margin:2px 0; }
+      </style>${body}`,
+    }));
+    if (!ok) toast.error('Popup block hai — allow karein');
+  };
+
+  /* ═══ Serial list CSV ═══ */
+  const exportSerials = () => {
+    if (!serials.length) return toast.error('Is product ka koi serial nahi');
+    downloadCsv(`serials-${product?.sku || product?.name || 'product'}-${toDateInput(new Date())}.csv`, [
+      [`${product?.name} — serial register`],
+      [],
+      ['Serial', 'Halat', 'Model', 'Batch', 'Kharidne ka rate', 'Kharida',
+       'Bechne ka rate', 'Bika', 'Customer', 'Installation', 'Warranty tak'],
+      ...serials.map((x: any) => [
+        x.serialNumber, x.status, x.modelNumber ?? '', x.batchNumber ?? '',
+        x.purchasePrice ?? '', x.purchaseDate ? fmtDate(x.purchaseDate) : '',
+        x.soldPrice ?? '', x.soldAt ? fmtDate(x.soldAt) : '',
+        x.customerName ?? '', x.installationStatus ?? '',
+        x.warrantyEndDate ? fmtDate(x.warrantyEndDate) : '',
+      ]),
+    ]);
+    toast.success(`${serials.length} serial export ho gaye`);
+  };
+
+  useShortcuts({
+    e: () => navigate(`/appliance-products/${id}/edit`),
+    p: () => printSpecSheet(),
+    t: () => setShowTeacher(true),
+    Escape: () => { if (showTeacher) setShowTeacher(false); else navigate('/appliance-products'); },
+  }, [showTeacher, product, profile, brand, serials, id]);
 
   const soldLines = useMemo(() => {
     if (!id) return [];
@@ -215,9 +367,11 @@ export default function ApplianceProductDetailPage() {
 
   return (
     <div className="space-y-5 pb-10">
+      {showTeacher && <DetailTeacher onClose={() => setShowTeacher(false)} />}
+
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <button onClick={() => navigate('/appliance-products')} className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-cyan-600 font-bold">
-          <ArrowLeft className="h-4 w-4" /> All Products
+          <ArrowLeft className="h-4 w-4" /> Saare products
         </button>
         <div className="flex items-center gap-2 flex-wrap">
           <Link to={`/appliance-products/${id}/edit`} className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-cyan-50 border-2 border-cyan-200 hover:bg-cyan-100 text-cyan-700 text-sm font-extrabold">
@@ -226,6 +380,14 @@ export default function ApplianceProductDetailPage() {
           <Link to="/pos" className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white border-2 border-slate-200 hover:border-cyan-300 text-slate-700 text-sm font-extrabold">
             <ShoppingCart className="h-4 w-4" /> POS
           </Link>
+          <button onClick={printSpecSheet}
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white border-2 border-slate-200 hover:border-cyan-300 text-slate-700 text-sm font-extrabold transition" title="Spec sheet (P)">
+            <Printer className="h-4 w-4" /> Spec Sheet
+          </button>
+          <button onClick={() => setShowTeacher(true)}
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-50 border-2 border-amber-200 hover:bg-amber-100 text-amber-800 text-sm font-extrabold transition" title="Guide (T)">
+            <GraduationCap className="h-4 w-4" /> Guide
+          </button>
           <PrivacyToggle compact />
           <button
             onClick={() => { if (confirm(`Delete "${product.name}"?`)) removeMutation.mutate(); }}
@@ -453,11 +615,11 @@ export default function ApplianceProductDetailPage() {
                   </div>
                 </div>
               </div>
-              {(brand.serviceCenter || brand.serviceContact || brand.serviceEmail) && (
+              {(brand.serviceCenter || brand.supportPhone || brand.supportEmail) && (
                 <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-slate-100">
                   {brand.serviceCenter && <MiniField label="Service Center" value={brand.serviceCenter} />}
-                  {brand.serviceContact && <MiniField label="Phone" value={brand.serviceContact} />}
-                  {brand.serviceEmail && <MiniField label="Email" value={brand.serviceEmail} />}
+                  {brand.supportPhone && <MiniField label="Phone" value={brand.supportPhone} />}
+                  {brand.supportEmail && <MiniField label="Email" value={brand.supportEmail} />}
                 </div>
               )}
             </section>
@@ -684,7 +846,7 @@ export default function ApplianceProductDetailPage() {
 
       {/* SERIALS */}
       {tab === 'serials' && (
-        <Panel icon={Barcode} title="Serial Tracking" desc={`${stats.serialCount} total • ${stats.serialInStock} in stock • ${stats.serialSold} sold`} tone="amber"
+        <Panel icon={Barcode} title="Serial Register" desc={`${stats.serialCount} total • ${stats.serialInStock} in stock • ${stats.serialSold} sold`} tone="amber"
           empty={serials.length === 0}
           emptyText="No serials tracked"
           emptyAction={<Link to={`/appliance-products/${id}/edit`}><Button variant="secondary"><Plus className="h-4 w-4" /> Add Serials</Button></Link>}>
@@ -1037,5 +1199,74 @@ function QuickLink({ to, icon: Icon, title, desc, tone }: any) {
       </div>
       <ChevronRight className="h-4 w-4 text-slate-400" />
     </Link>
+  );
+}
+
+/* ═════════════════════════════════════════════════════════════
+   TEACHER
+   ═════════════════════════════════════════════════════════════ */
+function DetailTeacher({ onClose }: { onClose: () => void }) {
+  return (
+    <Teacher
+      title="Product Ki Poori Tafseel"
+      intro={
+        <>
+          Ye safha ek product ka <strong>poora record</strong> hai — specs, warranty, har unit ka serial,
+          kahan laga, kitna bika, aur stock kab kab hila.
+        </>
+      }
+      blocks={[
+        {
+          title: '📄 Spec Sheet — customer ko dikhane wala',
+          tone: 'cyan',
+          tips: [
+            <><Kbd dark>P</Kbd> — A4 par <strong>spec sheet</strong> nikalta hai: saari technical tafseel,
+              warranty ke mahine, installation ki shartein aur khoobiyan</>,
+            <>Customer ko dikhane ya showroom me rakhne ke liye — zubani batane se behtar hai</>,
+            <>Jo khana khali ho wo <strong>chapta hi nahi</strong> — sheet saaf rehti hai</>,
+          ],
+        },
+        {
+          title: '🔖 Serial Register',
+          tone: 'violet',
+          tips: [
+            <>Is product ke <strong>har unit</strong> ka apna record — kaun stock me hai, kaun bik chuka</>,
+            <>Bike hue unit par customer ka naam aur warranty ki tareekh nazar aati hai</>,
+            <>Warranty ka jhagra ho to yahin se serial dhoond kar tasdeeq karein</>,
+          ],
+        },
+        {
+          title: '🔧 Installation aur Sales History',
+          tone: 'amber',
+          tips: [
+            <><strong>Installation history</strong> — ye cheez kitni bar lagi, kitni baqi hai</>,
+            <><strong>Sales history</strong> — kis kis ne khareedi</>,
+            <>Agar ek hi product baar baar <strong>service me aa raha ho</strong> to aage mangwane se pehle sochein</>,
+          ],
+        },
+        {
+          title: '⚙️ Settings poori rakhein',
+          tone: 'rose',
+          tips: [
+            <><Kbd dark>E</Kbd> — edit. <strong>Warranty ke mahine aur installation charge</strong> zaroor bharein</>,
+            <>Warranty ke baghair: bikne par warranty ki tareekh nahi banegi aur card khali chapega</>,
+            <>Installation charge ke baghair: POS par charge 0 lagega aur kamai zaya ho jayegi</>,
+          ],
+        },
+      ]}
+      shortcuts={[
+        { keys: 'P', label: 'Spec sheet print' },
+        { keys: 'E', label: 'Edit' },
+        { keys: 'T', label: 'Ye guide' },
+        { keys: 'Esc', label: 'Wapas' },
+      ]}
+      golden={
+        <>
+          <strong>Sunahri usool:</strong> Mehngi cheez bechte waqt customer ko <strong>spec sheet</strong>
+          dikhayein. Jo dukaan kaghaz par tafseel dikhati hai, us par customer ziyada bharosa karta hai.
+        </>
+      }
+      onClose={onClose}
+    />
   );
 }

@@ -5,7 +5,9 @@ export type HistoryEventType =
   | 'CUSTOMER_CREATED' | 'CUSTOMER_UPDATED' | 'CUSTOMER_DELETED'
   | 'CUSTOMER_PAYMENT' | 'CATEGORY_ADDED' | 'BRAND_ADDED'
   | 'EXPENSE_CREATED' | 'EXPENSE_UPDATED' | 'EXPENSE_DELETED' | 'SALE_OFFLINE'
-  | 'SALE_SYNCED' | 'SALE_FAILED' | 'OTHER';
+  | 'SALE_SYNCED' | 'SALE_FAILED'
+  | 'INSTALLATION_BOOKED' | 'SERVICE_REQUESTED' | 'SERIAL_UPDATED'
+  | 'OTHER';
 
 export interface HistoryEvent {
   id: string;
@@ -30,6 +32,9 @@ const typeMap: Record<string, { cat: HistoryEvent['category']; label: string }> 
   UPDATE_CUSTOMER: { cat: 'customer', label: 'Customer update kiya' },
   DELETE_CUSTOMER: { cat: 'customer', label: 'Customer delete kiya' },
   PAYMENT_CUSTOMER: { cat: 'customer', label: 'Customer payment (khata)' },
+  CREATE_INSTALLATION: { cat: 'other', label: 'Installation book ki' },
+  CREATE_SERVICE_REQUEST: { cat: 'other', label: 'Service request banayi' },
+  UPDATE_APPLIANCE_SERIAL: { cat: 'other', label: 'Serial ka record badla' },
   CREATE_EXPENSE: { cat: 'expense', label: 'Expense banaya' },
   UPDATE_EXPENSE: { cat: 'expense', label: 'Expense edit kiya' },
   DELETE_EXPENSE: { cat: 'expense', label: 'Expense delete kiya' },

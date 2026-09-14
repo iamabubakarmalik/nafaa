@@ -67,7 +67,7 @@ export default function DeliveriesPage() {
             </div>
             <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">🚚 Deliveries</h1>
             <p className="mt-2 text-sm text-white/80">
-              {summary?.pendingCount ?? 0} pending • {summary?.dispatchedCount ?? 0} in transit • {summary?.deliveredCount ?? 0} delivered
+              {summary?.pending ?? 0} pending • {summary?.dispatched ?? 0} in transit • {summary?.delivered ?? 0} delivered
             </p>
           </div>
           <button onClick={() => refetch()} disabled={isRefetching}
@@ -79,10 +79,10 @@ export default function DeliveriesPage() {
 
       {summary && (
         <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatCard label="Pending" value={summary.pendingCount ?? 0} icon={Clock} tone="slate" />
+          <StatCard label="Pending" value={summary.pending ?? 0} icon={Clock} tone="slate" />
           <StatCard label="Scheduled Today" value={summary.todayScheduled ?? 0} icon={Calendar} tone="amber" />
-          <StatCard label="In Transit" value={summary.dispatchedCount ?? 0} icon={Truck} tone="blue" />
-          <StatCard label="Delivered" value={summary.deliveredCount ?? 0} icon={CheckCircle2} tone="emerald" />
+          <StatCard label="In Transit" value={summary.dispatched ?? 0} icon={Truck} tone="blue" />
+          <StatCard label="Delivered" value={summary.delivered ?? 0} icon={CheckCircle2} tone="emerald" />
         </section>
       )}
 

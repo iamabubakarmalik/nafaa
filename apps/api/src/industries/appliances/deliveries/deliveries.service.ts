@@ -7,10 +7,25 @@ import { ConfirmApplianceDeliveryDto, CreateApplianceDeliveryDto, UpdateApplianc
 export class ApplianceDeliveriesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(user: AuthenticatedUser, dto: CreateApplianceDeliveryDto) {
-    const count = await this.prisma.applianceDelivery.count({ where: { tenantId: user.tenantId } });
+  /**
+   * Agla delivery number — `count() + 1` se nahi.
+   * Purani delivery delete hone par wohi number dobara ban jata tha aur
+   * `[tenantId, deliveryNumber]` unique constraint tut jata tha.
+   */
+  private async nextNumber(tenantId: string) {
     const year = new Date().getFullYear();
-    const deliveryNumber = `APDL-${year}-${String(count + 1).padStart(4, '0')}`;
+    const prefix = `APDL-${year}-`;
+    const last = await this.prisma.applianceDelivery.findFirst({
+      where: { tenantId, deliveryNumber: { startsWith: prefix } },
+      orderBy: { deliveryNumber: 'desc' },
+      select: { deliveryNumber: true },
+    });
+    const seq = last ? Number(last.deliveryNumber.slice(prefix.length)) || 0 : 0;
+    return `${prefix}${String(seq + 1).padStart(4, '0')}`;
+  }
+
+  async create(user: AuthenticatedUser, dto: CreateApplianceDeliveryDto) {
+    const deliveryNumber = await this.nextNumber(user.tenantId);
 
     // Auto floor charge if no lift and floor > 0
     let floorCharge = dto.floorCharge ?? 0;
@@ -57,7 +72,7 @@ export class ApplianceDeliveriesService {
           ],
         }),
       },
-      orderBy: [{ status: 'asc' }, { scheduledDate: 'asc' }],
+      orderBy: [{ scheduledDate: 'desc' }, { createdAt: 'desc' }],
       take: 200,
     });
   }
@@ -99,11 +114,17 @@ export class ApplianceDeliveriesService {
         },
       });
 
-      // Update serial trackings
+      // Serial register ko bhi bata dein.
+      // tenantId ka filter zaroori hai — warna banaye gaye serialTrackingIds
+      // me kisi aur tenant ki id aa jane par uska record badal jata tha.
       if (d.serialTrackingIds.length > 0) {
         await tx.applianceSerialTracking.updateMany({
-          where: { id: { in: d.serialTrackingIds } },
-          data: { deliveredAt: new Date(), deliveredBy: d.driverName },
+          where: { id: { in: d.serialTrackingIds }, tenantId: user.tenantId },
+          data: {
+            deliveredAt: new Date(),
+            deliveredBy: d.driverName,
+            deliveryAddress: d.deliveryAddress,
+          },
         });
       }
 
@@ -120,22 +141,69 @@ export class ApplianceDeliveriesService {
     });
   }
 
+  /**
+   * Summary — ginti ke sath paisa aur late trips bhi.
+   * Pehle yahan sirf counts thay is liye "delivery se kitna kamaya"
+   * kahin nazar nahi aata tha.
+   */
   async summary(user: AuthenticatedUser) {
-    const [pending, scheduled, dispatched, delivered, todayScheduled] = await Promise.all([
-      this.prisma.applianceDelivery.count({ where: { tenantId: user.tenantId, status: 'PENDING' } }),
-      this.prisma.applianceDelivery.count({ where: { tenantId: user.tenantId, status: 'SCHEDULED' } }),
-      this.prisma.applianceDelivery.count({ where: { tenantId: user.tenantId, status: 'DISPATCHED' } }),
-      this.prisma.applianceDelivery.count({ where: { tenantId: user.tenantId, status: 'DELIVERED' } }),
-      this.prisma.applianceDelivery.count({
-        where: {
-          tenantId: user.tenantId,
-          scheduledDate: {
-            gte: new Date(new Date().setHours(0, 0, 0, 0)),
-            lte: new Date(new Date().setHours(23, 59, 59, 999)),
-          },
+    const tenantId = user.tenantId;
+    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date(); todayEnd.setHours(23, 59, 59, 999);
+    const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
+
+    const [byStatus, openRows, doneMonth, todayScheduled] = await Promise.all([
+      this.prisma.applianceDelivery.groupBy({
+        by: ['status'], where: { tenantId }, _count: { _all: true },
+      }),
+      this.prisma.applianceDelivery.findMany({
+        where: { tenantId, status: { in: ['PENDING', 'SCHEDULED', 'DISPATCHED', 'ARRIVED'] } },
+        select: { id: true, scheduledDate: true, vehicleNumber: true, requiresInstallation: true, installationLinked: true },
+      }),
+      this.prisma.applianceDelivery.findMany({
+        where: { tenantId, status: 'DELIVERED', deliveredAt: { gte: monthStart } },
+        select: {
+          totalCharge: true, deliveryCharge: true, loadingCharge: true,
+          unloadingCharge: true, floorCharge: true, requiresInstallation: true, installationLinked: true,
         },
       }),
+      this.prisma.applianceDelivery.count({
+        where: { tenantId, scheduledDate: { gte: todayStart, lte: todayEnd } },
+      }),
     ]);
-    return { pending, scheduled, dispatched, delivered, todayScheduled };
+
+    const map = Object.fromEntries(byStatus.map((r) => [r.status, r._count._all]));
+    const revenue = doneMonth.reduce((s, r) => s + Number(r.totalCharge), 0);
+
+    return {
+      // Purane naam waise hi rakhe hain
+      pending: map['PENDING'] ?? 0,
+      scheduled: map['SCHEDULED'] ?? 0,
+      dispatched: map['DISPATCHED'] ?? 0,
+      delivered: map['DELIVERED'] ?? 0,
+      todayScheduled,
+
+      arrived: map['ARRIVED'] ?? 0,
+      cancelled: map['CANCELLED'] ?? 0,
+      open: openRows.length,
+      /** Gaari abhi tak nahi lagi */
+      noVehicle: openRows.filter((r) => !r.vehicleNumber).length,
+      /** Tareekh guzar gayi lekin maal nahi pohancha */
+      overdue: openRows.filter((r) => r.scheduledDate && new Date(r.scheduledDate) < todayStart).length,
+      /** Maal pohanch gaya lekin installation abhi book nahi hui */
+      installationPending: doneMonth.filter((r) => r.requiresInstallation && !r.installationLinked).length,
+
+      month: {
+        trips: doneMonth.length,
+        revenue,
+        avgTrip: doneMonth.length ? revenue / doneMonth.length : 0,
+        breakdown: {
+          delivery: doneMonth.reduce((s, r) => s + Number(r.deliveryCharge), 0),
+          loading: doneMonth.reduce((s, r) => s + Number(r.loadingCharge), 0),
+          unloading: doneMonth.reduce((s, r) => s + Number(r.unloadingCharge), 0),
+          floor: doneMonth.reduce((s, r) => s + Number(r.floorCharge), 0),
+        },
+      },
+    };
   }
 }

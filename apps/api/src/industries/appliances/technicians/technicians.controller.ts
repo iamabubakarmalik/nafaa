@@ -20,6 +20,7 @@ export class TechniciansController {
       active: active === 'true' ? true : active === 'false' ? false : undefined,
     });
   }
+  @Get('summary') summary(@GetUser() user: AuthenticatedUser) { return this.service.summary(user); }
   @Get('top') top(@GetUser() user: AuthenticatedUser, @Query('limit') limit?: string) { return this.service.topPerformers(user, limit ? Number(limit) : 10); }
   @Get(':id') getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(user, id); }
   @Get(':id/workload') workload(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Query('from') from: string, @Query('to') to: string) {
