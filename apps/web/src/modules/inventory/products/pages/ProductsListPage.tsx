@@ -15,6 +15,7 @@ import { tagsApi } from '@modules/inventory/tags/api/tags.api';
 import { Button } from '@core/ui/Button';
 import { Input } from '@core/ui/Input';
 import { formatPKR } from '@core/lib/format';
+import { productEmoji, productTint } from '../lib/productEmoji';
 import { toast } from 'sonner';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import { carpetRollsApi, type CarpetProductSummary } from '@industries/carpet/api/carpet-rolls.api';
@@ -815,8 +816,8 @@ export default function ProductsListPage() {
                               {primaryImage ? (
                                 <img src={primaryImage} alt={p.name} className="w-full h-full object-cover" />
                               ) : (
-                                <div className="w-full h-full flex items-center justify-center text-slate-400">
-                                  <Package className="h-5 w-5" />
+                                <div className={`w-full h-full flex items-center justify-center text-lg select-none bg-gradient-to-br ${productTint(p.name)}`}>
+                                  {productEmoji(p.name, p.category?.name)}
                                 </div>
                               )}
                             </div>
@@ -1109,8 +1110,13 @@ function ProductCard({
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
-              <Package className="h-10 w-10 text-slate-400" />
+            /* Tasveer na ho to sleti dabba nahi — cheez ka apna nishan,
+               naam/category se andaza laga kar. Warna 1000 products ek
+               jaise nazar aate hain aur kuch pehchana nahi jata. */
+            <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${productTint(p.name)} select-none`}>
+              <span className="text-5xl drop-shadow-sm group-hover:scale-110 transition-transform duration-500">
+                {productEmoji(p.name, p.category?.name)}
+              </span>
             </div>
           )}
 

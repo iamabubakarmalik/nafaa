@@ -400,6 +400,26 @@ export default function RetailProductDetailPage() {
               {product.isActive ? <Chip icon={CheckCircle2} tone="emerald">Active</Chip> : <Chip icon={XCircle} tone="rose">Band</Chip>}
             </div>
 
+            {/* Tags — wizard me lagte thay magar yahan kahin nazar
+                nahi aate thay, is liye lagane ka faida hi na dikhta */}
+            {(product.tags ?? []).length > 0 && (
+              <div className="mt-2 flex items-center gap-1.5 flex-wrap">
+                {(product.tags ?? []).map((row: any) => {
+                  const t = row?.tag ?? row;
+                  if (!t?.name) return null;
+                  return (
+                    <Link key={t.id} to={`/retail-products?tag=${t.id}`}
+                      className="inline-flex items-center gap-1 text-[11px] font-black px-2.5 py-1 rounded-xl border-2 border-white/25 bg-white/15 hover:bg-white/25 backdrop-blur transition"
+                      style={{ color: '#fff' }}>
+                      <span className="h-2 w-2 rounded-full shrink-0"
+                        style={{ background: t.color || '#38bdf8' }} />
+                      #{t.name}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+
             {/* Price block */}
             <div className="mt-5 flex items-end gap-5 flex-wrap">
               <div>

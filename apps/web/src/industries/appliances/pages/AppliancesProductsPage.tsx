@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { formatPKR } from '@core/lib/format';
 import { Button } from '@core/ui/Button';
 import { useAuthStore } from '@core/stores/auth.store';
+import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { productsApi, type Product } from '@modules/inventory/products/api/products.api';
 import { brandsApi } from '@modules/inventory/brands/api/brands.api';
 import { applianceProductsApi } from '../api/products.api';
@@ -70,9 +71,12 @@ export default function AppliancesProductsPage() {
     try { localStorage.setItem(VIEW_KEY, v); } catch { /* private mode */ }
   };
 
+  /* Pehle `limit: 500` tha — 500 se zyada maal wali dukaan ka
+     baqi stock safhe par aata hi nahi tha, aur stock ki qeemat
+     bhi kam nazar aati thi. Ab poori list. */
   const { data, isLoading, refetch, isFetching } = useQuery({
-    queryKey: ['appliance-products-list'],
-    queryFn: () => productsApi.list({ page: 1, limit: 500 }),
+    queryKey: ['appliance-products-list', 'all'],
+    queryFn: () => fetchAllProducts(),
   });
 
   const { data: profiles = [] } = useQuery({

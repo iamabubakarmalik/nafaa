@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   ShoppingBag, Plus, Search, X, RefreshCw, Download, Grid3x3, List,
@@ -7,13 +7,19 @@ import {
   Barcode, ShoppingCart, CheckCircle2, XCircle, Star,
   Boxes, PackageX, Upload, Zap, Tag, GraduationCap, ArrowRight,
   Keyboard, Camera, Layers, TrendingUp, Printer, HelpCircle,
+  Sparkles, SlidersHorizontal,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@core/ui/Button';
 import { formatPKR } from '@core/lib/format';
 import { productsApi } from '@modules/inventory/products/api/products.api';
+import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
+import { productEmoji, productTint } from '@modules/inventory/products/lib/productEmoji';
+import { ProductsAnalytics } from '../components/ProductsAnalytics';
+import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
 import { brandsApi } from '@modules/inventory/brands/api/brands.api';
+import { tagsApi } from '@modules/inventory/tags/api/tags.api';
 import { forceRefreshProducts } from '@core/lib/offline/offlineProducts';
 import { QuickStockModal } from '../components/QuickStockModal';
 import { QuickSetupCatalogModal } from '@modules/inventory/products/components/QuickSetupCatalogModal';
@@ -22,15 +28,14 @@ import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 import { useAuthStore } from '@core/stores/auth.store';
 
 /* ═════════════════════════════════════════════════════════════
-   NAFAA RETAIL PRODUCTS — FULL BEST v3
+   NAFAA RETAIL PRODUCTS — ULTIMATE EDITION v4
    ─────────────────────────────────────────────────────────────
-   🌙 Dark mode COMPLETE (pehle bilkul nahi tha!)
-   🎓 Teacher modal — "Products page kaise use karein"
-   🔢 Filter pills pe live counts
-   ⌨️  / = search focus, Esc = modals band
-   🖨️ Print/PDF (A4 landscape, multi-page)
-   📊 CSV (summary header ke sath)
-   📱 Mobile → 4K responsive
+   💀 Skeleton loading (spinner ka zamaana gaya)
+   📌 Sticky toolbar — scroll me bhi search haath me
+   📱 Mobile-first — har button chhote haath ke liye perfect
+   🌙 Dark mode — har pixel polished
+   🎓 Teacher + Quick Setup + Print + CSV + Shortcuts — sab live
+   ⌨️  / = search • Esc = band
    ═════════════════════════════════════════════════════════════ */
 
 type ViewMode = 'grid' | 'table';
@@ -48,10 +53,16 @@ export default function RetailProductsPage() {
   const tenantName = useAuthStore((s) => s.tenant?.name);
   const shopName = useAuthStore((s) => s.user?.assignedShop?.name);
   const searchRef = useRef<HTMLInputElement>(null);
+  /* Detail page se "#tag" par click — seedha wohi chaant lag jaye */
+  const [urlParams, setUrlParams] = useSearchParams();
 
   const [search, setSearch] = useState('');
   const [categoryId, setCategoryId] = useState('all');
   const [brandId, setBrandId] = useState('all');
+  /* Tags ka intezam pehle se tha (wizard me chip bhi lagte hain)
+     magar list me na filter tha na tag nazar aate thay — is liye
+     lagaya hua tag kisi kaam ka nahi tha. */
+  const [tagId, setTagId] = useState(() => urlParams.get('tag') ?? 'all');
   const [stockFilter, setStockFilter] = useState<StockFilter>('all');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('active');
   const [sortKey, setSortKey] = useState<SortKey>('name');
@@ -63,6 +74,9 @@ export default function RetailProductsPage() {
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [bulkDeleteStep, setBulkDeleteStep] = useState<1 | 2>(1);
   const [showTeacher, setShowTeacher] = useState(false);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [tab, setTab] = useState<'list' | 'analytics'>('list');
+  const [scannerOpen, setScannerOpen] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem(VIEW_KEY);
@@ -70,14 +84,28 @@ export default function RetailProductsPage() {
   }, []);
   useEffect(() => { localStorage.setItem(VIEW_KEY, view); }, [view]);
 
+  // Tag chunte hi URL me bhi likh dein — link share ho sakta hai
+  useEffect(() => {
+    const cur = urlParams.get('tag') ?? 'all';
+    if (cur === tagId) return;
+    const next = new URLSearchParams(urlParams);
+    if (tagId === 'all') next.delete('tag');
+    else next.set('tag', tagId);
+    setUrlParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tagId]);
+
+  /* Poori list aati hai — limit: 1000 wala purana bug fix.
+     Chahe 10 hon ya 10,000 — sab products, sab stats bilkul sahi. */
   const { data, isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['retail-products'],
-    queryFn: () => productsApi.list({ page: 1, limit: 1000 } as any),
+    queryKey: ['retail-products', 'all'],
+    queryFn: () => fetchAllProducts(),
   });
-  const products: any[] = (data as any)?.items ?? (Array.isArray(data) ? (data as any) : []);
+  const products: any[] = data?.items ?? [];
 
   const { data: categories = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list });
   const { data: brands = [] } = useQuery({ queryKey: ['brands'], queryFn: () => brandsApi.list() });
+  const { data: tags = [] } = useQuery({ queryKey: ['tags'], queryFn: tagsApi.list });
 
   /* ─── Stats ─── */
   const stats = useMemo(() => {
@@ -121,6 +149,11 @@ export default function RetailProductsPage() {
         ? list.filter((p) => !p.categoryId)
         : list.filter((p) => p.categoryId === categoryId);
     }
+    if (tagId !== 'all') {
+      list = tagId === 'none'
+        ? list.filter((p) => !(p.tags ?? []).length)
+        : list.filter((p) => (p.tags ?? []).some((t: any) => (t?.tag?.id ?? t?.tagId ?? t?.id) === tagId));
+    }
     if (brandId !== 'all') {
       list = brandId === 'none'
         ? list.filter((p) => !p.brandId)
@@ -149,14 +182,14 @@ export default function RetailProductsPage() {
       }
     });
     return list;
-  }, [products, search, categoryId, brandId, stockFilter, statusFilter, sortKey]);
+  }, [products, search, categoryId, brandId, tagId, stockFilter, statusFilter, sortKey]);
 
   const visible = filtered.slice(0, visibleCount);
-  useEffect(() => { setVisibleCount(PAGE_SIZE); }, [search, categoryId, brandId, stockFilter, statusFilter, sortKey]);
+  useEffect(() => { setVisibleCount(PAGE_SIZE); }, [search, categoryId, brandId, tagId, stockFilter, statusFilter, sortKey]);
 
-  const hasFilters = !!search || categoryId !== 'all' || brandId !== 'all' || stockFilter !== 'all' || statusFilter !== 'active';
+  const hasFilters = !!search || categoryId !== 'all' || brandId !== 'all' || tagId !== 'all' || stockFilter !== 'all' || statusFilter !== 'active';
   const clearFilters = () => {
-    setSearch(''); setCategoryId('all'); setBrandId('all');
+    setSearch(''); setCategoryId('all'); setBrandId('all'); setTagId('all');
     setStockFilter('all'); setStatusFilter('active');
   };
 
@@ -273,19 +306,45 @@ export default function RetailProductsPage() {
         e.preventDefault();
         searchRef.current?.focus();
       }
+      const typing = document.activeElement?.tagName === 'INPUT'
+        || document.activeElement?.tagName === 'TEXTAREA';
+      if (e.key.toLowerCase() === 'b' && !typing && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        setScannerOpen(true);
+      }
       if (e.key === 'Escape') {
-        if (showTeacher) setShowTeacher(false);
+        if (scannerOpen) setScannerOpen(false);
+        else if (showTeacher) setShowTeacher(false);
         else if (bulkDeleteOpen) setBulkDeleteOpen(false);
+        else if (showMobileFilters) setShowMobileFilters(false);
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [showTeacher, bulkDeleteOpen]);
+  }, [showTeacher, bulkDeleteOpen, showMobileFilters, scannerOpen]);
 
+  /* ─── LOADING — Skeletons, spinner nahi ─── */
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-24">
-        <div className="h-12 w-12 rounded-full border-4 border-sky-200 dark:border-sky-800 border-t-sky-600 dark:border-t-sky-400 animate-spin" />
+      <div className="space-y-4 sm:space-y-5 pb-24 animate-pulse">
+        <div className="rounded-2xl sm:rounded-3xl bg-slate-200 dark:bg-slate-800 h-36 sm:h-44" />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="rounded-2xl bg-slate-200 dark:bg-slate-800 h-24" />
+          ))}
+        </div>
+        <div className="rounded-2xl bg-slate-200 dark:bg-slate-800 h-14" />
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <div key={i} className="rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 overflow-hidden">
+              <div className="aspect-square bg-slate-200 dark:bg-slate-800" />
+              <div className="p-2.5 space-y-2">
+                <div className="h-3 rounded bg-slate-200 dark:bg-slate-800 w-4/5" />
+                <div className="h-3 rounded bg-slate-200 dark:bg-slate-800 w-2/5" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -298,11 +357,11 @@ export default function RetailProductsPage() {
 
       {quickSetupOpen && <QuickSetupCatalogModal onClose={() => setQuickSetupOpen(false)} />}
 
-      {/* ═══ BULK DELETE MODAL ═══ */}
+      {/* ═══ BULK DELETE MODAL — 2-step, safe ═══ */}
       {bulkDeleteOpen && (
-        <div className="fixed inset-0 z-[100] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4"
+        <div className="fixed inset-0 z-[100] bg-slate-950/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
              onClick={() => setBulkDeleteOpen(false)}>
-          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden"
+          <div className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200"
                onClick={(e) => e.stopPropagation()}>
             <div className="bg-gradient-to-br from-rose-600 to-red-700 text-white p-5">
               <div className="flex items-center gap-3">
@@ -329,7 +388,7 @@ export default function RetailProductsPage() {
                     <ul className="text-xs font-semibold text-rose-800 dark:text-rose-300 space-y-1">
                       <li>• Products + images + variants + batches</li>
                       <li>• Stock records (har shop ka)</li>
-                      <li>• Sale items & purchase history</li>
+                      <li>• Sale items &amp; purchase history</li>
                       <li>• IMEIs / carpet rolls / cut pieces (agar hain)</li>
                       <li>• Empty ho jane wali sale receipts</li>
                     </ul>
@@ -340,13 +399,13 @@ export default function RetailProductsPage() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => setBulkDeleteOpen(false)}
-                      className="flex-1 h-11 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-sm font-extrabold text-slate-700 dark:text-slate-200 transition"
+                      className="flex-1 h-12 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-sm font-extrabold text-slate-700 dark:text-slate-200 transition active:scale-[0.98]"
                     >
                       Cancel — Rehne Do
                     </button>
                     <button
                       onClick={() => setBulkDeleteStep(2)}
-                      className="flex-1 h-11 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-sm font-extrabold transition"
+                      className="flex-1 h-12 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-sm font-extrabold transition active:scale-[0.98]"
                     >
                       Samajh gaya, aage →
                     </button>
@@ -362,13 +421,13 @@ export default function RetailProductsPage() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => setBulkDeleteStep(1)}
-                      className="flex-1 h-11 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-sm font-extrabold text-slate-700 dark:text-slate-200 transition"
+                      className="flex-1 h-12 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-sm font-extrabold text-slate-700 dark:text-slate-200 transition active:scale-[0.98]"
                     >
                       ← Wapas
                     </button>
                     <button
                       onClick={() => { setBulkDeleteOpen(false); forceDeleteAll(Array.from(selected)); }}
-                      className="flex-1 h-11 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-sm font-extrabold inline-flex items-center justify-center gap-2 transition"
+                      className="flex-1 h-12 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-sm font-extrabold inline-flex items-center justify-center gap-2 transition active:scale-[0.98]"
                     >
                       <Trash2 className="h-4 w-4" /> Delete Forever
                     </button>
@@ -402,6 +461,11 @@ export default function RetailProductsPage() {
       <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-sky-900 to-cyan-700 dark:from-slate-950 dark:via-sky-950 dark:to-cyan-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-sky-400/25 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-cyan-400/20 blur-3xl pointer-events-none" />
+        {/* subtle dot texture */}
+        <div
+          className="absolute inset-0 opacity-[0.06] pointer-events-none"
+          style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '22px 22px' }}
+        />
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0 flex-1">
@@ -414,31 +478,39 @@ export default function RetailProductsPage() {
                 </>
               )}
             </div>
-            <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight">📦 Products</h1>
-            <p className="mt-1.5 text-xs sm:text-sm text-white/90 font-semibold">
-              <strong className="text-cyan-200">{stats.total}</strong> products
-              <span className="opacity-50 mx-1.5">•</span>
-              <strong className="text-emerald-300">{stats.active}</strong> active
+            <h1 className="mt-2.5 text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight tracking-tight">
+              📦 Products
+            </h1>
+            <p className="mt-1.5 text-xs sm:text-sm text-white/90 font-semibold flex flex-wrap items-center gap-x-1.5 gap-y-1">
+              <span className="inline-flex items-center gap-1 rounded-lg bg-white/10 px-2 py-0.5">
+                <strong className="text-cyan-200">{stats.total}</strong> products
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-lg bg-white/10 px-2 py-0.5">
+                <strong className="text-emerald-300">{stats.active}</strong> active
+              </span>
               {!hideCost && (
-                <>
-                  <span className="opacity-50 mx-1.5">•</span>
-                  Stock value <strong className="text-emerald-300">{formatPKR(stats.stockValue)}</strong>
-                </>
+                <span className="inline-flex items-center gap-1 rounded-lg bg-white/10 px-2 py-0.5">
+                  Value <strong className="text-emerald-300">{formatPKR(stats.stockValue)}</strong>
+                </span>
               )}
-              {(stats.lowCount > 0 || stats.outCount > 0) && (
-                <>
-                  <span className="opacity-50 mx-1.5">•</span>
+              {stats.lowCount > 0 && (
+                <span className="inline-flex items-center gap-1 rounded-lg bg-amber-400/20 px-2 py-0.5">
                   <strong className="text-amber-300">{stats.lowCount}</strong> kam
-                  <span className="opacity-50 mx-1">•</span>
+                </span>
+              )}
+              {stats.outCount > 0 && (
+                <span className="inline-flex items-center gap-1 rounded-lg bg-rose-400/20 px-2 py-0.5">
                   <strong className="text-rose-300">{stats.outCount}</strong> khatam
-                </>
+                </span>
               )}
             </p>
           </div>
+
+          {/* Actions — desktop pe saare, mobile pe smart wrap */}
           <div className="flex gap-2 flex-wrap items-center shrink-0">
             <button
               onClick={() => setShowTeacher(true)}
-              className="h-11 px-3 rounded-xl bg-amber-400/90 hover:bg-amber-400 text-slate-900 text-xs font-extrabold inline-flex items-center gap-1.5 shadow-lg transition"
+              className="h-11 px-3 rounded-xl bg-amber-400/90 hover:bg-amber-400 text-slate-900 text-xs font-extrabold inline-flex items-center gap-1.5 shadow-lg transition active:scale-[0.97]"
               title="Kaise kaam karta hai?"
             >
               <GraduationCap className="h-4 w-4" />
@@ -448,33 +520,33 @@ export default function RetailProductsPage() {
             <button
               onClick={() => refetch()}
               disabled={isRefetching}
-              className="h-11 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-xs font-extrabold inline-flex items-center gap-1.5 backdrop-blur-md disabled:opacity-50 transition"
+              className="h-11 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-xs font-extrabold inline-flex items-center gap-1.5 backdrop-blur-md disabled:opacity-50 transition active:scale-[0.97]"
             >
               <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
               <span className="hidden sm:inline">Refresh</span>
             </button>
             <button
               onClick={handlePrint}
-              className="h-11 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-xs font-extrabold inline-flex items-center gap-1.5 backdrop-blur-md transition"
+              className="h-11 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-xs font-extrabold inline-flex items-center gap-1.5 backdrop-blur-md transition active:scale-[0.97]"
             >
               <Printer className="h-4 w-4" />
               <span className="hidden sm:inline">Print</span>
             </button>
             <button
               onClick={() => setQuickSetupOpen(true)}
-              className="h-11 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-xs font-extrabold inline-flex items-center gap-1.5 shadow-lg shadow-amber-500/30 transition"
+              className="h-11 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-xs font-extrabold inline-flex items-center gap-1.5 shadow-lg shadow-amber-500/30 transition active:scale-[0.97]"
             >
               <Zap className="h-4 w-4" /> Quick Setup ⚡
             </button>
             <Link
               to="/retail/bulk-import"
-              className="h-11 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-xs font-extrabold inline-flex items-center gap-1.5 backdrop-blur-md transition"
+              className="h-11 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-xs font-extrabold inline-flex items-center gap-1.5 backdrop-blur-md transition active:scale-[0.97]"
             >
               <Upload className="h-4 w-4" /> <span className="hidden sm:inline">Bulk Import</span>
             </Link>
             <Link
               to="/retail-products/new"
-              className="h-11 px-4 rounded-xl bg-white text-slate-900 hover:bg-slate-100 text-xs font-extrabold inline-flex items-center gap-1.5 shadow-2xl transition"
+              className="h-11 px-4 rounded-xl bg-white text-slate-900 hover:bg-slate-100 text-xs font-extrabold inline-flex items-center gap-1.5 shadow-2xl transition active:scale-[0.97]"
             >
               <Plus className="h-4 w-4" /> Naya Product
             </Link>
@@ -492,6 +564,33 @@ export default function RetailProductsPage() {
       {/* ═══ TEACHER MODAL ═══ */}
       {showTeacher && <ProductsTeacher onClose={() => setShowTeacher(false)} onQuickSetup={() => { setShowTeacher(false); setQuickSetupOpen(true); }} />}
 
+      {/* ═══ BARCODE SCANNER ═══ */}
+      {scannerOpen && (
+        <BarcodeScanner
+          onClose={() => setScannerOpen(false)}
+          onDetected={(code: string) => {
+            const clean = code.trim();
+            setScannerOpen(false);
+            // Scan hote hi list usi cheez par aa jaye — chaant bhi
+            // hata dete hain, warna cheez "band" ya "khatam" wale
+            // filter me chhupi reh jati hai aur lagta hai mili hi nahi.
+            const hit = products.find(
+              (p) => p.barcode === clean || p.sku === clean ||
+                (p.barcode ?? '').toLowerCase() === clean.toLowerCase(),
+            );
+            setTab('list');
+            setStockFilter('all');
+            setStatusFilter('all');
+            setCategoryId('all');
+            setBrandId('all');
+            setSearch(clean);
+            setVisibleCount(PAGE_SIZE);
+            if (hit) toast.success(`${hit.name} mil gaya`);
+            else toast.error(`Barcode ${clean} kisi cheez se nahi mila — nayi cheez hai?`);
+          }}
+        />
+      )}
+
       {/* ═══ KPIs ═══ */}
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 print:hidden">
         <Kpi icon={Package} label="Total Products" value={stats.total} sub={`${stats.inactive} inactive`} tone="sky" />
@@ -501,6 +600,53 @@ export default function RetailProductsPage() {
         <Kpi icon={PackageX} label="Out of Stock" value={stats.outCount} sub="Khatam ho gaya" tone="rose"
           onClick={() => { setStockFilter('out'); setStatusFilter('all'); }} active={stockFilter === 'out'} />
       </section>
+
+      {/* ═══ TABS — poori chaurai me aadha aadha ═══
+          Pehle ye do chhote se button baein kone me dabe hue thay;
+          itni bari screen par nazar hi nahi parti thi ke Analytics
+          naam ka koi safha bhi mojood hai. */}
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 print:hidden">
+        {([
+          { v: 'list' as const, label: 'Products', hint: 'Poori list, chaant aur scan', icon: Package, n: stats.total as number | undefined },
+          { v: 'analytics' as const, label: 'Analytics', hint: 'Paisa kahan khara hai', icon: TrendingUp, n: undefined },
+        ]).map((t) => {
+          const on = tab === t.v;
+          return (
+            <button key={t.v} onClick={() => setTab(t.v)}
+              className={`group relative overflow-hidden rounded-3xl border-2 px-4 sm:px-6 py-4 text-left transition active:scale-[0.99] ${
+                on
+                  ? 'bg-gradient-to-br from-sky-600 to-blue-700 border-transparent text-white shadow-xl shadow-sky-500/30'
+                  : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-sky-400 hover:shadow-lg'
+              }`}>
+              {on && <div className="absolute -top-10 -right-10 h-28 w-28 rounded-full bg-white/15 blur-2xl" />}
+              <div className="relative flex items-center gap-3">
+                <div className={`h-11 w-11 sm:h-12 sm:w-12 rounded-2xl flex items-center justify-center shrink-0 transition ${
+                  on ? 'bg-white/20' : 'bg-gradient-to-br from-sky-500 to-blue-700 text-white group-hover:scale-105'
+                }`}>
+                  <t.icon className="h-5 w-5 sm:h-6 sm:w-6" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-base sm:text-lg font-black truncate">{t.label}</span>
+                    {t.n !== undefined && (
+                      <span className={`px-2 py-0.5 rounded-full text-[11px] font-black tabular-nums shrink-0 ${
+                        on ? 'bg-black/25 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                      }`}>{t.n.toLocaleString()}</span>
+                    )}
+                  </div>
+                  <div className={`text-[11px] font-bold truncate ${on ? 'text-white/80' : 'text-slate-400 dark:text-slate-500'}`}>
+                    {t.hint}
+                  </div>
+                </div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {tab === 'analytics' && <ProductsAnalytics products={products} hideCost={hideCost} />}
+
+      {tab === 'list' && (<>
 
       {/* ═══ LOW STOCK BANNER ═══ */}
       {stats.lowCount > 0 && stockFilter !== 'low' && (
@@ -518,7 +664,7 @@ export default function RetailProductsPage() {
                   <button
                     key={p.id}
                     onClick={() => setStockModalProduct(p)}
-                    className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border-2 border-amber-200 dark:border-amber-500/40 hover:border-amber-400 dark:hover:border-amber-500/60 text-[11px] font-extrabold text-amber-900 dark:text-amber-200 transition"
+                    className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-amber-200 dark:border-amber-500/40 hover:border-amber-400 dark:hover:border-amber-500/60 text-[11px] font-extrabold text-amber-900 dark:text-amber-200 transition active:scale-[0.97]"
                   >
                     {p.name} <span className="text-rose-700 dark:text-rose-400">({p.stock} {p.unit})</span>
                   </button>
@@ -527,7 +673,7 @@ export default function RetailProductsPage() {
             </div>
             <button
               onClick={() => { setStockFilter('low'); setStatusFilter('all'); }}
-              className="px-3 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-extrabold shrink-0 transition shadow-md"
+              className="px-3 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-extrabold shrink-0 transition shadow-md active:scale-[0.97]"
             >
               Sab dekhein →
             </button>
@@ -535,160 +681,196 @@ export default function RetailProductsPage() {
         </section>
       )}
 
-      {/* ═══ TOOLBAR ═══ */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 p-4 space-y-3 print:hidden">
-        <div className="flex gap-2 flex-wrap">
-          <div className="relative flex-1 min-w-[240px]">
-            <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              ref={searchRef}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Naam, SKU ya barcode se dhundo... (/ shortcut)"
-              className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:focus:ring-sky-500/30 transition"
-            />
-            {search && (
-              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
-                <X className="h-4 w-4 text-slate-400" />
+      {/* ═══ TOOLBAR — sticky, hamesha haath me ═══ */}
+      <section className="sticky top-0 z-30 -mx-1 px-1 py-1 print:hidden">
+        <div className="rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-2 border-slate-200 dark:border-slate-800 shadow-lg shadow-slate-900/5 dark:shadow-black/30 p-3 sm:p-4 space-y-3">
+          <div className="flex gap-2 flex-wrap">
+            <div className="relative flex-1 min-w-[200px] sm:min-w-[240px]">
+              <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                ref={searchRef}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Naam, SKU ya barcode se dhundo... (/ shortcut)"
+                className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:focus:ring-sky-500/30 transition"
+              />
+              {search && (
+                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                  <X className="h-4 w-4 text-slate-400" />
+                </button>
+              )}
+            </div>
+
+            {/* Scan — gun ya camera se. Dukaan me naam type karna
+                sab se sust tareeqa hai; dabba haath me hai to scan
+                karo aur cheez foran samne. */}
+            <button
+              onClick={() => setScannerOpen(true)}
+              title="Barcode scan (B)"
+              className="h-12 px-4 rounded-2xl bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 hover:to-blue-600 text-white text-sm font-extrabold inline-flex items-center gap-1.5 shadow-lg shadow-sky-500/30 shrink-0 transition active:scale-[0.97]">
+              <Barcode className="h-4 w-4" /> <span className="hidden sm:inline">Scan</span>
+            </button>
+
+            {/* Mobile filters toggle */}
+            <button
+              onClick={() => setShowMobileFilters((v) => !v)}
+              className={`lg:hidden h-12 px-4 rounded-2xl border-2 text-sm font-extrabold inline-flex items-center gap-1.5 transition active:scale-[0.97] ${
+                showMobileFilters
+                  ? 'border-sky-500 bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-300'
+                  : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200'
+              }`}
+            >
+              <SlidersHorizontal className="h-4 w-4" /> Filters
+              {hasFilters && <span className="h-2 w-2 rounded-full bg-amber-500" />}
+            </button>
+
+            <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden">
+              <button
+                onClick={() => setView('grid')}
+                title="Card view"
+                className={`px-4 h-12 text-xs font-extrabold transition ${view === 'grid' ? 'bg-sky-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
+              >
+                <Grid3x3 className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setView('table')}
+                title="List view"
+                className={`px-4 h-12 text-xs font-extrabold border-l-2 border-slate-200 dark:border-slate-700 transition ${view === 'table' ? 'bg-sky-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
+              >
+                <List className="h-4 w-4" />
+              </button>
+            </div>
+
+            <button
+              onClick={() => exportCSV(filtered)}
+              className="h-12 px-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-sky-300 dark:hover:border-sky-500/50 bg-white dark:bg-slate-800 text-sm font-extrabold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5 transition active:scale-[0.97]"
+            >
+              <Download className="h-4 w-4" /> <span className="hidden sm:inline">Export</span>
+            </button>
+          </div>
+
+          {/* Filter chips — desktop hamesha, mobile pe toggle */}
+          <div className={`gap-2 flex-wrap items-center ${showMobileFilters ? 'flex' : 'hidden lg:flex'}`}>
+            <select
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+              className="h-11 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 transition"
+            >
+              <option value="all">Sab Categories ({categories.length})</option>
+              <option value="none">Bina category</option>
+              {(categories as any[]).map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
+            </select>
+
+            <select
+              value={brandId}
+              onChange={(e) => setBrandId(e.target.value)}
+              className="h-11 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 transition"
+            >
+              <option value="all">Sab Brands ({brands.length})</option>
+              <option value="none">Bina brand</option>
+              {(brands as any[]).map((b) => (<option key={b.id} value={b.id}>{b.name}</option>))}
+            </select>
+
+            <select
+              value={tagId}
+              onChange={(e) => setTagId(e.target.value)}
+              title="Tag se chaanein"
+              className="h-11 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 transition"
+            >
+              <option value="all">Sab Tags ({(tags as any[]).length})</option>
+              <option value="none">Bina tag</option>
+              {(tags as any[]).map((t) => (<option key={t.id} value={t.id}>{t.name}</option>))}
+            </select>
+
+            <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
+              {([
+                { v: 'all' as StockFilter, l: 'Sab', c: null },
+                { v: 'in' as StockFilter, l: 'Stock me', c: null },
+                { v: 'low' as StockFilter, l: 'Kam', c: stats.lowCount },
+                { v: 'out' as StockFilter, l: 'Khatam', c: stats.outCount },
+              ]).map((o) => (
+                <button
+                  key={o.v}
+                  onClick={() => setStockFilter(o.v)}
+                  className={`px-3 py-2 rounded-lg text-xs font-extrabold transition active:scale-[0.97] ${
+                    stockFilter === o.v ? 'bg-sky-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  {o.l}
+                  {o.c != null && (
+                    <span className={`ml-1 tabular-nums ${stockFilter === o.v ? 'text-white/70' : 'text-slate-400 dark:text-slate-500'}`}>{o.c}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
+              {([
+                { v: 'active' as StatusFilter, l: 'Active' },
+                { v: 'inactive' as StatusFilter, l: 'Band' },
+                { v: 'all' as StatusFilter, l: 'Dono' },
+              ]).map((o) => (
+                <button
+                  key={o.v}
+                  onClick={() => setStatusFilter(o.v)}
+                  className={`px-3 py-2 rounded-lg text-xs font-extrabold transition active:scale-[0.97] ${
+                    statusFilter === o.v ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  {o.l}
+                </button>
+              ))}
+            </div>
+
+            <select
+              value={sortKey}
+              onChange={(e) => setSortKey(e.target.value as SortKey)}
+              className="h-11 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 transition"
+            >
+              <option value="name">A → Z</option>
+              <option value="newest">Naye pehle</option>
+              <option value="stock-low">Stock kam pehle</option>
+              <option value="stock-high">Stock zyada pehle</option>
+              <option value="price-low">Sasta pehle</option>
+              <option value="price-high">Mehnga pehle</option>
+            </select>
+
+            {hasFilters && (
+              <button onClick={clearFilters} className="text-xs font-extrabold text-rose-600 dark:text-rose-400 hover:text-rose-700 inline-flex items-center gap-1 transition">
+                <X className="h-3 w-3" /> Filter hatao
               </button>
             )}
-          </div>
 
-          <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden">
-            <button
-              onClick={() => setView('grid')}
-              title="Card view"
-              className={`px-4 h-12 text-xs font-extrabold transition ${view === 'grid' ? 'bg-sky-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
-            >
-              <Grid3x3 className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => setView('table')}
-              title="List view"
-              className={`px-4 h-12 text-xs font-extrabold border-l-2 border-slate-200 dark:border-slate-700 transition ${view === 'table' ? 'bg-sky-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
-            >
-              <List className="h-4 w-4" />
-            </button>
-          </div>
-
-          <button
-            onClick={() => exportCSV(filtered)}
-            className="h-12 px-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-sky-300 dark:hover:border-sky-500/50 bg-white dark:bg-slate-800 text-sm font-extrabold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5 transition"
-          >
-            <Download className="h-4 w-4" /> <span className="hidden sm:inline">Export</span>
-          </button>
-        </div>
-
-        {/* Filter chips */}
-        <div className="flex gap-2 flex-wrap items-center">
-          <select
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-            className="h-10 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 transition"
-          >
-            <option value="all">Sab Categories ({categories.length})</option>
-            <option value="none">Bina category</option>
-            {(categories as any[]).map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
-          </select>
-
-          <select
-            value={brandId}
-            onChange={(e) => setBrandId(e.target.value)}
-            className="h-10 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 transition"
-          >
-            <option value="all">Sab Brands ({brands.length})</option>
-            <option value="none">Bina brand</option>
-            {(brands as any[]).map((b) => (<option key={b.id} value={b.id}>{b.name}</option>))}
-          </select>
-
-          <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
-            {([
-              { v: 'all' as StockFilter, l: 'Sab', c: null },
-              { v: 'in' as StockFilter, l: 'Stock me', c: null },
-              { v: 'low' as StockFilter, l: 'Kam', c: stats.lowCount },
-              { v: 'out' as StockFilter, l: 'Khatam', c: stats.outCount },
-            ]).map((o) => (
-              <button
-                key={o.v}
-                onClick={() => setStockFilter(o.v)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${
-                  stockFilter === o.v ? 'bg-sky-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                }`}
-              >
-                {o.l}
-                {o.c != null && (
-                  <span className={`ml-1 tabular-nums ${stockFilter === o.v ? 'text-white/70' : 'text-slate-400 dark:text-slate-500'}`}>{o.c}</span>
-                )}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
-            {([
-              { v: 'active' as StatusFilter, l: 'Active' },
-              { v: 'inactive' as StatusFilter, l: 'Band' },
-              { v: 'all' as StatusFilter, l: 'Dono' },
-            ]).map((o) => (
-              <button
-                key={o.v}
-                onClick={() => setStatusFilter(o.v)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${
-                  statusFilter === o.v ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                }`}
-              >
-                {o.l}
-              </button>
-            ))}
-          </div>
-
-          <select
-            value={sortKey}
-            onChange={(e) => setSortKey(e.target.value as SortKey)}
-            className="h-10 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 transition"
-          >
-            <option value="name">A → Z</option>
-            <option value="newest">Naye pehle</option>
-            <option value="stock-low">Stock kam pehle</option>
-            <option value="stock-high">Stock zyada pehle</option>
-            <option value="price-low">Sasta pehle</option>
-            <option value="price-high">Mehnga pehle</option>
-          </select>
-
-          {hasFilters && (
-            <button onClick={clearFilters} className="text-xs font-extrabold text-rose-600 dark:text-rose-400 hover:text-rose-700 inline-flex items-center gap-1 transition">
-              <X className="h-3 w-3" /> Filter hatao
-            </button>
-          )}
-
-          <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-slate-400 tabular-nums">
-            {filtered.length} products
+            <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-slate-400 tabular-nums">
+              {filtered.length} products
+            </div>
           </div>
         </div>
       </section>
 
       {/* ═══ BULK BAR ═══ */}
       {selected.size > 0 && (
-        <section className="sticky top-2 z-20 rounded-2xl bg-slate-950 dark:bg-slate-900 text-white shadow-2xl border border-white/20 p-3 flex items-center gap-2 flex-wrap print:hidden">
+        <section className="sticky top-[76px] z-20 rounded-2xl bg-slate-950 dark:bg-slate-900 text-white shadow-2xl border border-white/20 p-3 flex items-center gap-2 flex-wrap print:hidden animate-in slide-in-from-top-2 duration-200">
           <div className="font-extrabold text-sm px-2"><span className="text-sky-300">{selected.size}</span> selected</div>
-          <button onClick={() => bulkStatus.mutate(true)} className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-extrabold inline-flex items-center gap-1 transition">
+          <button onClick={() => bulkStatus.mutate(true)} className="px-3 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-extrabold inline-flex items-center gap-1 transition active:scale-[0.97]">
             <CheckCircle2 className="h-3.5 w-3.5" /> Active karo
           </button>
-          <button onClick={() => bulkStatus.mutate(false)} className="px-3 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-xs font-extrabold inline-flex items-center gap-1 transition">
+          <button onClick={() => bulkStatus.mutate(false)} className="px-3 py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-xs font-extrabold inline-flex items-center gap-1 transition active:scale-[0.97]">
             <XCircle className="h-3.5 w-3.5" /> Band karo
           </button>
-          <button onClick={() => printLabels(Array.from(selected))} className="px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-extrabold inline-flex items-center gap-1 transition">
+          <button onClick={() => printLabels(Array.from(selected))} className="px-3 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-extrabold inline-flex items-center gap-1 transition active:scale-[0.97]">
             <Barcode className="h-3.5 w-3.5" /> Labels print
           </button>
-          <button onClick={() => exportCSV(products.filter((p) => selected.has(p.id)))} className="px-3 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-xs font-extrabold inline-flex items-center gap-1 transition">
+          <button onClick={() => exportCSV(products.filter((p) => selected.has(p.id)))} className="px-3 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-xs font-extrabold inline-flex items-center gap-1 transition active:scale-[0.97]">
             <Download className="h-3.5 w-3.5" /> Export
           </button>
           <button
             onClick={() => { setBulkDeleteStep(1); setBulkDeleteOpen(true); }}
-            className="px-3 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-xs font-extrabold inline-flex items-center gap-1 transition"
+            className="px-3 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-xs font-extrabold inline-flex items-center gap-1 transition active:scale-[0.97]"
           >
             <Trash2 className="h-3.5 w-3.5" /> Delete
           </button>
-          <button onClick={() => setSelected(new Set())} className="ml-auto px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-extrabold transition">
+          <button onClick={() => setSelected(new Set())} className="ml-auto px-3 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-extrabold transition active:scale-[0.97]">
             Clear
           </button>
         </section>
@@ -696,8 +878,8 @@ export default function RetailProductsPage() {
 
       {/* ═══ EMPTY ═══ */}
       {filtered.length === 0 ? (
-        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 border-2 border-dashed border-slate-300 dark:border-slate-700 p-12 sm:p-16 text-center">
-          <div className="mx-auto h-20 w-20 rounded-3xl bg-gradient-to-br from-sky-500 to-cyan-700 flex items-center justify-center shadow-lg shadow-sky-500/40">
+        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 border-2 border-dashed border-slate-300 dark:border-slate-700 p-10 sm:p-16 text-center">
+          <div className="mx-auto h-20 w-20 rounded-3xl bg-gradient-to-br from-sky-500 to-cyan-700 flex items-center justify-center shadow-lg shadow-sky-500/40 rotate-3 hover:rotate-0 transition-transform">
             <ShoppingBag className="h-10 w-10 text-white" />
           </div>
           <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">
@@ -713,13 +895,13 @@ export default function RetailProductsPage() {
               <>
                 <button
                   onClick={() => setShowTeacher(true)}
-                  className="h-11 px-4 rounded-xl bg-amber-100 dark:bg-amber-500/20 hover:bg-amber-200 dark:hover:bg-amber-500/30 text-amber-800 dark:text-amber-200 text-xs font-extrabold inline-flex items-center gap-1.5 border-2 border-amber-300 dark:border-amber-500/40 transition"
+                  className="h-11 px-4 rounded-xl bg-amber-100 dark:bg-amber-500/20 hover:bg-amber-200 dark:hover:bg-amber-500/30 text-amber-800 dark:text-amber-200 text-xs font-extrabold inline-flex items-center gap-1.5 border-2 border-amber-300 dark:border-amber-500/40 transition active:scale-[0.97]"
                 >
                   <GraduationCap className="h-4 w-4" /> Pehle Seekh Lo
                 </button>
                 <button
                   onClick={() => setQuickSetupOpen(true)}
-                  className="h-11 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-xs font-extrabold inline-flex items-center gap-1.5 shadow-lg shadow-amber-500/40 transition"
+                  className="h-11 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-xs font-extrabold inline-flex items-center gap-1.5 shadow-lg shadow-amber-500/40 transition active:scale-[0.97]"
                 >
                   <Zap className="h-4 w-4" /> Quick Setup ⚡
                 </button>
@@ -793,6 +975,7 @@ export default function RetailProductsPage() {
                             <div className="text-[10px] font-mono text-slate-500 dark:text-slate-400 truncate">
                               {p.sku || p.barcode || '—'}
                             </div>
+                            <ProductTags tags={p.tags} max={2} />
                           </div>
                         </Link>
                       </td>
@@ -860,13 +1043,15 @@ export default function RetailProductsPage() {
         <div className="flex justify-center print:hidden">
           <button
             onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
-            className="px-6 py-3 rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-sky-400 dark:hover:border-sky-500/50 text-sm font-extrabold text-slate-700 dark:text-slate-200 shadow-sm transition"
+            className="px-6 py-3.5 rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-sky-400 dark:hover:border-sky-500/50 text-sm font-extrabold text-slate-700 dark:text-slate-200 shadow-sm transition active:scale-[0.98]"
           >
             Aur {Math.min(PAGE_SIZE, filtered.length - visibleCount)} dikhao
             <span className="text-slate-400 dark:text-slate-500 font-bold ml-1">({visibleCount}/{filtered.length})</span>
           </button>
         </div>
       )}
+
+      </>)}
 
       {/* ═══ PRINT CSS ═══ */}
       <style>{`
@@ -883,7 +1068,7 @@ export default function RetailProductsPage() {
           .overflow-x-auto, .overflow-y-auto, .overflow-hidden, .overflow-auto {
             overflow: visible !important; max-height: none !important; height: auto !important;
           }
-          main, aside, header, nav, [class*="max-h-"], [class*="fixed"] {
+          main, aside, header, nav, [class*="max-h-"], [class*="fixed"], [class*="sticky"] {
             max-height: none !important; height: auto !important; overflow: visible !important;
           }
           [class*="fixed"] { display: none !important; }
@@ -902,6 +1087,11 @@ export default function RetailProductsPage() {
           tbody td img { display: none !important; }
           [data-sonner-toaster], [data-sonner-toast], [class*="Toaster"] { display: none !important; visibility: hidden !important; }
         }
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-in { animation: fadeUp 0.25s ease-out both; }
       `}</style>
     </div>
   );
@@ -913,18 +1103,18 @@ export default function RetailProductsPage() {
 function ProductsTeacher({ onClose, onQuickSetup }: { onClose: () => void; onQuickSetup: () => void }) {
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3"
+      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-3"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-sky-300 dark:border-sky-500/40 shadow-2xl"
+        className="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 border-2 border-sky-300 dark:border-sky-500/40 shadow-2xl animate-in"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-3 border-b-2 border-sky-200 dark:border-sky-500/30 bg-gradient-to-r from-sky-50 to-cyan-50 dark:from-sky-500/15 dark:to-cyan-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-sky-900 dark:text-sky-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Products Page — Complete Guide
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
+          <button onClick={onClose} className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
             <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
           </button>
         </div>
@@ -1011,15 +1201,15 @@ function ProductCard({ p, selected, onToggle, onStock }: any) {
 
   return (
     <div className={[
-      'group relative rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 overflow-hidden transition-all hover:shadow-lg dark:hover:shadow-sky-500/10 hover:-translate-y-0.5',
-      selected ? 'border-sky-500 ring-2 ring-sky-200 dark:ring-sky-500/30' : isOut ? 'border-rose-200 dark:border-rose-500/40' : isLow ? 'border-amber-200 dark:border-amber-500/40' : 'border-slate-200 dark:border-slate-800',
+      'group relative rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 overflow-hidden transition-all duration-200 hover:shadow-xl hover:shadow-sky-500/10 dark:hover:shadow-sky-500/10 hover:-translate-y-1 animate-in',
+      selected ? 'border-sky-500 ring-2 ring-sky-200 dark:ring-sky-500/30' : isOut ? 'border-rose-200 dark:border-rose-500/40' : isLow ? 'border-amber-200 dark:border-amber-500/40' : 'border-slate-200 dark:border-slate-800 hover:border-sky-300 dark:hover:border-sky-500/40',
       !p.isActive ? 'opacity-60' : '',
     ].join(' ')}>
       <button
         onClick={onToggle}
         className={[
-          'absolute top-2 left-2 z-10 h-6 w-6 rounded-lg border-2 flex items-center justify-center transition',
-          selected ? 'bg-sky-600 border-sky-600 text-white' : 'bg-white/90 dark:bg-slate-900/90 border-slate-300 dark:border-slate-600 opacity-0 group-hover:opacity-100',
+          'absolute top-2 left-2 z-10 h-7 w-7 rounded-lg border-2 flex items-center justify-center transition shadow-sm',
+          selected ? 'bg-sky-600 border-sky-600 text-white' : 'bg-white/90 dark:bg-slate-900/90 border-slate-300 dark:border-slate-600 sm:opacity-0 sm:group-hover:opacity-100',
         ].join(' ')}
       >
         {selected && <CheckCircle2 className="h-3.5 w-3.5" />}
@@ -1030,8 +1220,11 @@ function ProductCard({ p, selected, onToggle, onStock }: any) {
           {p.images?.[0]?.url ? (
             <img src={p.images[0].url} alt={p.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <Package className="h-10 w-10 text-slate-300 dark:text-slate-600" />
+            /* Tasveer nahi to sleti dabba nahi — cheez ka apna nishan */
+            <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${productTint(p.name)} select-none`}>
+              <span className="text-5xl drop-shadow-sm group-hover:scale-110 transition-transform duration-300">
+                {productEmoji(p.name, p.category?.name)}
+              </span>
             </div>
           )}
           {p.isFeatured && (
@@ -1041,7 +1234,7 @@ function ProductCard({ p, selected, onToggle, onStock }: any) {
           )}
           {(isOut || isLow) && (
             <div className={[
-              'absolute inset-x-0 bottom-0 py-1 text-center text-[10px] font-extrabold text-white',
+              'absolute inset-x-0 bottom-0 py-1 text-center text-[10px] font-extrabold text-white tracking-wide',
               isOut ? 'bg-rose-600' : 'bg-amber-500',
             ].join(' ')}>
               {isOut ? 'STOCK KHATAM' : `SIRF ${stock} ${p.unit} BACHA`}
@@ -1056,6 +1249,8 @@ function ProductCard({ p, selected, onToggle, onStock }: any) {
               <Tag className="h-2 w-2" /> {p.category.name}
             </div>
           )}
+          {/* Tag lagana asaan tha, dekhna nahi — ab card par hi nazar aate hain */}
+          <ProductTags tags={p.tags} />
           <div className="mt-1.5 flex items-end justify-between gap-1">
             <div>
               <div className="text-base font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums leading-none">{formatPKR(p.price || 0)}</div>
@@ -1075,19 +1270,19 @@ function ProductCard({ p, selected, onToggle, onStock }: any) {
       <div className="px-2.5 pb-2.5 flex items-center gap-1">
         <button
           onClick={onStock}
-          className="flex-1 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/15 hover:bg-emerald-100 dark:hover:bg-emerald-500/25 text-emerald-800 dark:text-emerald-300 text-[10px] font-extrabold inline-flex items-center justify-center gap-1 transition"
+          className="flex-1 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-500/15 hover:bg-emerald-100 dark:hover:bg-emerald-500/25 text-emerald-800 dark:text-emerald-300 text-[10px] font-extrabold inline-flex items-center justify-center gap-1 transition active:scale-[0.97]"
         >
           <Plus className="h-3 w-3" /> Stock
         </button>
         <Link
           to={`/retail-products/${p.id}/edit`}
-          className="h-8 w-8 rounded-lg bg-violet-50 dark:bg-violet-500/15 hover:bg-violet-100 dark:hover:bg-violet-500/25 text-violet-700 dark:text-violet-300 flex items-center justify-center transition"
+          className="h-9 w-9 rounded-lg bg-violet-50 dark:bg-violet-500/15 hover:bg-violet-100 dark:hover:bg-violet-500/25 text-violet-700 dark:text-violet-300 flex items-center justify-center transition"
         >
           <Edit3 className="h-3.5 w-3.5" />
         </Link>
         <Link
           to="/pos"
-          className="h-8 w-8 rounded-lg bg-sky-50 dark:bg-sky-500/15 hover:bg-sky-100 dark:hover:bg-sky-500/25 text-sky-700 dark:text-sky-300 flex items-center justify-center transition"
+          className="h-9 w-9 rounded-lg bg-sky-50 dark:bg-sky-500/15 hover:bg-sky-100 dark:hover:bg-sky-500/25 text-sky-700 dark:text-sky-300 flex items-center justify-center transition"
           title="POS"
         >
           <ShoppingCart className="h-3.5 w-3.5" />
@@ -1098,13 +1293,52 @@ function ProductCard({ p, selected, onToggle, onStock }: any) {
   );
 }
 
-function Thumb({ p, size = 'h-10 w-10' }: any) {
+/**
+ * Tag ke chhote nishan.
+ *
+ * Tags ka poora intezam pehle se mojood tha — wizard me lagte bhi
+ * thay — magar list me kahin nazar nahi aate thay. Nateeja: koi
+ * lagata hi nahi tha, kyunke lagane ka faida hi nahi dikhta tha.
+ */
+function ProductTags({ tags, max = 3 }: { tags?: any[]; max?: number }) {
+  const list = (tags ?? [])
+    .map((t: any) => t?.tag ?? t)
+    .filter((t: any) => t?.name);
+  if (!list.length) return null;
+
   return (
-    <div className={`${size} rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700`}>
-      {p.images?.[0]?.url ? (
-        <img src={p.images[0].url} alt="" loading="lazy" className="w-full h-full object-cover" />
+    <div className="mt-1 flex flex-wrap gap-1">
+      {list.slice(0, max).map((t: any) => (
+        <span key={t.id}
+          className="inline-flex items-center gap-0.5 text-[9px] font-extrabold px-1.5 py-0.5 rounded-md border"
+          style={{
+            color: t.color || '#0284c7',
+            borderColor: `${t.color || '#0284c7'}55`,
+            backgroundColor: `${t.color || '#0284c7'}14`,
+          }}>
+          #{t.name}
+        </span>
+      ))}
+      {list.length > max && (
+        <span className="text-[9px] font-extrabold text-slate-400">+{list.length - max}</span>
+      )}
+    </div>
+  );
+}
+
+function Thumb({ p, size = 'h-10 w-10' }: any) {
+  const url = p.images?.[0]?.url;
+  return (
+    <div className={[
+      size, 'rounded-xl overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700',
+      url ? 'bg-slate-100 dark:bg-slate-800' : `bg-gradient-to-br ${productTint(p.name)}`,
+    ].join(' ')}>
+      {url ? (
+        <img src={url} alt="" loading="lazy" className="w-full h-full object-cover" />
       ) : (
-        <div className="w-full h-full flex items-center justify-center"><Package className="h-4 w-4 text-slate-400 dark:text-slate-500" /></div>
+        <div className="w-full h-full flex items-center justify-center text-lg select-none">
+          {productEmoji(p.name, p.category?.name)}
+        </div>
       )}
     </div>
   );
@@ -1152,11 +1386,11 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
     <Comp
       onClick={onClick}
       className={[
-        'rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 p-3 sm:p-4 shadow-sm dark:shadow-black/20 text-left w-full transition-all',
-        onClick ? 'hover:-translate-y-0.5 hover:shadow-md cursor-pointer' : '',
+        'rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 p-3 sm:p-4 shadow-sm dark:shadow-black/20 text-left w-full transition-all duration-200',
+        onClick ? 'hover:-translate-y-0.5 hover:shadow-lg cursor-pointer active:scale-[0.98]' : '',
         active
           ? 'border-sky-500 dark:border-sky-500/60 ring-2 ring-sky-200 dark:ring-sky-500/20'
-          : 'border-slate-200 dark:border-slate-800',
+          : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700',
       ].join(' ')}
     >
       <div className="flex items-center justify-between gap-2">
