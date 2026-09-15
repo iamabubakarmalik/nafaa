@@ -79,19 +79,19 @@ export default function AppliancesReportsPage() {
     if ((svcSumQ.data?.overdue ?? 0) > 0) out.push({ icon: Clock, tone: 'rose', label: 'Repair late ho gaye', value: `${svcSumQ.data!.overdue} kaam`, to: '/appliances/service-requests' });
     if ((instSumQ.data?.overdue ?? 0) > 0) out.push({ icon: HardHat, tone: 'rose', label: 'Installation late', value: `${instSumQ.data!.overdue} kaam`, to: '/appliances/installations' });
     if ((svcSumQ.data?.unassigned ?? 0) > 0) out.push({ icon: Users, tone: 'amber', label: 'Bina banday ke repair', value: `${svcSumQ.data!.unassigned} kaam`, to: '/appliances/service-requests' });
-    const due = (svcSumQ.data?.month.outstanding ?? 0) + (instSumQ.data?.month.outstanding ?? 0);
+    const due = (svcSumQ.data?.month?.outstanding ?? 0) + (instSumQ.data?.month?.outstanding ?? 0);
     if (due > 0) out.push({ icon: Wallet, tone: 'amber', label: 'Service ka baqi paisa', value: formatPKR(due), to: '/appliances/service-requests' });
-    if ((low?.summary.totalOut ?? 0) > 0) out.push({ icon: PackageX, tone: 'rose', label: 'Stock bilkul khatam', value: `${low!.summary.totalOut} cheezein`, to: '/appliances/low-stock' });
-    if ((st?.expiringWarranty.count ?? 0) > 0) out.push({ icon: ShieldCheck, tone: 'violet', label: 'Warranty khatam ho rahi', value: `${st!.expiringWarranty.count} units`, to: '/appliances/stock-report' });
+    if ((low?.summary?.totalOut ?? 0) > 0) out.push({ icon: PackageX, tone: 'rose', label: 'Stock bilkul khatam', value: `${low!.summary.totalOut} cheezein`, to: '/appliances/low-stock' });
+    if ((st?.expiringWarranty?.count ?? 0) > 0) out.push({ icon: ShieldCheck, tone: 'violet', label: 'Warranty khatam ho rahi', value: `${st!.expiringWarranty.count} units`, to: '/appliances/stock-report' });
     if ((amcSumQ.data?.expiringSoon ?? 0) > 0) out.push({ icon: ShieldCheck, tone: 'violet', label: 'AMC khatam ho rahe', value: `${amcSumQ.data!.expiringSoon} contracts`, to: '/appliances/amc-contracts' });
-    if ((st?.pendingInstall.count ?? 0) > 0) out.push({ icon: HardHat, tone: 'amber', label: 'Bik gaya, laga nahi', value: `${st!.pendingInstall.count} units`, to: '/appliances/installations' });
-    if ((st?.deadStock.count ?? 0) > 0) out.push({ icon: Boxes, tone: 'slate', label: 'Dead stock (60+ din)', value: formatPKR(st!.deadStock.value), to: '/appliances/stock-report' });
+    if ((st?.pendingInstall?.count ?? 0) > 0) out.push({ icon: HardHat, tone: 'amber', label: 'Bik gaya, laga nahi', value: `${st!.pendingInstall.count} units`, to: '/appliances/installations' });
+    if ((st?.deadStock?.count ?? 0) > 0) out.push({ icon: Boxes, tone: 'slate', label: 'Dead stock (60+ din)', value: formatPKR(st!.deadStock.value), to: '/appliances/stock-report' });
     if ((delSumQ.data?.noVehicle ?? 0) > 0) out.push({ icon: Truck, tone: 'amber', label: 'Delivery — gaari nahi lagi', value: `${delSumQ.data!.noVehicle} trips`, to: '/appliances/deliveries' });
-    if ((claimSumQ.data?.missing.count ?? 0) > 0) {
+    if ((claimSumQ.data?.missing?.count ?? 0) > 0) {
       out.push({ icon: ShieldCheck, tone: 'rose', label: 'Warranty claim banaya hi nahi',
         value: formatPKR(claimSumQ.data!.missing.recoverable), to: '/appliances/warranty-claims' });
     }
-    if ((claimSumQ.data?.money.pending ?? 0) > 0) {
+    if ((claimSumQ.data?.money?.pending ?? 0) > 0) {
       out.push({ icon: Wallet, tone: 'violet', label: 'Brand ke paas atka paisa',
         value: formatPKR(claimSumQ.data!.money.pending), to: '/appliances/warranty-claims' });
     }
@@ -111,24 +111,24 @@ export default function AppliancesReportsPage() {
       [],
       ['— SERVICE DESK —'],
       ['Metric', 'Value'],
-      ['Repair kaam', sv?.totals.serviceJobs ?? 0],
-      ['Installation kaam', sv?.totals.installJobs ?? 0],
-      ['Mukammal', sv?.totals.completed ?? 0],
-      ['Khula', sv?.totals.open ?? 0],
-      ['Late', sv?.totals.overdue ?? 0],
-      ['Baqi paisa', sv?.totals.outstanding ?? 0],
-      ['Ausat waqt (ghantay)', (sv?.quality.avgResolutionHours ?? 0).toFixed(1)],
-      ['Usi din theek %', (sv?.quality.sameDayRate ?? 0).toFixed(1)],
-      ['Rating', sv?.quality.avgRating?.toFixed(1) ?? '—'],
+      ['Repair kaam', sv?.totals?.serviceJobs ?? 0],
+      ['Installation kaam', sv?.totals?.installJobs ?? 0],
+      ['Mukammal', sv?.totals?.completed ?? 0],
+      ['Khula', sv?.totals?.open ?? 0],
+      ['Late', sv?.totals?.overdue ?? 0],
+      ['Baqi paisa', sv?.totals?.outstanding ?? 0],
+      ['Ausat waqt (ghantay)', (sv?.quality?.avgResolutionHours ?? 0).toFixed(1)],
+      ['Usi din theek %', (sv?.quality?.sameDayRate ?? 0).toFixed(1)],
+      ['Rating', sv?.quality?.avgRating?.toFixed(1) ?? '—'],
       [],
       ['— STOCK —'],
       ['Metric', 'Value'],
-      ['Stock ki lagat', st?.totals.totalValue ?? 0],
-      ['Bechne par', st?.totals.totalRetailValue ?? 0],
-      ['Mumkina munafa', st?.totals.potentialProfit ?? 0],
-      ['Dead stock', st?.deadStock.value ?? 0],
-      ['Low stock cheezein', low?.summary.totalLow ?? 0],
-      ['Order ka kharcha', low?.summary.reorderCost ?? 0],
+      ['Stock ki lagat', st?.totals?.totalValue ?? 0],
+      ['Bechne par', st?.totals?.totalRetailValue ?? 0],
+      ['Mumkina munafa', st?.totals?.potentialProfit ?? 0],
+      ['Dead stock', st?.deadStock?.value ?? 0],
+      ['Low stock cheezein', low?.summary?.totalLow ?? 0],
+      ['Order ka kharcha', low?.summary?.reorderCost ?? 0],
       [],
       ['— TECHNICIANS —'],
       ['Naam', 'Kaam', 'Mukammal', 'Khula', 'Kamai', 'Commission', 'Rating'],
@@ -167,11 +167,11 @@ export default function AppliancesReportsPage() {
       <table>
         <thead><tr><th>Cheez</th><th class="r">Number</th><th>Cheez</th><th class="r">Number</th></tr></thead>
         <tbody>
-          <tr><td class="main">Repair kaam</td><td class="r">${sv?.totals.serviceJobs ?? 0}</td><td class="main">Installation kaam</td><td class="r">${sv?.totals.installJobs ?? 0}</td></tr>
-          <tr><td class="main">Mukammal</td><td class="r">${sv?.totals.completed ?? 0}</td><td class="main">Khula</td><td class="r">${sv?.totals.open ?? 0}</td></tr>
-          <tr><td class="main">Late</td><td class="r" style="color:#b91c1c">${sv?.totals.overdue ?? 0}</td><td class="main">Baqi paisa</td><td class="r" style="color:#b91c1c">${formatPKR(sv?.totals.outstanding ?? 0)}</td></tr>
-          <tr><td class="main">Ausat waqt</td><td class="r">${fmtDuration(sv?.quality.avgResolutionHours ?? 0)}</td><td class="main">Usi din theek</td><td class="r">${(sv?.quality.sameDayRate ?? 0).toFixed(0)}%</td></tr>
-          <tr><td class="main">Rating</td><td class="r">${sv?.quality.avgRating?.toFixed(1) ?? '—'}</td><td class="main">Pehli visit me hal</td><td class="r">${(sv?.quality.firstVisitFixRate ?? 0).toFixed(0)}%</td></tr>
+          <tr><td class="main">Repair kaam</td><td class="r">${sv?.totals?.serviceJobs ?? 0}</td><td class="main">Installation kaam</td><td class="r">${sv?.totals?.installJobs ?? 0}</td></tr>
+          <tr><td class="main">Mukammal</td><td class="r">${sv?.totals?.completed ?? 0}</td><td class="main">Khula</td><td class="r">${sv?.totals?.open ?? 0}</td></tr>
+          <tr><td class="main">Late</td><td class="r" style="color:#b91c1c">${sv?.totals?.overdue ?? 0}</td><td class="main">Baqi paisa</td><td class="r" style="color:#b91c1c">${formatPKR(sv?.totals?.outstanding ?? 0)}</td></tr>
+          <tr><td class="main">Ausat waqt</td><td class="r">${fmtDuration(sv?.quality?.avgResolutionHours ?? 0)}</td><td class="main">Usi din theek</td><td class="r">${(sv?.quality?.sameDayRate ?? 0).toFixed(0)}%</td></tr>
+          <tr><td class="main">Rating</td><td class="r">${sv?.quality?.avgRating?.toFixed(1) ?? '—'}</td><td class="main">Pehli visit me hal</td><td class="r">${(sv?.quality?.firstVisitFixRate ?? 0).toFixed(0)}%</td></tr>
         </tbody>
       </table>
 
@@ -179,9 +179,9 @@ export default function AppliancesReportsPage() {
       <table>
         <thead><tr><th>Cheez</th><th class="r">Value</th><th>Cheez</th><th class="r">Value</th></tr></thead>
         <tbody>
-          <tr><td class="main">Stock ki lagat</td><td class="r">${formatPKR(st?.totals.totalValue ?? 0)}</td><td class="main">Bechne par</td><td class="r">${formatPKR(st?.totals.totalRetailValue ?? 0)}</td></tr>
-          <tr><td class="main">Mumkina munafa</td><td class="r" style="color:#065f46">${formatPKR(st?.totals.potentialProfit ?? 0)}</td><td class="main">Dead stock</td><td class="r" style="color:#b91c1c">${formatPKR(st?.deadStock.value ?? 0)}</td></tr>
-          <tr><td class="main">Low stock cheezein</td><td class="r">${low?.summary.totalLow ?? 0}</td><td class="main">Order ka kharcha</td><td class="r">${formatPKR(low?.summary.reorderCost ?? 0)}</td></tr>
+          <tr><td class="main">Stock ki lagat</td><td class="r">${formatPKR(st?.totals?.totalValue ?? 0)}</td><td class="main">Bechne par</td><td class="r">${formatPKR(st?.totals?.totalRetailValue ?? 0)}</td></tr>
+          <tr><td class="main">Mumkina munafa</td><td class="r" style="color:#065f46">${formatPKR(st?.totals?.potentialProfit ?? 0)}</td><td class="main">Dead stock</td><td class="r" style="color:#b91c1c">${formatPKR(st?.deadStock?.value ?? 0)}</td></tr>
+          <tr><td class="main">Low stock cheezein</td><td class="r">${low?.summary?.totalLow ?? 0}</td><td class="main">Order ka kharcha</td><td class="r">${formatPKR(low?.summary?.reorderCost ?? 0)}</td></tr>
         </tbody>
       </table>
 
@@ -211,8 +211,8 @@ export default function AppliancesReportsPage() {
       kpis: [
         { label: '💵 Kamai', value: formatPKR(p.totals.revenue), tone: 'blue' },
         { label: '📈 Munafa', value: formatPKR(p.totals.profit), sub: `${p.totals.margin.toFixed(1)}%`, tone: 'green' },
-        { label: '📦 Stock Value', value: formatPKR(st?.totals.totalValue ?? 0), tone: 'amber' },
-        { label: '⏳ Baqi Paisa', value: formatPKR(sv?.totals.outstanding ?? 0), tone: 'rose' },
+        { label: '📦 Stock Value', value: formatPKR(st?.totals?.totalValue ?? 0), tone: 'amber' },
+        { label: '⏳ Baqi Paisa', value: formatPKR(sv?.totals?.outstanding ?? 0), tone: 'rose' },
       ],
       body,
     }));
@@ -256,7 +256,7 @@ export default function AppliancesReportsPage() {
               <span className="opacity-50 mx-1.5">•</span>
               <strong className="text-emerald-300">{formatPKR(p.totals.profit)}</strong> munafa
               <span className="opacity-50 mx-1.5">•</span>
-              <strong className="text-amber-300">{sv?.totals.completed ?? 0}</strong> kaam mukammal
+              <strong className="text-amber-300">{sv?.totals?.completed ?? 0}</strong> kaam mukammal
             </>
           ) : 'Dukaan ka poora hisab ek jagah'
         }
@@ -291,19 +291,19 @@ export default function AppliancesReportsPage() {
       ) : (
         <>
           <section className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
-            <Kpi icon={Wallet} tone="cyan" label="Kul Kamai" value={formatPKR(p?.totals.revenue ?? 0)} sub={`${p?.totals.salesCount ?? 0} bikri`} />
-            <Kpi icon={TrendingUp} tone="emerald" label="Kul Munafa" value={formatPKR(p?.totals.profit ?? 0)} sub={`${(p?.totals.margin ?? 0).toFixed(1)}% margin`} />
-            <Kpi icon={Boxes} tone="blue" label="Stock Ki Lagat" value={formatPKR(st?.totals.totalValue ?? 0)} sub={`munafa ${formatPKR(st?.totals.potentialProfit ?? 0)}`} />
-            <Kpi icon={AlertTriangle} tone="rose" label="Baqi Paisa" value={formatPKR(sv?.totals.outstanding ?? 0)}
-              sub="service ka udhaar" alert={(sv?.totals.outstanding ?? 0) > 0} />
+            <Kpi icon={Wallet} tone="cyan" label="Kul Kamai" value={formatPKR(p?.totals?.revenue ?? 0)} sub={`${p?.totals?.salesCount ?? 0} bikri`} />
+            <Kpi icon={TrendingUp} tone="emerald" label="Kul Munafa" value={formatPKR(p?.totals?.profit ?? 0)} sub={`${(p?.totals?.margin ?? 0).toFixed(1)}% margin`} />
+            <Kpi icon={Boxes} tone="blue" label="Stock Ki Lagat" value={formatPKR(st?.totals?.totalValue ?? 0)} sub={`munafa ${formatPKR(st?.totals?.potentialProfit ?? 0)}`} />
+            <Kpi icon={AlertTriangle} tone="rose" label="Baqi Paisa" value={formatPKR(sv?.totals?.outstanding ?? 0)}
+              sub="service ka udhaar" alert={(sv?.totals?.outstanding ?? 0) > 0} />
           </section>
 
           <section className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
-            <Kpi icon={Wrench} tone="amber" label="Kaam Mukammal" value={sv?.totals.completed ?? 0} sub={`${sv?.totals.open ?? 0} khula`} />
-            <Kpi icon={Clock} tone="violet" label="Ausat Waqt" value={fmtDuration(sv?.quality.avgResolutionHours ?? 0)} sub={`${(sv?.quality.sameDayRate ?? 0).toFixed(0)}% usi din`} />
-            <Kpi icon={Star} tone="teal" label="Rating" value={sv?.quality.avgRating ? sv.quality.avgRating.toFixed(1) : '—'} sub={`${sv?.quality.ratingCount ?? 0} logon ne di`} />
+            <Kpi icon={Wrench} tone="amber" label="Kaam Mukammal" value={sv?.totals?.completed ?? 0} sub={`${sv?.totals?.open ?? 0} khula`} />
+            <Kpi icon={Clock} tone="violet" label="Ausat Waqt" value={fmtDuration(sv?.quality?.avgResolutionHours ?? 0)} sub={`${(sv?.quality?.sameDayRate ?? 0).toFixed(0)}% usi din`} />
+            <Kpi icon={Star} tone="teal" label="Rating" value={sv?.quality?.avgRating ? sv.quality.avgRating.toFixed(1) : '—'} sub={`${sv?.quality?.ratingCount ?? 0} logon ne di`} />
             <Kpi icon={Percent} tone="orange" label="Services Ka Hissa"
-              value={`${p?.totals.revenue ? ((p.streams.filter((s) => s.key !== 'GOODS').reduce((x, s) => x + s.revenue, 0) / p.totals.revenue) * 100).toFixed(0) : 0}%`}
+              value={`${p?.totals?.revenue ? ((p.streams.filter((s) => s.key !== 'GOODS').reduce((x, s) => x + s.revenue, 0) / p.totals.revenue) * 100).toFixed(0) : 0}%`}
               sub="kul kamai me" />
           </section>
         </>

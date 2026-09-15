@@ -7,6 +7,179 @@ import { AuthenticatedUser } from '../../../auth/interfaces/jwt-payload.interfac
 export class SettingsSecurityService {
   constructor(private readonly prisma: PrismaService) {}
 
+  /* ═══════════════════════════════════════════════════════════
+     MALIK KA PIN — ek hi PIN, poore app me
+     ───────────────────────────────────────────────────────────
+     Pehle teen alag alag PIN thay: ek `privacy.store` ka (cost
+     chhupane ke liye), ek `useAppLock` ka (khata lock karne ke
+     liye) — dono browser ke localStorage me — aur ek yahan server
+     par jo koi use hi nahi kar raha tha.
+
+     Natija: malik doosre mobile par login karta to PIN kaam hi
+     nahi karta tha, aur browser ka data saaf karne par PIN gayab.
+
+     Ab sirf YEHI PIN hai. Har device par wohi. Bhool jayein to
+     account ka password daal kar naya set ho jata hai.
+     ═══════════════════════════════════════════════════════════ */
+
+  /** Malik PIN aur page-lock ka intezam kar sakta hai ya nahi */
+  private canManage(user: AuthenticatedUser) {
+    return user.role === 'OWNER' || user.role === 'MANAGER';
+  }
+
+  /**
+   * App khulte hi yahan se pata chalta hai ke PIN laga hai ya nahi
+   * aur kaun se safhe lock hain. PIN ka hash kabhi bahar nahi jata.
+   */
+  async pinStatus(user: AuthenticatedUser) {
+    const settings = await this.prisma.tenantSettings.findUnique({
+      where: { tenantId: user.tenantId },
+      select: {
+        managerPin: true,
+        managerPinUpdatedAt: true,
+        lockedRoutes: true,
+        pinUnlockMinutes: true,
+        hideCostByDefault: true,
+      },
+    });
+
+    return {
+      hasPin: !!settings?.managerPin,
+      pinUpdatedAt: settings?.managerPinUpdatedAt ?? null,
+      lockedRoutes: settings?.lockedRoutes ?? [],
+      unlockMinutes: settings?.pinUnlockMinutes ?? 15,
+      hideCostByDefault: settings?.hideCostByDefault ?? false,
+      canManage: this.canManage(user),
+    };
+  }
+
+  /**
+   * PIN bhool gaye — account ka password daal kar naya PIN.
+   *
+   * PIN yaad rakhna malik ka kaam hai, magar bhool jana aam baat
+   * hai. Pehle iska koi raasta hi nahi tha: browser ka data saaf
+   * hua to cost hamesha ke liye chhup jati thi.
+   */
+  async resetPinWithPassword(user: AuthenticatedUser, password: string, newPin: string) {
+    if (!this.canManage(user)) {
+      throw new ForbiddenException('Sirf owner ya manager PIN badal sakte hain');
+    }
+    if (!/^\d{4,8}$/.test(newPin)) {
+      throw new BadRequestException('PIN 4 se 8 hindson ka hona chahiye');
+    }
+
+    const account = await this.prisma.user.findUnique({
+      where: { id: user.id },
+      select: { passwordHash: true },
+    });
+    if (!account?.passwordHash) {
+      throw new BadRequestException(
+        'Is account par password set nahi hai (Google se login). Pehle Settings me password banayein.',
+      );
+    }
+
+    const ok = await comparePassword(password, account.passwordHash);
+    if (!ok) {
+      await this.prisma.activityLog.create({
+        data: {
+          tenantId: user.tenantId,
+          userId: user.id,
+          action: 'PIN_RESET_FAILED',
+          description: 'Ghalat password se PIN reset ki koshish',
+        },
+      });
+      throw new UnauthorizedException('Ghalat password');
+    }
+
+    const hashed = await hashPassword(newPin);
+    await this.prisma.tenantSettings.upsert({
+      where: { tenantId: user.tenantId },
+      create: { tenantId: user.tenantId, managerPin: hashed, managerPinUpdatedAt: new Date() },
+      update: { managerPin: hashed, managerPinUpdatedAt: new Date() },
+    });
+
+    await this.prisma.activityLog.create({
+      data: {
+        tenantId: user.tenantId,
+        userId: user.id,
+        action: 'PIN_RESET',
+        description: 'Password se naya PIN set kiya',
+      },
+    });
+
+    return { success: true, message: 'Naya PIN set ho gaya' };
+  }
+
+  /** Kaun se safhe PIN ke baghair na khulein — malik khud chunta hai */
+  async setLockedRoutes(user: AuthenticatedUser, routes: string[]) {
+    if (!this.canManage(user)) {
+      throw new ForbiddenException('Sirf owner ya manager safhe lock kar sakte hain');
+    }
+
+    // Saaf karein: sirf apne app ke andar ke raaste, dohray hataye hue
+    const clean = Array.from(
+      new Set(
+        (routes ?? [])
+          .map((r) => String(r ?? '').trim())
+          .filter((r) => r.startsWith('/') && !r.startsWith('//') && r.length <= 120),
+      ),
+    ).slice(0, 60);
+
+    const settings = await this.prisma.tenantSettings.findUnique({
+      where: { tenantId: user.tenantId },
+      select: { managerPin: true },
+    });
+
+    // Bina PIN ke safha lock karne ka matlab hai khud ko bahar band
+    // kar lena — koi unlock kar hi nahi sakta.
+    if (clean.length > 0 && !settings?.managerPin) {
+      throw new BadRequestException('Pehle PIN set karein, warna lock khulega hi nahi');
+    }
+
+    await this.prisma.tenantSettings.upsert({
+      where: { tenantId: user.tenantId },
+      create: { tenantId: user.tenantId, lockedRoutes: clean },
+      update: { lockedRoutes: clean },
+    });
+
+    await this.prisma.activityLog.create({
+      data: {
+        tenantId: user.tenantId,
+        userId: user.id,
+        action: 'PAGE_LOCKS_UPDATED',
+        description: clean.length ? `${clean.length} safhe lock: ${clean.join(', ')}` : 'Sab page lock hata diye',
+      },
+    });
+
+    return { success: true, lockedRoutes: clean };
+  }
+
+  /** PIN kitni der khula rahe, aur cost by-default chhupi rahe ya nahi */
+  async updatePinPrefs(
+    user: AuthenticatedUser,
+    dto: { unlockMinutes?: number; hideCostByDefault?: boolean },
+  ) {
+    if (!this.canManage(user)) {
+      throw new ForbiddenException('Sirf owner ya manager ye badal sakte hain');
+    }
+
+    const data: { pinUnlockMinutes?: number; hideCostByDefault?: boolean } = {};
+    if (dto.unlockMinutes !== undefined) {
+      data.pinUnlockMinutes = Math.max(1, Math.min(480, Math.floor(dto.unlockMinutes)));
+    }
+    if (dto.hideCostByDefault !== undefined) {
+      data.hideCostByDefault = dto.hideCostByDefault;
+    }
+
+    await this.prisma.tenantSettings.upsert({
+      where: { tenantId: user.tenantId },
+      create: { tenantId: user.tenantId, ...data },
+      update: data,
+    });
+
+    return { success: true, ...data };
+  }
+
   /** Verify manager PIN */
   async verifyPin(user: AuthenticatedUser, pin: string) {
     const settings = await this.prisma.tenantSettings.findUnique({
@@ -32,17 +205,39 @@ export class SettingsSecurityService {
     return { valid: ok, message: ok ? 'PIN correct' : 'Ghalat PIN' };
   }
 
-  /** Set / change PIN */
-  async setPin(user: AuthenticatedUser, pin: string) {
-    if (user.role !== 'OWNER' && user.role !== 'MANAGER') {
+  /**
+   * PIN set ya tabdeel karein.
+   *
+   * Agar PIN pehle se laga hua hai to purana PIN maangte hain —
+   * warna jis ka bhi login khula reh jaye wo chupke se PIN badal
+   * kar malik ko hi bahar kar sakta tha.
+   */
+  async setPin(user: AuthenticatedUser, pin: string, currentPin?: string) {
+    if (!this.canManage(user)) {
       throw new ForbiddenException('Sirf owner/manager PIN set kar sakte hain');
+    }
+    if (!/^\d{4,8}$/.test(pin)) {
+      throw new BadRequestException('PIN 4 se 8 hindson ka hona chahiye');
+    }
+
+    const existing = await this.prisma.tenantSettings.findUnique({
+      where: { tenantId: user.tenantId },
+      select: { managerPin: true },
+    });
+
+    if (existing?.managerPin) {
+      if (!currentPin) {
+        throw new BadRequestException('Purana PIN likhein — ya "PIN bhool gaye" se password daal kar badlein');
+      }
+      const ok = await comparePassword(currentPin, existing.managerPin);
+      if (!ok) throw new UnauthorizedException('Purana PIN ghalat hai');
     }
 
     const hashed = await hashPassword(pin);
     await this.prisma.tenantSettings.upsert({
       where: { tenantId: user.tenantId },
-      create: { tenantId: user.tenantId, managerPin: hashed },
-      update: { managerPin: hashed },
+      create: { tenantId: user.tenantId, managerPin: hashed, managerPinUpdatedAt: new Date() },
+      update: { managerPin: hashed, managerPinUpdatedAt: new Date() },
     });
 
     await this.prisma.activityLog.create({
@@ -57,17 +252,38 @@ export class SettingsSecurityService {
     return { success: true, message: 'PIN save ho gayi' };
   }
 
-  /** Remove PIN (requires current PIN) */
-  async removePin(user: AuthenticatedUser, currentPin: string) {
+  /**
+   * PIN hatayein — mojooda PIN se, ya (bhool jane ki soorat me)
+   * account ke password se.
+   */
+  async removePin(user: AuthenticatedUser, currentPin?: string, password?: string) {
     if (user.role !== 'OWNER') {
-      throw new ForbiddenException('Sirf owner PIN remove kar sakte hain');
+      throw new ForbiddenException('Sirf owner PIN remove kar sakta hai');
     }
-    const verify = await this.verifyPin(user, currentPin);
-    if (!verify.valid) throw new UnauthorizedException('Ghalat current PIN');
 
+    let allowed = false;
+
+    if (currentPin) {
+      const verify = await this.verifyPin(user, currentPin);
+      allowed = verify.valid;
+    }
+
+    if (!allowed && password) {
+      const account = await this.prisma.user.findUnique({
+        where: { id: user.id },
+        select: { passwordHash: true },
+      });
+      allowed = !!account?.passwordHash && (await comparePassword(password, account.passwordHash));
+    }
+
+    if (!allowed) throw new UnauthorizedException('Ghalat PIN ya password');
+
+    // PIN hatte hi page-lock bhi hat jaye — warna lock lage safhe
+    // hamesha ke liye band ho jate, kyunke unlock ka koi zariya
+    // hi baqi nahi rehta.
     await this.prisma.tenantSettings.update({
       where: { tenantId: user.tenantId },
-      data: { managerPin: null },
+      data: { managerPin: null, managerPinUpdatedAt: null, lockedRoutes: [] },
     });
 
     await this.prisma.activityLog.create({

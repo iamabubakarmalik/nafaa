@@ -161,7 +161,7 @@ export default function TechniciansPage() {
         { label: '👥 Kul Team', value: String(summary?.total ?? filtered.length), sub: `${summary?.active ?? 0} active`, tone: 'blue' },
         { label: '🟢 Khali', value: String(summary?.free ?? 0), sub: 'inhe kaam do', tone: 'green' },
         { label: '📋 Khula Kaam', value: String(summary?.openJobs ?? 0), tone: 'amber' },
-        { label: '💰 Is Mahine Commission', value: formatPKR(summary?.month.commission ?? 0), tone: 'rose' },
+        { label: '💰 Is Mahine Commission', value: formatPKR(summary?.month?.commission ?? 0), tone: 'rose' },
       ],
       body,
     }));
@@ -238,8 +238,8 @@ export default function TechniciansPage() {
         <Kpi icon={UserCheck} tone="emerald" label="Khali Bande" value={summary?.free ?? 0} sub="inhe naya kaam dein" />
         <Kpi icon={AlertTriangle} tone="rose" label="Bojh Ziyada" value={summary?.overloaded ?? 0} sub="5 se ziyada khula kaam"
           alert={(summary?.overloaded ?? 0) > 0} />
-        <Kpi icon={Wallet} tone="violet" label="Is Mahine Commission" value={formatPKR(summary?.month.commission ?? 0)}
-          sub={`${summary?.month.jobs ?? 0} kaam • kamai ${formatPKR(summary?.month.revenue ?? 0)}`} />
+        <Kpi icon={Wallet} tone="violet" label="Is Mahine Commission" value={formatPKR(summary?.month?.commission ?? 0)}
+          sub={`${summary?.month?.jobs ?? 0} kaam • kamai ${formatPKR(summary?.month?.revenue ?? 0)}`} />
       </section>
 
       <div className="flex items-center gap-2 flex-wrap">

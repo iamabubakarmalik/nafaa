@@ -19,7 +19,7 @@ import { productImagesApi } from '@modules/inventory/products/api/product-images
 import { salesApi } from '@modules/sales/sales/api/sales.api';
 import { stockMovementsApi } from '@modules/inventory/stock-movements/api/stock-movements.api';
 import { opticalProductsApi } from '../api/products.api';
-import { PrivacyToggle, useCostHidden } from '@core/ui/HiddenValue';
+import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 
 type Tab = 'overview' | 'specs' | 'prescription' | 'variants' | 'sales' | 'log';
 

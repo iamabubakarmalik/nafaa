@@ -125,9 +125,9 @@ export default function ApplianceSerialsPage() {
       heading: '🔖 Serial Register',
       shopName, shopPhone, badge: 'Serial Report',
       kpis: [
-        { label: '📦 Stock Me', value: String(summary?.inStock.units ?? 0), sub: formatPKR(summary?.inStock.value ?? 0), tone: 'blue' },
-        { label: '💰 Bik Chuke', value: String(summary?.sold.units ?? 0), sub: `munafa ${formatPKR(summary?.sold.profit ?? 0)}`, tone: 'green' },
-        { label: '🔧 Lagana Baqi', value: String(summary?.installation.pending ?? 0), tone: 'amber' },
+        { label: '📦 Stock Me', value: String(summary?.inStock?.units ?? 0), sub: formatPKR(summary?.inStock?.value ?? 0), tone: 'blue' },
+        { label: '💰 Bik Chuke', value: String(summary?.sold?.units ?? 0), sub: `munafa ${formatPKR(summary?.sold?.profit ?? 0)}`, tone: 'green' },
+        { label: '🔧 Lagana Baqi', value: String(summary?.installation?.pending ?? 0), tone: 'amber' },
         { label: '🛡️ Warranty Khatam', value: String(summary?.warrantyExpiringSoon ?? 0), sub: '30 din me', tone: 'rose' },
       ],
       body,
@@ -183,16 +183,16 @@ export default function ApplianceSerialsPage() {
       />
 
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
-        <Kpi icon={Boxes} tone="cyan" label="Stock Me" value={summary?.inStock.units ?? 0}
-          sub={`lagat ${formatPKR(summary?.inStock.value ?? 0)}`}
+        <Kpi icon={Boxes} tone="cyan" label="Stock Me" value={summary?.inStock?.units ?? 0}
+          sub={`lagat ${formatPKR(summary?.inStock?.value ?? 0)}`}
           onClick={() => { setStatus(status === 'IN_STOCK' ? null : 'IN_STOCK'); setPage(1); }}
           active={status === 'IN_STOCK'} />
-        <Kpi icon={Wallet} tone="emerald" label="Bik Chuke" value={summary?.sold.units ?? 0}
-          sub={`munafa ${formatPKR(summary?.sold.profit ?? 0)}`}
+        <Kpi icon={Wallet} tone="emerald" label="Bik Chuke" value={summary?.sold?.units ?? 0}
+          sub={`munafa ${formatPKR(summary?.sold?.profit ?? 0)}`}
           onClick={() => { setStatus(status === 'SOLD' ? null : 'SOLD'); setPage(1); }}
           active={status === 'SOLD'} />
-        <Kpi icon={HardHat} tone="amber" label="Lagana Baqi" value={summary?.installation.pending ?? 0}
-          sub="bik gaya, laga nahi" alert={(summary?.installation.pending ?? 0) > 0} />
+        <Kpi icon={HardHat} tone="amber" label="Lagana Baqi" value={summary?.installation?.pending ?? 0}
+          sub="bik gaya, laga nahi" alert={(summary?.installation?.pending ?? 0) > 0} />
         <Kpi icon={ShieldCheck} tone="violet" label="Warranty Khatam Ho Rahi" value={summary?.warrantyExpiringSoon ?? 0}
           sub="30 din me" alert={(summary?.warrantyExpiringSoon ?? 0) > 0}
           onClick={() => { setWarranty(warranty === 'expiring' ? null : 'expiring'); setPage(1); }}
@@ -221,7 +221,7 @@ export default function ApplianceSerialsPage() {
           ))}
         </div>
         <div className="text-xs font-extrabold text-slate-500 dark:text-slate-400 tabular-nums px-1">
-          {data?.meta.total ?? 0} serials
+          {data?.meta?.total ?? 0} serials
         </div>
       </div>
 

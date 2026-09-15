@@ -18,7 +18,7 @@ import { brandsApi } from '@modules/inventory/brands/api/brands.api';
 import { forceRefreshProducts } from '@core/lib/offline/offlineProducts';
 import { QuickSetupCatalogModal } from '@modules/inventory/products/components/QuickSetupCatalogModal';
 import { ProductDeleteButton } from '@core/components/ProductDeleteButton';
-import { PrivacyToggle, useCostHidden } from '@core/ui/HiddenValue';
+import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 import { useAuthStore } from '@core/stores/auth.store';
 import { imeiApi, PTA_STATUS_COLORS, PTA_STATUS_LABELS, type PtaStatus } from '../api/imei.api';
 

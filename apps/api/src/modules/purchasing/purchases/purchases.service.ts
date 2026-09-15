@@ -98,14 +98,38 @@ export class PurchasesService {
         },
       });
 
-      // Update supplier totals
+      // Supplier ke totals
+      const creditAmount = Math.max(total - paidAmount, 0);
       await tx.supplier.update({
         where: { id: supplier.id },
         data: {
           totalPurchased: { increment: total },
-          outstandingDue: { increment: Math.max(total - paidAmount, 0) },
+          outstandingDue: { increment: creditAmount },
         },
       });
+
+      // Khate me bhi likh dein — pehle sirf `outstandingDue` ka number
+      // barhta tha, is liye dukaan-daar ko nazar nahi aata tha ke wo
+      // baqi bana kis kis kharidari se.
+      if (creditAmount > 0) {
+        const updated = await tx.supplier.findUniqueOrThrow({
+          where: { id: supplier.id },
+          select: { outstandingDue: true },
+        });
+        await tx.supplierLedger.create({
+          data: {
+            tenantId: user.tenantId,
+            supplierId: supplier.id,
+            createdById: user.id,
+            shopId: shopId ?? undefined,
+            type: 'PURCHASE_CREDIT',
+            amount: creditAmount,
+            balanceAfter: Number(updated.outstandingDue),
+            reference: purchase.purchaseNumber,
+            note: 'Udhaar par maal liya',
+          },
+        });
+      }
 
       // Process items + carpet rolls
       const createdRollsByItem: Record<string, any[]> = {};

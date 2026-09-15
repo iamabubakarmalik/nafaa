@@ -14,7 +14,7 @@ import { floristDashboardApi } from '../api/dashboard.api';
 import { floristOrdersApi } from '../api/orders.api';
 import { formatPKR } from '@core/lib/format';
 import { Button } from '@core/ui/Button';
-import { PrivacyToggle, useCostHidden } from '@core/ui/HiddenValue';
+import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 
 const SLOT_META: Record<string, { label: string; color: string; emoji: string }> = {
   MORNING: { label: 'Morning', color: 'bg-amber-100 text-amber-700', emoji: '🌅' },

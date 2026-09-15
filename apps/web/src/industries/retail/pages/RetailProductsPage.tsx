@@ -18,7 +18,7 @@ import { forceRefreshProducts } from '@core/lib/offline/offlineProducts';
 import { QuickStockModal } from '../components/QuickStockModal';
 import { QuickSetupCatalogModal } from '@modules/inventory/products/components/QuickSetupCatalogModal';
 import { ProductDeleteButton } from '@core/components/ProductDeleteButton';
-import { PrivacyToggle, useCostHidden } from '@core/ui/HiddenValue';
+import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 import { useAuthStore } from '@core/stores/auth.store';
 
 /* ═════════════════════════════════════════════════════════════

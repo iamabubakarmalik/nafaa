@@ -16,7 +16,7 @@ import {
   ReportsHero, TabSwitcher, KpiCard, ChartCard, EmptyChart,
   PnLLine, MiniStat, dayLabel, PIE_COLORS,
 } from '@modules/reports/reports/components/ReportsShared';
-import { useCostHidden, PrivacyToggle } from '@core/ui/HiddenValue';
+import { useCostHidden, PrivacyToggle } from '@/core/security/HiddenValue';
 
 const TABS = [
   { id: 'overview', label: 'Overview', icon: BarChart3 },

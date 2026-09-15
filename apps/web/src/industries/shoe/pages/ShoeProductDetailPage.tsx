@@ -13,7 +13,7 @@ import { formatPKR, formatPKRFull } from '@core/lib/format';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { shoeProductsApi } from '../api/products.api';
 import { shoeSizeVariantsApi } from '../api/size-variants.api';
-import { PrivacyToggle, useCostHidden } from '@core/ui/HiddenValue';
+import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 
 type Tab = 'overview' | 'sizes' | 'details' | 'materials' | 'features' | 'log';
 

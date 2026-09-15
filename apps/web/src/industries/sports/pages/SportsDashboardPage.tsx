@@ -14,7 +14,7 @@ import { teamOrdersApi } from '../api/team-orders.api';
 import { repairServicesApi } from '../api/repair-services.api';
 import { formatPKR } from '@core/lib/format';
 import { Button } from '@core/ui/Button';
-import { PrivacyToggle, useCostHidden } from '@core/ui/HiddenValue';
+import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 
 export default function SportsDashboardPage() {
   const hideCost = useCostHidden();

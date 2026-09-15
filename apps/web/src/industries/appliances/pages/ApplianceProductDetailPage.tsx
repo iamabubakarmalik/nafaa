@@ -27,7 +27,7 @@ import { applianceProductsApi } from '../api/products.api';
 import { brandsApi } from '@modules/inventory/brands/api/brands.api';
 import { applianceSerialApi } from '../api/serial-tracking.api';
 import { installationsApi } from '../api/installations.api';
-import { PrivacyToggle, useCostHidden } from '@core/ui/HiddenValue';
+import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 import {
   Teacher, useShortcuts, printHtml, downloadCsv, a4Shell,
   escapeHtml, toDateInput, fmtDate, Kbd,

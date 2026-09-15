@@ -49,6 +49,7 @@ import { ReturnsModule } from './modules/sales/returns/returns.module';
 import { BookingsModule } from './modules/bookings/bookings.module';
 
 import { SuppliersModule } from './modules/purchasing/suppliers/suppliers.module';
+import { SupplierLedgerModule } from './modules/purchasing/supplier-ledger/supplier-ledger.module';
 import { PurchasesModule } from './modules/purchasing/purchases/purchases.module';
 
 import { ExpensesModule } from './modules/finance/expenses/expenses.module';
@@ -178,6 +179,7 @@ import { AiAssistantModule } from './marketplace/ai-assistant/ai-assistant.modul
     BookingsModule,
     ReturnsModule,
     SuppliersModule,
+    SupplierLedgerModule,
     PurchasesModule,
     StockMovementsModule,
     StockAdjustmentsModule,

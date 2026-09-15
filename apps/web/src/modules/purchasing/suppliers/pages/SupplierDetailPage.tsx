@@ -1,843 +1,788 @@
-import { Link, useParams } from 'react-router-dom';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { useMemo, useState, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  ArrowLeft, Edit3, Phone, Mail, MapPin, MessageCircle, CreditCard,
-  FileText, ShoppingBag, TrendingUp, Wallet, Trash2,
-  Copy, Download, Calendar, AlertTriangle, Package, Crown, Star,
-  Award, Activity, BarChart3, Banknote, Smartphone, Building, Zap,
-  Clock, CheckCircle2, Eye, GraduationCap, X, Printer,
-} from 'lucide-react';
-import {
-  ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell,
-  XAxis, YAxis, Tooltip, CartesianGrid, Legend,
+  ResponsiveContainer, AreaChart, Area, BarChart, Bar, LineChart, Line,
+  PieChart, Pie, Cell, XAxis, YAxis, Tooltip, CartesianGrid, Legend, ComposedChart,
 } from 'recharts';
-import { suppliersApi } from '@modules/purchasing/suppliers/api/suppliers.api';
+import {
+  Truck, ArrowLeft, Edit3, BookOpen, Phone, MessageCircle, Mail, MapPin,
+  Wallet, Package, TrendingUp, TrendingDown, Clock, CheckCircle2, AlertTriangle,
+  Printer, FileSpreadsheet, GraduationCap, Keyboard, RefreshCw, Landmark,
+  FileText, Copy, ChevronRight, Banknote, Loader2, ShoppingCart, BarChart3,
+  Hash, CalendarClock, HandCoins, Activity, Crown, Plus, PowerOff, Power,
+} from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@core/ui/Button';
 import { formatPKR } from '@core/lib/format';
-import { toast } from 'sonner';
-import { useAuthStore } from '@core/stores/auth.store';
+import { useCostHidden, PrivacyToggle } from '@/core/security/HiddenValue';
+import { suppliersApi } from '../api/suppliers.api';
+import { SupplierKhataModal } from '../components/SupplierKhataModal';
+import {
+  SUPPLIER_GRADIENT, Kpi, Panel, Empty, Teacher, Shortcuts,
+  fmtDate, fmtDateTime, initials, daysPhrase, waNumber, payMeta,
+  printHtml, a4Shell, downloadCsv,
+} from '../components/SuppliersKit';
 
 /* ═════════════════════════════════════════════════════════════
-   NAFAA SUPPLIER DETAIL — GLOBAL FULL BEST v3
+   SUPPLIER DETAIL — ek supplier ka poora record
    ─────────────────────────────────────────────────────────────
-   🌍 GLOBAL — har industry ka supplier khata same
-   🌙 Dark mode complete
-   🎓 Teacher modal — "ye page kya dikhata hai" (khata logic)
-   ⌨️  E = edit • W = WhatsApp • Esc = band
-   🖨️ Print = khata statement • ⚠️ Delete = due warning
+   Teen sawal jin ka jawab dukaan-daar yahan dhoondta hai:
+   1. Is ka kitna dena hai aur kab se?
+   2. Is se kya kya aata hai, aur rate barh to nahi raha?
+   3. Kitne arse se maal nahi aaya?
+
+   Rate ka safar (price history) sab se kaam ki cheez hai —
+   ek hi cheez chupke chupke mehngi hoti rehti hai aur kisi ko
+   pata nahi chalta.
    ═════════════════════════════════════════════════════════════ */
 
-const formatDateTime = (v: string) =>
-  new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(v));
-
-const paymentConfig: Record<string, { label: string; icon: any; hex: string }> = {
-  CASH: { label: 'Cash', icon: Banknote, hex: '#10b981' },
-  CARD: { label: 'Card', icon: CreditCard, hex: '#3b82f6' },
-  JAZZCASH: { label: 'JazzCash', icon: Smartphone, hex: '#f97316' },
-  EASYPAISA: { label: 'EasyPaisa', icon: Zap, hex: '#22c55e' },
-  BANK_TRANSFER: { label: 'Bank', icon: Building, hex: '#8b5cf6' },
-};
+type Tab = 'overview' | 'purchases' | 'products' | 'analytics';
 
 export default function SupplierDetailPage() {
   const { id } = useParams();
-  const tenantName = useAuthStore((s) => s.tenant?.name);
-  const [showTeacher, setShowTeacher] = useState(false);
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const hideCost = useCostHidden();
 
-  const { data: supplier, isLoading } = useQuery({
+  const [tab, setTab] = useState<Tab>('overview');
+  const [showKhata, setShowKhata] = useState(false);
+  const [showTeacher, setShowTeacher] = useState(false);
+  const [showKeys, setShowKeys] = useState(false);
+
+  const { data: s, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['supplier', id],
     queryFn: () => suppliersApi.getOne(id!),
     enabled: !!id,
   });
 
-  const removeMutation = useMutation({
-    mutationFn: () => suppliersApi.remove(id!),
+  const toggleActive = useMutation({
+    mutationFn: () => suppliersApi.update(id!, { isActive: !s?.isActive } as any),
     onSuccess: () => {
-      toast.success('Supplier delete ho gaya');
-      window.location.href = '/suppliers';
+      toast.success(s?.isActive ? 'Supplier band kar diya' : 'Supplier chalu kar diya');
+      qc.invalidateQueries({ queryKey: ['supplier', id] });
+      qc.invalidateQueries({ queryKey: ['suppliers'] });
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Delete nahi hua — iska purchase record hai'),
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Update nahi hua'),
   });
 
-  const trendData = useMemo(() => {
-    if (!supplier?.trend30Days) return [];
-    return supplier.trend30Days.map((p: any) => {
-      const d = new Date(p.date);
-      return { ...p, label: `${d.getDate()}/${d.getMonth() + 1}` };
-    });
-  }, [supplier]);
-
-  /* ─── Keyboard: E = edit, W = WhatsApp, Esc = teacher band ─── */
+  /* ─── Keyboard ─── */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && showTeacher) { setShowTeacher(false); return; }
-      const tag = document.activeElement?.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-      if (e.key.toLowerCase() === 'e') window.location.href = `/suppliers/${id}/edit`;
-      if (e.key.toLowerCase() === 'w' && supplier?.phone) {
-        const phone = supplier.phone.replace(/[^0-9]/g, '').replace(/^0/, '92');
-        window.open(`https://wa.me/${phone}`, '_blank');
+      const el = e.target as HTMLElement;
+      const typing = /input|textarea|select/i.test(el?.tagName ?? '') || el?.isContentEditable;
+      if (e.key === 'Escape') {
+        if (showKhata) return setShowKhata(false);
+        if (showTeacher) return setShowTeacher(false);
+        if (showKeys) return setShowKeys(false);
       }
+      if (typing) return;
+      if (e.key.toLowerCase() === 'k') setShowKhata(true);
+      if (e.key.toLowerCase() === 'e') navigate(`/suppliers/${id}/edit`);
+      if (e.key.toLowerCase() === 'b') navigate('/suppliers');
+      if (e.key.toLowerCase() === 'a') setTab('analytics');
+      if (e.key.toLowerCase() === 't') setShowTeacher(true);
+      if (e.key === '?') setShowKeys(true);
+      if (e.key.toLowerCase() === 'p') doPrint();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [id, showTeacher, supplier?.phone]);
+  });
 
-  /* Body scroll lock jab teacher khula ho */
-  useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = showTeacher ? 'hidden' : prev;
-    return () => { document.body.style.overflow = prev; };
-  }, [showTeacher]);
+  const due = Number(s?.outstandingDue ?? 0);
+  const wa = waNumber(s?.phone);
+  const stats = s?.stats;
+  const ledger = s?.ledger;
+
+  /* ─── Kis kis tarah ki cheez aati hai ─── */
+  const categories = useMemo(() => {
+    if (!s?.purchases) return [];
+    const map = new Map<string, { name: string; total: number; qty: number }>();
+    for (const p of s.purchases) {
+      for (const it of p.items ?? []) {
+        const key = it.product?.name ?? 'Doosra';
+        const hit = map.get(key) ?? { name: key, total: 0, qty: 0 };
+        hit.total += Number(it.total ?? 0);
+        hit.qty += Number(it.quantity ?? 0);
+        map.set(key, hit);
+      }
+    }
+    return [...map.values()].sort((a, b) => b.total - a.total).slice(0, 8);
+  }, [s]);
+
+  /* ─── Print: supplier ka poora kaghaz ─── */
+  const doPrint = () => {
+    if (!s) return;
+    const body = `
+      <div class="cards">
+        <div class="card"><div class="l">Kul bill</div><div class="v">${s.stats?.totalPurchases ?? 0}</div></div>
+        <div class="card"><div class="l">Kul kharidari</div><div class="v">${formatPKR(s.stats?.totalAmount ?? 0)}</div></div>
+        <div class="card"><div class="l">Diya</div><div class="v ok">${formatPKR(s.stats?.totalPaid ?? 0)}</div></div>
+        <div class="card"><div class="l">Hamara baqi</div><div class="v due">${formatPKR(Number(s.outstandingDue ?? 0))}</div></div>
+      </div>
+      <table>
+        <thead><tr><th>Bill #</th><th>Tareekh</th><th>Tareeqa</th><th class="r">Kul</th><th class="r">Diya</th><th class="r">Baqi</th></tr></thead>
+        <tbody>${(s.purchases ?? []).map((p) => {
+          const d = Number(p.total ?? 0) - Number(p.paidAmount ?? 0);
+          return `<tr>
+            <td><strong>${p.purchaseNumber}</strong></td>
+            <td>${fmtDate(p.purchasedAt)}</td>
+            <td>${payMeta(p.paymentMethod).label}</td>
+            <td class="r num">${formatPKR(Number(p.total ?? 0))}</td>
+            <td class="r num">${formatPKR(Number(p.paidAmount ?? 0))}</td>
+            <td class="r num ${d > 0 ? 'due' : 'ok'}">${formatPKR(d)}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>`;
+    printHtml(a4Shell(
+      s.name,
+      body,
+      [s.contactPerson, s.phone, s.city, s.ntn ? `NTN ${s.ntn}` : null].filter(Boolean).join(' · '),
+    ));
+  };
+
+  const doCsv = () => {
+    if (!s) return;
+    downloadCsv(`${s.name.replace(/\s+/g, '-').toLowerCase()}-bills.csv`, [
+      ['Bill #', 'Tareekh', 'Tareeqa', 'Halat', 'Kul', 'Diya', 'Baqi'],
+      ...(s.purchases ?? []).map((p) => [
+        p.purchaseNumber, fmtDate(p.purchasedAt), payMeta(p.paymentMethod).label, p.status,
+        Number(p.total ?? 0), Number(p.paidAmount ?? 0),
+        Number(p.total ?? 0) - Number(p.paidAmount ?? 0),
+      ]),
+    ]);
+    toast.success('CSV ban gaya');
+  };
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-24">
-        <div className="h-12 w-12 rounded-full border-4 border-orange-200 dark:border-orange-800 border-t-orange-600 dark:border-t-orange-400 animate-spin" />
+      <div className="py-24 text-center">
+        <Loader2 className="h-7 w-7 animate-spin mx-auto text-teal-600 mb-3" />
+        <p className="text-sm font-bold text-slate-500">Supplier aa raha hai…</p>
       </div>
     );
   }
 
-  if (!supplier) {
+  if (!s) {
     return (
-      <div className="rounded-2xl bg-white dark:bg-slate-900/80 border-2 border-dashed border-slate-300 dark:border-slate-700 p-16 text-center">
-        <Truck className="h-12 w-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-        <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Supplier nahi mila</h3>
-        <Link to="/suppliers" className="mt-3 inline-flex items-center gap-1 text-sm font-extrabold text-orange-600 dark:text-orange-400 hover:underline">
-          <ArrowLeft className="h-4 w-4" /> Sab suppliers pe wapas
-        </Link>
+      <div className="rounded-3xl bg-[#ffffff] dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800">
+        <Empty icon={Truck} title="Ye supplier nahi mila"
+          desc="Shayad delete ho gaya ya link ghalat hai."
+          action={<Link to="/suppliers"><Button><ArrowLeft className="h-4 w-4" /> Suppliers</Button></Link>} />
       </div>
     );
   }
 
-  const whatsappLink = supplier.phone
-    ? `https://wa.me/${supplier.phone.replace(/[^0-9]/g, '').replace(/^0/, '92')}`
-    : null;
-
-  const copyDetails = () => {
-    const text = [
-      `Name: ${supplier.name}`,
-      supplier.contactPerson && `Contact: ${supplier.contactPerson}`,
-      supplier.phone && `Phone: ${supplier.phone}`,
-      supplier.email && `Email: ${supplier.email}`,
-      supplier.bankName && `Bank: ${supplier.bankName}`,
-      supplier.accountNumber && `Account: ${supplier.accountNumber}`,
-      supplier.iban && `IBAN: ${supplier.iban}`,
-      supplier.paymentTerms && `Terms: ${supplier.paymentTerms}`,
-    ].filter(Boolean).join('\n');
-    navigator.clipboard.writeText(text);
-    toast.success('Supplier details copy ho gaye');
-  };
-
-  const confirmDelete = () => {
-    const due = Number(stats?.outstanding || 0);
-    const msg = due > 0
-      ? `⚠️ "${supplier.name}" ka ${formatPKR(due)} udhaar abhi BAAKI hai!\n\nDelete karo to purchase history reh jayegi lekin supplier ka khata gum ho jayega.\n\nPakka delete karein?`
-      : `"${supplier.name}" delete karein?`;
-    if (confirm(msg)) removeMutation.mutate();
-  };
-
-  const exportPurchasesCSV = () => {
-    if (!supplier.purchases || supplier.purchases.length === 0) return toast.error('Koi purchase nahi');
-    const summaryRows = [
-      [`Purchase History — ${supplier.name}`],
-      [`${tenantName || 'My Store'}  •  Generated: ${new Date().toLocaleString('en-PK')}`],
-      [`Total: ${(stats?.totalAmount || 0).toFixed(2)}  •  Paid: ${(stats?.totalPaid || 0).toFixed(2)}  •  Due: ${(stats?.outstanding || 0).toFixed(2)}`],
-      [''],
-    ];
-    const headers = ['Purchase #', 'Date', 'Items', 'Total', 'Paid', 'Balance', 'Payment', 'Status'];
-    const rows = supplier.purchases.map((p: any) => [
-      p.purchaseNumber,
-      new Date(p.purchasedAt).toLocaleString('en-PK'),
-      p.items?.length || 0,
-      p.total.toFixed(2),
-      p.paidAmount.toFixed(2),
-      Math.max(p.total - p.paidAmount, 0).toFixed(2),
-      p.paymentMethod,
-      p.status,
-    ]);
-    const csv = [...summaryRows, headers, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
-    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${supplier.name.replace(/\s+/g, '-')}-purchases.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success(`${supplier.purchases.length} purchases export ho gaye`);
-  };
-
-  const sharePaymentRequest = () => {
-    if (!supplier.phone || !supplier.stats?.outstanding) return;
-    const phone = supplier.phone.replace(/[^0-9]/g, '').replace(/^0/, '92');
-    const lines = [
-      `Assalam-o-Alaikum *${supplier.contactPerson || supplier.name}*,`,
-      '',
-      'Hamare records ke mutabiq aap ke account me outstanding balance hai:',
-      '',
-      `*Total Purchased:* ${formatPKR(supplier.stats.totalAmount)}`,
-      `*Paid:* ${formatPKR(supplier.stats.totalPaid)}`,
-      `*Outstanding:* *${formatPKR(supplier.stats.outstanding)}*`,
-      '',
-      'Bank Details:',
-      supplier.bankName && `*Bank:* ${supplier.bankName}`,
-      supplier.accountNumber && `*Account:* ${supplier.accountNumber}`,
-      supplier.iban && `*IBAN:* ${supplier.iban}`,
-      '',
-      'Please confirm payment at your earliest. Shukriya 🙏',
-    ].filter(Boolean).join('\n');
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(lines)}`, '_blank');
-    toast.success('Payment reminder WhatsApp pe khul raha hai');
-  };
-
-  const stats = supplier.stats;
-  const isVip = (stats?.totalAmount || 0) > 100000;
-  const paidPct = stats?.totalAmount > 0 ? Math.round(((stats?.totalPaid || 0) / stats.totalAmount) * 100) : 0;
+  const money = (n: number) => (hideCost ? '•••' : formatPKR(n));
 
   return (
-    <div className="space-y-4 sm:space-y-5 pb-10 print:space-y-3">
-      {showTeacher && <SupplierDetailTeacher onClose={() => setShowTeacher(false)} supplierName={supplier.name} />}
+    <div className="space-y-5 pb-24">
+      {/* ─────── HERO ─────── */}
+      <div className={`relative overflow-hidden rounded-3xl bg-gradient-to-br ${SUPPLIER_GRADIENT} text-white p-5 sm:p-7`}>
+        <div className="absolute -top-16 -right-10 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
+        <div className="absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-emerald-400/20 blur-3xl" />
 
-      {/* ═══ PRINT-ONLY HEADER ═══ */}
-      <div className="hidden print:block">
-        <div className="border-b-4 border-orange-600 pb-3 mb-4">
-          <h1 className="text-2xl font-black text-slate-900 leading-tight">
-            🚚 {supplier.name} — Khata Statement
-          </h1>
-          <p className="text-xs text-slate-600 font-semibold mt-1">
-            {tenantName || 'My Store'} • Total: {formatPKR(stats?.totalAmount || 0)} • Paid: {formatPKR(stats?.totalPaid || 0)} • Due: {formatPKR(stats?.outstanding || 0)}
-          </p>
-          <p className="text-xs text-slate-500 mt-0.5">Generated: {new Date().toLocaleString('en-PK')}</p>
-        </div>
-      </div>
-
-      {/* ═══ BACK ═══ */}
-      <div className="flex items-center justify-between gap-3 flex-wrap print:hidden">
-        <Link
-          to="/suppliers"
-          className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 font-bold transition"
-        >
-          <ArrowLeft className="h-4 w-4" /> Sab Suppliers
+        <Link to="/suppliers" className="relative inline-flex items-center gap-1.5 text-xs font-extrabold text-white/80 hover:text-white transition">
+          <ArrowLeft className="h-3.5 w-3.5" /> Suppliers
         </Link>
-        <div className="hidden sm:flex flex-wrap gap-1.5 text-[10px] font-bold items-center text-slate-400 dark:text-slate-500">
-          <KbdLight>E</KbdLight> Edit • <KbdLight>W</KbdLight> WhatsApp
+
+        <div className="relative flex flex-wrap items-start justify-between gap-4 mt-3">
+          <div className="flex items-start gap-4 min-w-0">
+            <div className="h-16 w-16 rounded-3xl bg-white/20 border-2 border-white/30 flex items-center justify-center font-black text-xl shrink-0 overflow-hidden">
+              {s.logoUrl ? <img src={s.logoUrl} alt="" className="h-full w-full object-cover" /> : initials(s.name)}
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-black truncate">{s.name}</h1>
+              <div className="flex items-center gap-2 flex-wrap mt-1.5 text-[11px] font-extrabold">
+                {!s.isActive && <span className="px-2 py-0.5 rounded-full bg-black/30 border border-white/30">Band</span>}
+                {s.contactPerson && <span className="px-2 py-0.5 rounded-full bg-white/20">👤 {s.contactPerson}</span>}
+                {s.city && <span className="px-2 py-0.5 rounded-full bg-white/20">📍 {s.city}{s.area ? `, ${s.area}` : ''}</span>}
+                {s.paymentTerms && <span className="px-2 py-0.5 rounded-full bg-white/20">📅 {s.paymentTerms}</span>}
+                {s.ntn && <span className="px-2 py-0.5 rounded-full bg-white/20 font-mono">NTN {s.ntn}</span>}
+              </div>
+              <div className="flex items-center gap-2 flex-wrap mt-2">
+                {s.phone && (
+                  <a href={`tel:${s.phone}`} className="h-9 px-3 rounded-xl bg-white/20 hover:bg-white/30 text-xs font-extrabold inline-flex items-center gap-1.5 transition">
+                    <Phone className="h-3.5 w-3.5" /> {s.phone}
+                  </a>
+                )}
+                {wa && (
+                  <a href={`https://wa.me/${wa}`} target="_blank" rel="noreferrer"
+                    className="h-9 px-3 rounded-xl bg-emerald-500/90 hover:bg-emerald-400 text-xs font-extrabold inline-flex items-center gap-1.5 transition">
+                    <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+                  </a>
+                )}
+                {s.email && (
+                  <a href={`mailto:${s.email}`} className="h-9 px-3 rounded-xl bg-white/20 hover:bg-white/30 text-xs font-extrabold inline-flex items-center gap-1.5 transition">
+                    <Mail className="h-3.5 w-3.5" /> Email
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            <PrivacyToggle />
+            <button onClick={() => setShowTeacher(true)} title="Sikhein (T)"
+              className="h-11 w-11 rounded-2xl bg-white/20 hover:bg-white/30 flex items-center justify-center transition">
+              <GraduationCap className="h-4 w-4" />
+            </button>
+            <button onClick={() => setShowKeys(true)} title="Shortcuts (?)"
+              className="h-11 w-11 rounded-2xl bg-white/20 hover:bg-white/30 flex items-center justify-center transition">
+              <Keyboard className="h-4 w-4" />
+            </button>
+            <button onClick={() => refetch()} disabled={isRefetching} title="Taaza"
+              className="h-11 w-11 rounded-2xl bg-white/20 hover:bg-white/30 flex items-center justify-center transition">
+              <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
+            </button>
+            <button onClick={doPrint} title="Print (P)"
+              className="h-11 w-11 rounded-2xl bg-white/20 hover:bg-white/30 flex items-center justify-center transition">
+              <Printer className="h-4 w-4" />
+            </button>
+            <Link to={`/suppliers/${s.id}/edit`}
+              className="h-11 px-3.5 rounded-2xl bg-white/20 hover:bg-white/30 text-sm font-extrabold inline-flex items-center gap-1.5 transition">
+              <Edit3 className="h-4 w-4" /> <span className="hidden sm:inline">Badlein</span>
+            </Link>
+            <button onClick={() => setShowKhata(true)}
+              className="h-11 px-4 rounded-2xl bg-[#ffffff] text-violet-800 text-sm font-black inline-flex items-center gap-1.5 shadow-lg hover:bg-violet-50 transition">
+              <BookOpen className="h-4 w-4" /> Khata
+            </button>
+          </div>
+        </div>
+
+        {/* baqi ki patti */}
+        <div className={`relative mt-5 rounded-2xl p-4 ${due > 0 ? 'bg-rose-500/25 border-2 border-rose-300/40' : 'bg-emerald-500/25 border-2 border-emerald-300/40'}`}>
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <div className="text-[10px] font-extrabold uppercase tracking-wider text-white/80">
+                {due > 0 ? 'Hum ne is supplier ko dena hai' : 'Hisab saaf hai'}
+              </div>
+              <div className="text-3xl font-black tabular-nums">{money(due)}</div>
+              <div className="text-[11px] font-bold text-white/85 mt-0.5">
+                {ledger?.lastPaymentAt
+                  ? `Aakhri adaigi ${money(Number(ledger.lastPaymentAmount ?? 0))} — ${daysPhrase(ledger.daysSincePayment)}`
+                  : due > 0 ? 'Ab tak ek bhi adaigi darj nahi' : 'Sab kuch chuka diya gaya'}
+              </div>
+            </div>
+            <button onClick={() => setShowKhata(true)}
+              className="h-12 px-5 rounded-2xl bg-[#ffffff] text-slate-900 text-sm font-black inline-flex items-center gap-2 shadow-lg transition">
+              <Banknote className="h-4 w-4" /> {due > 0 ? 'Paisa Dein' : 'Khata Dekhein'}
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-orange-900 to-amber-700 dark:from-slate-950 dark:via-orange-950 dark:to-amber-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
-        <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-orange-400/25 blur-3xl pointer-events-none animate-pulse" />
-        <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-amber-400/20 blur-3xl pointer-events-none" />
+      {/* ─────── KPI ─────── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-2.5">
+        <Kpi icon={ShoppingCart} label="Kul bill" tone="blue" value={stats?.totalPurchases ?? 0}
+          sub={`Ausat ${money(stats?.averagePurchase ?? 0)}`} />
+        <Kpi icon={Package} label="Kul kharidari" tone="teal" value={money(stats?.totalAmount ?? 0)}
+          sub={`${money(stats?.totalPaid ?? 0)} diya`} />
+        <Kpi icon={Wallet} label="Hamara baqi" tone="rose" value={money(due)}
+          sub={due > 0 ? daysPhrase(ledger?.daysSincePayment) + ' se' : 'Saaf'} />
+        <Kpi icon={BookOpen} label="Purana hisab" tone="violet" value={money(ledger?.openingBalance ?? 0)}
+          sub="Khata shuru hone se pehle" />
+        <Kpi icon={HandCoins} label="Kul adaigi" tone="emerald" value={money(ledger?.paymentsMade ?? 0)}
+          sub={`${ledger?.entryCount ?? 0} khate ki entry`} />
+        <Kpi icon={TrendingDown} label="Maal wapas" tone="amber" value={money(ledger?.returns ?? 0)}
+          sub="Baqi me se ghata" />
+        <Kpi icon={Clock} label="Aakhri maal" tone="indigo"
+          value={stats?.lastPurchaseDate ? fmtDate(stats.lastPurchaseDate) : '—'}
+          sub={daysPhrase(stats?.daysSinceLastPurchase)} />
+        <Kpi icon={CalendarClock} label="Rishta" tone="slate" value={fmtDate(s.createdAt)}
+          sub={`${daysPhrase(Math.floor((Date.now() - new Date(s.createdAt).getTime()) / 86400000))} se`} />
+      </div>
 
-        <div className="relative flex items-start gap-4 sm:gap-5 flex-wrap">
-          <div className="relative shrink-0">
-            {supplier.logoUrl ? (
-              <img src={supplier.logoUrl} className="h-20 w-20 sm:h-24 sm:w-24 rounded-3xl object-cover border-4 border-white/30 shadow-2xl" alt={supplier.name} />
-            ) : (
-              <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-3xl bg-white/20 backdrop-blur flex items-center justify-center text-4xl font-extrabold border-4 border-white/30 shadow-2xl">
-                {supplier.name.charAt(0).toUpperCase()}
-              </div>
+      {/* ─────── TABS ─────── */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+        {([
+          { v: 'overview' as Tab, label: 'Khulasa', icon: Activity },
+          { v: 'purchases' as Tab, label: 'Bill', icon: ShoppingCart, n: s._count?.purchases },
+          { v: 'products' as Tab, label: 'Kya Aata Hai', icon: Package, n: s.topProducts?.length },
+          { v: 'analytics' as Tab, label: 'Analytics', icon: BarChart3 },
+        ]).map((t) => (
+          <button key={t.v} onClick={() => setTab(t.v)}
+            className={`h-11 px-4 rounded-2xl text-sm font-extrabold inline-flex items-center gap-2 shrink-0 transition ${
+              tab === t.v
+                ? 'bg-gradient-to-r from-teal-600 to-emerald-700 text-white shadow-lg shadow-teal-500/30'
+                : 'bg-[#ffffff] dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-teal-400'
+            }`}>
+            <t.icon className="h-4 w-4" /> {t.label}
+            {t.n !== undefined && t.n > 0 && (
+              <span className={`px-1.5 rounded-full text-[10px] tabular-nums ${tab === t.v ? 'bg-black/20' : 'bg-slate-200 dark:bg-slate-800'}`}>{t.n}</span>
             )}
-            {isVip && (
-              <div className="absolute -top-2 -right-2 h-9 w-9 rounded-full bg-amber-500 border-4 border-white flex items-center justify-center shadow-lg" title="VIP Supplier (1 Lakh+ business)">
-                <Crown className="h-4 w-4 text-white fill-white" />
+          </button>
+        ))}
+      </div>
+
+      {/* ══════════ OVERVIEW ══════════ */}
+      {tab === 'overview' && (
+        <div className="grid lg:grid-cols-[1fr_340px] gap-4 items-start">
+          <div className="space-y-4 min-w-0">
+            {/* khata ka tootna */}
+            <Panel icon={BookOpen} title="Baqi Bana Kaise" desc="Har hissa alag alag" tone="violet"
+              right={
+                <button onClick={() => setShowKhata(true)}
+                  className="h-9 px-3 rounded-xl bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 text-[11px] font-extrabold inline-flex items-center gap-1 transition">
+                  Poora khata <ChevronRight className="h-3.5 w-3.5" />
+                </button>
+              }>
+              <div className="space-y-2">
+                {[
+                  { label: 'Purana hisab', value: ledger?.openingBalance ?? 0, sign: '+', tone: 'violet', desc: 'System se pehle ka' },
+                  { label: 'Udhaar par maal', value: ledger?.purchaseCredit ?? 0, sign: '+', tone: 'amber', desc: 'Bill ka bacha hua' },
+                  { label: 'Adaigi', value: ledger?.paymentsMade ?? 0, sign: '−', tone: 'emerald', desc: 'Jo hum ne diya' },
+                  { label: 'Maal wapas', value: ledger?.returns ?? 0, sign: '−', tone: 'blue', desc: 'Jo wapas kiya' },
+                  { label: 'Durusti', value: ledger?.adjustments ?? 0, sign: '±', tone: 'slate', desc: 'Haath se theek ki' },
+                ].map((r) => {
+                  const tones: Record<string, string> = {
+                    violet: 'text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-500/10',
+                    amber: 'text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-500/10',
+                    emerald: 'text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-500/10',
+                    blue: 'text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-500/10',
+                    slate: 'text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/60',
+                  };
+                  return (
+                    <div key={r.label} className={`flex items-center justify-between gap-3 rounded-xl p-2.5 ${tones[r.tone]}`}>
+                      <div className="min-w-0">
+                        <div className="text-sm font-extrabold truncate">{r.label}</div>
+                        <div className="text-[10px] font-bold opacity-70">{r.desc}</div>
+                      </div>
+                      <div className="text-sm font-black tabular-nums shrink-0">
+                        {r.sign} {money(r.value)}
+                      </div>
+                    </div>
+                  );
+                })}
+                <div className={`flex items-center justify-between gap-3 rounded-2xl p-3 border-2 ${
+                  due > 0
+                    ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-300 dark:border-rose-500/40'
+                    : 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-300 dark:border-emerald-500/40'
+                }`}>
+                  <div className="text-sm font-black text-slate-900 dark:text-white">Ab hamara dena</div>
+                  <div className={`text-xl font-black tabular-nums ${due > 0 ? 'text-rose-700 dark:text-rose-300' : 'text-emerald-700 dark:text-emerald-300'}`}>
+                    {money(due)}
+                  </div>
+                </div>
               </div>
-            )}
+            </Panel>
+
+            {/* 30 din */}
+            <Panel icon={Activity} title="Pichlay 30 Din" desc="Rozana kitna maal aaya" tone="teal">
+              <div className="h-52">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={s.trend30Days ?? []}>
+                    <defs>
+                      <linearGradient id="sd30" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#0d9488" stopOpacity={0.35} />
+                        <stop offset="95%" stopColor="#0d9488" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                    <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={(v) => String(v).slice(5)} />
+                    <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => (v >= 1000 ? `${Math.round(v / 1000)}k` : v)} />
+                    <Tooltip formatter={(v: any) => formatPKR(Number(v))}
+                      contentStyle={{ borderRadius: 12, border: '2px solid #e2e8f0', fontWeight: 700 }} />
+                    <Area type="monotone" dataKey="total" stroke="#0d9488" strokeWidth={2.5} fill="url(#sd30)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </Panel>
+
+            {/* haal ke bill */}
+            <Panel icon={ShoppingCart} title="Haal ke Bill" desc="Aakhri 20 kharidari" tone="blue"
+              right={
+                <button onClick={doCsv}
+                  className="h-9 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] font-extrabold inline-flex items-center gap-1 transition">
+                  <FileSpreadsheet className="h-3.5 w-3.5" /> CSV
+                </button>
+              }>
+              {(s.purchases ?? []).length === 0 ? (
+                <Empty icon={ShoppingCart} title="Is se abhi koi maal nahi aaya"
+                  desc="Kharidari ke safhe se pehla bill banayein."
+                  action={<Link to="/purchases"><Button><Plus className="h-4 w-4" /> Kharidari</Button></Link>} />
+              ) : (
+                <div className="space-y-1.5">
+                  {s.purchases.slice(0, 8).map((p) => <PurchaseRow key={p.id} p={p} money={money} />)}
+                  {s.purchases.length > 8 && (
+                    <button onClick={() => setTab('purchases')}
+                      className="w-full h-10 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-xs font-extrabold text-slate-600 dark:text-slate-300 transition">
+                      Baqi {s.purchases.length - 8} bill dekhein
+                    </button>
+                  )}
+                </div>
+              )}
+            </Panel>
           </div>
 
-          <div className="flex-1 min-w-[250px]">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight">{supplier.name}</h1>
-              {isVip && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/30 backdrop-blur text-amber-100 text-[10px] font-extrabold uppercase tracking-wider border border-amber-300/40">
-                  <Crown className="h-3 w-3" /> VIP
-                </span>
-              )}
-              {!supplier.isActive && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-500/30 backdrop-blur text-slate-100 text-[10px] font-extrabold uppercase">
-                  Inactive
-                </span>
-              )}
-            </div>
-            {supplier.contactPerson && (
-              <div className="text-sm text-white/90 mt-1 font-bold">Contact: {supplier.contactPerson}</div>
-            )}
-            <div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-white/90">
-              {supplier.phone && (
-                <a href={`tel:${supplier.phone}`} className="inline-flex items-center gap-1.5 font-bold hover:text-white transition">
-                  <Phone className="h-3.5 w-3.5" /> {supplier.phone}
-                </a>
-              )}
-              {supplier.email && (
-                <a href={`mailto:${supplier.email}`} className="inline-flex items-center gap-1.5 font-bold hover:text-white transition">
-                  <Mail className="h-3.5 w-3.5" /> {supplier.email}
-                </a>
-              )}
-              {supplier.city && (
-                <span className="inline-flex items-center gap-1.5 font-bold">
-                  <MapPin className="h-3.5 w-3.5" /> {supplier.city}{supplier.area && `, ${supplier.area}`}
-                </span>
-              )}
-            </div>
-
-            {stats?.daysSinceLastPurchase !== null && stats?.daysSinceLastPurchase !== undefined && (
-              <div className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-white/70">
-                <Clock className="h-3 w-3" />
-                Aakhri purchase: {stats.daysSinceLastPurchase === 0 ? 'Aaj' : `${stats.daysSinceLastPurchase} din pehle`}
+          {/* sidebar */}
+          <div className="space-y-4">
+            <Panel icon={Truck} title="Tafseel" tone="slate">
+              <div className="space-y-2">
+                <Info label="Banda" value={s.contactPerson} icon={Truck} />
+                <Info label="Phone" value={s.phone} icon={Phone} mono copy />
+                <Info label="Doosra phone" value={s.altPhone} icon={Phone} mono copy />
+                <Info label="Email" value={s.email} icon={Mail} copy />
+                <Info label="Pata" value={[s.address, s.area, s.city].filter(Boolean).join(', ')} icon={MapPin} />
+                <Info label="NTN" value={s.ntn} icon={Hash} mono copy />
+                <Info label="CNIC" value={s.cnic} icon={Hash} mono copy />
+                <Info label="Payment terms" value={s.paymentTerms} icon={CalendarClock} />
               </div>
+            </Panel>
+
+            {(s.bankName || s.accountNumber || s.iban) && (
+              <Panel icon={Landmark} title="Bank" desc="Adaigi bhejne ke liye" tone="emerald">
+                <div className="space-y-2">
+                  <Info label="Bank" value={s.bankName} icon={Landmark} />
+                  <Info label="Account" value={s.accountNumber} icon={Hash} mono copy />
+                  <Info label="IBAN" value={s.iban} icon={Hash} mono copy />
+                </div>
+              </Panel>
             )}
 
-            <div className="mt-4 flex flex-wrap gap-2">
-              {whatsappLink && (
-                <a href={whatsappLink} target="_blank" rel="noreferrer">
-                  <Button className="bg-green-600 hover:bg-green-700 font-extrabold">
-                    <MessageCircle className="h-4 w-4" /> WhatsApp <Kbd>W</Kbd>
-                  </Button>
-                </a>
-              )}
-              {(stats?.outstanding || 0) > 0 && supplier.phone && (
-                <Button onClick={sharePaymentRequest} className="bg-rose-600 hover:bg-rose-700 text-white font-extrabold">
-                  <AlertTriangle className="h-4 w-4" /> Payment Reminder
-                </Button>
-              )}
-              <Link to={`/suppliers/${id}/edit`}>
-                <Button className="bg-white/15 hover:bg-white/25 border border-white/25 text-white font-extrabold backdrop-blur-md">
-                  <Edit3 className="h-4 w-4" /> Edit <Kbd>E</Kbd>
-                </Button>
-              </Link>
-              <button
-                onClick={() => setShowTeacher(true)}
-                className="h-9 px-3 rounded-xl bg-amber-400/90 hover:bg-amber-400 text-slate-900 text-xs font-extrabold inline-flex items-center gap-1.5 shadow-lg transition"
-              >
-                <GraduationCap className="h-4 w-4" /> <span className="hidden sm:inline">Guide</span>
-              </button>
-              <button
-                onClick={() => window.print()}
-                className="h-9 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-white text-xs font-extrabold inline-flex items-center gap-1.5 backdrop-blur-md transition"
-              >
-                <Printer className="h-4 w-4" /> <span className="hidden sm:inline">Statement</span>
-              </button>
-              <button
-                onClick={copyDetails}
-                className="h-9 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-white text-xs font-extrabold inline-flex items-center gap-1.5 backdrop-blur-md transition"
-              >
-                <Copy className="h-4 w-4" /> <span className="hidden sm:inline">Copy</span>
-              </button>
-              <button
-                onClick={confirmDelete}
-                disabled={removeMutation.isPending}
-                className="h-9 px-3 rounded-xl bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-extrabold inline-flex items-center gap-1.5 shadow-lg transition disabled:opacity-50"
-              >
-                <Trash2 className="h-4 w-4" /> <span className="hidden sm:inline">Delete</span>
-              </button>
-            </div>
+            {s.notes && (
+              <Panel icon={FileText} title="Yaad-dasht" tone="amber">
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 whitespace-pre-wrap leading-relaxed">
+                  {s.notes}
+                </p>
+              </Panel>
+            )}
+
+            <Panel icon={Activity} title="Kaam" tone="teal">
+              <div className="space-y-2">
+                <Link to="/purchases"
+                  className="w-full h-11 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-700 text-white text-sm font-extrabold inline-flex items-center justify-center gap-2 shadow transition">
+                  <Plus className="h-4 w-4" /> Nayi Kharidari
+                </Link>
+                <button onClick={() => setShowKhata(true)}
+                  className="w-full h-11 rounded-xl bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 text-sm font-extrabold inline-flex items-center justify-center gap-2 transition">
+                  <BookOpen className="h-4 w-4" /> Khata (K)
+                </button>
+                <button onClick={doPrint}
+                  className="w-full h-11 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm font-extrabold inline-flex items-center justify-center gap-2 transition">
+                  <Printer className="h-4 w-4" /> Print (P)
+                </button>
+                <button onClick={() => toggleActive.mutate()} disabled={toggleActive.isPending}
+                  className="w-full h-11 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm font-extrabold inline-flex items-center justify-center gap-2 disabled:opacity-50 transition">
+                  {s.isActive ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
+                  {s.isActive ? 'Band Karein' : 'Chalu Karein'}
+                </button>
+              </div>
+            </Panel>
           </div>
         </div>
-      </section>
-
-      {/* ═══ OUTSTANDING BANNER ═══ */}
-      {(stats?.outstanding || 0) > 0 && (
-        <section className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-rose-50 to-pink-50 dark:from-rose-500/10 dark:to-pink-500/10 border-2 border-rose-300 dark:border-rose-500/40 p-4 print:hidden">
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-rose-500 to-rose-700 text-white flex items-center justify-center shadow-lg shadow-rose-500/40 shrink-0">
-              <AlertTriangle className="h-5 w-5" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-extrabold text-rose-900 dark:text-rose-200 text-sm">
-                💰 {formatPKR(stats.outstanding)} dena baaki hai
-              </h3>
-              <p className="text-xs text-rose-800 dark:text-rose-300/80 font-semibold">
-                {paidPct}% paid • Payment terms: {supplier.paymentTerms || 'set nahi'}
-              </p>
-            </div>
-            {supplier.phone && (
-              <button
-                onClick={sharePaymentRequest}
-                className="h-10 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold inline-flex items-center gap-1.5 shadow-md transition shrink-0"
-              >
-                <MessageCircle className="h-4 w-4" /> Reminder bhejo
-              </button>
-            )}
-          </div>
-        </section>
       )}
 
-      {/* ═══ STATS GRID ═══ */}
-      <section className="grid grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-3 print:hidden">
-        <Kpi icon={ShoppingBag} tone="orange" label="Total Orders" value={stats?.totalPurchases || 0} sub="All time" />
-        <Kpi icon={TrendingUp} tone="blue" label="Total Amount" value={formatPKR(stats?.totalAmount || 0)} sub="Lifetime" small />
-        <Kpi icon={Wallet} tone="emerald" label="Total Paid" value={formatPKR(stats?.totalPaid || 0)} sub={`${paidPct}% paid`} small />
-        <Kpi icon={AlertTriangle} tone="rose" label="Due" value={formatPKR(stats?.outstanding || 0)} sub={stats?.outstanding > 0 ? 'Dena baaki' : 'Clear ✓'} small isAlert={(stats?.outstanding || 0) > 0} />
-        <Kpi icon={Activity} tone="violet" label="Avg Order" value={formatPKR(stats?.averagePurchase || 0)} sub="Per purchase" small />
-      </section>
-
-      {/* ═══ CHARTS ═══ */}
-      <section className="grid lg:grid-cols-[1.5fr_1fr] gap-4 print:hidden">
-        <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-base font-extrabold text-slate-900 dark:text-white">30-Day Purchase Trend</h3>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">Is supplier se daily kharidari</p>
+      {/* ══════════ PURCHASES ══════════ */}
+      {tab === 'purchases' && (
+        <Panel icon={ShoppingCart} title="Saray Bill" desc={`${s._count?.purchases ?? 0} kharidari — aakhri 20 yahan`} tone="blue"
+          right={
+            <div className="flex gap-1.5">
+              <button onClick={doCsv} className="h-9 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] font-extrabold inline-flex items-center gap-1 transition">
+                <FileSpreadsheet className="h-3.5 w-3.5" /> CSV
+              </button>
+              <button onClick={doPrint} className="h-9 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] font-extrabold inline-flex items-center gap-1 transition">
+                <Printer className="h-3.5 w-3.5" /> Print
+              </button>
             </div>
-            <BarChart3 className="h-5 w-5 text-orange-500" />
-          </div>
-          {trendData.length > 0 ? (
-            <div className="h-[260px]">
+          }>
+          {(s.purchases ?? []).length === 0 ? (
+            <Empty icon={ShoppingCart} title="Koi bill nahi" desc="Is supplier se abhi tak maal nahi aaya." />
+          ) : (
+            <div className="space-y-2">
+              {s.purchases.map((p) => <PurchaseRow key={p.id} p={p} money={money} expandable />)}
+            </div>
+          )}
+        </Panel>
+      )}
+
+      {/* ══════════ PRODUCTS ══════════ */}
+      {tab === 'products' && (
+        <div className="space-y-4">
+          <Panel icon={Package} title="Is se Kya Kya Aata Hai" desc="Sab se zyada kharide gaye maal" tone="teal">
+            {(s.topProducts ?? []).length === 0 ? (
+              <Empty icon={Package} title="Abhi kuch nahi aaya" />
+            ) : (
+              <div className="grid sm:grid-cols-2 gap-2">
+                {s.topProducts.map((p, i) => (
+                  <Link key={p.productId} to={`/products/${p.productId}`}
+                    className="flex items-center gap-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-3 hover:bg-teal-50 dark:hover:bg-teal-500/10 transition">
+                    <div className="h-11 w-11 rounded-xl bg-slate-200 dark:bg-slate-700 flex items-center justify-center overflow-hidden shrink-0 text-lg">
+                      {p.product?.images?.[0]?.url
+                        ? <img src={p.product.images[0].url} alt="" className="h-full w-full object-cover" />
+                        : '📦'}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">
+                        {p.product?.name ?? '—'}
+                      </div>
+                      <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                        {p.quantity} {p.product?.unit ?? ''} · {p.orderCount} bill
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="text-xs font-black text-slate-900 dark:text-white tabular-nums">{money(p.total)}</div>
+                      <div className="text-[10px] font-bold text-slate-400">#{i + 1}</div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </Panel>
+
+          {/* rate ka safar */}
+          <Panel icon={TrendingUp} title="Rate Ka Safar" desc="Ek hi cheez har baar mehngi to nahi ho rahi" tone="rose">
+            {(s.priceHistory ?? []).length === 0 ? (
+              <Empty icon={TrendingUp} title="Rate ka moqabla nahi ho sakta"
+                desc="Jab ek hi cheez do ya zyada baar aayegi, tab yahan uska rate ka safar nazar aayega." />
+            ) : (
+              <div className="space-y-3">
+                {s.priceHistory.map((ph) => {
+                  const up = ph.changePct > 0.5;
+                  const down = ph.changePct < -0.5;
+                  return (
+                    <div key={ph.productId} className="rounded-2xl border-2 border-slate-200 dark:border-slate-800 p-3">
+                      <div className="flex items-center justify-between gap-3 flex-wrap mb-2">
+                        <div className="min-w-0">
+                          <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{ph.productName}</div>
+                          <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                            {ph.points.length} dafa aaya · pehla {money(ph.firstCost)} → abhi {money(ph.lastCost)}
+                          </div>
+                        </div>
+                        <span className={`px-2.5 py-1 rounded-xl text-[11px] font-black tabular-nums inline-flex items-center gap-1 shrink-0 ${
+                          up ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
+                             : down ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
+                             : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                        }`}>
+                          {up ? <TrendingUp className="h-3.5 w-3.5" /> : down ? <TrendingDown className="h-3.5 w-3.5" /> : null}
+                          {ph.changePct > 0 ? '+' : ''}{ph.changePct.toFixed(1)}%
+                        </span>
+                      </div>
+                      {ph.points.length > 1 && (
+                        <div className="h-28">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={ph.points}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                              <XAxis dataKey="date" tick={{ fontSize: 9 }} tickFormatter={(v) => String(v).slice(5)} />
+                              <YAxis tick={{ fontSize: 9 }} width={44} tickFormatter={(v) => (v >= 1000 ? `${Math.round(v / 1000)}k` : v)} />
+                              <Tooltip formatter={(v: any) => formatPKR(Number(v))}
+                                labelFormatter={(l) => `Tareekh ${l}`}
+                                contentStyle={{ borderRadius: 12, border: '2px solid #e2e8f0', fontWeight: 700 }} />
+                              <Line type="monotone" dataKey="costPrice" stroke={up ? '#e11d48' : down ? '#10b981' : '#64748b'}
+                                strokeWidth={2.5} dot={{ r: 3 }} />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                      )}
+                      {up && ph.changePct > 15 && (
+                        <div className="mt-2 rounded-xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30 p-2.5 flex items-start gap-2">
+                          <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
+                          <div className="text-[11px] font-bold text-rose-900 dark:text-rose-200">
+                            Rate {ph.changePct.toFixed(0)}% barh chuka hai — bechne ka rate bhi dekh lein warna munafa khatam ho jayega.
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Panel>
+        </div>
+      )}
+
+      {/* ══════════ ANALYTICS ══════════ */}
+      {tab === 'analytics' && (
+        <div className="space-y-4">
+          <Panel icon={TrendingUp} title="12 Mahine" desc="Kis mahine kitna maal aaya aur kitna diya" tone="teal">
+            <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={trendData}>
+                <ComposedChart data={s.months12 ?? []}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                  <XAxis dataKey="label" tick={{ fontSize: 11, fontWeight: 700 }} />
+                  <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => (v >= 1000 ? `${Math.round(v / 1000)}k` : v)} />
+                  <Tooltip formatter={(v: any, n: any) => [formatPKR(Number(v)), n === 'total' ? 'Kharidari' : n === 'paid' ? 'Diya' : 'Bill']}
+                    contentStyle={{ borderRadius: 12, border: '2px solid #e2e8f0', fontWeight: 700 }} />
+                  <Legend formatter={(v) => (v === 'total' ? 'Kharidari' : v === 'paid' ? 'Diya' : 'Bill')} />
+                  <Bar dataKey="total" fill="#0d9488" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="paid" fill="#34d399" radius={[6, 6, 0, 0]} />
+                  <Line type="monotone" dataKey="count" stroke="#6366f1" strokeWidth={2.5} dot={{ r: 3 }} />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
+          </Panel>
+
+          <div className="grid lg:grid-cols-2 gap-4">
+            <Panel icon={Banknote} title="Adaigi Ka Tareeqa" desc="Cash, bank ya wallet" tone="emerald">
+              {(s.paymentBreakdown ?? []).length === 0 ? (
+                <Empty icon={Banknote} title="Abhi koi adaigi nahi" />
+              ) : (
+                <div className="h-56">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie dataKey="total" nameKey="paymentMethod" cx="50%" cy="50%" innerRadius={48} outerRadius={78} paddingAngle={3}
+                        data={(s.paymentBreakdown ?? []).map((p) => ({ ...p, paymentMethod: payMeta(p.paymentMethod).label }))}>
+                        {(s.paymentBreakdown ?? []).map((p, i) => <Cell key={i} fill={payMeta(p.paymentMethod).hex} />)}
+                      </Pie>
+                      <Tooltip formatter={(v: any, n: any) => [formatPKR(Number(v)), n]}
+                        contentStyle={{ borderRadius: 12, border: '2px solid #e2e8f0', fontWeight: 700 }} />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </Panel>
+
+            <Panel icon={Package} title="Kaun Si Cheez Par Kitna" desc="Bill ki lines ke hisab se" tone="indigo">
+              {categories.length === 0 ? (
+                <Empty icon={Package} title="Abhi kuch nahi aaya" />
+              ) : (
+                <div className="h-56">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={categories} layout="vertical">
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
+                      <XAxis type="number" tick={{ fontSize: 10 }} tickFormatter={(v) => (v >= 1000 ? `${Math.round(v / 1000)}k` : v)} />
+                      <YAxis type="category" dataKey="name" width={100} tick={{ fontSize: 10, fontWeight: 700 }} />
+                      <Tooltip formatter={(v: any) => formatPKR(Number(v))}
+                        contentStyle={{ borderRadius: 12, border: '2px solid #e2e8f0', fontWeight: 700 }} />
+                      <Bar dataKey="total" fill="#6366f1" radius={[0, 6, 6, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </Panel>
+          </div>
+
+          <Panel icon={Activity} title="Pichlay 30 Din" desc="Rozana" tone="slate">
+            <div className="h-52">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={s.trend30Days ?? []}>
                   <defs>
-                    <linearGradient id="suppDetailGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#f97316" stopOpacity={0.5} />
-                      <stop offset="100%" stopColor="#f97316" stopOpacity={0} />
+                    <linearGradient id="sd30b" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" className="dark:opacity-20" />
-                  <XAxis dataKey="label" stroke="#64748b" fontSize={10} interval={3} />
-                  <YAxis stroke="#64748b" fontSize={11} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-                  <Tooltip formatter={(value: any) => formatPKR(Number(value))} contentStyle={{ borderRadius: 12, border: '2px solid #e2e8f0' }} />
-                  <Area type="monotone" dataKey="total" name="Purchases" fill="url(#suppDetailGrad)" stroke="#f97316" strokeWidth={2.5} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                  <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={(v) => String(v).slice(5)} />
+                  <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => (v >= 1000 ? `${Math.round(v / 1000)}k` : v)} />
+                  <Tooltip formatter={(v: any) => formatPKR(Number(v))}
+                    contentStyle={{ borderRadius: 12, border: '2px solid #e2e8f0', fontWeight: 700 }} />
+                  <Area type="monotone" dataKey="total" stroke="#6366f1" strokeWidth={2.5} fill="url(#sd30b)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
-          ) : (
-            <div className="h-[260px] flex items-center justify-center text-sm text-slate-500 dark:text-slate-400 font-semibold">
-              Pichle 30 din me koi purchase nahi
-            </div>
-          )}
+          </Panel>
         </div>
-
-        <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Payment Methods</h3>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">Is supplier ko kaise pay karte ho</p>
-            </div>
-            <CreditCard className="h-5 w-5 text-blue-500" />
-          </div>
-          {supplier.paymentBreakdown && supplier.paymentBreakdown.length > 0 ? (
-            <div className="h-[260px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={supplier.paymentBreakdown.map((p: any) => ({
-                      name: paymentConfig[p.paymentMethod]?.label || p.paymentMethod,
-                      value: p.total,
-                    }))}
-                    cx="50%" cy="45%" outerRadius={80} innerRadius={40}
-                    dataKey="value"
-                    label={(entry: any) => {
-                      const total = supplier.paymentBreakdown.reduce((s: number, p: any) => s + p.total, 0);
-                      const pct = total > 0 ? ((entry.value / total) * 100).toFixed(0) : '0';
-                      return `${pct}%`;
-                    }}
-                    labelLine={false}
-                  >
-                    {supplier.paymentBreakdown.map((p: any) => (
-                      <Cell key={p.paymentMethod} fill={paymentConfig[p.paymentMethod]?.hex || '#64748b'} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value: any) => formatPKR(Number(value))} contentStyle={{ borderRadius: 12 }} />
-                  <Legend wrapperStyle={{ fontSize: 10, paddingTop: 12 }} iconType="circle" />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          ) : (
-            <div className="h-[260px] flex items-center justify-center text-sm text-slate-500 dark:text-slate-400 font-semibold">
-              Abhi koi payment data nahi
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* ═══ TOP PRODUCTS + BANKING ═══ */}
-      <section className="grid lg:grid-cols-2 gap-4">
-        {/* Top Products */}
-        <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-violet-200 dark:border-violet-500/30 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-500/10 dark:to-purple-500/10 border-b-2 border-violet-200 dark:border-violet-500/30 flex items-center gap-2">
-            <Award className="h-5 w-5 text-violet-600 dark:text-violet-400" />
-            <div>
-              <h3 className="font-extrabold text-violet-900 dark:text-violet-200">Top Products</h3>
-              <p className="text-[11px] text-violet-700 dark:text-violet-300/80 font-bold">Is supplier se sab se zyada mangwaya</p>
-            </div>
-          </div>
-          {supplier.topProducts && supplier.topProducts.length > 0 ? (
-            <div className="divide-y divide-violet-100 dark:divide-slate-800">
-              {supplier.topProducts.map((tp: any, idx: number) => {
-                const rankColors = ['bg-amber-500', 'bg-slate-400', 'bg-orange-600', 'bg-violet-500', 'bg-blue-500'];
-                return (
-                  <Link
-                    key={tp.productId}
-                    to={`/products/${tp.productId}/edit`}
-                    className="px-5 py-3 flex items-center gap-3 hover:bg-violet-50/40 dark:hover:bg-violet-500/5 transition"
-                  >
-                    <div className={`h-8 w-8 rounded-lg ${rankColors[idx]} text-white font-extrabold flex items-center justify-center text-sm shrink-0`}>
-                      {idx < 3 ? <Star className="h-4 w-4 fill-white" /> : idx + 1}
-                    </div>
-                    <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700">
-                      {tp.product?.images?.[0]?.url ? (
-                        <img src={tp.product.images[0].url} alt="" className="h-full w-full object-cover" />
-                      ) : (
-                        <Package className="h-4 w-4 text-slate-400 dark:text-slate-500" />
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="font-bold text-slate-900 dark:text-white text-sm truncate">{tp.product?.name}</div>
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">
-                        {tp.quantity.toFixed(tp.quantity % 1 === 0 ? 0 : 2)} {tp.product?.unit} • {tp.orderCount} orders
-                      </div>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <div className="font-extrabold text-violet-700 dark:text-violet-400 text-sm tabular-nums">{formatPKR(tp.total)}</div>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="px-5 py-12 text-center">
-              <Package className="h-12 w-12 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-              <p className="font-bold text-slate-700 dark:text-slate-300 text-sm">Abhi koi product data nahi</p>
-            </div>
-          )}
-        </div>
-
-        {/* Banking Info */}
-        <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-emerald-200 dark:border-emerald-500/30 shadow-sm p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <CreditCard className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-              <h3 className="font-extrabold text-emerald-900 dark:text-emerald-200">Banking & Payment</h3>
-            </div>
-            <Link to={`/suppliers/${id}/edit`} className="text-xs font-extrabold text-emerald-700 dark:text-emerald-400 hover:underline">
-              Edit
-            </Link>
-          </div>
-
-          <dl className="space-y-3">
-            {supplier.bankName && (
-              <div className="rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 p-3">
-                <dt className="text-[10px] text-emerald-700 dark:text-emerald-400 font-extrabold uppercase tracking-wider">Bank</dt>
-                <dd className="font-extrabold text-emerald-900 dark:text-emerald-200 mt-0.5">{supplier.bankName}</dd>
-              </div>
-            )}
-            {supplier.accountNumber && (
-              <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-3 border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-2">
-                <div className="min-w-0">
-                  <dt className="text-[10px] text-slate-500 dark:text-slate-400 font-extrabold uppercase tracking-wider">Account Number</dt>
-                  <dd className="font-mono font-extrabold text-slate-900 dark:text-white mt-0.5 break-all">{supplier.accountNumber}</dd>
-                </div>
-                <button
-                  onClick={() => { navigator.clipboard.writeText(supplier.accountNumber || ''); toast.success('Account copy ho gaya'); }}
-                  className="h-8 w-8 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 transition"
-                >
-                  <Copy className="h-3.5 w-3.5 text-slate-600 dark:text-slate-300" />
-                </button>
-              </div>
-            )}
-            {supplier.iban && (
-              <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-3 border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-2">
-                <div className="min-w-0">
-                  <dt className="text-[10px] text-slate-500 dark:text-slate-400 font-extrabold uppercase tracking-wider">IBAN</dt>
-                  <dd className="font-mono font-extrabold text-xs break-all text-slate-900 dark:text-white mt-0.5">{supplier.iban}</dd>
-                </div>
-                <button
-                  onClick={() => { navigator.clipboard.writeText(supplier.iban || ''); toast.success('IBAN copy ho gaya'); }}
-                  className="h-8 w-8 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 transition"
-                >
-                  <Copy className="h-3.5 w-3.5 text-slate-600 dark:text-slate-300" />
-                </button>
-              </div>
-            )}
-            {supplier.paymentTerms && (
-              <div>
-                <dt className="text-[10px] text-slate-500 dark:text-slate-400 font-extrabold uppercase tracking-wider mb-1">Payment Terms</dt>
-                <dd>
-                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-orange-100 dark:bg-orange-500/15 text-orange-700 dark:text-orange-300 text-sm font-extrabold">
-                    <Wallet className="h-3.5 w-3.5" /> {supplier.paymentTerms}
-                  </span>
-                </dd>
-              </div>
-            )}
-            {supplier.ntn && (
-              <div className="rounded-xl bg-blue-50 dark:bg-blue-500/10 p-3 border border-blue-200 dark:border-blue-500/30">
-                <dt className="text-[10px] text-blue-700 dark:text-blue-400 font-extrabold uppercase tracking-wider">NTN</dt>
-                <dd className="font-mono font-extrabold text-slate-900 dark:text-white mt-0.5">{supplier.ntn}</dd>
-              </div>
-            )}
-            {supplier.cnic && (
-              <div className="rounded-xl bg-blue-50 dark:bg-blue-500/10 p-3 border border-blue-200 dark:border-blue-500/30">
-                <dt className="text-[10px] text-blue-700 dark:text-blue-400 font-extrabold uppercase tracking-wider">CNIC</dt>
-                <dd className="font-mono font-extrabold text-slate-900 dark:text-white mt-0.5">{supplier.cnic}</dd>
-              </div>
-            )}
-            {!supplier.bankName && !supplier.accountNumber && !supplier.paymentTerms && (
-              <div className="text-center py-6">
-                <CreditCard className="h-10 w-10 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-                <p className="text-sm font-bold text-slate-700 dark:text-slate-300">Bank details nahi hain</p>
-                <Link to={`/suppliers/${id}/edit`} className="text-xs text-orange-700 dark:text-orange-400 font-extrabold hover:underline mt-1 inline-block">
-                  + Add kar do
-                </Link>
-              </div>
-            )}
-          </dl>
-        </div>
-      </section>
-
-      {/* ═══ PURCHASE HISTORY ═══ */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden print:border-0 print:rounded-none print:shadow-none">
-        <div className="px-5 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center justify-between flex-wrap gap-2">
-          <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-            <ShoppingBag className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-            Purchase History
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">({supplier._count?.purchases || 0} total)</span>
-          </h3>
-          {supplier.purchases && supplier.purchases.length > 0 && (
-            <button
-              onClick={exportPurchasesCSV}
-              className="text-xs font-extrabold text-orange-600 dark:text-orange-400 hover:underline inline-flex items-center gap-1 print:hidden"
-            >
-              <Download className="h-3 w-3" /> Export CSV
-            </button>
-          )}
-        </div>
-        {!supplier.purchases || supplier.purchases.length === 0 ? (
-          <div className="p-12 text-center">
-            <ShoppingBag className="h-12 w-12 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-            <p className="font-extrabold text-slate-700 dark:text-slate-300">Abhi koi purchase nahi</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">Pehli purchase is supplier ke sath complete karo</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-slate-100 dark:divide-slate-800">
-            {supplier.purchases.map((p: any) => {
-              const PayIcon = paymentConfig[p.paymentMethod]?.icon || CreditCard;
-              const balance = Math.max(p.total - p.paidAmount, 0);
-              return (
-                <Link
-                  key={p.id}
-                  to={`/purchases/${p.id}`}
-                  className="block px-5 py-4 hover:bg-orange-50/40 dark:hover:bg-orange-500/5 transition group"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-3 min-w-0 flex-1">
-                      <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0 print:hidden">
-                        <PayIcon className="h-4 w-4" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-extrabold text-slate-900 dark:text-white font-mono text-sm">{p.purchaseNumber}</span>
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
-                            p.status === 'RECEIVED'
-                              ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
-                              : p.status === 'PENDING'
-                                ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300'
-                                : 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
-                          }`}>{p.status}</span>
-                          {balance > 0 && (
-                            <span className="px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-[10px] font-extrabold">
-                              Due {formatPKR(balance)}
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-1 font-semibold">
-                          <Calendar className="h-3 w-3" />
-                          {formatDateTime(p.purchasedAt)}
-                          <span className="text-slate-400 dark:text-slate-600">•</span>
-                          <Package className="h-3 w-3" />
-                          {p.items?.length || 0} items
-                        </div>
-                        {p.items && p.items.length > 0 && (
-                          <div className="mt-2 flex flex-wrap gap-1 print:hidden">
-                            {p.items.slice(0, 3).map((it: any) => (
-                              <span key={it.id} className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 max-w-[180px] truncate">
-                                {it.product?.name} × {it.quantity}
-                              </span>
-                            ))}
-                            {p.items.length > 3 && (
-                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
-                                +{p.items.length - 3} aur
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <div className="text-lg font-extrabold text-orange-700 dark:text-orange-400 tabular-nums">{formatPKR(p.total)}</div>
-                      <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 font-semibold">
-                        Paid: <span className="font-extrabold text-emerald-700 dark:text-emerald-400">{formatPKR(p.paidAmount)}</span>
-                      </div>
-                      <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-extrabold text-orange-600 dark:text-orange-400 group-hover:text-orange-700 print:hidden">
-                        <Eye className="h-3 w-3" /> Details
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        )}
-      </section>
-
-      {/* ═══ ADDRESS & NOTES ═══ */}
-      {(supplier.address || supplier.notes) && (
-        <section className="grid lg:grid-cols-2 gap-4 print:hidden">
-          {supplier.address && (
-            <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-              <h3 className="font-extrabold text-slate-900 dark:text-white mb-2 flex items-center gap-2 text-sm">
-                <MapPin className="h-4 w-4 text-rose-600 dark:text-rose-400" /> Address
-              </h3>
-              <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-line font-semibold">{supplier.address}</p>
-            </div>
-          )}
-          {supplier.notes && (
-            <div className="rounded-2xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/40 p-5">
-              <h3 className="font-extrabold text-amber-900 dark:text-amber-200 mb-2 flex items-center gap-2 text-sm">
-                <FileText className="h-4 w-4" /> Internal Notes
-              </h3>
-              <p className="text-sm text-amber-900/80 dark:text-amber-200/80 whitespace-pre-line font-semibold">{supplier.notes}</p>
-            </div>
-          )}
-        </section>
       )}
 
-      {/* ═══ PRINT CSS ═══ */}
-      <style>{`
-        @media print {
-          @page { size: A4; margin: 12mm 10mm; }
-          html, body {
-            background: white !important; color: #0f172a !important;
-            print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important;
-          }
-          .dark body, .dark { background: white !important; color: #0f172a !important; }
-          .print\\:hidden { display: none !important; }
-          .print\\:block { display: block !important; }
-          section, div { box-shadow: none !important; }
-          [class*="fixed"] { display: none !important; }
-          html, body, #root { height: auto !important; min-height: 0 !important; overflow: visible !important; }
-          [class*="sidebar"], [class*="topbar"], nav[class*="fixed"] { display: none !important; }
-          [data-sonner-toaster], [data-sonner-toast], [class*="Toaster"] { display: none !important; visibility: hidden !important; }
-        }
-      `}</style>
+      {/* ─────── MODALS ─────── */}
+      {showKhata && <SupplierKhataModal supplierId={s.id} onClose={() => setShowKhata(false)} />}
+
+      {showTeacher && (
+        <Teacher onClose={() => setShowTeacher(false)}
+          title="Supplier ka safha"
+          subtitle="Yahan se kya kya pata chalta hai"
+          steps={[
+            { icon: '💰', head: 'Upar wali patti', body: 'Sab se pehle wohi nazar aata hai jo sab se zyada ahem hai: is supplier ko hum ne kitna dena hai aur aakhri dafa paisa kab diya tha.' },
+            { icon: '📖', head: 'Baqi bana kaise', body: 'Khulasa me poora tootna hai — purana hisab, udhaar par liya maal, adaigi, wapas kiya maal aur haath se ki gayi durusti. In sab ka jamaa hi wo number hai jo upar likha hai.' },
+            { icon: '📈', head: 'Rate ka safar', body: '"Kya Aata Hai" me har cheez ka rate ka safar hai. Agar koi cheez 15% se zyada mehngi ho chuki hai to safha khud warning deta hai — aksar ye chupke chupke hota hai aur munafa kha jata hai.' },
+            { icon: '🧾', head: 'Bill', body: 'Har bill ka kul, diya hua aur bacha hua alag nazar aata hai. CSV aur print dono mojood hain.' },
+            { icon: '⏰', head: 'Aakhri maal', body: 'Agar bohat arse se maal nahi aaya to shayad rate ya quality ka masla hai — ya supplier ne dukaan badal li. Rabta kar lein.' },
+            { icon: '🚫', head: 'Band karna', body: 'Jis se ab kaam nahi karna use "band" kar dein — purana record mehfooz rahega, naye bill me nazar nahi aayega.' },
+          ]}
+          tips={[
+            'K dabayein — khata foran khul jata hai.',
+            'E se badlein, B se wapas list par.',
+            'Bank ki tafseel par click karne se copy ho jati hai.',
+            'Print A4 par poora record nikalta hai — supplier ko dikhane ke liye.',
+          ]} />
+      )}
+
+      {showKeys && (
+        <Shortcuts onClose={() => setShowKeys(false)} list={[
+          ['K', 'Khata kholein'],
+          ['E', 'Badlein'],
+          ['B', 'Wapas list par'],
+          ['A', 'Analytics'],
+          ['P', 'Print'],
+          ['T', 'Sikhein'],
+          ['?', 'Ye list'],
+          ['Esc', 'Band karein'],
+        ]} />
+      )}
     </div>
   );
 }
 
-/* ═════════════════════════════════════════════════════════════
-   SUPPLIER DETAIL TEACHER — Universal guide
-   ═════════════════════════════════════════════════════════════ */
-function SupplierDetailTeacher({ onClose, supplierName }: { onClose: () => void; supplierName: string }) {
+/* ─────── purzay ─────── */
+function PurchaseRow({ p, money, expandable }: { p: any; money: (n: number) => string; expandable?: boolean }) {
+  const [open, setOpen] = useState(false);
+  const d = Number(p.total ?? 0) - Number(p.paidAmount ?? 0);
+  const meta = payMeta(p.paymentMethod);
+
   return (
-    <div
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-orange-300 dark:border-orange-500/40 shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="px-5 py-3 border-b-2 border-orange-200 dark:border-orange-500/30 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-500/15 dark:to-amber-500/15 flex items-center justify-between sticky top-0 z-10">
-          <h3 className="font-extrabold text-orange-900 dark:text-orange-200 flex items-center gap-2">
-            <GraduationCap className="h-5 w-5" /> Supplier Page — Guide
-          </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
-          </button>
+    <div className="rounded-2xl border-2 border-slate-200 dark:border-slate-800 overflow-hidden">
+      <button onClick={() => expandable && setOpen((o) => !o)}
+        className={`w-full p-3 flex items-center gap-3 text-left ${expandable ? 'hover:bg-slate-50 dark:hover:bg-slate-800/60' : ''} transition`}>
+        <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+          <Package className="h-4 w-4 text-slate-500" />
         </div>
-
-        <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
-            Ye <strong>"{supplierName}"</strong> ka poora khata hai — kitna maal liya, kitna diya,
-            kitna baaki — sab ek jagah.
-          </p>
-
-          <div className="rounded-2xl border-2 border-orange-200 dark:border-orange-500/30 bg-orange-50/60 dark:bg-orange-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
-            <TipRow><strong>💰 Khata kaise parhein?</strong> — Total Amount (sab liya) − Total Paid (sab diya) = <strong>Due</strong> (abhi dena hai)</TipRow>
-            <TipRow><strong>🔴 Payment Reminder</strong> — 1 click me WhatsApp pe ready-made hisaab message supplier ko</TipRow>
-            <TipRow><strong>👑 VIP badge</strong> — 1 Lakh+ business wala supplier, special treatment deserve karta hai</TipRow>
-            <TipRow><strong>🏆 Top Products</strong> — is supplier se sab se zyada kya mangwaya (dobara order easy)</TipRow>
-            <TipRow><strong>🖨️ Statement</strong> — Print karo aur supplier ke sath hisaab milao</TipRow>
-            <TipRow><strong>⌨️ E</strong> — edit &nbsp;•&nbsp; <strong>W</strong> — WhatsApp kholo</TipRow>
+        <div className="min-w-0 flex-1">
+          <div className="font-extrabold text-sm text-slate-900 dark:text-white font-mono truncate">{p.purchaseNumber}</div>
+          <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-2 flex-wrap">
+            <span>{fmtDate(p.purchasedAt)}</span>
+            <span className="px-1.5 rounded" style={{ background: `${meta.hex}22`, color: meta.hex }}>{meta.label}</span>
+            {p.items?.length > 0 && <span>{p.items.length} cheezein</span>}
           </div>
+        </div>
+        <div className="text-right shrink-0">
+          <div className="text-sm font-black text-slate-900 dark:text-white tabular-nums">{money(Number(p.total ?? 0))}</div>
+          {d > 0
+            ? <div className="text-[10px] font-extrabold text-rose-600 tabular-nums">{money(d)} udhaar</div>
+            : <div className="text-[10px] font-extrabold text-emerald-600">Poora diya</div>}
+        </div>
+        {expandable && <ChevronRight className={`h-4 w-4 text-slate-400 shrink-0 transition ${open ? 'rotate-90' : ''}`} />}
+      </button>
 
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 text-xs font-semibold text-slate-700 dark:text-slate-200">
-            💡 <strong>Mahine ke aakhir me:</strong> Statement print karo → supplier ko dikhao → hisaab milao →
-            payment record karo. Jhagra kabhi nahi hoga!
-          </div>
+      {open && p.items?.length > 0 && (
+        <div className="border-t-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 p-3 space-y-1.5">
+          {p.items.map((it: any) => (
+            <div key={it.id} className="flex items-center gap-2 text-[11px] font-bold">
+              <span className="flex-1 min-w-0 truncate text-slate-700 dark:text-slate-200">{it.product?.name ?? '—'}</span>
+              <span className="text-slate-500 tabular-nums shrink-0">
+                {it.quantity} {it.product?.unit ?? ''} × {money(Number(it.costPrice ?? 0))}
+              </span>
+              <span className="text-slate-900 dark:text-white tabular-nums shrink-0 w-20 text-right">
+                {money(Number(it.total ?? 0))}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
-          <Button
-            className="w-full bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 font-extrabold shadow-lg shadow-orange-500/40 h-12"
-            onClick={onClose}
-          >
-            <CheckCircle2 className="h-4 w-4" /> Samajh Gaya!
-          </Button>
+function Info({ label, value, icon: Icon, mono, copy }: {
+  label: string; value?: string | null; icon: any; mono?: boolean; copy?: boolean;
+}) {
+  if (!value) return null;
+  return (
+    <div className="flex items-start gap-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2.5">
+      <Icon className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
+      <div className="min-w-0 flex-1">
+        <div className="text-[9px] font-extrabold uppercase tracking-wider text-slate-500">{label}</div>
+        <div className={`text-sm font-extrabold text-slate-900 dark:text-white break-words ${mono ? 'font-mono' : ''}`}>
+          {value}
         </div>
       </div>
-    </div>
-  );
-}
-
-function TipRow({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex items-start gap-2">
-      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
-      <span>{children}</span>
-    </div>
-  );
-}
-
-function Kbd({ children }: { children: React.ReactNode }) {
-  return (
-    <kbd className="px-1.5 py-0.5 rounded bg-white/15 border border-white/25 text-white font-mono font-bold shadow-sm text-[9px]">
-      {children}
-    </kbd>
-  );
-}
-
-function KbdLight({ children }: { children: React.ReactNode }) {
-  return (
-    <kbd className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-mono font-bold shadow-sm">
-      {children}
-    </kbd>
-  );
-}
-
-function Truck(props: any) {
-  return (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2" />
-      <path d="M15 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 13.52 8H14" />
-      <circle cx="17" cy="18" r="2" /><circle cx="7" cy="18" r="2" />
-      <path d="M9 18h6" />
-    </svg>
-  );
-}
-
-function Kpi({ icon: Icon, label, value, sub, tone, small, isAlert }: any) {
-  const tones: Record<string, string> = {
-    orange: 'from-orange-500 to-orange-700 shadow-orange-500/40',
-    emerald: 'from-emerald-500 to-emerald-700 shadow-emerald-500/40',
-    blue: 'from-blue-500 to-blue-700 shadow-blue-500/40',
-    rose: 'from-rose-500 to-rose-700 shadow-rose-500/40',
-    violet: 'from-violet-500 to-purple-600 shadow-violet-500/40',
-  };
-  return (
-    <div className={`rounded-2xl border-2 p-3 sm:p-4 shadow-sm transition ${
-      isAlert
-        ? 'bg-gradient-to-br from-rose-50 to-pink-50 dark:from-rose-500/10 dark:to-pink-500/10 border-rose-300 dark:border-rose-500/40'
-        : 'bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-slate-200 dark:border-slate-800'
-    }`}>
-      <div className="flex items-center justify-between gap-2">
-        <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
-          <div className={`mt-1.5 font-extrabold text-slate-900 dark:text-white tabular-nums truncate ${small ? 'text-base sm:text-lg' : 'text-xl sm:text-2xl'}`}>
-            {value}
-          </div>
-          {sub && <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
-        </div>
-        <div className={`h-10 w-10 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
-          <Icon className="h-4.5 w-4.5 h-5 w-5" />
-        </div>
-      </div>
+      {copy && (
+        <button onClick={() => { navigator.clipboard.writeText(value); toast.success('Copy ho gaya'); }}
+          className="h-7 w-7 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center shrink-0 transition">
+          <Copy className="h-3.5 w-3.5 text-slate-500" />
+        </button>
+      )}
     </div>
   );
 }

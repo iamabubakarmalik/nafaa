@@ -9,7 +9,7 @@ import {
 import { toast } from 'sonner';
 import { Button } from '@core/ui/Button';
 import { formatPKR } from '@core/lib/format';
-import { useCostHidden } from '@core/ui/HiddenValue';
+import { useCostHidden } from '@/core/security/HiddenValue';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import {
   stockAdjustmentsApi,

@@ -16,7 +16,7 @@ import { productVariantsApi } from '@modules/inventory/products/api/product-vari
 import { salesApi } from '@modules/sales/sales/api/sales.api';
 import { cosmeticsProductsApi } from '../api/products.api';
 import { cosmeticsBatchesApi } from '../api/batches.api';
-import { PrivacyToggle, useCostHidden } from '@core/ui/HiddenValue';
+import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 
 type Tab = 'overview' | 'ingredients' | 'fragrance' | 'certifications' | 'batches' | 'shades' | 'sales';
 

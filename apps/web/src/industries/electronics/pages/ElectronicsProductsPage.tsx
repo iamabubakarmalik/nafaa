@@ -14,7 +14,7 @@ import { formatPKR } from '@core/lib/format';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { electronicsProductsApi } from '../api/products.api';
 import { brandsApi } from '@modules/inventory/brands/api/brands.api';
-import { PrivacyToggle, useCostHidden } from '@core/ui/HiddenValue';
+import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 import { PrintStyles } from '@core/components/print/PrintStyles';
 import { useAuthStore } from '@core/stores/auth.store';
 import { CATEGORY_META, CONDITION_META, type CategoryType, type ConditionType } from '../constants';

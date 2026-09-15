@@ -23,7 +23,7 @@ import { stockMovementsApi } from '@modules/inventory/stock-movements/api/stock-
 import { productUnitsApi } from '../api/product-units.api';
 import { QuickStockModal } from '../components/QuickStockModal';
 import { ProductDeleteButton } from '@core/components/ProductDeleteButton';
-import { PrivacyToggle, useCostHidden } from '@core/ui/HiddenValue';
+import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 import { useAuthStore } from '@core/stores/auth.store';
 
 /* ═════════════════════════════════════════════════════════════

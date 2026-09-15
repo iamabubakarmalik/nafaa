@@ -24,6 +24,10 @@ export interface Supplier {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  /** List me aata hai — "kitne din se maal nahi aaya" ke liye */
+  lastPurchaseAt?: string | null;
+  lastPaymentAt?: string | null;
+  _count?: { purchases: number };
 }
 
 export interface SupplierPurchaseItem {
@@ -63,6 +67,28 @@ export interface SupplierDetail extends Supplier {
     lastPurchaseDate: string | null;
   };
   trend30Days: Array<{ date: string; total: number; count: number }>;
+  months12: Array<{ month: string; label: string; total: number; paid: number; count: number }>;
+  ledger: {
+    entryCount: number;
+    openingBalance: number;
+    purchaseCredit: number;
+    paymentsMade: number;
+    returns: number;
+    adjustments: number;
+    lastPaymentAmount: number | null;
+    lastPaymentAt: string | null;
+    lastPaymentRef: string | null;
+    daysSincePayment: number | null;
+  };
+  priceHistory: Array<{
+    productId: string;
+    productName: string;
+    unit: string;
+    points: Array<{ date: string; purchaseNumber: string; costPrice: number; quantity: number }>;
+    firstCost: number;
+    lastCost: number;
+    changePct: number;
+  }>;
   paymentBreakdown: Array<{ paymentMethod: string; total: number; count: number }>;
   topProducts: Array<{
     productId: string;
@@ -95,6 +121,33 @@ export interface SuppliersSummary {
   monthPaid: number;
   lastMonthPurchases: number;
   growthVsLastMonth: number;
+  avgOrderValue: number;
+  monthLedgerPaid: number;
+  monthLedgerPaymentCount: number;
+  openingBalanceTotal: number;
+  openingBalanceCount: number;
+  neverPurchased: number;
+  staleCount: number;
+  neverPaidDebt: number;
+  months12: Array<{ month: string; label: string; total: number; paid: number; count: number }>;
+  dueAging: Array<{ bucket: string; amount: number; count: number }>;
+  topDebtors: Array<{
+    id: string; name: string; phone?: string | null; city?: string | null;
+    logoUrl?: string | null; outstandingDue: number; totalPurchased: number;
+    daysSincePayment: number | null; daysSincePurchase: number | null; orderCount: number;
+  }>;
+  dormantSuppliers: Array<{
+    id: string; name: string; phone?: string | null; city?: string | null;
+    totalPurchased: number; outstandingDue: number; daysSincePurchase: number | null;
+  }>;
+  cityBreakdown: Array<{ city: string; count: number; totalPurchased: number; outstanding: number }>;
+  topProducts: Array<{
+    productId: string;
+    product?: { id: string; name: string; sku?: string | null; unit: string; stock?: number; costPrice?: number; images?: Array<{ url: string }> };
+    quantity: number;
+    total: number;
+    orderCount: number;
+  }>;
   trend7Days: Array<{ date: string; total: number; count: number }>;
   topSuppliers: Array<{
     supplierId: string;
@@ -112,6 +165,7 @@ export interface SuppliersSummary {
     totalPaid: number;
     outstanding: number;
     orderCount: number;
+    lastPurchaseAt?: string | null;
   }>;
   recentPurchases: Array<{
     id: string;
@@ -148,7 +202,15 @@ export interface UpsertSupplierPayload {
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
 
 export const suppliersApi = {
-  list: (params?: { search?: string; page?: number; limit?: number }) =>
+  list: (params?: {
+    search?: string;
+    dues?: 'all' | 'due' | 'clear';
+    status?: 'all' | 'active' | 'inactive';
+    city?: string;
+    sort?: 'recent' | 'name' | 'purchased' | 'due' | 'orders';
+    page?: number;
+    limit?: number;
+  }) =>
     apiClient.get<{ data: SuppliersResponse }>('/suppliers', { params }).then(unwrap),
 
   summary: () =>

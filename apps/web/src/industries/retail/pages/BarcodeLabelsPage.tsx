@@ -12,7 +12,7 @@ import { formatPKR } from '@core/lib/format';
 import { Button } from '@core/ui/Button';
 import { toast } from 'sonner';
 import { useAuthStore } from '@core/stores/auth.store';
-import { useCostHidden, PrivacyToggle } from '@core/ui/HiddenValue';
+import { useCostHidden, PrivacyToggle } from '@/core/security/HiddenValue';
 
 const LAYOUTS = [
   { value: '30_per_sheet', label: '30 per sheet (A4, 70×30mm)', cols: 3, rows: 10, w: '70mm', h: '30mm' },

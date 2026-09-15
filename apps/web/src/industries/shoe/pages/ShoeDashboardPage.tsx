@@ -14,7 +14,7 @@ import { shoeTryOnApi } from '../api/try-on.api';
 import { shoeExchangesApi } from '../api/exchanges.api';
 import { formatPKR } from '@core/lib/format';
 import { Button } from '@core/ui/Button';
-import { PrivacyToggle, useCostHidden } from '@core/ui/HiddenValue';
+import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 
 export default function ShoeDashboardPage() {
   const hideCost = useCostHidden();

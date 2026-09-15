@@ -13,7 +13,7 @@ import { cosmeticsDashboardApi } from '../api/dashboard.api';
 import { cosmeticsBatchesApi } from '../api/batches.api';
 import { formatPKR } from '@core/lib/format';
 import { Button } from '@core/ui/Button';
-import { PrivacyToggle } from '@core/ui/HiddenValue';
+import { PrivacyToggle } from '@/core/security/HiddenValue';
 
 export default function CosmeticsDashboardPage() {
   const { data: overview, isLoading, refetch, isRefetching } = useQuery({

@@ -15,7 +15,7 @@ import { productVariantsApi } from '@modules/inventory/products/api/product-vari
 import { productImagesApi } from '@modules/inventory/products/api/product-images.api';
 import { salesApi } from '@modules/sales/sales/api/sales.api';
 import { furnitureProductsApi } from '../api/products.api';
-import { PrivacyToggle, useCostHidden } from '@core/ui/HiddenValue';
+import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 
 type Tab = 'overview' | 'dimensions' | 'materials' | 'delivery' | 'variants' | 'sales';
 

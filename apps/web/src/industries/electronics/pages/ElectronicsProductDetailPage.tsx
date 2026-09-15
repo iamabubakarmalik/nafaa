@@ -25,7 +25,7 @@ import { stockMovementsApi } from '@modules/inventory/stock-movements/api/stock-
 import { electronicsProductsApi } from '../api/products.api';
 import { brandsApi } from '@modules/inventory/brands/api/brands.api';
 import { serialTrackingApi } from '../api/serial-tracking.api';
-import { PrivacyToggle, useCostHidden } from '@core/ui/HiddenValue';
+import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 import { PrintStyles } from '@core/components/print/PrintStyles';
 
 type Tab = 'overview' | 'specs' | 'warranty' | 'variants' | 'serials' | 'sales' | 'log';

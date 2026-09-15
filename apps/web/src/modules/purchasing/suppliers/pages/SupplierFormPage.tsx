@@ -1,981 +1,711 @@
-import { useEffect, useState, useRef, useMemo } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  ArrowLeft, Save, Trash2, Truck, Building2, CreditCard, FileText,
-  MapPin, User, Phone, Mail, Hash, Copy, CheckCircle2, AlertCircle,
-  Wallet, Eye, EyeOff, Sparkles, MessageCircle, Briefcase,
-  ShieldCheck, Banknote, Info, X, GraduationCap,
+  Truck, Save, X, ArrowLeft, Building2, Phone, Mail, MapPin, CreditCard,
+  FileText, User, AlertTriangle, CheckCircle2, Loader2, GraduationCap,
+  Keyboard, BookOpen, Wallet, MessageCircle, Sparkles, Landmark,
+  Hash, Copy, Plus, Package, TrendingUp, Clock, Info,
 } from 'lucide-react';
-import { suppliersApi, type UpsertSupplierPayload } from '@modules/purchasing/suppliers/api/suppliers.api';
-import { Button } from '@core/ui/Button';
-import { AvatarUpload } from '@core/components/uploads';
 import { toast } from 'sonner';
+import { Button } from '@core/ui/Button';
+import { formatPKR } from '@core/lib/format';
+import { suppliersApi, type UpsertSupplierPayload } from '../api/suppliers.api';
+import { supplierLedgerApi } from '../api/supplier-ledger.api';
+import {
+  SUPPLIER_GRADIENT, Panel, Teacher, Shortcuts, Kbd, inputCls,
+  fmtDate, initials, daysPhrase, waNumber,
+} from '../components/SuppliersKit';
 
 /* ═════════════════════════════════════════════════════════════
-   NAFAA SUPPLIER FORM — GLOBAL FULL BEST v3
+   SUPPLIER FORM — banane aur badalne ka safha
    ─────────────────────────────────────────────────────────────
-   🌍 GLOBAL — 35+ industries sab me same supplier fields
-   🌙 Dark mode complete (har section + sidebar + sticky footer)
-   🎓 Teacher modal — form bharne ka tareeqa sikhata hai
-   ⌨️  Ctrl+S / Ctrl+Enter = save • Esc = wapas
-   ⚠️ Unsaved changes warning • 📱 Mobile stack layout
+   Form lamba hai magar sirf EK khana lazmi hai: naam. Baqi sab
+   apni marzi se — mandi me aksar phone ke ilawa kuch pata hi
+   nahi hota, aur adhoori tafseel ki wajah se supplier na banna
+   asli nuqsan hai.
+
+   Nayi cheez: "purana hisab". System se pehle jo copy par chalta
+   tha wo yahin darj ho jata hai, taake khata pehle din se sahi
+   ho — baad me koi yaad nahi rakhta.
    ═════════════════════════════════════════════════════════════ */
 
-const empty: UpsertSupplierPayload = {
-  name: '',
-  isActive: true,
-};
+const PAYMENT_TERMS = ['Cash on delivery', '7 din', '15 din', '30 din', '45 din', '60 din', 'Mahine ke aakhir'];
 
-const PAYMENT_TERMS = [
-  { value: 'Cash on delivery', emoji: '💵', desc: 'Foran payment' },
-  { value: 'Advance payment', emoji: '🎯', desc: 'Pehle pay' },
-  { value: 'Net 7 days', emoji: '📅', desc: 'Hafta mein' },
-  { value: 'Net 15 days', emoji: '🗓️', desc: '15 din' },
-  { value: 'Net 30 days', emoji: '📆', desc: '1 mahina' },
-  { value: 'Net 45 days', emoji: '⏳', desc: '45 din' },
-  { value: 'Net 60 days', emoji: '⌛', desc: '2 mahine' },
+const CITIES = [
+  'Karachi', 'Lahore', 'Faisalabad', 'Rawalpindi', 'Gujranwala', 'Peshawar',
+  'Multan', 'Hyderabad', 'Islamabad', 'Quetta', 'Sialkot', 'Sargodha',
+  'Bahawalpur', 'Sukkur', 'Larkana', 'Sheikhupura', 'Rahim Yar Khan', 'Jhang',
+  'Mardan', 'Gujrat', 'Kasur', 'Dera Ghazi Khan', 'Sahiwal', 'Nawabshah',
+  'Okara', 'Mirpur Khas', 'Chiniot', 'Kamoke', 'Mandi Bahauddin', 'Abbottabad',
 ];
 
-const PAKISTAN_CITIES = [
-  'Karachi', 'Lahore', 'Islamabad', 'Rawalpindi', 'Faisalabad', 'Multan',
-  'Hyderabad', 'Gujranwala', 'Peshawar', 'Quetta', 'Sialkot', 'Sargodha',
-  'Bahawalpur', 'Sukkur', 'Larkana', 'Sheikhupura', 'Mirpur Khas', 'Gujrat',
-  'Jhang', 'Mardan', 'Kasur', 'Dera Ghazi Khan', 'Sahiwal', 'Okara',
+const BANKS = [
+  'HBL', 'UBL', 'MCB', 'Allied Bank', 'Meezan Bank', 'Bank Alfalah',
+  'Faysal Bank', 'Askari Bank', 'Bank of Punjab', 'National Bank',
+  'Standard Chartered', 'Soneri Bank', 'JS Bank', 'Summit Bank', 'Silk Bank',
+  'Habib Metro', 'Al Baraka', 'Dubai Islamic', 'BankIslami', 'Easypaisa', 'JazzCash',
 ];
 
-const PAKISTAN_BANKS = [
-  'HBL (Habib Bank)', 'UBL (United Bank)', 'MCB Bank', 'Bank Alfalah',
-  'Meezan Bank', 'Allied Bank', 'Faysal Bank', 'Standard Chartered',
-  'Bank of Punjab', 'Soneri Bank', 'Askari Bank', 'JS Bank',
-  'Habib Metropolitan', 'Bank Al Habib', 'Summit Bank', 'NBP (National Bank)',
-  'Dubai Islamic Bank', 'BankIslami', 'Sindh Bank', 'Bank Makramah',
-];
+/** 0300-1234567 — jaisa Pakistan me likha jata hai */
+function formatPhoneInput(raw: string) {
+  let d = raw.replace(/\D/g, '');
+  if (d.startsWith('92')) d = '0' + d.slice(2);
+  if (d.length > 11) d = d.slice(0, 11);
+  if (d.length > 4) return `${d.slice(0, 4)}-${d.slice(4)}`;
+  return d;
+}
 
-// Helpers
-const formatCNIC = (value: string): string => {
-  const digits = value.replace(/\D/g, '').slice(0, 13);
-  if (digits.length <= 5) return digits;
-  if (digits.length <= 12) return `${digits.slice(0, 5)}-${digits.slice(5)}`;
-  return `${digits.slice(0, 5)}-${digits.slice(5, 12)}-${digits.slice(12)}`;
+type Form = UpsertSupplierPayload & { isActive: boolean };
+
+const EMPTY: Form = {
+  name: '', contactPerson: '', phone: '', altPhone: '', email: '', cnic: '', ntn: '',
+  address: '', city: '', area: '', logoUrl: '', bankName: '', accountNumber: '',
+  iban: '', paymentTerms: '', notes: '', isActive: true,
 };
-
-const formatIBAN = (value: string): string => {
-  const cleaned = value.replace(/\s/g, '').toUpperCase().slice(0, 24);
-  return cleaned.match(/.{1,4}/g)?.join(' ') || cleaned;
-};
-
-const formatPhone = (value: string): string => {
-  const digits = value.replace(/\D/g, '');
-  if (digits.startsWith('92')) return `+${digits.slice(0, 12)}`;
-  if (digits.startsWith('0')) return digits.slice(0, 11);
-  return digits.slice(0, 11);
-};
-
-const validateNTN = (ntn: string) => {
-  const cleaned = ntn.replace(/\D/g, '');
-  return cleaned.length === 7 || cleaned.length === 9 || cleaned.length === 13;
-};
-
-/* Shared input style — dark aware */
-const inputCls =
-  'h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none transition';
-
-const focusCls = (color: string) =>
-  `focus:ring-2 focus:ring-${color}-500/30 focus:border-${color}-500`;
 
 export default function SupplierFormPage() {
   const { id } = useParams();
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const isEdit = !!id;
-  const submitLockRef = useRef(false);
-  const dirtyRef = useRef(false);
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const nameRef = useRef<HTMLInputElement>(null);
 
-  const [form, setForm] = useState<UpsertSupplierPayload>(empty);
-  const [showSensitive, setShowSensitive] = useState(false);
-  const [activeSection, setActiveSection] = useState<string>('company');
+  const [form, setForm] = useState<Form>(EMPTY);
+  const [dirty, setDirty] = useState(false);
+  const [touched, setTouched] = useState<Set<string>>(new Set());
   const [showTeacher, setShowTeacher] = useState(false);
+  const [showKeys, setShowKeys] = useState(false);
+  const [saveAndNew, setSaveAndNew] = useState(false);
+  /** Sirf naye supplier ke liye — purana hisab */
+  const [opening, setOpening] = useState('');
+  const [openingNote, setOpeningNote] = useState('');
 
-  const { data: supplier } = useQuery({
+  const set = <K extends keyof Form>(k: K, v: Form[K]) => {
+    setForm((f) => ({ ...f, [k]: v }));
+    setDirty(true);
+  };
+
+  /* ─── Edit mode: purana data ─── */
+  const { data: existing, isLoading } = useQuery({
     queryKey: ['supplier', id],
     queryFn: () => suppliersApi.getOne(id!),
     enabled: isEdit,
   });
 
   useEffect(() => {
-    if (supplier) {
-      setForm({
-        name: supplier.name,
-        contactPerson: supplier.contactPerson ?? '',
-        phone: supplier.phone ?? '',
-        altPhone: supplier.altPhone ?? '',
-        email: supplier.email ?? '',
-        cnic: supplier.cnic ?? '',
-        ntn: supplier.ntn ?? '',
-        address: supplier.address ?? '',
-        city: supplier.city ?? '',
-        area: supplier.area ?? '',
-        logoUrl: supplier.logoUrl ?? '',
-        bankName: supplier.bankName ?? '',
-        accountNumber: supplier.accountNumber ?? '',
-        iban: supplier.iban ?? '',
-        paymentTerms: supplier.paymentTerms ?? '',
-        notes: supplier.notes ?? '',
-        isActive: supplier.isActive,
-      });
-      dirtyRef.current = false;
-    }
-  }, [supplier]);
+    if (!existing) return;
+    setForm({
+      name: existing.name ?? '',
+      contactPerson: existing.contactPerson ?? '',
+      phone: existing.phone ?? '',
+      altPhone: existing.altPhone ?? '',
+      email: existing.email ?? '',
+      cnic: existing.cnic ?? '',
+      ntn: existing.ntn ?? '',
+      address: existing.address ?? '',
+      city: existing.city ?? '',
+      area: existing.area ?? '',
+      logoUrl: existing.logoUrl ?? '',
+      bankName: existing.bankName ?? '',
+      accountNumber: existing.accountNumber ?? '',
+      iban: existing.iban ?? '',
+      paymentTerms: existing.paymentTerms ?? '',
+      notes: existing.notes ?? '',
+      isActive: existing.isActive ?? true,
+    });
+    setDirty(false);
+  }, [existing]);
 
-  /* Dirty tracking — kuch bhi change ho to yaad rakho */
-  const set = (patch: Partial<UpsertSupplierPayload>) => {
-    dirtyRef.current = true;
-    setForm((f) => ({ ...f, ...patch }));
-  };
+  useEffect(() => { setTimeout(() => nameRef.current?.focus(), 120); }, []);
 
-  // Form completion progress
-  const completionStats = useMemo(() => {
-    const fields = [
-      form.name, form.contactPerson, form.phone, form.email,
-      form.address, form.city, form.bankName, form.accountNumber,
-      form.iban, form.paymentTerms, form.ntn, form.cnic, form.logoUrl,
-    ];
-    const filled = fields.filter((f) => f && String(f).trim().length > 0).length;
-    const total = fields.length;
-    return { filled, total, percent: Math.round((filled / total) * 100) };
+  /* ─── Adhoora kaam zaya na ho ─── */
+  useEffect(() => {
+    if (!dirty) return;
+    const h = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ''; };
+    window.addEventListener('beforeunload', h);
+    return () => window.removeEventListener('beforeunload', h);
+  }, [dirty]);
+
+  /* ─── Doosre suppliers — naam ki takrar pakadne ke liye ─── */
+  const { data: allPage } = useQuery({
+    queryKey: ['suppliers', 'all-names'],
+    queryFn: () => suppliersApi.list({ limit: 500 }),
+  });
+  const others = useMemo(
+    () => (allPage?.items ?? []).filter((s) => s.id !== id),
+    [allPage, id],
+  );
+
+  const duplicate = useMemo(() => {
+    const n = form.name?.trim().toLowerCase();
+    if (!n || n.length < 3) return null;
+    return others.find((s) => s.name.trim().toLowerCase() === n) ?? null;
+  }, [form.name, others]);
+
+  const phoneDuplicate = useMemo(() => {
+    const p = (form.phone ?? '').replace(/\D/g, '');
+    if (p.length < 10) return null;
+    return others.find((s) => (s.phone ?? '').replace(/\D/g, '') === p) ?? null;
+  }, [form.phone, others]);
+
+  /* ─── Kitna poora bhara hai ─── */
+  const completeness = useMemo(() => {
+    const fields: Array<keyof Form> = ['name', 'contactPerson', 'phone', 'email', 'city', 'address', 'ntn', 'bankName', 'accountNumber', 'paymentTerms'];
+    const filled = fields.filter((f) => String(form[f] ?? '').trim()).length;
+    return Math.round((filled / fields.length) * 100);
   }, [form]);
 
-  const saveMutation = useMutation({
+  const errors = useMemo(() => {
+    const e: Record<string, string> = {};
+    if (!form.name?.trim()) e.name = 'Naam to likhna hoga';
+    if (form.email && !/^\S+@\S+\.\S+$/.test(form.email)) e.email = 'Email theek nahi lag raha';
+    if (form.cnic && form.cnic.replace(/\D/g, '').length !== 13) e.cnic = 'CNIC 13 hindson ka hota hai';
+    if (form.ntn && form.ntn.replace(/\D/g, '').length < 7) e.ntn = 'NTN chhota lag raha hai';
+    const p = (form.phone ?? '').replace(/\D/g, '');
+    if (p && (p.length < 10 || p.length > 11)) e.phone = 'Phone number poora nahi';
+    if (opening && Number(opening) < 0) e.opening = 'Minus nahi ho sakta';
+    return e;
+  }, [form, opening]);
+
+  const valid = Object.keys(errors).length === 0;
+
+  /* ─── Save ─── */
+  const mut = useMutation({
     mutationFn: async () => {
-      const cleanForm: any = { ...form };
-      const stringFields = [
-        'phone', 'altPhone', 'email', 'cnic', 'ntn', 'address', 'city',
-        'area', 'logoUrl', 'bankName', 'accountNumber', 'iban',
-        'paymentTerms', 'notes', 'contactPerson',
-      ];
-      stringFields.forEach((k) => {
-        if (cleanForm[k] === '' || cleanForm[k] === null) cleanForm[k] = undefined;
-      });
-      return isEdit ? suppliersApi.update(id!, cleanForm) : suppliersApi.create(cleanForm);
+      const clean = (v?: string | null) => {
+        const t = (v ?? '').trim();
+        return t ? t : undefined;
+      };
+      const payload: any = {
+        name: form.name.trim(),
+        contactPerson: clean(form.contactPerson),
+        phone: clean(form.phone),
+        altPhone: clean(form.altPhone),
+        email: clean(form.email),
+        cnic: clean(form.cnic),
+        ntn: clean(form.ntn),
+        address: clean(form.address),
+        city: clean(form.city),
+        area: clean(form.area),
+        logoUrl: clean(form.logoUrl),
+        bankName: clean(form.bankName),
+        accountNumber: clean(form.accountNumber),
+        iban: clean(form.iban),
+        paymentTerms: clean(form.paymentTerms),
+        notes: clean(form.notes),
+        isActive: form.isActive,
+      };
+
+      const saved = isEdit
+        ? await suppliersApi.update(id!, payload)
+        : await suppliersApi.create(payload);
+
+      // Purana hisab sirf naye supplier par — mojooda ka khata
+      // detail page se badalna chahiye, warna chupke se balance
+      // badal jaye aur kisi ko pata na chale.
+      const open = Number(opening) || 0;
+      if (!isEdit && open > 0) {
+        await supplierLedgerApi.setOpeningBalance(saved.id, {
+          amount: open,
+          note: openingNote.trim() || 'Purana hisab — khata shuru hone se pehle ka baqi',
+        });
+      }
+      return saved;
     },
+    onSuccess: (saved) => {
+      setDirty(false);
+      qc.invalidateQueries({ queryKey: ['suppliers'] });
+      qc.invalidateQueries({ queryKey: ['suppliers-summary'] });
+      qc.invalidateQueries({ queryKey: ['supplier', id] });
+      toast.success(isEdit ? 'Supplier update ho gaya ✓' : `"${saved.name}" ban gaya ✓`);
+
+      if (saveAndNew && !isEdit) {
+        setForm(EMPTY);
+        setOpening('');
+        setOpeningNote('');
+        setTouched(new Set());
+        setSaveAndNew(false);
+        nameRef.current?.focus();
+        return;
+      }
+      navigate(isEdit ? `/suppliers/${id}` : `/suppliers/${saved.id}`);
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Save nahi hua'),
   });
 
-  const removeMutation = useMutation({
-    mutationFn: () => suppliersApi.remove(id!),
-    onSuccess: () => {
-      toast.success('Supplier delete ho gaya');
-      navigate('/suppliers');
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Delete nahi hua — iska purchase record hai'),
-  });
-
-  const handleSave = async () => {
-    if (submitLockRef.current || saveMutation.isPending) return;
-    if (!form.name.trim()) {
-      toast.error('Supplier ka naam zaroori hai');
-      setActiveSection('company');
-      document.getElementById('section-company')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const submit = (andNew = false) => {
+    setTouched(new Set(Object.keys(errors)));
+    if (!valid) {
+      toast.error(errors.name ?? 'Kuch khane theek karne hain');
       return;
     }
-    if (form.cnic && form.cnic.replace(/\D/g, '').length !== 13) {
-      toast.error('CNIC 13 digits ka hona chahiye');
-      setActiveSection('tax');
-      document.getElementById('section-tax')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      return;
-    }
-    if (form.ntn && !validateNTN(form.ntn)) {
-      toast.error('NTN 7, 9 ya 13 digits ka hona chahiye');
-      setActiveSection('tax');
-      document.getElementById('section-tax')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      return;
-    }
-    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      toast.error('Email format theek nahi');
-      setActiveSection('company');
-      document.getElementById('section-company')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      return;
-    }
-
-    submitLockRef.current = true;
-    try {
-      const saved = await saveMutation.mutateAsync();
-      dirtyRef.current = false;
-      queryClient.invalidateQueries({ queryKey: ['suppliers'] });
-      queryClient.invalidateQueries({ queryKey: ['supplier', saved.id] });
-      queryClient.invalidateQueries({ queryKey: ['suppliers-summary'] });
-      toast.success(isEdit ? 'Supplier update ho gaya' : 'Supplier ban gaya', {
-        description: isEdit ? 'Changes save ho gaye' : 'Ab is se purchases bana sakte ho',
-      });
-      navigate(`/suppliers/${saved.id}`, { replace: true });
-    } catch (e: any) {
-      toast.error(e?.response?.data?.message || 'Save nahi hua');
-    } finally {
-      setTimeout(() => { submitLockRef.current = false; }, 700);
-    }
+    setSaveAndNew(andNew);
+    mut.mutate();
   };
 
-  const goBack = () => {
-    if (dirtyRef.current && !confirm('⚠️ Changes save nahi huay — wapas jao gay to sab ur jayega.\n\nPakka nikle?')) return;
-    navigate(isEdit ? `/suppliers/${id}` : '/suppliers');
-  };
-
-  const copyField = (value: string, label: string) => {
-    if (!value) return;
-    navigator.clipboard.writeText(value);
-    toast.success(`${label} copy ho gaya`);
-  };
-
-  /* ─── Keyboard: Ctrl+S/Ctrl+Enter = save, Esc = back ─── */
+  /* ─── Keyboard ─── */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && showTeacher) { setShowTeacher(false); return; }
-      if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 's' || e.key === 'Enter')) {
-        e.preventDefault();
-        handleSave();
+      if ((e.metaKey || e.ctrlKey) && e.key === 's') { e.preventDefault(); submit(false); }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); submit(!isEdit); }
+      if (e.key === 'Escape') {
+        if (showTeacher) return setShowTeacher(false);
+        if (showKeys) return setShowKeys(false);
       }
+      const el = e.target as HTMLElement;
+      const typing = /input|textarea|select/i.test(el?.tagName ?? '') || el?.isContentEditable;
+      if (typing) return;
+      if (e.key === '?') setShowKeys(true);
+      if (e.key.toLowerCase() === 't') setShowTeacher(true);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showTeacher, form, saveMutation.isPending]);
+  });
 
-  /* ─── Unsaved changes — browser close/refresh warning ─── */
-  useEffect(() => {
-    const handler = (e: BeforeUnloadEvent) => {
-      if (dirtyRef.current) { e.preventDefault(); e.returnValue = ''; }
-    };
-    window.addEventListener('beforeunload', handler);
-    return () => window.removeEventListener('beforeunload', handler);
-  }, []);
+  const wa = waNumber(form.phone);
+  const stats = existing?.stats;
 
-  /* Body scroll lock jab teacher khula ho */
-  useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = showTeacher ? 'hidden' : prev;
-    return () => { document.body.style.overflow = prev; };
-  }, [showTeacher]);
-
-  const sections = [
-    { id: 'company', label: 'Company Info', icon: Building2, activeCls: 'bg-orange-600 border-orange-600 shadow-orange-500/30', idleCls: 'hover:border-orange-300 dark:hover:border-orange-500/50' },
-    { id: 'location', label: 'Location', icon: MapPin, activeCls: 'bg-rose-600 border-rose-600 shadow-rose-500/30', idleCls: 'hover:border-rose-300 dark:hover:border-rose-500/50' },
-    { id: 'tax', label: 'Tax Info', icon: FileText, activeCls: 'bg-blue-600 border-blue-600 shadow-blue-500/30', idleCls: 'hover:border-blue-300 dark:hover:border-blue-500/50' },
-    { id: 'banking', label: 'Banking', icon: CreditCard, activeCls: 'bg-emerald-600 border-emerald-600 shadow-emerald-500/30', idleCls: 'hover:border-emerald-300 dark:hover:border-emerald-500/50' },
-    { id: 'notes', label: 'Notes', icon: Info, activeCls: 'bg-amber-600 border-amber-600 shadow-amber-500/30', idleCls: 'hover:border-amber-300 dark:hover:border-amber-500/50' },
-  ];
+  if (isEdit && isLoading) {
+    return (
+      <div className="py-24 text-center">
+        <Loader2 className="h-7 w-7 animate-spin mx-auto text-teal-600 mb-3" />
+        <p className="text-sm font-bold text-slate-500">Supplier aa raha hai…</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-4 sm:space-y-5 pb-10">
-      {showTeacher && <SupplierFormTeacher onClose={() => setShowTeacher(false)} />}
-
-      {/* ═══ BACK ═══ */}
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <button
-          onClick={goBack}
-          className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 font-bold transition"
-        >
-          <ArrowLeft className="h-4 w-4" /> {isEdit ? 'Supplier pe Wapas' : 'Sab Suppliers'}
-        </button>
-        <div className="hidden sm:flex items-center gap-1.5 text-[10px] font-bold text-slate-400 dark:text-slate-500">
-          <KbdLight>Ctrl</KbdLight>+<KbdLight>S</KbdLight> Save
-        </div>
-      </div>
-
-      {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-orange-900 to-amber-700 dark:from-slate-950 dark:via-orange-950 dark:to-amber-900 text-white p-4 sm:p-6 shadow-2xl">
-        <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-orange-400/25 blur-3xl pointer-events-none animate-pulse" />
-        <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-amber-400/20 blur-3xl pointer-events-none" />
-
-        <div className="relative flex items-start justify-between flex-wrap gap-4">
-          <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
-              <Truck className="h-3.5 w-3.5 text-amber-300" />
-              {isEdit ? 'Supplier Edit' : 'Naya Supplier'}
-            </div>
-            <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight truncate">
-              {form.name || 'Naya supplier'}
+    <div className="space-y-5 pb-32">
+      {/* ─────── HERO ─────── */}
+      <div className={`relative overflow-hidden rounded-3xl bg-gradient-to-br ${SUPPLIER_GRADIENT} text-white p-5 sm:p-7`}>
+        <div className="absolute -top-16 -right-10 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
+        <div className="relative flex flex-wrap items-start justify-between gap-4">
+          <div className="min-w-0">
+            <Link to="/suppliers" className="inline-flex items-center gap-1.5 text-xs font-extrabold text-white/80 hover:text-white transition">
+              <ArrowLeft className="h-3.5 w-3.5" /> Suppliers
+            </Link>
+            <h1 className="text-2xl sm:text-3xl font-black mt-2 flex items-center gap-2">
+              {isEdit ? '✏️' : '🚚'} {isEdit ? (form.name || 'Supplier badlein') : 'Naya Supplier'}
             </h1>
-            {form.contactPerson && (
-              <p className="mt-1.5 text-sm text-white/90 inline-flex items-center gap-1.5 font-semibold">
-                <User className="h-3.5 w-3.5" /> Contact: {form.contactPerson}
-              </p>
-            )}
-
-            {/* Progress bar */}
-            <div className="mt-4 max-w-md">
-              <div className="flex items-center justify-between text-xs mb-1.5">
-                <span className="text-white/80 font-bold">Profile Completion</span>
-                <span className="font-extrabold tabular-nums">{completionStats.percent}%</span>
-              </div>
-              <div className="h-2 bg-white/15 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-emerald-400 to-green-500 transition-all duration-500"
-                  style={{ width: `${completionStats.percent}%` }}
-                />
-              </div>
-              <div className="mt-1 text-[10px] text-white/70 font-semibold">
-                {completionStats.filled}/{completionStats.total} fields bhare • Sirf <strong className="text-amber-300">naam</strong> zaroori hai
-              </div>
-            </div>
-          </div>
-          <div className="flex gap-2 flex-wrap items-center shrink-0">
-            <button
-              onClick={() => setShowTeacher(true)}
-              className="h-11 px-3 rounded-xl bg-amber-400/90 hover:bg-amber-400 text-slate-900 text-xs font-extrabold inline-flex items-center gap-1.5 shadow-lg transition"
-              title="Form kaise bharein?"
-            >
-              <GraduationCap className="h-4 w-4" /> <span className="hidden sm:inline">Guide</span>
-            </button>
-            {isEdit && (
-              <button
-                onClick={() => {
-                  if (confirm(`"${form.name}" delete karein?\n\nYe action undo nahi ho sakta — purchase history me naam reh jayega lekin supplier chala jayega.`)) removeMutation.mutate();
-                }}
-                disabled={removeMutation.isPending}
-                className="h-11 px-3 rounded-xl bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-extrabold inline-flex items-center gap-1.5 shadow-lg transition disabled:opacity-50"
-              >
-                <Trash2 className="h-4 w-4" /> <span className="hidden sm:inline">Delete</span>
-              </button>
-            )}
-            <Button
-              onClick={handleSave}
-              loading={saveMutation.isPending}
-              className="bg-white text-slate-900 hover:bg-slate-100 shadow-2xl font-extrabold"
-            >
-              <Save className="h-4 w-4" /> {isEdit ? 'Save Changes' : 'Supplier Banao'}
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ SECTION NAV TABS ═══ */}
-      <div className="flex gap-2 overflow-x-auto pb-1">
-        {sections.map((s) => {
-          const Icon = s.icon;
-          const active = activeSection === s.id;
-          return (
-            <button
-              key={s.id}
-              onClick={() => {
-                setActiveSection(s.id);
-                document.getElementById(`section-${s.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }}
-              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-extrabold whitespace-nowrap transition border-2 ${
-                active
-                  ? `${s.activeCls} text-white shadow-lg`
-                  : `bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 ${s.idleCls}`
-              }`}
-            >
-              <Icon className="h-4 w-4" />
-              {s.label}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="grid lg:grid-cols-[320px_1fr] gap-4 sm:gap-5">
-        {/* ═══ LEFT SIDEBAR ═══ */}
-        <div className="space-y-4">
-          {/* Logo Upload */}
-          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-            <h3 className="font-extrabold text-slate-900 dark:text-white mb-4 flex items-center gap-2 text-sm">
-              <Building2 className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-              Supplier Logo
-            </h3>
-            <div className="flex justify-center">
-              <AvatarUpload
-                value={form.logoUrl}
-                onChange={(url) => set({ logoUrl: url || '' })}
-                purpose="brand-logo"
-                shape="square"
-                size="xl"
-                fallbackText={form.name || 'S'}
-              />
-            </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-3 text-center font-semibold">
-              Optional — company ka logo
+            <p className="text-sm font-bold text-white/85 mt-1">
+              {isEdit
+                ? 'Tafseel badlein — khata alag safhe se chalta hai'
+                : 'Sirf naam lazmi hai — baqi jab pata chale tab bhar dein'}
             </p>
           </div>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setShowTeacher(true)} title="Sikhein (T)"
+              className="h-11 px-3.5 rounded-2xl bg-white/20 hover:bg-white/30 text-sm font-extrabold inline-flex items-center gap-1.5 transition">
+              <GraduationCap className="h-4 w-4" /> <span className="hidden sm:inline">Sikhein</span>
+            </button>
+            <button onClick={() => setShowKeys(true)} title="Shortcuts (?)"
+              className="h-11 w-11 rounded-2xl bg-white/20 hover:bg-white/30 flex items-center justify-center transition">
+              <Keyboard className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
 
-          {/* Status Toggle */}
-          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-            <h3 className="font-extrabold text-slate-900 dark:text-white mb-3 flex items-center gap-2 text-sm">
-              <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-              Status
-            </h3>
-            <label className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/60 dark:to-slate-800/30 border-2 border-slate-200 dark:border-slate-700 cursor-pointer hover:border-emerald-300 dark:hover:border-emerald-500/50 transition">
-              <div className="flex items-center gap-2.5">
-                <div className={`h-9 w-9 rounded-xl flex items-center justify-center transition ${
-                  form.isActive
-                    ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
-                    : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
-                }`}>
-                  {form.isActive ? <CheckCircle2 className="h-4 w-4" /> : <X className="h-4 w-4" />}
+        {/* completeness */}
+        <div className="relative mt-4">
+          <div className="flex items-center justify-between text-[11px] font-extrabold text-white/80 mb-1">
+            <span>Tafseel kitni poori hai</span>
+            <span className="tabular-nums">{completeness}%</span>
+          </div>
+          <div className="h-2 rounded-full bg-white/20 overflow-hidden">
+            <div className="h-full rounded-full bg-gradient-to-r from-emerald-300 to-white transition-all duration-500"
+              style={{ width: `${completeness}%` }} />
+          </div>
+        </div>
+      </div>
+
+      {/* ─────── EDIT MODE: LIVE STATS ─────── */}
+      {isEdit && stats && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+          {[
+            { icon: Package, label: 'Kul bill', value: stats.totalPurchases, sub: `Ausat ${formatPKR(stats.averagePurchase)}`, tone: 'from-blue-500 to-indigo-700' },
+            { icon: TrendingUp, label: 'Kul kharidari', value: formatPKR(stats.totalAmount), sub: `${formatPKR(stats.totalPaid)} diya`, tone: 'from-teal-500 to-emerald-700' },
+            { icon: Wallet, label: 'Hamara baqi', value: formatPKR(Number(existing?.outstandingDue ?? 0)), sub: existing?.ledger?.daysSincePayment !== null && existing?.ledger?.daysSincePayment !== undefined ? `Adaigi ${daysPhrase(existing.ledger.daysSincePayment)}` : 'Kabhi adaigi nahi', tone: 'from-rose-500 to-red-700' },
+            { icon: Clock, label: 'Aakhri maal', value: stats.lastPurchaseDate ? fmtDate(stats.lastPurchaseDate) : '—', sub: daysPhrase(stats.daysSinceLastPurchase), tone: 'from-violet-500 to-purple-700' },
+          ].map((k) => (
+            <div key={k.label} className="rounded-2xl bg-[#ffffff] dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-3">
+              <div className={`h-9 w-9 rounded-xl bg-gradient-to-br ${k.tone} text-white flex items-center justify-center shadow`}>
+                <k.icon className="h-4 w-4" />
+              </div>
+              <div className="mt-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">{k.label}</div>
+              <div className="text-base font-black text-slate-900 dark:text-white tabular-nums truncate">{k.value}</div>
+              <div className="text-[11px] font-bold text-slate-400 truncate">{k.sub}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="grid xl:grid-cols-[1fr_360px] gap-4 items-start">
+        <div className="space-y-4 min-w-0">
+          {/* ─────── 1. BUNYADI ─────── */}
+          <Panel icon={Truck} title="Supplier Kaun Hai" desc="Naam ke ilawa sab apni marzi se" tone="teal">
+            <div className="space-y-3">
+              <div>
+                <Lbl req>Supplier ka naam</Lbl>
+                <input ref={nameRef} value={form.name} maxLength={150}
+                  onChange={(e) => set('name', e.target.value)}
+                  onBlur={() => setTouched((t) => new Set(t).add('name'))}
+                  placeholder="Akbari Mandi Wholesale"
+                  className={`${inputCls} h-12 text-base ${touched.has('name') && errors.name ? 'border-rose-400' : ''}`} />
+                {touched.has('name') && errors.name && <Err>{errors.name}</Err>}
+                {duplicate && (
+                  <div className="mt-1.5 rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-2.5 flex items-start gap-2">
+                    <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                    <div className="text-[11px] font-bold text-amber-900 dark:text-amber-200">
+                      Isi naam ka supplier pehle se mojood hai.{' '}
+                      <Link to={`/suppliers/${duplicate.id}`} className="underline">Dekhein</Link>
+                      {' '}— warna khata do jagah bat jayega.
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div>
+                  <Lbl hint="jis se baat hoti hai">Banda</Lbl>
+                  <input value={form.contactPerson ?? ''} onChange={(e) => set('contactPerson', e.target.value)}
+                    placeholder="Asif sb" className={inputCls} />
                 </div>
                 <div>
-                  <div className="text-sm font-extrabold text-slate-900 dark:text-white">
-                    {form.isActive ? 'Active' : 'Inactive'}
-                  </div>
-                  <div className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">
-                    {form.isActive ? 'Purchases me dikhega' : 'List me chhupa rahega'}
+                  <Lbl hint="udhaar ki muddat">Payment terms</Lbl>
+                  <input value={form.paymentTerms ?? ''} onChange={(e) => set('paymentTerms', e.target.value)}
+                    list="pay-terms" placeholder="30 din" className={inputCls} />
+                  <datalist id="pay-terms">{PAYMENT_TERMS.map((t) => <option key={t} value={t} />)}</datalist>
+                  <div className="flex gap-1.5 flex-wrap mt-1.5">
+                    {PAYMENT_TERMS.slice(0, 5).map((t) => (
+                      <button key={t} type="button" onClick={() => set('paymentTerms', t)}
+                        className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold border-2 transition ${
+                          form.paymentTerms === t
+                            ? 'bg-teal-600 border-teal-600 text-white'
+                            : 'bg-[#ffffff] dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
+                        }`}>{t}</button>
+                    ))}
                   </div>
                 </div>
               </div>
-              <input
-                type="checkbox"
-                checked={form.isActive ?? true}
-                onChange={(e) => set({ isActive: e.target.checked })}
-                className="h-5 w-5 rounded accent-emerald-600"
-              />
-            </label>
-          </div>
 
-          {/* Tips Card */}
-          <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10 border-2 border-amber-200 dark:border-amber-500/40 p-5">
-            <h3 className="font-extrabold text-amber-900 dark:text-amber-200 mb-3 flex items-center gap-2 text-sm">
-              <Sparkles className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-              Pro Tips
-            </h3>
-            <ul className="space-y-2 text-xs text-amber-900 dark:text-amber-200/90 font-semibold">
-              <li className="flex items-start gap-2">
-                <CheckCircle2 className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                <span>Sirf <strong>naam</strong> likh ke bhi save ho jata hai — baqi baad me</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle2 className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                <span>Phone = WhatsApp — Low Stock se reminders isi pe jayenge</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle2 className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                <span>Payment terms set karo — udhaar tracking easy hogi</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle2 className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                <span>Bank details chhupe rehte hain — "Show sensitive" se dekho</span>
-              </li>
-            </ul>
-          </div>
+              {isEdit && (
+                <label className="flex items-center gap-3 rounded-2xl border-2 border-slate-200 dark:border-slate-700 p-3 cursor-pointer">
+                  <input type="checkbox" checked={form.isActive} onChange={(e) => set('isActive', e.target.checked)}
+                    className="h-5 w-5 rounded accent-teal-600" />
+                  <div className="min-w-0">
+                    <div className="text-sm font-extrabold text-slate-900 dark:text-white">
+                      {form.isActive ? 'Chalu hai' : 'Band hai'}
+                    </div>
+                    <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                      Band supplier naye bill ki list me nazar nahi aayega — purana record mehfooz rahega.
+                    </div>
+                  </div>
+                </label>
+              )}
+            </div>
+          </Panel>
 
-          {/* Quick Stats (edit mode) */}
-          {isEdit && (supplier as any)?.stats && (
-            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-              <h3 className="font-extrabold text-slate-900 dark:text-white mb-3 flex items-center gap-2 text-sm">
-                <Briefcase className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                Quick Stats
-              </h3>
-              <dl className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <dt className="text-xs text-slate-600 dark:text-slate-400 font-bold">Total Orders</dt>
-                  <dd className="font-extrabold text-slate-900 dark:text-white tabular-nums">{(supplier as any).stats.totalPurchases}</dd>
-                </div>
-                <div className="flex items-center justify-between">
-                  <dt className="text-xs text-slate-600 dark:text-slate-400 font-bold">Total Spent</dt>
-                  <dd className="font-extrabold text-blue-700 dark:text-blue-400 tabular-nums">
-                    {new Intl.NumberFormat('en-PK').format((supplier as any).stats.totalAmount)}
-                  </dd>
-                </div>
-                {(supplier as any).stats.outstanding > 0 && (
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-700">
-                    <dt className="text-xs text-rose-700 dark:text-rose-400 font-bold">Outstanding</dt>
-                    <dd className="font-extrabold text-rose-700 dark:text-rose-400 tabular-nums">
-                      {new Intl.NumberFormat('en-PK').format((supplier as any).stats.outstanding)}
-                    </dd>
+          {/* ─────── 2. RABTA ─────── */}
+          <Panel icon={Phone} title="Rabta" desc="Phone, WhatsApp aur email" tone="blue">
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div>
+                <Lbl hint="WhatsApp isi par">Phone</Lbl>
+                <input value={form.phone ?? ''} inputMode="tel"
+                  onChange={(e) => set('phone', formatPhoneInput(e.target.value))}
+                  onBlur={() => setTouched((t) => new Set(t).add('phone'))}
+                  placeholder="0300-1234567" className={`${inputCls} font-mono ${touched.has('phone') && errors.phone ? 'border-rose-400' : ''}`} />
+                {touched.has('phone') && errors.phone && <Err>{errors.phone}</Err>}
+                {phoneDuplicate && (
+                  <div className="mt-1.5 text-[11px] font-bold text-amber-700 dark:text-amber-300">
+                    ⚠️ Yehi number <Link to={`/suppliers/${phoneDuplicate.id}`} className="underline">{phoneDuplicate.name}</Link> ka bhi hai
                   </div>
                 )}
-              </dl>
+                {wa && (
+                  <a href={`https://wa.me/${wa}`} target="_blank" rel="noreferrer"
+                    className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-extrabold text-emerald-600 hover:underline">
+                    <MessageCircle className="h-3.5 w-3.5" /> WhatsApp: +{wa}
+                  </a>
+                )}
+              </div>
+              <div>
+                <Lbl hint="landline ya doosra">Doosra phone</Lbl>
+                <input value={form.altPhone ?? ''} inputMode="tel"
+                  onChange={(e) => set('altPhone', formatPhoneInput(e.target.value))}
+                  placeholder="042-35xxxxxx" className={`${inputCls} font-mono`} />
+              </div>
+              <div className="sm:col-span-2">
+                <Lbl hint="bill/quotation ke liye">Email</Lbl>
+                <input value={form.email ?? ''} type="email"
+                  onChange={(e) => set('email', e.target.value)}
+                  onBlur={() => setTouched((t) => new Set(t).add('email'))}
+                  placeholder="sales@company.pk"
+                  className={`${inputCls} ${touched.has('email') && errors.email ? 'border-rose-400' : ''}`} />
+                {touched.has('email') && errors.email && <Err>{errors.email}</Err>}
+              </div>
             </div>
+          </Panel>
+
+          {/* ─────── 3. PATA ─────── */}
+          <Panel icon={MapPin} title="Pata" desc="Kahan se maal aata hai" tone="violet">
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div>
+                <Lbl>Sheher</Lbl>
+                <input value={form.city ?? ''} onChange={(e) => set('city', e.target.value)}
+                  list="cities" placeholder="Lahore" className={inputCls} />
+                <datalist id="cities">{CITIES.map((c) => <option key={c} value={c} />)}</datalist>
+              </div>
+              <div>
+                <Lbl hint="mandi, bazaar">Ilaqa</Lbl>
+                <input value={form.area ?? ''} onChange={(e) => set('area', e.target.value)}
+                  placeholder="Akbari Mandi" className={inputCls} />
+              </div>
+              <div className="sm:col-span-2">
+                <Lbl hint="poora pata">Address</Lbl>
+                <textarea value={form.address ?? ''} onChange={(e) => set('address', e.target.value)}
+                  rows={2} placeholder="Shop 12, Block B, Akbari Mandi, Lahore"
+                  className={`${inputCls} h-auto py-2.5 resize-none`} />
+              </div>
+            </div>
+          </Panel>
+
+          {/* ─────── 4. KAGHAZAT ─────── */}
+          <Panel icon={FileText} title="Kaghazat" desc="Tax aur shanakht — sirf agar chahiye" tone="amber">
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div>
+                <Lbl hint="sales tax ke liye">NTN</Lbl>
+                <input value={form.ntn ?? ''} onChange={(e) => set('ntn', e.target.value)}
+                  onBlur={() => setTouched((t) => new Set(t).add('ntn'))}
+                  placeholder="1234567-8" className={`${inputCls} font-mono ${touched.has('ntn') && errors.ntn ? 'border-rose-400' : ''}`} />
+                {touched.has('ntn') && errors.ntn && <Err>{errors.ntn}</Err>}
+              </div>
+              <div>
+                <Lbl hint="malik ka">CNIC</Lbl>
+                <input value={form.cnic ?? ''} onChange={(e) => set('cnic', e.target.value)}
+                  onBlur={() => setTouched((t) => new Set(t).add('cnic'))}
+                  placeholder="35202-1234567-1" className={`${inputCls} font-mono ${touched.has('cnic') && errors.cnic ? 'border-rose-400' : ''}`} />
+                {touched.has('cnic') && errors.cnic && <Err>{errors.cnic}</Err>}
+              </div>
+            </div>
+          </Panel>
+
+          {/* ─────── 5. BANK ─────── */}
+          <Panel icon={Landmark} title="Bank ki Tafseel" desc="Adaigi bhejne ke liye — yahan likh lein taake har baar poochna na pare" tone="emerald">
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div>
+                <Lbl>Bank</Lbl>
+                <input value={form.bankName ?? ''} onChange={(e) => set('bankName', e.target.value)}
+                  list="banks" placeholder="Meezan Bank" className={inputCls} />
+                <datalist id="banks">{BANKS.map((b) => <option key={b} value={b} />)}</datalist>
+              </div>
+              <div>
+                <Lbl>Account number</Lbl>
+                <div className="flex gap-1.5">
+                  <input value={form.accountNumber ?? ''} onChange={(e) => set('accountNumber', e.target.value)}
+                    placeholder="0123456789" className={`${inputCls} font-mono`} />
+                  {form.accountNumber && (
+                    <button type="button" title="Copy"
+                      onClick={() => { navigator.clipboard.writeText(form.accountNumber ?? ''); toast.success('Copy ho gaya'); }}
+                      className="h-11 w-11 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0 transition">
+                      <Copy className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div className="sm:col-span-2">
+                <Lbl hint="online transfer ke liye">IBAN</Lbl>
+                <input value={form.iban ?? ''} onChange={(e) => set('iban', e.target.value.toUpperCase())}
+                  placeholder="PK36SCBL0000001123456702" className={`${inputCls} font-mono`} />
+              </div>
+            </div>
+          </Panel>
+
+          {/* ─────── 6. PURANA HISAB (sirf naya) ─────── */}
+          {!isEdit && (
+            <Panel icon={BookOpen} title="Purana Hisab" desc="System se pehle is supplier ko kitna dena tha" tone="violet">
+              <div className="rounded-2xl bg-violet-50 dark:bg-violet-500/10 border-2 border-violet-200 dark:border-violet-500/30 p-3.5 space-y-3">
+                <div className="flex items-start gap-2">
+                  <Info className="h-4 w-4 text-violet-600 dark:text-violet-400 shrink-0 mt-0.5" />
+                  <p className="text-[12px] font-bold text-violet-900 dark:text-violet-200 leading-relaxed">
+                    Agar purani copy me is supplier ka koi baqi chal raha hai to abhi daal dein.
+                    Khata usi number se shuru hoga aur aage ka hisab apne aap sahi banta rahega.
+                    Baad me sab bhool jate hain.
+                  </p>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <div>
+                    <Lbl hint="hum ne dena tha">Purana baqi (Rs)</Lbl>
+                    <input type="number" min={0} value={opening}
+                      onChange={(e) => { setOpening(e.target.value); setDirty(true); }}
+                      placeholder="0" className={`${inputCls} h-12 text-base tabular-nums`} />
+                    {errors.opening && <Err>{errors.opening}</Err>}
+                  </div>
+                  <div>
+                    <Lbl hint="optional">Note</Lbl>
+                    <input value={openingNote} onChange={(e) => setOpeningNote(e.target.value)}
+                      placeholder="Purani copy, Jan 2026 tak" className={inputCls} />
+                  </div>
+                </div>
+                {Number(opening) > 0 && (
+                  <div className="rounded-xl bg-[#ffffff] dark:bg-slate-900 border-2 border-violet-300 dark:border-violet-500/40 p-2.5 text-center">
+                    <div className="text-[10px] font-extrabold uppercase tracking-wider text-violet-600">Khata yahan se shuru hoga</div>
+                    <div className="text-xl font-black text-violet-700 dark:text-violet-300 tabular-nums">
+                      {formatPKR(Number(opening))}
+                    </div>
+                    <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400">itna hum ne dena hai</div>
+                  </div>
+                )}
+              </div>
+            </Panel>
           )}
+
+          {/* ─────── 7. NOTES ─────── */}
+          <Panel icon={FileText} title="Apni Yaad-dasht" desc="Jo baat yaad rakhni hai" tone="slate">
+            <textarea value={form.notes ?? ''} onChange={(e) => set('notes', e.target.value)}
+              rows={3} placeholder="Jumme ko band rehta hai · Cash par 2% chhoot deta hai · Delivery khud karta hai"
+              className={`${inputCls} h-auto py-2.5 resize-none`} />
+          </Panel>
         </div>
 
-        {/* ═══ MAIN FORM ═══ */}
-        <div className="space-y-4 sm:space-y-5 min-w-0">
-          {/* COMPANY INFO */}
-          <div id="section-company" className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-orange-200 dark:border-orange-500/30 shadow-sm overflow-hidden scroll-mt-4">
-            <div className="px-5 sm:px-6 py-4 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-500/10 dark:to-amber-500/10 border-b-2 border-orange-200 dark:border-orange-500/30">
-              <h3 className="font-extrabold text-orange-900 dark:text-orange-200 flex items-center gap-2 text-sm">
-                <div className="h-9 w-9 rounded-xl bg-orange-600 text-white flex items-center justify-center shadow-md shadow-orange-500/30 shrink-0">
-                  <Building2 className="h-4 w-4" />
-                </div>
-                Company Information
-                <span className="ml-auto text-[10px] font-extrabold text-orange-700 dark:text-orange-300 bg-orange-100 dark:bg-orange-500/20 px-2 py-0.5 rounded-full shrink-0">Required *</span>
-              </h3>
-            </div>
-            <div className="p-5 sm:p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5">
-                  Supplier / Company ka Naam <span className="text-rose-600">*</span>
-                </label>
-                <input
-                  autoFocus={!isEdit}
-                  className={`${inputCls} ${focusCls('orange')}`}
-                  value={form.name}
-                  onChange={(e) => set({ name: e.target.value })}
-                  placeholder="Sun Fibre, ABC Wholesalers..."
-                />
-                <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 font-semibold">
-                  Yahi naam purchases aur reports me dikhega
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5 inline-flex items-center gap-1.5">
-                  <User className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
-                  Contact Person
-                </label>
-                <input
-                  className={`${inputCls} ${focusCls('orange')}`}
-                  value={form.contactPerson ?? ''}
-                  onChange={(e) => set({ contactPerson: e.target.value })}
-                  placeholder="Mr. Ahmed, Sales Manager Sara..."
-                />
-              </div>
-
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5 inline-flex items-center gap-1.5">
-                    <Phone className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
-                    Phone (WhatsApp)
-                  </label>
-                  <div className="relative">
-                    <input
-                      className={`${inputCls} ${focusCls('orange')} pr-20`}
-                      value={form.phone ?? ''}
-                      onChange={(e) => set({ phone: formatPhone(e.target.value) })}
-                      placeholder="03009998877"
-                    />
-                    {form.phone && (
-                      <a
-                        href={`https://wa.me/${form.phone.replace(/[^0-9]/g, '').replace(/^0/, '92')}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 h-7 px-2 rounded-lg bg-green-100 dark:bg-green-500/20 hover:bg-green-200 dark:hover:bg-green-500/30 text-green-700 dark:text-green-300 inline-flex items-center gap-1 text-[10px] font-bold transition"
-                        title="WhatsApp test"
-                      >
-                        <MessageCircle className="h-3 w-3" /> Test
-                      </a>
-                    )}
+        {/* ─────── SIDEBAR: LIVE PREVIEW ─────── */}
+        <div className="space-y-4 xl:sticky xl:top-4">
+          <Panel icon={Sparkles} title="Jaisa Dikhega" desc="List me is tarah nazar aayega" tone="indigo">
+            <div className="rounded-2xl border-2 border-slate-200 dark:border-slate-800 overflow-hidden">
+              <div className={`h-1.5 ${Number(opening) > 0 ? 'bg-gradient-to-r from-rose-500 to-red-600' : 'bg-gradient-to-r from-teal-500 to-emerald-600'}`} />
+              <div className="p-3.5">
+                <div className="flex items-center gap-3">
+                  <div className={`h-12 w-12 rounded-2xl flex items-center justify-center font-black text-white shrink-0 ${
+                    form.isActive ? 'bg-gradient-to-br from-teal-600 to-emerald-700' : 'bg-slate-400'
+                  }`}>
+                    {form.logoUrl
+                      ? <img src={form.logoUrl} alt="" className="h-full w-full object-cover rounded-2xl" />
+                      : initials(form.name || '?')}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-black text-slate-900 dark:text-white truncate">
+                      {form.name || 'Supplier ka naam'}
+                    </div>
+                    <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate">
+                      {form.contactPerson ? `👤 ${form.contactPerson}` : form.city ? `📍 ${form.city}` : 'Tafseel nahi'}
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <label className="text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5 inline-flex items-center gap-1.5">
-                    <Phone className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
-                    Doosra Phone
-                  </label>
-                  <input
-                    className={`${inputCls} ${focusCls('orange')}`}
-                    value={form.altPhone ?? ''}
-                    onChange={(e) => set({ altPhone: formatPhone(e.target.value) })}
-                    placeholder="Optional"
-                  />
+                <div className="flex gap-1.5 flex-wrap mt-2.5 text-[10px] font-extrabold">
+                  {form.phone && <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono">{form.phone}</span>}
+                  {form.city && <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">{form.city}</span>}
+                  {form.paymentTerms && <span className="px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300">{form.paymentTerms}</span>}
+                  {form.bankName && <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">{form.bankName}</span>}
+                  {!form.isActive && <span className="px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">Band</span>}
                 </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5 inline-flex items-center gap-1.5">
-                  <Mail className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
-                  Email
-                </label>
-                <input
-                  type="email"
-                  className={`${inputCls} ${focusCls('orange')}`}
-                  value={form.email ?? ''}
-                  onChange={(e) => set({ email: e.target.value })}
-                  placeholder="contact@company.com"
-                />
-                {form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email) && (
-                  <div className="text-[10px] text-rose-600 dark:text-rose-400 font-bold mt-1 inline-flex items-center gap-1">
-                    <AlertCircle className="h-3 w-3" /> Email format theek nahi
+                {!isEdit && Number(opening) > 0 && (
+                  <div className="mt-2.5 rounded-xl bg-rose-50 dark:bg-rose-500/10 p-2 text-center">
+                    <div className="text-[9px] font-extrabold uppercase text-rose-600">Hamara baqi</div>
+                    <div className="text-sm font-black text-rose-700 dark:text-rose-300 tabular-nums">
+                      {formatPKR(Number(opening))}
+                    </div>
                   </div>
                 )}
               </div>
             </div>
-          </div>
+          </Panel>
 
-          {/* LOCATION */}
-          <div id="section-location" className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-rose-200 dark:border-rose-500/30 shadow-sm overflow-hidden scroll-mt-4">
-            <div className="px-5 sm:px-6 py-4 bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-500/10 dark:to-pink-500/10 border-b-2 border-rose-200 dark:border-rose-500/30">
-              <h3 className="font-extrabold text-rose-900 dark:text-rose-200 flex items-center gap-2 text-sm">
-                <div className="h-9 w-9 rounded-xl bg-rose-600 text-white flex items-center justify-center shadow-md shadow-rose-500/30 shrink-0">
-                  <MapPin className="h-4 w-4" />
-                </div>
-                Location
-                <span className="ml-auto text-[10px] font-extrabold text-rose-700 dark:text-rose-300 bg-rose-100 dark:bg-rose-500/20 px-2 py-0.5 rounded-full shrink-0">Optional</span>
-              </h3>
-            </div>
-            <div className="p-5 sm:p-6 space-y-4">
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5">Sheher</label>
-                  <input
-                    className={`${inputCls} ${focusCls('rose')}`}
-                    value={form.city ?? ''}
-                    onChange={(e) => set({ city: e.target.value })}
-                    placeholder="Karachi, Lahore..."
-                    list="city-list"
-                  />
-                  <datalist id="city-list">
-                    {PAKISTAN_CITIES.map((c) => <option key={c} value={c} />)}
-                  </datalist>
-                </div>
-                <div>
-                  <label className="block text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5">Area / Mohalla</label>
-                  <input
-                    className={`${inputCls} ${focusCls('rose')}`}
-                    value={form.area ?? ''}
-                    onChange={(e) => set({ area: e.target.value })}
-                    placeholder="Saddar, DHA Phase 5..."
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5">Poora Address</label>
-                <textarea
-                  rows={3}
-                  className={`w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none resize-none transition ${focusCls('rose')}`}
-                  value={form.address ?? ''}
-                  onChange={(e) => set({ address: e.target.value })}
-                  placeholder="Shop #, Street, Block, Sector..."
-                />
-                <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 font-semibold">
-                  Purchase invoices pe ye address dikhega
-                </div>
-              </div>
-            </div>
-          </div>
+          {isEdit && (
+            <Panel icon={BookOpen} title="Khata" desc="Udhaar aur adaigi alag safhe se" tone="violet">
+              <Link to={`/suppliers/${id}`}
+                className="w-full h-12 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-700 text-white text-sm font-black inline-flex items-center justify-center gap-2 shadow-lg transition">
+                <BookOpen className="h-4 w-4" /> Khata kholein
+              </Link>
+              <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-2 text-center">
+                Baqi yahan se nahi badalta — har tabdeeli khate me darj honi chahiye taake hisab saaf rahe.
+              </p>
+            </Panel>
+          )}
 
-          {/* TAX INFO */}
-          <div id="section-tax" className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-blue-200 dark:border-blue-500/30 shadow-sm overflow-hidden scroll-mt-4">
-            <div className="px-5 sm:px-6 py-4 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-500/10 dark:to-cyan-500/10 border-b-2 border-blue-200 dark:border-blue-500/30 flex items-center justify-between gap-2">
-              <h3 className="font-extrabold text-blue-900 dark:text-blue-200 flex items-center gap-2 text-sm">
-                <div className="h-9 w-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-500/30 shrink-0">
-                  <FileText className="h-4 w-4" />
-                </div>
-                Tax Information
-              </h3>
-              <button
-                onClick={() => setShowSensitive(!showSensitive)}
-                className="text-xs font-extrabold text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-200 inline-flex items-center gap-1 transition shrink-0"
-              >
-                {showSensitive ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-                {showSensitive ? 'Chhupao' : 'Dikhao'}
+          <div className="rounded-3xl bg-[#ffffff] dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-4 space-y-2">
+            <button onClick={() => submit(false)} disabled={mut.isPending || !valid}
+              className="w-full h-14 rounded-2xl bg-gradient-to-r from-teal-600 to-emerald-700 hover:from-teal-500 hover:to-emerald-600 disabled:opacity-40 text-white text-sm font-black inline-flex items-center justify-center gap-2 shadow-lg shadow-teal-500/30 transition active:scale-[0.98]">
+              {mut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              {isEdit ? 'Tabdeeli Save Karein' : 'Supplier Banayein'}
+            </button>
+            {!isEdit && (
+              <button onClick={() => submit(true)} disabled={mut.isPending || !valid}
+                className="w-full h-12 rounded-2xl bg-[#ffffff] dark:bg-slate-900 border-2 border-teal-300 dark:border-teal-500/40 text-teal-700 dark:text-teal-300 text-sm font-extrabold inline-flex items-center justify-center gap-2 disabled:opacity-40 transition">
+                <Plus className="h-4 w-4" /> Save + Aik Aur
               </button>
-            </div>
-            <div className="p-5 sm:p-6 space-y-4">
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5 inline-flex items-center gap-1.5">
-                    <Hash className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
-                    CNIC <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">(13 digits)</span>
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showSensitive ? 'text' : 'password'}
-                      className={`${inputCls} ${focusCls('blue')} pr-10 font-mono`}
-                      value={form.cnic ?? ''}
-                      onChange={(e) => set({ cnic: formatCNIC(e.target.value) })}
-                      placeholder="12345-6789012-3"
-                      maxLength={15}
-                    />
-                    {form.cnic && (
-                      <button
-                        onClick={() => copyField(form.cnic || '', 'CNIC')}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg bg-blue-100 dark:bg-blue-500/20 hover:bg-blue-200 dark:hover:bg-blue-500/30 text-blue-700 dark:text-blue-300 inline-flex items-center justify-center transition"
-                        title="Copy"
-                      >
-                        <Copy className="h-3 w-3" />
-                      </button>
-                    )}
-                  </div>
-                  {form.cnic && form.cnic.replace(/\D/g, '').length !== 13 && (
-                    <div className="text-[10px] text-amber-700 dark:text-amber-400 font-bold mt-1 inline-flex items-center gap-1">
-                      <AlertCircle className="h-3 w-3" /> 13 digits hone chahiye
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <label className="text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5 inline-flex items-center gap-1.5">
-                    <Hash className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
-                    NTN <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">(7/9/13 digits)</span>
-                  </label>
-                  <div className="relative">
-                    <input
-                      className={`${inputCls} ${focusCls('blue')} pr-10 font-mono`}
-                      value={form.ntn ?? ''}
-                      onChange={(e) => set({ ntn: e.target.value })}
-                      placeholder="National Tax Number"
-                    />
-                    {form.ntn && (
-                      <button
-                        onClick={() => copyField(form.ntn || '', 'NTN')}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg bg-blue-100 dark:bg-blue-500/20 hover:bg-blue-200 dark:hover:bg-blue-500/30 text-blue-700 dark:text-blue-300 inline-flex items-center justify-center transition"
-                        title="Copy"
-                      >
-                        <Copy className="h-3 w-3" />
-                      </button>
-                    )}
-                  </div>
-                  {form.ntn && !validateNTN(form.ntn) && (
-                    <div className="text-[10px] text-amber-700 dark:text-amber-400 font-bold mt-1 inline-flex items-center gap-1">
-                      <AlertCircle className="h-3 w-3" /> 7, 9 ya 13 digits hone chahiye
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* BANKING */}
-          <div id="section-banking" className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-emerald-200 dark:border-emerald-500/30 shadow-sm overflow-hidden scroll-mt-4">
-            <div className="px-5 sm:px-6 py-4 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-500/10 dark:to-green-500/10 border-b-2 border-emerald-200 dark:border-emerald-500/30">
-              <h3 className="font-extrabold text-emerald-900 dark:text-emerald-200 flex items-center gap-2 text-sm">
-                <div className="h-9 w-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-500/30 shrink-0">
-                  <CreditCard className="h-4 w-4" />
-                </div>
-                Banking & Payment Terms
-                <span className="ml-auto text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-500/20 px-2 py-0.5 rounded-full shrink-0">Optional</span>
-              </h3>
-            </div>
-            <div className="p-5 sm:p-6 space-y-4">
-              <div>
-                <label className="text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5 inline-flex items-center gap-1.5">
-                  <Building2 className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
-                  Bank ka Naam
-                </label>
-                <input
-                  className={`${inputCls} ${focusCls('emerald')}`}
-                  value={form.bankName ?? ''}
-                  onChange={(e) => set({ bankName: e.target.value })}
-                  placeholder="HBL, Meezan, UBL..."
-                  list="bank-list"
-                />
-                <datalist id="bank-list">
-                  {PAKISTAN_BANKS.map((b) => <option key={b} value={b} />)}
-                </datalist>
-              </div>
-
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5 inline-flex items-center gap-1.5">
-                    <Hash className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
-                    Account Number
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showSensitive ? 'text' : 'password'}
-                      className={`${inputCls} ${focusCls('emerald')} pr-10 font-mono`}
-                      value={form.accountNumber ?? ''}
-                      onChange={(e) => set({ accountNumber: e.target.value })}
-                      placeholder="00000000000"
-                    />
-                    {form.accountNumber && (
-                      <button
-                        onClick={() => copyField(form.accountNumber || '', 'Account')}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg bg-emerald-100 dark:bg-emerald-500/20 hover:bg-emerald-200 dark:hover:bg-emerald-500/30 text-emerald-700 dark:text-emerald-300 inline-flex items-center justify-center transition"
-                        title="Copy"
-                      >
-                        <Copy className="h-3 w-3" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <label className="text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5 inline-flex items-center gap-1.5">
-                    <Banknote className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
-                    IBAN <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">(24 chars)</span>
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showSensitive ? 'text' : 'password'}
-                      className={`${inputCls} ${focusCls('emerald')} pr-10 font-mono uppercase`}
-                      value={form.iban ?? ''}
-                      onChange={(e) => set({ iban: formatIBAN(e.target.value) })}
-                      placeholder="PK00BANK0000000000000000"
-                      maxLength={29}
-                    />
-                    {form.iban && (
-                      <button
-                        onClick={() => copyField(form.iban?.replace(/\s/g, '') || '', 'IBAN')}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg bg-emerald-100 dark:bg-emerald-500/20 hover:bg-emerald-200 dark:hover:bg-emerald-500/30 text-emerald-700 dark:text-emerald-300 inline-flex items-center justify-center transition"
-                        title="Copy"
-                      >
-                        <Copy className="h-3 w-3" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-2 inline-flex items-center gap-1.5">
-                  <Wallet className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
-                  Payment Terms
-                </label>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                  {PAYMENT_TERMS.map((t) => {
-                    const active = form.paymentTerms === t.value;
-                    return (
-                      <button
-                        key={t.value}
-                        type="button"
-                        onClick={() => set({ paymentTerms: active ? '' : t.value })}
-                        className={`px-3 py-2.5 rounded-xl border-2 text-left transition ${
-                          active
-                            ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-500/30'
-                            : 'bg-white dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-500/50 hover:shadow-md'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="text-base">{t.emoji}</span>
-                          <div className="min-w-0">
-                            <div className={`text-xs font-extrabold truncate ${active ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
-                              {t.value}
-                            </div>
-                            <div className={`text-[10px] font-bold ${active ? 'text-white/80' : 'text-slate-500 dark:text-slate-400'}`}>
-                              {t.desc}
-                            </div>
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-2 font-semibold">
-                  Purchases me ye automatically yaad rahega
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* NOTES */}
-          <div id="section-notes" className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-amber-200 dark:border-amber-500/30 shadow-sm overflow-hidden scroll-mt-4">
-            <div className="px-5 sm:px-6 py-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10 border-b-2 border-amber-200 dark:border-amber-500/30">
-              <h3 className="font-extrabold text-amber-900 dark:text-amber-200 flex items-center gap-2 text-sm">
-                <div className="h-9 w-9 rounded-xl bg-amber-600 text-white flex items-center justify-center shadow-md shadow-amber-500/30 shrink-0">
-                  <Info className="h-4 w-4" />
-                </div>
-                Internal Notes
-                <span className="ml-auto text-[10px] font-extrabold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-500/20 px-2 py-0.5 rounded-full shrink-0">Private</span>
-              </h3>
-            </div>
-            <div className="p-5 sm:p-6">
-              <textarea
-                rows={4}
-                className={`w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none resize-none transition ${focusCls('amber')}`}
-                value={form.notes ?? ''}
-                onChange={(e) => set({ notes: e.target.value })}
-                placeholder="Best supplier for X, delivery 2 din me, bulk discount 50k+ pe, JazzCash prefer karta hai..."
-              />
-              <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-2 font-semibold inline-flex items-center gap-1">
-                <ShieldCheck className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
-                Sirf tum aur tumhari team dekh sakti ho — supplier ko nahi dikhega
-              </div>
-            </div>
-          </div>
-
-          {/* STICKY SAVE FOOTER */}
-          <div className="sticky bottom-4 z-10">
-            <div className="rounded-2xl bg-gradient-to-r from-orange-50 to-amber-50 dark:from-slate-900 dark:to-slate-800 border-2 border-orange-300 dark:border-orange-500/40 p-4 shadow-2xl backdrop-blur flex items-center justify-between flex-wrap gap-3">
-              <div className="flex items-center gap-3">
-                <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${
-                  completionStats.percent === 100
-                    ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
-                    : completionStats.percent >= 50
-                      ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300'
-                      : 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
-                }`}>
-                  {completionStats.percent === 100 ? <CheckCircle2 className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
-                </div>
-                <div>
-                  <div className="font-extrabold text-slate-900 dark:text-white text-sm">
-                    {completionStats.percent === 100 ? 'Sab fields bhare huay! 🎉' : `${completionStats.percent}% Complete`}
-                  </div>
-                  <div className="text-xs text-slate-600 dark:text-slate-400 font-semibold">
-                    {dirtyRef.current ? '● Unsaved changes hain' : 'Sirf naam zaroori hai'}
-                  </div>
-                </div>
-              </div>
-              <Button
-                onClick={handleSave}
-                loading={saveMutation.isPending}
-                size="lg"
-                className="bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 shadow-lg shadow-orange-500/30 text-white font-extrabold"
-              >
-                <Save className="h-4 w-4" /> {isEdit ? 'Save Changes' : 'Supplier Banao'}
-              </Button>
+            )}
+            <Link to={isEdit ? `/suppliers/${id}` : '/suppliers'}
+              className="w-full h-11 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm font-extrabold inline-flex items-center justify-center gap-2 transition">
+              <X className="h-4 w-4" /> Cancel
+            </Link>
+            <div className="flex items-center justify-center gap-2 pt-1 text-[10px] font-bold text-slate-400">
+              <Kbd>Ctrl</Kbd><span>+</span><Kbd>S</Kbd><span>save</span>
+              {!isEdit && (<><span className="mx-1">·</span><Kbd>Ctrl</Kbd><span>+</span><Kbd>↵</Kbd><span>save + aik aur</span></>)}
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
-}
 
-/* ═════════════════════════════════════════════════════════════
-   SUPPLIER FORM TEACHER — Universal guide
-   ═════════════════════════════════════════════════════════════ */
-function SupplierFormTeacher({ onClose }: { onClose: () => void }) {
-  return (
-    <div
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-orange-300 dark:border-orange-500/40 shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="px-5 py-3 border-b-2 border-orange-200 dark:border-orange-500/30 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-500/15 dark:to-amber-500/15 flex items-center justify-between sticky top-0 z-10">
-          <h3 className="font-extrabold text-orange-900 dark:text-orange-200 flex items-center gap-2">
-            <GraduationCap className="h-5 w-5" /> Supplier Form — Guide
-          </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
-          </button>
-        </div>
-
-        <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
-            <strong>Sirf NAAM zaroori hai</strong> — baqi sab optional! Naam likho, save karo, kaam shuru.
-            Baqi details baad me kabhi bhi add kar sakte ho.
-          </p>
-
-          <div className="rounded-2xl border-2 border-orange-200 dark:border-orange-500/30 bg-orange-50/60 dark:bg-orange-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
-            <TipRow><strong>📱 Phone = WhatsApp</strong> — sahi number likho, Low Stock reminders isi pe jate hain ("Test" button se check karo)</TipRow>
-            <TipRow><strong>🗓️ Payment Terms</strong> — "Net 15" = 15 din baad paisa. Udhar suppliers ke liye set karo</TipRow>
-            <TipRow><strong>🔒 Sensitive fields</strong> — CNIC, account, IBAN chhupe rehte hain, "Dikhao" se khulte hain</TipRow>
-            <TipRow><strong>📊 Progress bar</strong> — jitna zyada bharo, utna complete profile (100% ka maza hi alag!)</TipRow>
-            <TipRow><strong>⌨️ Ctrl+S</strong> — kahin se bhi foran save &nbsp;•&nbsp; <strong>Esc</strong> — guide band</TipRow>
-          </div>
-
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 text-xs font-semibold text-slate-700 dark:text-slate-200">
-            💡 <strong>Sab se tez tareeqa:</strong> Naam + Phone likho → Save → ho gaya!
-            Bank/tax wali cheezein sirf un suppliers ke liye jinhe online payment karte ho.
-          </div>
-
-          <Button
-            className="w-full bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 font-extrabold shadow-lg shadow-orange-500/40 h-12"
-            onClick={onClose}
-          >
-            <CheckCircle2 className="h-4 w-4" /> Samajh Gaya — Form Bharo!
-          </Button>
-        </div>
+      {/* ─────── MOBILE STICKY SAVE ─────── */}
+      <div className="xl:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#ffffff] dark:bg-slate-900 border-t-2 border-slate-200 dark:border-slate-800 p-3 flex gap-2">
+        <Link to={isEdit ? `/suppliers/${id}` : '/suppliers'}
+          className="h-12 px-4 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm font-extrabold inline-flex items-center justify-center transition">
+          <X className="h-4 w-4" />
+        </Link>
+        <button onClick={() => submit(false)} disabled={mut.isPending || !valid}
+          className="flex-1 h-12 rounded-2xl bg-gradient-to-r from-teal-600 to-emerald-700 disabled:opacity-40 text-white text-sm font-black inline-flex items-center justify-center gap-2 shadow-lg transition">
+          {mut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          {isEdit ? 'Save' : 'Banayein'}
+        </button>
       </div>
+
+      {/* ─────── MODALS ─────── */}
+      {showTeacher && (
+        <Teacher onClose={() => setShowTeacher(false)}
+          title="Supplier ki form"
+          subtitle="Kya zaroori hai aur kya baad me bhi ho jayega"
+          steps={[
+            { icon: '✍️', head: 'Sirf naam lazmi hai', body: 'Mandi me aksar poori tafseel pata hi nahi hoti. Naam likh kar supplier bana lein — phone, bank, NTN sab baad me bhar sakte hain. Adhoori tafseel ki wajah se supplier na banna asli nuqsan hai.' },
+            { icon: '📖', head: 'Purana hisab ek hi dafa', body: 'Naya supplier banate waqt agar purani copy me uska baqi chal raha hai to wo abhi daal dein. Khata usi number se shuru hoga. Ye khana sirf naye supplier par aata hai — mojooda ka khata detail safhe se badalta hai taake har tabdeeli record ho.' },
+            { icon: '🏦', head: 'Bank ki tafseel ek baar', body: 'Account number aur IBAN yahan likh lein — har adaigi par phone kar ke poochna nahi parega.' },
+            { icon: '📞', head: 'Phone = WhatsApp', body: 'Number likhte hi WhatsApp ka link ban jata hai. Khata bhi isi number par bheja ja sakta hai.' },
+            { icon: '🔁', head: 'Doosri baar na banayein', body: 'Agar isi naam ya number ka supplier pehle se hai to form foran bata deta hai — warna ek hi supplier ka khata do jagah bat jata hai aur hisab ghalat ho jata hai.' },
+            { icon: '🚫', head: 'Band karna vs delete', body: 'Jis supplier se ab maal nahi aata use "band" kar dein — purana record mehfooz rehta hai aur naye bill me nazar nahi aata. Delete sirf us ka hota hai jiska koi bill hi na ho.' },
+          ]}
+          tips={[
+            'Ctrl+S se save, Ctrl+Enter se save kar ke agla supplier.',
+            'Payment terms ka chip dabayein — likhna nahi parega.',
+            'Sheher aur bank ka naam type karte hi list khud aa jati hai.',
+            'Upar wali patti batati hai tafseel kitni poori hai.',
+          ]} />
+      )}
+
+      {showKeys && (
+        <Shortcuts onClose={() => setShowKeys(false)} list={[
+          ['Ctrl+S', 'Save'],
+          ['Ctrl+↵', 'Save + aik aur'],
+          ['T', 'Sikhein'],
+          ['?', 'Ye list'],
+          ['Esc', 'Band karein'],
+        ]} />
+      )}
     </div>
   );
 }
 
-function TipRow({ children }: { children: React.ReactNode }) {
+/* ─────── chhote purzay ─────── */
+function Lbl({ children, hint, req }: { children: React.ReactNode; hint?: string; req?: boolean }) {
   return (
-    <div className="flex items-start gap-2">
-      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
-      <span>{children}</span>
-    </div>
+    <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+      {children}{req && <span className="text-rose-500 ml-0.5">*</span>}
+      {hint && <span className="text-slate-400 normal-case font-bold ml-1">({hint})</span>}
+    </label>
   );
 }
 
-function KbdLight({ children }: { children: React.ReactNode }) {
+function Err({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-mono font-bold shadow-sm">
-      {children}
-    </kbd>
+    <div className="mt-1 text-[11px] font-extrabold text-rose-600 dark:text-rose-400 flex items-center gap-1">
+      <AlertTriangle className="h-3 w-3" /> {children}
+    </div>
   );
 }

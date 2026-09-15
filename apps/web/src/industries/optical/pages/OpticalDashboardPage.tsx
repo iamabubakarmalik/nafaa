@@ -16,7 +16,7 @@ import { eyeTestsApi } from '../api/eye-tests.api';
 import { lensOrdersApi } from '../api/lens-orders.api';
 import { formatPKR } from '@core/lib/format';
 import { Button } from '@core/ui/Button';
-import { PrivacyToggle, useCostHidden } from '@core/ui/HiddenValue';
+import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 
 export default function OpticalDashboardPage() {
   const hideCost = useCostHidden();

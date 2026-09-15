@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { Lock, Unlock, Shield, X, KeyRound, AlertTriangle } from 'lucide-react';
+import { Shield, X, KeyRound, AlertTriangle } from 'lucide-react';
 import { useAppLock } from './useAppLock';
 import { toast } from 'sonner';
 
@@ -9,57 +9,23 @@ interface Props {
   description?: string;
 }
 
-export function AppLockGate({ children, title = 'Locked', description }: Props) {
-  const lock = useAppLock();
-  const [pin, setPin] = useState('');
-  const [busy, setBusy] = useState(false);
-
-  if (!lock.isLocked) return <>{children}</>;
-
-  const submit = async () => {
-    if (!pin.trim()) return;
-    setBusy(true);
-    const ok = await lock.unlock(pin);
-    setBusy(false);
-    if (ok) { toast.success('Unlocked ✓'); setPin(''); }
-    else toast.error('Ghalat PIN');
-  };
-
-  return (
-    <div className="min-h-[70vh] flex items-center justify-center p-4">
-      <div className="max-w-md w-full">
-        <div className="rounded-3xl bg-white border-4 border-slate-200 shadow-2xl overflow-hidden">
-          <div className="relative bg-gradient-to-br from-slate-950 via-sky-900 to-cyan-700 text-white p-6 sm:p-8 text-center">
-            <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-sky-400/20 blur-3xl" />
-            <div className="relative">
-              <div className="h-20 w-20 rounded-3xl bg-white/15 backdrop-blur mx-auto flex items-center justify-center border-2 border-white/20 shadow-xl">
-                <Lock className="h-10 w-10" />
-              </div>
-              <h2 className="mt-4 text-2xl sm:text-3xl font-extrabold">🔒 {title}</h2>
-              <p className="mt-1 text-sm text-white/80 font-semibold">{description || 'PIN daalo unlock karne ke liye'}</p>
-            </div>
-          </div>
-          <div className="p-5 sm:p-6 space-y-4">
-            <input
-              autoFocus type="password" inputMode="numeric" maxLength={8}
-              value={pin}
-              onChange={(e) => setPin(e.target.value.replace(/[^0-9]/g, ''))}
-              onKeyDown={(e) => e.key === 'Enter' && submit()}
-              placeholder="••••"
-              className="h-16 w-full rounded-2xl border-4 border-slate-200 px-4 text-3xl font-extrabold text-center tracking-widest tabular-nums focus:outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-200"
-            />
-            <button
-              onClick={submit} disabled={busy || !pin}
-              className="w-full h-14 rounded-2xl bg-gradient-to-r from-sky-600 to-cyan-700 hover:from-sky-700 hover:to-cyan-800 active:scale-95 text-white font-extrabold text-lg shadow-lg transition disabled:opacity-50 inline-flex items-center justify-center gap-2"
-            >
-              <Unlock className="h-5 w-5" /> Unlock
-            </button>
-            <div className="text-center text-xs text-slate-500 font-bold">PIN bhool gaye? Settings → Security</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+/**
+ * AppLockGate — ab sirf bacha hua naam.
+ *
+ * Pehle ye khud faisla karta tha: "PIN laga hai to ye safha band".
+ * Natija ye nikla ke cost chhupane ke liye PIN lagate hi khata ka
+ * safha bhi apne aap band ho jata tha — jabke malik ne aisa kaha
+ * hi nahi tha.
+ *
+ * Ab faisla malik ka hai: Settings → Security me jo safhe wo
+ * chunta hai, wohi lock hote hain. Wo pehra `<PageLockGate/>`
+ * app ke shell me lagta hai, is liye yahan kuch karne ki zaroorat
+ * nahi — ye sirf apne bachon ko waise hi dikha deta hai.
+ *
+ * Naye safhon me ise na lagayein.
+ */
+export function AppLockGate({ children }: Props) {
+  return <>{children}</>;
 }
 
 export function AppLockSetupModal({ mode, onClose }: { mode: 'setup' | 'change' | 'disable'; onClose: () => void }) {

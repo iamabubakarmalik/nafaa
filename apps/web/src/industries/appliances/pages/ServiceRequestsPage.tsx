@@ -318,7 +318,7 @@ export default function ServiceRequestsPage() {
         </div>
         {tab !== 'analytics' && (
           <div className="text-xs font-extrabold text-slate-500 dark:text-slate-400 tabular-nums px-1">
-            {tab === 'queue' ? `${queue.length} khula kaam` : `${listData?.meta.total ?? 0} records`}
+            {tab === 'queue' ? `${queue.length} khula kaam` : `${listData?.meta?.total ?? 0} records`}
           </div>
         )}
       </div>

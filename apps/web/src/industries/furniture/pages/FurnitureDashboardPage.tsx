@@ -14,7 +14,7 @@ import { customOrdersApi } from '../api/custom-orders.api';
 import { deliveriesApi } from '../api/deliveries.api';
 import { formatPKR } from '@core/lib/format';
 import { Button } from '@core/ui/Button';
-import { PrivacyToggle, useCostHidden } from '@core/ui/HiddenValue';
+import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 
 export default function FurnitureDashboardPage() {
   const hideCost = useCostHidden();

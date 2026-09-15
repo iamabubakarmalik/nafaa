@@ -97,7 +97,7 @@ export default function AppliancesStockReportPage() {
     downloadCsv(`stock-report-${toDateInput(new Date())}.csv`, [
       [`Stock Report — ${shopName}`],
       [`Nikala gaya: ${new Date().toLocaleString('en-PK')}`],
-      [`Kul stock value: ${t?.totalValue.toFixed(0)} • Bechne par: ${t?.totalRetailValue.toFixed(0)} • Munafa: ${t?.potentialProfit.toFixed(0)}`],
+      [`Kul stock value: ${t?.totalValue?.toFixed(0)} • Bechne par: ${t?.totalRetailValue?.toFixed(0)} • Munafa: ${t?.potentialProfit?.toFixed(0)}`],
       [],
       ['— SERIAL WALE UNITS —'],
       ['Serial', 'Cheez', 'Brand', 'Qism', 'Model', 'Capacity', 'Energy',
@@ -262,11 +262,11 @@ export default function AppliancesStockReportPage() {
           sub={`${t?.serialUnits ?? 0} serial + ${t?.productUnits ?? 0} baqi units`} />
         <Kpi icon={TrendingUp} tone="emerald" label="Mumkina Munafa" value={formatPKR(t?.potentialProfit ?? 0)}
           sub={`bechne par ${formatPKR(t?.totalRetailValue ?? 0)}`} />
-        <Kpi icon={Snowflake} tone="rose" label="Dead Stock" value={formatPKR(data?.deadStock.value ?? 0)}
-          sub={`${data?.deadStock.count ?? 0} units • 60+ din`} alert={(data?.deadStock.count ?? 0) > 0}
+        <Kpi icon={Snowflake} tone="rose" label="Dead Stock" value={formatPKR(data?.deadStock?.value ?? 0)}
+          sub={`${data?.deadStock?.count ?? 0} units • 60+ din`} alert={(data?.deadStock?.count ?? 0) > 0}
           onClick={() => setTab('dead')} active={tab === 'dead'} />
-        <Kpi icon={HardHat} tone="amber" label="Lagana Baqi" value={data?.pendingInstall.count ?? 0}
-          sub="bik gaya, laga nahi" alert={(data?.pendingInstall.count ?? 0) > 0} />
+        <Kpi icon={HardHat} tone="amber" label="Lagana Baqi" value={data?.pendingInstall?.count ?? 0}
+          sub="bik gaya, laga nahi" alert={(data?.pendingInstall?.count ?? 0) > 0} />
       </section>
 
       {/* Tabs */}
@@ -274,8 +274,8 @@ export default function AppliancesStockReportPage() {
         <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-1 shadow-sm overflow-x-auto">
           <TabBtn active={tab === 'value'} onClick={() => setTab('value')} icon={Layers} label="Paisa Kahan" />
           <TabBtn active={tab === 'serials'} onClick={() => setTab('serials')} icon={Barcode} label="Serial Units" badge={t?.serialUnits} />
-          <TabBtn active={tab === 'warranty'} onClick={() => setTab('warranty')} icon={ShieldAlert} label="Warranty" badge={data?.expiringWarranty.count} />
-          <TabBtn active={tab === 'dead'} onClick={() => setTab('dead')} icon={Snowflake} label="Dead Stock" badge={data?.deadStock.count} />
+          <TabBtn active={tab === 'warranty'} onClick={() => setTab('warranty')} icon={ShieldAlert} label="Warranty" badge={data?.expiringWarranty?.count} />
+          <TabBtn active={tab === 'dead'} onClick={() => setTab('dead')} icon={Snowflake} label="Dead Stock" badge={data?.deadStock?.count} />
         </div>
       </div>
 
@@ -403,14 +403,14 @@ export default function AppliancesStockReportPage() {
           {tab === 'serials' && (data?.buckets ?? []).length > 0 && (
             <ChipRow
               options={(data?.buckets ?? []).map((b) => ({ value: b.key, label: b.label, count: b.units }))}
-              value={bucket} onChange={setBucket} allLabel={`Sab (${data?.serials.length ?? 0})`} />
+              value={bucket} onChange={setBucket} allLabel={`Sab (${data?.serials?.length ?? 0})`} />
           )}
 
           <SerialTable
             rows={
               tab === 'serials' ? serials
-                : tab === 'warranty' ? (data?.expiringWarranty.items ?? [])
-                : (data?.deadStock.items ?? [])
+                : tab === 'warranty' ? (data?.expiringWarranty?.items ?? [])
+                : (data?.deadStock?.items ?? [])
             }
             mode={tab}
           />
@@ -418,11 +418,11 @@ export default function AppliancesStockReportPage() {
       )}
 
       {/* Lagana baqi */}
-      {tab === 'value' && (data?.pendingInstall.count ?? 0) > 0 && (
-        <Panel icon={HardHat} title={`Bik Gaya Lekin Laga Nahi (${data!.pendingInstall.count})`}
+      {tab === 'value' && (data?.pendingInstall?.count ?? 0) > 0 && (
+        <Panel icon={HardHat} title={`Bik Gaya Lekin Laga Nahi (${data?.pendingInstall?.count ?? 0})`}
           hint="Ye dukaan ka adhoora kaam hai — customer intezar kar raha hai" tone="amber">
           <div className="space-y-1.5">
-            {data!.pendingInstall.items.slice(0, 15).map((r) => (
+            {(data?.pendingInstall?.items ?? []).slice(0, 15).map((r) => (
               <div key={r.id} className="flex items-center gap-2 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 px-2.5 py-2">
                 <span className="text-base shrink-0">{catEmoji(r.categoryType)}</span>
                 <div className="min-w-0 flex-1">

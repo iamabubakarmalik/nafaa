@@ -280,7 +280,7 @@ export default function InstallationsPage() {
           <TabBtn active={tab === 'all'} onClick={() => setTab('all')} icon={History} label="Poora Record" />
         </div>
         <div className="text-xs font-extrabold text-slate-500 dark:text-slate-400 tabular-nums px-1">
-          {tab === 'all' ? `${listData?.meta.total ?? 0} records` : `${rows.length} kaam`}
+          {tab === 'all' ? `${listData?.meta?.total ?? 0} records` : `${rows.length} kaam`}
         </div>
       </div>
 

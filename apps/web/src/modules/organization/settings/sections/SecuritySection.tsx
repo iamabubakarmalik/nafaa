@@ -9,20 +9,15 @@ import {
 import { settingsApi, type SecurityScore } from '@modules/organization/settings/api/settings.api';
 import { Field, NumberInput, Toggle, SectionCard, Alert, Divider } from '../components/UI';
 import { Button } from '@core/ui/Button';
-import { useAppLock } from '@core/security/useAppLock';
-import { AppLockSetupModal } from '@core/security/AppLockGate';
 import { useAutoSave } from '../hooks/useAutoSave';
 import type { TenantSettings } from '../api/settings.api';
 import { SaveStatusBar } from './_SaveStatus';
+import { OwnerPinCard, PageLocksCard } from './_OwnerPin';
+import { AccountPasswordCard } from './_AccountPassword';
 
 export function SecuritySection({ settings }: { settings: TenantSettings }) {
   const { draft, set, saving, dirty } = useAutoSave(settings);
   const qc = useQueryClient();
-  const [pin, setPin] = useState('');
-  const [showPin, setShowPin] = useState(false);
-
-  const appLock = useAppLock();
-  const [appLockModal, setAppLockModal] = useState<'setup' | 'change' | 'disable' | null>(null);
 
   const { data: score } = useQuery<SecurityScore>({
     queryKey: ['security-score'],
@@ -35,17 +30,6 @@ export function SecuritySection({ settings }: { settings: TenantSettings }) {
   const { data: activity } = useQuery({
     queryKey: ['activity-log'],
     queryFn: () => settingsApi.activityLog({ limit: 20 }),
-  });
-
-  const setPinMutation = useMutation({
-    mutationFn: (p: string) => settingsApi.setPin(p),
-    onSuccess: () => {
-      toast.success('Manager PIN save ho gaya ✓');
-      setPin('');
-      qc.invalidateQueries({ queryKey: ['settings'] });
-      qc.invalidateQueries({ queryKey: ['security-score'] });
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'PIN save fail'),
   });
 
   const revokeSessionMutation = useMutation({
@@ -64,8 +48,6 @@ export function SecuritySection({ settings }: { settings: TenantSettings }) {
 
   return (
     <>
-      {appLockModal && <AppLockSetupModal mode={appLockModal} onClose={() => setAppLockModal(null)} />}
-
       <div className="space-y-4">
         <SaveStatusBar saving={saving} dirty={dirty} />
 
@@ -141,184 +123,14 @@ export function SecuritySection({ settings }: { settings: TenantSettings }) {
           </div>
         )}
 
-        {/* App PIN */}
-        <SectionCard
-          title="🌐 Global App PIN"
-          desc="Aik hi PIN — sab jagah kaam karega (Sales, Khata, Cost, Reports)"
-          icon={Globe}
-          color="sky"
-          badge={
-            appLock.isEnabled ? (
-              appLock.isUnlocked ? (
-                <span className="px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 text-[10px] font-extrabold uppercase inline-flex items-center gap-1">
-                  <Unlock className="h-2.5 w-2.5" /> Unlocked
-                </span>
-              ) : (
-                <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[10px] font-extrabold uppercase inline-flex items-center gap-1">
-                  <Lock className="h-2.5 w-2.5" /> Locked
-                </span>
-              )
-            ) : (
-              <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-extrabold uppercase">Off</span>
-            )
-          }
-        >
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
-            {[
-              { icon: '💰', label: 'Sales History' },
-              { icon: '📔', label: 'Khata / Udhaar' },
-              { icon: '📊', label: 'Reports & Profit' },
-              { icon: '💵', label: 'Cost Prices' },
-              { icon: '🧾', label: 'Purchase Cost' },
-              { icon: '❌', label: 'Void / Damage' },
-            ].map((item) => (
-              <div key={item.label} className="rounded-xl bg-white dark:bg-slate-800/60 border-2 border-sky-100 dark:border-sky-500/20 px-3 py-2 flex items-center gap-2">
-                <span className="text-lg">{item.icon}</span>
-                <span className="text-xs font-extrabold text-slate-700 dark:text-slate-200">{item.label}</span>
-              </div>
-            ))}
-          </div>
+        {/* ═══ MALIK KA PIN — ek hi PIN, har device par ═══ */}
+        <OwnerPinCard />
 
-          {/* Hide amounts */}
-          <div className="rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-3 flex items-center justify-between gap-3 mb-3">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className={[
-                'h-9 w-9 rounded-xl flex items-center justify-center shrink-0',
-                appLock.hideStats
-                  ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300'
-                  : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400',
-              ].join(' ')}>
-                {appLock.hideStats ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </div>
-              <div className="min-w-0">
-                <div className="text-sm font-extrabold text-slate-900 dark:text-white">Hide Amounts Globally</div>
-                <div className="text-[11px] text-slate-500 dark:text-slate-400 font-bold">
-                  {appLock.hideStats ? 'Sab jagah paisay •••• ho gaye' : 'Amounts visible — click to hide'}
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={appLock.toggleHideStats}
-              className={[
-                'h-10 px-3 rounded-xl font-extrabold text-xs inline-flex items-center gap-1.5 shrink-0 transition active:scale-95',
-                appLock.hideStats
-                  ? 'bg-amber-100 dark:bg-amber-500/20 hover:bg-amber-200 dark:hover:bg-amber-500/30 text-amber-800 dark:text-amber-300'
-                  : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200',
-              ].join(' ')}
-            >
-              {appLock.hideStats ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
-              {appLock.hideStats ? 'Show' : 'Hide'}
-            </button>
-          </div>
+        {/* ═══ Safhe lock — malik jo chahe band kar de ═══ */}
+        <PageLocksCard />
 
-          {/* Action buttons */}
-          <div className="flex gap-2 flex-wrap">
-            {!appLock.isEnabled ? (
-              <Button
-                onClick={() => setAppLockModal('setup')}
-                className="bg-gradient-to-r from-sky-600 to-cyan-700 hover:from-sky-700 hover:to-cyan-800 text-white font-extrabold shadow-lg shadow-sky-500/30"
-              >
-                <KeyRound className="h-4 w-4" /> PIN Set Karo
-              </Button>
-            ) : (
-              <>
-                {appLock.isUnlocked && (
-                  <Button variant="secondary" onClick={appLock.lock} className="font-extrabold">
-                    <Lock className="h-4 w-4" /> Lock Abhi
-                  </Button>
-                )}
-                <Button variant="secondary" onClick={() => setAppLockModal('change')} className="font-extrabold">
-                  <KeyRound className="h-4 w-4" /> Change PIN
-                </Button>
-                <Button
-                  onClick={() => setAppLockModal('disable')}
-                  className="bg-rose-50 dark:bg-rose-500/15 hover:bg-rose-100 dark:hover:bg-rose-500/25 text-rose-700 dark:text-rose-400 font-extrabold border-2 border-rose-200 dark:border-rose-500/30"
-                >
-                  <Unlock className="h-4 w-4" /> Disable
-                </Button>
-              </>
-            )}
-          </div>
-
-          {!appLock.isEnabled && (
-            <Alert tone="amber" icon={AlertTriangle} title="Recommended">
-              PIN set karo taake koi bhi Sales / Khata / Cost dekhne se pehle PIN dale. Ye <strong>local device</strong> pe hashed store hoti hai — server pe kabhi nahi jati.
-            </Alert>
-          )}
-        </SectionCard>
-
-        {/* Manager PIN */}
-        <SectionCard
-          title="Manager PIN (Server-side)"
-          desc="Void / Discount / Refund jaise actions ke liye"
-          icon={KeyRound}
-          color="rose"
-        >
-          {draft.hasManagerPin && (
-            <Alert tone="emerald" icon={CheckCircle2}>
-              Manager PIN currently set hai — sensitive actions par cashier se maanga jayega.
-            </Alert>
-          )}
-
-          <Field label={draft.hasManagerPin ? 'Change PIN (4–6 digits)' : 'Set Manager PIN (4–6 digits)'}>
-            <div className="flex gap-2 flex-wrap">
-              <input
-                type={showPin ? 'text' : 'password'}
-                value={pin}
-                onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                placeholder="••••"
-                maxLength={6}
-                inputMode="numeric"
-                className="flex-1 min-w-[140px] h-11 px-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-extrabold tracking-[0.5em] outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 transition"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPin(!showPin)}
-                className="px-3 h-11 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-extrabold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 inline-flex items-center gap-1 transition"
-              >
-                {showPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                {showPin ? 'Hide' : 'Show'}
-              </button>
-              <Button
-                onClick={() => setPinMutation.mutate(pin)}
-                disabled={pin.length < 4 || setPinMutation.isPending}
-                loading={setPinMutation.isPending}
-                className="bg-rose-600 hover:bg-rose-700 text-white font-extrabold"
-              >
-                <Shield className="h-4 w-4" /> Save
-              </Button>
-            </div>
-          </Field>
-
-          <Divider label="PIN Rules" />
-
-          <Toggle
-            checked={draft.requirePinForVoid}
-            onChange={(v) => set('requirePinForVoid', v)}
-            label="PIN for Void Sales"
-            desc="Sale void karne se pehle manager PIN chahiye"
-            icon={Shield}
-          />
-          <Toggle
-            checked={draft.requirePinForDiscount}
-            onChange={(v) => set('requirePinForDiscount', v)}
-            label="PIN for Big Discounts"
-            desc="Max discount limit se zyada dene par PIN"
-            icon={Shield}
-          />
-          <Toggle
-            checked={draft.requirePinForRefund}
-            onChange={(v) => set('requirePinForRefund', v)}
-            label="PIN for Refunds"
-            desc="Refund process karne par PIN"
-            icon={Shield}
-          />
-
-          <Alert tone="violet" icon={Sparkles} title="Farq samjhein">
-            <strong>Manager PIN</strong> — cashier ko sensitive actions se rokta hai (server-verified).
-            <strong> App PIN</strong> — sensitive data (paisay, cost) dekhne se pehle chahiye (device-level).
-          </Alert>
-        </SectionCard>
+        {/* ═══ Account ka password ═══ */}
+        <AccountPasswordCard />
 
         {/* Session settings */}
         <SectionCard title="Session Management" desc="Auto logout aur login attempts" icon={Clock} color="amber">

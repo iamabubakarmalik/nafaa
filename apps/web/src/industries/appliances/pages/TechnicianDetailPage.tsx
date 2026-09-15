@@ -101,8 +101,8 @@ export default function TechnicianDetailPage() {
       ...jobs.map((j) => [j.kind, j.num, j.customer, j.product, j.status, j.date ? fmtDate(j.date) : '', j.total, j.paid]),
       [],
       ['Kul kaam', jobs.length],
-      ['Kul kamai', work?.totals.revenue ?? 0],
-      ['Commission', work?.totals.commission ?? 0],
+      ['Kul kamai', work?.totals?.revenue ?? 0],
+      ['Commission', work?.totals?.commission ?? 0],
     ]);
     toast.success('Record export ho gaya');
   };
@@ -149,11 +149,11 @@ export default function TechnicianDetailPage() {
             </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;padding:14px;color:#94a3b8;">Is arse me koi kaam nahi</td></tr>'}
           <tr class="grand">
             <td colspan="6" style="text-align:right;padding-right:12px;">KUL KAMAI</td>
-            <td class="r" style="color:#a5f3fc !important;">${formatPKR(work?.totals.revenue ?? 0)}</td>
+            <td class="r" style="color:#a5f3fc !important;">${formatPKR(work?.totals?.revenue ?? 0)}</td>
           </tr>
           <tr class="grand">
             <td colspan="6" style="text-align:right;padding-right:12px;">COMMISSION (${t.commissionPct}%)</td>
-            <td class="r" style="color:#c4b5fd !important;">${formatPKR(work?.totals.commission ?? 0)}</td>
+            <td class="r" style="color:#c4b5fd !important;">${formatPKR(work?.totals?.commission ?? 0)}</td>
           </tr>
         </tbody>
       </table>
@@ -168,9 +168,9 @@ export default function TechnicianDetailPage() {
       heading: `👷 ${escapeHtml(t.name)}`,
       shopName, shopPhone, badge: 'Commission Statement',
       kpis: [
-        { label: '📋 Kaam', value: String(work?.totals.totalJobs ?? 0), sub: `${work?.totals.completed ?? 0} mukammal`, tone: 'blue' },
-        { label: '💰 Kamai', value: formatPKR(work?.totals.revenue ?? 0), tone: 'green' },
-        { label: '🎯 Commission', value: formatPKR(work?.totals.commission ?? 0), sub: `${t.commissionPct}%`, tone: 'amber' },
+        { label: '📋 Kaam', value: String(work?.totals?.totalJobs ?? 0), sub: `${work?.totals?.completed ?? 0} mukammal`, tone: 'blue' },
+        { label: '💰 Kamai', value: formatPKR(work?.totals?.revenue ?? 0), tone: 'green' },
+        { label: '🎯 Commission', value: formatPKR(work?.totals?.commission ?? 0), sub: `${t.commissionPct}%`, tone: 'amber' },
         { label: '⭐ Rating', value: t.avgRating ? t.avgRating.toFixed(1) : '—', sub: `${t.totalReviews} raye`, tone: 'rose' },
       ],
       body,

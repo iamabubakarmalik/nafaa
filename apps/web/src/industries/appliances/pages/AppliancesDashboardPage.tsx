@@ -105,20 +105,20 @@ export default function AppliancesDashboardPage() {
     if ((svc?.unassigned ?? 0) + (inst?.unassigned ?? 0) > 0) {
       out.push({ icon: Users, tone: 'amber', label: 'Bina banday ke kaam', value: `${(svc?.unassigned ?? 0) + (inst?.unassigned ?? 0)}`, to: '/appliances/service-requests' });
     }
-    const due = (svc?.month.outstanding ?? 0) + (inst?.month.outstanding ?? 0);
+    const due = (svc?.month?.outstanding ?? 0) + (inst?.month?.outstanding ?? 0);
     if (due > 0) out.push({ icon: Wallet, tone: 'amber', label: 'Service ka baqi paisa', value: formatPKR(due), to: '/appliances/service-requests' });
-    if ((low?.summary.totalOut ?? 0) > 0) out.push({ icon: PackageX, tone: 'rose', label: 'Stock khatam', value: `${low!.summary.totalOut} cheezein`, to: '/appliances/low-stock' });
-    if ((serial?.installation.pending ?? 0) > 0) out.push({ icon: HardHat, tone: 'amber', label: 'Bik gaya, laga nahi', value: `${serial!.installation.pending} units`, to: '/appliances/installations' });
+    if ((low?.summary?.totalOut ?? 0) > 0) out.push({ icon: PackageX, tone: 'rose', label: 'Stock khatam', value: `${low!.summary.totalOut} cheezein`, to: '/appliances/low-stock' });
+    if ((serial?.installation?.pending ?? 0) > 0) out.push({ icon: HardHat, tone: 'amber', label: 'Bik gaya, laga nahi', value: `${serial!.installation.pending} units`, to: '/appliances/installations' });
     if ((serial?.warrantyExpiringSoon ?? 0) > 0) out.push({ icon: ShieldCheck, tone: 'violet', label: 'Warranty khatam ho rahi', value: `${serial!.warrantyExpiringSoon} units`, to: '/appliances/serials' });
     if ((amc?.expiringSoon ?? 0) > 0) out.push({ icon: ShieldCheck, tone: 'violet', label: 'AMC khatam ho rahe', value: `${amc!.expiringSoon}`, to: '/appliances/amc-contracts' });
     if ((del?.noVehicle ?? 0) > 0) out.push({ icon: Truck, tone: 'amber', label: 'Gaari nahi lagi', value: `${del!.noVehicle} trips`, to: '/appliances/deliveries' });
     if ((tech?.overloaded ?? 0) > 0) out.push({ icon: AlertTriangle, tone: 'amber', label: 'Bande par bojh ziyada', value: `${tech!.overloaded}`, to: '/appliances/technicians' });
     // Warranty ka kaam free kiya lekin brand se claim nahi kiya — chupka nuqsan
-    if ((claims?.missing.count ?? 0) > 0) {
+    if ((claims?.missing?.count ?? 0) > 0) {
       out.push({ icon: ShieldCheck, tone: 'rose', label: 'Warranty claim banaya hi nahi',
         value: formatPKR(claims!.missing.recoverable), to: '/appliances/warranty-claims' });
     }
-    if ((claims?.money.pending ?? 0) > 0) {
+    if ((claims?.money?.pending ?? 0) > 0) {
       out.push({ icon: Wallet, tone: 'violet', label: 'Brand ke paas atka paisa',
         value: formatPKR(claims!.money.pending), to: '/appliances/warranty-claims' });
     }
@@ -132,7 +132,7 @@ export default function AppliancesDashboardPage() {
   }, [showTeacher]);
 
   const servicesRevenue = (p?.streams ?? []).filter((s) => s.key !== 'GOODS').reduce((x, s) => x + s.revenue, 0);
-  const servicesShare = p?.totals.revenue ? (servicesRevenue / p.totals.revenue) * 100 : 0;
+  const servicesShare = p?.totals?.revenue ? (servicesRevenue / p.totals.revenue) * 100 : 0;
   const loading = profitQ.isLoading;
 
   const QUICK = [
@@ -195,13 +195,13 @@ export default function AppliancesDashboardPage() {
         </div>
       ) : (
         <section className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
-          <Kpi icon={Wallet} tone="cyan" label="30 Din Ki Kamai" value={formatPKR(p?.totals.revenue ?? 0)} sub={`${p?.totals.salesCount ?? 0} bikri`} />
-          <Kpi icon={TrendingUp} tone="emerald" label="Munafa" value={formatPKR(p?.totals.profit ?? 0)} sub={`${(p?.totals.margin ?? 0).toFixed(1)}% margin`} />
+          <Kpi icon={Wallet} tone="cyan" label="30 Din Ki Kamai" value={formatPKR(p?.totals?.revenue ?? 0)} sub={`${p?.totals?.salesCount ?? 0} bikri`} />
+          <Kpi icon={TrendingUp} tone="emerald" label="Munafa" value={formatPKR(p?.totals?.profit ?? 0)} sub={`${(p?.totals?.margin ?? 0).toFixed(1)}% margin`} />
           <Kpi icon={Percent} tone="violet" label="Services Ka Hissa" value={`${servicesShare.toFixed(0)}%`} sub={formatPKR(servicesRevenue)} />
           <Kpi icon={AlertTriangle} tone="rose" label="Baqi Paisa"
-            value={formatPKR((svc?.month.outstanding ?? 0) + (inst?.month.outstanding ?? 0))}
+            value={formatPKR((svc?.month?.outstanding ?? 0) + (inst?.month?.outstanding ?? 0))}
             sub="service ka udhaar"
-            alert={((svc?.month.outstanding ?? 0) + (inst?.month.outstanding ?? 0)) > 0} />
+            alert={((svc?.month?.outstanding ?? 0) + (inst?.month?.outstanding ?? 0)) > 0} />
         </section>
       )}
 
@@ -212,7 +212,7 @@ export default function AppliancesDashboardPage() {
         <Kpi icon={HardHat} tone="blue" label="Installation Baqi" value={inst?.open ?? 0} sub={`${inst?.todayJobs ?? 0} aaj`} />
         <Kpi icon={Users} tone="teal" label="Khali Bande" value={tech?.free ?? 0} sub={`${tech?.active ?? 0} active technician`} />
         <Kpi icon={Star} tone="orange" label="Rating" value={tech?.avgTeamRating ? tech.avgTeamRating.toFixed(1) : '—'}
-          sub={svc?.month.avgResolutionHours ? `ausat ${fmtDuration(svc.month.avgResolutionHours)}` : 'customer ki raye'} />
+          sub={svc?.month?.avgResolutionHours ? `ausat ${fmtDuration(svc.month.avgResolutionHours)}` : 'customer ki raye'} />
       </section>
 
       {/* Alerts */}
@@ -318,8 +318,8 @@ export default function AppliancesDashboardPage() {
           rows={[
             ['Khula kaam', String(svc?.open ?? 0)],
             ['Late', String(svc?.overdue ?? 0)],
-            ['Is mahine kamai', formatPKR(svc?.month.revenue ?? 0)],
-            ['Baqi paisa', formatPKR(svc?.month.outstanding ?? 0)],
+            ['Is mahine kamai', formatPKR(svc?.month?.revenue ?? 0)],
+            ['Baqi paisa', formatPKR(svc?.month?.outstanding ?? 0)],
           ]}
         />
         <ModuleCard
@@ -327,8 +327,8 @@ export default function AppliancesDashboardPage() {
           rows={[
             ['Lagana baqi', String(inst?.open ?? 0)],
             ['Aaj', String(inst?.todayJobs ?? 0)],
-            ['Is mahine kamai', formatPKR(inst?.month.revenue ?? 0)],
-            ['Demo diye', String(inst?.month.demosGiven ?? 0)],
+            ['Is mahine kamai', formatPKR(inst?.month?.revenue ?? 0)],
+            ['Demo diye', String(inst?.month?.demosGiven ?? 0)],
           ]}
         />
         <ModuleCard
@@ -336,7 +336,7 @@ export default function AppliancesDashboardPage() {
           rows={[
             ['Active', String(tech?.active ?? 0)],
             ['Khali', String(tech?.free ?? 0)],
-            ['Is mahine commission', formatPKR(tech?.month.commission ?? 0)],
+            ['Is mahine commission', formatPKR(tech?.month?.commission ?? 0)],
             ['Team rating', tech?.avgTeamRating ? tech.avgTeamRating.toFixed(1) : '—'],
           ]}
         />
@@ -355,24 +355,24 @@ export default function AppliancesDashboardPage() {
             ['Baqi', String(del?.open ?? 0)],
             ['Aaj', String(del?.todayScheduled ?? 0)],
             ['Gaari nahi lagi', String(del?.noVehicle ?? 0)],
-            ['Is mahine kamai', formatPKR(del?.month.revenue ?? 0)],
+            ['Is mahine kamai', formatPKR(del?.month?.revenue ?? 0)],
           ]}
         />
         <ModuleCard
           to="/appliances/warranty-claims" icon={ShieldCheck} title="Warranty Claims" tone="from-rose-500 to-pink-600"
           rows={[
             ['Khule claims', String(claims?.open ?? 0)],
-            ['Brand ke paas', formatPKR(claims?.money.pending ?? 0)],
-            ['Wapas mil chuka', formatPKR(claims?.money.received ?? 0)],
-            ['Banaya hi nahi', String(claims?.missing.count ?? 0)],
+            ['Brand ke paas', formatPKR(claims?.money?.pending ?? 0)],
+            ['Wapas mil chuka', formatPKR(claims?.money?.received ?? 0)],
+            ['Banaya hi nahi', String(claims?.missing?.count ?? 0)],
           ]}
         />
         <ModuleCard
           to="/appliances/serials" icon={Barcode} title="Serial Register" tone="from-slate-500 to-slate-700"
           rows={[
-            ['Stock me', String(serial?.inStock.units ?? 0)],
-            ['Bik chuke', String(serial?.sold.units ?? 0)],
-            ['Stock ki lagat', formatPKR(serial?.inStock.value ?? 0)],
+            ['Stock me', String(serial?.inStock?.units ?? 0)],
+            ['Bik chuke', String(serial?.sold?.units ?? 0)],
+            ['Stock ki lagat', formatPKR(serial?.inStock?.value ?? 0)],
             ['Warranty khatam ho rahi', String(serial?.warrantyExpiringSoon ?? 0)],
           ]}
         />
@@ -391,12 +391,12 @@ export default function AppliancesDashboardPage() {
           ) : (
             <>
               <div className="grid grid-cols-3 gap-2 mb-3">
-                <Mini label="Kam ho gayin" value={String(low!.summary.totalLow)} tone="amber" />
-                <Mini label="Bilkul khatam" value={String(low!.summary.totalOut)} tone="rose" />
-                <Mini label="Order ka kharcha" value={formatPKR(low!.summary.reorderCost)} tone="cyan" />
+                <Mini label="Kam ho gayin" value={String(low?.summary?.totalLow ?? 0)} tone="amber" />
+                <Mini label="Bilkul khatam" value={String(low?.summary?.totalOut ?? 0)} tone="rose" />
+                <Mini label="Order ka kharcha" value={formatPKR(low?.summary?.reorderCost ?? 0)} tone="cyan" />
               </div>
               <div className="space-y-1.5">
-                {low!.items.slice(0, 6).map((r) => (
+                {(low?.items ?? []).slice(0, 6).map((r) => (
                   <Link key={r.productId} to={`/appliance-products/${r.productId}`}
                     className="flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 px-2.5 py-2 transition">
                     <span className="text-base shrink-0">{catEmoji(r.categoryType)}</span>

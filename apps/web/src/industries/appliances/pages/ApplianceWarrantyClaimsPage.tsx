@@ -198,7 +198,7 @@ export default function ApplianceWarrantyClaimsPage() {
               <strong className="text-amber-300">{formatPKR(m.pending)}</strong> brand ke paas atka hua
               <span className="opacity-50 mx-1.5">•</span>
               <strong className="text-emerald-300">{formatPKR(m.received)}</strong> wapas mil chuka
-              {(summary?.missing.count ?? 0) > 0 && (
+              {(summary?.missing?.count ?? 0) > 0 && (
                 <><span className="opacity-50 mx-1.5">•</span><strong className="text-rose-300">{summary!.missing.count}</strong> claim banaya hi nahi</>
               )}
             </>
@@ -222,9 +222,9 @@ export default function ApplianceWarrantyClaimsPage() {
         <Kpi icon={CheckCircle2} tone="emerald" label="Wapas Mil Chuka" value={formatPKR(m?.received ?? 0)}
           sub={`${(m?.recoveryRate ?? 0).toFixed(0)}% recovery rate`} />
         <Kpi icon={AlertTriangle} tone="rose" label="Claim Banaya Hi Nahi"
-          value={summary?.missing.count ?? 0}
-          sub={`${formatPKR(summary?.missing.recoverable ?? 0)} zaya ho raha hai`}
-          alert={(summary?.missing.count ?? 0) > 0}
+          value={summary?.missing?.count ?? 0}
+          sub={`${formatPKR(summary?.missing?.recoverable ?? 0)} zaya ho raha hai`}
+          alert={(summary?.missing?.count ?? 0) > 0}
           onClick={() => setTab('missing')} active={tab === 'missing'} />
         <Kpi icon={Clock} tone="violet" label="30 Din Se Latke" value={summary?.stale ?? 0}
           sub={summary?.avgSettleDays ? `ausat ${summary.avgSettleDays.toFixed(0)} din lagte hain` : 'brand ko yaad dilayein'} />
@@ -243,7 +243,7 @@ export default function ApplianceWarrantyClaimsPage() {
       <div className="flex items-center gap-2 flex-wrap">
         <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-1 shadow-sm">
           <TabBtn active={tab === 'claims'} onClick={() => setTab('claims')} icon={ShieldCheck} label="Claims" badge={summary?.total} />
-          <TabBtn active={tab === 'missing'} onClick={() => setTab('missing')} icon={AlertTriangle} label="Banaya Nahi" badge={summary?.missing.count} alert />
+          <TabBtn active={tab === 'missing'} onClick={() => setTab('missing')} icon={AlertTriangle} label="Banaya Nahi" badge={summary?.missing?.count} alert />
           <TabBtn active={tab === 'brands'} onClick={() => setTab('brands')} icon={Building2} label="Brand Wise" />
         </div>
       </div>
@@ -264,7 +264,7 @@ export default function ApplianceWarrantyClaimsPage() {
               )}
             </div>
             <div className="text-xs font-extrabold text-slate-500 dark:text-slate-400 tabular-nums px-1">
-              {data?.meta.total ?? 0} claims
+              {data?.meta?.total ?? 0} claims
             </div>
           </div>
 
@@ -289,7 +289,7 @@ export default function ApplianceWarrantyClaimsPage() {
                   : 'Jab koi warranty wala repair mukammal ho, "Banaya Nahi" tab se ek click me claim ban jata hai'
               }
               action={
-                (summary?.missing.count ?? 0) > 0
+                (summary?.missing?.count ?? 0) > 0
                   ? <Button className="bg-gradient-to-r from-cyan-600 to-teal-700 font-extrabold" onClick={() => setTab('missing')}>
                       <AlertTriangle className="h-4 w-4" /> {summary!.missing.count} repair ka claim banayein
                     </Button>
@@ -339,7 +339,7 @@ export default function ApplianceWarrantyClaimsPage() {
               hint="Koi paisa zaya nahi ho raha — behtareen." />
           ) : (
             <div className="space-y-2">
-              {missing!.items.map((r) => (
+              {(missing?.items ?? []).map((r) => (
                 <MissingCard key={r.id} r={r}
                   pending={fromServiceMut.isPending}
                   onMake={() => fromServiceMut.mutate(r.id)} />
@@ -388,7 +388,7 @@ export default function ApplianceWarrantyClaimsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {summary!.byBrand.map((b) => (
+                    {(summary?.byBrand ?? []).map((b) => (
                       <tr key={b.brand} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
                         <td className="px-3 py-2.5 text-[13px] font-extrabold text-slate-900 dark:text-white">{b.brand}</td>
                         <td className="px-3 py-2.5 text-center text-xs font-bold tabular-nums text-slate-600 dark:text-slate-300">{b.claims}</td>

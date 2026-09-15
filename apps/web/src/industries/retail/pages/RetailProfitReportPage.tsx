@@ -25,7 +25,7 @@ import { brandsApi } from '@modules/inventory/brands/api/brands.api';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
 import { Button } from '@core/ui/Button';
 import { useAuthStore } from '@core/stores/auth.store';
-import { useCostHidden, PrivacyToggle } from '@core/ui/HiddenValue';
+import { useCostHidden, PrivacyToggle } from '@/core/security/HiddenValue';
 
 /* ═════════════════════════════════════════════════════════════
    NAFAA RETAIL PROFIT REPORT — FULL BEST

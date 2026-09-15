@@ -15,7 +15,7 @@ import {
 import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { formatPKR } from '@core/lib/format';
 import { Button } from '@core/ui/Button';
-import { PrivacyToggle, useCostHidden } from '@core/ui/HiddenValue';
+import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 import { useAuthStore } from '@core/stores/auth.store';
 import { toast } from 'sonner';
 

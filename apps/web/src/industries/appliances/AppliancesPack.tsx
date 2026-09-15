@@ -6,9 +6,6 @@ import {
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
 import AppliancesDashboardPage from './pages/AppliancesDashboardPage';
-import AppliancesProductsPage from './pages/AppliancesProductsPage';
-import ApplianceProductWizardPage from './pages/ApplianceProductWizardPage';
-import ApplianceProductDetailPage from './pages/ApplianceProductDetailPage';
 import AppliancesPosPage from './pages/AppliancesPosPage';
 import InstallationsPage from './pages/InstallationsPage';
 import ServiceRequestsPage from './pages/ServiceRequestsPage';
@@ -70,10 +67,10 @@ export const AppliancesPack: IndustryPack = {
   routes: [
     { path: '/pos', element: AppliancesPosPage },
 
-    { path: '/appliance-products/new', element: ApplianceProductWizardPage },
-    { path: '/appliance-products/:id/edit', element: ApplianceProductWizardPage },
-    { path: '/appliance-products/:id', element: ApplianceProductDetailPage },
-    { path: '/appliance-products', element: AppliancesProductsPage },
+    // Product ke raaste App.tsx me hain — wahan permission ka
+    // pehra (`secure(PERMISSIONS.PRODUCTS_VIEW, …)`) laga hua hai.
+    // Yahan se dobara register karne par wohi safha BIN-PEHRA bhi
+    // khul jata tha: cashier cost price dekh sakta tha.
 
     { path: '/appliances', element: AppliancesDashboardPage },
     { path: '/appliances/dashboard', element: AppliancesDashboardPage },

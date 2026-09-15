@@ -16,7 +16,7 @@ import { toast } from 'sonner';
 import { Button } from '@core/ui/Button';
 import { formatPKR } from '@core/lib/format';
 import { useAuthStore, useShopParam } from '@core/stores/auth.store';
-import { useCostHidden, PrivacyToggle } from '@core/ui/HiddenValue';
+import { useCostHidden, PrivacyToggle } from '@/core/security/HiddenValue';
 import {
   mobileReportsApi, type AgingItem, type StockAccessoryRow,
 } from '../api/mobile-reports.api';

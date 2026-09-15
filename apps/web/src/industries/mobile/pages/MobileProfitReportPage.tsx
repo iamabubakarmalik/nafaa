@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 import { Button } from '@core/ui/Button';
 import { formatPKR } from '@core/lib/format';
 import { useAuthStore } from '@core/stores/auth.store';
-import { useCostHidden, PrivacyToggle } from '@core/ui/HiddenValue';
+import { useCostHidden, PrivacyToggle } from '@/core/security/HiddenValue';
 import { PrintStyles } from '@core/components/print/PrintStyles';
 import {
   mobileReportsApi,

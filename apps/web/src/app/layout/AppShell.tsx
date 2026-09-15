@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { PanelLeft } from 'lucide-react';
 import { useAuthStore } from '@core/stores/auth.store';
@@ -10,6 +10,9 @@ import { Topbar } from './parts/Topbar';
 import { DesktopUpdateBanner } from '@modules/desktop/components/DesktopUpdateBanner';
 import { DesktopStatusBar } from '@modules/desktop/components/DesktopStatusBar';
 import { useRealtimeNotifications } from '@core/hooks/useRealtimeNotifications';
+import { ErrorBoundary } from '@core/components/ErrorBoundary';
+import { PageLockGate } from '@core/security/PageLockGate';
+import { usePrivacyStore } from '@core/stores/privacy.store';
 import { useDesktopNavigation, useDesktopShortcuts, useDesktopTheme } from '@core/lib/desktop/useDesktop';
 import { useDesktopScanner } from '@core/hooks/useDesktopScanner';
 import { useDesktopAutoBackup } from '@core/lib/desktop/useDesktopAutoBackup';
@@ -31,7 +34,15 @@ export default function AppShell() {
   useDesktopPower();
   useDesktopDeepLink();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, tenant, refreshToken, logout } = useAuthStore();
+
+  // PIN ab server par hai — login hote hi uski haalat le aayein,
+  // warna pehli baar safha khulne par lock ka pata hi nahi chalta.
+  const refreshPinStatus = usePrivacyStore((s) => s.refresh);
+  useEffect(() => {
+    if (user?.id) refreshPinStatus();
+  }, [user?.id, refreshPinStatus]);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
@@ -129,7 +140,13 @@ export default function AppShell() {
             }`}
           >
             <DesktopUpdateBanner />
-            <Outlet />
+            {/* Kisi bhi safhe me error aaye to safed screen ke bajaye
+                saaf paighaam — aur route badalte hi khud reset. */}
+            <ErrorBoundary resetKey={location.pathname}>
+              <PageLockGate>
+                <Outlet />
+              </PageLockGate>
+            </ErrorBoundary>
           </main>
           <DesktopStatusBar />
         </div>

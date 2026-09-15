@@ -18,7 +18,7 @@ import {
   ReportsHero, TabSwitcher, KpiCard, ChartCard, EmptyChart,
   PnLLine, MiniStat, dayLabel, PIE_COLORS,
 } from '@modules/reports/reports/components/ReportsShared';
-import { useCostHidden, PrivacyToggle } from '@core/ui/HiddenValue';
+import { useCostHidden, PrivacyToggle } from '@/core/security/HiddenValue';
 import { useAuthStore } from '@core/stores/auth.store';
 import { toast } from 'sonner';
 

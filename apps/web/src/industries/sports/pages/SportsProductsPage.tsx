@@ -12,7 +12,7 @@ import { formatPKR } from '@core/lib/format';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { sportsProductsApi } from '../api/products.api';
 import { sportsBrandsApi } from '../api/brands.api';
-import { PrivacyToggle } from '@core/ui/HiddenValue';
+import { PrivacyToggle } from '@/core/security/HiddenValue';
 
 type ViewMode = 'grid' | 'table';
 type StockFilter = 'all' | 'in' | 'low' | 'out';

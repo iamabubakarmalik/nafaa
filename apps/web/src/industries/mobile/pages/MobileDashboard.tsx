@@ -27,7 +27,7 @@ import { formatPKR } from '@core/lib/format';
 import { Button } from '@core/ui/Button';
 import { SubscriptionBanner } from '@modules/dashboard/components/SubscriptionBanner';
 import { EmailVerifyBanner } from '@core/components/auth/EmailVerifyBanner';
-import { useCostHidden, PrivacyToggle } from '@core/ui/HiddenValue';
+import { useCostHidden, PrivacyToggle } from '@/core/security/HiddenValue';
 import { useAuthStore } from '@core/stores/auth.store';
 import { PrintStyles } from '@core/components/print/PrintStyles';
 

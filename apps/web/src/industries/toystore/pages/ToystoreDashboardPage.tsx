@@ -13,7 +13,7 @@ import { toystoreDashboardApi } from '../api/dashboard.api';
 import { toyBirthdaysApi } from '../api/birthday-reminders.api';
 import { formatPKR } from '@core/lib/format';
 import { Button } from '@core/ui/Button';
-import { PrivacyToggle, useCostHidden } from '@core/ui/HiddenValue';
+import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 
 const AGE_LABELS: Record<string, string> = {
   NEWBORN_0_6M: '0-6M', INFANT_6_12M: '6-12M', TODDLER_1_2Y: '1-2Y',

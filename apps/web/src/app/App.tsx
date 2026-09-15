@@ -395,18 +395,9 @@ import ServicesBizServiceDetailPage from '@industries/services-biz/pages/Service
 // ═══════════════════════════════════════════════════════════════
 
 // ─── Appliances Industry ───────────────────────────────────────
-import AppliancesDashboardPage from '@industries/appliances/pages/AppliancesDashboardPage';
 import AppliancesProductsPage from '@industries/appliances/pages/AppliancesProductsPage';
 import ApplianceProductWizardPage from '@industries/appliances/pages/ApplianceProductWizardPage';
 import ApplianceProductDetailPage from '@industries/appliances/pages/ApplianceProductDetailPage';
-import ApplianceBrandsPage from '@industries/appliances/pages/ApplianceBrandsPage';
-import AppliancesInstallationsPage from '@industries/appliances/pages/InstallationsPage';
-import AmcContractsPage from '@industries/appliances/pages/AmcContractsPage';
-import AmcContractFormPage from '@industries/appliances/pages/AmcContractFormPage';
-import AppliancesDeliveriesPage from '@industries/appliances/pages/DeliveriesPage';
-import AppliancesServiceRequestsPage from '@industries/appliances/pages/ServiceRequestsPage';
-import AppliancesTechniciansPage from '@industries/appliances/pages/TechniciansPage';
-import AppliancesTechnicianDetailPage from '@industries/appliances/pages/TechnicianDetailPage';
 
 // ─── Electronics Industry ──────────────────────────────────────
 import ElectronicsDashboardPage from '@industries/electronics/pages/ElectronicsDashboardPage';
@@ -945,18 +936,13 @@ export default function App() {
                   {/* 11 NEW INDUSTRIES                                */}
                   {/* ═══════════════════════════════════════════════ */}
 
-                  {/* Appliances */}
-                  <Route path="/appliances" element={<AppliancesDashboardPage />} />
-                  <Route path="/appliances/dashboard" element={<AppliancesDashboardPage />} />
-                  <Route path="/appliances/brands" element={<ApplianceBrandsPage />} />
-                  <Route path="/appliances/installations" element={<AppliancesInstallationsPage />} />
-                  <Route path="/appliances/deliveries" element={<AppliancesDeliveriesPage />} />
-                  <Route path="/appliances/amc/new" element={<AmcContractFormPage />} />
-                  <Route path="/appliances/amc/:id/edit" element={<AmcContractFormPage />} />
-                  <Route path="/appliances/amc" element={<AmcContractsPage />} />
-                  <Route path="/appliances/service-requests" element={<AppliancesServiceRequestsPage />} />
-                  <Route path="/appliances/technicians/:id" element={<AppliancesTechnicianDetailPage />} />
-                  <Route path="/appliances/technicians" element={<AppliancesTechniciansPage />} />
+                  {/* Appliances — asal routes ab AppliancesPack me hain.
+                      Pehle wahi raaste yahan DOBARA bhi likhe the: ek hi
+                      path do dafa register hone se React Router me takrar
+                      hoti thi. Ab sirf purane link redirect karte hain. */}
+                  <Route path="/appliances/amc/new" element={<Navigate to="/appliances/amc-contracts/new" replace />} />
+                  <Route path="/appliances/amc" element={<Navigate to="/appliances/amc-contracts" replace />} />
+                  <Route path="/appliances/brands" element={<Navigate to="/brands" replace />} />
 
                   {/* Electronics */}
                   <Route path="/electronics" element={<ElectronicsDashboardPage />} />
@@ -1167,6 +1153,12 @@ export default function App() {
                   <Route path="/appliances-products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <ApplianceProductWizardPage />)} />
                   <Route path="/appliances-products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ApplianceProductDetailPage />)} />
                   <Route path="/appliances-products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <AppliancesProductsPage />)} />
+                  {/* Appliance ke safhe andar "/appliance-products" (bina 's')
+                      likhte hain — wo bhi isi pehre se guzrein. */}
+                  <Route path="/appliance-products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <ApplianceProductWizardPage />)} />
+                  <Route path="/appliance-products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <ApplianceProductWizardPage />)} />
+                  <Route path="/appliance-products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ApplianceProductDetailPage />)} />
+                  <Route path="/appliance-products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <AppliancesProductsPage />)} />
 
                   {/* Electronics */}
                   <Route path="/electronics-products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <ElectronicsProductWizardPage />)} />

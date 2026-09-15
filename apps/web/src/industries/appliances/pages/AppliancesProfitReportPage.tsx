@@ -377,18 +377,18 @@ export default function AppliancesProfitReportPage() {
       <div className="grid lg:grid-cols-2 gap-3 sm:gap-4">
         <Panel icon={Wrench} title="Repair / Service Ka Hisab" tone="amber">
           <div className="grid grid-cols-2 gap-2">
-            <Box label="Kaam" value={String(a?.services.jobs ?? 0)} />
-            <Box label="Ausat Bill" value={formatPKR(a?.services.avgTicket ?? 0)} />
-            <Box label="Kamai" value={formatPKR(a?.services.revenue ?? 0)} tone="emerald" />
-            <Box label="Parts Ka Kharcha" value={formatPKR(a?.services.partsCost ?? 0)} tone="rose" />
-            <Box label="Warranty Wale" value={String(a?.services.warrantyJobs ?? 0)} />
-            <Box label="AMC Wale" value={String(a?.services.amcJobs ?? 0)} />
+            <Box label="Kaam" value={String(a?.services?.jobs ?? 0)} />
+            <Box label="Ausat Bill" value={formatPKR(a?.services?.avgTicket ?? 0)} />
+            <Box label="Kamai" value={formatPKR(a?.services?.revenue ?? 0)} tone="emerald" />
+            <Box label="Parts Ka Kharcha" value={formatPKR(a?.services?.partsCost ?? 0)} tone="rose" />
+            <Box label="Warranty Wale" value={String(a?.services?.warrantyJobs ?? 0)} />
+            <Box label="AMC Wale" value={String(a?.services?.amcJobs ?? 0)} />
           </div>
-          {(a?.services.unpaid ?? 0) > 0 && (
+          {(a?.services?.unpaid ?? 0) > 0 && (
             <div className="mt-3 rounded-xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30 p-3 flex items-start gap-2">
               <AlertTriangle className="h-4 w-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
               <div className="text-[11px] font-bold text-rose-800 dark:text-rose-200">
-                <strong className="text-sm">{formatPKR(a!.services.unpaid)}</strong> ka repair ka paisa abhi baqi hai —
+                <strong className="text-sm">{formatPKR(a?.services?.unpaid ?? 0)}</strong> ka repair ka paisa abhi baqi hai —
                 <Link to="/appliances/service-requests" className="underline ml-1 font-extrabold">wusool karein</Link>
               </div>
             </div>
@@ -397,12 +397,12 @@ export default function AppliancesProfitReportPage() {
 
         <Panel icon={HardHat} title="Installation Ka Hisab" tone="blue">
           <div className="grid grid-cols-2 gap-2">
-            <Box label="Kaam" value={String(a?.installations.jobs ?? 0)} />
-            <Box label="Ausat Bill" value={formatPKR(a?.installations.avgTicket ?? 0)} />
-            <Box label="Kamai" value={formatPKR(a?.installations.revenue ?? 0)} tone="emerald" />
-            <Box label="Material Ka Kharcha" value={formatPKR(a?.installations.materialCost ?? 0)} tone="rose" />
-            <Box label="Munafa" value={formatPKR(a?.installations.profit ?? 0)} tone="cyan" />
-            <Box label="Free Kiye" value={String(a?.installations.freeJobs ?? 0)} />
+            <Box label="Kaam" value={String(a?.installations?.jobs ?? 0)} />
+            <Box label="Ausat Bill" value={formatPKR(a?.installations?.avgTicket ?? 0)} />
+            <Box label="Kamai" value={formatPKR(a?.installations?.revenue ?? 0)} tone="emerald" />
+            <Box label="Material Ka Kharcha" value={formatPKR(a?.installations?.materialCost ?? 0)} tone="rose" />
+            <Box label="Munafa" value={formatPKR(a?.installations?.profit ?? 0)} tone="cyan" />
+            <Box label="Free Kiye" value={String(a?.installations?.freeJobs ?? 0)} />
           </div>
         </Panel>
       </div>
@@ -411,14 +411,14 @@ export default function AppliancesProfitReportPage() {
       <div className="grid lg:grid-cols-2 gap-3 sm:gap-4">
         <Panel icon={ShieldCheck} title="AMC Contracts" hint="Pakka paisa — har saal repeat hota hai" tone="violet">
           <div className="grid grid-cols-2 gap-2">
-            <Box label="Naye Contracts" value={String(a?.amc.contracts ?? 0)} />
-            <Box label="Bill Kiya" value={formatPKR(a?.amc.billed ?? 0)} />
-            <Box label="Wusool Hua" value={formatPKR(a?.amc.collected ?? 0)} tone="emerald" />
-            <Box label="Baqi" value={formatPKR(a?.amc.pending ?? 0)} tone={(a?.amc.pending ?? 0) > 0 ? 'rose' : 'emerald'} />
+            <Box label="Naye Contracts" value={String(a?.amc?.contracts ?? 0)} />
+            <Box label="Bill Kiya" value={formatPKR(a?.amc?.billed ?? 0)} />
+            <Box label="Wusool Hua" value={formatPKR(a?.amc?.collected ?? 0)} tone="emerald" />
+            <Box label="Baqi" value={formatPKR(a?.amc?.pending ?? 0)} tone={(a?.amc?.pending ?? 0) > 0 ? 'rose' : 'emerald'} />
           </div>
-          {(a?.amc.byType ?? []).length > 0 && (
+          {(a?.amc?.byType ?? []).length > 0 && (
             <div className="mt-3 space-y-1.5">
-              {a!.amc.byType.map((tp) => (
+              {(a?.amc?.byType ?? []).map((tp) => (
                 <div key={tp.type} className="flex items-center gap-2 rounded-xl bg-violet-50 dark:bg-violet-500/10 px-2.5 py-2">
                   <span className="text-[11px] font-extrabold text-violet-800 dark:text-violet-200 flex-1">{tp.type}</span>
                   <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">{tp.count} contracts</span>
@@ -431,10 +431,10 @@ export default function AppliancesProfitReportPage() {
 
         <Panel icon={Truck} title="Delivery" hint="Bhari saman ka kiraya bhi kamai hai" tone="emerald">
           <div className="grid grid-cols-2 gap-2">
-            <Box label="Trips" value={String(a?.delivery.trips ?? 0)} />
-            <Box label="Ausat Trip" value={formatPKR(a?.delivery.avgTrip ?? 0)} />
-            <Box label="Kul Kamai" value={formatPKR(a?.delivery.revenue ?? 0)} tone="emerald" />
-            <Box label="Kul Kamai Ka" value={`${t?.revenue ? (((a?.delivery.revenue ?? 0) / t.revenue) * 100).toFixed(1) : '0'}%`} />
+            <Box label="Trips" value={String(a?.delivery?.trips ?? 0)} />
+            <Box label="Ausat Trip" value={formatPKR(a?.delivery?.avgTrip ?? 0)} />
+            <Box label="Kul Kamai" value={formatPKR(a?.delivery?.revenue ?? 0)} tone="emerald" />
+            <Box label="Kul Kamai Ka" value={`${t?.revenue ? (((a?.delivery?.revenue ?? 0) / t.revenue) * 100).toFixed(1) : '0'}%`} />
           </div>
         </Panel>
       </div>
@@ -465,7 +465,7 @@ export default function AppliancesProfitReportPage() {
             <p className="text-xs font-bold text-slate-400 py-8 text-center">Is arse me koi bikri nahi</p>
           ) : (
             <div className="space-y-1">
-              {a!.topProducts.slice(0, 10).map((p, i) => (
+              {(a?.topProducts ?? []).slice(0, 10).map((p, i) => (
                 <Link key={p.id} to={`/appliance-products/${p.id}`}
                   className="flex items-center gap-2.5 rounded-xl px-2 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition group">
                   <span className={`h-6 w-6 rounded-lg text-[10px] font-extrabold flex items-center justify-center shrink-0 ${
@@ -498,7 +498,7 @@ export default function AppliancesProfitReportPage() {
             <p className="text-xs font-bold text-slate-400 py-8 text-center">Abhi data nahi</p>
           ) : (
             <div className="space-y-1.5">
-              {a!.byEnergyRating.map((e) => {
+              {(a?.byEnergyRating ?? []).map((e) => {
                 const em = energyMeta(e.energyRating);
                 return (
                   <div key={e.energyRating} className="flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 px-2.5 py-2">
@@ -523,7 +523,7 @@ export default function AppliancesProfitReportPage() {
             <p className="text-xs font-bold text-slate-400 py-8 text-center">Abhi data nahi</p>
           ) : (
             <div className="space-y-1.5">
-              {a!.topBrands.map((b, i) => (
+              {(a?.topBrands ?? []).map((b, i) => (
                 <div key={b.id} className="flex items-center gap-2.5 rounded-xl px-2 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
                   <span className={`h-6 w-6 rounded-lg text-[10px] font-extrabold flex items-center justify-center shrink-0 ${
                     i === 0 ? 'bg-violet-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'

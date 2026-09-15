@@ -15,7 +15,7 @@ import { customerLedgerApi } from '@modules/customers/khata/api/customer-ledger.
 import { salesApi } from '@modules/sales/sales/api/sales.api';
 import { formatPKR } from '@core/lib/format';
 import { Button } from '@core/ui/Button';
-import { useCostHidden, PrivacyToggle } from '@core/ui/HiddenValue';
+import { useCostHidden, PrivacyToggle } from '@/core/security/HiddenValue';
 import { AppLockGate } from '@core/security/AppLockGate';
 import { useAuthStore } from '@core/stores/auth.store';
 

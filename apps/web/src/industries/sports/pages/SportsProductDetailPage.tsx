@@ -19,7 +19,7 @@ import { salesApi } from '@modules/sales/sales/api/sales.api';
 import { stockMovementsApi } from '@modules/inventory/stock-movements/api/stock-movements.api';
 import { sportsProductsApi } from '../api/products.api';
 import { sportsBrandsApi } from '../api/brands.api';
-import { PrivacyToggle, useCostHidden } from '@core/ui/HiddenValue';
+import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 
 type Tab = 'overview' | 'specs' | 'team' | 'variants' | 'sales' | 'log';
 

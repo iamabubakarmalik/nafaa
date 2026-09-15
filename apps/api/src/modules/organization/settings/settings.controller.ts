@@ -8,7 +8,9 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { UpdateSettingsDto } from './dto/update-settings.dto';
 import { UpdateReceiptConfigDto } from './dto/update-receipt-config.dto';
-import { RemovePinDto, SetPinDto, VerifyPinDto } from './dto/verify-pin.dto';
+import {
+  LockedRoutesDto, PinPrefsDto, RemovePinDto, ResetPinDto, SetPinDto, VerifyPinDto,
+} from './dto/verify-pin.dto';
 import { TestIntegrationDto, UpsertIntegrationDto } from './dto/integration.dto';
 import { DataExportDto, DeleteTenantDto, TransferOwnershipDto } from './dto/danger-zone.dto';
 import { SettingsService } from './settings.service';
@@ -47,6 +49,12 @@ export class SettingsController {
   }
 
   // ═══ SECURITY / PIN ═══
+  /** App khulte hi: PIN laga hai ya nahi, kaun se safhe lock hain */
+  @Get('security/pin-status')
+  pinStatus(@GetUser() u: AuthenticatedUser) {
+    return this.svc.security.pinStatus(u);
+  }
+
   @Post('security/verify-pin') @HttpCode(HttpStatus.OK)
   verifyPin(@GetUser() u: AuthenticatedUser, @Body() dto: VerifyPinDto) {
     return this.svc.security.verifyPin(u, dto.pin);
@@ -54,12 +62,29 @@ export class SettingsController {
 
   @Post('security/set-pin') @HttpCode(HttpStatus.OK)
   setPin(@GetUser() u: AuthenticatedUser, @Body() dto: SetPinDto) {
-    return this.svc.security.setPin(u, dto.pin);
+    return this.svc.security.setPin(u, dto.pin, dto.currentPin);
+  }
+
+  /** PIN bhool gaye — account ke password se naya PIN */
+  @Post('security/reset-pin') @HttpCode(HttpStatus.OK)
+  resetPin(@GetUser() u: AuthenticatedUser, @Body() dto: ResetPinDto) {
+    return this.svc.security.resetPinWithPassword(u, dto.password, dto.newPin);
   }
 
   @Post('security/remove-pin') @HttpCode(HttpStatus.OK)
   removePin(@GetUser() u: AuthenticatedUser, @Body() dto: RemovePinDto) {
-    return this.svc.security.removePin(u, dto.currentPin);
+    return this.svc.security.removePin(u, dto.currentPin, dto.password);
+  }
+
+  /** Malik chunta hai ke kaun se safhe PIN ke baghair na khulein */
+  @Patch('security/locked-routes')
+  setLockedRoutes(@GetUser() u: AuthenticatedUser, @Body() dto: LockedRoutesDto) {
+    return this.svc.security.setLockedRoutes(u, dto.routes);
+  }
+
+  @Patch('security/pin-prefs')
+  updatePinPrefs(@GetUser() u: AuthenticatedUser, @Body() dto: PinPrefsDto) {
+    return this.svc.security.updatePinPrefs(u, dto);
   }
 
   @Get('security/score')

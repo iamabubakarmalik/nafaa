@@ -22,7 +22,7 @@ import { salesApi } from '@modules/sales/sales/api/sales.api';
 import { stockMovementsApi } from '@modules/inventory/stock-movements/api/stock-movements.api';
 import { gamingProductsApi } from '../api/products.api';
 import { gamingRentalsApi } from '../api/rentals.api';
-import { PrivacyToggle, useCostHidden } from '@core/ui/HiddenValue';
+import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 
 type Tab = 'overview' | 'details' | 'rental' | 'editions' | 'sales' | 'rentals' | 'log';
 

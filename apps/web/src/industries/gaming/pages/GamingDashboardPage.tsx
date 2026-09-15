@@ -16,7 +16,7 @@ import { gamingRentalsApi } from '../api/rentals.api';
 import { gamingTopupsApi } from '../api/topups.api';
 import { formatPKR } from '@core/lib/format';
 import { Button } from '@core/ui/Button';
-import { PrivacyToggle, useCostHidden } from '@core/ui/HiddenValue';
+import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 
 export default function GamingDashboardPage() {
   const hideCost = useCostHidden();

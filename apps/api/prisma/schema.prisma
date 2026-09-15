@@ -78,6 +78,25 @@ enum CustomerLedgerType {
   LOYALTY_REDEEMED
 }
 
+/**
+ * Supplier ke khate ki qismein.
+ * Customer ke ulat yahan "balance" ka matlab hai: HUM ne supplier ko
+ * kitna DENA hai. Is liye kharidari balance barhati hai aur adaigi
+ * usay ghatati hai.
+ */
+enum SupplierLedgerType {
+  /** System se pehle ka purana hisab */
+  OPENING_BALANCE
+  /** Udhaar par maal liya */
+  PURCHASE_CREDIT
+  /** Supplier ko paisa diya */
+  PAYMENT_MADE
+  /** Maal wapas kiya — hamara dena kam hua */
+  PURCHASE_RETURN
+  /** Haath se durusti (discount, ghalati waghera) */
+  ADJUSTMENT
+}
+
 enum CashRegisterStatus {
   OPEN
   CLOSED
@@ -322,6 +341,7 @@ model Tenant {
   products            Product[]
   customers           Customer[]
   sales               Sale[]
+  supplierLedgers SupplierLedger[]
   suppliers           Supplier[]
   purchases           Purchase[]
   stockMovements      StockMovement[]
@@ -1314,11 +1334,47 @@ model Supplier {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   purchases Purchase[]
+  ledgers   SupplierLedger[]
 
   @@index([tenantId])
   @@index([tenantId, name])
+}
+
+/**
+ * Supplier ka khata — har entry ke sath balance bhi.
+ *
+ * Pehle sirf `Supplier.outstandingDue` ka ek number tha jo kharidari
+ * par barhta tha aur bas. Na purana hisab darj ho sakta tha, na
+ * adaigi ka koi record banta tha — dukaan-daar ko sirf kul number
+ * nazar aata tha, ye nahi ke wo bana kaise.
+ */
+model SupplierLedger {
+  id           String             @id @default(uuid())
+  tenantId     String
+  supplierId   String
+  shopId       String?
+  createdById  String?
+  type         SupplierLedgerType
+  /** Hamesha musbat — ghatana/barhana `type` se tay hota hai */
+  amount       Float
+  /** Is entry ke baad hum supplier ko kitna dete hain */
+  balanceAfter Float
+  /** Purchase number, cheque number waghera */
+  reference    String?
+  note         String?
+  /** Kis tareekh ka hisab hai — purana khata daalte waqt kaam aata hai */
+  entryDate    DateTime           @default(now())
+  createdAt    DateTime           @default(now())
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  supplier Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([supplierId])
+  @@index([supplierId, entryDate])
+  @@index([tenantId, type])
 }
 
 model Purchase {
@@ -1945,7 +2001,23 @@ model TenantSettings {
   requirePinForVoid     Boolean @default(false)
   requirePinForDiscount Boolean @default(false)
   requirePinForRefund   Boolean @default(true)
+  /**
+   * Malik ka PIN — bcrypt hash. Yehi EK PIN poore app me chalta hai:
+   * cost/profit chhupana, khata kholna aur jo safhe malik ne lock
+   * kiye hain. Pehle browser ke localStorage me alag alag PIN thay,
+   * is liye doosre mobile ya computer par kaam nahi karte thay.
+   */
   managerPin            String?
+  managerPinUpdatedAt   DateTime?
+  /**
+   * Jin safhon par PIN maanga jaye — malik apni marzi se chunta hai.
+   * Misal: ["/khata", "/reports", "/expenses"]
+   */
+  lockedRoutes          String[] @default([])
+  /** Ek dafa PIN daalne ke baad kitni der khula rahe (minute) */
+  pinUnlockMinutes      Int     @default(15)
+  /** Cost/profit by-default chhupa rahe ya nahi */
+  hideCostByDefault     Boolean @default(false)
   autoLogoutMinutes     Int     @default(60)
   enableTwoFactor       Boolean @default(false)
   maxLoginAttempts      Int     @default(5)
