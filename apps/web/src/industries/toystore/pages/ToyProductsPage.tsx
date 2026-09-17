@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { Button } from '@core/ui/Button';
 import { formatPKR } from '@core/lib/format';
 import { productsApi } from '@modules/inventory/products/api/products.api';
+import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { toyProductsApi } from '../api/products.api';
 import { PrivacyToggle } from '@/core/security/HiddenValue';
 
@@ -53,7 +54,7 @@ export default function ToyProductsPage() {
 
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['toy-products-list'],
-    queryFn: () => productsApi.list({ page: 1, limit: 1000 } as any),
+    queryFn: () => fetchAllProducts(),
   });
   const products: any[] = (data as any)?.items ?? [];
 

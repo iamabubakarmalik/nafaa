@@ -10,6 +10,7 @@ import {
 import { Button } from '@core/ui/Button';
 import { shopsApi } from '@modules/organization/shops/api/shops.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';
+import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { transfersApi, type StockTransfer, type TransferStatus } from '@modules/inventory/transfers/api/transfers.api';
 import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { toast } from 'sonner';
@@ -99,7 +100,7 @@ export default function RetailTransfersPage() {
 
   const { data: productsData } = useQuery({
     queryKey: ['products-for-transfer'],
-    queryFn: () => productsApi.list({ page: 1, limit: 1000 }),
+    queryFn: () => fetchAllProducts(),
     enabled: createOpen,
   });
 

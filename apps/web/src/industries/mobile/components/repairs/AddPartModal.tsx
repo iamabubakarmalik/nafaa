@@ -9,6 +9,7 @@ import { Input } from '@core/ui/Input';
 import { toast } from 'sonner';
 import { repairsApi } from '../../api/repairs.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';
+import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { formatPKR } from '@core/lib/format';
 
 interface Props {
@@ -68,7 +69,7 @@ export function AddPartModal({ ticketId, ticketNumber, onClose }: Props) {
 
   const { data: productsData } = useQuery({
     queryKey: ['products-for-repair-part'],
-    queryFn: () => productsApi.list({ page: 1, limit: 500 }),
+    queryFn: () => fetchAllProducts(),
     enabled: source === 'OWN_STOCK',
   });
 

@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { Button } from '@core/ui/Button';
 import { Input } from '@core/ui/Input';
 import { productsApi } from '@modules/inventory/products/api/products.api';
+import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { productVariantsApi } from '@modules/inventory/products/api/product-variants.api';
 import { carpetRollsApi, type CreateCarpetRollPayload } from '../api/carpet-rolls.api';
 import { formatPKRFull } from '@core/lib/format';
@@ -63,7 +64,7 @@ export function AddRollModal({
   // ─── Data ────────────────────────────────────────────
   const { data: productsData } = useQuery({
     queryKey: ['products', { limit: 500, isActive: true }],
-    queryFn: () => productsApi.list({ limit: 500, isActive: true }),
+    queryFn: () => fetchAllProducts({ isActive: true }),
     staleTime: 60_000,
   });
 

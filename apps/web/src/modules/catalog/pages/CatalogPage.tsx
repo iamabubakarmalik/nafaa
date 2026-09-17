@@ -9,6 +9,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { productsApi, type Product } from '@modules/inventory/products/api/products.api';
+import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
 import { brandsApi } from '@modules/inventory/brands/api/brands.api';
 import { productVariantsApi } from '@modules/inventory/products/api/product-variants.api';
@@ -103,13 +104,10 @@ export default function CatalogPage() {
   /* ─── Queries ─── */
   const { data: productsData, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['catalog-products', search, categoryId, brandId],
-    queryFn: () => productsApi.list({
-      search,
+    queryFn: () => fetchAllProducts({ search,
       categoryId: categoryId || undefined,
       brandId: brandId || undefined,
-      isActive: true,
-      limit: 200,
-    }),
+      isActive: true }),
   });
 
   const { data: categories = [] } = useQuery({

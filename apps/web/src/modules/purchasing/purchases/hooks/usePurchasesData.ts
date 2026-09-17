@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { purchasesApi } from '@modules/purchasing/purchases/api/purchases.api';
 import { suppliersApi } from '@modules/purchasing/suppliers/api/suppliers.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';
+import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 
 export function usePurchasesData() {
   const queryClient = useQueryClient();
@@ -24,7 +25,7 @@ export function usePurchasesData() {
 
   const productsData = useQuery({
     queryKey: ['products-for-purchase'],
-    queryFn: () => productsApi.list({ page: 1, limit: 500 }),
+    queryFn: () => fetchAllProducts(),
   });
 
   const createMutation = useMutation({

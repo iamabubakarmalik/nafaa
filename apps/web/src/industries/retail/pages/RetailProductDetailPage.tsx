@@ -15,6 +15,7 @@ import {
 import { Button } from '@core/ui/Button';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
 import { productsApi } from '@modules/inventory/products/api/products.api';
+import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { productVariantsApi } from '@modules/inventory/products/api/product-variants.api';
 import { productBatchesApi } from '@modules/inventory/products/api/product-batches.api';
 import { productImagesApi } from '@modules/inventory/products/api/product-images.api';
@@ -112,7 +113,7 @@ export default function RetailProductDetailPage() {
 
   const { data: relatedRaw } = useQuery({
     queryKey: ['related-products', product?.categoryId],
-    queryFn: () => productsApi.list({ page: 1, limit: 200 } as any),
+    queryFn: () => fetchAllProducts(),
     enabled: !!product?.categoryId,
   });
   const related: any[] = useMemo(() => {

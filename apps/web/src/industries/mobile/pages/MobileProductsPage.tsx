@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { Button } from '@core/ui/Button';
 import { formatPKR } from '@core/lib/format';
 import { productsApi } from '@modules/inventory/products/api/products.api';
+import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
 import { brandsApi } from '@modules/inventory/brands/api/brands.api';
 import { forceRefreshProducts } from '@core/lib/offline/offlineProducts';
@@ -75,7 +76,7 @@ export default function MobileProductsPage() {
 
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['mobile-products'],
-    queryFn: () => productsApi.list({ page: 1, limit: 1000 } as any),
+    queryFn: () => fetchAllProducts(),
   });
   const products: any[] = (data as any)?.items ?? (Array.isArray(data) ? (data as any) : []);
 

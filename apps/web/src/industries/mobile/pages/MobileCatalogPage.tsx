@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
 import { Button } from '@core/ui/Button';
 import { productsApi } from '@modules/inventory/products/api/products.api';
+import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
 import { brandsApi } from '@modules/inventory/brands/api/brands.api';
 import { useAuthStore, useShopParam } from '@core/stores/auth.store';
@@ -44,13 +45,10 @@ export default function MobileCatalogPage() {
 
   const { data: productsData } = useQuery({
     queryKey: ['mobile-catalog', search, brandFilter, categoryFilter],
-    queryFn: () => productsApi.list({
-      search,
+    queryFn: () => fetchAllProducts({ search,
       categoryId: categoryFilter !== 'all' ? categoryFilter : undefined,
       brandId: brandFilter !== 'all' ? brandFilter : undefined,
-      isActive: true,
-      limit: 200,
-    }),
+      isActive: true }),
   });
 
   const { data: categories = [] } = useQuery({

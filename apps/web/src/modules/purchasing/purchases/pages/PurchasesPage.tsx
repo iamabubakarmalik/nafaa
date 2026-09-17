@@ -25,6 +25,7 @@ import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { purchasesApi, type Purchase } from '../api/purchases.api';
 import { suppliersApi } from '@modules/purchasing/suppliers/api/suppliers.api';
 import { productsApi, type Product } from '@modules/inventory/products/api/products.api';
+import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { settingsApi } from '@modules/organization/settings/api/settings.api';
 import { QuickSupplierModal, QuickProductModal } from '../components/QuickAddModals';
@@ -227,7 +228,7 @@ export default function PurchasesPage({
 
   const { data: productsRes, isLoading: productsLoading } = useQuery({
     queryKey: ['products-for-purchase'],
-    queryFn: () => productsApi.list({ page: 1, limit: 500 } as any),
+    queryFn: () => fetchAllProducts(),
   });
   const allProducts: Product[] = (productsRes as any)?.items ?? [];
 

@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { Button } from '@core/ui/Button';
 import { formatPKR } from '@core/lib/format';
 import { productsApi } from '@modules/inventory/products/api/products.api';
+import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { electronicsProductsApi } from '../api/products.api';
 import { brandsApi } from '@modules/inventory/brands/api/brands.api';
 import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
@@ -43,7 +44,7 @@ export default function ElectronicsProductsPage() {
 
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['electronics-products-list'],
-    queryFn: () => productsApi.list({ page: 1, limit: 1000 } as any),
+    queryFn: () => fetchAllProducts(),
   });
   const products: any[] = (data as any)?.items ?? [];
 

@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { productUnitsApi, type ProductUnit, type UnitConversionType } from '../api/product-units.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';
+import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
 import { Button } from '@core/ui/Button';
 import { toast } from 'sonner';
@@ -63,7 +64,7 @@ export default function ProductUnitsPage() {
 
   const { data: productsData, isLoading: loadingProducts } = useQuery({
     queryKey: ['products-for-units', debouncedSearch],
-    queryFn: () => productsApi.list({ page: 1, limit: 100, search: debouncedSearch || undefined } as any),
+    queryFn: () => fetchAllProducts({ search: debouncedSearch || undefined }),
   });
 
   const products: any[] = (productsData as any)?.items ?? [];
@@ -86,6 +87,27 @@ export default function ProductUnitsPage() {
       queryClient.invalidateQueries({ queryKey: ['product-units'] });
     },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Delete fail hua'),
+  });
+
+  /**
+   * Card ke button se seedhi tabdeeli.
+   *
+   * "POS par pehle ye" lagate waqt baqi sab se nishan hata dena
+   * zaroori hai — do naap ek sath "pehle se" nahi ho sakte, warna
+   * counter par kaun sa khulega ye tay hi nahi hota.
+   */
+  const quickPatch = useMutation({
+    mutationFn: async ({ id, data, clearDefault }: { id: string; data: any; clearDefault?: boolean }) => {
+      if (clearDefault) {
+        const others = units.filter((u: ProductUnit) => u.isDefault && u.id !== id);
+        for (const u of others) await productUnitsApi.update(u.id, { isDefault: false });
+      }
+      return productUnitsApi.update(id, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['product-units'] });
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Tabdeeli nahi hui'),
   });
 
   const quickAddPreset = useMutation({
@@ -346,6 +368,18 @@ export default function ProductUnitsPage() {
                       baseStock={baseStock}
                       hideCost={hideCost}
                       onEdit={() => { setEditingUnit(unit); setShowForm(true); }}
+                      busy={quickPatch.isPending}
+                      onSetDefault={() => {
+                        quickPatch.mutate({ id: unit.id, data: { isDefault: true }, clearDefault: true });
+                        toast.success(`Counter par ab pehle se ${unit.unitName} chuna hua milega`);
+                      }}
+                      onToggleActive={() => {
+                        const next = !unit.isActive;
+                        quickPatch.mutate({ id: unit.id, data: { isActive: next } });
+                        toast.success(next
+                          ? `${unit.unitName} ab counter par nazar aayega`
+                          : `${unit.unitName} counter se hata diya — record mehfooz hai`);
+                      }}
                       onDelete={() => {
                         if (confirm(`"${unit.unitName}" delete karein?`)) removeMutation.mutate(unit.id);
                       }}
@@ -659,16 +693,21 @@ function ProductHeader({ product, basePrice, baseStock, stats, onNewUnit, onChan
               {product.name}
             </h2>
           </div>
-          <div className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-bold flex items-center gap-1.5 flex-wrap mt-0.5">
-            <span>Base: <strong className="text-slate-700 dark:text-slate-200">1 {product.unit}</strong></span>
-            <span className="opacity-40">•</span>
-            <span className="text-emerald-700 dark:text-emerald-400 font-extrabold tabular-nums">
-              {formatPKR(basePrice)}/{product.unit}
-            </span>
-            <span className="opacity-40">•</span>
-            <span className="tabular-nums">Stock: {baseStock} {product.unit}</span>
-            <span className="opacity-40">•</span>
-            <span className="tabular-nums">{stats.total} units</span>
+          {/* Pehle yahan sirf "Base: 1 pcs" likha tha — log poochte thay
+              "base kya hota hai". Ab poori baat likhi hai. */}
+          <div className="text-[11px] sm:text-xs text-slate-600 dark:text-slate-300 font-bold mt-1">
+            Is cheez ka <strong className="text-slate-900 dark:text-white">asal naap {product.unit}</strong> hai —
+            stock isi me ginta hai.
+            <span className="mx-1 opacity-40">•</span>
+            1 {product.unit} = <strong className="text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKR(basePrice)}</strong>
+            <span className="mx-1 opacity-40">•</span>
+            <span className="tabular-nums">stock {baseStock} {product.unit}</span>
+            {stats.total > 0 && (
+              <>
+                <span className="mx-1 opacity-40">•</span>
+                <span className="tabular-nums">{stats.total} bara naap bane hue</span>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -760,12 +799,15 @@ function QuickPresets({ units, basePrice, baseUnit, onAdd, pending }: {
    UNIT CARD (per-unit stock ke sath)
    ═════════════════════════════════════════════════════════════ */
 
-function UnitCard({ unit, baseUnit, basePrice, baseStock, hideCost, onEdit, onDelete }: {
+function UnitCard({ unit, baseUnit, basePrice, baseStock, hideCost, onEdit, onDelete, onSetDefault, onToggleActive, busy }: {
   unit: ProductUnit;
   baseUnit: string;
   basePrice: number;
   baseStock: number;
   hideCost: boolean;
+  onSetDefault: () => void;
+  onToggleActive: () => void;
+  busy?: boolean;
   onEdit: () => void;
   onDelete: () => void;
 }) {
@@ -802,19 +844,22 @@ function UnitCard({ unit, baseUnit, basePrice, baseStock, hideCost, onEdit, onDe
                 {unit.unitName}
               </h4>
               <div className="flex items-center gap-1 flex-wrap mt-0.5">
+                {/* Pehle yahan "Base" aur "POS Default" likha aata tha —
+                    dukaan-daar ko in alfaaz ka koi matlab nahi. Ab seedhi
+                    baat likhi hai. */}
                 {unit.isBase && (
-                  <span className="px-1.5 py-0.5 rounded-md bg-emerald-500 text-white text-[9px] font-extrabold uppercase tracking-wider">
-                    ⭐ Base
+                  <span className="px-2 py-0.5 rounded-md bg-emerald-500 text-white text-[9px] font-extrabold uppercase tracking-wider">
+                    ⭐ Asal naap — stock isi me ginta hai
                   </span>
                 )}
                 {unit.isDefault && !unit.isBase && (
-                  <span className="px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-extrabold uppercase tracking-wider">
-                    🎯 POS Default
+                  <span className="px-2 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-extrabold uppercase tracking-wider">
+                    🎯 POS par pehle se yehi
                   </span>
                 )}
                 {!unit.isActive && (
-                  <span className="px-1.5 py-0.5 rounded-md bg-slate-500 text-white text-[9px] font-extrabold uppercase tracking-wider">
-                    Band
+                  <span className="px-2 py-0.5 rounded-md bg-slate-500 text-white text-[9px] font-extrabold uppercase tracking-wider">
+                    Band — POS par nazar nahi aayega
                   </span>
                 )}
               </div>
@@ -828,7 +873,7 @@ function UnitCard({ unit, baseUnit, basePrice, baseStock, hideCost, onEdit, onDe
             </span>
             {!unit.isBase && (
               <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 tabular-nums">
-                📦 Stock se ~{unitsFromStock} ban sakte
+                📦 Mojooda stock se {unitsFromStock} {unit.unitName} bantay hain
               </span>
             )}
             {unit.barcode && (
@@ -877,10 +922,35 @@ function UnitCard({ unit, baseUnit, basePrice, baseStock, hideCost, onEdit, onDe
               )}
             </div>
           )}
-          <div className="mt-2 flex gap-1 justify-end">
+          <div className="mt-2 flex gap-1 justify-end flex-wrap">
+            {/* Ye do kaam pehle form ke andar checkbox thay jahan
+                samajh nahi aate thay. Yahan card par, apne naap ke
+                sath, matlab khud zahir ho jata hai. */}
+            {!unit.isBase && !unit.isDefault && unit.isActive && (
+              <button
+                onClick={onSetDefault} disabled={busy}
+                title="Counter par ye naap pehle se chuna hua mile"
+                className="h-8 px-2.5 rounded-lg bg-amber-50 dark:bg-amber-500/15 hover:bg-amber-100 dark:hover:bg-amber-500/25 text-amber-700 dark:text-amber-400 text-[10px] font-extrabold inline-flex items-center gap-1 disabled:opacity-50 transition"
+              >
+                <Star className="h-3 w-3" /> POS par pehle ye
+              </button>
+            )}
+            {!unit.isBase && (
+              <button
+                onClick={onToggleActive} disabled={busy}
+                title={unit.isActive ? 'Counter par dikhna band karein' : 'Counter par dobara dikhayein'}
+                className={`h-8 px-2.5 rounded-lg text-[10px] font-extrabold inline-flex items-center gap-1 disabled:opacity-50 transition ${
+                  unit.isActive
+                    ? 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300'
+                    : 'bg-emerald-50 dark:bg-emerald-500/15 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-400'
+                }`}
+              >
+                {unit.isActive ? 'Counter se hatao' : 'Counter par lao'}
+              </button>
+            )}
             <button
               onClick={onEdit}
-              title="Edit"
+              title="Badlein"
               className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center transition"
             >
               <Edit3 className="h-3.5 w-3.5" />
@@ -925,6 +995,28 @@ function UnitForm({ productId, baseUnit, basePrice, baseCost, editing, onClose, 
     isActive: editing?.isActive ?? true,
   });
   const [scanOpen, setScanOpen] = useState(false);
+  /* Barcode, SKU, wholesale, MRP — ye rozana nahi chahiye hote.
+     Chhupa dete hain taake form teen khanon ka reh jaye. */
+  const [showMore, setShowMore] = useState(false);
+
+  /**
+   * "Kitne pcs" likhte hi rate khud bhar jaye.
+   *
+   * Pehle alag se bijli wala button dabana parta tha. Log wo dekhte
+   * hi nahi thay aur 0 rate ke sath unit bana lete thay — POS par
+   * cheez muft chali jati thi.
+   */
+  const setRate = (rate: number) => {
+    const next = { ...form, conversionRate: rate };
+    // Sirf tab jab user ne khud rate na likha ho — uski likhi hui
+    // qeemat par kabhi haath nahi lagate.
+    if (!touchedPrice && basePrice > 0 && rate > 0) {
+      next.price = Math.round(basePrice * rate);
+      next.costPrice = Math.round(baseCost * rate);
+    }
+    setForm(next);
+  };
+  const [touchedPrice, setTouchedPrice] = useState(!!editing);
 
   const profit = Number(form.price) - Number(form.costPrice);
   const marginPct = Number(form.price) > 0 ? (profit / Number(form.price)) * 100 : 0;
@@ -1049,14 +1141,14 @@ function UnitForm({ productId, baseUnit, basePrice, baseCost, editing, onClose, 
                   step="0.01"
                   min="0.01"
                   value={form.conversionRate}
-                  onChange={(e) => setForm({ ...form, conversionRate: Number(e.target.value) })}
+                  onChange={(e) => setRate(Number(e.target.value))}
                   className={inputCls('h-11 font-extrabold tabular-nums')}
                 />
                 {basePrice > 0 && (
                   <button
-                    onClick={autofillPrices}
+                    onClick={() => { setTouchedPrice(false); autofillPrices(); }}
                     className="h-11 px-3 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 hover:bg-emerald-200 dark:hover:bg-emerald-500/30 text-emerald-800 dark:text-emerald-300 text-xs font-extrabold inline-flex items-center gap-1 shrink-0 transition"
-                    title="Prices khud bharo (rate × base price)"
+                    title="Rate dobara khud bhar do"
                   >
                     <Zap className="h-4 w-4" />
                   </button>
@@ -1071,7 +1163,7 @@ function UnitForm({ productId, baseUnit, basePrice, baseCost, editing, onClose, 
                 type="number"
                 step="0.01"
                 value={form.price || ''}
-                onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
+                onChange={(e) => { setTouchedPrice(true); setForm({ ...form, price: Number(e.target.value) }); }}
                 placeholder="0"
                 className="h-14 w-full rounded-xl border-2 border-emerald-400 dark:border-emerald-500/50 bg-emerald-50 dark:bg-emerald-500/10 px-3 text-xl font-extrabold tabular-nums text-emerald-900 dark:text-emerald-200 focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-200 dark:focus:ring-emerald-500/30"
               />
@@ -1106,6 +1198,17 @@ function UnitForm({ productId, baseUnit, basePrice, baseCost, editing, onClose, 
             </div>
           )}
 
+          {/* Wholesale, MRP, barcode, SKU — rozana zaroorat nahi.
+              Pehle ye sab hamesha samne rehte thay aur form itna lamba
+              lagta tha ke log dozen banana hi chhor dete thay. */}
+          <button onClick={() => setShowMore((v) => !v)}
+            className="w-full h-11 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-extrabold inline-flex items-center justify-center gap-1.5 transition">
+            <Sparkles className="h-4 w-4" />
+            {showMore ? 'Aur tafseel chhupayein' : 'Aur tafseel — wholesale, MRP, barcode, SKU'}
+          </button>
+
+          {showMore && (
+            <div className="space-y-3">
           <div className="grid sm:grid-cols-2 gap-3">
             <FormField label="Wholesale" hint="optional" tone="violet">
               <input
@@ -1165,36 +1268,21 @@ function UnitForm({ productId, baseUnit, basePrice, baseCost, editing, onClose, 
               </div>
             </FormField>
           </div>
+            </div>
+          )}
 
-          {/* Toggles — explanation ke sath */}
-          <div>
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-300 mb-1.5 flex items-center gap-1">
-              <HelpCircle className="h-3 w-3" /> Settings
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <ToggleTile
-                checked={form.isBase}
-                onChange={(v) => setForm({ ...form, isBase: v })}
-                label="Base Unit"
-                hint="Stock isi mein"
-                tone="emerald"
-              />
-              <ToggleTile
-                checked={form.isDefault}
-                onChange={(v) => setForm({ ...form, isDefault: v })}
-                label="POS Default"
-                hint="POS pe pre-select"
-                tone="amber"
-              />
-              <ToggleTile
-                checked={form.isActive}
-                onChange={(v) => setForm({ ...form, isActive: v })}
-                label="Active"
-                hint="Bikri ke liye"
-                tone="emerald"
-              />
-            </div>
-          </div>
+          {/* Yahan pehle teen checkbox thay: "Base Unit", "POS Default"
+              aur "Active". Dukaan-daar ne khud poocha ke ye hain kya —
+              aur jab poochna pare to matlab form me hone hi nahi chahiye.
+
+              • "Base Unit" bilkul hata diya: asal naap product ka apna
+                naap (pcs) hai, banaya nahi jata. Tick karne par hisab
+                ulat jata tha.
+              • "POS par pehle se" aur "chalu/band" ab list me har naap
+                ke card par ek click ke button hain — jahan unka matlab
+                khud samajh aa jata hai.
+
+              Form me ab sirf teen cheezein: naam, kitne pcs, rate. */}
 
           <div className="flex gap-2 pt-2">
             <Button variant="secondary" className="flex-1" onClick={onClose}>

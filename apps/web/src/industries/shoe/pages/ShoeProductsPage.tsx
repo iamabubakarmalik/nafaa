@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { Button } from '@core/ui/Button';
 import { formatPKR } from '@core/lib/format';
 import { productsApi } from '@modules/inventory/products/api/products.api';
+import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { shoeProductsApi } from '../api/products.api';
 import { shoeBrandsApi } from '../api/brands.api';
 import { PrivacyToggle } from '@/core/security/HiddenValue';
@@ -43,7 +44,7 @@ export default function ShoeProductsPage() {
 
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['shoe-products-list'],
-    queryFn: () => productsApi.list({ page: 1, limit: 1000 } as any),
+    queryFn: () => fetchAllProducts(),
   });
   const products: any[] = (data as any)?.items ?? [];
 

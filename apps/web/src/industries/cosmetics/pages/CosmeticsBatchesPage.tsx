@@ -7,6 +7,7 @@ import {
 import { toast } from 'sonner';
 import { cosmeticsBatchesApi, type CosmeticsBatch } from '../api/batches.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';
+import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { formatPKR } from '@core/lib/format';
 import { Button } from '@core/ui/Button';
 
@@ -38,7 +39,7 @@ export default function CosmeticsBatchesPage() {
 
   const { data: productsData } = useQuery({
     queryKey: ['products-for-batches'],
-    queryFn: () => productsApi.list({ page: 1, limit: 500 } as any),
+    queryFn: () => fetchAllProducts(),
   });
   const products = (productsData as any)?.items ?? [];
   const productMap = useMemo(() => new Map(products.map((p: any) => [p.id, p])), [products]);

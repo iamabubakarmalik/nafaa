@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
 import { Button } from '@core/ui/Button';
 import { productsApi } from '@modules/inventory/products/api/products.api';
+import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
 import { useAuthStore } from '@core/stores/auth.store';
 import { useCatalogCart } from '@modules/catalog/hooks/useCatalogCart';
@@ -35,12 +36,9 @@ export default function JewelryCatalogPage() {
 
   const { data: productsData } = useQuery({
     queryKey: ['jewelry-catalog', search, categoryFilter],
-    queryFn: () => productsApi.list({
-      search,
+    queryFn: () => fetchAllProducts({ search,
       categoryId: categoryFilter !== 'all' ? categoryFilter : undefined,
-      isActive: true,
-      limit: 200,
-    }),
+      isActive: true }),
   });
 
   const products = productsData?.items ?? [];

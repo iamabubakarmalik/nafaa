@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
 import { Button } from '@core/ui/Button';
 import { productsApi } from '@modules/inventory/products/api/products.api';
+import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { carpetRollsApi } from '../api/carpet-rolls.api';
 import { carpetCutPiecesApi } from '../api/carpet-cut-pieces.api';
 import { useAuthStore } from '@core/stores/auth.store';
@@ -46,7 +47,7 @@ export default function CarpetCatalogPage() {
 
   const { data: productsData } = useQuery({
     queryKey: ['carpet-catalog', debouncedSearch],
-    queryFn: () => productsApi.list({ search: debouncedSearch, isActive: true, limit: 500 }),
+    queryFn: () => fetchAllProducts({ search: debouncedSearch, isActive: true }),
     enabled: tab === 'products',
   });
   const products = useMemo(() => {

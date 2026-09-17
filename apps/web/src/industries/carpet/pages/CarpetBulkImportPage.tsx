@@ -9,6 +9,7 @@ import {
   Package, DollarSign, TrendingUp, Database, Info, Zap,
 } from 'lucide-react';
 import { productsApi } from '@modules/inventory/products/api/products.api';
+import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { productVariantsApi } from '@modules/inventory/products/api/product-variants.api';
 import { ManualEntryTable, type ManualRow } from '../components/ManualEntryTable';
 import { Button } from '@core/ui/Button';
@@ -41,7 +42,7 @@ export default function CarpetBulkImportPage() {
 
   const { data: productsData } = useQuery({
     queryKey: ['products-for-bulk-import'],
-    queryFn: () => productsApi.list({ limit: 500 }),
+    queryFn: () => fetchAllProducts(),
   });
 
   const carpetProducts = useMemo(() => {

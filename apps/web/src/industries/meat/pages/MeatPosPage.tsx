@@ -12,6 +12,7 @@ import { Button } from '@core/ui/Button';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
 import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { productsApi, type Product } from '@modules/inventory/products/api/products.api';
+import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { offlineSalesApi } from '@core/lib/offline/offlineSales';
@@ -57,7 +58,7 @@ export default function MeatPosPage() {
 
   const { data: productsData } = useQuery({
     queryKey: ['meat-products-pos', search],
-    queryFn: () => productsApi.list({ page: 1, limit: 200, search: search || undefined }),
+    queryFn: () => fetchAllProducts({ search: search || undefined }),
   });
   const products = productsData?.items ?? [];
 

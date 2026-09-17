@@ -19,6 +19,7 @@ import {
   type CarpetRoll,
 } from '../api/carpet-rolls.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';
+import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { AddRollModal } from '../components/AddRollModal';
 
 const statusConfig: Record<CarpetRollStatus, { label: string; color: string; icon: any }> = {
@@ -80,7 +81,7 @@ export default function CarpetRollsPage() {
 
   const { data: productsData } = useQuery({
     queryKey: ['products', { limit: 500, isActive: true }],
-    queryFn: () => productsApi.list({ limit: 500, isActive: true }),
+    queryFn: () => fetchAllProducts({ isActive: true }),
   });
 
   const removeMutation = useMutation({

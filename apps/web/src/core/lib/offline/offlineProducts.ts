@@ -6,6 +6,10 @@ import {
   type CreateProductPayload,
   type UpdateProductPayload,
 } from '@modules/inventory/products/api/products.api';
+// Cache poori honi chahiye — 5000 ka jaadui number us dukaan ko
+// tor deta jiske products us se zyada hain, aur POS par kuch
+// cheezein kabhi nazar hi na aatin.
+import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { queueGenericMutation } from './syncEngine';
 
 export interface OfflineProductsResponse {
@@ -61,7 +65,7 @@ async function backgroundRefresh(params?: ProductsListParams) {
   lastBgRefreshAt = now;
 
   try {
-    const serverData = await productsApi.list({ ...params, page: 1, limit: 5000 });
+    const serverData = await fetchAllProducts({ ...params });
     if (!serverData.items?.length) return;
 
     const syncedAt = Date.now();
@@ -80,7 +84,7 @@ export async function forceRefreshProducts(): Promise<void> {
   lastBgRefreshAt = 0;
   if (!navigator.onLine) return;
   try {
-    const serverData = await productsApi.list({ page: 1, limit: 5000 });
+    const serverData = await fetchAllProducts();
     const now = Date.now();
     const serverIds = new Set(serverData.items.map((p) => p.id));
     await db.transaction('rw', db.products, async () => {
@@ -114,7 +118,7 @@ export const offlineProductsApi = {
       backgroundRefresh(params);
     } else if (navigator.onLine && allCached.length === 0) {
       try {
-        const serverData = await productsApi.list({ ...params, page: 1, limit: 5000 });
+        const serverData = await fetchAllProducts({ ...params });
         const now = Date.now();
         await db.transaction('rw', db.products, async () => {
           for (const p of serverData.items) {

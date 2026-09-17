@@ -9,6 +9,7 @@ import { workshopJobsApi } from '../api/workshop-jobs.api';
 import { customerVehiclesApi } from '../api/customer-vehicles.api';
 import { mechanicsApi } from '../api/mechanics.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';
+import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { Button } from '@core/ui/Button';
 import { formatPKR } from '@core/lib/format';
 import { toast } from 'sonner';
@@ -91,7 +92,7 @@ export default function NewWorkshopJobPage() {
 
   const { data: productsData } = useQuery({
     queryKey: ['products-for-job'],
-    queryFn: () => productsApi.list({ limit: 500 }),
+    queryFn: () => fetchAllProducts(),
   });
 
   const selectedVehicle = preselectedVehicle || vehiclesData.find((v) => v.id === form.vehicleId);

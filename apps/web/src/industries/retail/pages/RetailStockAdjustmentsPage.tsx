@@ -11,6 +11,7 @@ import {
   stockAdjustmentsApi, type AdjustmentType, type CreateAdjustmentPayload,
 } from '@modules/inventory/stock-adjustments/api/stock-adjustments.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';
+import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { Button } from '@core/ui/Button';
 import { toast } from 'sonner';
 import { useAuthStore } from '@core/stores/auth.store';
@@ -79,7 +80,7 @@ export default function RetailStockAdjustmentsPage() {
   /* ─── Queries ─── */
   const { data: productsData } = useQuery({
     queryKey: ['products-for-adjustments'],
-    queryFn: () => productsApi.list({ page: 1, limit: 500 } as any),
+    queryFn: () => fetchAllProducts(),
   });
 
   const { data: adjustments = [], refetch, isRefetching } = useQuery({
