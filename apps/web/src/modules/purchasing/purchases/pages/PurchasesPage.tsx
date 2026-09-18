@@ -30,6 +30,7 @@ import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { settingsApi } from '@modules/organization/settings/api/settings.api';
 import { QuickSupplierModal, QuickProductModal } from '../components/QuickAddModals';
 import { SupplierKhataModal } from '@modules/purchasing/suppliers/components/SupplierKhataModal';
+import { refreshAfterSaleOrPurchase } from '@core/lib/cache/refresh';
 
 /* ═════════════════════════════════════════════════════════════
    NAFAA — KHARIDARI v2 (har industry ke liye ek hi page)
@@ -85,6 +86,18 @@ interface DraftLine {
   lastCost: number;
   quantity: number;
   costPrice: number;
+  /**
+   * Bechne ka naya rate.
+   *
+   * Har nayi kharidari par supplier ka rate badal jata hai, aur
+   * bechne ka rate bhi badalna parta hai. Pehle iske liye alag se
+   * products page par ja kar har cheez edit karni parti thi — aur
+   * aksar rehta hi jata tha: maal naye rate par aaya magar purane
+   * rate par bikta raha.
+   */
+  sellPrice: number;
+  /** Jo rate pehle se chal raha tha — farq dikhane ke liye */
+  oldSellPrice: number;
 }
 
 /* ── Chhote helpers ─────────────────────────────────────── */
@@ -316,6 +329,8 @@ export default function PurchasesPage({
     lastCost: p.costPrice ?? 0,
     quantity: qty,
     costPrice: p.costPrice ?? 0,
+    sellPrice: p.price ?? 0,
+    oldSellPrice: p.price ?? 0,
   });
 
   const addProduct = (p: Product, qty = 1) => {
@@ -414,7 +429,8 @@ export default function PurchasesPage({
 
   /* ─── Create — save hote hi receipt khol do ─── */
   const create = useMutation({
-    mutationFn: () => purchasesApi.create({
+    mutationFn: async () => {
+      const purchase = await purchasesApi.create({
       supplierId,
       paymentMethod,
       discount: Number(discount || 0) || undefined,
@@ -424,7 +440,32 @@ export default function PurchasesPage({
       items: lines.map((l) => ({
         productId: l.productId, quantity: l.quantity, costPrice: l.costPrice,
       })),
-    }),
+      });
+
+      /* Bechne ke naye rate — sirf un cheezon ke jin ka rate badla.
+         Kharidari pehle save hoti hai; rate na lag sake to bhi
+         kharidari mehfooz rehti hai (stock barh chuka hota hai). */
+      const priceChanges = lines.filter(
+        (l) => l.sellPrice > 0 && l.sellPrice !== l.oldSellPrice,
+      );
+      if (priceChanges.length) {
+        const failed: string[] = [];
+        for (const l of priceChanges) {
+          try {
+            await productsApi.update(l.productId, { price: l.sellPrice } as any);
+          } catch {
+            failed.push(l.name);
+          }
+        }
+        if (failed.length) {
+          toast.error(`${failed.length} cheez ka bechne ka rate nahi laga: ${failed.slice(0, 3).join(', ')}`);
+        } else {
+          toast.success(`${priceChanges.length} cheez ka bechne ka rate bhi badal diya`);
+        }
+      }
+
+      return purchase;
+    },
     onSuccess: (created: any) => {
       toast.success('Kharidari darj ho gayi — stock barh gaya');
 
@@ -452,16 +493,12 @@ export default function PurchasesPage({
       setReceiptOf(receiptBase);
 
       resetDraft();
-      qc.invalidateQueries({ queryKey: ['purchases'] });
-      qc.invalidateQueries({ queryKey: ['purchases-summary'] });
-      qc.invalidateQueries({ queryKey: ['products-for-purchase'] });
-      qc.invalidateQueries({ queryKey: ['suppliers'] });
-      qc.invalidateQueries({ queryKey: ['suppliers-summary'] });
-      qc.invalidateQueries({ queryKey: ['supplier'] });
-      qc.invalidateQueries({ queryKey: ['supplier-statement'] });
-      qc.invalidateQueries({ queryKey: ['electronics-stock-report'] });
-      qc.invalidateQueries({ queryKey: ['electronics-low-stock'] });
-      qc.invalidateQueries({ queryKey: ['electronics-pos-catalog'] });
+
+      /* Pehle yahan gin gin kar key likhi jati thin — aur POS wali
+         hamesha chhoot jati thi, is liye naya maal POS par nazar
+         nahi aata tha. Ab ek hi jagah: har maal aur paise wali
+         query, aur POS ka offline cache bhi. */
+      refreshAfterSaleOrPurchase(qc);
     },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Kharidari save nahi hui'),
   });
@@ -1009,11 +1046,62 @@ export default function PurchasesPage({
                                 l.costPrice <= 0 ? 'border-rose-300 focus:border-rose-500 bg-rose-50/50' : 'border-slate-200 focus:border-teal-500'
                               }`} />
                           </div>
+                          {/* Bechne ka rate — yahin badal lein.
+                              Naya maal naye rate par aaya hai to bechne ka
+                              rate bhi abhi theek kar dein; warna purane rate
+                              par bikta rehta hai aur munafa kha jata hai. */}
+                          <div>
+                            <div className="text-[9px] uppercase font-extrabold text-emerald-700 mb-0.5">
+                              Bechne ka rate
+                            </div>
+                            <input type="number" min={0} value={l.sellPrice || ''}
+                              onChange={(e) => patchLine(l.productId, { sellPrice: Number(e.target.value || 0) })}
+                              placeholder="0"
+                              className={`h-9 w-28 rounded-lg border-2 px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none transition ${
+                                l.sellPrice > 0 && l.sellPrice < l.costPrice
+                                  ? 'border-rose-400 focus:border-rose-500 bg-rose-50'
+                                  : l.sellPrice !== l.oldSellPrice
+                                    ? 'border-emerald-400 focus:border-emerald-500 bg-emerald-50'
+                                    : 'border-slate-200 focus:border-emerald-500'
+                              }`} />
+                          </div>
+
+                          {/* Munafa fi unit */}
+                          {l.sellPrice > 0 && l.costPrice > 0 && (
+                            <div className={`px-2 py-1 rounded-lg text-[10px] font-extrabold ${
+                              l.sellPrice < l.costPrice ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'
+                            }`}>
+                              {l.sellPrice < l.costPrice
+                                ? `⚠ Nuqsan ${formatPKR(l.costPrice - l.sellPrice)} fi ${l.unit}`
+                                : `Munafa ${formatPKR(l.sellPrice - l.costPrice)} (${(((l.sellPrice - l.costPrice) / l.sellPrice) * 100).toFixed(0)}%)`}
+                            </div>
+                          )}
+
+                          {/* Markup ke chip — jaldi ka raasta */}
+                          {l.costPrice > 0 && (
+                            <div className="flex gap-1">
+                              {[10, 15, 20, 25].map((pct) => (
+                                <button key={pct}
+                                  onClick={() => patchLine(l.productId, { sellPrice: Math.round(l.costPrice * (1 + pct / 100)) })}
+                                  title={`Lagat + ${pct}%`}
+                                  className="h-7 px-2 rounded-lg bg-slate-100 hover:bg-emerald-100 text-[10px] font-extrabold text-slate-600 transition">
+                                  +{pct}%
+                                </button>
+                              ))}
+                            </div>
+                          )}
+
+                          {l.sellPrice !== l.oldSellPrice && l.oldSellPrice > 0 && (
+                            <div className="px-2 py-1 rounded-lg bg-amber-100 text-amber-800 text-[10px] font-extrabold">
+                              Rate badlega: {formatPKR(l.oldSellPrice)} → {formatPKR(l.sellPrice)}
+                            </div>
+                          )}
+
                           {l.lastCost > 0 && Math.abs(diffPct) >= 1 && (
                             <div className={`px-2 py-1 rounded-lg text-[10px] font-extrabold ${
                               diff > 0 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'
                             }`}>
-                              {diff > 0 ? '▲' : '▼'} {Math.abs(diffPct).toFixed(0)}% — pichli baar {formatPKR(l.lastCost)}
+                              {diff > 0 ? '▲' : '▼'} Lagat {Math.abs(diffPct).toFixed(0)}% — pichli baar {formatPKR(l.lastCost)}
                             </div>
                           )}
                         </div>

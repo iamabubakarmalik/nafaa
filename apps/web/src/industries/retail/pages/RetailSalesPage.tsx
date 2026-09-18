@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import {
@@ -143,21 +144,6 @@ const DATE_OPTIONS: { v: DateFilter; l: string }[] = [
   { v: 'custom', l: '📅 Apni tareekh' },
 ];
 
-/**
- * Bara number chhote roop me — 20.3 lakh, 2.03 crore.
- *
- * "Rs 2,032,274" ek nazar me parha nahi jata, aur chhote card me
- * kat kar "Rs 2,03…" ban jata hai. Poora number hamesha hover par
- * mojood rehta hai.
- */
-function shortPKR(n: number): string {
-  const v = Math.abs(n);
-  if (v >= 10_000_000) return `Rs ${(n / 10_000_000).toFixed(2)} crore`;
-  if (v >= 100_000) return `Rs ${(n / 100_000).toFixed(1)} lakh`;
-  if (v >= 1_000) return `Rs ${Math.round(n / 1_000)}k`;
-  return `Rs ${Math.round(n)}`;
-}
-
 /* Chart ke rang — dono theme me saaf nazar aane wale.
    Pehle grid `#e2e8f0` (bohat halka) aur axis `#64748b` thay:
    dark mode me kaali zameen par ye ghayab ho jate thay, aur
@@ -201,6 +187,7 @@ export default function RetailSalesPage() {
   const [creditOnly, setCreditOnly] = useState(false);
   const [showTeacher, setShowTeacher] = useState(false);
   const [showReceiptSettings, setShowReceiptSettings] = useState(false);
+  const receiptBtnRef = useRef<HTMLButtonElement>(null);
   const [visible, setVisible] = useState(50);
 
   /* Demo ki bikri, ghalat bill — wapas lene ka raasta */
@@ -583,7 +570,7 @@ export default function RetailSalesPage() {
               <GraduationCap className="h-4 w-4" /> <span className="hidden sm:inline">Sikhein</span>
             </button>
             <div className="relative">
-              <button onClick={() => setShowReceiptSettings((v) => !v)}
+              <button ref={receiptBtnRef} onClick={() => setShowReceiptSettings((v) => !v)}
                 className={`h-11 px-3 rounded-xl text-xs font-black inline-flex items-center gap-1.5 border backdrop-blur transition ${
                   showReceiptSettings ? 'bg-white text-slate-900 border-white' : 'bg-white/15 hover:bg-white/25 border-white/25'
                 }`}>
@@ -591,7 +578,7 @@ export default function RetailSalesPage() {
                 {prefsSaved && <Check className="h-3 w-3 text-emerald-400" />}
               </button>
               {showReceiptSettings && (
-                <ReceiptPrefsPopover prefs={receiptPrefs} onChange={updateReceiptPrefs} onClose={() => setShowReceiptSettings(false)} />
+                <ReceiptPrefsPopover anchorRef={receiptBtnRef} prefs={receiptPrefs} onChange={updateReceiptPrefs} onClose={() => setShowReceiptSettings(false)} />
               )}
             </div>
             <button onClick={() => refetch()} disabled={isRefetching} title="Taaza"
@@ -617,34 +604,29 @@ export default function RetailSalesPage() {
       {/* ═══ KPI ═══
           Pehle aath box ek hi qatar me thay (`xl:grid-cols-8`) —
           itni tangi me raqam kat kar "Rs 2,03…" ban jati thi. Ab
-          chaar per row, bare card, aur bara number "lakh/crore"
-          me — poora number hover par. */}
+          chaar per row aur bare card, taake poora number — "Rs
+          2,032,274.00" — jyun ka tyun sama jaye. Koi "10k", koi
+          "lakh/crore" nahi: dukaan-daar ko poori raqam chahiye. */}
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 print:hidden">
         <Kpi icon={ShoppingCart} label="Bill" value={stats.count}
           sub={stats.voidedCount > 0 ? `${stats.voidedCount} wapas liye` : `${stats.qty.toFixed(0)} cheezein bikin`} tone="blue" />
-        <Kpi icon={TrendingUp} label="Kul bikri" value={showValue(shortPKR(stats.totalAmount))}
-          exact={hideAmounts ? undefined : formatPKR(stats.totalAmount)}
+        <Kpi icon={TrendingUp} label="Kul bikri" value={showValue(formatPKR(stats.totalAmount))}
           sub={rangeLabel} tone="emerald" highlight />
-        <Kpi icon={Award} label="Munafa" value={showValue(shortPKR(stats.profit))}
-          exact={hideAmounts ? undefined : formatPKR(stats.profit)}
+        <Kpi icon={Award} label="Munafa" value={showValue(formatPKR(stats.profit))}
           sub={`${stats.margin.toFixed(1)}% margin`} tone="violet" />
-        <Kpi icon={Banknote} label="Wasool hua" value={showValue(shortPKR(stats.totalPaid))}
-          exact={hideAmounts ? undefined : formatPKR(stats.totalPaid)}
+        <Kpi icon={Banknote} label="Wasool hua" value={showValue(formatPKR(stats.totalPaid))}
           sub="Haath me aaya" tone="emerald" />
       </section>
 
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 print:hidden">
-        <Kpi icon={BookOpen} label="Udhaar" value={showValue(shortPKR(stats.totalCredit))}
-          exact={hideAmounts ? undefined : formatPKR(stats.totalCredit)}
+        <Kpi icon={BookOpen} label="Udhaar" value={showValue(formatPKR(stats.totalCredit))}
           sub={`${stats.creditCount} bill par baqi`} tone="amber"
           onClick={() => setCreditOnly(!creditOnly)} active={creditOnly} />
-        <Kpi icon={BarChart3} label="Ausat bill" value={showValue(shortPKR(stats.avgOrder))}
-          exact={hideAmounts ? undefined : formatPKR(stats.avgOrder)}
+        <Kpi icon={BarChart3} label="Ausat bill" value={showValue(formatPKR(stats.avgOrder))}
           sub="Har customer ka" tone="blue" />
         <Kpi icon={Clock} label="Sab se masroof waqt" value={peakHour?.orders ? peakHour.label : '—'}
           sub={peakHour?.orders ? `${peakHour.orders} bill is ghante` : 'Abhi koi bikri nahi'} tone="violet" />
-        <Kpi icon={Trophy} label="Sab se bara bill" value={showValue(shortPKR(stats.best?.total ?? 0))}
-          exact={hideAmounts ? undefined : formatPKR(stats.best?.total ?? 0)}
+        <Kpi icon={Trophy} label="Sab se bara bill" value={showValue(formatPKR(stats.best?.total ?? 0))}
           sub={stats.best?.customer?.name ?? 'Walk-in'} tone="amber" />
       </section>
 
@@ -763,7 +745,7 @@ export default function RetailSalesPage() {
                   ? 'border-amber-500 bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300'
                   : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-amber-400'
               }`}>
-              <Filter className="h-4 w-4" /> Chaant
+              <Filter className="h-4 w-4" /> Payment Type
               {(paymentFilter !== 'all' || creditOnly) && (
                 <span className="h-5 w-5 rounded-full bg-amber-600 text-white text-[10px] flex items-center justify-center">
                   {[paymentFilter !== 'all', creditOnly].filter(Boolean).length}
@@ -810,7 +792,7 @@ export default function RetailSalesPage() {
           </div>
 
           {hasFilters && (
-            <button onClick={clearFilters} title="Chaant hatayein"
+            <button onClick={clearFilters} title="Payment Type hatayein"
               className="h-12 w-12 rounded-2xl bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400 flex items-center justify-center transition">
               <X className="h-4 w-4" />
             </button>
@@ -820,7 +802,7 @@ export default function RetailSalesPage() {
         {/* Kya chaant lagi hai — ek line me */}
         {hasFilters && (
           <div className="mt-2.5 flex items-center gap-1.5 flex-wrap text-[11px] font-black">
-            <span className="text-slate-400">Chaant:</span>
+            <span className="text-slate-400">Payment Type:</span>
             <span className="px-2 py-1 rounded-lg bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300">{rangeLabel}</span>
             {paymentFilter !== 'all' && (
               <span className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
@@ -855,7 +837,7 @@ export default function RetailSalesPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke={GRID} vertical={false} />
                   <XAxis dataKey="label" stroke={AXIS} fontSize={11} fontWeight={700} />
                   <YAxis stroke={AXIS} fontSize={11}
-                    tickFormatter={(v) => (v >= 1000 ? `${Math.round(v / 1000)}k` : v)} />
+                    width={78} tickFormatter={(v) => Number(v).toLocaleString('en-PK')} />
                   <Tooltip contentStyle={CHART_TOOLTIP}
                     formatter={(v: any, n: any) => [formatPKR(Number(v)), n === 'sales' ? 'Bikri' : n === 'profit' ? 'Munafa' : 'Bill']} />
                   <Legend formatter={(v) => (v === 'sales' ? 'Bikri' : v === 'profit' ? 'Munafa' : 'Bill')} />
@@ -876,7 +858,7 @@ export default function RetailSalesPage() {
                     <CartesianGrid strokeDasharray="3 3" stroke={GRID} vertical={false} />
                     <XAxis dataKey="label" stroke={AXIS} fontSize={9} interval={1} />
                     <YAxis stroke={AXIS} fontSize={11}
-                      tickFormatter={(v) => (v >= 1000 ? `${Math.round(v / 1000)}k` : v)} />
+                      width={78} tickFormatter={(v) => Number(v).toLocaleString('en-PK')} />
                     <Tooltip contentStyle={CHART_TOOLTIP}
                       formatter={(v: any, n: any) => [n === 'sales' ? formatPKR(Number(v)) : v, n === 'sales' ? 'Bikri' : 'Bill']} />
                     <Bar dataKey="sales" radius={[6, 6, 0, 0]}>
@@ -1004,7 +986,7 @@ export default function RetailSalesPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke={GRID} vertical={false} />
                   <XAxis dataKey="label" stroke={AXIS} fontSize={11} fontWeight={700} />
                   <YAxis stroke={AXIS} fontSize={11}
-                    tickFormatter={(v) => (v >= 1000 ? `${Math.round(v / 1000)}k` : v)} />
+                    width={78} tickFormatter={(v) => Number(v).toLocaleString('en-PK')} />
                   <Tooltip contentStyle={CHART_TOOLTIP}
                     formatter={(v: any, n: any) => [n === 'sales' ? formatPKR(Number(v)) : v, n === 'sales' ? 'Bikri' : 'Bill']} />
                   <Bar dataKey="sales" fill={C.weekday} radius={[8, 8, 0, 0]} maxBarSize={60} />
@@ -1030,15 +1012,15 @@ export default function RetailSalesPage() {
                 <ShoppingCart className="h-10 w-10 text-white" />
               </div>
               <h3 className="mt-4 text-lg font-black text-slate-900 dark:text-white">
-                {hasFilters ? 'Is chaant par kuch nahi mila' : 'Is muddat me koi bikri nahi'}
+                {hasFilters ? 'Is Payment Type par kuch nahi mila' : 'Is muddat me koi bikri nahi'}
               </h3>
               <p className="mt-1.5 text-sm font-bold text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-                {hasFilters ? 'Tareekh ya chaant badal kar dekhein' : 'POS se pehli bikri karein — 30 second ka kaam'}
+                {hasFilters ? 'Tareekh ya Payment Type badal kar dekhein' : 'POS se pehli bikri karein — 30 second ka kaam'}
               </p>
               <div className="mt-4 flex gap-2 justify-center flex-wrap">
                 {hasFilters ? (
                   <Button variant="secondary" className="font-black" onClick={clearFilters}>
-                    <X className="h-4 w-4" /> Chaant hatayein
+                    <X className="h-4 w-4" /> Payment Type hatayein
                   </Button>
                 ) : (
                   <Link to="/pos">
@@ -1353,13 +1335,40 @@ function Panel({ icon: Icon, title, hint, children }: {
   );
 }
 
-function ReceiptPrefsPopover({ prefs, onChange, onClose }: {
+function ReceiptPrefsPopover({ prefs, onChange, onClose, anchorRef }: {
   prefs: ReceiptPrefs; onChange: (p: Partial<ReceiptPrefs>) => void; onClose: () => void;
+  anchorRef: React.RefObject<HTMLButtonElement | null>;
 }) {
-  return (
+  /* Hero par `overflow-hidden` hai (roshni ke blur blobs ke liye).
+     Panel usi ke andar `absolute` tha, is liye neeche se kat jata tha.
+     Ab portal se seedha <body> me — button ke theek neeche. */
+  const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
+
+  useEffect(() => {
+    const place = () => {
+      const el = anchorRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      setPos({ top: r.bottom + 8, right: Math.max(8, window.innerWidth - r.right) });
+    };
+    place();
+    window.addEventListener('resize', place);
+    window.addEventListener('scroll', place, true);
+    return () => {
+      window.removeEventListener('resize', place);
+      window.removeEventListener('scroll', place, true);
+    };
+  }, [anchorRef]);
+
+  if (!pos) return null;
+
+  return createPortal(
     <>
-      <div className="fixed inset-0 z-30" onClick={onClose} />
-      <div className="absolute right-0 top-13 z-40 mt-2 w-64 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 shadow-2xl p-3 space-y-3 text-slate-900 dark:text-white">
+      <div className="fixed inset-0 z-[70] print:hidden" onClick={onClose} />
+      <div
+        style={{ top: pos.top, right: pos.right }}
+        className="fixed z-[71] w-64 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 shadow-2xl p-3 space-y-3 text-slate-900 dark:text-white print:hidden"
+      >
         <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">Receipt ki settings</div>
         <div>
           <div className="text-[10px] font-black uppercase text-slate-500 mb-1">Kaghaz</div>
@@ -1394,7 +1403,8 @@ function ReceiptPrefsPopover({ prefs, onChange, onClose }: {
           <span className="text-[11px] font-black">Logo dikhayein</span>
         </label>
       </div>
-    </>
+    </>,
+    document.body,
   );
 }
 
@@ -1487,7 +1497,7 @@ function Kpi({ icon: Icon, label, value, sub, tone, highlight, onClick, active, 
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
           <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
-          <div className="mt-1.5 text-xl sm:text-2xl font-black text-slate-900 dark:text-white tabular-nums leading-tight break-words">{value}</div>
+          <div className="mt-1.5 text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-white tabular-nums leading-tight break-words">{value}</div>
           {sub && <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-1 leading-snug">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>

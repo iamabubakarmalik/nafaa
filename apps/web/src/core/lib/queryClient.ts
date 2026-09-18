@@ -11,7 +11,20 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
-      refetchOnWindowFocus: false,
+      /**
+       * Tab/window par wapas aate hi data taaza.
+       *
+       * Pehle ye `false` tha. Dukaan-daar Purchases me maal
+       * khareedta, phir POS ki tab par jata — aur POS wahi purana
+       * stock dikhata rehta jab tak safha reload na karo. Logon ko
+       * "cache clear karo" kehna parta tha.
+       *
+       * `staleTime` 30 second hai, is liye baar baar tab badalne
+       * par bhi server par bojh nahi parta.
+       */
+      refetchOnWindowFocus: true,
+      /** Net wapas aate hi bhi taaza kar lein */
+      refetchOnReconnect: true,
       staleTime: 30_000,
       // ── OFFLINE-FIRST ──
       gcTime: 1000 * 60 * 60 * 24 * 7,   // 7 din cache rakho (persistence ke liye)

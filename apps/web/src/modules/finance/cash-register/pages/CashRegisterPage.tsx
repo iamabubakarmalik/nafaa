@@ -395,10 +395,14 @@ export default function CashRegisterPage() {
         </section>
       ) : (
         <>
-          {/* Stats Grid */}
+          {/* Stats Grid — ab poora tootna
+              Pehle sirf chaar khane thay aur "Expected" bhi ghalat
+              tha: bikri us me ginti hi nahi thi. Subah 5,000 se
+              register khola, din bhar 40,000 cash bika — screen
+              phir bhi 5,000 dikhati rehti thi. */}
           <section className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
             <StatCard
-              label="Opening"
+              label="Subah kholte waqt"
               value={formatPKR(current.openingBalance)}
               sub={formatRelative(current.openedAt)}
               subIcon={CalendarClock}
@@ -406,29 +410,95 @@ export default function CashRegisterPage() {
               tone="slate"
             />
             <StatCard
-              label="Cash In"
-              value={formatPKR(current.totalCashIn)}
-              sub="Manual additions"
-              icon={ArrowDownToLine}
+              label="Cash bikri"
+              value={formatPKR(current.live?.cashSales ?? 0)}
+              sub={`${current.live?.cashSalesCount ?? 0} bill — golak me aaya`}
+              icon={TrendingUp}
               tone="emerald"
               tinted
             />
             <StatCard
-              label="Cash Out"
-              value={formatPKR(current.totalCashOut)}
-              sub="Withdrawals"
+              label="Golak se nikla"
+              value={formatPKR((current.live?.expenses ?? 0) + (current.live?.returns ?? 0) + current.totalCashOut)}
+              sub={`Kharch ${formatPKR(current.live?.expenses ?? 0)} · wapsi ${formatPKR(current.live?.returns ?? 0)}`}
               icon={ArrowUpFromLine}
               tone="rose"
               tinted
             />
             <StatCard
-              label="Expected"
+              label="Golak me hona chahiye"
               value={formatPKR(current.expectedBalance)}
-              sub="Drawer me hona chahiye"
+              sub="Ab ginn kar milayein"
               icon={Calculator}
               tone="emerald"
               highlight
             />
+          </section>
+
+          {/* ── Poora hisab — har qadam ── */}
+          <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-5">
+            <div className="flex items-center gap-2.5 mb-3">
+              <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white flex items-center justify-center shadow">
+                <Calculator className="h-4 w-4" />
+              </div>
+              <div>
+                <h3 className="font-black text-slate-900 dark:text-white">Golak Ka Poora Hisab</h3>
+                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                  Register khulne se ab tak — har paisa
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <LedgerRow label="Subah kholte waqt" value={current.openingBalance} sign="+" tone="slate" />
+              <LedgerRow label="Cash bikri" value={current.live?.cashSales ?? 0} sign="+" tone="emerald"
+                note={`${current.live?.cashSalesCount ?? 0} bill`} />
+              {current.totalCashIn > 0 && (
+                <LedgerRow label="Haath se daala" value={current.totalCashIn} sign="+" tone="emerald" />
+              )}
+              {current.totalCashOut > 0 && (
+                <LedgerRow label="Haath se nikala" value={current.totalCashOut} sign="−" tone="rose" />
+              )}
+              {(current.live?.expenses ?? 0) > 0 && (
+                <LedgerRow label="Cash kharch" value={current.live?.expenses ?? 0} sign="−" tone="amber"
+                  note={`${current.live?.expenseCount ?? 0} kharch`} />
+              )}
+              {(current.live?.returns ?? 0) > 0 && (
+                <LedgerRow label="Wapsi me diya" value={current.live?.returns ?? 0} sign="−" tone="amber"
+                  note={`${current.live?.returnCount ?? 0} wapsi`} />
+              )}
+              <LedgerRow label="Golak me hona chahiye" value={current.expectedBalance} sign="=" tone="final" big />
+            </div>
+
+            {/* Golak ke bahar ka paisa — taake ghalat-fehmi na ho */}
+            {(current.live?.nonCashCollected ?? 0) > 0 || (current.live?.creditGiven ?? 0) > 0 ? (
+              <div className="mt-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3">
+                <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
+                  Ye golak me nahi aaya
+                </div>
+                <div className="grid sm:grid-cols-2 gap-2">
+                  {(current.live?.nonCashCollected ?? 0) > 0 && (
+                    <div className="rounded-xl bg-white dark:bg-slate-900 p-2.5">
+                      <div className="text-[10px] font-bold text-slate-500">Card / wallet / bank</div>
+                      <div className="text-base font-black text-blue-700 dark:text-blue-400 tabular-nums">
+                        {formatPKR(current.live?.nonCashCollected ?? 0)}
+                      </div>
+                    </div>
+                  )}
+                  {(current.live?.creditGiven ?? 0) > 0 && (
+                    <div className="rounded-xl bg-white dark:bg-slate-900 p-2.5">
+                      <div className="text-[10px] font-bold text-slate-500">Udhaar par gaya</div>
+                      <div className="text-base font-black text-amber-700 dark:text-amber-400 tabular-nums">
+                        {formatPKR(current.live?.creditGiven ?? 0)}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <p className="text-[10px] font-bold text-slate-400 mt-2">
+                  Kul bikri {formatPKR(current.live?.allSalesTotal ?? 0)} me se sirf cash wala hissa golak me aata hai.
+                </p>
+              </div>
+            ) : null}
           </section>
 
           {/* Sales summary bar */}
@@ -972,6 +1042,39 @@ function Kbd({ children }: { children: React.ReactNode }) {
     <kbd className="px-1.5 py-0.5 rounded bg-white/15 border border-white/25 text-white font-mono font-bold shadow-sm">
       {children}
     </kbd>
+  );
+}
+
+/** Golak ke hisab ki ek line — jama, manhaa, ya kul */
+function LedgerRow({ label, value, sign, tone, note, big }: any) {
+  const map: Record<string, string> = {
+    slate: 'text-slate-700 dark:text-slate-200',
+    emerald: 'text-emerald-700 dark:text-emerald-400',
+    rose: 'text-rose-700 dark:text-rose-400',
+    amber: 'text-amber-700 dark:text-amber-400',
+    final: 'text-white',
+  };
+  return (
+    <div className={`flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5 ${
+      big ? 'bg-slate-900 dark:bg-slate-800' : 'bg-slate-50 dark:bg-slate-800/60'
+    }`}>
+      <div className="min-w-0 flex items-center gap-2">
+        <span className={`h-6 w-6 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${
+          big ? 'bg-white/20 text-white'
+              : sign === '+' ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400'
+                             : 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-400'
+        }`}>{sign}</span>
+        <div>
+          <div className={`font-black ${big ? 'text-sm text-white' : 'text-sm text-slate-700 dark:text-slate-200'}`}>
+            {label}
+          </div>
+          {note && <div className={`text-[10px] font-bold ${big ? 'text-white/60' : 'text-slate-400'}`}>{note}</div>}
+        </div>
+      </div>
+      <div className={`font-black tabular-nums shrink-0 ${big ? 'text-xl text-white' : `text-base ${map[tone]}`}`}>
+        {formatPKR(value)}
+      </div>
+    </div>
   );
 }
 

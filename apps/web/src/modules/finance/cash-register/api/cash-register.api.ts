@@ -32,6 +32,34 @@ export interface CashRegister {
   closedBy?: { id: string; fullName: string } | null;
   shop?: { id: string; name: string } | null;
   transactions?: CashTransaction[];
+
+  /**
+   * Live hisab — sirf khule hue register par aata hai.
+   *
+   * `expectedBalance` pehle sirf haath se ki gayi cash in/out par
+   * badalta tha; bikri us me ginti hi nahi thi. Ab backend har
+   * dafa taaza hisab laga kar bhejta hai.
+   */
+  live?: {
+    openingBalance: number;
+    cashSales: number;
+    cashSalesCount: number;
+    cashIn: number;
+    cashOut: number;
+    expenses: number;
+    expenseCount: number;
+    returns: number;
+    returnCount: number;
+    expected: number;
+    /** Golak ke bahar ka paisa — card, wallet, udhaar */
+    allSalesTotal: number;
+    allSalesPaid: number;
+    creditGiven: number;
+    billCount: number;
+    nonCashCollected: number;
+    openedAt: string;
+    openHours: number;
+  };
 }
 
 export interface OpenRegisterPayload {
