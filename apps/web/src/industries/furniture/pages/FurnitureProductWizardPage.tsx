@@ -135,7 +135,7 @@ export default function FurnitureProductWizardPage() {
   }, [isEdit, existingProduct, existingProfile, editLoaded, updateBasic, updateDimensions, updateMaterials, updateDelivery]);
 
   const saveMutation = useMutation({
-    mutationFn: () => saveFurnitureWizard(draft),
+    mutationFn: () => saveFurnitureWizard(draft, isEdit ? id : undefined),
     onSuccess: (result) => {
       setSavedResult(result);
       queryClient.invalidateQueries({ queryKey: ['furniture-products-list'] });

@@ -118,7 +118,7 @@ export default function PetshopProductWizardPage() {
   }, [isEdit, existingProduct, existingProfile, editLoaded, updateBasic, updateDetails, updateMedicine]);
 
   const saveMutation = useMutation({
-    mutationFn: () => savePetshopWizard(draft),
+    mutationFn: () => savePetshopWizard(draft, isEdit ? id : undefined),
     onSuccess: (result) => {
       setSavedResult(result);
       queryClient.invalidateQueries({ queryKey: ['petshop-products-list'] });

@@ -73,7 +73,7 @@ export default function BookstoreProductWizardPage() {
   }, [isEdit, existingProduct, editLoaded, updateBasic]);
 
   const saveMutation = useMutation({
-    mutationFn: () => saveBookstoreWizard(draft),
+    mutationFn: () => saveBookstoreWizard(draft, isEdit ? id : undefined),
     onSuccess: (result) => {
       setSavedResult(result);
       queryClient.invalidateQueries({ queryKey: ['products'] });

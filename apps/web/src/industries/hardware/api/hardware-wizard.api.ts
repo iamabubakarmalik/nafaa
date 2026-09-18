@@ -20,7 +20,10 @@ export interface HardwareWizardSaveResult {
  * Rollback: deletes the product if any subsequent step fails.
  */
 export async function saveHardwareWizard(
+
   draft: HardwareWizardDraft,
+  /** Diya ho to isi product ko badla jayega, naya nahi banega */
+  existingId?: string,
 ): Promise<HardwareWizardSaveResult> {
   const { basic, specs, bulkTiers, reorder } = draft;
 
@@ -59,7 +62,10 @@ export async function saveHardwareWizard(
   const fullDescription = specLines.join(' | ');
 
   // ─── 1. CREATE PRODUCT ─────────────────────────────────
-  const product = await productsApi.create({
+  /* Pehle yahan sirf `create` tha: product "edit" karne par naya
+     product ban jata tha aur purana waise ka waisa para rehta —
+     ek hi cheez do dafa, do alag stock ke sath. */
+  const _payload = {
     name: basic.name.trim(),
     description: fullDescription || undefined,
     categoryId: basic.categoryId || undefined,
@@ -77,11 +83,18 @@ export async function saveHardwareWizard(
     isFeatured: basic.isFeatured,
     tagIds: basic.tagIds,
     imageUrls: basic.imageUrls,
-  });
+  };
+
+  const product = existingId
+    ? await productsApi.update(existingId, _payload as any)
+    : await productsApi.create(_payload as any);;
 
   const productId = product.id;
 
   const rollback = async (reason: unknown) => {
+    // EDIT me hargiz nahi — warna dukaan-daar ka mojooda product,
+    // uski saari bikri ka rishta aur stock sab mit jata.
+    if (existingId) throw reason;
     try { await productsApi.remove(productId); } catch {}
     throw reason;
   };

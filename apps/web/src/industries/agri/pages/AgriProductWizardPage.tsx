@@ -130,7 +130,7 @@ export default function AgriProductWizardPage() {
   }, [isEdit, existingProduct, existingProfile, editLoaded, updateBasic, updateProfile, updateSafety]);
 
   const saveMutation = useMutation({
-    mutationFn: () => saveAgriWizard(draft),
+    mutationFn: () => saveAgriWizard(draft, isEdit ? id : undefined),
     onSuccess: (result) => {
       setSavedResult(result);
       queryClient.invalidateQueries({ queryKey: ['products'] });

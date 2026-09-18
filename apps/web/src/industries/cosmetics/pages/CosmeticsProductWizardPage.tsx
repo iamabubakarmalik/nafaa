@@ -125,7 +125,7 @@ export default function CosmeticsProductWizardPage() {
   }, [isEdit, existingProduct, existingProfile, editLoaded, updateBasic, updateIngredients, updateFragrance, updateCertifications, updateBatch]);
 
   const saveMutation = useMutation({
-    mutationFn: () => saveCosmeticsWizard(draft),
+    mutationFn: () => saveCosmeticsWizard(draft, isEdit ? id : undefined),
     onSuccess: (result) => {
       setSavedResult(result);
       queryClient.invalidateQueries({ queryKey: ['cosmetics-products-list'] });

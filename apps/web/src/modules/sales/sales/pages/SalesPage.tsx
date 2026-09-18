@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { saleItemName } from '../lib/saleItemName';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import {
   Receipt, TrendingUp, Wallet, CalendarDays, Wrench,
@@ -9,7 +9,7 @@ import {
   ShoppingCart, Sparkles, BookOpen, Eye, Download, RefreshCw,
   Award, Layers,
   ArrowRight, BarChart3, Lock, Unlock, EyeOff,
-  Shield, ChevronDown,
+  Shield, ChevronDown, Trash2, AlertTriangle, Loader2, Undo2,
 } from 'lucide-react';
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
@@ -46,6 +46,31 @@ type StatusFilter = 'all' | 'COMPLETED' | 'VOIDED' | 'PARTIALLY_RETURNED' | 'FUL
 const HIDDEN_VALUE = '••••••••';
 
 export default function SalesPage() {
+  /* Demo ki bikri, ghalat bill — hatana parta hai. Backend me
+     `voidSale` pehle se mukammal tha (stock wapas, IMEI wapas,
+     khata theek, FBR cancel) magar list me use karne ka koi
+     raasta hi nahi tha. */
+  const [voidTarget, setVoidTarget] = useState<any>(null);
+  const [voidReason, setVoidReason] = useState('');
+  const qc = useQueryClient();
+
+  const voidMutation = useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string }) => salesApi.voidSale(id, reason),
+    onSuccess: () => {
+      toast.success('Bikri wapas le li — stock wapas aa gaya');
+      setVoidTarget(null);
+      setVoidReason('');
+      // Stock, khata aur reports sab isi se badalte hain
+      qc.invalidateQueries({ queryKey: ['sales'] });
+      qc.invalidateQueries({ queryKey: ['products'] });
+      qc.invalidateQueries({ queryKey: ['retail-products'] });
+      qc.invalidateQueries({ queryKey: ['customers'] });
+      qc.invalidateQueries({ queryKey: ['dashboard'] });
+      qc.invalidateQueries({ queryKey: ['reports'] });
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Wapas nahi li ja saki'),
+  });
+
   const privacy = useSalesPrivacy();
 
   const [search, setSearch] = useState('');
@@ -744,10 +769,21 @@ export default function SalesPage() {
                             Change: <HiddenAmount value={formatPKR(sale.changeAmount)} hidden={hideAmounts} />
                           </div>
                         )}
-                        <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-600 group-hover:text-emerald-700">
-                          <Eye className="h-3 w-3" />
-                          View Receipt
-                          <ArrowRight className="h-3 w-3" />
+                        <div className="mt-2 flex items-center justify-end gap-1.5">
+                          {!isVoided && !isReturned && (
+                            <button
+                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setVoidTarget(sale); }}
+                              title="Ye bikri wapas lein — stock wapas aa jayega"
+                              className="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 text-[10px] font-extrabold inline-flex items-center gap-1 transition"
+                            >
+                              <Trash2 className="h-3 w-3" /> Wapas lein
+                            </button>
+                          )}
+                          <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-600 group-hover:text-emerald-700">
+                            <Eye className="h-3 w-3" />
+                            View Receipt
+                            <ArrowRight className="h-3 w-3" />
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -757,6 +793,71 @@ export default function SalesPage() {
             </div>
           )}
         </section>
+
+        {/* ═══ BIKRI WAPAS LENE KA CONFIRM ═══
+            "Delete" nahi kehte kyunke record mitta nahi — VOIDED ka
+            nishan lagta hai. Isi liye stock, khata aur reports sab
+            theek rehti hain, aur baad me pata bhi chalta hai ke kya
+            hua tha. Mita dene par purane bill ka koi suraagh na
+            bachta aur hisab hamesha ke liye ghalat ho jata. */}
+        {voidTarget && (
+          <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => setVoidTarget(null)}>
+            <div onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border-2 border-rose-200">
+              <div className="bg-gradient-to-br from-rose-600 to-red-700 text-white p-5">
+                <div className="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center mb-2">
+                  <Undo2 className="h-6 w-6" />
+                </div>
+                <h3 className="text-lg font-black">Ye bikri wapas lein?</h3>
+                <p className="text-xs font-bold text-white/85 mt-0.5 font-mono">
+                  {voidTarget.saleNumber} · {formatPKR(voidTarget.total)}
+                </p>
+              </div>
+
+              <div className="p-5 space-y-3">
+                <div className="rounded-2xl bg-emerald-50 border-2 border-emerald-200 p-3">
+                  <div className="text-[10px] font-black uppercase tracking-wider text-emerald-700 mb-1.5">
+                    Ye sab khud theek ho jayega
+                  </div>
+                  <ul className="text-xs font-bold text-emerald-900 space-y-1">
+                    <li>✓ Bika hua maal stock me wapas</li>
+                    <li>✓ Udhaar tha to customer ke khate se hat jayega</li>
+                    <li>✓ Reports aur munafe ka hisab theek</li>
+                    <li>✓ IMEI / used phone dobara "stock me"</li>
+                  </ul>
+                </div>
+
+                <div className="rounded-2xl bg-slate-50 border-2 border-slate-200 p-3 text-[11px] font-bold text-slate-600">
+                  Bill mitta nahi — us par <strong>VOIDED</strong> ka nishan lag jata hai.
+                  Record rehta hai taake baad me pata chale ke kya hua tha.
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-600 mb-1.5">
+                    Wajah (optional)
+                  </label>
+                  <input value={voidReason} onChange={(e) => setVoidReason(e.target.value)}
+                    placeholder="Demo ki bikri thi / ghalat bill ban gaya"
+                    className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-rose-500 transition" />
+                </div>
+
+                <div className="flex gap-2 pt-1">
+                  <Button variant="secondary" className="flex-1 h-12" onClick={() => setVoidTarget(null)}>
+                    <X className="h-4 w-4" /> Rehne dein
+                  </Button>
+                  <button
+                    onClick={() => voidMutation.mutate({ id: voidTarget.id, reason: voidReason.trim() || 'Sale wapas li gayi' })}
+                    disabled={voidMutation.isPending}
+                    className="flex-[2] h-12 rounded-2xl bg-gradient-to-r from-rose-600 to-red-700 disabled:opacity-50 text-white text-sm font-black inline-flex items-center justify-center gap-2 shadow-lg transition">
+                    {voidMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Undo2 className="h-4 w-4" />}
+                    Haan, Wapas Lein
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
       )}
     </>

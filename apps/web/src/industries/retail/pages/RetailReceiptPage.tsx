@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
+import JsBarcode from 'jsbarcode';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -113,6 +114,24 @@ function normalizeShop(res: any): ShopInfo {
 }
 
 /* ══════════════════════════════════════════════════════════ */
+/** Bill par asli barcode — scanner isi ko parh kar bill nikalta hai */
+function ReceiptBarcode({ value }: { value: string }) {
+  const ref = useRef<SVGSVGElement>(null);
+  useEffect(() => {
+    if (!ref.current || !value) return;
+    try {
+      JsBarcode(ref.current, value, {
+        format: 'CODE128',
+        width: 1.1,
+        height: 30,
+        margin: 0,
+        displayValue: false,
+      });
+    } catch { /* value barcode me nahi dhal sakti */ }
+  }, [value]);
+  return <svg ref={ref} />;
+}
+
 export default function RetailReceiptPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -447,13 +466,16 @@ export default function RetailReceiptPage() {
             </>
           )}
 
-          {/* ── Barcode strip (shortNo visual) ── */}
-          <div className="rc-barcode" aria-hidden>
-            {sale.shortNo.replace(/[^A-Z0-9]/gi, '').split('').map((ch, i) => (
-              <span key={i} className="rc-bar" style={{ width: (ch.charCodeAt(0) % 3) + 1.5 }} />
-            ))}
+          {/* ── Bill ka barcode ──
+              Pehle yahan sirf sajawat ki lakeerein thin (chaurai
+              `charCodeAt % 3` se nikalti thi) — koi scanner unhein
+              parh hi nahi sakta tha. Ab asli CODE128 barcode hai:
+              purana bill haath me ho to gun se scan karke seedha
+              wahi bill khul jata hai. */}
+          <div className="rc-barcode">
+            <ReceiptBarcode value={sale.invoiceNo} />
           </div>
-          <div className="rc-center rc-sub" style={{ letterSpacing: 2 }}>{sale.shortNo}</div>
+          <div className="rc-center rc-sub" style={{ letterSpacing: 2 }}>{sale.invoiceNo}</div>
 
           <div className="rc-div-dash" />
 
@@ -526,7 +548,8 @@ function PrintStyles() {
       .rc-total { display: flex; justify-content: space-between; font-size: 16px; font-weight: 800; border-top: 2px solid #000; border-bottom: 2px solid #000; padding: 4px 0; margin: 6px 0; }
       .rc-credit { display: flex; justify-content: space-between; font-weight: 800; background: #f3f4f6; border: 1.5px solid #000; padding: 4px 6px; border-radius: 4px; margin-top: 4px; }
       .rc-saving { text-align: center; font-size: 11px; font-weight: 700; margin-top: 6px; border: 1px dashed #999; border-radius: 6px; padding: 4px; }
-      .rc-barcode { display: flex; align-items: flex-end; justify-content: center; gap: 1.5px; height: 28px; margin-top: 10px; }
+      .rc-barcode { display: flex; align-items: center; justify-content: center; margin-top: 10px; }
+      .rc-barcode svg { max-width: 100%; height: auto; }
       .rc-bar { display: inline-block; height: 100%; background: #000; }
       .rc-powered { text-align: center; font-size: 10px; color: #555; margin-top: 8px; font-weight: 600; }
       .rc-powered b { font-weight: 800; color: #000; }

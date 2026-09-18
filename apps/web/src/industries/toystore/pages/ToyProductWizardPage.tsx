@@ -137,7 +137,7 @@ export default function ToyProductWizardPage() {
   }, [isEdit, existingProduct, existingProfile, editLoaded, updateBasic, updateDetails, updateSafety]);
 
   const saveMutation = useMutation({
-    mutationFn: () => saveToyWizard(draft),
+    mutationFn: () => saveToyWizard(draft, isEdit ? id : undefined),
     onSuccess: (result) => {
       setSavedResult(result);
       queryClient.invalidateQueries({ queryKey: ['toy-products-list'] });

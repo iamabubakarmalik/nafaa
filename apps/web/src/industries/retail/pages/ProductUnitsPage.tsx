@@ -337,13 +337,14 @@ export default function ProductUnitsPage() {
                 />
               )}
 
-              {/* Warnings */}
-              {units.length > 0 && !stats.hasBase && (
-                <WarningBanner text="Koi Base Unit set nahi. POS conversion sahi kaam nahi karega — kisi ek unit ko 'Base Unit' banao." />
-              )}
+              {/* "Koi Base Unit set nahi" wala warning hata diya gaya.
+                  Wo galat baat thi: asal naap product ka apna naap (pcs)
+                  hai, jo hamesha mojood hai — banana nahi parta. Banner
+                  dukaan-daar ko ek aisa kaam karne ko keh raha tha jo
+                  karna hi nahi chahiye, aur karne par hisab ulat jata. */}
               {units.length > 0 && !stats.hasDefault && (
                 <WarningBanner
-                  text="Koi POS Default unit nahi. POS pe sale isi default unit se hogi — ek unit ko 'POS Default' banao."
+                  text={`Counter par abhi ${selectedProduct.unit} pehle se chuna hua milega. Kisi bare naap par "⭐ POS par pehle ye" dabayein to wo pehle se khula milega.`}
                   tone="info"
                 />
               )}
@@ -421,9 +422,9 @@ function UnitsTeacher({ onClose, onStart }: { onClose: () => void; onStart: () =
         <div className="p-5 space-y-4">
           {/* Simple explanation */}
           <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
-            Aap ki dukaan pe customer kabhi <strong>1 piece</strong> mangta hai, kabhi <strong>poora dozen</strong>,
-            kabhi <strong>carton</strong>. Product Units se aap ek hi product ke liye saare packages bana lete ho —
-            POS khud stock convert karega.
+            Dukaan par koi <strong>ek piece</strong> maangta hai, koi <strong>poora dozen</strong>, koi
+            <strong> carton</strong>. Yahan aap ek hi cheez ke saray naap bana lete hain — stock ek hi jagah
+            rehta hai aur counter khud hisab kar leta hai.
           </p>
 
           {/* Live visual example */}
@@ -458,10 +459,29 @@ function UnitsTeacher({ onClose, onStart }: { onClose: () => void; onStart: () =
           </div>
 
           {/* Key terms */}
+          {/* Pehle yahan "Base Unit" aur "POS Default" ke term samjhaye
+              jate thay. Ab form me wo hain hi nahi — sirf wohi batate
+              hain jo dukaan-daar ko waqai karna hota hai. */}
           <div className="grid grid-cols-3 gap-2 text-center">
-            <TermCard emoji="⭐" term="Base Unit" desc="Sab se choti ikai (piece). Stock isi mein count hota hai" />
-            <TermCard emoji="🎯" term="POS Default" desc="POS pe ye unit pehle se select hogi" />
-            <TermCard emoji="🔢" term="Rate" desc="1 unit = kitne base? (1 dozen = 12 piece)" />
+            <TermCard emoji="⭐" term="Asal naap" desc="Cheez ka apna naap (piece). Stock isi me ginta hai — ye khud se mojood hai, banana nahi parta" />
+            <TermCard emoji="🔢" term="Kitne pcs" desc="1 dozen me kitne piece? Rate isi se khud ban jata hai" />
+            <TermCard emoji="💰" term="Rate" desc="Poore package ka rate — thora chhoot dein to bara package zyada bikta hai" />
+          </div>
+
+          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3.5 text-xs font-bold text-slate-700 dark:text-slate-200 space-y-2">
+            <div className="text-[10px] uppercase tracking-widest font-black text-slate-500 dark:text-slate-400">
+              Banane ke baad
+            </div>
+            <div className="flex items-start gap-2">
+              <Star className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-0.5" />
+              <span><strong>POS par pehle ye</strong> — counter par naap ka dropdown isi par khula milega.
+              Jis naap me zyada bikta hai usi par laga dein.</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
+              <span><strong>Counter se hatao</strong> — ab ye naap nahi bechte? Hata dein. Purane bill
+              me record mehfooz rahega.</span>
+            </div>
           </div>
 
           <Button

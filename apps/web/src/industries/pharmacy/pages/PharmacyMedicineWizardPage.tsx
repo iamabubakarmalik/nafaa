@@ -108,7 +108,7 @@ export default function PharmacyMedicineWizardPage() {
   }, [isEdit, existingProduct, existingMedicine, editLoaded, updateBasic, updateClinical]);
 
   const saveMutation = useMutation({
-    mutationFn: () => savePharmacyWizard(draft),
+    mutationFn: () => savePharmacyWizard(draft, isEdit ? id : undefined),
     onSuccess: (result) => {
       setSavedResult(result);
       queryClient.invalidateQueries({ queryKey: ['products'] });

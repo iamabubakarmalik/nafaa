@@ -124,7 +124,7 @@ export default function MobileProductWizardPage() {
   }, [isEdit, existingProduct, existingVariants, editLoaded, updateBasic, setHasVariants]);
 
   const saveMutation = useMutation({
-    mutationFn: () => saveMobileWizard(draft, currentShopId || undefined),
+    mutationFn: () => saveMobileWizard(draft, currentShopId || undefined, isEdit ? id : undefined),
     onSuccess: (result) => {
       setSavedResult(result);
       queryClient.invalidateQueries({ queryKey: ['products'] });

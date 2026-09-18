@@ -124,7 +124,7 @@ export default function ElectronicsProductWizardPage() {
   }, [isEdit, existingProduct, existingProfile, editLoaded, updateBasic, updateSpecs, updateWarranty]);
 
   const saveMutation = useMutation({
-    mutationFn: () => saveElectronicsWizard(draft, currentShopId || undefined),
+    mutationFn: () => saveElectronicsWizard(draft, currentShopId || undefined, isEdit ? id : undefined),
     onSuccess: (result) => {
       setSavedResult(result);
       queryClient.invalidateQueries({ queryKey: ['electronics-products-list'] });

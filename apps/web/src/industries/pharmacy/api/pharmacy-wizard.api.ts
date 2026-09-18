@@ -26,7 +26,10 @@ export interface PharmacyWizardSaveResult {
  * Rollback: deletes the product on any failure.
  */
 export async function savePharmacyWizard(
+
   draft: PharmacyWizardDraft,
+  /** Diya ho to isi product ko badla jayega, naya nahi banega */
+  existingId?: string,
 ): Promise<PharmacyWizardSaveResult> {
   const { basic, clinical, inventory } = draft;
 
@@ -35,7 +38,10 @@ export async function savePharmacyWizard(
     : Number(basic.currentStock || 0);
 
   // ─── 1. CREATE PRODUCT ─────────────────────────────────
-  const product = await productsApi.create({
+  /* Pehle yahan sirf `create` tha: product "edit" karne par naya
+     product ban jata tha aur purana waise ka waisa para rehta —
+     ek hi cheez do dafa, do alag stock ke sath. */
+  const _payload = {
     name: basic.name.trim(),
     description: basic.description.trim() || undefined,
     categoryId: basic.categoryId || undefined,
@@ -53,11 +59,18 @@ export async function savePharmacyWizard(
     isFeatured: basic.isFeatured,
     tagIds: basic.tagIds,
     imageUrls: basic.imageUrls,
-  });
+  };
+
+  const product = existingId
+    ? await productsApi.update(existingId, _payload as any)
+    : await productsApi.create(_payload as any);;
 
   const productId = product.id;
 
   const rollback = async (reason: unknown) => {
+    // EDIT me hargiz nahi — warna dukaan-daar ka mojooda product,
+    // uski saari bikri ka rishta aur stock sab mit jata.
+    if (existingId) throw reason;
     try { await productsApi.remove(productId); } catch {}
     throw reason;
   };

@@ -118,7 +118,7 @@ export default function GamingProductWizardPage() {
   }, [isEdit, existingProduct, existingProfile, editLoaded, updateBasic, updateDetails, updateRental]);
 
   const saveMutation = useMutation({
-    mutationFn: () => saveGamingWizard(draft),
+    mutationFn: () => saveGamingWizard(draft, isEdit ? id : undefined),
     onSuccess: (result) => {
       setSavedResult(result);
       queryClient.invalidateQueries({ queryKey: ['gaming-products-list'] });

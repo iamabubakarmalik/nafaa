@@ -37,8 +37,19 @@ export interface RetailWizardSaveResult {
  *
  * Rollback: deletes the product if any subsequent step fails.
  */
+/**
+ * Wizard ka draft save karta hai — naya product banata hai, ya
+ * `existingId` diya ho to usi ko badalta hai.
+ *
+ * Pehle yahan sirf `create` tha. Matlab product "edit" karne par
+ * naya product ban jata tha aur purana waise ka waisa para rehta
+ * tha — ek hi cheez do dafa, do alag stock aur do alag rate ke
+ * sath. Dukaan-daar ko pata bhi nahi chalta tha ke kaun sa asli
+ * hai, aur POS par dono nazar aate thay.
+ */
 export async function saveRetailWizard(
   draft: RetailWizardDraft,
+  existingId?: string,
 ): Promise<RetailWizardSaveResult> {
   const { basic, hasVariants, hasMultiUnits, trackBatches, units, variants, batches, stock } = draft;
 
@@ -48,8 +59,10 @@ export async function saveRetailWizard(
       ? batches.reduce((a, b) => a + Number(b.quantity || 0), 0)
       : Number(stock.currentStock || 0);
 
-  // ─── 1. CREATE PRODUCT ─────────────────────────────────
-  const product = await productsApi.create({
+  // ─── 1. PRODUCT — naya banayein ya mojooda badlein ─────
+  const isEdit = !!existingId;
+
+  const productPayload = {
     name: basic.name.trim(),
     description: basic.description.trim() || undefined,
     categoryId: basic.categoryId || undefined,
@@ -67,12 +80,24 @@ export async function saveRetailWizard(
     isFeatured: basic.isFeatured,
     tagIds: basic.tagIds,
     imageUrls: basic.imageUrls,
-  });
+  };
+
+  const product = isEdit
+    ? await productsApi.update(existingId!, productPayload)
+    : await productsApi.create(productPayload);
 
   const productId = product.id;
 
+  /**
+   * Naya product banate waqt kuch aage ghalat ho jaye to adhoora
+   * product mita dete hain. Magar EDIT me aisa hargiz nahi —
+   * warna dukaan-daar ka mojooda product, uski saari bikri ka
+   * rishta aur stock sab mit jata.
+   */
   const rollback = async (reason: unknown) => {
-    try { await productsApi.remove(productId); } catch {}
+    if (!isEdit) {
+      try { await productsApi.remove(productId); } catch { /* pehle hi ja chuka */ }
+    }
     throw reason;
   };
 

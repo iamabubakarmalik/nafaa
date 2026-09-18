@@ -4,7 +4,7 @@ import {
   Settings as SettingsIcon, Store, Building2, Bell, Shield, Palette,
   Receipt, ShoppingBag, Package, Users, Percent, Sparkles,
   Plug, Database, AlertTriangle, Search, X, ChevronRight,
-  Loader2, CheckCircle2, Globe,
+  Loader2, CheckCircle2, Globe, MessageCircle,
 } from 'lucide-react';
 import { useSettings } from '../hooks/useSettings';
 import { OnboardingSyncBanner } from '../components/OnboardingSyncBanner';
@@ -19,6 +19,7 @@ import { POSSection } from '../sections/POSSection';
 import { InventorySection } from '../sections/InventorySection';
 import { CustomerSection } from '../sections/CustomerSection';
 import { NotificationsSection } from '../sections/NotificationsSection';
+import { WhatsappSection } from '../sections/WhatsappSection';
 import { SecuritySection } from '../sections/SecuritySection';
 import { AppearanceSection } from '../sections/AppearanceSection';
 import { IntegrationsSection } from '../sections/IntegrationsSection';
@@ -27,7 +28,7 @@ import { DangerZoneSection } from '../sections/DangerZoneSection';
 
 type TabId =
   | 'business' | 'config' | 'localization' | 'tax' | 'receipt' | 'pos'
-  | 'inventory' | 'customer' | 'notifications' | 'security' | 'appearance'
+  | 'inventory' | 'customer' | 'notifications' | 'whatsapp' | 'security' | 'appearance'
   | 'integrations' | 'backup' | 'danger';
 
 interface TabDef {
@@ -56,6 +57,7 @@ const TABS: TabDef[] = [
   // ── Customer
   { id: 'customer',     label: 'Customers',         desc: 'Udhaar, loyalty points',              icon: Users,       color: 'pink',    group: 'customer',   keywords: ['customer', 'credit', 'udhaar', 'loyalty', 'points'] },
   { id: 'notifications',label: 'Notifications',     desc: 'Email, SMS, WhatsApp, push',          icon: Bell,        color: 'rose',    group: 'customer',   keywords: ['notification', 'email', 'sms', 'whatsapp', 'push'] },
+  { id: 'whatsapp',     label: 'WhatsApp',          desc: 'Apne paighaam — bill, udhaar, shukriya', icon: MessageCircle, color: 'emerald', group: 'customer', keywords: ['whatsapp', 'message', 'paighaam', 'template', 'bill', 'udhaar'] },
 
   // ── System
   { id: 'security',     label: 'Security',          desc: 'PIN, 2FA, sessions, activity',        icon: Shield,      color: 'emerald', group: 'system',     keywords: ['security', 'pin', '2fa', 'password', 'sessions'] },
@@ -269,6 +271,7 @@ export default function SettingsPage() {
               {activeTab === 'inventory'     && <InventorySection settings={settings} />}
               {activeTab === 'customer'      && <CustomerSection settings={settings} />}
               {activeTab === 'notifications' && <NotificationsSection settings={settings} />}
+              {activeTab === 'whatsapp'      && <WhatsappSection settings={settings} />}
               {activeTab === 'security'      && <SecuritySection settings={settings} />}
               {activeTab === 'appearance'    && <AppearanceSection settings={settings} />}
               {activeTab === 'integrations'  && <IntegrationsSection />}

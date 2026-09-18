@@ -125,7 +125,7 @@ export default function OpticalProductWizardPage() {
   }, [isEdit, existingProduct, existingProfile, editLoaded, updateBasic, updateFrame, updateLens, updateContactLens, updateWarranty]);
 
   const saveMutation = useMutation({
-    mutationFn: () => saveOpticalWizard(draft),
+    mutationFn: () => saveOpticalWizard(draft, isEdit ? id : undefined),
     onSuccess: (result) => {
       setSavedResult(result);
       queryClient.invalidateQueries({ queryKey: ['optical-products-list'] });

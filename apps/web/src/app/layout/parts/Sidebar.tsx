@@ -63,6 +63,7 @@ import {
   Wallet2,
   X,
   Zap,
+  Landmark,
 } from 'lucide-react';
 import { Logo } from '@core/components/brand/Logo';
 import { hasPermission, isOwner, isOwnerOnlyPath, PERMISSIONS, type PermissionKey } from '@core/lib/permissions';
@@ -160,6 +161,7 @@ const posNavGroups: NavGroup[] = [
   {
     label: 'Finance', icon: Wallet, emoji: '💰', color: '#f59e0b', order: 95,
     items: [
+      { to: '/money', label: 'Dukaan ka Hisab', icon: Landmark, permission: PERMISSIONS.REPORTS_VIEW },
       { to: '/expenses', label: 'Expenses', icon: Wallet, permission: PERMISSIONS.EXPENSES_VIEW },
       { to: '/billing', label: 'Billing', icon: CreditCard, permission: PERMISSIONS.BILLING_VIEW },
       { to: '/plans', label: 'Plans', icon: Sparkles, permission: PERMISSIONS.PLANS_VIEW },
@@ -225,6 +227,7 @@ const allShopsNavGroups: NavGroup[] = [
     items: [
       { to: '/khata', label: 'Khata (Udhaar)', icon: BookOpen, permission: PERMISSIONS.KHATA_VIEW },
       { to: '/customers', label: 'Customers', icon: Users, permission: PERMISSIONS.CUSTOMERS_VIEW },
+      { to: '/money', label: 'Dukaan ka Hisab', icon: Landmark, permission: PERMISSIONS.REPORTS_VIEW },
       { to: '/expenses', label: 'Expenses', icon: Wallet, permission: PERMISSIONS.EXPENSES_VIEW },
     ],
   },

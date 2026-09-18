@@ -69,7 +69,7 @@ export default function HardwareProductWizardPage() {
   }, [isEdit, existingProduct, editLoaded, updateBasic]);
 
   const saveMutation = useMutation({
-    mutationFn: () => saveHardwareWizard(draft),
+    mutationFn: () => saveHardwareWizard(draft, isEdit ? id : undefined),
     onSuccess: (result) => {
       setSavedResult(result);
       queryClient.invalidateQueries({ queryKey: ['products'] });

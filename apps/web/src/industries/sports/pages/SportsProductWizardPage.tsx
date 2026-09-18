@@ -121,7 +121,7 @@ export default function SportsProductWizardPage() {
   }, [isEdit, existingProduct, existingProfile, editLoaded, updateBasic, updateSpecs, updateTeam]);
 
   const saveMutation = useMutation({
-    mutationFn: () => saveSportsWizard(draft),
+    mutationFn: () => saveSportsWizard(draft, isEdit ? id : undefined),
     onSuccess: (result) => {
       setSavedResult(result);
       queryClient.invalidateQueries({ queryKey: ['sports-products-list'] });

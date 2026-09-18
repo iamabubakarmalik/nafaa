@@ -132,6 +132,7 @@ import BackupPage from '@modules/backup/pages/BackupPage';
 import KhataPage from '@modules/customers/khata/pages/KhataPage';
 import KhataGate from '@modules/customers/khata/pages/KhataGate';
 import CashRegisterPage from '@modules/finance/cash-register/pages/CashRegisterPage';
+import MoneyPage from '@modules/finance/money/pages/MoneyPage';
 
 // ─── Team & Staff ──────────────────────────────────────────────
 import TeamPage from '@modules/organization/team/pages/TeamPage';
@@ -630,6 +631,8 @@ export default function App() {
                   <Route path="/profit-report" element={secure(PERMISSIONS.PROFIT_REPORT_VIEW, <ProfitReportGate />)} />
                   <Route path="/khata" element={secure(PERMISSIONS.KHATA_VIEW, <KhataPage />)} />
                   <Route path="/cash-register" element={secure(PERMISSIONS.CASH_REGISTER_VIEW, <CashRegisterPage />)} />
+                  {/* Dukaan ka Hisab — cash, maal, lena, dena sab ek jagah */}
+                  <Route path="/money" element={secure(PERMISSIONS.REPORTS_VIEW, <MoneyPage />)} />
 
                   {/* ── Suppliers & Purchases ──────────────────── */}
                   <Route path="/suppliers/new" element={secure(PERMISSIONS.SUPPLIERS_VIEW, <SupplierFormPage />)} />

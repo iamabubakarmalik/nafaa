@@ -55,6 +55,7 @@ import { PurchasesModule } from './modules/purchasing/purchases/purchases.module
 import { ExpensesModule } from './modules/finance/expenses/expenses.module';
 import { ExpenseCategoriesModule } from './modules/finance/expense-categories/expense-categories.module';
 import { CashRegisterModule } from './modules/finance/cash-register/cash-register.module';
+import { MoneyModule } from './modules/finance/money/money.module';
 import { ProfitReportModule } from './modules/finance/profit-report/profit-report.module';
 
 import { ReportsModule } from './modules/reports/reports/reports.module';
@@ -194,6 +195,7 @@ import { AiAssistantModule } from './marketplace/ai-assistant/ai-assistant.modul
     StaffModule,
     ShopsModule,
     CashRegisterModule,
+    MoneyModule,
     ActivityLogModule,
     SearchModule,
     ExportsModule,

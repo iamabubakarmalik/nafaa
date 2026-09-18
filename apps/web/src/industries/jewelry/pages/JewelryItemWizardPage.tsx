@@ -141,7 +141,7 @@ export default function JewelryItemWizardPage() {
   }, [isEdit, existingProduct, existingProfile, editLoaded, updateBasic, updateCharges, updateCertify]);
 
   const saveMutation = useMutation({
-    mutationFn: () => saveJewelryWizard(draft),
+    mutationFn: () => saveJewelryWizard(draft, isEdit ? id : undefined),
     onSuccess: (result) => {
       setSavedResult(result);
       queryClient.invalidateQueries({ queryKey: ['products'] });

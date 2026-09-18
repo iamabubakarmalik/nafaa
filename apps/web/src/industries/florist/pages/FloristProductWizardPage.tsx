@@ -106,7 +106,7 @@ export default function FloristProductWizardPage() {
   }, [isEdit, existingProduct, existingProfile, editLoaded, updateBasic, updateDetails, updateOccasions]);
 
   const saveMutation = useMutation({
-    mutationFn: () => saveFloristWizard(draft),
+    mutationFn: () => saveFloristWizard(draft, isEdit ? id : undefined),
     onSuccess: (result) => {
       setSavedResult(result);
       queryClient.invalidateQueries({ queryKey: ['florist-products-list'] });

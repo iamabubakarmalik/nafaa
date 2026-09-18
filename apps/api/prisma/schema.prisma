@@ -2018,6 +2018,20 @@ model TenantSettings {
   pinUnlockMinutes      Int     @default(15)
   /** Cost/profit by-default chhupa rahe ya nahi */
   hideCostByDefault     Boolean @default(false)
+
+  /**
+   * WhatsApp ke tayyar paighaam — dukaan-daar apne alfaaz me.
+   *
+   * Pehle WhatsApp ka sirf ek on/off switch tha jo "WhatsApp
+   * Business API" maangta tha — aam dukaan-daar ke liye be-kaar.
+   * Halanke `wa.me` link ke liye koi API chahiye hi nahi: phone
+   * par WhatsApp khul jata hai aur paighaam pehle se likha milta
+   * hai.
+   *
+   * Shakl: { receipt: "...", udhaar: "...", shukriya: "..." }
+   * Andar {{customer}}, {{total}} jaise khane bharay jate hain.
+   */
+  whatsappTemplates     Json?
   autoLogoutMinutes     Int     @default(60)
   enableTwoFactor       Boolean @default(false)
   maxLoginAttempts      Int     @default(5)

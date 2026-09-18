@@ -68,7 +68,7 @@ export default function RestaurantMenuItemWizardPage() {
   }, [isEdit, existingProduct, editLoaded, updateBasic]);
 
   const saveMutation = useMutation({
-    mutationFn: () => saveRestaurantWizard(draft),
+    mutationFn: () => saveRestaurantWizard(draft, isEdit ? id : undefined),
     onSuccess: (result) => {
       setSavedResult(result);
       queryClient.invalidateQueries({ queryKey: ['products'] });

@@ -125,7 +125,7 @@ export default function AutoPartWizardPage() {
   }, [isEdit, existingProduct, existingProfile, editLoaded, updateBasic, updateDetails, setHasFitment, setIsUniversal, addFitment]);
 
   const saveMutation = useMutation({
-    mutationFn: () => saveAutoPartsWizard(draft),
+    mutationFn: () => saveAutoPartsWizard(draft, isEdit ? id : undefined),
     onSuccess: (result) => {
       setSavedResult(result);
       queryClient.invalidateQueries({ queryKey: ['products'] });

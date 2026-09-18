@@ -159,7 +159,7 @@ export default function ShoeProductWizardPage() {
   }, [isEdit, existingProduct, existingProfile, existingVariants, editLoaded, updateBasic, updateMaterials, updateSizing, updateFeatures, updateWarranty, updatePricing, addSizeVariant]);
 
   const saveMutation = useMutation({
-    mutationFn: () => saveShoeWizard(draft),
+    mutationFn: () => saveShoeWizard(draft, isEdit ? id : undefined),
     onSuccess: (result) => {
       setSavedResult(result);
       queryClient.invalidateQueries({ queryKey: ['shoe-products-list'] });

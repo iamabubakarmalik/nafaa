@@ -139,7 +139,7 @@ export default function ApplianceProductWizardPage() {
   }, [isEdit, existingProduct, existingProfile, editLoaded, updateBasic, updateSpecs, updateWarranty, updateInstallation]);
 
   const saveMutation = useMutation({
-    mutationFn: () => saveApplianceWizard(draft),
+    mutationFn: () => saveApplianceWizard(draft, isEdit ? id : undefined),
     onSuccess: (result) => {
       setSavedResult(result);
       queryClient.invalidateQueries({ queryKey: ['appliances-products-list'] });

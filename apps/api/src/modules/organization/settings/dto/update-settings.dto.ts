@@ -2,7 +2,7 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   ArrayUnique, IsArray, IsBoolean, IsEmail, IsHexColor, IsIn,
-  IsInt, IsNumber, IsOptional, IsString, Matches, Max, Min, MaxLength,
+  IsInt, IsNumber, IsOptional, IsString, Matches, Max, Min, MaxLength, IsObject,
 } from 'class-validator';
 import {
   RECEIPT_SIZES, PAYMENT_METHODS, STOCK_METHODS, LANGUAGES,
@@ -110,6 +110,15 @@ export class UpdateSettingsDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() requirePinForRefund?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsString() @Matches(/^[0-9]{4,6}$/, { message: 'PIN 4-6 digits ka hona chahiye' })
   managerPin?: string;
+
+  /**
+   * WhatsApp ke tayyar paighaam — malik apne alfaaz me.
+   * { receipt: "...", udhaar: "...", shukriya: "..." }
+   */
+  @ApiPropertyOptional({ type: Object })
+  @IsOptional()
+  @IsObject()
+  whatsappTemplates?: Record<string, string>;
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(5) @Max(480) autoLogoutMinutes?: number;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() enableTwoFactor?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(3) @Max(10) maxLoginAttempts?: number;

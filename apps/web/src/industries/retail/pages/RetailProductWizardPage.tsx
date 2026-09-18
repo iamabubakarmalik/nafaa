@@ -97,7 +97,9 @@ export default function RetailProductWizardPage() {
           };
         }
       }
-      return saveRetailWizard(payload);
+      // Edit me product ka id bhejna LAZMI hai — warna wizard naya
+      // product bana deta tha aur purana waise ka waisa para rehta.
+      return saveRetailWizard(payload, isEdit ? id : undefined);
     },
     onSuccess: (result) => {
       setSavedResult(result);

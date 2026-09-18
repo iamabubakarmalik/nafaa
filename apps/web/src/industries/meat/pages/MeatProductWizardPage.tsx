@@ -135,7 +135,7 @@ export default function MeatProductWizardPage() {
   }, [isEdit, existingProduct, existingProfile, editLoaded, updateBasic, updateHalalQuality, updateOrigin]);
 
   const saveMutation = useMutation({
-    mutationFn: () => saveMeatWizard(draft),
+    mutationFn: () => saveMeatWizard(draft, isEdit ? id : undefined),
     onSuccess: (result) => {
       setSavedResult(result);
       queryClient.invalidateQueries({ queryKey: ['products'] });

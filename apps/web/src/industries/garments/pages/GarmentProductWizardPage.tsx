@@ -104,7 +104,7 @@ export default function GarmentProductWizardPage() {
   }, [isEdit, existingProduct, existingProfile, editLoaded, updateBasic]);
 
   const saveMutation = useMutation({
-    mutationFn: () => saveGarmentWizard(draft),
+    mutationFn: () => saveGarmentWizard(draft, isEdit ? id : undefined),
     onSuccess: (result) => {
       setSavedResult(result);
       queryClient.invalidateQueries({ queryKey: ['products'] });
