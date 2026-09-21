@@ -13,6 +13,164 @@ export class CashRegisterService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
+   * Register khulne se ab tak golak me jo kuch aaya aur gaya.
+   *
+   * Ye hisab `getCurrent()` aur `close()` DONO istemal karte hain.
+   * Pehle dono ke apne apne query thay aur wo aapas me alag ho gaye
+   * — kharch par `shopId` ka filter sirf ek jagah laga tha. Ab ek
+   * hi jagah, to dobara aisa nahi hoga.
+   */
+  private async computeLiveCash(tenantId: string, register: {
+    shopId: string | null;
+    openedAt: Date;
+    openingBalance: number;
+    totalCashIn: number;
+    totalCashOut: number;
+  }) {
+    const since = register.openedAt;
+    const shopWhere = register.shopId ? { shopId: register.shopId } : {};
+
+    const [
+      cashSales, allSales, cashExpenses, cashReturns,
+      cashPurchases, supplierPayments,
+    ] = await Promise.all([
+      // ─── AANA ─────────────────────────────────────────────
+      /** Cash wali bikri — yehi golak me aati hai */
+      this.prisma.sale.aggregate({
+        where: {
+          tenantId, ...shopWhere,
+          status: { not: 'VOIDED' },
+          paymentMethod: 'CASH',
+          soldAt: { gte: since },
+        },
+        _sum: { paidAmount: true },
+        _count: { _all: true },
+      }),
+
+      /** Saari bikri — cash ke ilawa bhi, taake poori tasveer bane */
+      this.prisma.sale.aggregate({
+        where: {
+          tenantId, ...shopWhere,
+          status: { not: 'VOIDED' },
+          soldAt: { gte: since },
+        },
+        _sum: { total: true, paidAmount: true, creditAmount: true },
+        _count: { _all: true },
+      }),
+
+      // ─── JAANA ────────────────────────────────────────────
+      /* Kharch — SIRF isi dukaan ka. Pehle `shopId` ka koi filter
+         nahi tha: do dukaanon wale tenant me doosri dukaan ka
+         kharch bhi isi golak se ghata diya jata tha. */
+      this.prisma.expense.aggregate({
+        where: {
+          tenantId, ...shopWhere,
+          paymentMethod: 'CASH',
+          status: 'PAID',
+          expenseDate: { gte: since },
+        },
+        _sum: { amount: true },
+        _count: { _all: true },
+      }),
+
+      /** Wapsi — cash wapas kiya to golak se nikla */
+      this.prisma.saleReturn.aggregate({
+        where: {
+          tenantId,
+          refundMethod: 'CASH',
+          returnedAt: { gte: since },
+          sale: { ...shopWhere },
+        },
+        _sum: { refundAmount: true },
+        _count: { _all: true },
+      }),
+
+      /* Kharidari jis ka paisa mauqe par cash diya gaya.
+         `paidAmount` hi ginte hain, `total` nahi — udhaar par liya
+         hua maal golak se paisa nahi nikalta. */
+      this.prisma.purchase.aggregate({
+        where: {
+          tenantId, ...shopWhere,
+          paymentMethod: 'CASH',
+          status: { not: 'CANCELLED' },
+          purchasedAt: { gte: since },
+        },
+        _sum: { paidAmount: true },
+        _count: { _all: true },
+      }),
+
+      /* Supplier ko baad me di gayi adaigi (khate se).
+         NOTE: SupplierLedger par abhi koi `paymentMethod` nahi hai,
+         is liye har PAYMENT_MADE ko cash maana ja raha hai — kiryana
+         me qariban hamesha cash hi hota hai. Jis din bank/cheque se
+         adaigi alag rakhni ho, ledger par payment-method ka column
+         chahiye hoga. */
+      this.prisma.supplierLedger.aggregate({
+        where: {
+          tenantId,
+          type: 'PAYMENT_MADE',
+          entryDate: { gte: since },
+          ...(register.shopId
+            ? { OR: [{ shopId: register.shopId }, { shopId: null }] }
+            : {}),
+        },
+        _sum: { amount: true },
+        _count: { _all: true },
+      }),
+    ]);
+
+    const n = (v: unknown) => Number(v ?? 0);
+
+    const cashSalesTotal = n(cashSales._sum.paidAmount);
+    const expensesTotal = n(cashExpenses._sum.amount);
+    const returnsTotal = n(cashReturns._sum?.refundAmount);
+    const purchasesTotal = n(cashPurchases._sum.paidAmount);
+    const supplierPaidTotal = n(supplierPayments._sum.amount);
+
+    const openingBalance = n(register.openingBalance);
+    const cashIn = n(register.totalCashIn);
+    const cashOut = n(register.totalCashOut);
+
+    const expected =
+      openingBalance +
+      cashSalesTotal +
+      cashIn -
+      cashOut -
+      expensesTotal -
+      returnsTotal -
+      purchasesTotal -
+      supplierPaidTotal;
+
+    return {
+      openingBalance,
+      cashSales: cashSalesTotal,
+      cashSalesCount: cashSales._count._all ?? 0,
+      cashIn,
+      cashOut,
+      expenses: expensesTotal,
+      expenseCount: cashExpenses._count._all ?? 0,
+      returns: returnsTotal,
+      returnCount: cashReturns._count._all ?? 0,
+      purchases: purchasesTotal,
+      purchaseCount: cashPurchases._count._all ?? 0,
+      supplierPaid: supplierPaidTotal,
+      supplierPaidCount: supplierPayments._count._all ?? 0,
+      expected,
+
+      /** Golak ke bahar ka paisa — card, wallet, udhaar */
+      allSalesTotal: n(allSales._sum.total),
+      allSalesPaid: n(allSales._sum.paidAmount),
+      creditGiven: n(allSales._sum.creditAmount),
+      billCount: allSales._count._all ?? 0,
+      nonCashCollected: n(allSales._sum.paidAmount) - cashSalesTotal,
+
+      openedAt: register.openedAt,
+      /** Register kitni der se khula hai (ghante) */
+      openHours: (Date.now() - new Date(register.openedAt).getTime()) / 3_600_000,
+    };
+  }
+
+  /**
    * Khula hua register — poore live hisab ke sath.
    *
    * Pehle yahan sirf database ki row wapas ki jati thi. Us ka
@@ -22,11 +180,7 @@ export class CashRegisterService {
    *
    * Nateeja: dukaan-daar din bhar ghalat "mutawaqqa" raqam dekhta
    * tha. Subah 5,000 se register khola, din bhar 40,000 ki cash
-   * bikri hui — aur screen phir bhi 5,000 dikhati rehti. Golak
-   * ginne ka koi faida hi nahi hota tha.
-   *
-   * Ab hisab LIVE hai: opening + cash bikri + haath se daala −
-   * haath se nikala − cash kharch − cash wapsi.
+   * bikri hui — aur screen phir bhi 5,000 dikhati rehti.
    */
   async getCurrent(user: AuthenticatedUser, scope: ShopScope) {
     const register = await this.prisma.cashRegister.findFirst({
@@ -44,101 +198,13 @@ export class CashRegisterService {
 
     if (!register) return null;
 
-    const since = register.openedAt;
-    const shopWhere = register.shopId ? { shopId: register.shopId } : {};
-
-    const [cashSales, allSales, cashExpenses, cashReturns] = await Promise.all([
-      // Cash wali bikri — yehi golak me aati hai
-      this.prisma.sale.aggregate({
-        where: {
-          tenantId: user.tenantId, ...shopWhere,
-          status: { not: 'VOIDED' },
-          paymentMethod: 'CASH',
-          soldAt: { gte: since },
-        },
-        _sum: { paidAmount: true },
-        _count: { _all: true },
-      }),
-
-      // Saari bikri — cash ke ilawa bhi, taake poori tasveer bane
-      this.prisma.sale.aggregate({
-        where: {
-          tenantId: user.tenantId, ...shopWhere,
-          status: { not: 'VOIDED' },
-          soldAt: { gte: since },
-        },
-        _sum: { total: true, paidAmount: true, creditAmount: true },
-        _count: { _all: true },
-      }),
-
-      /* Kharch — SIRF isi dukaan ka.
-         Pehle `shopId` ka koi filter nahi tha: do dukaanon wale
-         tenant me doosri dukaan ka kharch bhi isi golak se ghata
-         diya jata tha aur har raat hisab kam nikalta tha. */
-      this.prisma.expense.aggregate({
-        where: {
-          tenantId: user.tenantId, ...shopWhere,
-          paymentMethod: 'CASH',
-          status: 'PAID',
-          expenseDate: { gte: since },
-        },
-        _sum: { amount: true },
-        _count: { _all: true },
-      }),
-
-      // Wapsi — cash wapas kiya to golak se nikla
-      this.prisma.saleReturn.aggregate({
-        where: {
-          tenantId: user.tenantId,
-          refundMethod: 'CASH',
-          returnedAt: { gte: since },
-          sale: { ...shopWhere },
-        },
-        _sum: { refundAmount: true },
-        _count: { _all: true },
-      }),
-    ]);
-
-    const cashSalesTotal = Number(cashSales._sum.paidAmount ?? 0);
-    const expensesTotal = Number(cashExpenses._sum.amount ?? 0);
-    const returnsTotal = Number(cashReturns._sum?.refundAmount ?? 0);
-
-    const expected =
-      Number(register.openingBalance) +
-      cashSalesTotal +
-      Number(register.totalCashIn) -
-      Number(register.totalCashOut) -
-      expensesTotal -
-      returnsTotal;
+    const live = await this.computeLiveCash(user.tenantId, register);
 
     return {
       ...register,
       /** LIVE — database wale purane number ki jagah */
-      expectedBalance: expected,
-
-      live: {
-        openingBalance: Number(register.openingBalance),
-        cashSales: cashSalesTotal,
-        cashSalesCount: cashSales._count._all ?? 0,
-        cashIn: Number(register.totalCashIn),
-        cashOut: Number(register.totalCashOut),
-        expenses: expensesTotal,
-        expenseCount: cashExpenses._count._all ?? 0,
-        returns: returnsTotal,
-        returnCount: cashReturns._count._all ?? 0,
-        expected,
-
-        /** Golak ke bahar ka paisa — card, wallet, udhaar */
-        allSalesTotal: Number(allSales._sum.total ?? 0),
-        allSalesPaid: Number(allSales._sum.paidAmount ?? 0),
-        creditGiven: Number(allSales._sum.creditAmount ?? 0),
-        billCount: allSales._count._all ?? 0,
-        nonCashCollected: Number(allSales._sum.paidAmount ?? 0) - cashSalesTotal,
-
-        openedAt: register.openedAt,
-        /** Register kitni der se khula hai (ghante) */
-        openHours: (Date.now() - new Date(register.openedAt).getTime()) / 3_600_000,
-      },
+      expectedBalance: live.expected,
+      live,
     };
   }
 
@@ -248,49 +314,14 @@ export class CashRegisterService {
     });
     if (!register) throw new BadRequestException('Koi register open nahi hai');
 
-    // Cash sales for THIS shop during this register session
-    const cashSales = await this.prisma.sale.aggregate({
-      where: {
-        tenantId: user.tenantId,
-        shopId: register.shopId,
-        status: { not: 'VOIDED' },
-        paymentMethod: 'CASH',
-        soldAt: { gte: register.openedAt },
-      },
-      _sum: { paidAmount: true },
-    });
-    const totalCashSales = cashSales._sum.paidAmount ?? 0;
+    /* Band karte waqt wohi hisab jo din bhar screen par chalta
+       raha — ek hi jagah se. Pehle yahan apne alag query thay aur
+       dono taraf ka hisab chup-chaap alag ho gaya tha. */
+    const live = await this.computeLiveCash(user.tenantId, register as any);
 
-    /* Kharch sirf isi dukaan ka — pehle shopId ka filter nahi tha
-       aur doosri dukaan ka kharch bhi is golak se ghata diya jata. */
-    const cashExpenses = await this.prisma.expense.aggregate({
-      where: {
-        tenantId: user.tenantId,
-        ...(register.shopId ? { shopId: register.shopId } : {}),
-        paymentMethod: 'CASH',
-        status: 'PAID',
-        expenseDate: { gte: register.openedAt },
-      },
-      _sum: { amount: true },
-    });
-
-    /* Cash wapsi bhi golak se nikalti hai — pehle ginti hi nahi jati
-       thi, is liye raat ko hisab hamesha zyada nikalta tha. */
-    const cashReturns = await this.prisma.saleReturn.aggregate({
-      where: {
-        tenantId: user.tenantId,
-        refundMethod: 'CASH',
-        returnedAt: { gte: register.openedAt },
-        sale: register.shopId ? { shopId: register.shopId } : {},
-      },
-      _sum: { refundAmount: true },
-    });
-    const totalCashReturns = Number(cashReturns._sum?.refundAmount ?? 0);
-    const totalCashExpenses = cashExpenses._sum.amount ?? 0;
-
-    const expectedFinal =
-      register.openingBalance + totalCashSales + register.totalCashIn -
-      register.totalCashOut - totalCashExpenses - totalCashReturns;
+    const totalCashSales = live.cashSales;
+    const totalCashExpenses = live.expenses;
+    const expectedFinal = live.expected;
 
     const difference = dto.closingBalance - expectedFinal;
 
@@ -318,7 +349,12 @@ export class CashRegisterService {
           type: 'CLOSING',
           amount: dto.closingBalance,
           reason: 'Register closed',
-          note: `Difference: ${difference}`,
+          note:
+            `Difference: ${difference} | opening ${live.openingBalance}` +
+            ` + bikri ${live.cashSales} + daala ${live.cashIn}` +
+            ` − nikala ${live.cashOut} − kharch ${live.expenses}` +
+            ` − wapsi ${live.returns} − kharidari ${live.purchases}` +
+            ` − supplier ${live.supplierPaid}`,
         },
       });
 

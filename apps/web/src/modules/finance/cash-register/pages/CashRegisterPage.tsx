@@ -419,8 +419,17 @@ export default function CashRegisterPage() {
             />
             <StatCard
               label="Golak se nikla"
-              value={formatPKR((current.live?.expenses ?? 0) + (current.live?.returns ?? 0) + current.totalCashOut)}
-              sub={`Kharch ${formatPKR(current.live?.expenses ?? 0)} · wapsi ${formatPKR(current.live?.returns ?? 0)}`}
+              value={formatPKR(
+                (current.live?.expenses ?? 0) + (current.live?.returns ?? 0) +
+                (current.live?.purchases ?? 0) + (current.live?.supplierPaid ?? 0) +
+                current.totalCashOut
+              )}
+              sub={[
+                `Kharch ${formatPKR(current.live?.expenses ?? 0)}`,
+                (current.live?.purchases ?? 0) > 0 ? `maal ${formatPKR(current.live?.purchases ?? 0)}` : null,
+                (current.live?.supplierPaid ?? 0) > 0 ? `supplier ${formatPKR(current.live?.supplierPaid ?? 0)}` : null,
+                (current.live?.returns ?? 0) > 0 ? `wapsi ${formatPKR(current.live?.returns ?? 0)}` : null,
+              ].filter(Boolean).join(' · ')}
               icon={ArrowUpFromLine}
               tone="rose"
               tinted
@@ -466,6 +475,14 @@ export default function CashRegisterPage() {
               {(current.live?.returns ?? 0) > 0 && (
                 <LedgerRow label="Wapsi me diya" value={current.live?.returns ?? 0} sign="−" tone="amber"
                   note={`${current.live?.returnCount ?? 0} wapsi`} />
+              )}
+              {(current.live?.purchases ?? 0) > 0 && (
+                <LedgerRow label="Maal khareeda (cash)" value={current.live?.purchases ?? 0} sign="−" tone="rose"
+                  note={`${current.live?.purchaseCount ?? 0} kharidari`} />
+              )}
+              {(current.live?.supplierPaid ?? 0) > 0 && (
+                <LedgerRow label="Supplier ko diya" value={current.live?.supplierPaid ?? 0} sign="−" tone="rose"
+                  note={`${current.live?.supplierPaidCount ?? 0} adaigi`} />
               )}
               <LedgerRow label="Golak me hona chahiye" value={current.expectedBalance} sign="=" tone="final" big />
             </div>

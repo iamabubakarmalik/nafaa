@@ -1,4 +1,6 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import JsBarcode from 'jsbarcode';
+import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Search, ShoppingCart, Package, X, Plus, Minus, Trash2,
@@ -130,15 +132,38 @@ interface PrintPayload {
   paymentLabel: string;
 }
 
-/* Decorative barcode (scannable nahi — sirf look) */
-function pseudoBarcode(seed: string): string {
-  let bars = '';
-  for (let i = 0; i < seed.length * 3; i++) {
-    const code = seed.charCodeAt(i % seed.length) + i;
-    const w = 1 + (code % 3);
-    bars += `<span style="display:inline-block;width:${w}px;height:34px;background:#000;margin-right:${1 + (code % 2)}px;"></span>`;
+/**
+ * Bill par ASLI CODE128 barcode.
+ *
+ * Pehle yahan `pseudoBarcode()` tha — lakeeron ki chaurai
+ * `charCodeAt % 3` se nikalti thi. Dekhne me barcode lagta tha,
+ * magar koi scanner use parh hi nahi sakta tha. Ab asli CODE128:
+ * purana bill haath me ho to gun se scan karke wohi bill khul
+ * jata hai.
+ *
+ * SVG yahan (parent window me) banta hai aur text ban kar print
+ * wale safhe me jata hai — us nayi window me JsBarcode maujood
+ * nahi hota.
+ */
+function realBarcodeSvg(value: string, widthMm: '80' | '58'): string {
+  if (!value) return '';
+  try {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    JsBarcode(svg, value, {
+      format: 'CODE128',
+      /* 203-dpi head par 1.1 ki lakeer aadhe dot par girti hai aur
+         scanner chook jata hai; itni chaurai par poore do dot. */
+      width: widthMm === '80' ? 1.6 : 1.3,
+      height: 45,
+      margin: 0,
+      displayValue: false,
+      lineColor: '#000000',
+      background: '#ffffff',
+    });
+    return new XMLSerializer().serializeToString(svg);
+  } catch {
+    return '';
   }
-  return bars;
 }
 
 function printReceiptDirect(p: PrintPayload, widthMm: '80' | '58'): boolean {
@@ -157,33 +182,55 @@ function printReceiptDirect(p: PrintPayload, widthMm: '80' | '58'): boolean {
   const html = `<!doctype html>
 <html><head><meta charset="utf-8"/><title>${p.saleNumber}</title>
 <style>
+  /* ─────────────────────────────────────────────────────────
+     Kaghaz par har harf saaf chhapna chahiye.
+
+     Purani receipt bareek nikalti thi. Do wajuhat:
+       1. Courier New 400-weight — us ke danday 203-dpi thermal
+          head par ek hi dot chaure bante hain, jo kaghaz par
+          mushkil se nazar aate hain.
+       2. Pata/phone 9px par, aur item ki tafseel 11px par
+          bagair kisi weight ke — yehi lakeerein sab se pehle
+          gayab hoti hain.
+
+     Ab sans-serif (Courier se mote danday), har cheez kam se kam
+     700 weight, naap bara, aur anti-aliasing band — warna browser
+     kinaron par halke grey pixel banata hai jo thermal head
+     chhaap hi nahi pata aur harf khokhla nazar aata hai.
+     ───────────────────────────────────────────────────────── */
   @page { size: ${widthMm}mm auto; margin: 0; }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  * {
+    box-sizing: border-box; margin: 0; padding: 0;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    -webkit-font-smoothing: none; text-rendering: geometricPrecision;
+  }
   html, body { width: ${widthMm}mm; }
   body {
-    font-family: 'Courier New', monospace;
+    font-family: Arial, Helvetica, 'Segoe UI', sans-serif;
     padding: ${widthMm === '80' ? '4mm 3mm' : '3mm 2mm'};
     color: #000;
-    font-size: ${widthMm === '80' ? '12px' : '10px'};
-    line-height: 1.35;
+    font-size: ${widthMm === '80' ? '13.5px' : '11.5px'};
+    font-weight: 700;
+    line-height: 1.4;
     background: #fff;
   }
   .c { text-align: center; }
-  .b { font-weight: 700; }
-  .shop { font-size: ${widthMm === '80' ? '17px' : '14px'}; font-weight: 800; letter-spacing: 0.5px; }
-  .sub { font-size: ${widthMm === '80' ? '9px' : '8px'}; margin-top: 1px; }
-  .div { border-top: 1px dashed #000; margin: 6px 0; }
-  .dbl { border-top: 2px solid #000; margin: 6px 0; }
-  .row { display: flex; justify-content: space-between; gap: 6px; margin: 2px 0; }
-  .row .v { text-align: right; font-weight: 700; }
-  .item { margin: 3px 0; }
-  .iname { font-weight: 700; word-break: break-word; }
-  .irow { display: flex; justify-content: space-between; font-size: ${widthMm === '80' ? '11px' : '9px'}; }
-  .iamt { font-weight: 800; }
-  .total-row { display: flex; justify-content: space-between; font-size: ${widthMm === '80' ? '17px' : '14px'}; font-weight: 800; margin: 4px 0; }
-  .barcode { text-align: center; margin: 8px 0 2px; letter-spacing: 1px; }
-  .barnum { font-size: 9px; font-weight: 700; margin-top: 2px; }
-  .thanks { font-size: ${widthMm === '80' ? '10px' : '9px'}; margin-top: 6px; }
+  .b { font-weight: 900; }
+  .shop { font-size: ${widthMm === '80' ? '20px' : '16px'}; font-weight: 900; letter-spacing: 0.3px; }
+  .sub { font-size: ${widthMm === '80' ? '11.5px' : '10px'}; font-weight: 700; margin-top: 2px; }
+  .div { border-top: 1.5px dashed #000; margin: 6px 0; }
+  .dbl { border-top: 2.5px solid #000; margin: 6px 0; }
+  .row { display: flex; justify-content: space-between; gap: 6px; margin: 3px 0; }
+  .row .v { text-align: right; font-weight: 800; }
+  .item { margin: 4px 0; }
+  .iname { font-weight: 900; word-break: break-word; }
+  .irow { display: flex; justify-content: space-between; font-weight: 700; font-size: ${widthMm === '80' ? '12.5px' : '10.5px'}; }
+  .iamt { font-weight: 900; }
+  .total-row { display: flex; justify-content: space-between; font-size: ${widthMm === '80' ? '20px' : '16px'}; font-weight: 900; margin: 5px 0; }
+  .barcode { text-align: center; margin: 8px 0 2px; }
+  .barcode svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+  .barnum { font-size: 10.5px; font-weight: 800; letter-spacing: 1.5px; margin-top: 3px; }
+  .thanks { font-size: ${widthMm === '80' ? '11.5px' : '10px'}; font-weight: 700; margin-top: 6px; }
 </style></head><body>
   <div class="c shop">${escapeHtml(p.shopName)}</div>
   ${p.shopAddress ? `<div class="c sub">${escapeHtml(p.shopAddress)}</div>` : ''}
@@ -211,7 +258,7 @@ function printReceiptDirect(p: PrintPayload, widthMm: '80' | '58'): boolean {
   ${p.paid > p.total ? `<div class="row b"><span>CHANGE (wapis dein)</span><span class="v">${formatPKR(p.paid - p.total)}</span></div>` : ''}
   ${p.paid < p.total ? `<div class="row b"><span>UDHAAR (baqi)</span><span class="v">${formatPKR(p.total - p.paid)}</span></div>` : ''}
   <div class="div"></div>
-  <div class="barcode">${pseudoBarcode(p.saleNumber)}<div class="barnum">${escapeHtml(p.saleNumber)}</div></div>
+  <div class="barcode">${realBarcodeSvg(p.saleNumber, widthMm)}<div class="barnum">${escapeHtml(p.saleNumber)}</div></div>
   <div class="div"></div>
   <div class="c thanks">Shukriya! Phir tashreef laiye.</div>
   <div class="c sub" style="margin-top:2px;">Powered by Nafaa POS</div>
@@ -2326,18 +2373,14 @@ function CartPanel({
 
       <div className="shrink-0 px-3 py-2.5 border-b-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60">
         <div className="flex gap-2">
-          <div className="relative flex-1">
-            <User className="h-4 w-4 sm:h-5 sm:w-5 text-violet-600 dark:text-violet-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <select value={customerId} onChange={(e) => setCustomerId(e.target.value)}
-              className="h-12 sm:h-14 w-full rounded-2xl border-4 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-10 sm:pl-11 pr-9 text-sm sm:text-base font-bold text-slate-900 dark:text-white focus:outline-none focus:border-violet-500 appearance-none">
-              <option value="">Walk-in Customer</option>
-              {customers.map((c: any) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}{c.balance > 0 ? ` • Udhaar ${formatPKR(c.balance)}` : ''}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <div className="flex-1 min-w-0">
+            <CustomerPicker
+              customers={customers}
+              customerId={customerId}
+              setCustomerId={setCustomerId}
+              selectedCustomer={selectedCustomer}
+              onAddCustomer={onAddCustomer}
+            />
           </div>
           <button onClick={onAddCustomer}
             className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-violet-600 hover:bg-violet-700 active:scale-95 text-white flex items-center justify-center shadow-md shrink-0 transition">
@@ -2628,5 +2671,235 @@ function TipRow({ children }: { children: React.ReactNode }) {
       <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
       <span>{children}</span>
     </div>
+  );
+}
+
+/* ═════════════════════════════════════════════════════════════
+   CUSTOMER PICKER — naam likh kar dhoondo
+   ─────────────────────────────────────────────────────────────
+   Pehle yahan saada <select> tha. Jis dukaan ke 200 khatedaar
+   hain, wahan counter par aadmi poori list me neeche scroll
+   karta reh jata tha — naam likh kar dhoondne ka koi zariya
+   nahi tha.
+
+   Ab: likho, list chhant jati hai. Naam, phone, dono se milta
+   hai. Teer ke nishan se chalo, Enter se chuno, Esc se band.
+   ═════════════════════════════════════════════════════════════ */
+function CustomerPicker({
+  customers, customerId, setCustomerId, selectedCustomer, onAddCustomer,
+}: {
+  customers: any[];
+  customerId: string;
+  setCustomerId: (id: string) => void;
+  selectedCustomer?: any;
+  onAddCustomer: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState('');
+  const [hi, setHi] = useState(0);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<{ top: number; left: number; width: number } | null>(null);
+
+  /* Cart panel par `overflow-hidden` hai — andar rakha panel kat
+     jata. Is liye portal se seedha <body> me, button ki asli
+     jagah naap kar. */
+  useEffect(() => {
+    if (!open) return;
+    const place = () => {
+      const el = btnRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const width = Math.max(r.width, 280);
+      setPos({
+        top: r.bottom + 6,
+        left: Math.min(r.left, window.innerWidth - width - 8),
+        width,
+      });
+    };
+    place();
+    window.addEventListener('resize', place);
+    window.addEventListener('scroll', place, true);
+    return () => {
+      window.removeEventListener('resize', place);
+      window.removeEventListener('scroll', place, true);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (open) setTimeout(() => inputRef.current?.focus(), 30);
+    else { setQ(''); setHi(0); }
+  }, [open]);
+
+  const filtered = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    if (!needle) return customers;
+    return customers.filter((c: any) =>
+      (c.name || '').toLowerCase().includes(needle) ||
+      (c.phone || '').toLowerCase().includes(needle)
+    );
+  }, [customers, q]);
+
+  /** Walk-in hamesha pehli qatar — is liye index 0 usi ka hai */
+  const rows = useMemo(() => [null, ...filtered], [filtered]);
+
+  useEffect(() => { setHi(0); }, [q]);
+
+  const choose = (c: any | null) => {
+    setCustomerId(c ? c.id : '');
+    setOpen(false);
+  };
+
+  const onKey = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') { e.preventDefault(); setOpen(false); return; }
+    if (e.key === 'ArrowDown') { e.preventDefault(); setHi((i) => Math.min(i + 1, rows.length - 1)); }
+    if (e.key === 'ArrowUp') { e.preventDefault(); setHi((i) => Math.max(i - 1, 0)); }
+    if (e.key === 'Enter') { e.preventDefault(); choose(rows[hi] ?? null); }
+  };
+
+  useEffect(() => {
+    listRef.current?.querySelector('[data-hi="1"]')?.scrollIntoView({ block: 'nearest' });
+  }, [hi]);
+
+  const totalUdhaar = useMemo(
+    () => customers.reduce((s: number, c: any) => s + (Number(c.balance) > 0 ? Number(c.balance) : 0), 0),
+    [customers]
+  );
+
+  return (
+    <>
+      <button
+        ref={btnRef}
+        onClick={() => setOpen((v) => !v)}
+        className={`h-12 sm:h-14 w-full rounded-2xl border-4 bg-white dark:bg-slate-800 pl-3 pr-3 flex items-center gap-2.5 text-left transition ${
+          open
+            ? 'border-violet-500 ring-4 ring-violet-200 dark:ring-violet-500/25'
+            : 'border-slate-200 dark:border-slate-700 hover:border-violet-400'
+        }`}
+      >
+        <span className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl bg-violet-100 dark:bg-violet-500/20 flex items-center justify-center shrink-0">
+          <User className="h-4 w-4 sm:h-5 sm:w-5 text-violet-600 dark:text-violet-400" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+            {selectedCustomer ? selectedCustomer.name : 'Walk-in Customer'}
+          </span>
+          {selectedCustomer?.balance > 0 && (
+            <span className="block text-[11px] font-extrabold text-amber-600 dark:text-amber-400">
+              Udhaar {formatPKR(selectedCustomer.balance)}
+            </span>
+          )}
+        </span>
+        <Search className="h-4 w-4 text-slate-400 shrink-0" />
+        <ChevronDown className={`h-4 w-4 sm:h-5 sm:w-5 text-slate-400 shrink-0 transition ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && pos && createPortal(
+        <>
+          <div className="fixed inset-0 z-[80]" onClick={() => setOpen(false)} />
+          <div
+            style={{ top: pos.top, left: pos.left, width: pos.width }}
+            className="fixed z-[81] rounded-2xl bg-white dark:bg-slate-900 border-4 border-violet-300 dark:border-violet-500/40 shadow-2xl overflow-hidden"
+          >
+            <div className="p-2.5 border-b-2 border-slate-100 dark:border-slate-800 bg-violet-50 dark:bg-violet-500/10">
+              <div className="relative">
+                <Search className="h-4 w-4 text-violet-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  ref={inputRef}
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  onKeyDown={onKey}
+                  placeholder="Naam ya phone likho…"
+                  className="h-11 w-full rounded-xl border-2 border-violet-200 dark:border-violet-500/30 bg-white dark:bg-slate-800 pl-9 pr-8 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-violet-500"
+                />
+                {q && (
+                  <button
+                    onClick={() => { setQ(''); inputRef.current?.focus(); }}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center"
+                  >
+                    <X className="h-3.5 w-3.5 text-slate-400" />
+                  </button>
+                )}
+              </div>
+              <div className="mt-1.5 flex items-center justify-between text-[10px] font-extrabold uppercase tracking-wider">
+                <span className="text-slate-500 dark:text-slate-400">{filtered.length} customer</span>
+                {totalUdhaar > 0 && (
+                  <span className="text-amber-600 dark:text-amber-400">Kul udhaar {formatPKR(totalUdhaar)}</span>
+                )}
+              </div>
+            </div>
+
+            <div ref={listRef} className="max-h-[46vh] overflow-y-auto">
+              <button
+                data-hi={hi === 0 ? '1' : '0'}
+                onClick={() => choose(null)}
+                className={`w-full px-3 py-2.5 flex items-center gap-2.5 text-left border-b border-slate-100 dark:border-slate-800 transition ${
+                  hi === 0 ? 'bg-violet-100 dark:bg-violet-500/20' : 'hover:bg-slate-50 dark:hover:bg-slate-800'
+                }`}
+              >
+                <span className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                  <User className="h-4 w-4 text-slate-500" />
+                </span>
+                <span className="font-extrabold text-sm text-slate-700 dark:text-slate-200">Walk-in Customer</span>
+                {!customerId && <Check className="h-4 w-4 text-violet-600 ml-auto shrink-0" />}
+              </button>
+
+              {filtered.length === 0 ? (
+                <div className="px-3 py-8 text-center">
+                  <p className="text-sm font-extrabold text-slate-600 dark:text-slate-300">Koi customer nahi mila</p>
+                  <p className="text-[11px] font-bold text-slate-400 mt-1">"{q}" ke naam se kuch nahi</p>
+                  <button
+                    onClick={() => { setOpen(false); onAddCustomer(); }}
+                    className="mt-3 h-10 px-4 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-extrabold inline-flex items-center gap-1.5"
+                  >
+                    <UserPlus className="h-4 w-4" /> Naya customer banao
+                  </button>
+                </div>
+              ) : (
+                filtered.map((c: any, idx: number) => {
+                  const i = idx + 1;
+                  const bal = Number(c.balance) || 0;
+                  return (
+                    <button
+                      key={c.id}
+                      data-hi={hi === i ? '1' : '0'}
+                      onClick={() => choose(c)}
+                      className={`w-full px-3 py-2.5 flex items-center gap-2.5 text-left border-b border-slate-100 dark:border-slate-800 transition ${
+                        hi === i ? 'bg-violet-100 dark:bg-violet-500/20' : 'hover:bg-slate-50 dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      <span className="h-8 w-8 rounded-lg bg-violet-100 dark:bg-violet-500/20 flex items-center justify-center shrink-0 text-xs font-black text-violet-700 dark:text-violet-300">
+                        {(c.name || '?').trim().charAt(0).toUpperCase()}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-extrabold text-slate-900 dark:text-white">{c.name}</span>
+                        {c.phone && (
+                          <span className="block text-[11px] font-bold text-slate-400 tabular-nums">{c.phone}</span>
+                        )}
+                      </span>
+                      {bal > 0 && (
+                        <span className="shrink-0 text-[11px] font-black text-amber-600 dark:text-amber-400 tabular-nums">
+                          {formatPKR(bal)}
+                        </span>
+                      )}
+                      {customerId === c.id && <Check className="h-4 w-4 text-violet-600 shrink-0" />}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+
+            <button
+              onClick={() => { setOpen(false); onAddCustomer(); }}
+              className="w-full h-12 bg-violet-600 hover:bg-violet-700 text-white text-sm font-extrabold inline-flex items-center justify-center gap-2 transition"
+            >
+              <UserPlus className="h-4 w-4" /> Naya customer
+            </button>
+          </div>
+        </>,
+        document.body,
+      )}
+    </>
   );
 }

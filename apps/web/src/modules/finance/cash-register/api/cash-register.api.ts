@@ -50,6 +50,12 @@ export interface CashRegister {
     expenseCount: number;
     returns: number;
     returnCount: number;
+    /** Kharidari jis ka paisa mauqe par cash diya */
+    purchases: number;
+    purchaseCount: number;
+    /** Supplier ko khate se di gayi adaigi */
+    supplierPaid: number;
+    supplierPaidCount: number;
     expected: number;
     /** Golak ke bahar ka paisa — card, wallet, udhaar */
     allSalesTotal: number;

@@ -120,12 +120,17 @@ function ReceiptBarcode({ value }: { value: string }) {
   useEffect(() => {
     if (!ref.current || !value) return;
     try {
+      /* Thermal head 203 dpi ka hota hai. `width: 1.1` par patli
+         lakeer aadhe dot par girti hai aur scanner chook jata hai;
+         1.6 par har lakeer poore do dot ki banti hai. Unchai bhi
+         barhai — gun ko seedha nishana lagane ki zaroorat nahi. */
       JsBarcode(ref.current, value, {
         format: 'CODE128',
-        width: 1.1,
-        height: 30,
+        width: 1.6,
+        height: 42,
         margin: 0,
         displayValue: false,
+        lineColor: '#000000',
       });
     } catch { /* value barcode me nahi dhal sakti */ }
   }, [value]);
@@ -527,34 +532,56 @@ export default function RetailReceiptPage() {
 function PrintStyles() {
   return (
     <style>{`
-      .receipt-paper { padding: 16px 12px; font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; line-height: 1.35; color: #000; }
+      /* ─────────────────────────────────────────────────────
+         THERMAL RECEIPT — gehra aur mota
+         ─────────────────────────────────────────────────────
+         Purana bill kaghaz par itna bareek chhapta tha ke parha
+         hi nahi jata tha. Do wajuhat thin:
+
+         1. Halke rang — .rc-sub par #444, label par #666, item
+            ki tafseel par #888. Thermal printer grey nahi chhapta;
+            wo use bikhre huye nuqton (dither) me todta hai, aur
+            chhote naap par wo nuqte gayab ho jate hain.
+
+         2. Patla font — tafseel wali lakeeron par koi weight nahi
+            tha (400). 203-dpi thermal head par 400-weight ka danda
+            ek hi dot chaura banta hai, jo kaghaz par mushkil se
+            nazar aata hai.
+
+         Ab: har harf kaala (#000), kam se kam 600 weight, aur naap
+         bara. Grey ka istemal bilkul khatam. */
+      .receipt-paper {
+        padding: 16px 12px;
+        font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 13px; line-height: 1.4; color: #000; font-weight: 600;
+      }
       .rc-center { text-align: center; }
-      .rc-shop { font-size: 17px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; }
-      .rc-sub { font-size: 10.5px; color: #444; }
-      .rc-logo { max-height: 48px; max-width: 70%; margin: 0 auto 6px; object-fit: contain; filter: grayscale(1) contrast(1.4); }
-      .rc-div-dash { border-top: 1px dashed #999; margin: 8px 0; }
-      .rc-row { display: flex; justify-content: space-between; gap: 8px; margin: 2px 0; }
-      .rc-head { font-weight: 800; border-bottom: 1.5px solid #000; padding-bottom: 3px; margin-bottom: 4px; }
+      .rc-shop { font-size: 19px; font-weight: 900; letter-spacing: .3px; text-transform: uppercase; }
+      .rc-sub { font-size: 12px; color: #000; font-weight: 600; }
+      .rc-logo { max-height: 48px; max-width: 70%; margin: 0 auto 6px; object-fit: contain; filter: grayscale(1) contrast(2); }
+      .rc-div-dash { border-top: 1.5px dashed #000; margin: 8px 0; }
+      .rc-row { display: flex; justify-content: space-between; gap: 8px; margin: 3px 0; }
+      .rc-head { font-weight: 900; border-bottom: 2px solid #000; padding-bottom: 3px; margin-bottom: 5px; }
       .rc-meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin: 2px 0; }
       .rc-meta-cell { display: flex; flex-direction: column; }
       .rc-meta-cell.rc-right { text-align: right; align-items: flex-end; }
-      .rc-meta-label { font-size: 9px; text-transform: uppercase; letter-spacing: .5px; color: #666; font-weight: 700; }
-      .rc-meta-value { font-size: 12px; font-weight: 800; word-break: break-all; }
-      .rc-item { margin-bottom: 5px; page-break-inside: avoid; break-inside: avoid; }
-      .rc-iname { font-weight: 700; }
-      .rc-inum { color: #888; font-weight: 400; font-size: 10px; }
-      .rc-idetail { font-size: 11px; }
-      .rc-dim { color: #555; }
-      .rc-total { display: flex; justify-content: space-between; font-size: 16px; font-weight: 800; border-top: 2px solid #000; border-bottom: 2px solid #000; padding: 4px 0; margin: 6px 0; }
-      .rc-credit { display: flex; justify-content: space-between; font-weight: 800; background: #f3f4f6; border: 1.5px solid #000; padding: 4px 6px; border-radius: 4px; margin-top: 4px; }
-      .rc-saving { text-align: center; font-size: 11px; font-weight: 700; margin-top: 6px; border: 1px dashed #999; border-radius: 6px; padding: 4px; }
+      .rc-meta-label { font-size: 10px; text-transform: uppercase; letter-spacing: .4px; color: #000; font-weight: 800; }
+      .rc-meta-value { font-size: 13px; font-weight: 800; word-break: break-all; }
+      .rc-item { margin-bottom: 6px; page-break-inside: avoid; break-inside: avoid; }
+      .rc-iname { font-weight: 800; }
+      .rc-inum { color: #000; font-weight: 800; font-size: 12px; }
+      .rc-idetail { font-size: 12.5px; font-weight: 700; }
+      .rc-dim { color: #000; font-weight: 700; }
+      .rc-total { display: flex; justify-content: space-between; font-size: 19px; font-weight: 900; border-top: 2.5px solid #000; border-bottom: 2.5px solid #000; padding: 5px 0; margin: 7px 0; }
+      .rc-credit { display: flex; justify-content: space-between; font-weight: 900; background: #fff; border: 2px solid #000; padding: 5px 6px; border-radius: 4px; margin-top: 4px; }
+      .rc-saving { text-align: center; font-size: 12px; font-weight: 800; margin-top: 6px; border: 1.5px dashed #000; border-radius: 6px; padding: 5px; }
       .rc-barcode { display: flex; align-items: center; justify-content: center; margin-top: 10px; }
       .rc-barcode svg { max-width: 100%; height: auto; }
       .rc-bar { display: inline-block; height: 100%; background: #000; }
-      .rc-powered { text-align: center; font-size: 10px; color: #555; margin-top: 8px; font-weight: 600; }
-      .rc-powered b { font-weight: 800; color: #000; }
-      .rc-powered-star { color: #999; }
-      .rc-cut { text-align: center; color: #bbb; font-size: 10px; margin-top: 10px; letter-spacing: 2px; white-space: nowrap; overflow: hidden; }
+      .rc-powered { text-align: center; font-size: 11px; color: #000; margin-top: 8px; font-weight: 700; }
+      .rc-powered b { font-weight: 900; color: #000; }
+      .rc-powered-star { color: #000; }
+      .rc-cut { text-align: center; color: #000; font-size: 11px; margin-top: 10px; letter-spacing: 2px; white-space: nowrap; overflow: hidden; font-weight: 700; }
       .rc-fbr { margin: 4px auto; }
 
       @media print {
@@ -566,23 +593,54 @@ function PrintStyles() {
           width: 100% !important; max-width: 100% !important;
           padding: 4mm 2mm !important;
         }
+
+        /* Har harf thos kaala. Anti-aliasing band — warna browser
+           kinaron par halke grey pixel banata hai, aur thermal head
+           unhein chhaap hi nahi pata: harf khokhla nazar aata hai. */
         #receipt-paper, #receipt-paper * {
           color: #000 !important; background: #fff !important;
           -webkit-print-color-adjust: exact; print-color-adjust: exact;
           text-shadow: none !important; box-shadow: none !important;
+          -webkit-font-smoothing: none !important;
+          -moz-osx-font-smoothing: unset !important;
+          text-rendering: geometricPrecision !important;
+          opacity: 1 !important; filter: none !important;
         }
-        #receipt-paper .rc-credit { background: #fff !important; border: 1.5px solid #000 !important; }
-        #receipt-paper .rc-div-dash { border-top-color: #000 !important; }
-        #receipt-paper .rc-logo { filter: grayscale(1) contrast(2) !important; }
+
+        /* 600 se halka kuch bhi nahi — patli lakeer chhapti nahi. */
+        #receipt-paper * { font-weight: 600; }
+        #receipt-paper .rc-shop,
+        #receipt-paper .rc-total,
+        #receipt-paper .rc-head,
+        #receipt-paper .rc-credit,
+        #receipt-paper .rc-iname,
+        #receipt-paper .rc-meta-value { font-weight: 900 !important; }
+
+        #receipt-paper .rc-credit { background: #fff !important; border: 2px solid #000 !important; }
+        #receipt-paper .rc-div-dash { border-top: 1.5px dashed #000 !important; }
+        #receipt-paper .rc-logo { filter: grayscale(1) contrast(3) !important; }
         #receipt-paper .rc-bar { background: #000 !important; }
+
+        /* Lucide ke chhote icon kaghaz par sirf dhabba bante hain —
+           unhein chhupao. Magar barcode ZAROOR chhape: purana bill
+           haath me ho to scanner usi se bill nikalta hai. Pehle
+           yahan sirf 'svg { display: none }' tha, jo barcode ko bhi
+           kha jata tha. */
         #receipt-paper svg { display: none; }
+        #receipt-paper .rc-barcode svg { display: block !important; max-width: 100% !important; height: auto !important; }
 
         @page { margin: 0; size: auto; }
-        body[data-paper="58"] #receipt-paper { width: 58mm !important; font-size: 10px; }
-        body[data-paper="58"] #receipt-paper .rc-shop { font-size: 13px; }
-        body[data-paper="58"] #receipt-paper .rc-total { font-size: 13px; }
-        body[data-paper="58"] #receipt-paper .rc-barcode { height: 20px; }
-        body[data-paper="80"] #receipt-paper { width: 80mm !important; }
+
+        body[data-paper="58"] #receipt-paper { width: 58mm !important; font-size: 11.5px; }
+        body[data-paper="58"] #receipt-paper .rc-shop { font-size: 15px; }
+        body[data-paper="58"] #receipt-paper .rc-total { font-size: 15px; }
+        body[data-paper="58"] #receipt-paper .rc-idetail { font-size: 11px; }
+        body[data-paper="58"] #receipt-paper .rc-meta-value { font-size: 11.5px; }
+        body[data-paper="58"] #receipt-paper .rc-barcode svg { height: 34px !important; }
+
+        body[data-paper="80"] #receipt-paper { width: 80mm !important; font-size: 13.5px; }
+        body[data-paper="80"] #receipt-paper .rc-shop { font-size: 20px; }
+        body[data-paper="80"] #receipt-paper .rc-total { font-size: 20px; }
 
         .rc-item, .rc-total, .rc-row { page-break-inside: avoid; break-inside: avoid; }
       }
