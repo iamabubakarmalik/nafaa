@@ -392,6 +392,7 @@ export default function BakeryProductDetailPage() {
   const shape = SHAPES.find((s) => s.value === profile?.defaultShape);
   const cream = CREAMS.find((c) => c.value === profile?.defaultCreamType);
   const custom = (profile as any)?.ingredients?.custom ?? {};
+  const decorations: string[] = (profile as any)?.ingredients?.decorations ?? [];
   const printDate = new Date().toLocaleString('en-PK', { dateStyle: 'full', timeStyle: 'short' });
   const shelfText = shelfDays ? `${shelfDays} din` : shelfHours ? `${shelfHours} ghante` : '—';
 
@@ -1148,9 +1149,9 @@ export default function BakeryProductDetailPage() {
               <Row label="Customer marzi se bana sakta hai" value={profile.isCakeCustomizable ? 'Haan' : 'Nahi'} />
               <Row label="Cake par likhwa sakta hai" value={profile.allowsMessageOnCake ? 'Haan' : 'Nahi'} />
               <Row label="Photo laga sakta hai" value={profile.allowsPhotoOnCake ? 'Haan' : 'Nahi'} />
-              {(profile.decorativeItems ?? []).length > 0 && (
+              {decorations.length > 0 && (
                 <div className="flex flex-wrap gap-1 pt-2">
-                  {(profile.decorativeItems as string[]).map((d) => <Pill key={d} tone="pink">{d}</Pill>)}
+                  {decorations.map((d) => <Pill key={d} tone="pink">{d}</Pill>)}
                 </div>
               )}
             </InfoCard>

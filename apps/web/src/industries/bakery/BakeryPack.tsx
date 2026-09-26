@@ -12,7 +12,7 @@ import FreshnessPage from './pages/FreshnessPage';
 import BakeryBulkOrdersPage from './pages/BakeryBulkOrdersPage';
 import BakeryProductWizardPage from './pages/BakeryProductWizardPage';
 import BakeryProductsListPage from './pages/BakeryProductsListPage';
-import BakeryDashboardV2 from './pages/BakeryDashboardV2';
+import BakeryDashboardV2 from './pages/BakeryDashboard';
 import BakeryBulkOrderFormPage from './pages/BakeryBulkOrderFormPage';
 
 /**

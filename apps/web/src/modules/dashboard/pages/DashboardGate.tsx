@@ -8,7 +8,7 @@ const RestaurantDashboardV2 = lazy(() => import('@industries/restaurant/pages/Re
 const MobileDashboardV2 = lazy(() => import('@/industries/mobile/pages/MobileDashboard'));
 const CarpetDashboardV2 = lazy(() => import('@industries/carpet/pages/CarpetDashboardV2'));
 const RetailDashboardV2 = lazy(() => import('@/industries/retail/pages/RetailDashboard'));
-const BakeryDashboardV2 = lazy(() => import('@industries/bakery/pages/BakeryDashboardV2'));
+const BakeryDashboardV2 = lazy(() => import('@/industries/bakery/pages/BakeryDashboard'));
 const ClinicDashboardV2 = lazy(() => import('@industries/clinic/pages/ClinicDashboardV2'));
 const ServicesBizDashboardV2 = lazy(() => import('@industries/services-biz/pages/ServicesBizDashboardV2'));
 const PharmacyDashboardV2 = lazy(() => import('@industries/pharmacy/pages/PharmacyDashboardV2'));

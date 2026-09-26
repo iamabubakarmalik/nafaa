@@ -45,7 +45,18 @@ export const ingredientsApi = {
   transactions: (id: string) => apiClient.get('/bakery/ingredients/' + id + '/transactions').then(unwrap<any[]>),
   update: (id: string, data: Partial<Ingredient>) => apiClient.patch('/bakery/ingredients/' + id, data).then(unwrap<Ingredient>),
   remove: (id: string) => apiClient.delete('/bakery/ingredients/' + id).then(unwrap),
-  purchase: (id: string, data: { quantity: number; costPerUnit: number; vendorName?: string; notes?: string }) =>
+  /**
+   * Saamaan aaya. Sirf stock nahi — paisa bhi darj hota hai.
+   * `paidAmount` na bhejein to poora diya hua mana jayega; jo baqi
+   * rahe wo supplier ke khate me chala jata hai (is liye udhaar par
+   * `supplierId` zaroori hai).
+   */
+  purchase: (id: string, data: {
+    quantity: number; costPerUnit: number;
+    vendorName?: string; notes?: string;
+    supplierId?: string; paymentMethod?: string;
+    paidAmount?: number; shopId?: string;
+  }) =>
     apiClient.post('/bakery/ingredients/' + id + '/purchase', data).then(unwrap<Ingredient>),
   consume: (id: string, data: { quantity: number; productionItemId?: string; cakeOrderId?: string; batchNumber?: string; notes?: string }) =>
     apiClient.post('/bakery/ingredients/' + id + '/consume', data).then(unwrap<Ingredient>),

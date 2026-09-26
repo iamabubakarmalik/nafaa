@@ -500,7 +500,7 @@ function useBakeryWizard(opts: UseBakeryWizardOpts = {}) {
         allowsCustomShape: profile?.allowsCustomShape ?? false,
         allowsFlavorChoice: profile?.allowsFlavorChoice ?? true,
         allowsSizeChoice: profile?.allowsSizeChoice ?? true,
-        decorativeItems: profile?.decorativeItems ?? [],
+        decorativeItems: profile?.ingredients?.decorations ?? [],
         customFlavorName: profile?.ingredients?.custom?.flavor ?? '',
         customShapeName: profile?.ingredients?.custom?.shape ?? '',
         customCreamName: profile?.ingredients?.custom?.cream ?? '',
@@ -907,7 +907,8 @@ function useBakeryWizardSubmit(existingProductId?: string) {
         /* Recipe seedha profile ke `ingredients` JSON me — is ke
            liye koi naya column ya migration nahi chahiye. */
         ingredients: draft.itemType === 'MADE' && (draft.recipe.length > 0
-          || draft.cake.customFlavorName || draft.cake.customShapeName || draft.cake.customCreamName)
+          || draft.cake.customFlavorName || draft.cake.customShapeName || draft.cake.customCreamName
+          || draft.cake.decorativeItems.length > 0)
           ? {
               yield: draft.recipeYield,
               /* Dukaan-daar ke apne likhe hue naam — flavour/shape/cream
@@ -918,6 +919,8 @@ function useBakeryWizardSubmit(existingProductId?: string) {
                 shape: draft.cake.customShapeName || undefined,
                 cream: draft.cake.customCreamName || undefined,
               },
+              /* Decorations ka bhi profile par column nahi — yahin rakhte hain. */
+              decorations: draft.cake.decorativeItems.length > 0 ? draft.cake.decorativeItems : undefined,
               lines: draft.recipe.map((r) => ({
                 ingredientId: r.ingredientId,
                 name: r.name,

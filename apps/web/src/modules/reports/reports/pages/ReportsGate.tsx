@@ -9,7 +9,7 @@ const AppliancesReportsPage = lazy(() => import('@industries/appliances/pages/Ap
 const CarpetReportsV2 = lazy(() => import('@industries/carpet/pages/CarpetReportsV2'));
 const RetailReportsV2 = lazy(() => import('@/industries/retail/pages/RetailReports'));
 const GarmentReportsV2 = lazy(() => import('@industries/garments/pages/GarmentReportsV2'));
-const BakeryReportsV2 = lazy(() => import('@industries/bakery/pages/BakeryReportsV2'));
+const BakeryReportsV2 = lazy(() => import('@/industries/bakery/pages/BakeryReports'));
 const ClinicReportsV2 = lazy(() => import('@industries/clinic/pages/ClinicReportsV2'));
 const ServicesBizReportsV2 = lazy(() => import('@industries/services-biz/pages/ServicesBizReportsV2'));
 const PharmacyReportsV2 = lazy(() => import('@industries/pharmacy/pages/PharmacyReportsV2'));

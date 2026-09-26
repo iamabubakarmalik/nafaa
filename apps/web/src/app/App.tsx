@@ -286,7 +286,7 @@ import EquipmentPage from '@industries/gym/pages/EquipmentPage';
 import MemberDetailPage from '@industries/gym/pages/MemberDetailPage';
 
 // ─── Bakery Industry ───────────────────────────────────────────
-import BakeryDashboardV2 from '@industries/bakery/pages/BakeryDashboardV2';
+import BakeryDashboardV2 from '@/industries/bakery/pages/BakeryDashboard';
 import CakeCustomizerPage from '@industries/bakery/pages/CakeCustomizerPage';
 import CakeOrdersPage from '@industries/bakery/pages/CakeOrdersPage';
 import CakeOrderDetailPage from '@industries/bakery/pages/CakeOrderDetailPage';

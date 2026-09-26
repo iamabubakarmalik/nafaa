@@ -6,7 +6,8 @@ import {
   Snowflake, Truck, Phone, Trash2, Edit3, BarChart3, GraduationCap,
   FileSpreadsheet, Printer, Package, DollarSign, TrendingDown,
   ArrowDownToLine, ArrowUpFromLine, Scale, Boxes, Loader2, Copy,
-  MessageCircle, Flame, Layers, ChevronDown,
+  MessageCircle, Flame, Layers, ChevronDown, Banknote, CreditCard,
+  Smartphone, Building2, BookOpen, Wallet,
 } from 'lucide-react';
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
@@ -14,6 +15,8 @@ import {
 } from 'recharts';
 import { toast } from 'sonner';
 import { ingredientsApi, type Ingredient } from '../api/ingredients.api';
+import { suppliersApi } from '@modules/purchasing/suppliers/api/suppliers.api';
+import { useShopParam } from '@core/stores/auth.store';
 import { formatPKR } from '@core/lib/format';
 import { Button } from '@core/ui/Button';
 import { useAuthStore } from '@core/stores/auth.store';
@@ -701,12 +704,38 @@ function IngredientForm({ item, onClose, onDone }: any) {
 }
 
 /* ═══ STOCK MODAL ═══ */
+const PAY_WAYS: Array<[string, string, any]> = [
+  ['CASH', 'Cash', Banknote],
+  ['BANK_TRANSFER', 'Bank', Building2],
+  ['CARD', 'Card', CreditCard],
+  ['JAZZCASH', 'JazzCash', Smartphone],
+  ['EASYPAISA', 'EasyPaisa', Smartphone],
+];
+
 function StockModal({ item, mode, onClose, onDone }: any) {
+  const shopId = useShopParam();
   const [qty, setQty] = useState<number | ''>('');
   const [rate, setRate] = useState<number | ''>(item.costPerUnit ?? '');
   const [vendor, setVendor] = useState(item.supplierName ?? '');
   const [reason, setReason] = useState('');
   const [newStock, setNewStock] = useState<number | ''>(item.currentStock ?? 0);
+
+  /* Paisa kahan jayega — yehi wo hissa tha jo pehle tha hi nahi */
+  const [payWay, setPayWay] = useState('CASH');
+  const [payMode, setPayMode] = useState<'FULL' | 'PARTIAL' | 'UDHAAR'>('FULL');
+  const [paidNow, setPaidNow] = useState<number | ''>('');
+  const [supplierId, setSupplierId] = useState('');
+
+  const suppliersQ = useQuery({
+    queryKey: ['suppliers-for-ingredient'],
+    queryFn: () => suppliersApi.list({ limit: 500, status: 'active' }),
+    enabled: mode === 'purchase',
+  });
+  const suppliers = (suppliersQ.data as any)?.items ?? [];
+
+  const totalCost = (Number(qty) || 0) * (Number(rate) || 0);
+  const paid = payMode === 'FULL' ? totalCost : payMode === 'UDHAAR' ? 0 : Number(paidNow) || 0;
+  const udhaar = Math.max(totalCost - paid, 0);
 
   const cfg = {
     purchase: { title: 'Maal aaya', tone: 'bg-emerald-600 hover:bg-emerald-700', icon: ArrowDownToLine },
@@ -721,6 +750,10 @@ function StockModal({ item, mode, onClose, onDone }: any) {
           quantity: Number(qty) || 0,
           costPerUnit: Number(rate) || 0,
           vendorName: vendor || undefined,
+          supplierId: supplierId || undefined,
+          paymentMethod: payWay,
+          paidAmount: paid,
+          shopId: shopId || undefined,
         });
       }
       if (mode === 'waste') {
@@ -734,7 +767,9 @@ function StockModal({ item, mode, onClose, onDone }: any) {
 
   const bad = mode === 'adjust'
     ? newStock === '' || Number(newStock) < 0 || !reason.trim()
-    : qty === '' || Number(qty) <= 0 || (mode === 'waste' && !reason.trim());
+    : mode === 'purchase'
+      ? qty === '' || Number(qty) <= 0 || Number(rate) <= 0 || paid > totalCost || (udhaar > 0 && !supplierId)
+      : qty === '' || Number(qty) <= 0 || !reason.trim();
 
   const Icon = cfg.icon;
   const rateChanged = mode === 'purchase' && rate !== '' && Number(rate) !== Number(item.costPerUnit);
@@ -785,6 +820,96 @@ function StockModal({ item, mode, onClose, onDone }: any) {
                 </div>
               )}
               <Field label="Kahan se aaya"><input value={vendor} onChange={(e) => setVendor(e.target.value)} className={inp} /></Field>
+
+              {/* ── Paisa kahan gaya ──
+                  Ye hissa pehle tha hi nahi. Saamaan ka stock to barh
+                  jata tha, magar paisa kitaab me kahin darj nahi hota —
+                  na cash register me, na Money page me. */}
+              <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Wallet className="h-4 w-4 text-emerald-600" />
+                  <span className="text-[12px] font-extrabold text-slate-900 dark:text-white">Paisa kaise diya</span>
+                  <span className="ml-auto text-sm font-black tabular-nums text-slate-900 dark:text-white">
+                    {formatPKR(totalCost)}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-1.5">
+                  {([['FULL', 'Poora diya'], ['PARTIAL', 'Kuch diya'], ['UDHAAR', 'Poora udhaar']] as const).map(([v, l]) => (
+                    <button key={v} type="button" onClick={() => setPayMode(v as any)}
+                      className={`h-10 rounded-xl text-[11px] font-black transition ${
+                        payMode === v ? 'bg-emerald-600 text-white' : 'bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
+                      }`}>{l}</button>
+                  ))}
+                </div>
+
+                {payMode === 'PARTIAL' && (
+                  <Field label="Abhi kitna diya">
+                    <input type="number" min={0} max={totalCost} step="any" value={paidNow}
+                      onChange={(e) => setPaidNow(e.target.value === '' ? '' : Number(e.target.value))}
+                      className={inp} />
+                  </Field>
+                )}
+
+                {paid > 0 && (
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {PAY_WAYS.map(([v, l, Icon]) => (
+                      <button key={v} type="button" onClick={() => setPayWay(v)}
+                        className={`h-10 rounded-xl text-[11px] font-black inline-flex items-center justify-center gap-1 transition ${
+                          payWay === v ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900' : 'bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
+                        }`}>
+                        <Icon className="h-3.5 w-3.5" /> {l}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {udhaar > 0 && (
+                  <Field label="Kis supplier se udhaar *">
+                    <select value={supplierId} onChange={(e) => setSupplierId(e.target.value)} className={inp}>
+                      <option value="">Supplier chunein…</option>
+                      {suppliers.map((sp: any) => (
+                        <option key={sp.id} value={sp.id}>
+                          {sp.name}{Number(sp.outstandingDue) > 0 ? ` — ${formatPKR(sp.outstandingDue)} dena hai` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                )}
+
+                <div className="rounded-xl bg-white dark:bg-slate-900 p-2.5 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-slate-500">Abhi diya</span>
+                    <span className="text-[13px] font-black tabular-nums text-emerald-600 dark:text-emerald-400">{formatPKR(paid)}</span>
+                  </div>
+                  {udhaar > 0 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-slate-500">Udhaar raha</span>
+                      <span className="text-[13px] font-black tabular-nums text-amber-600 dark:text-amber-400">{formatPKR(udhaar)}</span>
+                    </div>
+                  )}
+                </div>
+
+                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                  {paid > 0 && udhaar > 0
+                    ? <>Diya hua paisa <strong>kharch</strong> me jayega{payWay === 'CASH' ? ' (cash register se ghatega)' : ''}, aur baqi supplier ke <strong>khate</strong> me.</>
+                    : udhaar > 0
+                    ? <>Poori rakam supplier ke <strong>khate</strong> me jayegi — golak par asar nahi.</>
+                    : payWay === 'CASH'
+                    ? <>Ye paisa <strong>kharch</strong> me jayega aur <strong>cash register</strong> se khud ghat jayega.</>
+                    : <>Ye paisa <strong>kharch</strong> me jayega. Cash nahi diya, is liye golak par asar nahi.</>}
+                </p>
+
+                {udhaar > 0 && !supplierId && (
+                  <div className="rounded-xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30 p-2.5 flex gap-2">
+                    <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
+                    <p className="text-[11px] font-bold text-rose-900 dark:text-rose-200">
+                      Udhaar ke liye supplier chunna zaroori hai — warna baad me pata nahi chalega
+                      ke kis ko dena hai.
+                    </p>
+                  </div>
+                )}
+              </div>
             </>
           )}
 
