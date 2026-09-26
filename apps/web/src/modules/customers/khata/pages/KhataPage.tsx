@@ -12,7 +12,7 @@ import {
   SkipForward, Copy, CheckCheck, Clock, Flame, ArrowLeft,
   Printer, ArrowRight, TrendingDown, TrendingUp, CalendarRange,
   CalendarDays, FileText, FileDown,
-  Sparkles, Award, Edit3, Zap, Wand2, User,
+  Sparkles, Award, Edit3, Zap, Wand2, User, UserCheck,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { offlineCustomersApi as customersApi } from '@core/lib/offline/offlineCustomers';
@@ -691,6 +691,7 @@ function GlobalKhataContent() {
           <div class="sale-row">
             <div class="sale-line1"><span>${escapeHtml(s.saleNumber || '-')}</span><span>${formatPKR(s.total)}</span></div>
             <div class="sale-line2"><span>${new Date(s.soldAt).toLocaleDateString('en-PK')}</span>${Number(s.creditAmount || 0) > 0 ? `<span class="baqi">Baqi ${formatPKR(s.creditAmount)}</span>` : `<span>✓ Paid</span>`}</div>
+            ${s.receivedByName ? `<div class="sale-recv">Le gaya: ${escapeHtml(s.receivedByName)}</div>` : ''}
           </div>`).join('');
     const html = `<!doctype html><html><head><meta charset="utf-8"/><title>Statement — ${escapeHtml(c.name)}</title>
 <style>
@@ -708,6 +709,8 @@ function GlobalKhataContent() {
   .sale-row { padding: 4px 0; border-bottom: 1px dotted #666; font-size: 10px; }
   .sale-line1 { display: flex; justify-content: space-between; font-weight: 700; }
   .sale-line2 { display: flex; justify-content: space-between; font-size: 9px; color: #333; margin-top: 1px; }
+  /* Kaale par aur mota — statement haath me le kar hisaab hota hai */
+  .sale-recv { font-size: 9.5px; font-weight: 700; color: #000; margin-top: 1px; }
   .baqi { font-weight: 800; color: #000; }
   .sig-block { margin-top: 20px; } .sig-line { border-bottom: 1px solid #000; height: 14px; margin: 4px 0 2px; }
   .sig-label { font-size: 9px; font-weight: 700; letter-spacing: 1px; }
@@ -2516,6 +2519,11 @@ function CustomerKhataRow({ customer, expanded, hideCost, onToggle, onPayment, o
                         <Calendar className="h-2.5 w-2.5" />
                         {new Date(sale.soldAt).toLocaleString('en-PK', { dateStyle: 'short', timeStyle: 'short' })}
                       </div>
+                      {sale.receivedByName && (
+                        <div className="text-[11px] font-black text-amber-800 dark:text-amber-300 mt-0.5 inline-flex items-center gap-1">
+                          <UserCheck className="h-2.5 w-2.5" /> Le gaya: {sale.receivedByName}
+                        </div>
+                      )}
                     </div>
                     <div className="text-right shrink-0">
                       <div className="font-black text-slate-900 dark:text-white tabular-nums text-sm">
@@ -3050,7 +3058,28 @@ interface TimelineRow {
   reference?: string | null;
   note?: string | null;
   by?: string | null;
+  /**
+   * Maal lene kaun aaya tha — jab khud khate wala na aaya ho.
+   *
+   * Mahine ke aakhir me khata kholte waqt sab se zyada jhagra isi
+   * baat par hota hai: "ye maal to hum ne liya hi nahi". Naam saath
+   * likha ho to bahes wahin khatam.
+   */
+  receivedBy?: string | null;
+  receivedByPhone?: string | null;
   sale?: any;
+}
+
+/**
+ * Purani ledger entries me receiver ka naam note ke aakhir me hota
+ * hai ("… — le gaya: Bilal"), kyunke CustomerLedger par apna column
+ * nahi. Nayi sales par `Sale.receivedByName` seedha milta hai; ye
+ * sirf un entries ke liye hai jahan sale link na ho saki.
+ */
+function extractReceiver(note?: string | null): string | null {
+  if (!note) return null;
+  const m = note.match(/le gaya:\s*(.+)$/i);
+  return m ? m[1].trim() : null;
 }
 
 const KIND_META: Record<TimelineRow['kind'], {
@@ -3092,6 +3121,11 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
         reference: l.reference,
         note: l.note,
         by: l.createdBy?.fullName ?? null,
+        /* Ledger par apna column nahi — naam note ke aakhir me likha
+           jata hai. Yahan nikaal kar alag chip bana lete hain; sale
+           mil gayi to neeche uska asli field is par bhaari par jata
+           hai. */
+        receivedBy: extractReceiver(l.note),
       });
     }
 
@@ -3102,7 +3136,14 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
       const credit = Number(s.creditAmount || 0);
       if (credit > 0 && ledgerRefs.has((s.saleNumber ?? '').trim())) {
         const hit = rows.find((r) => r.reference === s.saleNumber);
-        if (hit) { hit.sale = s; hit.sub = `${(s.items ?? []).length} cheezein`; continue; }
+        if (hit) {
+          hit.sale = s;
+          hit.sub = `${(s.items ?? []).length} cheezein`;
+          // Sale ka apna field note se parhe hue naam se behtar hai
+          if (s.receivedByName) hit.receivedBy = s.receivedByName;
+          hit.receivedByPhone = s.receivedByPhone ?? null;
+          continue;
+        }
       }
       rows.push({
         id: `s-${s.id}`,
@@ -3112,6 +3153,8 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
         title: credit > 0 ? 'Udhaar par saman' : 'Naqad kharidari',
         sub: `${(s.items ?? []).length} cheezein · bill ${formatPKR(s.total)}`,
         reference: s.saleNumber,
+        receivedBy: s.receivedByName ?? null,
+        receivedByPhone: s.receivedByPhone ?? null,
         sale: s,
       });
     }
@@ -3155,6 +3198,7 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
           return `<div class="e">
             <div class="e1"><span>${escapeHtml(m?.label ?? '')}${r.reference ? ` · ${escapeHtml(r.reference)}` : ''}</span><span class="${r.delta > 0 ? 'up' : r.delta < 0 ? 'dn' : ''}">${amt}</span></div>
             <div class="e2"><span>${new Date(r.at).toLocaleString('en-PK', { dateStyle: 'short', timeStyle: 'short' })}</span>${r.balanceAfter !== undefined ? `<span>baqi ${formatPKR(r.balanceAfter)}</span>` : ''}</div>
+            ${r.receivedBy ? `<div class="recv">Le gaya: ${escapeHtml(r.receivedBy)}${r.receivedByPhone ? ` · ${escapeHtml(r.receivedByPhone)}` : ''}</div>` : ''}
             ${r.note ? `<div class="note">${escapeHtml(r.note)}</div>` : ''}
             ${items}
           </div>`;
@@ -3185,6 +3229,9 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
   .e1 { display: flex; justify-content: space-between; gap: 10px; font-weight: 700; }
   .e2 { display: flex; justify-content: space-between; gap: 10px; font-size: 10px; color: #555; }
   .note { font-size: 10px; font-style: italic; color: #444; margin-top: 2px; }
+  /* Le jane wale ka naam kaale par — kaghaz par hisaab ho to yehi
+     satar bahes khatam karti hai, is liye halke grey me nahi. */
+  .recv { font-size: 10.5px; font-weight: 800; color: #000; margin-top: 2px; }
   .items { font-size: 10px; color: #333; margin-top: 2px; }
   .foot { margin-top: 14px; font-size: 10px; color: #555; text-align: center; }
   .promise { border: 2px dashed #000; padding: 8px; text-align: center; margin: 10px 0; }
@@ -3245,7 +3292,20 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
     purchase: timeline.filter((r) => !!r.sale).length,
   };
 
+  /* Print sheet khuli ho to Escape sirf usko band kare — poora khata modal na band ho */
+  useEffect(() => {
+    if (!showPrintOpts) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      e.stopPropagation();
+      setShowPrintOpts(false);
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [showPrintOpts]);
+
   return (
+    <>
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
         className="w-full sm:max-w-3xl bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col">
@@ -3339,6 +3399,18 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
                       </span>
                       {r.by && <span>· {r.by}</span>}
                     </div>
+                    {/* Maal le jane wale ka naam — khata kholte waqt
+                        sab se pehle isi par nazar jani chahiye, is liye
+                        note se alag apna chip. */}
+                    {r.receivedBy && (
+                      <div className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-100 dark:bg-amber-500/20 border border-amber-300 dark:border-amber-500/40 text-[11px] font-black text-amber-900 dark:text-amber-200">
+                        <UserCheck className="h-3 w-3" />
+                        Le gaya: {r.receivedBy}
+                        {r.receivedByPhone && (
+                          <span className="font-bold opacity-70">· {r.receivedByPhone}</span>
+                        )}
+                      </div>
+                    )}
                     {r.note && (
                       <div className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 italic mt-0.5">{r.note}</div>
                     )}
@@ -3427,6 +3499,82 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
         </div>
       </div>
     </div>
+
+    {showPrintOpts && (
+      <div className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
+        onClick={() => setShowPrintOpts(false)}>
+        <div onClick={(e) => e.stopPropagation()}
+          className="w-full sm:max-w-md bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
+
+          <div className="px-5 py-4 bg-gradient-to-r from-cyan-600 to-blue-700 text-white flex items-center justify-between gap-3 shrink-0">
+            <div className="min-w-0">
+              <div className="text-[10px] uppercase tracking-wider font-black text-white/70">Statement Print</div>
+              <h3 className="text-lg font-black truncate">{customer.name}</h3>
+            </div>
+            <button onClick={() => setShowPrintOpts(false)}
+              className="h-9 w-9 rounded-xl bg-white/15 hover:bg-white/25 flex items-center justify-center transition shrink-0">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          <div className="p-5 space-y-4 overflow-y-auto">
+            <div>
+              <div className="text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Kaghaz</div>
+              <div className="grid grid-cols-2 gap-2">
+                {([
+                  { v: 'a4' as const, label: 'A4 / PDF', sub: 'Poora safha' },
+                  { v: 'thermal' as const, label: 'Thermal 80mm', sub: 'Chhota parcha' },
+                ]).map((p) => (
+                  <button key={p.v} onClick={() => setPaper(p.v)}
+                    className={`rounded-xl border-2 p-3 text-left transition ${
+                      paper === p.v
+                        ? 'border-blue-600 bg-blue-50 dark:bg-blue-500/10'
+                        : 'border-slate-200 dark:border-slate-700 hover:border-blue-300'
+                    }`}>
+                    <div className="text-sm font-black text-slate-900 dark:text-white">{p.label}</div>
+                    <div className="text-[11px] font-bold text-slate-500">{p.sub}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                Adaigi ka wada (marzi se)
+              </label>
+              <input type="date" value={promiseDate} onChange={(e) => setPromiseDate(e.target.value)}
+                className="mt-1.5 w-full h-11 px-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-bold text-slate-900 dark:text-white" />
+            </div>
+
+            <div>
+              <label className="text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                Note (parche par chhapega)
+              </label>
+              <textarea value={printNote} onChange={(e) => setPrintNote(e.target.value)} rows={3}
+                placeholder="Jaise: Agle hafte tak adaigi karein"
+                className="mt-1.5 w-full px-3 py-2 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-bold text-slate-900 dark:text-white resize-none" />
+            </div>
+
+            <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+              {timeline.length} entries · Baqi {formatPKR(Math.abs(bal))} {isAdvance ? '(advance)' : ''}
+              {isLoading && <span className="block mt-1 text-amber-600">Khata abhi load ho raha hai…</span>}
+            </div>
+          </div>
+
+          <div className="px-5 py-4 border-t-2 border-slate-100 dark:border-slate-800 flex gap-2 shrink-0">
+            <button onClick={() => setShowPrintOpts(false)}
+              className="h-11 px-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-sm font-black text-slate-600 dark:text-slate-300">
+              Cancel
+            </button>
+            <button onClick={() => { printFull(); setShowPrintOpts(false); }}
+              className="flex-1 h-11 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-sm font-black inline-flex items-center justify-center gap-1.5 shadow-lg">
+              <Printer className="h-4 w-4" /> Print Karein
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }
 

@@ -11,6 +11,10 @@ export class UpsertBakeryProductDto {
   @ApiPropertyOptional({ enum: CreamType }) @IsOptional() @IsEnum(CreamType) defaultCreamType?: CreamType;
 
   @ApiPropertyOptional() @IsOptional() @IsNumber() pricePerKg?: number;
+  /* Pakistan me cake pound se bikta hai. Column hamesha se DB me
+     tha, magar yahan reh gaya tha — aur `forbidNonWhitelisted`
+     ki wajah se per-pound rate wala har product 400 de raha tha. */
+  @ApiPropertyOptional() @IsOptional() @IsNumber() pricePerPound?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() pricePerPiece?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() pricePerDozen?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() pricePerSlice?: number;

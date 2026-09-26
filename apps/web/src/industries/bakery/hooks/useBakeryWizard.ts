@@ -1,18 +1,58 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type {
-  BakeryCategory, BakerySize, CakeShape, CakeFlavor, CreamType,
+  BakerySize, CakeShape, CakeFlavor, CreamType,
 } from '../api/products.api';
 
 const DRAFT_KEY = 'nafaa.bakery-wizard.draft';
 
 export type WizardStep = 1 | 2 | 3;
 
+/**
+ * Bakery me teen bilkul alag cheezein hoti hain. Pehle wizard sab ko
+ * ek jaisa samajhta tha — Lays ke packet se bhi cake ka flavour aur
+ * cream poochta tha, aur maida jaisi cheez bhi Product ban kar POS
+ * aur catalog dono me aa jati thi.
+ *
+ *  MADE   — hum khud banate hain (cake, pastry, patties)
+ *  BOUGHT — bahar se le kar bechte hain (Lays, bottle, chips)
+ *  RAW    — banane ka saamaan (maida, cheeni, makkhan)
+ *
+ * RAW kabhi Product nahi banta. Wo alag jagah (Ingredient) jata hai,
+ * is liye POS aur catalog me kabhi nazar nahi aata — bechne ki cheez
+ * hai hi nahi.
+ */
+export type BakeryItemType = 'MADE' | 'BOUGHT' | 'RAW';
+
+/** Ek cheez banane me kya kya lagta hai — ek line */
+export interface BakeryRecipeLine {
+  ingredientId: string;
+  name: string;
+  qty: number | '';
+  unit: string;
+  costPerUnit: number;
+}
+
+/** Sirf RAW ke liye — ye Product nahi, Ingredient banta hai */
+export interface BakeryRawDetails {
+  category: string;
+  currentStock: number | '';
+  minStock: number | '';
+  costPerUnit: number | '';
+  supplierName: string;
+  supplierPhone: string;
+  shelfLifeDays: number | '';
+  requiresRefrigeration: boolean;
+  isCritical: boolean;
+  notes: string;
+}
+
 export interface BakeryWizardBasic {
   name: string;
   descriptionLong: string;
   categoryId: string;
+  /** Category ka naam — system wali qism isi se nikalti hai */
+  categoryName: string;
   brandId: string;
-  bakeryCategory: BakeryCategory;
   defaultSize: BakerySize;
   sku: string;
   barcode: string;
@@ -28,6 +68,13 @@ export interface BakeryWizardBasic {
   servingSize: number | '';
   numberOfSlices: number | '';
   taxRate: number | '';
+  /* ── Haath se bharne wale khaane ──
+     Pehle ye bhare hi nahi jate the: wizard hamesha `stock: 0`,
+     `costPrice: 0` bhejta tha. Edit karte waqt yehi 0 seedha
+     product par chala jata tha aur maujooda stock ur jata tha. */
+  costPrice: number | '';
+  openingStock: number | '';
+  lowStockAlert: number | '';
   imageUrls: string[];
   isActive: boolean;
   isFeatured: boolean;
@@ -77,6 +124,11 @@ export interface BakeryWizardProduction {
 
 export interface BakeryWizardDraft {
   step: WizardStep;
+  itemType: BakeryItemType;
+  raw: BakeryRawDetails;
+  recipe: BakeryRecipeLine[];
+  /** Itna saamaan lagane se kitni cheezein banti hain */
+  recipeYield: number;
   basic: BakeryWizardBasic;
   cake: BakeryWizardCakeDetails;
   production: BakeryWizardProduction;
@@ -87,8 +139,8 @@ const emptyBasic = (): BakeryWizardBasic => ({
   name: '',
   descriptionLong: '',
   categoryId: '',
+  categoryName: '',
   brandId: '',
-  bakeryCategory: 'CAKE',
   defaultSize: 'ONE_POUND',
   sku: '',
   barcode: '',
@@ -104,6 +156,9 @@ const emptyBasic = (): BakeryWizardBasic => ({
   servingSize: '',
   numberOfSlices: '',
   taxRate: '',
+  costPrice: '',
+  openingStock: '',
+  lowStockAlert: 5,
   imageUrls: [],
   isActive: true,
   isFeatured: false,
@@ -151,8 +206,25 @@ const emptyProduction = (): BakeryWizardProduction => ({
   caloriesPerServing: '',
 });
 
+const emptyRaw = (): BakeryRawDetails => ({
+  category: 'GENERAL',
+  currentStock: '',
+  minStock: '',
+  costPerUnit: '',
+  supplierName: '',
+  supplierPhone: '',
+  shelfLifeDays: '',
+  requiresRefrigeration: false,
+  isCritical: false,
+  notes: '',
+});
+
 const emptyDraft = (): BakeryWizardDraft => ({
   step: 1,
+  itemType: 'MADE',
+  raw: emptyRaw(),
+  recipe: [],
+  recipeYield: 1,
   basic: emptyBasic(),
   cake: emptyCake(),
   production: emptyProduction(),
@@ -174,9 +246,25 @@ export function useBakeryWizard(opts: UseBakeryWizardOpts = {}) {
     try {
       const raw = localStorage.getItem(DRAFT_KEY);
       if (raw) {
-        const parsed = JSON.parse(raw) as BakeryWizardDraft;
+        const parsed = JSON.parse(raw) as Partial<BakeryWizardDraft>;
         if (parsed && parsed.basic) {
-          setDraft(parsed);
+          /* Purane draft me wo khaane nahi hote jo baad me daale gaye
+             (jaise `recipe` aur `itemType`). Seedha set karne par
+             `draft.recipe` undefined reh jata tha aur safha khulte hi
+             crash kar jata tha. Is liye hamesha defaults ke OOPER
+             rakho — jo mile wo le lo, baqi default. */
+          const base = emptyDraft();
+          setDraft({
+            ...base,
+            ...parsed,
+            basic: { ...base.basic, ...(parsed.basic ?? {}) },
+            cake: { ...base.cake, ...(parsed.cake ?? {}) },
+            production: { ...base.production, ...(parsed.production ?? {}) },
+            raw: { ...base.raw, ...(parsed.raw ?? {}) },
+            recipe: Array.isArray(parsed.recipe) ? parsed.recipe : [],
+            recipeYield: Number(parsed.recipeYield) > 0 ? Number(parsed.recipeYield) : 1,
+            itemType: parsed.itemType ?? 'MADE',
+          });
           setDraftRestored(true);
           opts.onDraftLoaded?.();
         }
@@ -196,8 +284,42 @@ export function useBakeryWizard(opts: UseBakeryWizardOpts = {}) {
   }, [draft]);
 
   const goToStep = useCallback((step: WizardStep) => setDraft((d) => ({ ...d, step })), []);
-  const nextStep = useCallback(() => setDraft((d) => ({ ...d, step: (d.step < 3 ? d.step + 1 : 3) as WizardStep })), []);
+  const nextStep = useCallback(() => setDraft((d) => {
+    const max = d.itemType === 'RAW' ? 1 : d.itemType === 'BOUGHT' ? 2 : 3;
+    return { ...d, step: (d.step < max ? d.step + 1 : max) as WizardStep };
+  }), []);
   const prevStep = useCallback(() => setDraft((d) => ({ ...d, step: (d.step > 1 ? d.step - 1 : 1) as WizardStep })), []);
+
+  const setItemType = useCallback((itemType: BakeryItemType) => {
+    setDraft((d) => ({ ...d, itemType, step: 1 }));
+  }, []);
+
+  const setRecipeYield = useCallback((n: number) => {
+    setDraft((d) => ({ ...d, recipeYield: n }));
+  }, []);
+
+  const updateRaw = useCallback((patch: Partial<BakeryRawDetails>) => {
+    setDraft((d) => ({ ...d, raw: { ...d.raw, ...patch } }));
+  }, []);
+
+  const addRecipeLine = useCallback((line: BakeryRecipeLine) => {
+    setDraft((d) => (
+      d.recipe.some((r) => r.ingredientId === line.ingredientId)
+        ? d
+        : { ...d, recipe: [...d.recipe, line] }
+    ));
+  }, []);
+
+  const updateRecipeLine = useCallback((ingredientId: string, patch: Partial<BakeryRecipeLine>) => {
+    setDraft((d) => ({
+      ...d,
+      recipe: d.recipe.map((r) => (r.ingredientId === ingredientId ? { ...r, ...patch } : r)),
+    }));
+  }, []);
+
+  const removeRecipeLine = useCallback((ingredientId: string) => {
+    setDraft((d) => ({ ...d, recipe: d.recipe.filter((r) => r.ingredientId !== ingredientId) }));
+  }, []);
 
   const updateBasic = useCallback((patch: Partial<BakeryWizardBasic>) => {
     setDraft((d) => ({ ...d, basic: { ...d.basic, ...patch } }));
@@ -244,18 +366,39 @@ export function useBakeryWizard(opts: UseBakeryWizardOpts = {}) {
 
   const hydrateFromProduct = useCallback((product: any, profile: any) => {
     if (!product) return;
+
+    /* Recipe profile ke `ingredients` JSON me save hoti hai. Edit
+       kholte waqt wahi wapas form me bhar dete hain, warna save
+       karte hi purani recipe mit jati. */
+    const savedRecipe: BakeryRecipeLine[] = Array.isArray(profile?.ingredients?.lines)
+      ? profile.ingredients.lines.map((l: any) => ({
+          ingredientId: String(l.ingredientId ?? ''),
+          name: String(l.name ?? ''),
+          qty: Number(l.qty) || '',
+          unit: String(l.unit ?? 'kg'),
+          costPerUnit: Number(l.costPerUnit) || 0,
+        }))
+      : [];
+
     setDraft((d) => ({
       ...d,
+      itemType: profile ? (profile.isCakeCustomizable ? 'MADE' : 'BOUGHT') : 'BOUGHT',
+      recipe: savedRecipe,
+      recipeYield: Number(profile?.ingredients?.yield) > 0 ? Number(profile.ingredients.yield) : 1,
       basic: {
         ...d.basic,
         name: product.name ?? '',
         descriptionLong: product.description ?? profile?.descriptionLong ?? '',
         categoryId: product.categoryId ?? '',
+        categoryName: product.category?.name ?? '',
         brandId: product.brandId ?? '',
         sku: product.sku ?? '',
         barcode: product.barcode ?? '',
         unit: product.unit ?? 'pcs',
         taxRate: product.taxRate ?? '',
+        costPrice: product.costPrice ?? '',
+        openingStock: product.stock ?? '',
+        lowStockAlert: product.lowStockAlert ?? 5,
         weightGrams: profile?.weightGrams ?? '',
         servingSize: profile?.servingSize ?? '',
         numberOfSlices: profile?.numberOfSlices ?? '',
@@ -263,7 +406,6 @@ export function useBakeryWizard(opts: UseBakeryWizardOpts = {}) {
         isActive: product.isActive ?? true,
         isFeatured: product.isFeatured ?? false,
         tagIds: (product.tags ?? []).map((t: any) => t.tag?.id).filter(Boolean),
-        bakeryCategory: profile?.category ?? 'CAKE',
         defaultSize: profile?.defaultSize ?? 'ONE_POUND',
         pricePerKg: profile?.pricePerKg ?? '',
         pricePerPound: profile?.pricePerPound ?? '',
@@ -323,9 +465,35 @@ export function useBakeryWizard(opts: UseBakeryWizardOpts = {}) {
     setDraftRestored(false);
   }, []);
 
+  /**
+   * Har cheez ki apni jaanch. Lays ke packet se cake wale sawal
+   * poochne ka koi matlab nahi, aur maida se rate poochne ka bhi
+   * nahi — is liye jaanch bhi type ke hisaab se badalti hai.
+   */
   const validation = useMemo(() => {
+    const t = draft.itemType;
+
+    /* ── RAW: sirf ek chhota sa form ── */
+    if (t === 'RAW') {
+      const e: string[] = [];
+      if (!draft.basic.name.trim()) e.push('Saamaan ka naam likhein');
+      if (!draft.basic.unit) e.push('Unit chunein (kg, litre, packet…)');
+      if (draft.raw.costPerUnit === '' || Number(draft.raw.costPerUnit) <= 0) {
+        e.push('Kitne ka aata hai — rate likhein');
+      }
+      return {
+        step1: { valid: e.length === 0, errors: e },
+        step2: { valid: true, errors: [] as string[] },
+        step3: { valid: true, errors: [] as string[] },
+        allValid: e.length === 0,
+      };
+    }
+
+    /* ── Step 1: dono (MADE aur BOUGHT) ke liye ek jaisa ── */
     const step1Errors: string[] = [];
-    if (!draft.basic.name.trim()) step1Errors.push('Product name required');
+    if (!draft.basic.name.trim()) step1Errors.push('Cheez ka naam likhein');
+    if (!draft.basic.categoryId) step1Errors.push('Category chunein — ya nayi bana lein');
+
     const hasAnyPrice =
       Number(draft.basic.pricePerKg || 0) > 0 ||
       Number(draft.basic.pricePerPound || 0) > 0 ||
@@ -334,17 +502,54 @@ export function useBakeryWizard(opts: UseBakeryWizardOpts = {}) {
       Number(draft.basic.pricePerSlice || 0) > 0 ||
       Number(draft.basic.pricePerBox || 0) > 0 ||
       Number(draft.basic.pricePerTray || 0) > 0;
-    if (!hasAnyPrice) step1Errors.push('At least one price required (per kg, pound, piece, dozen, etc.)');
-
-    const step2Errors: string[] = [];
-    // Cake details step has no hard requirements — all optional
-    // but if seasonal, need season name
-    if (draft.basic.isSeasonalItem && !draft.basic.seasonName.trim()) {
-      step2Errors.push('Season name required for seasonal items');
+    if (!hasAnyPrice) step1Errors.push('Kam se kam ek rate bharein (per piece, pound, kg…)');
+    if (draft.basic.costPrice !== '' && Number(draft.basic.costPrice) < 0) {
+      step1Errors.push('Cost minus me nahi ho sakti');
     }
 
+    /* ── BOUGHT: bas do step, cake wale sawal nahi ── */
+    if (t === 'BOUGHT') {
+      const e2: string[] = [];
+      const p = draft.production;
+      if (p.maxOrderQty !== '' && Number(p.maxOrderQty) < Number(p.minOrderQty || 1)) {
+        e2.push('Zyada se zyada tadaad, kam se kam se choti nahi ho sakti');
+      }
+      return {
+        step1: { valid: step1Errors.length === 0, errors: step1Errors },
+        step2: { valid: e2.length === 0, errors: e2 },
+        step3: { valid: true, errors: [] as string[] },
+        allValid: step1Errors.length === 0 && e2.length === 0,
+      };
+    }
+
+    /* ── MADE: poora teen-step wala raasta ── */
+    const step2Errors: string[] = [];
+    if (draft.basic.isSeasonalItem && !draft.basic.seasonName.trim()) {
+      step2Errors.push('Season wali cheez hai to season ka naam likhein');
+    }
+    (draft.recipe ?? []).forEach((r) => {
+      if (r.qty === '' || Number(r.qty) <= 0) {
+        step2Errors.push(`"${r.name}" kitna lagta hai — wo likhein`);
+      }
+    });
+
+    /* Step 3 pehle bilkul khali tha — har cheez hamesha "theek",
+       is liye stepper par teesre qadam par laal nishan kabhi aata
+       hi nahi tha. */
     const step3Errors: string[] = [];
-    // Production has sensible defaults, nothing strictly required
+    const p = draft.production;
+    if (p.shelfLifeDays === '' && p.shelfLifeHours === '') {
+      step3Errors.push('Kitni der theek rehti hai — din ya ghante likhein');
+    }
+    if (p.maxOrderQty !== '' && Number(p.maxOrderQty) < Number(p.minOrderQty || 1)) {
+      step3Errors.push('Zyada se zyada tadaad, kam se kam se choti nahi ho sakti');
+    }
+    if (p.isVegan && (p.containsEgg || p.containsDairy)) {
+      step3Errors.push('Vegan cheez me anda ya doodh nahi ho sakta');
+    }
+    if (p.isEggless && p.containsEgg) {
+      step3Errors.push('Egg-free likha hai magar "anda hai" bhi laga hua hai');
+    }
 
     return {
       step1: { valid: step1Errors.length === 0, errors: step1Errors },
@@ -356,6 +561,20 @@ export function useBakeryWizard(opts: UseBakeryWizardOpts = {}) {
         step3Errors.length === 0,
     };
   }, [draft]);
+
+  /** Ek cheez banane me kitna kharcha aata hai — recipe se */
+  const recipeCost = useMemo(() => {
+    const batch = (draft.recipe ?? []).reduce((sum, r) => sum + Number(r.qty || 0) * Number(r.costPerUnit || 0), 0);
+    const y = draft.recipeYield > 0 ? draft.recipeYield : 1;
+    return { batch, perUnit: batch / y };
+  }, [draft.recipe, draft.recipeYield]);
+
+  /** Is type me kitne step hain */
+  const totalSteps = useMemo<WizardStep>(() => {
+    if (draft.itemType === 'RAW') return 1;
+    if (draft.itemType === 'BOUGHT') return 2;
+    return 3;
+  }, [draft.itemType]);
 
   const stats = useMemo(() => {
     const priceCount = [
@@ -398,7 +617,11 @@ export function useBakeryWizard(opts: UseBakeryWizardOpts = {}) {
     draftRestored,
     validation,
     stats,
+    recipeCost,
+    totalSteps,
     goToStep, nextStep, prevStep,
+    setItemType, updateRaw, setRecipeYield,
+    addRecipeLine, updateRecipeLine, removeRecipeLine,
     updateBasic, updateCake, updateProduction,
     toggleDecorativeItem, toggleAllergen,
     reset,

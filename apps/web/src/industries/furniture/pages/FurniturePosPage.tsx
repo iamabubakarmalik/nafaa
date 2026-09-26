@@ -17,7 +17,7 @@ import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api
 import { offlineSalesApi } from '@core/lib/offline/offlineSales';
 import type { Product } from '@modules/inventory/products/api/products.api';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
-import { RetailQuickCash } from '@industries/retail/components/pos';
+import { PosQuickCash } from '@modules/pos/components';
 import { furnitureProductsApi } from '../api/products.api';
 
 const HIDE_PRICES_KEY = 'nafaa.furniture-pos.hide-prices';
@@ -238,7 +238,7 @@ export default function FurniturePosPage() {
       {scannerOpen && <BarcodeScanner onDetected={handleBarcode} onClose={() => setScannerOpen(false)} />}
 
       {showCheckout && (
-        <RetailQuickCash
+        <PosQuickCash
           total={total} itemCount={itemCount} loading={checkoutMutation.isPending}
           customerName={selectedCustomer?.name} customerBalance={Number(selectedCustomer?.balance || 0)}
           hasCustomer={!!customerId}

@@ -3,7 +3,8 @@ import {
   Star, TrendingUp, Heart, Zap,
 } from 'lucide-react';
 import { formatPKRFull } from '@core/lib/format';
-import { CATEGORIES, FLAVORS } from '../../api/constants';
+import { FLAVORS } from '../../api/constants';
+import { deriveBakeryCategory, isCakeLike, prettyCategory } from '../../lib/bakeryCategory';
 import type { BakeryWizardDraft } from '../../hooks/useBakeryWizard';
 
 interface Props {
@@ -20,7 +21,13 @@ interface Props {
 }
 
 export function BakeryWizardSummary({ draft, stats, allValid }: Props) {
-  const category = CATEGORIES.find((c) => c.value === draft.basic.bakeryCategory);
+  /* Qism ab category ke naam se nikalti hai — draft me alag khana
+     nahi raha. */
+  const derived = deriveBakeryCategory(draft.basic.categoryName, draft.basic.name);
+  const category = {
+    label: draft.basic.categoryName || prettyCategory(derived),
+    emoji: '🍰',
+  };
   const flavor = FLAVORS.find((f) => f.value === draft.cake.defaultFlavor);
   const primaryImage = draft.basic.imageUrls[0];
 
@@ -111,7 +118,7 @@ export function BakeryWizardSummary({ draft, stats, allValid }: Props) {
       </div>
 
       {/* FLAVOR PREVIEW */}
-      {flavor && draft.basic.bakeryCategory !== 'BREAD' && draft.basic.bakeryCategory !== 'BUN' && (
+      {flavor && isCakeLike(derived) && (
         <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm p-3">
           <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-2">
             Default Flavor

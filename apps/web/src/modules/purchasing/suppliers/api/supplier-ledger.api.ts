@@ -7,6 +7,10 @@ import { apiClient } from '@core/api/client';
  * DETE hain. Kharidari balance barhati hai, adaigi ghatati hai.
  */
 
+/** Supplier ko adaigi kis zariye — golak ka hisab isi par tikta hai */
+export type SupplierPaymentMethod =
+  | 'CASH' | 'CARD' | 'BANK_TRANSFER' | 'JAZZCASH' | 'EASYPAISA';
+
 export type SupplierLedgerType =
   | 'OPENING_BALANCE' | 'PURCHASE_CREDIT' | 'PAYMENT_MADE'
   | 'PURCHASE_RETURN' | 'ADJUSTMENT';
@@ -22,6 +26,8 @@ export interface SupplierLedgerEntry {
   balanceAfter: number;
   reference?: string | null;
   note?: string | null;
+  /** Sirf PAYMENT_MADE par — purani entriyon par null */
+  paymentMethod?: SupplierPaymentMethod | null;
   entryDate: string;
   createdAt: string;
 }
@@ -83,7 +89,11 @@ export const supplierLedgerApi = {
     apiClient.post(`/supplier-ledger/${supplierId}/due`, data).then(unwrap<SupplierLedgerEntry>),
 
   /** Supplier ko paisa diya */
-  recordPayment: (supplierId: string, data: { amount: number; entryDate?: string; reference?: string; note?: string }) =>
+  recordPayment: (supplierId: string, data: {
+    amount: number; entryDate?: string; reference?: string; note?: string;
+    /** Cash diya to golak se nikalta hai; bank/cheque se nahi. Default CASH. */
+    paymentMethod?: SupplierPaymentMethod;
+  }) =>
     apiClient.post(`/supplier-ledger/${supplierId}/payment`, data).then(unwrap<SupplierLedgerEntry>),
 
   /** Maal wapas kiya */

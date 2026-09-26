@@ -194,6 +194,17 @@ export interface PendingSale {
   serviceCharges?: number;
   serviceChargesBreakdown?: any[] | null;
 
+  /**
+   * Maal lene kaun aaya tha.
+   *
+   * Offline bill par bhi wohi naam chhapna chahiye jo online par —
+   * warna net wapas aane par record do alag kahaniyan sunate hain.
+   * Sync ke waqt jaisa ka waisa server ko chala jata hai.
+   */
+  receivedByName?: string;
+  receivedByPhone?: string;
+  receivedByCnic?: string;
+
   // Raw items (for API replay) — productId optional, usedPhoneId allowed
   items: Array<{
     productId?: string;

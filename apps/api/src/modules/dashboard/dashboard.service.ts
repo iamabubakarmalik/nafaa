@@ -1,23 +1,27 @@
 import { Injectable } from '@nestjs/common';
-import {
-  startOfDay, startOfMonth, subDays, subMonths, format, endOfDay,
-} from 'date-fns';
 import { PrismaService } from '../../prisma/prisma.service';
+import {
+  dateKeyTz, endOfDayTz, hourInTz, startOfDayTz, startOfMonthTz,
+  subDaysTz, subMonthsTz,
+} from '../../common/helpers/business-time.helper';
 
 @Injectable()
 export class DashboardService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getOverview(tenantId: string, shopId?: string) {
+    // Sab haddein dukaan ke waqt par (Asia/Karachi), server ke UTC par
+    // nahi. Warna "aaj" raat 12 ke bajaye subah 5 baje shuru hota tha
+    // aur subah ki sales kal ke khate me chali jati thin.
     const now = new Date();
-    const todayStart = startOfDay(now);
-    const yesterdayStart = startOfDay(subDays(now, 1));
-    const yesterdayEnd = endOfDay(subDays(now, 1));
-    const monthStart = startOfMonth(now);
-    const lastMonthStart = startOfMonth(subMonths(now, 1));
-    const lastMonthEnd = endOfDay(subDays(monthStart, 1));
-    const sevenDaysAgo = subDays(todayStart, 6);
-    const thirtyDaysAgo = subDays(todayStart, 29);
+    const todayStart = startOfDayTz(now);
+    const yesterdayStart = subDaysTz(todayStart, 1);
+    const yesterdayEnd = endOfDayTz(yesterdayStart);
+    const monthStart = startOfMonthTz(now);
+    const lastMonthStart = startOfMonthTz(subMonthsTz(now, 1));
+    const lastMonthEnd = new Date(monthStart.getTime() - 1);
+    const sevenDaysAgo = subDaysTz(todayStart, 6);
+    const thirtyDaysAgo = subDaysTz(todayStart, 29);
 
     const tenant = await this.prisma.tenant.findUnique({
       where: { id: tenantId },
@@ -430,11 +434,11 @@ export class DashboardService {
 
     const trendBuckets: Record<string, { date: string; sales: number; profit: number; orders: number }> = {};
     for (let i = 0; i < 7; i++) {
-      const d = format(subDays(now, 6 - i), 'yyyy-MM-dd');
+      const d = dateKeyTz(subDaysTz(now, 6 - i));
       trendBuckets[d] = { date: d, sales: 0, profit: 0, orders: 0 };
     }
     for (const s of last7DaysSales) {
-      const key = format(s.soldAt, 'yyyy-MM-dd');
+      const key = dateKeyTz(s.soldAt);
       if (!trendBuckets[key]) continue;
       trendBuckets[key].sales += s.total;
       trendBuckets[key].profit += s.total - s.costOfGoods;
@@ -444,11 +448,11 @@ export class DashboardService {
 
     const trend30Buckets: Record<string, { date: string; sales: number; profit: number }> = {};
     for (let i = 0; i < 30; i++) {
-      const d = format(subDays(now, 29 - i), 'yyyy-MM-dd');
+      const d = dateKeyTz(subDaysTz(now, 29 - i));
       trend30Buckets[d] = { date: d, sales: 0, profit: 0 };
     }
     for (const s of last30DaysSales) {
-      const key = format(s.soldAt, 'yyyy-MM-dd');
+      const key = dateKeyTz(s.soldAt);
       if (!trend30Buckets[key]) continue;
       trend30Buckets[key].sales += s.total;
       trend30Buckets[key].profit += s.total - s.costOfGoods;
@@ -458,7 +462,9 @@ export class DashboardService {
     const hourlyBuckets: Record<number, { hour: number; sales: number; orders: number }> = {};
     for (let h = 0; h < 24; h++) hourlyBuckets[h] = { hour: h, sales: 0, orders: 0 };
     for (const s of salesTodayHourly) {
-      const h = new Date(s.soldAt).getHours();
+      // Dukaan ki ghari ka ghanta — `getHours()` server ke UTC par chalta
+      // tha, to shaam 8 baje ka rush chart me dopahar 3 baje dikhta tha.
+      const h = hourInTz(s.soldAt);
       hourlyBuckets[h].sales += s.total;
       hourlyBuckets[h].orders += 1;
     }

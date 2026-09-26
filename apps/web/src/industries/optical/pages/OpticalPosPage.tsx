@@ -15,7 +15,7 @@ import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api
 import { offlineSalesApi } from '@core/lib/offline/offlineSales';
 import type { Product } from '@modules/inventory/products/api/products.api';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
-import { RetailQuickCash } from '@industries/retail/components/pos';
+import { PosQuickCash } from '@modules/pos/components';
 import { opticalProductsApi } from '../api/products.api';
 import { prescriptionsApi } from '../api/prescriptions.api';
 
@@ -281,7 +281,7 @@ export default function OpticalPosPage() {
       {scannerOpen && <BarcodeScanner onDetected={handleBarcode} onClose={() => setScannerOpen(false)} />}
 
       {showCheckout && (
-        <RetailQuickCash
+        <PosQuickCash
           total={total}
           itemCount={itemCount}
           loading={checkoutMutation.isPending}

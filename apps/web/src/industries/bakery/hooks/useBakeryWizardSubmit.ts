@@ -4,7 +4,9 @@ import { toast } from 'sonner';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { productImagesApi } from '@modules/inventory/products/api/product-images.api';
 import { bakeryProductsApi } from '../api/products.api';
+import { ingredientsApi } from '../api/ingredients.api';
 import type { BakeryWizardDraft } from './useBakeryWizard';
+import { deriveBakeryCategory } from '../lib/bakeryCategory';
 
 export interface SubmitProgress {
   stage: 'idle' | 'product' | 'images' | 'profile' | 'done';
@@ -26,9 +28,38 @@ export function useBakeryWizardSubmit(existingProductId?: string) {
 
   const mutation = useMutation({
     mutationFn: async (draft: BakeryWizardDraft) => {
+      /* ── RAW: ye Product banta hi nahi ──
+         Banane ka saamaan bechne ki cheez nahi. Ise Ingredient me
+         daalte hain, is liye POS, catalog aur products ki list me
+         kabhi nazar nahi aata. */
+      if (draft.itemType === 'RAW') {
+        setProgress({ stage: 'product', message: 'Saamaan save ho raha hai…', imagesUploaded: 0 });
+        const ing = await ingredientsApi.create({
+          name: draft.basic.name.trim(),
+          category: draft.raw.category || 'GENERAL',
+          unit: draft.basic.unit || 'kg',
+          currentStock: draft.raw.currentStock === '' ? 0 : Number(draft.raw.currentStock),
+          minStock: draft.raw.minStock === '' ? 0 : Number(draft.raw.minStock),
+          costPerUnit: draft.raw.costPerUnit === '' ? 0 : Number(draft.raw.costPerUnit),
+          supplierName: draft.raw.supplierName || undefined,
+          supplierPhone: draft.raw.supplierPhone || undefined,
+          shelfLifeDays: draft.raw.shelfLifeDays === '' ? undefined : Number(draft.raw.shelfLifeDays),
+          requiresRefrigeration: draft.raw.requiresRefrigeration,
+          isCritical: draft.raw.isCritical,
+          notes: draft.raw.notes || undefined,
+          imageUrl: draft.basic.imageUrls[0] || undefined,
+          isActive: draft.basic.isActive,
+        });
+        setProgress({
+          stage: 'done', message: 'Ho gaya!', productCreated: true,
+          productId: ing.id, imagesUploaded: 0,
+        });
+        return { id: ing.id, __raw: true } as any;
+      }
+
       setProgress({
         stage: 'product',
-        message: isEdit ? 'Updating product...' : 'Creating product...',
+        message: isEdit ? 'Update ho raha hai…' : 'Ban rahi hai…',
         imagesUploaded: 0,
       });
 
@@ -48,24 +79,34 @@ export function useBakeryWizardSubmit(existingProductId?: string) {
         barcode: draft.basic.barcode || undefined,
         unit: draft.basic.unit || 'pcs',
         price,
-        costPrice: 0,
+        costPrice: draft.basic.costPrice === '' ? 0 : Number(draft.basic.costPrice),
         taxRate: draft.basic.taxRate ? Number(draft.basic.taxRate) : 0,
-        stock: 0,
-        lowStockAlert: 5,
+        lowStockAlert: draft.basic.lowStockAlert === '' ? 5 : Number(draft.basic.lowStockAlert),
         weight: draft.basic.weightGrams ? Number(draft.basic.weightGrams) : undefined,
         weightUnit: 'g',
         isActive: draft.basic.isActive,
         isFeatured: draft.basic.isFeatured,
         tagIds: draft.basic.tagIds,
         expiryTracked: !!draft.production.shelfLifeDays || !!draft.production.shelfLifeHours,
+
+        /* STOCK sirf nayi cheez banate waqt.
+           Pehle yahan hamesha `stock: 0` jata tha. Edit karte waqt
+           wohi 0 seedha product par chala jata aur counter ka poora
+           maujooda stock chup-chaap ur jata tha. Stock badalne ka
+           apna raasta hai (stock adjustment) — wizard ka kaam nahi. */
+        ...(isEdit
+          ? {}
+          : { stock: draft.basic.openingStock === '' ? 0 : Number(draft.basic.openingStock) }),
       };
 
       const product = isEdit && existingProductId
         ? await productsApi.update(existingProductId, productPayload)
         : await productsApi.create(productPayload);
 
-      // Images — only add new ones (existing images already attached during edit)
-      if (!isEdit && draft.basic.imageUrls.length > 0) {
+      /* Tasveerein edit me bhi. Pehle shart `!isEdit` thi — yani
+         edit ke waqt lagai gayi tasveer chup-chaap gir jati thi
+         aur koi error bhi nahi aata tha. */
+      if (draft.basic.imageUrls.length > 0) {
         setProgress((p) => ({
           ...p,
           stage: 'images',
@@ -97,11 +138,15 @@ export function useBakeryWizardSubmit(existingProductId?: string) {
 
       await bakeryProductsApi.upsert({
         productId: product.id,
-        category: draft.basic.bakeryCategory,
+        /* Qism dukaan-daar se poochi nahi jati — us ki category ke
+           naam se nikal aati hai. Backend par ye khana lazmi hai. */
+        category: deriveBakeryCategory(draft.basic.categoryName, draft.basic.name),
         defaultSize: draft.basic.defaultSize,
-        defaultShape: draft.cake.defaultShape,
-        defaultFlavor: draft.cake.defaultFlavor,
-        defaultCreamType: draft.cake.defaultCreamType,
+        /* Bahar se laya hua maal — Lays ke packet ka koi flavour,
+           shape ya cream nahi hota. */
+        defaultShape: draft.itemType === 'MADE' ? draft.cake.defaultShape : undefined,
+        defaultFlavor: draft.itemType === 'MADE' ? draft.cake.defaultFlavor : undefined,
+        defaultCreamType: draft.itemType === 'MADE' ? draft.cake.defaultCreamType : undefined,
         pricePerKg: draft.basic.pricePerKg ? Number(draft.basic.pricePerKg) : undefined,
         pricePerPound: draft.basic.pricePerPound ? Number(draft.basic.pricePerPound) : undefined,
         pricePerPiece: draft.basic.pricePerPiece ? Number(draft.basic.pricePerPiece) : undefined,
@@ -112,8 +157,8 @@ export function useBakeryWizardSubmit(existingProductId?: string) {
         weightGrams: draft.basic.weightGrams ? Number(draft.basic.weightGrams) : undefined,
         servingSize: draft.basic.servingSize ? Number(draft.basic.servingSize) : undefined,
         numberOfSlices: draft.basic.numberOfSlices ? Number(draft.basic.numberOfSlices) : undefined,
-        isCustomizable: draft.cake.isCakeCustomizable,
-        isCakeCustomizable: draft.cake.isCakeCustomizable,
+        isCustomizable: draft.itemType === 'MADE' && draft.cake.isCakeCustomizable,
+        isCakeCustomizable: draft.itemType === 'MADE' && draft.cake.isCakeCustomizable,
         allowsMessageOnCake: draft.cake.allowsMessageOnCake,
         allowsPhotoOnCake: draft.cake.allowsPhotoOnCake,
         allowsCustomShape: draft.cake.allowsCustomShape,
@@ -137,6 +182,20 @@ export function useBakeryWizardSubmit(existingProductId?: string) {
         isHalal: draft.production.isHalal,
         dietaryBadges: draft.production.dietaryBadges,
         caloriesPerServing: draft.production.caloriesPerServing ? Number(draft.production.caloriesPerServing) : undefined,
+        /* Recipe seedha profile ke `ingredients` JSON me — is ke
+           liye koi naya column ya migration nahi chahiye. */
+        ingredients: draft.itemType === 'MADE' && draft.recipe.length > 0
+          ? {
+              yield: draft.recipeYield,
+              lines: draft.recipe.map((r) => ({
+                ingredientId: r.ingredientId,
+                name: r.name,
+                qty: Number(r.qty || 0),
+                unit: r.unit,
+                costPerUnit: r.costPerUnit,
+              })),
+            }
+          : undefined,
         imageUrls: draft.basic.imageUrls,
         descriptionLong: draft.basic.descriptionLong || undefined,
         ingredientList: draft.cake.ingredientList || undefined,
@@ -165,8 +224,8 @@ export function useBakeryWizardSubmit(existingProductId?: string) {
       queryClient.invalidateQueries({ queryKey: ['product', product.id] });
       queryClient.invalidateQueries({ queryKey: ['bakery-products'] });
       queryClient.invalidateQueries({ queryKey: ['bakery-product-detail', product.id] });
-      toast.success(isEdit ? 'Bakery product updated!' : 'Bakery product created!', {
-        description: isEdit ? 'Changes saved successfully' : 'Product is now available in POS and catalog',
+      toast.success(isEdit ? 'Update ho gaya!' : 'Ban gaya!', {
+        description: isEdit ? 'Tabdeeliyan save ho gayin' : 'Ab POS aur catalog dono par hai',
         duration: 3000,
       });
     },

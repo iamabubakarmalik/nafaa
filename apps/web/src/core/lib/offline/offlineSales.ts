@@ -167,6 +167,9 @@ export const offlineSalesApi = {
         payload.serviceCharges && payload.serviceCharges.length > 0
           ? (payload.serviceCharges as any[])
           : null,
+      receivedByName: payload.receivedByName,
+      receivedByPhone: payload.receivedByPhone,
+      receivedByCnic: payload.receivedByCnic,
       items: payload.items.map((raw) => {
         const it = raw as SaleItemInput;
         return {
@@ -190,7 +193,12 @@ export const offlineSalesApi = {
             phone: customer.phone ?? null,
             email: customer.email ?? null,
             address: customer.address ?? null,
-            balance: customer.balance,
+            /* Bill ke BAAD ka khata. Server udhaar wali bikri par
+               customer ka balance khud barha deta hai, magar offline
+               me sirf snapshot banta hai. Agar yahan bill se pehle
+               wala balance rakh dein to receipt par "kul udhaar" kam
+               dikhta — aur online/offline ke receipt alag alag hote. */
+            balance: Number(customer.balance ?? 0) + creditAmount,
           }
         : null,
       shopSnapshot: {

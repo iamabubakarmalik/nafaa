@@ -286,11 +286,12 @@ import EquipmentPage from '@industries/gym/pages/EquipmentPage';
 import MemberDetailPage from '@industries/gym/pages/MemberDetailPage';
 
 // ─── Bakery Industry ───────────────────────────────────────────
-import BakeryDashboardPage from '@industries/bakery/pages/BakeryDashboardPage';
+import BakeryDashboardV2 from '@industries/bakery/pages/BakeryDashboardV2';
 import CakeCustomizerPage from '@industries/bakery/pages/CakeCustomizerPage';
 import CakeOrdersPage from '@industries/bakery/pages/CakeOrdersPage';
 import CakeOrderDetailPage from '@industries/bakery/pages/CakeOrderDetailPage';
-import BakeryProductsPage from '@industries/bakery/pages/BakeryProductsPage';
+import BakeryProductsListPage from '@industries/bakery/pages/BakeryProductsListPage';
+import BakeryBulkOrderFormPage from '@industries/bakery/pages/BakeryBulkOrderFormPage';
 import ProductionPage from '@industries/bakery/pages/ProductionPage';
 import IngredientsPage from '@industries/bakery/pages/IngredientsPage';
 import FreshnessPage from '@industries/bakery/pages/FreshnessPage';
@@ -864,16 +865,22 @@ export default function App() {
                   <Route path="/gym/personal-training" element={<GymPTSessionsPage />} />
                   <Route path="/gym/equipment" element={<EquipmentPage />} />
 
-                  {/* Bakery */}
-                  <Route path="/bakery" element={<BakeryDashboardPage />} />
-                  <Route path="/bakery/dashboard" element={<BakeryDashboardPage />} />
+                  {/* Bakery
+                      NOTE: ye routes BakeryPack ke routes se alag hain aur
+                      inhi par safha khulta hai. Pack me naye safhe lagane
+                      ke bawajood yahan purane rah gaye thay — is liye
+                      sidebar se hamesha purana hi milta tha. */}
+                  <Route path="/bakery" element={<BakeryDashboardV2 />} />
+                  <Route path="/bakery/dashboard" element={<BakeryDashboardV2 />} />
                   <Route path="/bakery/cake-orders/new" element={<CakeCustomizerPage />} />
                   <Route path="/bakery/cake-orders/:id" element={<CakeOrderDetailPage />} />
                   <Route path="/bakery/cake-orders" element={<CakeOrdersPage />} />
-                  <Route path="/bakery/products" element={<BakeryProductsPage />} />
+                  <Route path="/bakery/products" element={<BakeryProductsListPage />} />
                   <Route path="/bakery/production" element={<ProductionPage />} />
                   <Route path="/bakery/ingredients" element={<IngredientsPage />} />
                   <Route path="/bakery/freshness" element={<FreshnessPage />} />
+                  <Route path="/bakery/bulk-orders/new" element={<BakeryBulkOrderFormPage />} />
+                  <Route path="/bakery/bulk-orders/:id/edit" element={<BakeryBulkOrderFormPage />} />
                   <Route path="/bakery/bulk-orders" element={<BakeryBulkOrdersPage />} />
 
                   {/* Agri */}

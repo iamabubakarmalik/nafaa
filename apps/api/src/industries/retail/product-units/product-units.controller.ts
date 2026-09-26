@@ -21,6 +21,11 @@ export class ProductUnitsController {
     return this.service.create(user, dto);
   }
 
+  @Get()
+  findAll(@GetUser() user: AuthenticatedUser) {
+    return this.service.findAll(user);
+  }
+
   @Get('by-product/:productId')
   findByProduct(
     @GetUser() user: AuthenticatedUser,
@@ -33,6 +38,11 @@ export class ProductUnitsController {
   @Get('by-barcode/:barcode')
   findByBarcode(@GetUser() user: AuthenticatedUser, @Param('barcode') barcode: string) {
     return this.service.findByBarcode(user, barcode);
+  }
+
+  @Post(':id/generate-barcode')
+  generateBarcode(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.service.generateBarcode(user, id);
   }
 
   @Patch(':id')

@@ -333,6 +333,11 @@ export async function uploadPendingChanges(): Promise<{ salesSynced: number; que
         shopId: sale.shopId, customerId: sale.customerId,
         paymentMethod: sale.paymentMethod, paidAmount: sale.paidAmount,
         discount: sale.discount, serviceCharges: sale.serviceChargesBreakdown,
+        // Le jane wale ka naam bhi saath — warna offline bill par naam
+        // chhapta tha aur server ke khate me khali chala jata tha.
+        receivedByName: sale.receivedByName,
+        receivedByPhone: sale.receivedByPhone,
+        receivedByCnic: sale.receivedByCnic,
         items: sale.items,
       });
 

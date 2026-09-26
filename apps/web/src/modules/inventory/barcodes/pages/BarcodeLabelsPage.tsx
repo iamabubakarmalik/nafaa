@@ -5,11 +5,13 @@ import {
   Building2, DollarSign, Package, AlertCircle, Sparkles, Ruler,
   Edit3, Wand2, CheckCircle2, RefreshCw, GraduationCap, RotateCcw,
   Hash, Tag, Trash2, Eye, QrCode, LayoutGrid, Eraser, Type, Maximize2,
+  Layers,
 } from 'lucide-react';
 import JsBarcode from 'jsbarcode';
 import { productsApi, type Product } from '@modules/inventory/products/api/products.api';
 import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { productVariantsApi, type ProductVariant } from '@modules/inventory/products/api/product-variants.api';
+import { productUnitsApi, type ProductUnit } from '@industries/retail/api/product-units.api';
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
 import { settingsApi } from '@modules/organization/settings/api/settings.api';
 import { Button } from '@core/ui/Button';
@@ -38,6 +40,15 @@ interface LabelItem {
   id: string;
   product: Product;
   variant?: ProductVariant;
+  /**
+   * Multi-unit wala label — dozen, carton, packet.
+   *
+   * Pehle yahan sirf product aur variant thay. Jis dukaan ne ek product
+   * ke teen package banaye hotay thay (piece, dozen, carton), unhen har
+   * package par product wala hi barcode chhapta tha — counter par teenon
+   * ek jaise scan hotay aur rate hamesha piece ka lagta tha.
+   */
+  unit?: ProductUnit;
   copies: number;
 }
 
@@ -195,6 +206,7 @@ export default function BarcodeLabelsPage() {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [unitPickerFor, setUnitPickerFor] = useState<Product | null>(null);
   const [visible, setVisible] = useState(60);
 
   /* ─── Settings mehfooz ─── */
@@ -218,10 +230,28 @@ export default function BarcodeLabelsPage() {
     queryFn: () => fetchAllProducts(),
   });
 
+  /* Sari multi-units ek saath — kaun se product ke kitne package hain,
+     aur kis package ka apna barcode hai. */
+  const { data: allUnits = [] } = useQuery({
+    queryKey: ['product-units-for-labels'],
+    queryFn: () => productUnitsApi.listAll(),
+    staleTime: 60_000,
+  });
+
   const { data: categories = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list });
   const { data: settings } = useQuery({ queryKey: ['settings'], queryFn: settingsApi.get });
 
   const products = productsData?.items ?? [];
+
+  const unitsByProduct = useMemo(() => {
+    const map = new Map<string, ProductUnit[]>();
+    for (const u of allUnits) {
+      const list = map.get(u.productId);
+      if (list) list.push(u);
+      else map.set(u.productId, [u]);
+    }
+    return map;
+  }, [allUnits]);
 
   const filteredProducts = useMemo(() => {
     const q = search.toLowerCase().trim();
@@ -266,6 +296,19 @@ export default function BarcodeLabelsPage() {
     onError: () => toast.error('Barcode ban nahi saka'),
   });
 
+  /**
+   * Unit ka barcode — jab dozen/carton ke label banane hain magar us
+   * package ka apna barcode kabhi bana hi nahi.
+   */
+  const generateUnitBarcodeMutation = useMutation({
+    mutationFn: (unitId: string) => productUnitsApi.generateBarcode(unitId),
+    onSuccess: (updated) => {
+      toast.success(`✓ ${updated.unitName} ka barcode: ${updated.barcode}`);
+      queryClient.invalidateQueries({ queryKey: ['product-units-for-labels'] });
+    },
+    onError: () => toast.error('Unit ka barcode ban nahi saka'),
+  });
+
   const bulkGenerateMutation = useMutation({
     mutationFn: productsApi.bulkGenerateBarcodes,
     onSuccess: (result) => {
@@ -288,12 +331,12 @@ export default function BarcodeLabelsPage() {
   });
 
   /* ─── Queue ke kaam ─── */
-  const addOneItem = (product: Product, variant?: ProductVariant) => {
-    const id = variant ? `${product.id}__${variant.id}` : product.id;
+  const addOneItem = (product: Product, variant?: ProductVariant, unit?: ProductUnit) => {
+    const id = [product.id, variant?.id, unit?.id].filter(Boolean).join('__');
     setSelected((prev) => {
       const existing = prev.find((p) => p.id === id);
       if (existing) return prev.map((p) => (p.id === id ? { ...p, copies: p.copies + 1 } : p));
-      return [...prev, { id, product, variant, copies: 1 }];
+      return [...prev, { id, product, variant, unit, copies: 1 }];
     });
   };
 
@@ -715,7 +758,9 @@ export default function BarcodeLabelsPage() {
               </div>
             ) : (
               <>
-                {filteredProducts.slice(0, visible).map((p) => (
+                {filteredProducts.slice(0, visible).map((p) => {
+                  const pUnits = unitsByProduct.get(p.id) ?? [];
+                  return (
                   <div key={p.id}
                     className="px-4 py-3 flex items-center gap-3 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition cursor-pointer"
                     onClick={() => addProduct(p)}>
@@ -730,13 +775,21 @@ export default function BarcodeLabelsPage() {
                     <div className="text-sm font-black text-slate-700 dark:text-slate-200 tabular-nums shrink-0">
                       {formatPKRFull(p.price)}
                     </div>
+                    {pUnits.length > 0 && (
+                      <button onClick={(e) => { e.stopPropagation(); setUnitPickerFor(p); }}
+                        title="Dozen/carton ke alag label"
+                        className="h-8 px-2 rounded-lg bg-violet-50 dark:bg-violet-500/15 text-violet-700 dark:text-violet-300 text-[11px] font-black inline-flex items-center gap-1 shrink-0 hover:bg-violet-100 dark:hover:bg-violet-500/25 transition">
+                        <Layers className="h-3.5 w-3.5" /> {pUnits.length}
+                      </button>
+                    )}
                     <button onClick={(e) => { e.stopPropagation(); setEditingProduct(p); }}
                       title="Barcode badlein"
                       className="h-8 w-8 rounded-lg bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300 flex items-center justify-center shrink-0 hover:bg-blue-100 transition">
                       <Edit3 className="h-3.5 w-3.5" />
                     </button>
                   </div>
-                ))}
+                  );
+                })}
                 {visible < filteredProducts.length && (
                   <button onClick={() => setVisible((v) => v + 60)}
                     className="w-full py-3 text-xs font-black text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition">
@@ -787,10 +840,12 @@ export default function BarcodeLabelsPage() {
                   <div key={item.id} className="flex items-center gap-2 rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-2.5">
                     <div className="min-w-0 flex-1">
                       <div className="font-black text-sm text-slate-900 dark:text-white truncate">
-                        {item.product.name}{item.variant ? ` — ${item.variant.name}` : ''}
+                        {item.product.name}
+                        {item.variant ? ` — ${item.variant.name}` : ''}
+                        {item.unit ? ` — ${(item.unit.unitLabel || item.unit.unitName).toUpperCase()}` : ''}
                       </div>
                       <div className="text-[11px] font-mono font-bold text-slate-500 truncate">
-                        {item.variant?.barcode || item.product.barcode}
+                        {item.unit?.barcode || item.variant?.barcode || item.product.barcode}
                       </div>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
@@ -833,10 +888,17 @@ export default function BarcodeLabelsPage() {
             <div className="flex flex-wrap justify-center print:justify-start label-sheet"
               style={{ gap: `${gapMm}mm` }}>
               {labelsToPrint.map((item) => {
-                const barcodeValue = item.variant?.barcode || item.product.barcode || '';
-                const displayName = item.variant ? `${item.product.name} — ${item.variant.name}` : item.product.name;
-                const displayPrice = item.variant?.price ?? item.product.price;
-                const displaySku = item.variant?.sku || item.product.sku;
+                /* Unit ka apna barcode/rate sab se pehle — label us package
+                   ka hai, poore product ka nahi. Unit na ho to purana hi
+                   rasta: variant, phir product. */
+                const barcodeValue = item.unit?.barcode || item.variant?.barcode || item.product.barcode || '';
+                const displayName = [
+                  item.product.name,
+                  item.variant?.name,
+                  item.unit ? (item.unit.unitLabel || item.unit.unitName).toUpperCase() : null,
+                ].filter(Boolean).join(' — ');
+                const displayPrice = item.unit?.price ?? item.variant?.price ?? item.product.price;
+                const displaySku = item.unit?.sku || item.variant?.sku || item.product.sku;
 
                 return (
                   <div key={item._key}
@@ -902,6 +964,17 @@ export default function BarcodeLabelsPage() {
           onSave={(barcode: string) => updateProductMutation.mutate({ id: editingProduct.id, payload: { barcode } })}
           onGenerate={() => generateBarcodeMutation.mutate(editingProduct.id)}
           saving={updateProductMutation.isPending || generateBarcodeMutation.isPending}
+        />
+      )}
+
+      {unitPickerFor && (
+        <UnitLabelModal
+          product={unitPickerFor}
+          units={unitsByProduct.get(unitPickerFor.id) ?? []}
+          onClose={() => setUnitPickerFor(null)}
+          onAdd={(unit) => addOneItem(unitPickerFor, undefined, unit)}
+          onGenerate={(unitId) => generateUnitBarcodeMutation.mutate(unitId)}
+          generating={generateUnitBarcodeMutation.isPending}
         />
       )}
 
@@ -1119,6 +1192,98 @@ function StatCard({ label, value, sub, icon: Icon, tone, action, highlight }: an
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${c.icon} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Ek product ke sare package — aur har package ka apna label.
+ *
+ * Dukaan me aik hi cheez teen shakloon me bikti hai: khula piece,
+ * dozen ka pack, aur carton. Teenon ka rate alag, aur scanner ko
+ * teenon alag pehchanne chahiyen. Yahan se har package ka apna barcode
+ * bhi ban jata hai aur usi ka label queue me chala jata hai.
+ */
+function UnitLabelModal({
+  product, units, onClose, onAdd, onGenerate, generating,
+}: {
+  product: Product;
+  units: ProductUnit[];
+  onClose: () => void;
+  onAdd: (unit: ProductUnit) => void;
+  onGenerate: (unitId: string) => void;
+  generating: boolean;
+}) {
+  const withBarcode = units.filter((u) => u.barcode);
+  const missing = units.filter((u) => !u.barcode);
+
+  return (
+    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 print:hidden"
+      onClick={onClose}>
+      <div className="w-full max-w-lg rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden"
+        onClick={(e) => e.stopPropagation()}>
+        <div className="px-5 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-3">
+          <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-700 text-white flex items-center justify-center shadow-lg shadow-violet-500/30">
+            <Layers className="h-5 w-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h3 className="font-black text-slate-900 dark:text-white truncate">{product.name}</h3>
+            <p className="text-[11px] font-bold text-slate-500">
+              {units.length} package · har ek ka apna barcode aur rate
+            </p>
+          </div>
+          <button onClick={onClose}
+            className="h-9 w-9 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center shrink-0">
+            <X className="h-4 w-4 text-slate-500" />
+          </button>
+        </div>
+
+        <div className="max-h-[50vh] overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+          {units.map((u) => (
+            <div key={u.id} className="px-5 py-3 flex items-center gap-3">
+              <div className="min-w-0 flex-1">
+                <div className="font-black text-sm text-slate-900 dark:text-white truncate">
+                  {(u.unitLabel || u.unitName).toUpperCase()}
+                  {u.isBase && <span className="ml-1.5 text-[10px] font-black text-emerald-600 dark:text-emerald-400">BASE</span>}
+                </div>
+                <div className="text-[11px] font-bold text-slate-500 truncate">
+                  1 = {u.conversionRate} {product.unit} · {formatPKRFull(u.price)}
+                </div>
+                <div className="text-[11px] font-mono font-bold truncate">
+                  {u.barcode
+                    ? <span className="text-emerald-600 dark:text-emerald-400">{u.barcode}</span>
+                    : <span className="text-amber-600 dark:text-amber-400">⚠ barcode nahi</span>}
+                </div>
+              </div>
+              {u.barcode ? (
+                <button onClick={() => onAdd(u)}
+                  className="h-9 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-black inline-flex items-center gap-1 shrink-0 transition active:scale-[0.97]">
+                  <Plus className="h-3.5 w-3.5" /> Label
+                </button>
+              ) : (
+                <button onClick={() => onGenerate(u.id)} disabled={generating}
+                  className="h-9 px-3 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-[11px] font-black inline-flex items-center gap-1 shrink-0 disabled:opacity-50 transition active:scale-[0.97]">
+                  <Sparkles className="h-3.5 w-3.5" /> Banao
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="px-5 py-3 border-t-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex items-center gap-2 flex-wrap">
+          {missing.length > 0 && (
+            <button onClick={() => missing.forEach((u) => onGenerate(u.id))} disabled={generating}
+              className="h-10 px-3 rounded-xl bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 text-[11px] font-black inline-flex items-center gap-1.5 disabled:opacity-50 transition">
+              <Sparkles className="h-3.5 w-3.5" /> {missing.length} ke barcode banao
+            </button>
+          )}
+          <button onClick={() => { withBarcode.forEach(onAdd); onClose(); }}
+            disabled={withBarcode.length === 0}
+            className="h-10 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-green-700 text-white text-[11px] font-black inline-flex items-center gap-1.5 ml-auto disabled:opacity-40 transition active:scale-[0.97]">
+            <Plus className="h-3.5 w-3.5" /> Sab {withBarcode.length} add karo
+          </button>
         </div>
       </div>
     </div>

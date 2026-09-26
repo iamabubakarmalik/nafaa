@@ -18,9 +18,23 @@ export class RetailDashboardController {
     return this.service.overview(user, shopId);
   }
 
+  /**
+   * `days=1` sirf aaj; `days=7` pichhle hafte ka rozana ausat — is se
+   * pata chalta hai ke dukaan asal me kis waqt masroof rehti hai, sirf
+   * aaj ka ittefaq nahi.
+   */
   @Get('sales-by-hour')
-  salesByHour(@GetUser() user: AuthenticatedUser, @ShopIdParam() shopId?: string) {
-    return this.service.salesByHour(user, shopId);
+  salesByHour(
+    @GetUser() user: AuthenticatedUser,
+    @ShopIdParam() shopId?: string,
+    @Query('days') days?: string,
+  ) {
+    return this.service.salesByHour(user, shopId, days ? parseInt(days, 10) : 1);
+  }
+
+  @Get('money-map')
+  moneyMap(@GetUser() user: AuthenticatedUser, @ShopIdParam() shopId?: string) {
+    return this.service.moneyMap(user, shopId);
   }
 
   @Get('slow-movers')

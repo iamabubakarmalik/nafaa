@@ -54,6 +54,29 @@ const PAYMENT_ICONS: Record<string, any> = {
   CREDIT: BookOpen,
 };
 
+/**
+ * Validated categorical fallback — jin expense categories ka apna rang
+ * set nahi, unke liye. Ye aath rang colour-blindness ke sath bhi alag
+ * rehte hain (light aur dark dono me check kiye hue). Har bar par naam
+ * aur raqam bhi likhi hoti hai, to pehchan kabhi sirf rang par nahi.
+ */
+const CATEGORY_FALLBACK = [
+  '#2a78d6', '#eb6834', '#1baf7a', '#eda100',
+  '#e87ba4', '#008300', '#4a3aa7', '#e34948',
+];
+const CATEGORY_FALLBACK_DARK = [
+  '#3987e5', '#d95926', '#199e70', '#c98500',
+  '#d55181', '#008300', '#9085e9', '#e66767',
+];
+
+/** 14 → "2 PM", 0 → "12 AM" — dukaan-daar ki ghari wali zabaan. */
+const hourLabel = (h: number) =>
+  h === 0 ? '12 AM' : h < 12 ? `${h} AM` : h === 12 ? '12 PM' : `${h - 12} PM`;
+
+/** Chart ke X-axis par chhota naap — jagah kam hoti hai. */
+const hourTick = (h: number) =>
+  h === 0 ? '12a' : h < 12 ? `${h}a` : h === 12 ? '12p' : `${h - 12}p`;
+
 const formatPercent = (n: number) => `${n > 0 ? '+' : ''}${n.toFixed(1)}%`;
 const formatDate = (v: string) =>
   new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(v));
@@ -65,6 +88,10 @@ export default function RetailDashboardV2() {
   const shopName = useAuthStore((s) => s.user?.assignedShop?.name);
   const userName = useAuthStore((s) => s.user?.fullName?.split(' ')[0] ?? 'Boss');
   const [range, setRange] = useState<Range>('7d');
+  /* Peak hours: sirf aaj, ya pichhle hafte ka rozana ausat. Ausat is liye
+     ke ek din ka rush ittefaq ho sakta hai — hafte ka naqsha asli aadat
+     dikhata hai. */
+  const [hourDays, setHourDays] = useState<1 | 7>(1);
 
   /* ─── Data queries ─────────────────────────────────────── */
   const { data, refetch, isRefetching } = useQuery({
@@ -79,9 +106,16 @@ export default function RetailDashboardV2() {
     refetchInterval: 60_000,
   });
 
-  const { data: hourly = [] } = useQuery({
-    queryKey: ['retail-hourly'],
-    queryFn: () => retailDashboardApi.salesByHour(),
+  const { data: hourly } = useQuery({
+    queryKey: ['retail-hourly', hourDays],
+    queryFn: () => retailDashboardApi.salesByHour(hourDays),
+    refetchInterval: 60_000,
+  });
+
+  /* Paisa kahan khara hai — stock, kharcha, lena, dena, cash. */
+  const { data: money } = useQuery({
+    queryKey: ['retail-money-map'],
+    queryFn: () => retailDashboardApi.moneyMap(),
     refetchInterval: 60_000,
   });
 
@@ -110,13 +144,30 @@ export default function RetailDashboardV2() {
       return { ...p, label: `${d.getDate()}/${d.getMonth() + 1}` };
     }), [data]);
 
+  /**
+   * Ghante ka chart.
+   *
+   * Ghanta ab server par dukaan ke timezone (Asia/Karachi) se nikalta
+   * hai. Pehle server ke UTC se nikalta tha, is liye shaam 8 baje ka
+   * rush chart me 3 baje dikhta tha — dukaan-daar theek kehta tha ke
+   * "timing sahi nahi bata raha".
+   */
+  const hourlyRaw: any[] = (hourly as any)?.hours ?? [];
+  const peakHour: number | null = (hourly as any)?.peakHour ?? null;
+  const currentHour: number | undefined = (hourly as any)?.currentHour;
+
   const hourlyData = useMemo(() =>
-    (hourly as any[])
+    hourlyRaw
+      // Band ghanton ka khali khana chart me jagah kha jata hai — sirf
+      // wohi ghante jin me kuch bika, aur dukaan ka aam waqt.
       .filter((h) => h.total > 0 || (h.hour >= 8 && h.hour <= 22))
       .map((h) => ({
         ...h,
-        label: h.hour === 0 ? '12A' : h.hour < 12 ? `${h.hour}A` : h.hour === 12 ? '12P' : `${h.hour - 12}P`,
-      })), [hourly]);
+        label: hourTick(h.hour),
+        fullLabel: hourLabel(h.hour),
+        isPeak: h.hour === peakHour && h.total > 0,
+        isNow: hourDays === 1 && h.hour === currentHour,
+      })), [hourlyRaw, peakHour, currentHour, hourDays]);
 
   const chartData = range === '30d' ? trend30 : trend7;
   const growthYest = s.salesGrowthVsYesterday ?? 0;
@@ -132,9 +183,27 @@ export default function RetailDashboardV2() {
 
   const totalPayments = paymentData.reduce((sum, p) => sum + p.value, 0);
 
-  const marginPct = s.salesMonth && s.salesMonth > 0
-    ? ((s.netProfitMonth ?? 0) / s.salesMonth) * 100
-    : 0;
+  /**
+   * P&L ka silsila.
+   *
+   * `money` (retail money-map) ko tarjeeh, kyunke uski din/mahine ki
+   * haddein dukaan ke timezone par bani hain. Wo abhi na aaya ho to
+   * purane `stats` se kaam chalta hai — khana kabhi khali nahi rehta.
+   */
+  const pnl = useMemo(() => {
+    const revenue = money?.profit?.monthRevenue ?? s.salesMonth ?? 0;
+    const cogs = money?.profit?.monthCogs ?? s.cogsMonth ?? 0;
+    const expenses = money?.profit?.monthExpenses ?? s.expensesMonth ?? 0;
+    const gross = revenue - cogs;
+    const net = gross - expenses;
+    return {
+      revenue, cogs, expenses, gross, net,
+      grossPct: revenue > 0 ? (gross / revenue) * 100 : 0,
+      netPct: revenue > 0 ? (net / revenue) * 100 : 0,
+    };
+  }, [money, s.salesMonth, s.cogsMonth, s.expensesMonth]);
+
+  const marginPct = pnl.netPct;
 
   // Time-based greeting
   const hour = new Date().getHours();
@@ -352,9 +421,54 @@ export default function RetailDashboardV2() {
         </Card>
 
         <Card>
-          <CardHeader icon={Clock} title="Aaj Ke Peak Hours" subtitle="Kis waqt zyada bikta hai" tone="violet" />
+          <CardHeader
+            icon={Clock}
+            title="Peak Hours"
+            subtitle={hourDays === 1 ? 'Aaj kis waqt zyada bika' : '7 din ka rozana ausat'}
+            tone="violet"
+            right={
+              <div className="inline-flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1 text-[11px] font-extrabold">
+                {([[1, 'Aaj'], [7, '7 Din']] as const).map(([d, l]) => (
+                  <button
+                    key={d}
+                    onClick={() => setHourDays(d as 1 | 7)}
+                    className={[
+                      'px-3 py-1.5 rounded-lg transition-all',
+                      hourDays === d
+                        ? 'bg-white dark:bg-slate-900 text-violet-700 dark:text-violet-300 shadow-md'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200',
+                    ].join(' ')}
+                  >
+                    {l}
+                  </button>
+                ))}
+              </div>
+            }
+          />
+
+          {/* Sab se zaroori jumla — chart se pehle, saaf lafzon me */}
+          {peakHour !== null && (
+            <div className="mb-3 rounded-2xl bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-500/15 dark:to-purple-500/15 border-2 border-violet-200 dark:border-violet-500/30 px-3 py-2.5 flex items-center gap-2.5">
+              <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-700 text-white flex items-center justify-center shadow-md shrink-0">
+                <Flame className="h-4 w-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-[10px] uppercase tracking-wider font-extrabold text-violet-700 dark:text-violet-300">
+                  Sab se masroof waqt
+                </div>
+                <div className="text-sm font-extrabold text-slate-900 dark:text-white truncate">
+                  {hourLabel(peakHour)} – {hourLabel((peakHour + 1) % 24)}
+                  <span className="text-slate-500 dark:text-slate-400 font-bold">
+                    {' • '}{formatPKR((hourly as any)?.peakTotal ?? 0)}
+                    {hourDays > 1 ? ' rozana' : ''}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {hourlyData.length > 0 ? (
-            <div className="h-[240px] sm:h-[300px]">
+            <div className="h-[200px] sm:h-[248px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={hourlyData} margin={{ top: 10, right: 8, left: -10, bottom: 0 }}>
                   <defs>
@@ -362,12 +476,20 @@ export default function RetailDashboardV2() {
                       <stop offset="0%" stopColor="#a855f7" stopOpacity={1} />
                       <stop offset="100%" stopColor="#7c3aed" stopOpacity={0.7} />
                     </linearGradient>
+                    <linearGradient id="hourlyPeak" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#fb923c" stopOpacity={1} />
+                      <stop offset="100%" stopColor="#ea580c" stopOpacity={0.8} />
+                    </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-slate-700" opacity={0.4} />
                   <XAxis dataKey="label" className="fill-slate-500 dark:fill-slate-400" fontSize={9} interval={1} tickLine={false} axisLine={false} />
                   <YAxis className="fill-slate-500 dark:fill-slate-400" fontSize={10} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} tickLine={false} axisLine={false} />
                   <Tooltip
-                    formatter={(v: any) => formatPKR(Number(v))}
+                    formatter={(v: any, _n: any, item: any) => [
+                      formatPKR(Number(v)),
+                      `${Math.round(item?.payload?.count ?? 0)} orders`,
+                    ]}
+                    labelFormatter={(_l: any, payload: any) => payload?.[0]?.payload?.fullLabel ?? ''}
                     contentStyle={{
                       borderRadius: 12,
                       border: '1px solid rgba(148,163,184,0.2)',
@@ -378,15 +500,191 @@ export default function RetailDashboardV2() {
                     labelStyle={{ color: '#94a3b8', fontWeight: 700 }}
                     cursor={{ fill: 'rgba(168,85,247,0.1)' }}
                   />
-                  <Bar dataKey="total" fill="url(#hourlyBar)" radius={[8, 8, 0, 0]} />
+                  <Bar dataKey="total" radius={[4, 4, 0, 0]}>
+                    {hourlyData.map((h: any) => (
+                      <Cell
+                        key={h.hour}
+                        fill={h.isPeak ? 'url(#hourlyPeak)' : 'url(#hourlyBar)'}
+                        stroke={h.isNow ? '#0ea5e9' : 'none'}
+                        strokeWidth={h.isNow ? 2 : 0}
+                      />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
           ) : (
-            <EmptyChart icon={Clock} message="Aaj tak koi sale nahi" />
+            <EmptyChart icon={Clock} message={hourDays === 1 ? 'Aaj tak koi sale nahi' : 'Is hafte koi sale nahi'} />
           )}
+
+          <ChartLegend items={[
+            { color: '#ea580c', label: 'Peak ghanta' },
+            { color: '#7c3aed', label: 'Baqi ghante' },
+            ...(hourDays === 1 && currentHour !== undefined
+              ? [{ color: '#0ea5e9', label: 'Abhi ka ghanta' }] : []),
+          ]} />
         </Card>
       </section>
+
+      {/* ═══════════════════════════════════════════════════════
+          PAISA KAHAN HAI — stock, kharcha, lena, dena, cash
+          ═══════════════════════════════════════════════════════ */}
+      {money && !hideCost && (
+        <section>
+          <div className="flex items-center gap-2.5 mb-3">
+            <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white flex items-center justify-center shadow-lg shadow-emerald-500/40">
+              <PiggyBank className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">Paisa Kahan Hai 💰</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">
+                Maal, kharcha, lena aur dena — sab ek nazar me
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2 sm:gap-3">
+            <MoneyTile
+              icon={Boxes} tone="teal" to="/stock-report"
+              label="Maal Para Hai"
+              value={formatPKR(money.inventory.valueAtCost)}
+              sub={`${money.inventory.productCount} items • bikne par ${formatPKR(money.inventory.valueAtRetail)}`}
+            />
+            <MoneyTile
+              icon={ShoppingBag} tone="violet" to="/purchases"
+              label="Is Mahine Maal Aaya"
+              value={formatPKR(money.purchases.monthTotal)}
+              sub={`${money.purchases.monthCount} bills${money.purchases.monthUnpaid > 0 ? ` • ${formatPKR(money.purchases.monthUnpaid)} baqi` : ''}`}
+            />
+            <MoneyTile
+              icon={Wallet} tone="amber" to="/expenses"
+              label="Is Mahine Kharcha"
+              value={formatPKR(money.expenses.month)}
+              sub={`${money.expenses.monthCount} entries • pichhle mahine ${formatPKR(money.expenses.lastMonth)}`}
+            />
+            <MoneyTile
+              icon={BookOpen} tone="rose" to="/khata"
+              label="Logon Se Lena"
+              value={formatPKR(money.receivable.total)}
+              sub={`${money.receivable.customerCount} customers ka udhaar`}
+              urgent={money.receivable.total > 0}
+            />
+            <MoneyTile
+              icon={Building2} tone="orange" to="/suppliers"
+              label="Supplier Ko Dena"
+              value={formatPKR(money.payable.total)}
+              sub={`${money.payable.supplierCount} suppliers`}
+              urgent={money.payable.total > 0}
+            />
+            <MoneyTile
+              icon={Banknote} tone="emerald" to="/cash-register"
+              label="Counter Me Cash"
+              value={money.cash.registerOpen ? formatPKR(money.cash.expected) : '—'}
+              sub={money.cash.registerOpen
+                ? `Opening ${formatPKR(money.cash.opening)}`
+                : 'Register band hai'}
+            />
+          </div>
+
+          {money.inventory.deadStockValue > 0 && (
+            <div className="mt-3 rounded-2xl bg-gradient-to-r from-rose-50 to-orange-50 dark:from-rose-500/15 dark:to-orange-500/15 border-2 border-rose-200 dark:border-rose-500/30 px-4 py-3 flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-rose-500 to-orange-600 text-white flex items-center justify-center shadow-md shrink-0">
+                <Hourglass className="h-5 w-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="font-extrabold text-slate-900 dark:text-white text-sm">
+                  {formatPKR(money.inventory.deadStockValue)} ka maal phansa hua hai
+                </div>
+                <div className="text-xs font-bold text-rose-700 dark:text-rose-300">
+                  {money.inventory.deadStockCount} products 60 din se nahi bike — discount ya bundle karke nikaalein
+                </div>
+              </div>
+              <Link to="/retail/combos" className="shrink-0 text-rose-700 dark:text-rose-300 text-xs font-extrabold inline-flex items-center gap-1 hover:underline">
+                Combo banao <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════
+          KHARCHA BREAKDOWN + PURCHASES
+          ═══════════════════════════════════════════════════════ */}
+      {money && !hideCost && (
+        <section className="grid lg:grid-cols-2 gap-4 sm:gap-6">
+          <Card>
+            <CardHeader
+              icon={Wallet}
+              title="Kharcha Kahan Gaya"
+              subtitle="Is mahine, sab se bara pehle"
+              tone="amber"
+              right={
+                <Link to="/expenses" className="text-sky-700 dark:text-sky-400 text-xs font-extrabold inline-flex items-center gap-1 hover:underline">
+                  Sab <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              }
+            />
+            {money.expenses.byCategory.length > 0 ? (
+              <ExpenseBars rows={money.expenses.byCategory} total={money.expenses.month} />
+            ) : (
+              <EmptyList icon={Wallet} message="Is mahine koi kharcha darj nahi" />
+            )}
+          </Card>
+
+          <Card noPad>
+            <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-3">
+              <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-700 text-white flex items-center justify-center shadow-lg shadow-violet-500/40">
+                <ShoppingBag className="h-5 w-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">Maal Ki Kharidari</h3>
+                <p className="text-xs text-slate-600 dark:text-slate-400 font-bold">
+                  Aaj {formatPKR(money.purchases.todayTotal)} • mahine {formatPKR(money.purchases.monthTotal)}
+                </p>
+              </div>
+              <Link to="/purchases" className="text-sky-700 dark:text-sky-400 text-xs font-extrabold inline-flex items-center gap-1 hover:underline shrink-0">
+                Sab <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+            <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[340px] overflow-y-auto">
+              {money.purchases.recent?.length ? (
+                money.purchases.recent.map((pu: any) => {
+                  const due = Number(pu.total) - Number(pu.paidAmount);
+                  return (
+                    <Link key={pu.id} to={`/purchases/${pu.id}`}
+                      className="px-4 sm:px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition"
+                    >
+                      <div className="h-9 w-9 rounded-xl bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 flex items-center justify-center shrink-0">
+                        <Package className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="font-extrabold text-slate-900 dark:text-white truncate text-sm">
+                          {pu.supplier?.name || 'Supplier'}
+                        </div>
+                        <div className="text-[11px] text-slate-600 dark:text-slate-400 font-bold truncate font-mono">
+                          {pu.purchaseNumber} • {formatDate(pu.purchasedAt)}
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className="font-extrabold text-slate-900 dark:text-white text-sm tabular-nums">
+                          {formatPKR(pu.total)}
+                        </div>
+                        {due > 0 && (
+                          <div className="text-[10px] text-amber-700 dark:text-amber-400 font-extrabold">
+                            Baqi: {formatPKR(due)}
+                          </div>
+                        )}
+                      </div>
+                    </Link>
+                  );
+                })
+              ) : (
+                <EmptyList icon={ShoppingBag} message="Abhi koi kharidari nahi" />
+              )}
+            </div>
+          </Card>
+        </section>
+      )}
 
       {/* ═══════════════════════════════════════════════════════
           P&L + PAYMENT SPLIT (hidden if cost hidden)
@@ -413,11 +711,49 @@ export default function RetailDashboardV2() {
                 )
               }
             />
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-              <PnLCell label="Revenue" value={formatPKR(s.salesMonth ?? 0)} sub={`${s.ordersMonth ?? 0} orders`} tone="emerald" icon={TrendingUp} />
-              <PnLCell label="COGS" value={formatPKR(s.cogsMonth ?? 0)} sub="Purchase cost" tone="rose" icon={TrendingDown} />
-              <PnLCell label="Expenses" value={formatPKR(s.expensesMonth ?? 0)} sub="Rent, bills" tone="amber" icon={Wallet} />
-              <PnLCell label="Net Profit" value={formatPKR(s.netProfitMonth ?? 0)} sub={`Margin ${marginPct.toFixed(1)}%`} tone="blue" icon={Target} highlight />
+            {/* Poora silsila — bechne se le kar haath me bachne tak.
+                Pehle sirf chaar khane thay aur "gross profit" gayab tha,
+                to ye samajh hi nahi aata tha ke munafa maal ke rate se
+                kam hua ya kharchon se. */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
+              <PnLCell label="Sale" value={formatPKR(pnl.revenue)} sub={`${s.ordersMonth ?? 0} orders`} tone="emerald" icon={TrendingUp} />
+              <PnLCell label="− Maal Ki Lagat" value={formatPKR(pnl.cogs)} sub="COGS" tone="rose" icon={TrendingDown} />
+              <PnLCell label="= Gross Profit" value={formatPKR(pnl.gross)} sub={`${pnl.grossPct.toFixed(1)}% margin`} tone="emerald" icon={Sparkles} />
+              <PnLCell label="− Kharche" value={formatPKR(pnl.expenses)} sub="Bijli, kiraya, tankhwah" tone="amber" icon={Wallet} />
+              <PnLCell label="= Net Profit" value={formatPKR(pnl.net)} sub={`Margin ${pnl.netPct.toFixed(1)}%`} tone="blue" icon={Target} highlight />
+            </div>
+
+            {/* Aaj ka apna hisaab — mahine ka bara number rozmarra ka
+                sawal nahi. */}
+            <div className="mt-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 px-4 py-3 flex items-center gap-3 flex-wrap">
+              <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 shrink-0">
+                Aaj
+              </div>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Sale</span>
+                <span className="text-sm font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">
+                  {formatPKR(s.salesToday ?? 0)}
+                </span>
+              </div>
+              <span className="text-slate-300 dark:text-slate-600">•</span>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Kharcha</span>
+                <span className="text-sm font-extrabold text-amber-700 dark:text-amber-400 tabular-nums">
+                  {formatPKR(money?.expenses?.today ?? s.expensesToday ?? 0)}
+                </span>
+              </div>
+              <span className="text-slate-300 dark:text-slate-600">•</span>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Bacha</span>
+                <span className={[
+                  'text-sm font-extrabold tabular-nums',
+                  (money?.profit?.todayNet ?? s.netProfitToday ?? 0) >= 0
+                    ? 'text-blue-700 dark:text-blue-400'
+                    : 'text-rose-700 dark:text-rose-400',
+                ].join(' ')}>
+                  {formatPKR(money?.profit?.todayNet ?? s.netProfitToday ?? 0)}
+                </span>
+              </div>
             </div>
           </Card>
 
@@ -498,6 +834,12 @@ export default function RetailDashboardV2() {
           <OpsCard to="/retail/damage" icon={AlertTriangle} title="Damage Log" desc={`${retailAlerts.damagesToday ?? 0} aaj`} tone="orange" />
           <OpsCard to="/retail/reorders" icon={RefreshCw} title="Smart Reorder" desc="AI suggestions" tone="indigo" />
           <OpsCard to="/retail/bulk-import" icon={Upload} title="Bulk Import" desc="Excel/CSV" tone="purple" />
+          <OpsCard to="/profit-report" icon={PiggyBank} title="Profit Report" desc="Nafa-nuqsan" tone="emerald" />
+          <OpsCard to="/expenses" icon={Wallet} title="Kharche" desc="Bijli, kiraya" tone="amber" />
+          <OpsCard to="/purchases" icon={ShoppingBag} title="Kharidari" desc="Maal mangwao" tone="violet" />
+          <OpsCard to="/suppliers" icon={Building2} title="Suppliers" desc={`${s.totalSuppliers ?? 0} parties`} tone="indigo" />
+          <OpsCard to="/barcode-labels" icon={Tag} title="Barcode Labels" desc="Multi-unit bhi" tone="teal" />
+          <OpsCard to="/cash-register" icon={Banknote} title="Cash Register" desc="Counter ka hisaab" tone="emerald" />
         </div>
       </section>
 
@@ -526,7 +868,7 @@ export default function RetailDashboardV2() {
               <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">Top Movers 🏆</h3>
               <p className="text-xs text-slate-600 dark:text-slate-400 font-bold">Is mahine ke best sellers</p>
             </div>
-            <Link to="/reports/profit" className="text-sky-700 dark:text-sky-400 text-xs font-extrabold inline-flex items-center gap-1 hover:underline">
+            <Link to="/profit-report" className="text-sky-700 dark:text-sky-400 text-xs font-extrabold inline-flex items-center gap-1 hover:underline">
               Reports <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
@@ -914,6 +1256,110 @@ function OpsCard({ to, icon: Icon, title, desc, tone, primary }: any) {
       <div className="font-extrabold text-slate-900 dark:text-white text-xs sm:text-sm truncate">{title}</div>
       <div className="text-[10px] sm:text-[11px] text-slate-600 dark:text-slate-400 font-bold mt-0.5 truncate">{desc}</div>
     </Link>
+  );
+}
+
+/**
+ * Paisa-map ka khana.
+ *
+ * Raqam sab se bari cheez hai — is liye wohi sab se mota. Neeche ek
+ * jumle me tafseel: kitne items, kitne bills, kitna baqi. Har khana
+ * apni jagah le jata hai, taake sawal ka jawab do click me mil jaye.
+ */
+function MoneyTile({ icon: Icon, label, value, sub, tone, to, urgent }: any) {
+  const tones: Record<string, { grad: string; ring: string }> = {
+    teal:    { grad: 'from-teal-500 to-emerald-600',   ring: 'hover:border-teal-300 dark:hover:border-teal-500/50' },
+    violet:  { grad: 'from-violet-500 to-purple-600',  ring: 'hover:border-violet-300 dark:hover:border-violet-500/50' },
+    amber:   { grad: 'from-amber-500 to-orange-600',   ring: 'hover:border-amber-300 dark:hover:border-amber-500/50' },
+    rose:    { grad: 'from-rose-500 to-red-600',       ring: 'hover:border-rose-300 dark:hover:border-rose-500/50' },
+    orange:  { grad: 'from-orange-500 to-amber-600',   ring: 'hover:border-orange-300 dark:hover:border-orange-500/50' },
+    emerald: { grad: 'from-emerald-500 to-green-600',  ring: 'hover:border-emerald-300 dark:hover:border-emerald-500/50' },
+  };
+  const t = tones[tone] ?? tones.teal;
+  return (
+    <Link to={to} className={[
+      'rounded-2xl bg-white dark:bg-slate-900/60 border-2 p-3 sm:p-4',
+      'shadow-sm dark:shadow-black/20 hover:shadow-lg transition-all hover:-translate-y-0.5',
+      urgent ? 'border-amber-300 dark:border-amber-500/40' : 'border-slate-200 dark:border-slate-800',
+      t.ring,
+    ].join(' ')}>
+      <div className={`h-9 w-9 rounded-xl bg-gradient-to-br ${t.grad} text-white flex items-center justify-center shadow-md mb-2`}>
+        <Icon className="h-4 w-4" />
+      </div>
+      <div className="text-[10px] uppercase tracking-wider text-slate-600 dark:text-slate-400 font-extrabold truncate">
+        {label}
+      </div>
+      <div className="mt-0.5 text-base sm:text-xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">
+        {value}
+      </div>
+      <div className="text-[10px] text-slate-600 dark:text-slate-400 font-bold mt-1 leading-snug line-clamp-2">
+        {sub}
+      </div>
+    </Link>
+  );
+}
+
+/**
+ * Kharche ki categories — sab se bari pehle.
+ *
+ * Gol chart (pie) ki jagah seedhi patiyan: dukaan-daar ka sawal
+ * "kaunsa kharcha sab se bara hai" tarteeb ka sawal hai, aur lambai
+ * ka muqabla gole ke tukron se kahin aasan hai.
+ *
+ * Har patti par naam aur raqam likhi hai — rang sirf sajawat hai,
+ * pehchan nahi. Is liye rang na dikhein (colour-blindness, black &
+ * white print) tab bhi chart poora parha jata hai.
+ */
+function ExpenseBars({ rows, total }: { rows: any[]; total: number }) {
+  const max = Math.max(...rows.map((r) => r.amount), 1);
+  const isDark = typeof document !== 'undefined'
+    && document.documentElement.classList.contains('dark');
+
+  return (
+    <div className="space-y-2.5">
+      {rows.map((r, i) => {
+        const fallback = isDark ? CATEGORY_FALLBACK_DARK : CATEGORY_FALLBACK;
+        const color = r.color && r.color !== '#f59e0b'
+          ? r.color
+          : fallback[i % fallback.length];
+        const pctOfTotal = total > 0 ? (r.amount / total) * 100 : 0;
+        return (
+          <div key={r.categoryId ?? `none-${i}`}>
+            <div className="flex items-baseline justify-between gap-2 mb-1">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="h-2.5 w-2.5 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: color }} />
+                <span className="text-xs font-extrabold text-slate-800 dark:text-slate-100 truncate">
+                  {r.name}
+                </span>
+                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 shrink-0">
+                  ×{r.count}
+                </span>
+              </div>
+              <div className="text-xs font-extrabold text-slate-900 dark:text-white tabular-nums shrink-0">
+                {formatPKR(r.amount)}
+                <span className="ml-1 text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                  {pctOfTotal.toFixed(0)}%
+                </span>
+              </div>
+            </div>
+            <div className="h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{ width: `${Math.max((r.amount / max) * 100, 2)}%`, backgroundColor: color }}
+              />
+            </div>
+          </div>
+        );
+      })}
+      <div className="pt-2 mt-1 border-t-2 border-slate-100 dark:border-slate-800 flex items-baseline justify-between">
+        <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+          Kul kharcha
+        </span>
+        <span className="text-sm font-extrabold text-amber-700 dark:text-amber-400 tabular-nums">
+          {formatPKR(total)}
+        </span>
+      </div>
+    </div>
   );
 }
 

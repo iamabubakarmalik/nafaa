@@ -4,6 +4,7 @@ import ProfitReportPage from './ProfitReportPage';
 import RetailProfitReportPage from '@industries/retail/pages/RetailProfitReportPage';
 import MobileProfitReportPage from '@industries/mobile/pages/MobileProfitReportPage';
 import ElectronicsProfitReportPage from '@industries/electronics/pages/ElectronicsProfitReportPage';
+import BakeryProfitReportPage from '@industries/bakery/pages/BakeryProfitReportPage';
 
 /**
  * ProfitReportGate — routes /profit-report to the correct
@@ -17,6 +18,11 @@ export default function ProfitReportGate() {
   const industry = useCurrentIndustry();
 
   switch (industry?.id) {
+    /* Bakery ka munafa alag tarah nikalta hai: cheez khareedi nahi,
+       banai jati hai — is liye recipe ki cost se milan bhi hota hai. */
+    case 'bakery':
+      return <BakeryProfitReportPage />;
+
     case 'retail':
       return <RetailProfitReportPage />;
 

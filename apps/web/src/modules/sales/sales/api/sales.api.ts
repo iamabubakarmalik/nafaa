@@ -47,7 +47,26 @@ export interface CreateSalePayload {
   loyaltyPointsToUse?: number;
   note?: string;
   serviceCharges?: ServiceChargeItem[];
+
+  /**
+   * Maal lene kaun aaya tha — jab khud khate wala na aaya ho.
+   *
+   * Udhaar khata mahine bhar chalta hai aur maal aksar mulazim ya ghar
+   * ka koi fard le jata hai. Bill par aur khate me ye naam jata hai,
+   * taake mahine ke aakhir me hisaab par jhagra na ho.
+   */
+  receivedByName?: string;
+  receivedByPhone?: string;
+  receivedByCnic?: string;
+
   items: CreateSaleItem[];
+}
+
+/** Is customer ke paas pehle kaun kaun maal lene aaya tha. */
+export interface SaleReceiver {
+  name: string;
+  phone: string | null;
+  lastAt: string;
 }
 
 export interface Sale {
@@ -65,6 +84,10 @@ export interface Sale {
   paymentMethod: PaymentMethod;
   soldAt: string;
   status?: 'COMPLETED' | 'PARTIALLY_RETURNED' | 'FULLY_RETURNED' | 'VOIDED';
+  /** Maal le jane wala — purani sales par khali rehta hai */
+  receivedByName?: string | null;
+  receivedByPhone?: string | null;
+  receivedByCnic?: string | null;
   customer?: {
     id: string;
     name: string;
@@ -195,6 +218,23 @@ export const salesApi = {
    */
   create: (payload: CreateSalePayload) =>
     apiClient.post<{ data: Sale }>('/sales', payload).then(unwrap),
+
+  /**
+   * Is customer ke pichhle receivers — POS ke suggestion box ke liye.
+   *
+   * Net na ho to khali list: suggestions na hona sale rokne ki wajah
+   * nahi, naam haath se bhi likha ja sakta hai.
+   */
+  receivers: async (customerId?: string): Promise<SaleReceiver[]> => {
+    if (!customerId) return [];
+    try {
+      return await apiClient
+        .get<{ data: SaleReceiver[] }>('/sales/receivers', { params: { customerId } })
+        .then(unwrap);
+    } catch {
+      return [];
+    }
+  },
 
   /**
    * LIST — GLOBAL OFFLINE: server + pending local sales MERGED.

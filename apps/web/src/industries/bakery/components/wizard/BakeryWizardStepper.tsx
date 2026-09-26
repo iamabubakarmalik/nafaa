@@ -1,23 +1,42 @@
-import { Check, Package, Palette, ChefHat } from 'lucide-react';
-import type { WizardStep } from '../../hooks/useBakeryWizard';
+import { Check, Package, Palette, ChefHat, AlertTriangle, ShoppingBag } from 'lucide-react';
+import type { WizardStep, BakeryItemType } from '../../hooks/useBakeryWizard';
 
 interface Props {
   currentStep: WizardStep;
   stepValidation: {
-    step1: { valid: boolean };
-    step2: { valid: boolean };
-    step3: { valid: boolean };
+    step1: { valid: boolean; errors?: string[] };
+    step2: { valid: boolean; errors?: string[] };
+    step3: { valid: boolean; errors?: string[] };
   };
+  itemType: BakeryItemType;
   onStepClick?: (step: WizardStep) => void;
 }
 
-const STEPS = [
-  { id: 1, label: 'Basic Info', desc: 'Name, category, prices', icon: Package },
-  { id: 2, label: 'Cake Details', desc: 'Flavor, shape, customization', icon: Palette },
-  { id: 3, label: 'Production & Diet', desc: 'Shelf life, allergens, badges', icon: ChefHat },
-] as const;
+/* Har cheez ke apne step. Lays ke packet se cake ke sawal poochna
+   fazool hai, aur banane ke saamaan ka to bas ek chhota form hai. */
+const STEPS_BY_TYPE: Record<BakeryItemType, Array<{
+  id: number; label: string; desc: string; icon: any;
+}>> = {
+  MADE: [
+    { id: 1, label: 'Basic', desc: 'Naam, category, rate', icon: Package },
+    { id: 2, label: 'Cake aur Recipe', desc: 'Flavour, shape, kya lagta hai', icon: Palette },
+    { id: 3, label: 'Taazgi aur Khana', desc: 'Kitni der theek, anda/doodh', icon: ChefHat },
+  ],
+  BOUGHT: [
+    { id: 1, label: 'Basic', desc: 'Naam, category, rate', icon: Package },
+    { id: 2, label: 'Stock aur Expiry', desc: 'Kitni der theek, barcode', icon: ShoppingBag },
+  ],
+  RAW: [
+    { id: 1, label: 'Saamaan', desc: 'Naam, rate, stock, supplier', icon: Package },
+  ],
+};
 
-export function BakeryWizardStepper({ currentStep, stepValidation, onStepClick }: Props) {
+export function BakeryWizardStepper({ currentStep, stepValidation, itemType, onStepClick }: Props) {
+  const STEPS = STEPS_BY_TYPE[itemType];
+
+  /* Ek hi step ho to patti dikhane ka koi faida nahi */
+  if (STEPS.length <= 1) return null;
+
   return (
     <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm p-2 overflow-x-auto">
       <div className="flex items-center gap-2 min-w-max">
@@ -26,6 +45,10 @@ export function BakeryWizardStepper({ currentStep, stepValidation, onStepClick }
           const isPast = currentStep > s.id;
           const key = `step${s.id}` as keyof typeof stepValidation;
           const isComplete = stepValidation[key].valid && (isPast || isActive);
+          /* Jis qadam par kuch reh gaya ho, wahan laal nishan — magar
+             sirf tab jab us qadam par ja chuke hon. Pehle se hi laal
+             dikhana nayi cheez banate waqt daraane wala lagta hai. */
+          const hasProblem = !stepValidation[key].valid && (isPast || isActive);
           const Icon = s.icon;
 
           return (
@@ -48,20 +71,22 @@ export function BakeryWizardStepper({ currentStep, stepValidation, onStepClick }
                     : isPast && isComplete ? 'bg-pink-600 text-white'
                     : 'bg-white text-slate-500 border-2 border-slate-200',
                 ].join(' ')}>
-                  {isPast && isComplete ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
+                  {hasProblem ? <AlertTriangle className="h-4 w-4 text-rose-500" />
+                    : isPast && isComplete ? <Check className="h-4 w-4" />
+                    : <Icon className="h-4 w-4" />}
                 </div>
                 <div className="text-left">
                   <div className={[
                     'text-[10px] uppercase tracking-wider font-extrabold',
                     isActive ? 'text-white/90' : isPast ? 'text-pink-700' : 'text-slate-500',
                   ].join(' ')}>
-                    Step {s.id}
+                    Step {s.id} of {STEPS.length}
                   </div>
                   <div className="text-sm font-extrabold leading-tight">{s.label}</div>
                   <div className={[
                     'text-[10px] font-bold leading-tight mt-0.5',
                     isActive ? 'text-white/80' : 'text-slate-500',
-                  ].join(' ')}>{s.desc}</div>
+                  ].join(' ')}>{hasProblem ? (stepValidation[key].errors?.[0] ?? 'Kuch reh gaya hai') : s.desc}</div>
                 </div>
               </button>
 

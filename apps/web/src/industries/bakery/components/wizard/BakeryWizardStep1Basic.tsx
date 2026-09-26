@@ -7,11 +7,12 @@ import {
 import { Input } from '@core/ui/Input';
 import { Button } from '@core/ui/Button';
 import { UploadDropzone } from '@core/components/uploads';
-import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
 import { brandsApi } from '@modules/inventory/brands/api/brands.api';
 import { tagsApi } from '@modules/inventory/tags/api/tags.api';
 import { formatPKRFull } from '@core/lib/format';
-import { CATEGORIES, SIZES } from '../../api/constants';
+import { SIZES } from '../../api/constants';
+import { BakeryCategoryPicker } from './BakeryCategoryPicker';
+import { deriveBakeryCategory, isCakeLike } from '../../lib/bakeryCategory';
 import type { BakeryWizardBasic } from '../../hooks/useBakeryWizard';
 
 interface Props {
@@ -22,7 +23,6 @@ interface Props {
 }
 
 export function BakeryWizardStep1Basic({ basic, onChange, onNext, validation }: Props) {
-  const { data: categories = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list });
   const { data: brands = [] } = useQuery({ queryKey: ['brands'], queryFn: () => brandsApi.list() });
   const { data: allTags = [] } = useQuery({ queryKey: ['tags'], queryFn: tagsApi.list });
 
@@ -34,8 +34,9 @@ export function BakeryWizardStep1Basic({ basic, onChange, onNext, validation }: 
     });
   };
 
-  const bakeryCategory = CATEGORIES.find((c) => c.value === basic.bakeryCategory);
-  const isCakeType = ['CAKE', 'CUPCAKE', 'CHEESECAKE', 'CUSTOM_CAKE', 'WEDDING_CAKE', 'BIRTHDAY_CAKE', 'ANNIVERSARY_CAKE'].includes(basic.bakeryCategory);
+  /* Qism ab poochi nahi jati — category ke naam se khud nikalti hai */
+  const derivedCategory = deriveBakeryCategory(basic.categoryName, basic.name);
+  const isCakeType = isCakeLike(derivedCategory);
 
   return (
     <div className="space-y-5">
@@ -51,37 +52,13 @@ export function BakeryWizardStep1Basic({ basic, onChange, onNext, validation }: 
           autoFocus
         />
 
-        <div>
-          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-            Bakery Category *
-          </label>
-          <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2">
-            {CATEGORIES.map((c) => {
-              const active = basic.bakeryCategory === c.value;
-              return (
-                <button
-                  key={c.value}
-                  type="button"
-                  onClick={() => onChange({ bakeryCategory: c.value })}
-                  className={[
-                    'group px-2 py-2.5 rounded-xl border-2 transition-all flex flex-col items-center gap-1',
-                    active
-                      ? 'border-pink-500 bg-gradient-to-br from-pink-50 to-fuchsia-50 dark:from-pink-950/40 dark:to-fuchsia-950/40 shadow-md ring-2 ring-pink-200'
-                      : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-pink-300 hover:shadow-sm',
-                  ].join(' ')}
-                >
-                  <span className="text-xl group-hover:scale-110 transition-transform">{c.emoji}</span>
-                  <span className={[
-                    'text-[9px] font-extrabold text-center leading-tight',
-                    active ? 'text-pink-800' : 'text-slate-700 dark:text-slate-300',
-                  ].join(' ')}>
-                    {c.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        {/* Sirf EK category — dukaan-daar ki apni. System wali qism
+            yahan se khud nikal aati hai; poochi nahi jati. */}
+        <BakeryCategoryPicker
+          value={basic.categoryId}
+          productName={basic.name}
+          onChange={(categoryId, categoryName) => onChange({ categoryId, categoryName })}
+        />
 
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
@@ -140,21 +117,6 @@ export function BakeryWizardStep1Basic({ basic, onChange, onNext, validation }: 
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              Base Category
-            </label>
-            <select
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm focus:outline-none focus:border-pink-500"
-              value={basic.categoryId}
-              onChange={(e) => onChange({ categoryId: e.target.value })}
-            >
-              <option value="">No category</option>
-              {categories.map((c: any) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
               Brand
             </label>
             <select
@@ -190,6 +152,45 @@ export function BakeryWizardStep1Basic({ basic, onChange, onNext, validation }: 
             onChange={(e) => onChange({ weightGrams: e.target.value === '' ? '' : Number(e.target.value) })}
             placeholder="500"
           />
+        </div>
+
+        {/* ── Haath se bharne wale khaane ──
+            Ye pehle wizard me thay hi nahi. Lagat hamesha 0 jati thi
+            (yani munafa hamesha poora dikhta tha), aur stock ka koi
+            zariya nahi tha. */}
+        <div className="rounded-2xl bg-slate-50 dark:bg-neutral-800/60 border-2 border-slate-200 dark:border-neutral-700 p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Package className="h-4 w-4 text-slate-500" />
+            <span className="text-sm font-extrabold text-slate-700 dark:text-slate-200">Lagat aur stock</span>
+          </div>
+          <div className="grid sm:grid-cols-3 gap-4">
+            <Input
+              label="Banane ki lagat (per unit)"
+              type="number"
+              value={basic.costPrice}
+              onChange={(e) => onChange({ costPrice: e.target.value === '' ? '' : Number(e.target.value) })}
+              placeholder="0"
+            />
+            <Input
+              label="Abhi kitna bana hua hai"
+              type="number"
+              value={basic.openingStock}
+              onChange={(e) => onChange({ openingStock: e.target.value === '' ? '' : Number(e.target.value) })}
+              placeholder="0"
+            />
+            <Input
+              label="Itna reh jaye to batao"
+              type="number"
+              value={basic.lowStockAlert}
+              onChange={(e) => onChange({ lowStockAlert: e.target.value === '' ? '' : Number(e.target.value) })}
+              placeholder="5"
+            />
+          </div>
+          <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+            Lagat bharne se hi munafa sahi nikalta hai. Stock sirf nayi cheez
+            banate waqt set hota hai — edit karne par counter ka maujooda
+            stock jyun ka tyun rehta hai.
+          </p>
         </div>
       </section>
 

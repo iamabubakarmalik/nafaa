@@ -418,6 +418,11 @@ export class SalesService {
             serviceChargesArr.length > 0
               ? (serviceChargesArr as any)
               : undefined,
+          // Khali string ko NULL banate hain — warna "pehle kaun aaya
+          // tha" wali list me khali naam bhi shamil ho jate hain.
+          receivedByName: dto.receivedByName?.trim() || null,
+          receivedByPhone: dto.receivedByPhone?.trim() || null,
+          receivedByCnic: dto.receivedByCnic?.trim() || null,
           items: {
             create: normalizedItems.map((item) => ({
               ...(item.productId ? { productId: item.productId } : {}),
@@ -623,7 +628,11 @@ export class SalesService {
             amount: creditAmount,
             balanceAfter: newBalance,
             reference: sale.saleNumber,
-            note: `Udhaar sale: ${sale.saleNumber} (${shop.name})`,
+            // Khate me bhi receiver ka naam — mahine ke aakhir me
+            // khata kholte waqt saaf dikhe ke maal kis ne uthaya.
+            note: sale.receivedByName
+              ? `Udhaar sale: ${sale.saleNumber} (${shop.name}) — le gaya: ${sale.receivedByName}`
+              : `Udhaar sale: ${sale.saleNumber} (${shop.name})`,
           },
         });
       }
@@ -836,6 +845,40 @@ export class SalesService {
     }));
 
     return { ...sale, items: enrichedItems };
+  }
+
+  /**
+   * Is customer ke pichhle receivers — POS ke suggestion box ke liye.
+   *
+   * Sab se haal hi wale pehle: jo banda kal aaya tha wo aaj bhi aa sakta
+   * hai, mahine pehle wala kam mumkin hai.
+   */
+  async recentReceivers(user: AuthenticatedUser, customerId?: string) {
+    if (!customerId) return [];
+
+    const rows = await this.prisma.sale.findMany({
+      where: {
+        tenantId: user.tenantId,
+        customerId,
+        receivedByName: { not: null },
+      },
+      select: { receivedByName: true, receivedByPhone: true, soldAt: true },
+      orderBy: { soldAt: 'desc' },
+      take: 60,
+    });
+
+    // Ek hi naam baar baar aata hai — sirf pehli (sab se nayi) dafa rakhein.
+    const seen = new Map<string, { name: string; phone: string | null; lastAt: Date }>();
+    for (const r of rows) {
+      const name = (r.receivedByName ?? '').trim();
+      if (!name) continue;
+      const key = name.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.set(key, { name, phone: r.receivedByPhone, lastAt: r.soldAt });
+      if (seen.size >= 12) break;
+    }
+
+    return [...seen.values()];
   }
 
   async summary(user: AuthenticatedUser, scope: ShopScope, shopId?: string) {

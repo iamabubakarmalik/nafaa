@@ -56,7 +56,10 @@ export class SupplierLedgerService {
     supplierId: string,
     type: SupplierLedgerType,
     amount: number,
-    opts: { reference?: string; note?: string; entryDate?: string; shopId?: string } = {},
+    opts: {
+      reference?: string; note?: string; entryDate?: string; shopId?: string;
+      paymentMethod?: string;
+    } = {},
     tx?: Prisma.TransactionClient,
   ) {
     const run = async (db: Prisma.TransactionClient) => {
@@ -77,6 +80,7 @@ export class SupplierLedgerService {
           balanceAfter,
           reference: opts.reference,
           note: opts.note,
+          paymentMethod: (opts.paymentMethod as any) ?? undefined,
           entryDate: opts.entryDate ? new Date(opts.entryDate) : new Date(),
         },
       });
@@ -193,6 +197,9 @@ export class SupplierLedgerService {
       reference: dto.reference,
       note: dto.note ?? 'Supplier ko adaigi',
       entryDate: dto.entryDate,
+      /* Na bataya jaye to cash — dukaan par aam tor par yehi hota
+         hai, aur purane client ye khaana bhejte hi nahi. */
+      paymentMethod: dto.paymentMethod ?? 'CASH',
     });
   }
 

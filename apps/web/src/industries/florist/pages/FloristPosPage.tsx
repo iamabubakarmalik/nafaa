@@ -14,7 +14,7 @@ import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api
 import { offlineSalesApi } from '@core/lib/offline/offlineSales';
 import type { Product } from '@modules/inventory/products/api/products.api';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
-import { RetailQuickCash } from '@industries/retail/components/pos';
+import { PosQuickCash } from '@modules/pos/components';
 import { floristProductsApi } from '../api/products.api';
 import { floristOrdersApi } from '../api/orders.api';
 import { DeliverySchedulerModal, type DeliveryDetails } from '../components/pos/DeliverySchedulerModal';
@@ -240,7 +240,7 @@ export default function FloristPosPage() {
       )}
 
       {showCheckout && (
-        <RetailQuickCash total={total} itemCount={cart.length} loading={checkout.isPending}
+        <PosQuickCash total={total} itemCount={cart.length} loading={checkout.isPending}
           customerName={customer?.name} customerBalance={Number(customer?.balance || 0)}
           hasCustomer={!!customerId}
           onConfirm={({ paymentMethod, paidAmount }) => checkout.mutate({ paymentMethod, paidAmount })}

@@ -2,7 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PaymentMethod } from '@prisma/client';
 import {
   ArrayMinSize, IsArray, IsBoolean, IsEnum, IsInt, IsNumber,
-  IsOptional, IsString, Min, ValidateNested,
+  IsOptional, IsString, MaxLength, Min, ValidateNested,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 
@@ -172,6 +172,36 @@ export class CreateSaleDto {
   @IsOptional()
   @IsString()
   note?: string;
+
+  /**
+   * Maal lene kaun aaya tha — jab khud khate wala na aaya ho.
+   *
+   * Udhaar khata mahine bhar chalta hai aur maal aksar mulazim ya ghar
+   * ka koi fard le jata hai. Ye naam bill par aur khate me chala jata
+   * hai, taake mahine ke aakhir me hisaab par koi jhagra na ho.
+   *
+   * Khali chhora ja sakta hai: cash walk-in par koi receiver nahi hota.
+   */
+  @ApiPropertyOptional({
+    description: 'Jo banda maal lene aaya (khate wale ka mulazim/ghar ka fard)',
+    example: 'Bilal (driver)',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  receivedByName?: string;
+
+  @ApiPropertyOptional({ description: 'Receiver ka phone', example: '03001234567' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(30)
+  receivedByPhone?: string;
+
+  @ApiPropertyOptional({ description: 'Receiver ka CNIC', example: '35202-1234567-1' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  receivedByCnic?: string;
 
   @ApiPropertyOptional({
     type: [ServiceChargeItemDto],

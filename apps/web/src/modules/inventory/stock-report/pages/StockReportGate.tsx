@@ -5,6 +5,7 @@ import RetailStockReportPage from '@industries/retail/pages/RetailStockReportPag
 import MobileStockReportPage from '@industries/mobile/pages/MobileStockReportPage';
 import ElectronicsStockReportPage from '@industries/electronics/pages/ElectronicsStockReportPage';
 import AppliancesStockReportPage from '@industries/appliances/pages/AppliancesStockReportPage';
+import BakeryStockReportPage from '@industries/bakery/pages/BakeryStockReportPage';
 
 /**
  * StockReportGate — routes /stock-report to the correct
@@ -19,6 +20,11 @@ export default function StockReportGate() {
   const industry = useCurrentIndustry();
 
   switch (industry?.id) {
+    /* Bakery me sirf bikne wala maal ginna aadhi tasveer hai —
+       gudaam ka maida aur makkhan bhi utna hi paisa hai. */
+    case 'bakery':
+      return <BakeryStockReportPage />;
+
     case 'retail':
       return <RetailStockReportPage />;
 

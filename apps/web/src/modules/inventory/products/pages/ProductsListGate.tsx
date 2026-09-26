@@ -8,6 +8,7 @@ const MobileProductsPage = lazy(() => import('../../../../industries/mobile/page
 
 // ─── 10 NEW industries with dedicated list pages ───
 const AppliancesProductsPage = lazy(() => import('@industries/appliances/pages/AppliancesProductsPage'));
+const BakeryProductsListPage = lazy(() => import('@industries/bakery/pages/BakeryProductsListPage'));
 const ElectronicsProductsPage = lazy(() => import('@industries/electronics/pages/ElectronicsProductsPage'));
 const FloristProductsPage = lazy(() => import('@industries/florist/pages/FloristProductsPage'));
 const FurnitureProductsPage = lazy(() => import('@industries/furniture/pages/FurnitureProductsPage'));
@@ -38,6 +39,7 @@ export default function ProductsListGate() {
 
   // 10 NEW industries
   if (industry?.id === 'appliances') return <Suspense fallback={<Loader />}><AppliancesProductsPage /></Suspense>;
+  if (industry?.id === 'bakery') return <Suspense fallback={<Loader />}><BakeryProductsListPage /></Suspense>;
   if (industry?.id === 'electronics') return <Suspense fallback={<Loader />}><ElectronicsProductsPage /></Suspense>;
   if (industry?.id === 'florist') return <Suspense fallback={<Loader />}><FloristProductsPage /></Suspense>;
   if (industry?.id === 'furniture') return <Suspense fallback={<Loader />}><FurnitureProductsPage /></Suspense>;

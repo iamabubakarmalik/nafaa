@@ -16,7 +16,7 @@ import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api
 import { offlineSalesApi } from '@core/lib/offline/offlineSales';
 import type { Product } from '@modules/inventory/products/api/products.api';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
-import { RetailQuickCash } from '@industries/retail/components/pos';
+import { PosQuickCash } from '@modules/pos/components';
 import { gamingProductsApi } from '../api/products.api';
 import { gamingTopupsApi } from '../api/topups.api';
 import { TopupPickerModal } from '../components/pos/TopupPickerModal';
@@ -445,7 +445,7 @@ export default function GamingPosPage() {
       )}
 
       {showCheckout && (
-        <RetailQuickCash
+        <PosQuickCash
           total={total}
           itemCount={itemCount}
           loading={checkoutMutation.isPending}

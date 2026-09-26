@@ -1215,6 +1215,20 @@ model Sale {
   serviceCharges          Float         @default(0)
   serviceChargesBreakdown Json?
   bookingId               String?       @unique
+
+  // Maal lene kaun aaya tha.
+  //
+  // Factory ya bari dukaan ka udhaar khata mahine bhar chalta hai, aur
+  // maal aksar khud malik nahi, uska mulazim ya ghar ka koi fard le kar
+  // jata hai. Pehle bill par sirf khate ka naam hota tha — mahine ke
+  // aakhir me jhagra hota tha ke "ye maal kis ne uthaya tha".
+  //
+  // Teenon khane khali reh sakte hain: purani sales aur walk-in cash
+  // bills me koi receiver hota hi nahi.
+  receivedByName          String?
+  receivedByPhone         String?
+  receivedByCnic          String?
+
   soldAt                  DateTime      @default(now())
   createdAt               DateTime      @default(now())
   updatedAt               DateTime      @updatedAt
@@ -1236,6 +1250,8 @@ model Sale {
   @@index([customerId])
   @@index([shopId])
   @@index([cashRegisterId])
+  // POS ki "pehle kaun aaya tha" wali list isi par chalti hai
+  @@index([customerId, receivedByName])
 }
 
 model SaleItem {
@@ -1361,6 +1377,17 @@ model SupplierLedger {
   amount       Float
   /** Is entry ke baad hum supplier ko kitna dete hain */
   balanceAfter Float
+  /**
+   * Adaigi kis zariye hui — sirf PAYMENT_MADE par maani rakhta hai.
+   *
+   * Golak (cash register) ka hisab isi se tay hota hai: cash wali
+   * adaigi golak se nikalti hai, bank/cheque wali nahi.
+   *
+   * Nullable hai — purani entriyon par kuch likha hi nahi tha, aur
+   * unhein cash maan liya jata hai (kiryana me qariban hamesha cash
+   * hi hota tha).
+   */
+  paymentMethod PaymentMethod?
   /** Purchase number, cheque number waghera */
   reference    String?
   note         String?

@@ -14,7 +14,7 @@ import { offlineCustomersApi as customersApi } from '@core/lib/offline/offlineCu
 import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { offlineSalesApi } from '@core/lib/offline/offlineSales';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
-import { RetailQuickCash } from '@industries/retail/components/pos';
+import { PosQuickCash } from '@modules/pos/components';
 import { shoeProductsApi } from '../api/products.api';
 import { shoeSizeVariantsApi } from '../api/size-variants.api';
 import { SizePickerModal } from '../components/pos/SizePickerModal';
@@ -215,7 +215,7 @@ export default function ShoePosPage() {
           onClose={() => setSizePickerProduct(null)} />
       )}
       {showCheckout && (
-        <RetailQuickCash total={total} itemCount={itemCount} loading={checkoutMutation.isPending}
+        <PosQuickCash total={total} itemCount={itemCount} loading={checkoutMutation.isPending}
           customerName={selectedCustomer?.name} customerBalance={Number(selectedCustomer?.balance || 0)}
           hasCustomer={!!customerId}
           onConfirm={({ paymentMethod, paidAmount }) => checkoutMutation.mutate({ paymentMethod, paidAmount })}

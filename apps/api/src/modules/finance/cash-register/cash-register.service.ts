@@ -100,18 +100,17 @@ export class CashRegisterService {
       }),
 
       /* Supplier ko baad me di gayi adaigi (khate se).
-         NOTE: SupplierLedger par abhi koi `paymentMethod` nahi hai,
-         is liye har PAYMENT_MADE ko cash maana ja raha hai — kiryana
-         me qariban hamesha cash hi hota hai. Jis din bank/cheque se
-         adaigi alag rakhni ho, ledger par payment-method ka column
-         chahiye hoga. */
+         Sirf CASH wali — bank ya cheque se di gayi raqam golak se
+         nahi nikalti. NULL bhi cash ginte hain: us column se pehle
+         ki entriyon par kuch likha hi nahi gaya tha. */
       this.prisma.supplierLedger.aggregate({
         where: {
           tenantId,
           type: 'PAYMENT_MADE',
           entryDate: { gte: since },
+          OR: [{ paymentMethod: 'CASH' }, { paymentMethod: null }],
           ...(register.shopId
-            ? { OR: [{ shopId: register.shopId }, { shopId: null }] }
+            ? { AND: [{ OR: [{ shopId: register.shopId }, { shopId: null }] }] }
             : {}),
         },
         _sum: { amount: true },

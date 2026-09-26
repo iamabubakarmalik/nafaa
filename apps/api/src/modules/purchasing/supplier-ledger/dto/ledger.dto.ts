@@ -1,5 +1,10 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDateString, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { IsDateString, IsIn, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+
+/** Supplier ko adaigi kis zariye — golak ka hisab isi se tay hota hai */
+export const SUPPLIER_PAYMENT_METHODS = [
+  'CASH', 'CARD', 'BANK_TRANSFER', 'JAZZCASH', 'EASYPAISA',
+] as const;
 
 /**
  * Purana khata — system se pehle supplier ko jitna dena tha.
@@ -30,6 +35,15 @@ export class AddDueDto {
 export class PaymentDto {
   @ApiProperty({ example: 5000 })
   @IsNumber() @Min(1) amount!: number;
+
+  /**
+   * Cash diya to golak se nikalta hai; bank/cheque se diya to nahi.
+   * Na bhejein to CASH maan liya jata hai — purane clients isi liye
+   * bina badle chalte rehte hain.
+   */
+  @ApiPropertyOptional({ enum: SUPPLIER_PAYMENT_METHODS, default: 'CASH' })
+  @IsOptional() @IsIn(SUPPLIER_PAYMENT_METHODS as any)
+  paymentMethod?: string;
 
   @ApiPropertyOptional() @IsOptional() @IsDateString() entryDate?: string;
   @ApiPropertyOptional({ description: 'Cheque number, transfer ref waghera' })

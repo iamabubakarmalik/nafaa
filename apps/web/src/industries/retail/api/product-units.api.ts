@@ -32,6 +32,10 @@ export const productUnitsApi = {
   create: (data: Partial<ProductUnit>) =>
     apiClient.post('/retail/product-units', data).then(unwrap<ProductUnit>),
 
+  /** Poori dukaan ki units — POS scan ke liye ek dafa. */
+  listAll: () =>
+    apiClient.get('/retail/product-units').then(unwrap<ProductUnit[]>),
+
   byProduct: (productId: string, variantId?: string) =>
     apiClient
       .get('/retail/product-units/by-product/' + productId, {
@@ -39,10 +43,17 @@ export const productUnitsApi = {
       })
       .then(unwrap<ProductUnit[]>),
 
+  /** Scanner ka code → wohi unit (barcode ya SKU, dono chalte hain). */
   byBarcode: (barcode: string) =>
     apiClient
-      .get('/retail/product-units/by-barcode/' + barcode)
+      .get('/retail/product-units/by-barcode/' + encodeURIComponent(barcode))
       .then(unwrap<ProductUnit & { product: any; variant?: any }>),
+
+  /** Unit ka apna barcode bana do — dozen/carton ke label ke liye. */
+  generateBarcode: (id: string) =>
+    apiClient
+      .post('/retail/product-units/' + id + '/generate-barcode')
+      .then(unwrap<ProductUnit>),
 
   update: (id: string, data: Partial<ProductUnit>) =>
     apiClient.patch('/retail/product-units/' + id, data).then(unwrap<ProductUnit>),

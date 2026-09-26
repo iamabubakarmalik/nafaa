@@ -41,6 +41,24 @@ export class SalesController {
     return this.salesService.summary(user, shop, shopId);
   }
 
+  /**
+   * Is customer ke paas pehle kaun kaun maal lene aaya tha.
+   *
+   * POS me naam type karte waqt suggestion ke liye — har dafa poora naam
+   * likhna aur har dafa alag hijje karna (Bilal / bilal / Balal) record
+   * ko be-kaar kar deta hai.
+   *
+   * `:id` wale route se PEHLE — warna Nest "receivers" ko sale ka id
+   * samajh kar findOne chala deta hai.
+   */
+  @Get('receivers')
+  receivers(
+    @GetUser() user: AuthenticatedUser,
+    @Query('customerId') customerId: string,
+  ) {
+    return this.salesService.recentReceivers(user, customerId);
+  }
+
   @Get(':id')
   findOne(
     @GetUser() user: AuthenticatedUser,

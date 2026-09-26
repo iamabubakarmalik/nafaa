@@ -3,16 +3,17 @@ import {
 } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
-import BakeryDashboardPage from './pages/BakeryDashboardPage';
 import CakeCustomizerPage from './pages/CakeCustomizerPage';
 import CakeOrdersPage from './pages/CakeOrdersPage';
 import CakeOrderDetailPage from './pages/CakeOrderDetailPage';
-import BakeryProductsPage from './pages/BakeryProductsPage';
 import ProductionPage from './pages/ProductionPage';
 import IngredientsPage from './pages/IngredientsPage';
 import FreshnessPage from './pages/FreshnessPage';
 import BakeryBulkOrdersPage from './pages/BakeryBulkOrdersPage';
 import BakeryProductWizardPage from './pages/BakeryProductWizardPage';
+import BakeryProductsListPage from './pages/BakeryProductsListPage';
+import BakeryDashboardV2 from './pages/BakeryDashboardV2';
+import BakeryBulkOrderFormPage from './pages/BakeryBulkOrderFormPage';
 
 /**
  * Bakery / Cake Shop / Sweet Shop industry pack.
@@ -45,14 +46,12 @@ export const BakeryPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Bakery Industry',
+      label: 'Bakery Extras',
       icon: Cake,
       emoji: '🍰',
       color: '#f472b6',
       order: 20,
       items: [
-        { to: '/bakery/products/new', label: '+ Add Bakery Product', icon: Sparkles, badge: 'FAST' },
-        { to: '/bakery/dashboard', label: 'Bakery Dashboard', icon: LayoutDashboard, badge: 'NEW' },
         { to: '/bakery/cake-orders/new', label: 'Cake Customizer', icon: Cake, badge: 'HOT' },
         { to: '/bakery/cake-orders', label: 'Cake Orders', icon: Calendar },
         { to: '/bakery/products', label: 'Products', icon: Cookie },
@@ -60,25 +59,34 @@ export const BakeryPack: IndustryPack = {
         { to: '/bakery/ingredients', label: 'Ingredients', icon: Wheat },
         { to: '/bakery/freshness', label: 'Freshness', icon: Timer },
         { to: '/bakery/bulk-orders', label: 'Bulk Orders', icon: ShoppingBag },
+        { to: '/bakery/bulk-orders/new', label: '+ Naya Bara Order', icon: ShoppingBag },
       ],
     },
   ],
 
   routes: [
     { path: '/bakery/products/new', element: BakeryProductWizardPage },
-    { path: '/bakery', element: BakeryDashboardPage },
-    { path: '/bakery/dashboard', element: BakeryDashboardPage },
+    /* Dono safhe naye wale par. Pehle ye purane BakeryDashboardPage
+       par jate thay, jabke naya V2 sirf /dashboard se khulta tha —
+       yani sidebar se hamesha purana hi milta. */
+    { path: '/bakery', element: BakeryDashboardV2 },
+    { path: '/bakery/dashboard', element: BakeryDashboardV2 },
     { path: '/bakery/cake-orders/new', element: CakeCustomizerPage },
     { path: '/bakery/cake-orders/:id', element: CakeOrderDetailPage },
     { path: '/bakery/cake-orders', element: CakeOrdersPage },
-    { path: '/bakery/products', element: BakeryProductsPage },
+    /* Purana BakeryProductsPage sirf wo cheezein dikhata tha jin ka
+       bakery profile bana ho — Lays aur bottle us list me aate hi
+       nahi thay. Naya safha saara maal laata hai. */
+    { path: '/bakery/products', element: BakeryProductsListPage },
     { path: '/bakery/production', element: ProductionPage },
     { path: '/bakery/ingredients', element: IngredientsPage },
     { path: '/bakery/freshness', element: FreshnessPage },
+    { path: '/bakery/bulk-orders/new', element: BakeryBulkOrderFormPage },
+    { path: '/bakery/bulk-orders/:id/edit', element: BakeryBulkOrderFormPage },
     { path: '/bakery/bulk-orders', element: BakeryBulkOrdersPage },
   ],
 
-  dashboardComponent: BakeryDashboardPage,
+  dashboardComponent: BakeryDashboardV2,
 
   productForm: {
     defaultUnit: 'pcs',

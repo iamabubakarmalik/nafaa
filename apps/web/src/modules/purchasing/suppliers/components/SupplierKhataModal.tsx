@@ -298,7 +298,7 @@ export function SupplierKhataModal({ supplierId, onClose }: { supplierId: string
       {mode === 'due' && <AmountForm title="Maal Liya (udhaar)" hint="Bina purchase bill ke — sirf khate me darj" icon={Package} tone="amber"
         pending={dueMut.isPending} onCancel={() => setMode('view')} onSubmit={(v: any) => dueMut.mutate(v)} refLabel="Bill / reference" />}
       {mode === 'payment' && <AmountForm title="Supplier Ko Paisa Diya" hint={`Baqi: ${formatPKR(t!.balance)}`} icon={Banknote} tone="emerald"
-        max={t!.balance} pending={payMut.isPending} onCancel={() => setMode('view')} onSubmit={(v: any) => payMut.mutate(v)} refLabel="Cheque / transfer ref" quick />}
+        max={t!.balance} pending={payMut.isPending} onCancel={() => setMode('view')} onSubmit={(v: any) => payMut.mutate(v)} refLabel="Cheque / transfer ref" quick methods />}
       {mode === 'return' && <AmountForm title="Maal Wapas Kiya" hint="Hamara dena kam ho jayega" icon={Undo2} tone="blue"
         max={t!.balance} pending={retMut.isPending} onCancel={() => setMode('view')} onSubmit={(v: any) => retMut.mutate(v)} refLabel="Return note #" />}
       {mode === 'adjust' && <AdjustForm pending={adjMut.isPending} onCancel={() => setMode('view')} onSubmit={(v: any) => adjMut.mutate(v)} />}
@@ -571,8 +571,18 @@ function OpeningForm({ pending, onCancel, onSubmit }: any) {
   );
 }
 
-function AmountForm({ title, hint, icon, tone, max, pending, onCancel, onSubmit, refLabel, quick }: any) {
+/** Golak ka hisab isi par tikta hai — sirf CASH wali adaigi golak se nikalti hai */
+const PAY_METHODS: Array<[string, string]> = [
+  ['CASH', '💵 Cash'],
+  ['BANK_TRANSFER', '🏦 Bank'],
+  ['CARD', '💳 Card'],
+  ['JAZZCASH', 'JazzCash'],
+  ['EASYPAISA', 'EasyPaisa'],
+];
+
+function AmountForm({ title, hint, icon, tone, max, pending, onCancel, onSubmit, refLabel, quick, methods }: any) {
   const [amount, setAmount] = useState(quick && max ? String(max) : '');
+  const [method, setMethod] = useState('CASH');
   const [entryDate, setEntryDate] = useState(toDateInput(new Date()));
   const [reference, setReference] = useState('');
   const [note, setNote] = useState('');
@@ -615,6 +625,28 @@ function AmountForm({ title, hint, icon, tone, max, pending, onCancel, onSubmit,
             <input className={inp('h-11 font-bold font-mono')} value={reference} onChange={(e) => setReference(e.target.value)} />
           </div>
         </div>
+        {methods && (
+          <div>
+            <Lbl req>Paisa kaise diya</Lbl>
+            <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
+              {PAY_METHODS.map(([v, label]) => (
+                <button key={v} type="button" onClick={() => setMethod(v)}
+                  className={`h-11 rounded-xl text-[11px] font-extrabold transition border-2 ${
+                    method === v
+                      ? 'bg-emerald-600 text-white border-emerald-600 shadow'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-transparent hover:border-emerald-400'
+                  }`}>
+                  {label}
+                </button>
+              ))}
+            </div>
+            <p className="mt-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+              {method === 'CASH'
+                ? 'Cash golak (cash register) se nikal jayega.'
+                : 'Golak par asar nahi — ye paisa golak se nahi gaya.'}
+            </p>
+          </div>
+        )}
         <div>
           <Lbl hint="optional">Note</Lbl>
           <input className={inp('h-11 font-semibold')} value={note} onChange={(e) => setNote(e.target.value)} />
@@ -628,6 +660,7 @@ function AmountForm({ title, hint, icon, tone, max, pending, onCancel, onSubmit,
           }`} loading={pending} disabled={bad}
             onClick={() => onSubmit({
               amount: n, entryDate,
+              ...(methods ? { paymentMethod: method } : {}),
               ...(reference.trim() ? { reference: reference.trim() } : {}),
               ...(note.trim() ? { note: note.trim() } : {}),
             })}>

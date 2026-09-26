@@ -5,6 +5,7 @@ import RetailLowStockPage from '@industries/retail/pages/RetailLowStockPage';
 import MobileLowStockPage from '@industries/mobile/pages/MobileLowStockPage';
 import ElectronicsLowStockPage from '@industries/electronics/pages/ElectronicsLowStockPage';
 import AppliancesLowStockPage from '@industries/appliances/pages/AppliancesLowStockPage';
+import BakeryLowStockPage from '@industries/bakery/pages/BakeryLowStockPage';
 
 /**
  * LowStockGate — routes /low-stock (ya /inventory/low-stock) to the
@@ -30,6 +31,12 @@ export default function LowStockGate() {
       return <ElectronicsLowStockPage />;
     case 'appliances':
       return <AppliancesLowStockPage />;
+
+    /* Bakery ka masla alag hai: sirf "stock kam hai" kaafi nahi.
+       Aaj kya banana hai, saamaan hai ya nahi, aur kya aaj hi
+       bikna chahiye — teenon ek jagah. */
+    case 'bakery':
+      return <BakeryLowStockPage />;
 
     // Future: alag industries ka custom low-stock yahan add karo
     // case 'carpet':

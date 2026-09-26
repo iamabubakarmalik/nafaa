@@ -11,6 +11,8 @@ import { toast } from 'sonner';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
 import { Button } from '@core/ui/Button';
 import { bakeryProductsApi } from '../api/products.api';
+import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
+import { deriveBakeryCategory } from '../lib/bakeryCategory';
 import { CATEGORIES, FLAVORS, SIZES, OCCASIONS } from '../api/constants';
 import { useAuthStore } from '@core/stores/auth.store';
 import { useCatalogCart } from '@modules/catalog/hooks/useCatalogCart';
@@ -47,21 +49,76 @@ export default function BakeryCatalogPage() {
   const [detailProduct, setDetailProduct] = useState<any>(null);
   const [customCakePicker, setCustomCakePicker] = useState<any>(null);
 
-  const { data: profiles = [], isLoading } = useQuery({
-    queryKey: ['bakery-catalog', categoryFilter, tagFilter, dietaryFilter],
-    queryFn: () => bakeryProductsApi.list({
-      category: categoryFilter === 'all' ? undefined : categoryFilter,
-      featured: tagFilter === 'featured' ? true : undefined,
-      popular: tagFilter === 'popular' ? true : undefined,
-      bestSeller: tagFilter === 'best' ? true : undefined,
-      newArrival: tagFilter === 'new' ? true : undefined,
-      seasonal: tagFilter === 'seasonal' ? true : undefined,
-      eggless: dietaryFilter === 'eggless' ? true : undefined,
-      vegan: dietaryFilter === 'vegan' ? true : undefined,
-      sugarFree: dietaryFilter === 'sugar-free' ? true : undefined,
-      halal: dietaryFilter === 'halal' ? true : undefined,
-    }),
+  /* ── Saara maal, sirf bakery-profile wala nahi ──
+     Pehle catalog sirf `bakeryProductsApi` se list laata tha, yani
+     SIRF wo cheezein jin ka bakery profile bana ho. Bakery me bikne
+     wali Lays, bottle aur juice customer ko nazar hi nahi aate thay
+     — jabke counter par wohi sab se zyada bikte hain.
+
+     Ab saare products aate hain, aur bakery ki tafseel (flavour,
+     customizable, dietary) upar se juR jati hai. Jis cheez ka
+     profile nahi, uske liye product ka apna rate chalta hai. */
+  const profilesQ = useQuery({
+    queryKey: ['bakery-catalog-profiles'],
+    queryFn: () => bakeryProductsApi.list({}),
   });
+
+  const productsQ = useQuery({
+    queryKey: ['bakery-catalog-products'],
+    queryFn: () => fetchAllProducts({ isActive: true }),
+  });
+
+  const isLoading = profilesQ.isLoading || productsQ.isLoading;
+
+  const profiles = useMemo(() => {
+    const byProduct = new Map<string, any>();
+    (profilesQ.data ?? []).forEach((pr: any) => { if (pr.productId) byProduct.set(pr.productId, pr); });
+
+    /* Har product ke liye ek entry — profile ho to wohi, warna
+       product se banayi hui saada entry (taake baqi safha bina
+       badle chalta rahe). */
+    const all = (productsQ.data?.items ?? []).map((prod: any) => {
+      const pr = byProduct.get(prod.id);
+      if (pr) return { ...pr, product: pr.product ?? prod };
+      return {
+        id: `plain-${prod.id}`,
+        productId: prod.id,
+        product: prod,
+        category: deriveBakeryCategory(prod.category?.name, prod.name),
+        isCakeCustomizable: false,
+        isCustomizable: false,
+        allergens: [],
+        dietaryBadges: [],
+        imageUrls: [],
+        isFeatured: !!prod.isFeatured,
+        isPopular: false,
+        isBestSeller: false,
+        isNewArrival: false,
+        isSeasonalItem: false,
+        isEggless: false,
+        isVegan: false,
+        isSugarFree: false,
+        isHalal: true,
+        requiresRefrigeration: false,
+      };
+    });
+
+    /* Chaant ab yahin — pehle ye server ko bheji jati thi, magar
+       ab list me wo cheezein bhi hain jin ka profile hi nahi. */
+    return all.filter((p: any) => {
+      if (categoryFilter !== 'all' && p.category !== categoryFilter) return false;
+      if (tagFilter === 'featured' && !p.isFeatured) return false;
+      if (tagFilter === 'popular' && !p.isPopular) return false;
+      if (tagFilter === 'best' && !p.isBestSeller) return false;
+      if (tagFilter === 'new' && !p.isNewArrival) return false;
+      if (tagFilter === 'seasonal' && !p.isSeasonalItem) return false;
+      if (dietaryFilter === 'eggless' && !p.isEggless) return false;
+      if (dietaryFilter === 'vegan' && !p.isVegan) return false;
+      if (dietaryFilter === 'sugar-free' && !p.isSugarFree) return false;
+      if (dietaryFilter === 'halal' && !p.isHalal) return false;
+      return true;
+    });
+  }, [profilesQ.data, productsQ.data, categoryFilter, tagFilter, dietaryFilter]);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return profiles;

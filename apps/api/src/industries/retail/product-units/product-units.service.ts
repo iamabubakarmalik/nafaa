@@ -55,6 +55,30 @@ export class ProductUnitsService {
     });
   }
 
+  /**
+   * Tenant ki sari chalti hui units — POS ek dafa le kar rakh leta hai.
+   *
+   * Har scan par server se poochna do wajah se bura tha: counter par
+   * har beep ke baad aadha second ka intezaar, aur net jate hi dozen/
+   * carton ka barcode bilkul kaam chhor deta tha. Ab list POS ke paas
+   * hoti hai, match wahin ho jata hai.
+   *
+   * Sirf zaroori khaane — 5000 units ka payload bhi chhota rehta hai.
+   */
+  async findAll(user: AuthenticatedUser) {
+    return this.prisma.productUnit.findMany({
+      where: { tenantId: user.tenantId, isActive: true },
+      select: {
+        id: true, productId: true, variantId: true,
+        unitName: true, unitLabel: true,
+        conversionRate: true, isBase: true, isDefault: true,
+        price: true, wholesalePrice: true, mrpPrice: true,
+        barcode: true, sku: true, sortOrder: true,
+      },
+      orderBy: [{ productId: 'asc' }, { isBase: 'desc' }, { sortOrder: 'asc' }],
+    });
+  }
+
   async findByProduct(user: AuthenticatedUser, productId: string, variantId?: string) {
     return this.prisma.productUnit.findMany({
       where: {
@@ -66,9 +90,30 @@ export class ProductUnitsService {
     });
   }
 
+  /**
+   * Scanner ne jo parha, us se unit dhoondna.
+   *
+   * Barcode ke sath SKU bhi dekhte hain: bohat si dukaanon me carton par
+   * barcode ki jagah sirf SKU chhapa hota hai, aur gun dono ko ek hi
+   * tarah parhti hai. Baray-chhote huroof ka farq bhi nahi — label par
+   * "COLG-DZN" hota hai aur dukaan-daar "colg-dzn" type kar deta hai.
+   *
+   * Product ki poori tafseel sath aati hai (stock, unit, tasveer) kyunke
+   * POS ko line banane ke liye yahi chahiye — ek aur request na lage.
+   */
   async findByBarcode(user: AuthenticatedUser, barcode: string) {
+    const code = barcode.trim();
+    if (!code) throw new NotFoundException('Barcode khaali hai');
+
     const unit = await this.prisma.productUnit.findFirst({
-      where: { tenantId: user.tenantId, barcode, isActive: true },
+      where: {
+        tenantId: user.tenantId,
+        isActive: true,
+        OR: [
+          { barcode: { equals: code, mode: 'insensitive' } },
+          { sku: { equals: code, mode: 'insensitive' } },
+        ],
+      },
       include: {
         product: {
           include: {
@@ -80,8 +125,49 @@ export class ProductUnitsService {
         variant: true,
       },
     });
-    if (!unit) throw new NotFoundException(`No unit with barcode ${barcode}`);
+    if (!unit) throw new NotFoundException(`No unit with barcode ${code}`);
     return unit;
+  }
+
+  /**
+   * Unit ka apna barcode khud bana do.
+   *
+   * Product ke liye ye pehle se mojood tha (`/products/:id/generate-barcode`),
+   * unit ke liye nahi — is liye dozen/carton ke label kabhi ban hi nahi
+   * sakte thay aur har label par product wala hi barcode chhapta tha.
+   *
+   * Wohi tarz: `200` se shuru (in-store range, kisi asli EAN se nahi
+   * takrata) aur kul 13 hindsay.
+   */
+  async generateBarcode(user: AuthenticatedUser, id: string) {
+    const unit = await this.prisma.productUnit.findFirst({
+      where: { id, tenantId: user.tenantId },
+    });
+    if (!unit) throw new NotFoundException('Unit not found');
+    if (unit.barcode) return unit;
+
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const timestamp = Date.now().toString().slice(-8);
+      const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+      const candidate = `200${timestamp}${random}`.slice(0, 13);
+
+      const clash = await this.prisma.productUnit.findFirst({
+        where: { tenantId: user.tenantId, barcode: candidate },
+        select: { id: true },
+      });
+      const productClash = await this.prisma.product.findFirst({
+        where: { tenantId: user.tenantId, barcode: candidate },
+        select: { id: true },
+      });
+      if (clash || productClash) continue;
+
+      return this.prisma.productUnit.update({
+        where: { id },
+        data: { barcode: candidate },
+      });
+    }
+
+    throw new BadRequestException('Barcode ban nahi saka — dobara koshish karein');
   }
 
   async update(user: AuthenticatedUser, id: string, dto: UpdateProductUnitDto) {

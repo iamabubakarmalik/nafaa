@@ -6,7 +6,7 @@ import {
   Printer, ArrowLeft, MessageCircle, CheckCircle2,
   Copy, Check, RefreshCw, Share2, ReceiptText, Minimize2, Maximize2,
   MapPin, Phone, User, CalendarClock, Package, Gift, Tag,
-  TrendingUp, Loader2, AlertTriangle, Wallet,
+  TrendingUp, Loader2, AlertTriangle, Wallet, UserCheck,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { salesApi } from '@modules/sales/sales/api/sales.api';
@@ -37,6 +37,14 @@ interface ReceiptData {
   items: ReceiptItem[];
   subtotal: number; billDiscount: number; tax: number; total: number;
   paid: number; change: number; dueAmount: number; pointsEarned?: number;
+  /** Customer ke khate me is waqt kul kitna baqi hai (purane bill milakar) */
+  customerDue: number;
+  /**
+   * Maal lene kaun aaya tha — jab khud khate wala na aaya ho.
+   * Purane bills par khali rehta hai, tab ye line chhapti hi nahi.
+   */
+  receivedByName?: string;
+  receivedByPhone?: string;
   hasFbr: boolean;
 }
 
@@ -94,6 +102,12 @@ function normalizeSale(raw: any): ReceiptData {
     change: num(raw?.change ?? raw?.changeAmount ?? Math.max(0, paid - total)),
     dueAmount: num(raw?.dueAmount ?? raw?.creditAmount ?? raw?.due ?? Math.max(0, total - paid)),
     pointsEarned: num(raw?.pointsEarned ?? raw?.loyaltyPoints ?? 0) || undefined,
+    /* Customer ka poora khata — server is bill ka udhaar pehle hi is
+       me jama kar chuka hota hai, is liye ye "ab kul kitna baqi hai"
+       hai, sirf is bill ka nahi. */
+    customerDue: num(raw?.customer?.balance ?? raw?.customerBalance ?? 0),
+    receivedByName: str(raw?.receivedByName ?? '') || undefined,
+    receivedByPhone: str(raw?.receivedByPhone ?? '') || undefined,
     hasFbr: Boolean(raw?.fbrInvoiceNo ?? raw?.fbr?.invoiceNo ?? raw?.fbrStatus === 'CONFIRMED'),
   };
 }
@@ -221,7 +235,8 @@ export default function RetailReceiptPage() {
       `*Total: ${formatPKR(sale.total)}*`,
       `Paid: ${formatPKR(sale.paid)}`,
       sale.change > 0 ? `Change: ${formatPKR(sale.change)}` : '',
-      sale.dueAmount > 0 ? `⚠ Baqi: ${formatPKR(sale.dueAmount)}` : '',
+      sale.dueAmount > 0 ? `⚠ Is bill ka baqi: ${formatPKR(sale.dueAmount)}` : '',
+      sale.customerDue > 0 ? `📒 Kul udhaar: ${formatPKR(sale.customerDue)}` : '',
       '',
       shop.receiptFooter,
       '_Powered by Nafaa POS_',
@@ -385,6 +400,17 @@ export default function RetailReceiptPage() {
           {full && sale.cashierName && (
             <div className="rc-row"><span>Cashier</span><span>{sale.cashierName}</span></div>
           )}
+          {/* Maal le jane wala — mahine ke aakhir me hisaab ho to dono
+              taraf ek hi record hona chahiye. */}
+          {sale.receivedByName && (
+            <div className="rc-row">
+              <span><UserCheck className="h-3 w-3 inline" /> Le gaya</span>
+              <b>
+                {sale.receivedByName}
+                {sale.receivedByPhone ? ` (${sale.receivedByPhone})` : ''}
+              </b>
+            </div>
+          )}
 
           <div className="rc-div-dash" />
 
@@ -445,8 +471,33 @@ export default function RetailReceiptPage() {
           )}
           {sale.dueAmount > 0 && (
             <div className="rc-credit">
-              <span>⚠ BAQI (KHATA)</span>
+              <span>⚠ IS BILL KA BAQI</span>
               <b className="tabular-nums">{formatPKR(sale.dueAmount)}</b>
+            </div>
+          )}
+
+          {/* Purana khata — bill poora ada bhi ho, pichla udhaar phir
+              bhi saamne rehna chahiye. Dukaan-daar isi lakeer par
+              ungli rakh kar customer se baat karta hai. */}
+          {sale.customerName && sale.customerDue > 0 && (
+            <div className="rc-khata">
+              <div className="rc-khata-title">KHATA — {sale.customerName}</div>
+              {sale.customerDue > sale.dueAmount && (
+                <div className="rc-row">
+                  <span>Pichla udhaar</span>
+                  <span className="tabular-nums">{formatPKR(sale.customerDue - sale.dueAmount)}</span>
+                </div>
+              )}
+              {sale.dueAmount > 0 && (
+                <div className="rc-row">
+                  <span>Is bill ka</span>
+                  <span className="tabular-nums">+{formatPKR(sale.dueAmount)}</span>
+                </div>
+              )}
+              <div className="rc-khata-total">
+                <span>KUL UDHAAR</span>
+                <b className="tabular-nums">{formatPKR(sale.customerDue)}</b>
+              </div>
             </div>
           )}
           {savings > 0 && (
@@ -574,6 +625,9 @@ function PrintStyles() {
       .rc-dim { color: #000; font-weight: 700; }
       .rc-total { display: flex; justify-content: space-between; font-size: 19px; font-weight: 900; border-top: 2.5px solid #000; border-bottom: 2.5px solid #000; padding: 5px 0; margin: 7px 0; }
       .rc-credit { display: flex; justify-content: space-between; font-weight: 900; background: #fff; border: 2px solid #000; padding: 5px 6px; border-radius: 4px; margin-top: 4px; }
+      .rc-khata { margin-top: 6px; border: 2px solid #000; border-radius: 4px; padding: 5px 6px; }
+      .rc-khata-title { font-size: 11px; font-weight: 900; letter-spacing: .4px; margin-bottom: 2px; }
+      .rc-khata-total { display: flex; justify-content: space-between; font-size: 15px; font-weight: 900; border-top: 2px solid #000; margin-top: 3px; padding-top: 3px; }
       .rc-saving { text-align: center; font-size: 12px; font-weight: 800; margin-top: 6px; border: 1.5px dashed #000; border-radius: 6px; padding: 5px; }
       .rc-barcode { display: flex; align-items: center; justify-content: center; margin-top: 10px; }
       .rc-barcode svg { max-width: 100%; height: auto; }
@@ -613,10 +667,13 @@ function PrintStyles() {
         #receipt-paper .rc-total,
         #receipt-paper .rc-head,
         #receipt-paper .rc-credit,
+        #receipt-paper .rc-khata-title,
+        #receipt-paper .rc-khata-total,
         #receipt-paper .rc-iname,
         #receipt-paper .rc-meta-value { font-weight: 900 !important; }
 
         #receipt-paper .rc-credit { background: #fff !important; border: 2px solid #000 !important; }
+        #receipt-paper .rc-khata { background: #fff !important; border: 2px solid #000 !important; }
         #receipt-paper .rc-div-dash { border-top: 1.5px dashed #000 !important; }
         #receipt-paper .rc-logo { filter: grayscale(1) contrast(3) !important; }
         #receipt-paper .rc-bar { background: #000 !important; }

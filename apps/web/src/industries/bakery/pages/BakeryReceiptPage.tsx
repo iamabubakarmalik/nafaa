@@ -1,347 +1,483 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
+import JsBarcode from 'jsbarcode';
 import {
-  Printer, ArrowLeft, MessageCircle, X, Cake, Cookie, ChefHat,
-  MapPin, Phone, Calendar, User, CheckCircle2, ShieldAlert, Tag,
-  Heart, Timer, Snowflake, AlertTriangle,
+  Printer, ArrowLeft, MessageCircle, Cake, Timer, Snowflake, User,
+  CheckCircle2, Copy, Check, RefreshCw, Loader2, AlertTriangle,
+  Wallet, BookOpen, Settings2, X,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { salesApi } from '@modules/sales/sales/api/sales.api';
+import { offlineSalesApi } from '@core/lib/offline/offlineSales';
+import { settingsApi } from '@modules/organization/settings/api/settings.api';
+import { bakeryProductsApi } from '../api/products.api';
 import { formatPKR } from '@core/lib/format';
-import { FbrReceiptBadge } from '@integrations/fbr';
+import { Button } from '@core/ui/Button';
 
-const formatDate = (v: string) =>
-  new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(v));
+/* ═════════════════════════════════════════════════════════════
+   BAKERY BILL
+   ─────────────────────────────────────────────────────────────
+   Purane safhe par do cheezein toot chuki thin:
 
-type Format = 'a4' | 'thermal80' | 'thermal58';
+   1. Auto-print `?auto=1` par chalta tha, magar POS aur baqi sab
+      jagah link `autoprint=1` bhejte hain — yani auto-print kabhi
+      chala hi nahi.
+
+   2. Jo switch localStorage me dekha jata tha (`nafaa.pos.auto-print`)
+      wo kisi safhe par likha hi nahi jata. Setting hamesha band.
+
+   Sath hi print bohat bareek thi — 400-weight ka font 203-dpi
+   thermal head par mushkil se chhapta hai.
+   ═════════════════════════════════════════════════════════════ */
+
+type Paper = '58' | '80';
+const PREFS_KEY = 'nafaa.bakery.print';
+
+const num = (v: any): number => (typeof v === 'number' && !isNaN(v) ? v : Number(v) || 0);
+const str = (v: any): string => (typeof v === 'string' ? v : v != null ? String(v) : '');
+
+function loadPaper(): Paper {
+  try {
+    const raw = localStorage.getItem(PREFS_KEY);
+    return raw && JSON.parse(raw)?.width === '58' ? '58' : '80';
+  } catch { return '80'; }
+}
+
+/** Bill par asli CODE128 — scanner isi se purana bill nikalta hai */
+function Barcode({ value }: { value: string }) {
+  const ref = useRef<SVGSVGElement>(null);
+  useEffect(() => {
+    if (!ref.current || !value) return;
+    try {
+      JsBarcode(ref.current, value, {
+        format: 'CODE128',
+        /* 203-dpi head par patli lakeer aadhe dot par girti hai aur
+           scanner chook jata hai */
+        width: 1.6, height: 45, margin: 0,
+        displayValue: false, lineColor: '#000000',
+      });
+    } catch { /* value barcode me nahi dhal sakti */ }
+  }, [value]);
+  return <svg ref={ref} />;
+}
 
 export default function BakeryReceiptPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const queryClient = useQueryClient();
-  const [format, setFormat] = useState<Format>('a4');
-  const isAutoOpened = searchParams.get('auto') === '1';
+  const [params] = useSearchParams();
+  const [paper, setPaper] = useState<Paper>(loadPaper);
+  const [copied, setCopied] = useState(false);
+  const [showPaper, setShowPaper] = useState(false);
 
-  const { data: sale, isLoading } = useQuery({
-    queryKey: ['sale-receipt', id],
-    queryFn: () => salesApi.getOne(id!),
-    enabled: !!id,
-  });
-
-  useEffect(() => {
-    const size = sale?.tenant?.settings?.receiptSize;
-    if (size === 'THERMAL_58MM') setFormat('thermal58');
-    else if (size === 'THERMAL_80MM') setFormat('thermal80');
-    else if (size?.startsWith('A4')) setFormat('a4');
-  }, [sale?.tenant?.settings?.receiptSize]);
-
-  useEffect(() => {
-    const autoPrint = localStorage.getItem('nafaa.pos.auto-print') === 'true';
-    if (isAutoOpened && autoPrint && sale && !isLoading) {
-      setTimeout(() => window.print(), 500);
-    }
-  }, [isAutoOpened, sale, isLoading]);
-
-  const voidMutation = useMutation({
-    mutationFn: (reason: string) => salesApi.voidSale(id!, reason),
-    onSuccess: () => {
-      toast.success('Sale voided');
-      queryClient.invalidateQueries({ queryKey: ['sale-receipt', id] });
+  const saleQ = useQuery({
+    queryKey: ['sale', id],
+    queryFn: async () => {
+      const s = await offlineSalesApi.getOne(id!);
+      if (!s) throw new Error('Bill nahi mila');
+      return s as any;
     },
+    enabled: !!id,
+    retry: 1,
   });
 
-  const handleWhatsApp = () => {
-    if (!sale?.customer?.phone) return toast.error('Customer phone not available');
-    const phone = sale.customer.phone.replace(/[^0-9]/g, '');
-    const clean = phone.startsWith('92') ? phone : phone.startsWith('0') ? '92' + phone.slice(1) : '92' + phone;
-    const shopName = sale.tenant?.settings?.shopName || sale.tenant?.name || 'Bakery';
+  const settingsQ = useQuery({
+    queryKey: ['settings'],
+    queryFn: () => settingsApi.get(),
+    staleTime: 60_000,
+  });
 
-    const lines: string[] = [];
-    lines.push(`🍰 *${shopName}*`);
-    lines.push('');
-    lines.push(`Assalam-o-Alaikum ${sale.customer.name || 'Customer'}!`);
-    lines.push('Thanks for choosing our bakery 🙏');
-    lines.push('');
-    lines.push(`*Invoice:* ${sale.saleNumber}`);
-    lines.push(`*Date:* ${formatDate(sale.soldAt)}`);
-    lines.push('');
-    lines.push('*Items:*');
-    sale.items.forEach((it: any, i: number) => {
-      lines.push(`${i + 1}. 🍰 ${it.product.name} × ${it.quantity} = ${formatPKR(it.total)}`);
+  const profilesQ = useQuery({
+    queryKey: ['bakery-profiles-all'],
+    queryFn: () => bakeryProductsApi.list({}).catch(() => []),
+  });
+
+  const raw = saleQ.data;
+
+  const sale = useMemo(() => {
+    if (!raw) return null;
+    const items = (raw.items ?? raw.saleItems ?? []).map((it: any) => {
+      const qty = num(it.qty ?? it.quantity ?? 1);
+      const price = num(it.price ?? it.unitPrice ?? 0);
+      return {
+        productId: str(it.productId ?? it.product?.id ?? ''),
+        name: str(it.name ?? it.productName ?? it.product?.name ?? 'Item'),
+        qty, price,
+        total: num(it.total ?? it.lineTotal ?? qty * price),
+        unit: str(it.unit ?? it.product?.unit ?? '') || undefined,
+      };
     });
-    lines.push('');
-    lines.push(`Subtotal: ${formatPKR(sale.subtotal)}`);
-    if (sale.discount > 0) lines.push(`Discount: -${formatPKR(sale.discount)}`);
-    lines.push(`*TOTAL: ${formatPKR(sale.total)}*`);
-    if (sale.creditAmount > 0) lines.push(`Balance: ${formatPKR(sale.creditAmount)}`);
-    lines.push('');
-    lines.push('_Freshly baked with love. Order cakes 24h in advance._ ❤️');
+    const subtotal = num(raw.subtotal ?? items.reduce((s: number, i: any) => s + i.total, 0));
+    const discount = num(raw.discount ?? raw.discountAmount ?? 0);
+    const total = num(raw.total ?? subtotal - discount);
+    const paid = num(raw.paidAmount ?? raw.paid ?? total);
+    return {
+      id: str(raw.id),
+      invoiceNo: str(raw.saleNumber ?? raw.invoiceNo ?? raw.id),
+      createdAt: str(raw.soldAt ?? raw.createdAt ?? new Date().toISOString()),
+      customerName: str(raw.customer?.name ?? raw.customerName ?? '') || undefined,
+      /* Server udhaar wali bikri par balance khud barha deta hai,
+         aur offline snapshot bhi ab bill ke BAAD ka rakhta hai —
+         yani ye "ab kul kitna baqi hai" hai. */
+      customerDue: num(raw.customer?.balance ?? 0),
+      cashierName: str(raw.createdBy?.fullName ?? '') || undefined,
+      paymentMethod: str(raw.paymentMethod ?? 'CASH'),
+      items, subtotal, discount, total, paid,
+      change: num(raw.changeAmount ?? Math.max(paid - total, 0)),
+      due: num(raw.creditAmount ?? Math.max(total - paid, 0)),
+    };
+  }, [raw]);
 
-    window.open(`https://wa.me/${clean}?text=${encodeURIComponent(lines.join('\n'))}`, '_blank');
+  const shop = useMemo(() => {
+    const s = (settingsQ.data as any)?.settings ?? {};
+    const t = (settingsQ.data as any)?.tenant ?? {};
+    return {
+      name: str(t.name ?? s.shopName ?? 'Bakery'),
+      address: str(t.address ?? s.shopAddress ?? ''),
+      phone: str(t.phone ?? s.shopPhone ?? ''),
+      footer: str(s.receiptFooter ?? 'Shukriya! Phir tashreef laiye.'),
+    };
+  }, [settingsQ.data]);
+
+  /** Kaun si cheez fridge maangti hai ya jald kharab hoti hai */
+  const careBy = useMemo(() => {
+    const m = new Map<string, { fridge: boolean; days?: number }>();
+    (profilesQ.data ?? []).forEach((p: any) => {
+      if (!p.productId) return;
+      m.set(p.productId, { fridge: !!p.requiresRefrigeration, days: p.shelfLifeDays ?? undefined });
+    });
+    return m;
+  }, [profilesQ.data]);
+
+  const careLines = useMemo(() => {
+    if (!sale) return [] as string[];
+    const out: string[] = [];
+    const fridge = sale.items.filter((i: any) => careBy.get(i.productId)?.fridge);
+    if (fridge.length > 0) out.push('❄️ Fridge me rakhein');
+    const quick = sale.items
+      .map((i: any) => careBy.get(i.productId)?.days)
+      .filter((d: any): d is number => typeof d === 'number');
+    if (quick.length > 0) {
+      const min = Math.min(...quick);
+      out.push(min <= 1 ? '⏱️ Aaj hi kha lein' : `⏱️ ${min} din ke andar kha lein`);
+    }
+    return out;
+  }, [sale, careBy]);
+
+  const doPrint = useCallback(() => {
+    document.body.dataset.paper = paper;
+    window.print();
+  }, [paper]);
+
+  useEffect(() => {
+    document.body.dataset.paper = paper;
+    return () => { delete document.body.dataset.paper; };
+  }, [paper]);
+
+  /* Auto-print — ab dono naam qubool hain. Pehle sirf `auto` dekha
+     jata tha jabke har jagah se `autoprint` bheja jata hai. */
+  useEffect(() => {
+    const want = params.get('autoprint') === '1' || params.get('auto') === '1';
+    if (want && sale && !saleQ.isLoading) {
+      const t = setTimeout(doPrint, 500);
+      return () => clearTimeout(t);
+    }
+  }, [params, sale, saleQ.isLoading, doPrint]);
+
+  const waText = useMemo(() => {
+    if (!sale) return '';
+    return [
+      `🧾 *${shop.name}*`,
+      `Bill: ${sale.invoiceNo}`,
+      `Tareekh: ${new Date(sale.createdAt).toLocaleString('en-PK', { dateStyle: 'medium', timeStyle: 'short' })}`,
+      '',
+      ...sale.items.map((i: any, n: number) => `${n + 1}. ${i.name} — ${i.qty} × ${formatPKR(i.price)} = ${formatPKR(i.total)}`),
+      '',
+      `Total: ${formatPKR(sale.total)}`,
+      `Mila: ${formatPKR(sale.paid)}`,
+      sale.due > 0 ? `⚠ Is bill ka baqi: ${formatPKR(sale.due)}` : '',
+      sale.customerDue > 0 ? `📒 Kul udhaar: ${formatPKR(sale.customerDue)}` : '',
+      ...careLines,
+      '',
+      shop.footer,
+    ].filter(Boolean).join('\n');
+  }, [sale, shop, careLines]);
+
+  const copyText = async () => {
+    try {
+      await navigator.clipboard.writeText(waText);
+      setCopied(true); setTimeout(() => setCopied(false), 1800);
+      toast.success('Copy ho gaya');
+    } catch { toast.error('Copy nahi hua'); }
   };
 
-  if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center"><div className="h-10 w-10 rounded-full border-4 border-pink-200 border-t-pink-600 animate-spin" /></div>;
-  }
-  if (!sale) {
-    return <div className="min-h-screen flex flex-col items-center justify-center"><p className="font-bold">Receipt not found</p><Link to="/sales" className="mt-4 text-pink-600 hover:underline">← Back</Link></div>;
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showPaper) return setShowPaper(false);
+      const t = document.activeElement?.tagName;
+      if (t === 'INPUT' || t === 'TEXTAREA') return;
+      if (e.key.toLowerCase() === 'p') { e.preventDefault(); doPrint(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [doPrint, showPaper]);
+
+  if (saleQ.isLoading) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="h-12 w-12 rounded-full border-4 border-pink-200 border-t-pink-600 animate-spin" />
+      </div>
+    );
   }
 
-  const settings = sale.tenant?.settings;
-  const shopName = settings?.shopName || sale.tenant?.name || 'Bakery';
-  const shopAddress = [settings?.shopAddress, settings?.shopCity].filter(Boolean).join(', ');
-  const shopPhone = settings?.shopPhone || sale.tenant?.phone || '';
-  const logoUrl = settings?.logoUrl;
-  const receiptFooter = settings?.receiptFooter;
-  const isVoided = sale.status === 'VOIDED';
-  const totalUnits = sale.items.reduce((a: number, it: any) => a + Number(it.quantity || 0), 0);
+  if (!sale) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3">
+        <Cake className="h-14 w-14 text-slate-300" />
+        <p className="font-black text-slate-700 dark:text-slate-200 text-lg">Bill nahi mila</p>
+        <Button variant="secondary" onClick={() => navigate('/sales')}>Bikri ki list</Button>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-pink-50 py-6 px-4 print:bg-white print:py-0 print:px-0">
-      <div className={`mx-auto space-y-4 ${format === 'a4' ? 'max-w-4xl' : 'max-w-md'}`}>
-        {isAutoOpened && (
-          <div className="rounded-2xl bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white px-5 py-3 flex items-center gap-3 shadow-lg print:hidden">
-            <CheckCircle2 className="h-6 w-6" />
-            <div className="flex-1">
-              <div className="font-extrabold">Sale Complete! 🍰</div>
-              <div className="text-xs text-white/90">Print invoice or send via WhatsApp</div>
-            </div>
-            <Link to="/pos" className="text-xs font-extrabold underline">→ New Sale</Link>
+    <div className="pb-24 sm:pb-10">
+      <PrintStyles />
 
-            <FbrReceiptBadge saleId={sale?.id} variant="thermal" />
-
-          
-          </div>
-        )}
-
-        <div className="flex items-center justify-between gap-2 flex-wrap print:hidden">
-          <button onClick={() => navigate('/sales')} className="inline-flex items-center gap-2 rounded-xl bg-white border-2 border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 shadow-sm">
-            <ArrowLeft className="h-4 w-4" /> Back
+      {/* ═══ TOP BAR ═══ */}
+      <div className="print:hidden flex items-center justify-between gap-2 flex-wrap mb-4">
+        <Link to="/sales" className="inline-flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-pink-600 transition">
+          <ArrowLeft className="h-4 w-4" /> Bikri ki list
+        </Link>
+        <div className="flex gap-1.5">
+          <button onClick={() => setShowPaper(true)}
+            className="h-10 px-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-black text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5 hover:border-pink-400 transition">
+            <Settings2 className="h-4 w-4" /> {paper}mm
           </button>
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="inline-flex rounded-xl border-2 border-slate-200 bg-white shadow-sm overflow-hidden">
-              {(['a4', 'thermal80', 'thermal58'] as Format[]).map((f, i) => (
-                <button key={f} onClick={() => setFormat(f)} className={`px-3 py-2.5 text-xs font-bold transition ${format === f ? 'bg-pink-600 text-white' : 'text-slate-700 hover:bg-slate-50'} ${i > 0 ? 'border-l-2 border-slate-200' : ''}`}>
-                  {f === 'a4' ? 'A4' : f === 'thermal80' ? '80mm' : '58mm'}
-                </button>
-              ))}
-            </div>
-            <button onClick={handleWhatsApp} disabled={!sale.customer?.phone} className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 px-4 py-2.5 text-sm font-bold text-white shadow-md disabled:opacity-50">
-              <MessageCircle className="h-4 w-4" /> WhatsApp
-            </button>
-            {!isVoided && (
-              <button onClick={() => { const r = prompt('Void reason?'); if (r !== null) voidMutation.mutate(r); }} className="inline-flex items-center gap-2 rounded-xl bg-rose-600 hover:bg-rose-700 px-4 py-2.5 text-sm font-bold text-white shadow-sm">
-                <X className="h-4 w-4" /> Void
-              </button>
-            )}
-            <button onClick={() => window.print()} className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-pink-600 to-fuchsia-700 hover:from-pink-700 hover:to-fuchsia-800 px-4 py-2.5 text-sm font-bold text-white shadow-md">
-              <Printer className="h-4 w-4" /> Print
-            </button>
-          </div>
+          <button onClick={copyText}
+            className="h-10 px-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-black text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5 hover:border-pink-400 transition">
+            {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+            <span className="hidden sm:inline">{copied ? 'Copy hua' : 'Copy'}</span>
+          </button>
+          <button onClick={() => saleQ.refetch()} disabled={saleQ.isRefetching}
+            className="h-10 w-10 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex items-center justify-center hover:border-pink-400 disabled:opacity-50 transition">
+            <RefreshCw className={`h-4 w-4 text-slate-500 ${saleQ.isRefetching ? 'animate-spin' : ''}`} />
+          </button>
+          <a href={`https://wa.me/?text=${encodeURIComponent(waText)}`} target="_blank" rel="noreferrer"
+            className="h-10 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black inline-flex items-center gap-1.5 transition">
+            <MessageCircle className="h-4 w-4" /> <span className="hidden sm:inline">WhatsApp</span>
+          </a>
+          <button onClick={doPrint}
+            className="h-10 px-3.5 rounded-xl bg-pink-600 hover:bg-pink-700 text-white text-xs font-black inline-flex items-center gap-1.5 transition">
+            <Printer className="h-4 w-4" /> Print <kbd className="hidden sm:inline text-[9px] opacity-70">P</kbd>
+          </button>
         </div>
-
-        {isVoided && (
-          <div className="rounded-2xl border-2 border-rose-300 bg-rose-50 px-5 py-4 flex items-center gap-3">
-            <ShieldAlert className="h-6 w-6 text-rose-600" />
-            <div className="font-extrabold text-rose-900">SALE VOIDED</div>
-          </div>
-        )}
-
-        {/* A4 FORMAT */}
-        {format === 'a4' && (
-          <div className="receipt-a4 bg-white shadow-2xl rounded-3xl border overflow-hidden print:shadow-none print:border-none print:rounded-none">
-            <div className="relative bg-gradient-to-br from-slate-950 via-pink-900 to-fuchsia-700 text-white px-8 py-7 print:bg-white print:text-slate-900 print:border-b-4 print:border-double print:border-slate-700 overflow-hidden">
-              <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full bg-pink-400/20 blur-2xl print:hidden" />
-              <div className="relative flex items-start justify-between gap-6 flex-wrap">
-                <div className="flex items-start gap-4">
-                  {logoUrl && <img src={logoUrl} alt="" className="h-20 w-20 rounded-2xl object-cover bg-white p-1.5 shadow-lg" />}
-                  <div>
-                    <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold print:hidden">
-                      <Cake className="h-3 w-3" /> Bakery Invoice
-                    </div>
-                    <h1 className="mt-2 text-3xl sm:text-4xl font-extrabold tracking-tight">{shopName}</h1>
-                    <div className="mt-3 space-y-1 text-xs text-white/85 print:text-slate-600">
-                      {shopAddress && <div className="flex items-center gap-1.5"><MapPin className="h-3 w-3" />{shopAddress}</div>}
-                      {shopPhone && <div className="flex items-center gap-1.5"><Phone className="h-3 w-3" />{shopPhone}</div>}
-                    </div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-[10px] uppercase tracking-widest text-white/60 print:text-slate-500">Invoice #</div>
-                  <div className="text-3xl font-extrabold mt-1 font-mono">{sale.saleNumber}</div>
-                  <div className="text-xs text-white/85 mt-1 print:text-slate-500 flex items-center justify-end gap-1">
-                    <Calendar className="h-3 w-3" />{formatDate(sale.soldAt)}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {sale.customer && (
-              <div className="px-8 py-4 border-b-2 border-slate-100 bg-slate-50/50 flex items-start justify-between gap-3 print:bg-white">
-                <div className="flex items-start gap-3">
-                  <User className="h-4 w-4 text-slate-500 mt-0.5" />
-                  <div>
-                    <div className="text-[10px] uppercase font-extrabold text-slate-500">Customer</div>
-                    <div className="font-extrabold text-lg">{sale.customer.name}</div>
-                    {sale.customer.phone && <div className="text-sm text-slate-600">{sale.customer.phone}</div>}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-[10px] uppercase font-extrabold text-slate-500">Items</div>
-                  <div className="font-extrabold text-lg">{sale.items.length} lines • {totalUnits} units</div>
-                </div>
-              </div>
-            )}
-
-            <div className="px-8 py-6">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left border-b-2 border-slate-300 bg-gradient-to-r from-pink-50 to-slate-50 print:bg-white">
-                    <th className="py-3 px-2 font-extrabold text-[10px] uppercase w-8">#</th>
-                    <th className="py-3 px-2 font-extrabold text-[10px] uppercase">Item</th>
-                    <th className="py-3 px-2 font-extrabold text-[10px] uppercase text-center w-16">Qty</th>
-                    <th className="py-3 px-2 font-extrabold text-[10px] uppercase text-right w-24">Rate</th>
-                    <th className="py-3 px-2 font-extrabold text-[10px] uppercase text-right w-28">Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sale.items.map((it: any, idx: number) => (
-                    <tr key={it.id} className="border-b border-slate-100 align-top hover:bg-slate-50/50">
-                      <td className="py-3 px-2 text-slate-500 font-mono text-xs">{idx + 1}</td>
-                      <td className="py-3 px-2">
-                        <div className="font-extrabold text-slate-900">🍰 {it.product.name}</div>
-                        {it.note && (
-                          <div className="mt-1 text-[10px] italic text-amber-700 rounded-md bg-amber-50 border border-amber-200 px-2 py-1 inline-block">
-                            📝 {it.note}
-                          </div>
-                        )}
-                      </td>
-                      <td className="py-3 px-2 text-center">
-                        <div className="font-extrabold text-slate-900 tabular-nums">{it.quantity}</div>
-                        <div className="text-[9px] font-bold text-slate-500 uppercase">{it.product.unit || 'pcs'}</div>
-                      </td>
-                      <td className="py-3 px-2 text-right font-bold tabular-nums">{formatPKR(it.price)}</td>
-                      <td className="py-3 px-2 text-right font-extrabold text-emerald-700 tabular-nums">{formatPKR(it.total)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="px-8 py-6 border-t-2 border-dashed border-slate-300 bg-gradient-to-br from-slate-50 to-white print:bg-white">
-              <div className="ml-auto max-w-md space-y-1.5">
-                <div className="flex justify-between text-sm"><span className="text-slate-600">Subtotal</span><span className="font-semibold tabular-nums">{formatPKR(sale.subtotal)}</span></div>
-                {sale.discount > 0 && <div className="flex justify-between text-sm"><span className="text-amber-700 inline-flex items-center gap-1"><Tag className="h-3 w-3" />Discount</span><span className="font-bold text-amber-700 tabular-nums">-{formatPKR(sale.discount)}</span></div>}
-                <div className="flex items-center justify-between text-lg pt-3 border-t-2 border-slate-300">
-                  <span className="font-extrabold text-slate-900">GRAND TOTAL</span>
-                  <span className="font-extrabold text-pink-700 text-3xl tabular-nums">{formatPKR(sale.total)}</span>
-                </div>
-                <div className="pt-3 border-t border-slate-200 space-y-1">
-                  <div className="flex justify-between text-sm"><span className="text-slate-600">Paid ({sale.paymentMethod})</span><span className="font-bold tabular-nums">{formatPKR(sale.paidAmount)}</span></div>
-                  {sale.changeAmount > 0 && <div className="flex justify-between text-sm"><span className="text-emerald-700 font-semibold">Change</span><span className="font-bold text-emerald-700 tabular-nums">{formatPKR(sale.changeAmount)}</span></div>}
-                  {sale.creditAmount > 0 && (
-                    <div className="flex justify-between text-sm rounded-lg bg-amber-50 border-2 border-amber-300 px-3 py-2 mt-2 print:bg-white"><span className="text-amber-800 font-bold">Balance / Udhaar</span><span className="font-extrabold text-amber-700 text-base tabular-nums">{formatPKR(sale.creditAmount)}</span></div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="px-8 py-5 border-t-2 border-slate-100 bg-pink-50/50 print:bg-white">
-              <div className="text-[10px] uppercase font-extrabold text-pink-700 mb-2">Freshness & Storage</div>
-              <ul className="text-[11px] text-slate-700 space-y-1 list-disc pl-4">
-                <li>❄️ Cakes and cream products — refrigerate immediately</li>
-                <li>🍞 Fresh bread best consumed within 24 hours</li>
-                <li>🎂 Custom cake orders require 24h advance booking</li>
-                <li>💝 For events (Wedding/Birthday), book 3-5 days ahead</li>
-              </ul>
-            </div>
-
-            <div className="px-8 py-5 text-center border-t-2 border-double border-slate-300 bg-gradient-to-br from-pink-50 to-fuchsia-50 print:bg-white">
-              {receiptFooter && <div className="text-sm italic text-slate-700 mb-2">{receiptFooter}</div>}
-              <div className="text-lg font-extrabold text-slate-900">🍰 Shukriya! Baked with Love ❤️</div>
-              <div className="text-[10px] text-slate-400 mt-2">Powered by Nafaa POS</div>
-            </div>
-          </div>
-        )}
-
-        {/* THERMAL FORMATS */}
-        {(format === 'thermal58' || format === 'thermal80') && (
-          <div className={`receipt-thermal bg-white shadow-2xl print:shadow-none mx-auto ${format === 'thermal58' ? 'w-[58mm]' : 'w-[80mm]'}`} style={{ fontFamily: 'Consolas, "Courier New", monospace' }}>
-            <div className={`${format === 'thermal58' ? 'p-2 text-[10px]' : 'p-3 text-[11px]'} leading-tight`}>
-              <div className="text-center mb-2">
-                {logoUrl && <img src={logoUrl} alt="" className={`mx-auto mb-2 object-contain ${format === 'thermal58' ? 'h-12 w-12' : 'h-14 w-14'}`} />}
-                <div className={`font-extrabold ${format === 'thermal58' ? 'text-sm' : 'text-base'}`}>{shopName.toUpperCase()}</div>
-                {shopAddress && <div className="text-[9px] mt-0.5">{shopAddress}</div>}
-                {shopPhone && <div className="text-[9px]">📞 {shopPhone}</div>}
-              </div>
-
-              <div className="border-t border-dashed border-slate-400 pt-1 mb-1">
-                <div className="flex justify-between"><span className="font-bold">Invoice #</span><span className="font-bold">{sale.saleNumber}</span></div>
-                <div className="flex justify-between"><span>Date:</span><span>{formatDate(sale.soldAt)}</span></div>
-              </div>
-
-              {sale.customer && (
-                <div className="border-t border-dashed border-slate-400 pt-1 mb-1">
-                  <div className="flex justify-between"><span className="font-bold">Customer:</span><span className="font-bold">{sale.customer.name}</span></div>
-                  {sale.customer.phone && <div className="flex justify-between"><span>Phone:</span><span>{sale.customer.phone}</span></div>}
-                </div>
-              )}
-
-              <div className="border-t border-dashed border-slate-400 pt-1 mb-1">
-                <div className="font-bold text-center mb-1">🍰 ITEMS</div>
-                {sale.items.map((it: any, idx: number) => (
-                  <div key={it.id} className="mb-1.5">
-                    <div className="font-bold">{idx + 1}. {it.product.name}</div>
-                    {it.note && <div className="pl-2 text-[9px] italic">📝 {it.note}</div>}
-                    <div className="flex justify-between pl-2">
-                      <span>{it.quantity} × {formatPKR(it.price)}</span>
-                      <span className="font-bold">{formatPKR(it.total)}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="border-t border-dashed border-slate-400 pt-1 mb-1">
-                <div className="flex justify-between"><span>Subtotal:</span><span>{formatPKR(sale.subtotal)}</span></div>
-                {sale.discount > 0 && <div className="flex justify-between"><span>Discount:</span><span>-{formatPKR(sale.discount)}</span></div>}
-                <div className={`flex justify-between border-t border-double border-slate-700 mt-1 pt-1 font-extrabold ${format === 'thermal58' ? 'text-xs' : 'text-sm'}`}>
-                  <span>TOTAL:</span><span>{formatPKR(sale.total)}</span>
-                </div>
-              </div>
-
-              <div className="border-t border-dashed border-slate-400 pt-1 mb-1">
-                <div className="flex justify-between"><span>Paid ({sale.paymentMethod}):</span><span className="font-bold">{formatPKR(sale.paidAmount)}</span></div>
-                {sale.changeAmount > 0 && <div className="flex justify-between"><span>Change:</span><span className="font-bold">{formatPKR(sale.changeAmount)}</span></div>}
-                {sale.creditAmount > 0 && <div className="flex justify-between font-bold"><span>BALANCE:</span><span>{formatPKR(sale.creditAmount)}</span></div>}
-              </div>
-
-              <div className="border-t border-dashed border-slate-400 pt-1 mb-1 text-[9px] italic">
-                <div className="font-bold">Note:</div>
-                <div>❄️ Refrigerate cream products</div>
-                <div>🎂 Custom cakes: 24h advance</div>
-                <div>💝 Events: 3-5 days ahead</div>
-              </div>
-
-              {receiptFooter && <div className="text-center text-[9px] italic border-t border-dashed border-slate-400 pt-1">{receiptFooter}</div>}
-              <div className="text-center font-bold mt-2">🍰 Shukriya! ❤️</div>
-              <div className="text-center text-[8px] mt-1 text-slate-600">Powered by Nafaa POS</div>
-
-              {isVoided && <div className="mt-2 border-2 border-rose-600 text-rose-600 font-extrabold text-center py-1">*** VOIDED ***</div>}
-            </div>
-          </div>
-        )}
       </div>
 
-      <style>{`
-        @media print {
-          @page { size: ${format === 'thermal58' ? '58mm auto' : format === 'thermal80' ? '80mm auto' : 'A4'}; margin: ${format === 'a4' ? '8mm' : '0mm'}; }
-          body { background: white !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-          .receipt-thermal { width: ${format === 'thermal58' ? '58mm' : '80mm'} !important; box-shadow: none !important; margin: 0 !important; }
-          .receipt-a4 { box-shadow: none !important; border: none !important; border-radius: 0 !important; }
-        }
-      `}</style>
+      {params.get('fresh') === '1' && (
+        <div className="print:hidden mb-4 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-300 dark:border-emerald-500/40 p-3 flex items-center gap-2">
+          <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
+          <span className="font-black text-emerald-900 dark:text-emerald-200">Bill ban gaya!</span>
+        </div>
+      )}
+
+      {/* ═══ KAGHAZ ═══ */}
+      <div className="flex justify-center">
+        <div id="receipt-paper" className="receipt-paper bg-[#ffffff] text-black w-full max-w-[420px] rounded-2xl shadow-xl print:shadow-none print:rounded-none">
+          <div className="rc-center rc-shop">{shop.name}</div>
+          {shop.address && <div className="rc-center rc-sub">{shop.address}</div>}
+          {shop.phone && <div className="rc-center rc-sub">Ph: {shop.phone}</div>}
+
+          <div className="rc-div" />
+
+          <div className="rc-row"><span>BILL</span><b>{sale.invoiceNo}</b></div>
+          <div className="rc-row"><span>DATE</span>
+            <b>{new Date(sale.createdAt).toLocaleString('en-PK', { dateStyle: 'short', timeStyle: 'short' })}</b>
+          </div>
+          {sale.customerName && <div className="rc-row"><span>CUSTOMER</span><b>{sale.customerName}</b></div>}
+          {sale.cashierName && <div className="rc-row"><span>COUNTER</span><b>{sale.cashierName}</b></div>}
+
+          <div className="rc-div" />
+
+          {sale.items.map((i: any, n: number) => {
+            const care = careBy.get(i.productId);
+            return (
+              <div key={n} className="rc-item">
+                <div className="rc-iname">{n + 1}. {i.name}{care?.fridge ? ' ❄️' : ''}</div>
+                <div className="rc-irow">
+                  <span>{i.qty} {i.unit ?? ''} × {formatPKR(i.price)}</span>
+                  <b>{formatPKR(i.total)}</b>
+                </div>
+              </div>
+            );
+          })}
+
+          <div className="rc-div" />
+          <div className="rc-row"><span>Cheezein</span><b>{sale.items.length}</b></div>
+          {sale.discount > 0 && (
+            <>
+              <div className="rc-row"><span>Subtotal</span><b>{formatPKR(sale.subtotal)}</b></div>
+              <div className="rc-row"><span>Discount</span><b>−{formatPKR(sale.discount)}</b></div>
+            </>
+          )}
+
+          <div className="rc-dbl" />
+          <div className="rc-total"><span>TOTAL</span><span>{formatPKR(sale.total)}</span></div>
+          <div className="rc-row"><span>Paid ({sale.paymentMethod})</span><b>{formatPKR(sale.paid)}</b></div>
+          {sale.change > 0 && <div className="rc-row"><span>WAPIS DIYA</span><b>{formatPKR(sale.change)}</b></div>}
+          {sale.due > 0 && (
+            <div className="rc-credit"><span>⚠ IS BILL KA BAQI</span><b>{formatPKR(sale.due)}</b></div>
+          )}
+
+          {/* Purana khata — bill poora ada ho tab bhi saamne rehna chahiye */}
+          {sale.customerName && sale.customerDue > 0 && (
+            <div className="rc-khata">
+              <div className="rc-khata-title">KHATA — {sale.customerName}</div>
+              {sale.customerDue > sale.due && (
+                <div className="rc-row"><span>Pichla udhaar</span><b>{formatPKR(sale.customerDue - sale.due)}</b></div>
+              )}
+              {sale.due > 0 && <div className="rc-row"><span>Is bill ka</span><b>+{formatPKR(sale.due)}</b></div>}
+              <div className="rc-khata-total"><span>KUL UDHAAR</span><b>{formatPKR(sale.customerDue)}</b></div>
+            </div>
+          )}
+
+          {/* Bakery ki khaas baat — maal kaise rakhna hai */}
+          {careLines.length > 0 && (
+            <div className="rc-care">
+              {careLines.map((l, i) => <div key={i}>{l}</div>)}
+            </div>
+          )}
+
+          <div className="rc-div" />
+          <div className="rc-barcode"><Barcode value={sale.invoiceNo} /></div>
+          <div className="rc-center rc-sub" style={{ letterSpacing: 2 }}>{sale.invoiceNo}</div>
+
+          <div className="rc-div" />
+          <div className="rc-center rc-sub">{shop.footer}</div>
+          <div className="rc-powered">✦ Powered by <b>Nafaa POS</b> ✦</div>
+          <div className="rc-cut">— — — — — — — — — — — — ✂</div>
+        </div>
+      </div>
+
+      {/* Mobile bar */}
+      <div className="print:hidden fixed bottom-0 inset-x-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-t-2 border-slate-200 dark:border-slate-800 p-3 sm:hidden">
+        <div className="flex gap-2">
+          <button onClick={doPrint} className="flex-1 h-12 rounded-xl bg-pink-600 text-white font-black inline-flex items-center justify-center gap-2">
+            <Printer className="h-4 w-4" /> Print
+          </button>
+          <a href={`https://wa.me/?text=${encodeURIComponent(waText)}`} target="_blank" rel="noreferrer"
+            className="flex-1 h-12 rounded-xl bg-emerald-600 text-white font-black inline-flex items-center justify-center gap-2">
+            <MessageCircle className="h-4 w-4" /> WhatsApp
+          </a>
+        </div>
+      </div>
+
+      {showPaper && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 print:hidden" onClick={() => setShowPaper(false)}>
+          <div className="w-full max-w-xs rounded-3xl bg-white dark:bg-slate-900 border-2 border-pink-300 shadow-2xl p-5" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h3 className="font-black text-slate-900 dark:text-white">Kaghaz ka naap</h3>
+              <button onClick={() => setShowPaper(false)} className="h-8 w-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center">
+                <X className="h-4 w-4 text-slate-500" />
+              </button>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              {(['58', '80'] as const).map((w) => (
+                <button key={w} onClick={() => {
+                  setPaper(w);
+                  try {
+                    const cur = JSON.parse(localStorage.getItem(PREFS_KEY) || '{}');
+                    localStorage.setItem(PREFS_KEY, JSON.stringify({ ...cur, width: w }));
+                  } catch { /* ignore */ }
+                  setShowPaper(false);
+                }}
+                  className={`h-12 rounded-xl text-sm font-black transition ${
+                    paper === w ? 'bg-pink-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                  }`}>{w}mm</button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+/* ═════════════════════════════════════════════════════════════
+   PRINT CSS — thermal par har harf saaf
+   ═════════════════════════════════════════════════════════════ */
+function PrintStyles() {
+  return (
+    <style>{`
+      .receipt-paper {
+        padding: 16px 12px;
+        font-family: Arial, Helvetica, 'Segoe UI', sans-serif;
+        font-size: 13px; line-height: 1.4; color: #000; font-weight: 600;
+      }
+      .rc-center { text-align: center; }
+      .rc-shop { font-size: 19px; font-weight: 900; letter-spacing: .3px; text-transform: uppercase; }
+      .rc-sub { font-size: 12px; font-weight: 600; }
+      .rc-div { border-top: 1.5px dashed #000; margin: 8px 0; }
+      .rc-dbl { border-top: 2.5px solid #000; margin: 8px 0; }
+      .rc-row { display: flex; justify-content: space-between; gap: 8px; margin: 3px 0; }
+      .rc-item { margin-bottom: 6px; page-break-inside: avoid; break-inside: avoid; }
+      .rc-iname { font-weight: 800; }
+      .rc-irow { display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 700; }
+      .rc-total { display: flex; justify-content: space-between; font-size: 19px; font-weight: 900; border-top: 2.5px solid #000; border-bottom: 2.5px solid #000; padding: 5px 0; margin: 7px 0; }
+      .rc-credit { display: flex; justify-content: space-between; font-weight: 900; border: 2px solid #000; padding: 5px 6px; border-radius: 4px; margin-top: 4px; }
+      .rc-khata { margin-top: 6px; border: 2px solid #000; border-radius: 4px; padding: 5px 6px; }
+      .rc-khata-title { font-size: 11px; font-weight: 900; letter-spacing: .4px; margin-bottom: 2px; }
+      .rc-khata-total { display: flex; justify-content: space-between; font-size: 15px; font-weight: 900; border-top: 2px solid #000; margin-top: 3px; padding-top: 3px; }
+      .rc-care { margin-top: 6px; border: 1.5px dashed #000; border-radius: 6px; padding: 5px; text-align: center; font-size: 12px; font-weight: 800; }
+      .rc-barcode { display: flex; align-items: center; justify-content: center; margin-top: 10px; }
+      .rc-barcode svg { max-width: 100%; height: auto; }
+      .rc-powered { text-align: center; font-size: 11px; font-weight: 700; margin-top: 8px; }
+      .rc-powered b { font-weight: 900; }
+      .rc-cut { text-align: center; font-size: 11px; font-weight: 700; margin-top: 10px; letter-spacing: 2px; white-space: nowrap; overflow: hidden; }
+
+      @media print {
+        body * { visibility: hidden; }
+        #receipt-paper, #receipt-paper * { visibility: visible; }
+        #receipt-paper {
+          position: absolute; left: 0; top: 0;
+          box-shadow: none !important; margin: 0 !important;
+          width: 100% !important; max-width: 100% !important;
+          padding: 4mm 2mm !important;
+        }
+
+        /* Har harf thos kaala aur mota. Anti-aliasing band — warna
+           browser kinaron par halke grey pixel banata hai jo thermal
+           head chhaap hi nahi pata aur harf khokhla nazar aata hai. */
+        #receipt-paper, #receipt-paper * {
+          color: #000 !important; background: #fff !important;
+          -webkit-print-color-adjust: exact; print-color-adjust: exact;
+          text-shadow: none !important; box-shadow: none !important;
+          -webkit-font-smoothing: none !important;
+          text-rendering: geometricPrecision !important;
+          opacity: 1 !important; filter: none !important;
+        }
+        #receipt-paper * { font-weight: 600; }
+        #receipt-paper .rc-shop,
+        #receipt-paper .rc-total,
+        #receipt-paper .rc-credit,
+        #receipt-paper .rc-khata-total,
+        #receipt-paper .rc-iname { font-weight: 900 !important; }
+
+        /* Lucide ke icon kaghaz par sirf dhabba bante hain — magar
+           barcode ZAROOR chhape, purana bill usi se nikalta hai. */
+        #receipt-paper svg { display: none; }
+        #receipt-paper .rc-barcode svg { display: block !important; max-width: 100% !important; height: auto !important; }
+
+        @page { margin: 0; size: auto; }
+        body[data-paper="58"] #receipt-paper { width: 58mm !important; font-size: 11.5px; }
+        body[data-paper="58"] #receipt-paper .rc-shop { font-size: 15px; }
+        body[data-paper="58"] #receipt-paper .rc-total { font-size: 15px; }
+        body[data-paper="58"] #receipt-paper .rc-barcode svg { height: 34px !important; }
+        body[data-paper="80"] #receipt-paper { width: 80mm !important; font-size: 13.5px; }
+        body[data-paper="80"] #receipt-paper .rc-shop { font-size: 20px; }
+        body[data-paper="80"] #receipt-paper .rc-total { font-size: 20px; }
+
+        .rc-item, .rc-total, .rc-row { page-break-inside: avoid; break-inside: avoid; }
+      }
+    `}</style>
   );
 }
