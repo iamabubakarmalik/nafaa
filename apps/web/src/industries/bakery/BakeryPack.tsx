@@ -59,7 +59,6 @@ export const BakeryPack: IndustryPack = {
         { to: '/bakery/ingredients', label: 'Ingredients', icon: Wheat },
         { to: '/bakery/freshness', label: 'Freshness', icon: Timer },
         { to: '/bakery/bulk-orders', label: 'Bulk Orders', icon: ShoppingBag },
-        { to: '/bakery/bulk-orders/new', label: '+ Naya Bara Order', icon: ShoppingBag },
       ],
     },
   ],

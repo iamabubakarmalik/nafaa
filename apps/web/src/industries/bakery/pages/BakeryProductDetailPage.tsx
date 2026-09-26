@@ -5,7 +5,7 @@ import {
   ArrowLeft, Edit3, Trash2, Cake, Timer, Snowflake, AlertTriangle,
   Package, DollarSign, ChefHat, ShoppingBag, Wheat, CheckCircle2,
   XCircle, Award, TrendingUp, BarChart3, Info, GraduationCap, X,
-  Printer, Boxes, Flame, Star, Calculator, Tag, Layers, Clock,
+  Printer, Boxes, Flame, Star, Calculator, Tag, Layers, Clock, Scale,
 } from 'lucide-react';
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
@@ -20,8 +20,9 @@ import { bakeryProductsApi } from '../api/products.api';
 import { freshnessApi, type FreshnessLog } from '../api/freshness.api';
 import { FLAVORS, SHAPES, CREAMS } from '../api/constants';
 import {
-  deriveBakeryCategory, isCakeLike, prettyCategory, needsFridge,
+  deriveBakeryCategory, isCakeLike, prettyCategory,
 } from '../lib/bakeryCategory';
+import { unitDef, rateBetween, priceField, extraUnitsFor } from '../lib/bakeryUnits';
 
 /* ═════════════════════════════════════════════════════════════
    BAKERY — EK CHEEZ KI POORI KAHANI
@@ -119,6 +120,22 @@ export default function BakeryProductDetailPage() {
   const recipeCostPerUnit = recipeYield > 0 ? batchCost / recipeYield : batchCost;
 
   const isMade = Boolean(profile?.isCakeCustomizable || profile?.isCustomizable || recipe.length > 0);
+
+  /** Base unit ke ilawa jin naapon ka rate bhara hua hai */
+  const otherRates = useMemo(() => {
+    if (!product || !profile) return [] as any[];
+    const base = (product.unit || 'pcs').toLowerCase();
+    return extraUnitsFor(base)
+      .map((k) => ({
+        ...unitDef(k),
+        price: Number((profile as any)[priceField[k]] || 0),
+        rate: rateBetween(k, base, {
+          weightGrams: profile.weightGrams,
+          slices: profile.numberOfSlices,
+        }),
+      }))
+      .filter((x) => x.price > 0);
+  }, [product, profile]);
   const stock = Number(product?.shopStock ?? product?.stock ?? 0);
   const cost = Number(product?.costPrice ?? 0);
   const price = Number(product?.price ?? 0);
@@ -528,16 +545,36 @@ export default function BakeryProductDetailPage() {
           </InfoCard>
 
           <InfoCard icon={DollarSign} title="Paisa">
-            <Row label="Bechne ka rate" value={formatPKR(price)} />
+            <Row label={`Bechne ka rate (per ${product.unit})`} value={formatPKR(price)} />
             <Row label="Banane ki cost" value={cost > 0 ? formatPKR(cost) : 'Bhari nahi'} warn={cost <= 0} />
             <Row label="Ek par munafa" value={formatPKR(profit)} />
             <Row label="Munafa %" value={`${margin.toFixed(1)}%`} />
             <Row label="Tax" value={`${product.taxRate ?? 0}%`} />
-            {profile?.pricePerPound ? <Row label="Per pound" value={formatPKR(profile.pricePerPound)} /> : null}
-            {profile?.pricePerKg ? <Row label="Per kg" value={formatPKR(profile.pricePerKg)} /> : null}
-            {profile?.pricePerSlice ? <Row label="Per slice" value={formatPKR(profile.pricePerSlice)} /> : null}
-            {profile?.pricePerDozen ? <Row label="Per dozen" value={formatPKR(profile.pricePerDozen)} /> : null}
           </InfoCard>
+
+          {/* ── Aur kis tarah bikti hai ──
+              Sirf rate likh dena kaafi nahi — sath me ye bhi dikhna
+              chahiye ke ek slice bikne par stock se kitna ghatega.
+              Yehi wo hisab hai jo pehle POS me lagta hi nahi tha. */}
+          {otherRates.length > 0 && (
+            <InfoCard icon={Scale} title="Aur kis tarah bikti hai">
+              {otherRates.map((r) => (
+                <div key={r.key} className="flex items-center justify-between gap-3 py-1.5 border-b border-slate-50 dark:border-slate-800/60 last:border-0">
+                  <span className="text-[12px] font-bold text-slate-500 dark:text-slate-400 shrink-0">
+                    {r.emoji} Per {r.label}
+                  </span>
+                  <span className="min-w-0 text-right">
+                    <span className="block text-[13px] font-extrabold text-slate-900 dark:text-white tabular-nums">
+                      {formatPKR(r.price)}
+                    </span>
+                    <span className="block text-[10px] font-bold text-slate-400 tabular-nums">
+                      stock se {r.rate.toFixed(r.rate < 1 ? 3 : 2)} {product.unit}
+                    </span>
+                  </span>
+                </div>
+              ))}
+            </InfoCard>
+          )}
 
           <InfoCard icon={Timer} title="Taazgi aur rakhna">
             <Row label="Kitni der theek" value={

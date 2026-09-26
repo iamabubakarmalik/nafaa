@@ -4,10 +4,14 @@ import { hashPassword } from '../../../../common/utils/password.util';
 import { AuthenticatedUser } from '../../../auth/interfaces/jwt-payload.interface';
 import { UpdateSettingsDto } from '../dto/update-settings.dto';
 import { DEFAULT_SETTINGS } from '../constants/settings.constants';
+import { TenantTimezoneService } from '../../../../common/helpers/tenant-timezone.service';
 
 @Injectable()
 export class SettingsCoreService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly tzService: TenantTimezoneService,
+  ) {}
 
   /** Get all settings + tenant + computed flags */
   async get(user: AuthenticatedUser) {
@@ -81,6 +85,11 @@ export class SettingsCoreService {
         ? [this.prisma.tenant.update({ where: { id: user.tenantId }, data: tenantSync })]
         : []),
     ]);
+
+    /* Timezone badla to yaad kiya hua fauran bhool jayein — warna
+       dukaan-daar settings me waqt theek karta hai aur dashboard das
+       minute tak purane waqt par hi report banata rehta hai. */
+    if (dto.timezone !== undefined) this.tzService.forget(user.tenantId);
 
     // Log the change
     await this.prisma.activityLog.create({

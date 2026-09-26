@@ -2,7 +2,6 @@ import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
-import JsBarcode from 'jsbarcode';
 import {
   Cake, Search, X, Plus, Minus, Trash2, User, UserPlus, Package,
   ScanLine, CheckCircle2, ShoppingCart, ChevronDown, Timer, Snowflake,
@@ -21,6 +20,12 @@ import { offlineSalesApi } from '@core/lib/offline/offlineSales';
 import { type PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { useSharedPosCart, cartLineId } from '@modules/pos/hooks/useSharedPosCart';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
+import { printReceiptDirect, type ReceiptPayload } from '@modules/pos/lib/thermalReceipt';
+import { buildUnitScanIndex, unitEmoji } from '@modules/pos/lib/posUnits';
+import {
+  PosCustomerPicker, PosTeacher, PosReceiverField, emptyReceiver,
+  type PosReceiverValue,
+} from '@modules/pos/components';
 import { bakeryProductsApi, type BakeryProduct } from '../api/products.api';
 import { productUnitsApi } from '@industries/retail/api/product-units.api';
 import { freshnessApi } from '../api/freshness.api';
@@ -68,111 +73,10 @@ function loadPrefs(): PrintPrefs {
   } catch { return defaultPrefs; }
 }
 
-/* ── Asli CODE128 barcode — naqli lakeerein scanner nahi parhta ── */
-function barcodeSvg(value: string, width: '58' | '80'): string {
-  if (!value) return '';
-  try {
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    JsBarcode(svg, value, {
-      format: 'CODE128',
-      width: width === '80' ? 1.6 : 1.3,
-      height: 45, margin: 0, displayValue: false,
-      lineColor: '#000000', background: '#ffffff',
-    });
-    return new XMLSerializer().serializeToString(svg);
-  } catch { return ''; }
-}
-
-const esc = (s: string) => String(s ?? '').replace(/[&<>"']/g, (c) =>
-  ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
-
-interface PrintPayload {
-  saleNumber: string; date: Date;
-  shopName: string; shopPhone?: string; shopAddress?: string;
-  customerName?: string; previousDue?: number;
-  lines: Array<{ name: string; qty: number; unit: string; price: number; total: number }>;
-  subtotal: number; discount: number; total: number; paid: number; payLabel: string;
-}
-
-function printBill(p: PrintPayload, mm: '58' | '80'): boolean {
-  const w = window.open('', '_blank', `width=${mm === '80' ? 400 : 330},height=700`);
-  if (!w) return false;
-
-  const items = p.lines.map((l, i) => `
-    <div class="item">
-      <div class="iname">${i + 1}. ${esc(l.name)}</div>
-      <div class="irow"><span>${l.qty} ${esc(l.unit)} × ${formatPKR(l.price)}</span><span class="iamt">${formatPKR(l.total)}</span></div>
-    </div>`).join('');
-
-  const due = Math.max(p.total - p.paid, 0);
-  const prev = p.previousDue ?? 0;
-
-  const html = `<!doctype html><html><head><meta charset="utf-8"/><title>${esc(p.saleNumber)}</title><style>
-  /* Thermal head 203 dpi ka hota hai. 400-weight ke danday ek hi dot
-     chaure bante hain aur kaghaz par mushkil se nazar aate hain — is
-     liye har cheez kam se kam 700, aur anti-aliasing band. */
-  @page { size: ${mm}mm auto; margin: 0; }
-  * { box-sizing: border-box; margin: 0; padding: 0;
-      -webkit-print-color-adjust: exact; print-color-adjust: exact;
-      -webkit-font-smoothing: none; text-rendering: geometricPrecision; }
-  html, body { width: ${mm}mm; }
-  body { font-family: Arial, Helvetica, sans-serif; color: #000; background: #fff;
-    padding: ${mm === '80' ? '4mm 3mm' : '3mm 2mm'};
-    font-size: ${mm === '80' ? '13.5px' : '11.5px'}; font-weight: 700; line-height: 1.4; }
-  .c { text-align: center; }
-  .shop { font-size: ${mm === '80' ? '20px' : '16px'}; font-weight: 900; }
-  .sub { font-size: ${mm === '80' ? '11.5px' : '10px'}; font-weight: 700; margin-top: 2px; }
-  .div { border-top: 1.5px dashed #000; margin: 6px 0; }
-  .dbl { border-top: 2.5px solid #000; margin: 6px 0; }
-  .row { display: flex; justify-content: space-between; gap: 6px; margin: 3px 0; }
-  .row .v { text-align: right; font-weight: 800; }
-  .item { margin: 4px 0; }
-  .iname { font-weight: 900; word-break: break-word; }
-  .irow { display: flex; justify-content: space-between; font-weight: 700; font-size: ${mm === '80' ? '12.5px' : '10.5px'}; }
-  .iamt { font-weight: 900; }
-  .total { display: flex; justify-content: space-between; font-size: ${mm === '80' ? '20px' : '16px'}; font-weight: 900; margin: 5px 0; }
-  .khata-t { font-size: ${mm === '80' ? '11px' : '9.5px'}; font-weight: 900; letter-spacing: .5px; margin-bottom: 2px; }
-  .khata-x { display: flex; justify-content: space-between; font-size: ${mm === '80' ? '15px' : '12.5px'}; font-weight: 900; border-top: 2px solid #000; margin-top: 3px; padding-top: 3px; }
-  .bar { text-align: center; margin: 8px 0 2px; }
-  .bar svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
-  .barnum { font-size: 10.5px; font-weight: 800; letter-spacing: 1.5px; margin-top: 3px; }
-</style></head><body>
-  <div class="c shop">${esc(p.shopName)}</div>
-  ${p.shopAddress ? `<div class="c sub">${esc(p.shopAddress)}</div>` : ''}
-  ${p.shopPhone ? `<div class="c sub">Ph: ${esc(p.shopPhone)}</div>` : ''}
-  <div class="div"></div>
-  <div class="row"><span>BILL</span><span class="v">${esc(p.saleNumber)}</span></div>
-  <div class="row"><span>DATE</span><span class="v">${p.date.toLocaleString('en-PK', { dateStyle: 'short', timeStyle: 'short' })}</span></div>
-  ${p.customerName ? `<div class="row"><span>CUSTOMER</span><span class="v">${esc(p.customerName)}</span></div>` : ''}
-  <div class="div"></div>
-  ${items}
-  <div class="div"></div>
-  <div class="row"><span>Cheezein</span><span class="v">${p.lines.length}</span></div>
-  ${p.discount > 0 ? `<div class="row"><span>Subtotal</span><span class="v">${formatPKR(p.subtotal)}</span></div>
-    <div class="row"><span>Discount</span><span class="v">−${formatPKR(p.discount)}</span></div>` : ''}
-  <div class="dbl"></div>
-  <div class="total"><span>TOTAL</span><span>${formatPKR(p.total)}</span></div>
-  <div class="row"><span>${esc(p.payLabel)}</span><span class="v">${formatPKR(p.paid)}</span></div>
-  ${p.paid > p.total ? `<div class="row"><span>WAPIS DEIN</span><span class="v">${formatPKR(p.paid - p.total)}</span></div>` : ''}
-  ${due > 0 ? `<div class="row"><span>IS BILL KA BAQI</span><span class="v">${formatPKR(due)}</span></div>` : ''}
-  ${prev > 0 ? `
-    <div class="div"></div>
-    <div class="khata-t">KHATA — ${esc(p.customerName || 'Customer')}</div>
-    <div class="row"><span>Pichla udhaar</span><span class="v">${formatPKR(prev)}</span></div>
-    ${due > 0 ? `<div class="row"><span>Is bill ka</span><span class="v">+${formatPKR(due)}</span></div>` : ''}
-    <div class="khata-x"><span>KUL UDHAAR</span><span>${formatPKR(prev + due)}</span></div>` : ''}
-  <div class="div"></div>
-  <div class="bar">${barcodeSvg(p.saleNumber, mm)}<div class="barnum">${esc(p.saleNumber)}</div></div>
-  <div class="div"></div>
-  <div class="c sub">Shukriya! Phir tashreef laiye.</div>
-  <div class="c sub" style="margin-top:2px;">Powered by Nafaa POS</div>
-  <script>window.onload=function(){setTimeout(function(){window.print();setTimeout(function(){window.close();},600);},150);};</script>
-</body></html>`;
-
-  w.document.open(); w.document.write(html); w.document.close();
-  return true;
-}
-
+/* Bill chhapne ka poora code ab `@modules/pos/lib/thermalReceipt` me
+   hai — wohi jo Retail istemal karta hai. Pehle yahan uski apni naqal
+   thi: jab retail ke bill par khata ki lines aur dastkhat ka khana
+   jura, bakery ka bill purana hi reh gaya tha. */
 
 /* ═════════════════════════════════════════════════════════════
    UNIT KA CONVERSION — stock sahi ghatne ke liye
@@ -234,6 +138,9 @@ export default function BakeryPosPage() {
   const [payMode, setPayMode] = useState<PayMode>('FULL');
   const [held, setHeld] = useState<Array<{ id: string; cart: any[]; customerId: string; total: number; at: number }>>([]);
   const [lastSale, setLastSale] = useState<any>(null);
+  /* Maal lene kaun aaya — bakery me mahine ka khata aam hai (hotel,
+     canteen, shaadi hall) aur maal roz koi mulazim le jata hai. */
+  const [receiver, setReceiver] = useState<PosReceiverValue>(emptyReceiver());
 
   const cartApi = useSharedPosCart();
   const {
@@ -263,8 +170,26 @@ export default function BakeryPosPage() {
     queryKey: ['customers-for-pos'],
     queryFn: () => customersApi.list({ limit: 1000 }),
   });
+
+  /* Sari multi-units ek dafa. Pehle har cheez par click karne ke baad
+     server se poochte thay — counter par har dafa aadha second ka
+     intezaar, aur net jate hi dozen/carton ka barcode bilkul kaam
+     chhor deta tha. */
+  const unitsQ = useQuery({
+    queryKey: ['pos-product-units'],
+    queryFn: () => productUnitsApi.listAll(),
+    staleTime: 5 * 60_000,
+  });
+  const unitIndex = useMemo(
+    () => buildUnitScanIndex((unitsQ.data as any[]) ?? []),
+    [unitsQ.data],
+  );
   const customers = (customersQ.data as any)?.items ?? [];
   const selectedCustomer = customers.find((c: any) => c.id === customerId);
+
+  /* Customer badla to purana receiver saath na jaye — warna hotel ka
+     driver agle khate ke bill par chhap jata hai. */
+  useEffect(() => { setReceiver(emptyReceiver()); }, [customerId]);
 
   const profileBy = useMemo(() => {
     const m = new Map<string, BakeryProduct>();
@@ -358,11 +283,13 @@ export default function BakeryPosPage() {
 
     /* Dukaan-daar ke apne banaye hue unit sab se pehle — un me
        asli conversion rate mojood hota hai. */
-    let own: any[] = [];
-    try {
-      const res: any = await productUnitsApi.byProduct(p.id);
-      own = Array.isArray(res) ? res : (res?.items ?? []);
-    } catch { /* unit na hon to koi baat nahi */ }
+    let own: any[] = unitIndex.byProduct.get(p.id) ?? [];
+    if (own.length === 0) {
+      try {
+        const res: any = await productUnitsApi.byProduct(p.id);
+        own = Array.isArray(res) ? res : (res?.items ?? []);
+      } catch { /* unit na hon to koi baat nahi */ }
+    }
 
     const opts: Array<{ key: string; price: number; label: string; emoji: string; rate: number }> = [];
 
@@ -372,7 +299,7 @@ export default function BakeryPosPage() {
         key: `own-${u.id}`,
         price: Number(u.price) || Number(p.price),
         label: String(u.unitName),
-        emoji: '📦',
+        emoji: unitEmoji(u.unitName),
         rate: Number(u.conversionRate) || 1,
       });
     });
@@ -400,13 +327,44 @@ export default function BakeryPosPage() {
     setUnitPicker({ row, opts });
   }, [addLine]);
 
+  /**
+   * Gun ne jo parha, wo cart me.
+   *
+   * Teen jagah dekhni parti hain: product ka apna barcode, phir unit
+   * ka apna barcode (dozen ka dabba, carton), phir server.
+   *
+   * Doosri soorat pehle thi hi nahi. Jis rusk ke dozen ka apna barcode
+   * chhapa hota tha, wo scan karne par "nahi mila" aata tha — munshi
+   * ko haath se dhoond kar unit chunni parti thi.
+   */
   const onScan = async (code: string) => {
     setScannerOpen(false);
     const c = code.trim();
     if (!c) return;
+    const lower = c.toLowerCase();
+
     /* Pehle apni hi list me dekho — offline bhi chal jata hai */
-    const local = items.find((i) => (i.product.barcode ?? '') === c);
+    const local = items.find((i) => (i.product.barcode ?? '').toLowerCase() === lower);
     if (local) return onPick(local);
+
+    /* Unit ka apna barcode — seedha usi package ki line banti hai,
+       unit picker dobara nahi khulta: barcode khud bata raha hai ke
+       kaun sa package bika. */
+    const unit = unitIndex.byBarcode.get(lower);
+    if (unit) {
+      const row = items.find((i) => i.product.id === unit.productId);
+      if (row) {
+        const rate = Number(unit.conversionRate) || 1;
+        addLine(
+          row.product,
+          Number(unit.price) || Number(row.product.price) * rate,
+          String(unit.unitLabel || unit.unitName),
+          rate,
+        );
+        return;
+      }
+    }
+
     try {
       const p = await productsApi.byBarcode(c);
       const row = items.find((i) => i.product.id === p.id);
@@ -431,6 +389,8 @@ export default function BakeryPosPage() {
       return offlineSalesApi.create({
         shopId,
         customerId: customerId || undefined,
+        receivedByName: receiver.name.trim() || undefined,
+        receivedByPhone: receiver.phone.trim() || undefined,
         paymentMethod,
         paidAmount: paid,
         discount: Number(globalDiscount) || 0,
@@ -452,7 +412,7 @@ export default function BakeryPosPage() {
     },
     onSuccess: (sale: any) => {
       const payLabel = PAYMENTS.find((m) => m.id === paymentMethod)?.label ?? paymentMethod;
-      const payload: PrintPayload = {
+      const payload: ReceiptPayload = {
         saleNumber: sale.saleNumber || 'N/A',
         date: new Date(),
         shopName: tenant?.name || 'Bakery',
@@ -466,18 +426,21 @@ export default function BakeryPosPage() {
           total: (c.priceOverride ?? c.basePrice) * c.quantity - (c.lineDiscount || 0),
         })),
         subtotal, discount: Number(globalDiscount) || 0, total, paid,
-        payLabel: `Paid (${payLabel})`,
+        paymentLabel: `Paid (${payLabel})`,
+        receivedByName: receiver.name.trim() || undefined,
+        receivedByPhone: receiver.phone.trim() || undefined,
       };
 
       setLastSale({ id: sale.id, number: sale.saleNumber, change, total, payload });
       setShowCheckout(false);
       clearCart();
+      setReceiver(emptyReceiver());
       setPayMode('FULL');
       qc.invalidateQueries({ queryKey: ['bakery-pos-products'] });
       qc.invalidateQueries({ queryKey: ['customers-for-pos'] });
       qc.invalidateQueries({ queryKey: ['bakery-freshness-pos'] });
 
-      if (prefs.auto && !printBill(payload, prefs.width)) {
+      if (prefs.auto && !printReceiptDirect(payload, prefs.width)) {
         toast.error('Popup block hai — browser me popups allow karein');
       }
     },
@@ -689,8 +652,27 @@ export default function BakeryPosPage() {
           <div className="mt-1 text-3xl font-black tabular-nums">{formatPKR(total)}</div>
         </div>
 
-        <CustomerPicker customers={customers} customerId={customerId} setCustomerId={setCustomerId}
-          selected={selectedCustomer} onAdd={() => navigate('/customers/new')} />
+        <PosCustomerPicker
+          customers={customers}
+          customerId={customerId}
+          setCustomerId={setCustomerId}
+          selectedCustomer={selectedCustomer}
+          onAddCustomer={() => navigate('/customers/new')}
+        />
+
+        {/* Maal lene wala — customer chunte hi. Bakery me hotel aur
+            canteen ka mahine bhar ka khata chalta hai aur maal roz koi
+            mulazim le jata hai; mahine ke aakhir me naam hi kaam aata
+            hai. Khali chhorna theek hai. */}
+        {selectedCustomer && (
+          <PosReceiverField
+            customerId={customerId}
+            customerName={selectedCustomer.name}
+            value={receiver}
+            onChange={setReceiver}
+            compact
+          />
+        )}
 
         <div className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
           <div className="max-h-[46vh] overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
@@ -766,7 +748,7 @@ export default function BakeryPosPage() {
               {lastSale.change > 0 && <> · <strong>Wapis dein {formatPKR(lastSale.change)}</strong></>}
             </div>
             <div className="mt-2 flex gap-1.5">
-              <button onClick={() => printBill(lastSale.payload, prefs.width)}
+              <button onClick={() => printReceiptDirect(lastSale.payload, prefs.width)}
                 className="h-9 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-black inline-flex items-center gap-1.5 transition">
                 <Printer className="h-3.5 w-3.5" /> Dobara print
               </button>
@@ -898,112 +880,12 @@ export default function BakeryPosPage() {
         </Modal>
       )}
 
-      {showTeacher && <Teacher onClose={() => setShowTeacher(false)} />}
+      {showTeacher && <PosTeacher onClose={() => setShowTeacher(false)} />}
     </div>
   );
 }
 
 /* ═══ CUSTOMER PICKER ═══ */
-function CustomerPicker({ customers, customerId, setCustomerId, selected, onAdd }: any) {
-  const [open, setOpen] = useState(false);
-  const [q, setQ] = useState('');
-  const btnRef = useRef<HTMLButtonElement>(null);
-  const [pos, setPos] = useState<{ top: number; left: number; width: number } | null>(null);
-
-  useEffect(() => {
-    if (!open) { setQ(''); return; }
-    const place = () => {
-      const el = btnRef.current; if (!el) return;
-      const r = el.getBoundingClientRect();
-      const width = Math.max(r.width, 280);
-      setPos({ top: r.bottom + 6, left: Math.min(r.left, window.innerWidth - width - 8), width });
-    };
-    place();
-    window.addEventListener('resize', place);
-    window.addEventListener('scroll', place, true);
-    return () => { window.removeEventListener('resize', place); window.removeEventListener('scroll', place, true); };
-  }, [open]);
-
-  const needle = q.trim().toLowerCase();
-  const list = useMemo(() => (needle
-    ? customers.filter((c: any) => (c.name || '').toLowerCase().includes(needle) || (c.phone || '').toLowerCase().includes(needle))
-    : customers), [customers, needle]);
-
-  return (
-    <>
-      <button ref={btnRef} onClick={() => setOpen((v) => !v)}
-        className={`h-14 w-full rounded-2xl border-2 bg-white dark:bg-slate-900 px-3 flex items-center gap-2.5 text-left transition ${
-          open ? 'border-pink-500 ring-4 ring-pink-200 dark:ring-pink-500/25' : 'border-slate-200 dark:border-slate-800 hover:border-pink-400'
-        }`}>
-        <span className="h-9 w-9 rounded-xl bg-pink-100 dark:bg-pink-500/20 flex items-center justify-center shrink-0">
-          <User className="h-4 w-4 text-pink-600 dark:text-pink-400" />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-bold text-slate-900 dark:text-white">
-            {selected ? selected.name : 'Walk-in Customer'}
-          </span>
-          {selected?.balance > 0 && (
-            <span className="block text-[11px] font-extrabold text-amber-600 dark:text-amber-400">
-              Purana udhaar {formatPKR(selected.balance)}
-            </span>
-          )}
-        </span>
-        <Search className="h-4 w-4 text-slate-400 shrink-0" />
-        <ChevronDown className={`h-4 w-4 text-slate-400 shrink-0 transition ${open ? 'rotate-180' : ''}`} />
-      </button>
-
-      {open && pos && createPortal(
-        <>
-          <div className="fixed inset-0 z-[80]" onClick={() => setOpen(false)} />
-          <div style={{ top: pos.top, left: pos.left, width: pos.width }}
-            className="fixed z-[81] rounded-2xl bg-white dark:bg-slate-900 border-4 border-pink-300 dark:border-pink-500/40 shadow-2xl overflow-hidden">
-            <div className="p-2.5 border-b-2 border-slate-100 dark:border-slate-800 bg-pink-50 dark:bg-pink-500/10">
-              <input value={q} onChange={(e) => setQ(e.target.value)} autoFocus placeholder="Naam ya phone…"
-                className="h-11 w-full rounded-xl border-2 border-pink-200 dark:border-pink-500/30 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-pink-500" />
-            </div>
-            <div className="max-h-[44vh] overflow-y-auto">
-              <button onClick={() => { setCustomerId(''); setOpen(false); }}
-                className="w-full px-3 py-2.5 flex items-center gap-2.5 text-left border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
-                <User className="h-4 w-4 text-slate-500" />
-                <span className="font-extrabold text-sm text-slate-700 dark:text-slate-200">Walk-in Customer</span>
-                {!customerId && <Check className="h-4 w-4 text-pink-600 ml-auto" />}
-              </button>
-              {list.length === 0 ? (
-                <div className="px-3 py-6 text-center">
-                  <p className="text-sm font-extrabold text-slate-600 dark:text-slate-300">Koi customer nahi mila</p>
-                  <button onClick={() => { setOpen(false); onAdd(); }}
-                    className="mt-2 h-10 px-4 rounded-xl bg-pink-600 text-white text-xs font-extrabold inline-flex items-center gap-1.5">
-                    <UserPlus className="h-4 w-4" /> Naya customer
-                  </button>
-                </div>
-              ) : list.map((c: any) => (
-                <button key={c.id} onClick={() => { setCustomerId(c.id); setOpen(false); }}
-                  className="w-full px-3 py-2.5 flex items-center gap-2.5 text-left border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
-                  <span className="h-8 w-8 rounded-lg bg-pink-100 dark:bg-pink-500/20 flex items-center justify-center shrink-0 text-xs font-black text-pink-700 dark:text-pink-300">
-                    {(c.name || '?').charAt(0).toUpperCase()}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-extrabold text-slate-900 dark:text-white">{c.name}</span>
-                    {c.phone && <span className="block text-[11px] font-bold text-slate-400 tabular-nums">{c.phone}</span>}
-                  </span>
-                  {Number(c.balance) > 0 && (
-                    <span className="text-[11px] font-black text-amber-600 tabular-nums shrink-0">{formatPKR(c.balance)}</span>
-                  )}
-                  {customerId === c.id && <Check className="h-4 w-4 text-pink-600 shrink-0" />}
-                </button>
-              ))}
-            </div>
-            <button onClick={() => { setOpen(false); onAdd(); }}
-              className="w-full h-12 bg-pink-600 hover:bg-pink-700 text-white text-sm font-extrabold inline-flex items-center justify-center gap-2 transition">
-              <UserPlus className="h-4 w-4" /> Naya customer
-            </button>
-          </div>
-        </>, document.body)}
-    </>
-  );
-}
-
-/* ═══ CHHOTE HISSE ═══ */
 function Modal({ title, sub, icon: Icon, onClose, children }: any) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
@@ -1039,73 +921,3 @@ function Line({ label, value, tone }: any) {
   );
 }
 
-function Teacher({ onClose }: { onClose: () => void }) {
-  return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-pink-300 dark:border-pink-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <div className="px-5 py-3 border-b-2 border-pink-200 dark:border-pink-500/30 bg-gradient-to-r from-pink-50 to-fuchsia-50 dark:from-pink-500/15 dark:to-fuchsia-500/15 flex items-center justify-between sticky top-0 z-10">
-          <h3 className="font-extrabold text-pink-900 dark:text-pink-200 flex items-center gap-2">
-            <GraduationCap className="h-5 w-5" /> Counter kaise chalayein
-          </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
-          </button>
-        </div>
-        <div className="p-5 space-y-3 text-sm">
-          <Tip icon={Zap} title="Sab se tez tareeqa">
-            Cheez par click karein, phir <strong>F12</strong>. Cash ka bill ban kar seedha
-            print ho jata hai — koi aur qadam nahi.
-          </Tip>
-          <Tip icon={ScanLine} title="Barcode">
-            <strong>B</strong> dabayein ya Scan par click karein. Ab <strong>har</strong> cheez
-            ka barcode chalta hai — Lays aur bottle bhi. Pehle bakery wali cheez ke ilawa kuch
-            scan hota hi nahi tha.
-          </Tip>
-          <Tip icon={Cake} title="Ek cheez, kai rate">
-            Cake pound se bhi bikta hai, slice se bhi, poora bhi. Click par rate chunne ka
-            option aa jata hai — jo jo rate bhare hain sirf wohi dikhte hain.
-          </Tip>
-          <Tip icon={Timer} title="Jald kharab hone wala maal">
-            Jis ka waqt khatam ho raha hai us par <strong>ghante</strong> ka nishan aata hai,
-            aur wo list me sab se upar aa jata hai. Yehi maal pehle bechna chahiye.
-          </Tip>
-          <Tip icon={BookOpen} title="Udhaar">
-            <strong>F9</strong> se "Paisay lein" khulta hai — poora, kuch abhi, ya poora udhaar.
-            Udhaar ke liye customer chunna zaroori hai, aur bill par uska <strong>purana
-            udhaar</strong> bhi chhap jata hai.
-          </Tip>
-          <Tip icon={Pause} title="Bill rok dein">
-            Customer kuch aur lene chala gaya? <strong>H</strong> daba kar bill rok dein, aur
-            agla customer nipta lein. Upar se wapas khol sakte hain.
-          </Tip>
-          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[11px] font-bold text-slate-600 dark:text-slate-300">
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">F12</kbd> cash bill</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">F9</kbd> paisay lein</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">B</kbd> barcode</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">H</kbd> bill rok</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">/</kbd> dhoondo</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">G</kbd> ye madad</div>
-            </div>
-          </div>
-          <Button className="w-full" onClick={onClose}>Samajh gaya</Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Tip({ icon: Icon, title, children }: any) {
-  return (
-    <div className="flex gap-2.5">
-      <div className="h-8 w-8 rounded-xl bg-pink-100 dark:bg-pink-500/20 flex items-center justify-center shrink-0">
-        <Icon className="h-4 w-4 text-pink-600 dark:text-pink-400" />
-      </div>
-      <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[13px]">{title}</div>
-        <p className="text-[12px] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
-      </div>
-    </div>
-  );
-}

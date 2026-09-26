@@ -94,15 +94,30 @@ export function LocalizationSection({ settings }: { settings: TenantSettings }) 
             <Select
               value={draft.timezone}
               onChange={(v) => set('timezone', v)}
+              /* Dukaan ka poora hisaab isi par chalta hai: "aaj" kahan
+                 se shuru hota hai, aur dashboard par kaunsa ghanta
+                 masroof dikhta hai. Is liye list me wo mulk bhi hain
+                 jahan Nafaa ab pohnch raha hai — sirf Pakistan nahi. */
               options={[
                 { value: 'Asia/Karachi', label: '🇵🇰 Asia/Karachi (PKT)' },
-                { value: 'Asia/Riyadh', label: '🇸🇦 Asia/Riyadh' },
                 { value: 'Asia/Dubai', label: '🇦🇪 Asia/Dubai' },
+                { value: 'Asia/Riyadh', label: '🇸🇦 Asia/Riyadh' },
+                { value: 'Asia/Tehran', label: '🇮🇷 Asia/Tehran' },
                 { value: 'Asia/Kolkata', label: '🇮🇳 Asia/Kolkata (IST)' },
+                { value: 'Asia/Dhaka', label: '🇧🇩 Asia/Dhaka' },
+                { value: 'Asia/Kabul', label: '🇦🇫 Asia/Kabul' },
                 { value: 'Europe/London', label: '🇬🇧 Europe/London' },
+                { value: 'Europe/Stockholm', label: '🇸🇪 Europe/Stockholm' },
+                { value: 'Europe/Berlin', label: '🇩🇪 Europe/Berlin' },
+                { value: 'America/New_York', label: '🇺🇸 America/New_York' },
+                { value: 'America/Toronto', label: '🇨🇦 America/Toronto' },
                 { value: 'UTC', label: 'UTC' },
               ]}
             />
+            <p className="mt-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+              Dukaan ka din yahin se tay hota hai — report aur "peak hours"
+              isi waqt par bante hain.
+            </p>
           </Field>
           <Field label="Date Format" hint={`Preview: ${previewDate}`}>
             <Select

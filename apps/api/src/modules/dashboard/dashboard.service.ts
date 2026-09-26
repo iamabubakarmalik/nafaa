@@ -4,24 +4,31 @@ import {
   dateKeyTz, endOfDayTz, hourInTz, startOfDayTz, startOfMonthTz,
   subDaysTz, subMonthsTz,
 } from '../../common/helpers/business-time.helper';
+import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.service';
 
 @Injectable()
 export class DashboardService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly tzService: TenantTimezoneService,
+  ) {}
 
   async getOverview(tenantId: string, shopId?: string) {
-    // Sab haddein dukaan ke waqt par (Asia/Karachi), server ke UTC par
-    // nahi. Warna "aaj" raat 12 ke bajaye subah 5 baje shuru hota tha
-    // aur subah ki sales kal ke khate me chali jati thin.
+    // Sab haddein DUKAAN ke apne waqt par, server ke waqt par nahi.
+    // Server UTC par chalta hai: bina is ke "aaj" Pakistan me subah 5
+    // baje shuru hota tha aur subah ki sales kal ke khate me chali
+    // jati thin. Aur timezone har tenant ka apna hai — Nafaa sirf
+    // Pakistan me nahi chalta.
+    const tz = await this.tzService.resolve(tenantId);
     const now = new Date();
-    const todayStart = startOfDayTz(now);
-    const yesterdayStart = subDaysTz(todayStart, 1);
-    const yesterdayEnd = endOfDayTz(yesterdayStart);
-    const monthStart = startOfMonthTz(now);
-    const lastMonthStart = startOfMonthTz(subMonthsTz(now, 1));
+    const todayStart = startOfDayTz(now, tz);
+    const yesterdayStart = subDaysTz(todayStart, 1, tz);
+    const yesterdayEnd = endOfDayTz(yesterdayStart, tz);
+    const monthStart = startOfMonthTz(now, tz);
+    const lastMonthStart = startOfMonthTz(subMonthsTz(now, 1, tz), tz);
     const lastMonthEnd = new Date(monthStart.getTime() - 1);
-    const sevenDaysAgo = subDaysTz(todayStart, 6);
-    const thirtyDaysAgo = subDaysTz(todayStart, 29);
+    const sevenDaysAgo = subDaysTz(todayStart, 6, tz);
+    const thirtyDaysAgo = subDaysTz(todayStart, 29, tz);
 
     const tenant = await this.prisma.tenant.findUnique({
       where: { id: tenantId },
@@ -434,11 +441,11 @@ export class DashboardService {
 
     const trendBuckets: Record<string, { date: string; sales: number; profit: number; orders: number }> = {};
     for (let i = 0; i < 7; i++) {
-      const d = dateKeyTz(subDaysTz(now, 6 - i));
+      const d = dateKeyTz(subDaysTz(now, 6 - i, tz), tz);
       trendBuckets[d] = { date: d, sales: 0, profit: 0, orders: 0 };
     }
     for (const s of last7DaysSales) {
-      const key = dateKeyTz(s.soldAt);
+      const key = dateKeyTz(s.soldAt, tz);
       if (!trendBuckets[key]) continue;
       trendBuckets[key].sales += s.total;
       trendBuckets[key].profit += s.total - s.costOfGoods;
@@ -448,11 +455,11 @@ export class DashboardService {
 
     const trend30Buckets: Record<string, { date: string; sales: number; profit: number }> = {};
     for (let i = 0; i < 30; i++) {
-      const d = dateKeyTz(subDaysTz(now, 29 - i));
+      const d = dateKeyTz(subDaysTz(now, 29 - i, tz), tz);
       trend30Buckets[d] = { date: d, sales: 0, profit: 0 };
     }
     for (const s of last30DaysSales) {
-      const key = dateKeyTz(s.soldAt);
+      const key = dateKeyTz(s.soldAt, tz);
       if (!trend30Buckets[key]) continue;
       trend30Buckets[key].sales += s.total;
       trend30Buckets[key].profit += s.total - s.costOfGoods;
@@ -464,7 +471,7 @@ export class DashboardService {
     for (const s of salesTodayHourly) {
       // Dukaan ki ghari ka ghanta — `getHours()` server ke UTC par chalta
       // tha, to shaam 8 baje ka rush chart me dopahar 3 baje dikhta tha.
-      const h = hourInTz(s.soldAt);
+      const h = hourInTz(s.soldAt, tz);
       hourlyBuckets[h].sales += s.total;
       hourlyBuckets[h].orders += 1;
     }
@@ -504,6 +511,7 @@ export class DashboardService {
     }
 
     return {
+      timezone: tz,
       tenant: {
         name: tenant?.name,
         businessType: tenant?.businessType,
