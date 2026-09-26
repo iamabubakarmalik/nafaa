@@ -54,7 +54,6 @@ export const BakeryPack: IndustryPack = {
       items: [
         { to: '/bakery/cake-orders/new', label: 'Cake Customizer', icon: Cake, badge: 'HOT' },
         { to: '/bakery/cake-orders', label: 'Cake Orders', icon: Calendar },
-        { to: '/bakery/products', label: 'Products', icon: Cookie },
         { to: '/bakery/production', label: 'Production', icon: ChefHat },
         { to: '/bakery/ingredients', label: 'Ingredients', icon: Wheat },
         { to: '/bakery/freshness', label: 'Freshness', icon: Timer },
