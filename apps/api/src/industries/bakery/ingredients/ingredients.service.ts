@@ -68,11 +68,61 @@ export class IngredientsService {
     return this.prisma.bakeryIngredient.update({ where: { id }, data: { isActive: false } });
   }
 
-  async recordPurchase(user: AuthenticatedUser, id: string, dto: { quantity: number; costPerUnit: number; vendorName?: string; notes?: string }) {
+  /**
+   * Saamaan aaya — stock BHI barhta hai aur paisa BHI darj hota hai.
+   *
+   * Pehle ye sirf ingredient ka stock barhata tha. Na `Expense` banta
+   * tha, na supplier ka khata chalta tha — yani 50,000 ka maida
+   * khareedne par wo paisa kitaab se ghayab ho jata tha. Cash register
+   * me nazar nahi aata, Money page me nahi, aur munafa ghalat nikalta.
+   *
+   * `Purchase` me nahi daal sakte: `PurchaseItem.productId` lazmi hai
+   * aur Product se juda hai, jabke ingredient Product hai hi nahi. Is
+   * liye paisa do raaston se jata hai:
+   *
+   *   • Jo abhi diya  → Expense (cash register khud ghata deta hai)
+   *   • Jo udhaar hai  → supplier ka khata barh jata hai
+   */
+  async recordPurchase(user: AuthenticatedUser, id: string, dto: {
+    quantity: number; costPerUnit: number;
+    vendorName?: string; notes?: string;
+    supplierId?: string;
+    paymentMethod?: string;
+    /** Kitna abhi diya — na bataya jaye to poora */
+    paidAmount?: number;
+    shopId?: string;
+  }) {
     const i = await this.prisma.bakeryIngredient.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!i) throw new NotFoundException('Ingredient not found');
 
-    const totalCost = dto.quantity * dto.costPerUnit;
+    const qty = Number(dto.quantity) || 0;
+    const rate = Number(dto.costPerUnit) || 0;
+    if (qty <= 0) throw new BadRequestException('Kitna aaya — tadaad likhein');
+
+    const totalCost = qty * rate;
+    const paid = dto.paidAmount === undefined || dto.paidAmount === null
+      ? totalCost
+      : Math.max(Number(dto.paidAmount) || 0, 0);
+    const credit = Math.max(totalCost - paid, 0);
+
+    if (paid > totalCost) {
+      throw new BadRequestException('Diya hua paisa kul rakam se zyada nahi ho sakta');
+    }
+
+    /* Udhaar ke liye supplier lazmi — warna baad me pata hi nahi
+       chalega ke kis ko dena hai. */
+    let supplier: { id: string; outstandingDue: number } | null = null;
+    if (dto.supplierId) {
+      const s = await this.prisma.supplier.findFirst({
+        where: { id: dto.supplierId, tenantId: user.tenantId },
+        select: { id: true, outstandingDue: true },
+      });
+      if (!s) throw new NotFoundException('Supplier nahi mila');
+      supplier = s;
+    }
+    if (credit > 0 && !supplier) {
+      throw new BadRequestException('Udhaar par lena hai to supplier chunna zaroori hai');
+    }
 
     return this.prisma.$transaction(async (tx) => {
       await tx.bakeryIngredientTransaction.create({
@@ -80,21 +130,64 @@ export class IngredientsService {
           tenantId: user.tenantId,
           ingredientId: id,
           transactionType: 'PURCHASE',
-          quantity: dto.quantity,
+          quantity: qty,
           unit: i.unit,
-          costPerUnit: dto.costPerUnit,
+          costPerUnit: rate,
           totalCost,
           notes: dto.notes,
           performedById: user.id,
         },
       });
 
+      /* ── Jo abhi diya — kharch me ──
+         Cash register `Expense` ko CASH wale paymentMethod par khud
+         ghata deta hai, is liye alag se kuch karne ki zaroorat nahi.
+         shopId zaroori hai: register usi dukaan ka kharch ginta hai. */
+      if (paid > 0) {
+        await tx.expense.create({
+          data: {
+            tenantId: user.tenantId,
+            shopId: dto.shopId ?? undefined,
+            createdById: user.id,
+            expenseNumber: `EXP-${Date.now().toString().slice(-8)}`,
+            title: `Saamaan: ${i.name}`,
+            description: `${qty} ${i.unit} × ${rate}`
+              + (dto.vendorName ? ` — ${dto.vendorName}` : '')
+              + (credit > 0 ? ` (${credit} udhaar)` : ''),
+            amount: paid,
+            paymentMethod: (dto.paymentMethod as any) ?? 'CASH',
+            status: 'PAID',
+          },
+        });
+      }
+
+      /* ── Jo udhaar raha — supplier ka khata ── */
+      if (credit > 0 && supplier) {
+        const balanceAfter = Number(supplier.outstandingDue) + credit;
+        await tx.supplierLedger.create({
+          data: {
+            tenantId: user.tenantId,
+            supplierId: supplier.id,
+            createdById: user.id,
+            shopId: dto.shopId ?? undefined,
+            type: 'PURCHASE_CREDIT',
+            amount: credit,
+            balanceAfter,
+            note: `Saamaan udhaar: ${i.name} — ${qty} ${i.unit}`,
+          },
+        });
+        await tx.supplier.update({
+          where: { id: supplier.id },
+          data: { outstandingDue: balanceAfter, totalPurchased: { increment: totalCost } },
+        });
+      }
+
       return tx.bakeryIngredient.update({
         where: { id },
         data: {
-          currentStock: i.currentStock + dto.quantity,
-          totalPurchased: i.totalPurchased + dto.quantity,
-          costPerUnit: dto.costPerUnit,
+          currentStock: i.currentStock + qty,
+          totalPurchased: i.totalPurchased + qty,
+          costPerUnit: rate,
           lastPurchaseDate: new Date(),
           lastPurchasePrice: totalCost,
           lastVendorName: dto.vendorName,
