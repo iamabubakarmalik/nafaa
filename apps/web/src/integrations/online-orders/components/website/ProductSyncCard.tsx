@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { ArrowDownToLine, ArrowUpFromLine, FileSpreadsheet, Loader2, RefreshCw, Upload } from 'lucide-react';
 import { Button } from '@core/ui/Button';
 import { Switch } from '@core/ui/Switch';
+import { cn } from '@core/lib/cn';
 import { apiErrorMessage, onlineOrdersApi, type ImportResult } from '../../api/online-orders.api';
 import { csvToProducts, downloadText, shopifyCsv, wooCsv, type CsvFormat, type ParsedProduct } from '../../lib/csv';
 import { rs } from '../../lib/labels';
@@ -19,8 +20,8 @@ const FORMAT_LABEL: Record<CsvFormat, string> = {
  *  POS → Website: WooCommerce/Shopify ki CSV (unke apne Import me seedha)
  *  Website → POS: unki export CSV yahan daalo — naye products ban jate hain, stock branch me
  */
-export function ProductSyncCard({ channelId, productLinks, platform, wooConnected }: {
-  channelId: string; productLinks: number; platform: string | null; wooConnected?: boolean;
+export function ProductSyncCard({ channelId, productLinks, platform, wooConnected, shopifyConnected }: {
+  channelId: string; productLinks: number; platform: string | null; wooConnected?: boolean; shopifyConnected?: boolean;
 }) {
   const qc = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -67,7 +68,8 @@ export function ProductSyncCard({ channelId, productLinks, platform, wooConnecte
 
   return (
     <div className="space-y-4">
-      {wooConnected && <WooDirect channelId={channelId} />}
+      {wooConnected && <WooDirect channelId={channelId} kind="woocommerce" />}
+      {shopifyConnected && <WooDirect channelId={channelId} kind="shopify" />}
     <div className="grid gap-4 lg:grid-cols-2">
       {/* ─── POS → Website ─── */}
       <div className="rounded-2xl border border-slate-200 p-4 dark:border-neutral-800">
@@ -170,43 +172,47 @@ export function ProductSyncCard({ channelId, productLinks, platform, wooConnecte
   );
 }
 
-/** WooCommerce ek click se jura ho — CSV ki zaroorat hi nahi */
-function WooDirect({ channelId }: { channelId: string }) {
+/** WooCommerce / Shopify ek click se jura ho — CSV ki zaroorat hi nahi */
+function WooDirect({ channelId, kind }: { channelId: string; kind: 'woocommerce' | 'shopify' }) {
+  const shopify = kind === 'shopify';
+  const label = shopify ? 'Shopify' : 'Woo';
   const qc = useQueryClient();
   const [updatePrice, setUpdatePrice] = useState(false);
   const refresh = () => qc.invalidateQueries({ queryKey: ['sales-channel', channelId] });
 
   const pull = useMutation({
-    mutationFn: () => onlineOrdersApi.wooImport(channelId, { updatePrice }),
-    onSuccess: (r) => { refresh(); qc.invalidateQueries({ queryKey: ['products'] }); toast.success(`WooCommerce se: ${r.imported} naye, ${r.updated} jore${r.failed ? `, ${r.failed} fail` : ''}`); },
+    mutationFn: () => (shopify ? onlineOrdersApi.shopifyImport(channelId, { updatePrice }) : onlineOrdersApi.wooImport(channelId, { updatePrice })),
+    onSuccess: (r) => { refresh(); qc.invalidateQueries({ queryKey: ['products'] }); toast.success(`${shopify ? 'Shopify' : 'WooCommerce'} se: ${r.imported} naye, ${r.updated} jore${r.failed ? `, ${r.failed} fail` : ''}`); },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
   const push = useMutation({
-    mutationFn: () => onlineOrdersApi.wooExport(channelId, { updatePrice }),
-    onSuccess: (r) => { refresh(); toast.success(`WooCommerce par: ${r.created} naye, ${r.updated} update${r.failed ? `, ${r.failed} fail` : ''}`); if (r.errors?.[0]) toast.error(r.errors[0]); },
+    mutationFn: () => (shopify ? onlineOrdersApi.shopifyExport(channelId, { updatePrice }) : onlineOrdersApi.wooExport(channelId, { updatePrice })),
+    onSuccess: (r) => { refresh(); toast.success(`${shopify ? 'Shopify' : 'WooCommerce'} par: ${r.created} naye, ${r.updated} update${r.failed ? `, ${r.failed} fail` : ''}`); if (r.errors?.[0]) toast.error(r.errors[0]); },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
   const stock = useMutation({
-    mutationFn: () => onlineOrdersApi.wooSyncStock(channelId),
+    mutationFn: () => (shopify ? onlineOrdersApi.shopifySyncStock(channelId) : onlineOrdersApi.wooSyncStock(channelId)),
     onSuccess: (r) => { refresh(); toast.success(`Stock sync: ${r.updated} update${r.missing ? ` · ${r.missing} SKU Nafaa me nahi` : ''}`); },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
 
   return (
-    <div className="rounded-2xl border-2 border-violet-200 dark:border-violet-500/30 bg-gradient-to-br from-violet-50 to-fuchsia-50 dark:from-violet-500/10 dark:to-fuchsia-500/5 p-4">
+    <div className={cn('rounded-2xl border-2 p-4', shopify
+      ? 'border-lime-200 dark:border-lime-500/30 bg-gradient-to-br from-lime-50 to-emerald-50 dark:from-lime-500/10 dark:to-emerald-500/5'
+      : 'border-violet-200 dark:border-violet-500/30 bg-gradient-to-br from-violet-50 to-fuchsia-50 dark:from-violet-500/10 dark:to-fuchsia-500/5')}>
       <div className="flex items-center gap-2">
-        <span className="text-xl">🟣</span>
-        <div className="text-sm font-black text-slate-900 dark:text-white">WooCommerce se seedha — ek click</div>
+        <span className="text-xl">{shopify ? '🟢' : '🟣'}</span>
+        <div className="text-sm font-black text-slate-900 dark:text-white">{shopify ? 'Shopify' : 'WooCommerce'} se seedha — ek click</div>
       </div>
       <p className="mt-1 text-[12px] font-bold text-slate-600 dark:text-slate-300">
         Products SKU se jurte hain. Stock har 15 minute khud jata hai — abhi chahiye to "Stock sync" dabayein.
       </p>
       <div className="mt-3 grid gap-2 sm:grid-cols-3">
         <Button variant="outline" loading={pull.isPending} onClick={() => pull.mutate()} leftIcon={<ArrowDownToLine className="h-4 w-4" />}>
-          Products Woo se lao
+          Products {label} se lao
         </Button>
         <Button variant="outline" loading={push.isPending} onClick={() => push.mutate()} leftIcon={<ArrowUpFromLine className="h-4 w-4" />}>
-          Products Woo par bhejo
+          Products {label} par bhejo
         </Button>
         <Button variant="primary" loading={stock.isPending} onClick={() => stock.mutate()} leftIcon={<RefreshCw className="h-4 w-4" />}>
           Stock sync abhi

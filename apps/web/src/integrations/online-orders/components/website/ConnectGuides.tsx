@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { Button } from '@core/ui/Button';
 import { CodeBlock } from '@integrations/_core/components/CodeBlock';
 import { apiErrorMessage, onlineOrdersApi, type WebsiteOverview } from '../../api/online-orders.api';
-import { useWooConnect } from '../../hooks/useWooConnect';
+import { useShopifyConnect, useWooConnect } from '../../hooks/useWooConnect';
 import { HttpsNotice, ManualKeysForm } from './ManualKeysForm';
 import { developerGuide, snippets } from '../../lib/snippets';
 import { CopyField } from './CopyField';
@@ -56,7 +56,10 @@ export function ConnectGuide({ platform, overview, shopName, channelId, onChange
       />
     );
   }
-  if (platform === 'shopify') return <ShopifyGuide hook={u.hook!} />;
+  if (platform === 'shopify') {
+    return <ShopifyGuide hook={u.hook!} channelId={channelId} isShopifyChannel={i.type === 'SHOPIFY'} shopify={i.shopify ?? null}
+      siteUrl={i.config.siteUrl} name={i.displayName} onChange={onChange} />;
+  }
   return <CustomGuide overview={overview} shopName={shopName} />;
 }
 
@@ -247,7 +250,116 @@ function WooOneClick({ channelId, woo, siteUrl, name, onChange }: {
   );
 }
 
-function ShopifyGuide({ hook }: { hook: string }) {
+function ShopifyGuide({ hook, channelId, isShopifyChannel, shopify, siteUrl, name, onChange }: {
+  hook: string; channelId: string; isShopifyChannel: boolean;
+  shopify: { connected: boolean; shop: string | null; connectedAt: string | null; locationName: string | null } | null;
+  siteUrl: string | null; name: string; onChange: (d: WebsiteOverview) => void;
+}) {
+  const [mode, setMode] = useState<'oneclick' | 'webhook'>(isShopifyChannel ? 'oneclick' : 'webhook');
+  return (
+    <div className="space-y-4">
+      {isShopifyChannel && (
+        <div className="inline-flex flex-wrap rounded-xl bg-slate-100 p-1 dark:bg-neutral-900">
+          <button onClick={() => setMode('oneclick')} className={tab(mode === 'oneclick')}><Zap className="h-3.5 w-3.5" /> Ek click (sab se aasaan)</button>
+          <button onClick={() => setMode('webhook')} className={tab(mode === 'webhook')}>Webhook URL (purana)</button>
+        </div>
+      )}
+      {mode === 'oneclick'
+        ? <ShopifyOneClick channelId={channelId} shopify={shopify} siteUrl={siteUrl} name={name} onChange={onChange} />
+        : <ShopifyWebhookGuide hook={hook} />}
+    </div>
+  );
+}
+
+function ShopifyOneClick({ channelId, shopify, siteUrl, name, onChange }: {
+  channelId: string; shopify: { connected: boolean; shop: string | null; connectedAt: string | null; locationName: string | null } | null;
+  siteUrl: string | null; name: string; onChange: (d: WebsiteOverview) => void;
+}) {
+  const qc = useQueryClient();
+  const [store, setStore] = useState((siteUrl ?? '').replace(/^https?:\/\//, '').replace('.myshopify.com', ''));
+  const connect = useShopifyConnect(() => { onlineOrdersApi.channel(channelId).then(onChange).catch(() => null); });
+  const repair = useMutation({
+    mutationFn: () => onlineOrdersApi.shopifyRepair(channelId),
+    onSuccess: (r) => { toast.success(r.ok ? 'Webhooks aur location theek hain ✅' : 'Kuch masla hai — Activity dekhein'); qc.invalidateQueries({ queryKey: ['sales-channel', channelId] }); },
+    onError: (e) => toast.error(apiErrorMessage(e)),
+  });
+
+  if (shopify?.connected && connect.phase !== 'waiting') {
+    return (
+      <div className="space-y-3">
+        <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-gradient-to-br from-emerald-50 to-lime-50 dark:from-emerald-500/10 dark:to-lime-500/5 p-4 flex flex-wrap items-center gap-4">
+          <span className="h-12 w-12 rounded-2xl bg-white dark:bg-slate-900 shadow flex items-center justify-center text-2xl shrink-0">🟢</span>
+          <div className="min-w-0 flex-1">
+            <div className="font-black text-slate-900 dark:text-white">Shopify se jura hai ✓</div>
+            <div className="text-[12px] font-bold text-slate-600 dark:text-slate-300 truncate">
+              {shopify.shop}{shopify.locationName ? ` · stock location: ${shopify.locationName}` : ''}
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" variant="outline" loading={repair.isPending} onClick={() => repair.mutate()} leftIcon={<Wrench className="h-4 w-4" />}>Webhooks check</Button>
+            <Button size="sm" variant="ghost" loading={connect.phase === 'starting'} onClick={() => connect.start({ siteUrl: shopify.shop ?? store, channelId })}>Dobara install</Button>
+          </div>
+        </div>
+        <div className="grid gap-2 sm:grid-cols-3">
+          {[
+            ['🔔', 'Orders khud aate hain', 'Bana / badla / cancel / paid'],
+            ['🚚', 'Fulfillment + tracking', 'Customer ko Shopify email'],
+            ['📦', 'Stock har 15 minute', 'Accept/cancel par foran'],
+          ].map(([e, t, d]) => (
+            <div key={t} className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-3">
+              <div className="text-lg">{e}</div>
+              <div className="mt-1 text-xs font-black text-slate-800 dark:text-slate-100">{t}</div>
+              <div className="text-[11px] font-bold text-slate-500">{d}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (connect.phase === 'waiting') {
+    return (
+      <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 p-4">
+        <div className="flex items-center gap-2 font-black text-slate-900 dark:text-white">
+          <Loader2 className="h-4 w-4 animate-spin text-emerald-600" /> Shopify window me "Install" dabayein…
+        </div>
+        <Button className="mt-3" size="sm" variant="outline" onClick={() => connect.reopen()} leftIcon={<ExternalLink className="h-4 w-4" />}>Window dobara kholo</Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 p-4">
+        <div className="text-sm font-black text-slate-900 dark:text-white">Shopify store ka naam</div>
+        <div className="mt-2 flex flex-wrap gap-2">
+          <div className="relative flex min-w-[220px] flex-1 items-center">
+            <input value={store} onChange={(e) => setStore(e.target.value)} placeholder="nafaa-test"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white pl-3 pr-32 text-sm font-semibold outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white" />
+            <span className="pointer-events-none absolute right-3 text-xs font-bold text-slate-400">.myshopify.com</span>
+          </div>
+          <Button variant="success" loading={connect.phase === 'starting'} disabled={!store.trim() || !connect.oneClickReady}
+            onClick={() => connect.start({ siteUrl: store.trim(), channelId, displayName: name })} leftIcon={<span>🟢</span>}>
+            Shopify se jorein
+          </Button>
+        </div>
+        <p className="mt-2 text-[11px] font-bold text-slate-500">
+          Chhoti window me Shopify khulega → login → <b>Install</b>. Token aur webhooks Nafaa khud lagata hai.
+        </p>
+        {connect.phase === 'denied' && <p className="mt-2 text-[12px] font-bold text-rose-600">Install nahi hua — dobara koshish karein.</p>}
+        {connect.error && <p className="mt-2 text-[12px] font-bold text-rose-600">{connect.error}</p>}
+      </div>
+      {!connect.oneClickReady && (
+        <HttpsNotice compact
+          reason={!connect.shopifyOAuth ? 'Shopify app ki keys (SHOPIFY_CLIENT_ID / SECRET) server par nahi lagi.' : connect.publicApi?.reason}
+          fix={connect.shopifyOAuth ? connect.publicApi?.fix : 'apps/api/.env me SHOPIFY_CLIENT_ID aur SHOPIFY_CLIENT_SECRET daal kar API restart karein.'} />
+      )}
+      {connect.phase === 'manual' && <HttpsNotice reason={connect.hint?.reason} fix={connect.hint?.fix} />}
+    </div>
+  );
+}
+
+function ShopifyWebhookGuide({ hook }: { hook: string }) {
   return (
     <Steps>
       <StepItem n={1} title="Shopify Admin → Settings → Notifications → Webhooks → Create webhook" />

@@ -57,7 +57,7 @@ async function bootstrap() {
   // hain jo asli bytes par banta hai — parse se pehle wahi bytes rakh lo.
   const keepWebsiteRawBody = (req: any, _res: any, buf: Buffer) => {
     const url: string = req.originalUrl ?? '';
-    if (url.startsWith('/api/integrations/website/') || url.startsWith('/api/integrations/webhooks/')) {
+    if (url.startsWith('/api/integrations/website/') || url.startsWith('/api/integrations/webhooks/') || url.startsWith('/api/integrations/shopify/')) {
       req.rawBody = buf;
     }
   };

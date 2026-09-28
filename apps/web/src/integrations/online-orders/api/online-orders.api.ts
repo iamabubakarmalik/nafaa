@@ -177,6 +177,7 @@ export interface WebsiteOverview {
     lastSyncAt?: string | null;
     config: WebsiteConfig;
     woo: null | { connected: boolean; connectedAt: string | null; permissions: string | null };
+    shopify?: null | { connected: boolean; shop: string | null; connectedAt: string | null; locationName: string | null };
   };
   publicApi?: PublicApi;
   urls: {
@@ -283,7 +284,27 @@ export const onlineOrdersApi = {
       .then((r) => unwrap<{ channelId: string; authUrl: string | null; siteUrl: string; needsHttps: boolean; reason: string | null; fix: string | null }>(r)),
 
   capabilities: () =>
-    apiClient.get('/online-store/channels/capabilities').then((r) => unwrap<{ publicApi: PublicApi }>(r)),
+    apiClient.get('/online-store/channels/capabilities').then((r) => unwrap<{ publicApi: PublicApi; shopifyOAuth: boolean }>(r)),
+
+  // ═══ Shopify ek click ═══
+  shopifyStart: (body: { shop: string; displayName?: string; shopId?: string; channelId?: string }) =>
+    apiClient
+      .post('/online-store/channels/shopify/start', { ...body, returnOrigin: window.location.origin })
+      .then((r) => unwrap<{ channelId: string; authUrl: string | null; needsHttps: boolean; reason: string | null; fix: string | null }>(r)),
+
+  shopifyRepair: (id: string) =>
+    apiClient.post(`/online-store/channels/${id}/shopify/repair`).then((r) => unwrap<{ ok: boolean; installed: number }>(r)),
+
+  shopifySyncStock: (id: string) =>
+    apiClient.post(`/online-store/channels/${id}/shopify/sync-stock`).then((r) => unwrap<{ updated: number; checked: number; missing: number }>(r)),
+
+  shopifyImport: (id: string, body: { updatePrice?: boolean; updateStock?: boolean }) =>
+    apiClient.post(`/online-store/channels/${id}/shopify/import-products`, body).then((r) => unwrap<ImportResult>(r)),
+
+  shopifyExport: (id: string, body: { updatePrice?: boolean }) =>
+    apiClient
+      .post(`/online-store/channels/${id}/shopify/export-products`, body)
+      .then((r) => unwrap<{ created: number; updated: number; failed: number; total: number; errors: string[] }>(r)),
 
   wooKeys: (id: string, body: { consumerKey: string; consumerSecret: string; siteUrl?: string }) =>
     apiClient.post(`/online-store/channels/${id}/woocommerce/keys`, body).then((r) => unwrap<WebsiteOverview>(r)),

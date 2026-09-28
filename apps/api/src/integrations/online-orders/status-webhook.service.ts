@@ -5,6 +5,7 @@ import { Integration } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { assertSafeWebhookUrl, readWebsiteConfig, signPayload } from './website-config';
 import { WooCommerceService } from './woocommerce.service';
+import { ShopifyService } from './shopify.service';
 
 /**
  * Nafaa → Website: order ka status badla to website ko batao, taake
@@ -21,6 +22,7 @@ export class StatusWebhookService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly woo: WooCommerceService,
+    private readonly shopify: ShopifyService,
   ) {}
 
   send(integration: Integration, order: any, event: string) {
@@ -28,6 +30,10 @@ export class StatusWebhookService {
     // WooCommerce ek click se jura hai → seedha uske order par status/note
     if (this.woo.isConnected(integration)) {
       this.woo.pushStatus(integration, order, event).catch(() => null);
+      return;
+    }
+    if (this.shopify.isConnected(integration)) {
+      this.shopify.pushStatus(integration, order, event).catch(() => null);
       return;
     }
     const config = readWebsiteConfig(integration.config);

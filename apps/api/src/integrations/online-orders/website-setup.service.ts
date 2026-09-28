@@ -115,7 +115,7 @@ export class WebsiteSetupService {
         isWebsite: WEBSITE_TYPES.includes(c.type),
         live: c.isActive && c.status === IntegrationStatus.CONNECTED,
         status: c.status,
-        oneClick: c.type === 'WOOCOMMERCE' && !!(c.credentials as any)?.wooKey,
+        oneClick: (c.type === 'WOOCOMMERCE' && !!(c.credentials as any)?.wooKey) || (c.type === 'SHOPIFY' && !!(c.credentials as any)?.shopifyToken),
         receiving: c.webhookVerified || !!last.find((l) => l.integrationId === c.id)?._max.receivedAt,
         pendingOrders: pending.find((p) => p.integrationId === c.id)?._count._all ?? 0,
         lastOrderAt: last.find((l) => l.integrationId === c.id)?._max.receivedAt ?? null,
@@ -207,6 +207,14 @@ export class WebsiteSetupService {
       integration: {
         ...safe,
         config: readWebsiteConfig(integration.config),
+        shopify: integration.type === 'SHOPIFY'
+          ? {
+              connected: !!creds.shopifyToken,
+              shop: creds.shopifyShop ?? null,
+              connectedAt: creds.shopifyConnectedAt ?? null,
+              locationName: (integration.config as any)?.shopifyLocationName ?? null,
+            }
+          : null,
         woo: integration.type === 'WOOCOMMERCE'
           ? { connected: !!creds.wooKey, connectedAt: creds.wooConnectedAt ?? null, permissions: creds.wooPermissions ?? null }
           : null,

@@ -15,6 +15,7 @@ export default function ConnectDonePage() {
   const channelId = params.get('channel') ?? '';
   // WooCommerce: success=1 approve, success=0 mana kar diya
   const success = params.get('success') !== '0';
+  const error = params.get('error');
   const [closing, setClosing] = useState(true);
 
   useEffect(() => {
@@ -43,11 +44,11 @@ export default function ConnectDonePage() {
         ) : (
           <XCircle className="mx-auto h-16 w-16 text-rose-300" />
         )}
-        <h1 className="mt-4 text-2xl font-black">{success ? `${name} jur gaya!` : 'Approve nahi hua'}</h1>
+        <h1 className="mt-4 text-2xl font-black">{success ? `${name} jur gaya!` : platform === 'shopify' ? 'Install nahi hua' : 'Approve nahi hua'}</h1>
         <p className="mt-2 text-sm font-bold text-white/80">
           {success
             ? 'Nafaa ab khud webhooks laga raha hai — orders, stock aur status sab sync honge.'
-            : 'Aap ne access nahi diya. Nafaa me wapas ja kar dobara koshish karein.'}
+            : error || 'Aap ne access nahi diya. Nafaa me wapas ja kar dobara koshish karein.'}
         </p>
         <div className="mt-5 flex items-center justify-center gap-2 text-xs font-bold text-white/70">
           <Loader2 className="h-4 w-4 animate-spin" /> {closing ? 'Ye window band ho rahi hai…' : 'Nafaa par wapas le ja rahe hain…'}

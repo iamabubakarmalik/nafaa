@@ -10,7 +10,7 @@ import { Button } from '@core/ui/Button';
 import { shopsApi } from '@modules/organization/shops/api/shops.api';
 import { apiErrorMessage, onlineOrdersApi, type WebsiteType } from '../api/online-orders.api';
 import { PlatformPicker, type Platform } from '../components/website/ConnectGuides';
-import { useWooConnect } from '../hooks/useWooConnect';
+import { useChannelConnect } from '../hooks/useWooConnect';
 import { HttpsNotice, ManualKeysForm } from '../components/website/ManualKeysForm';
 import { CHANNELS_KEY, channelMeta, useSalesChannels } from '../hooks/useSalesChannels';
 import { Faq, Step, input } from './WebsiteConnectPage';
@@ -39,7 +39,11 @@ export default function ConnectChannelPage() {
   const shopList: any[] = Array.isArray(shops) ? shops : (shops as any)?.items ?? [];
   const { data: channels } = useSalesChannels();
 
-  const woo = useWooConnect();
+  // WooCommerce "Approve" aur Shopify "Install" — dono ka ek hi popup wala tareeqa
+  const woo = useChannelConnect(platform === 'shopify' ? 'shopify' : 'woocommerce');
+  const shopifyOneClick = platform === 'shopify' && woo.shopifyOAuth;
+  const oneClick = platform === 'woocommerce' || shopifyOneClick;
+  const pName = platform === 'shopify' ? 'Shopify' : 'WooCommerce';
 
   const create = useMutation({
     mutationFn: () => onlineOrdersApi.createChannel({
@@ -57,8 +61,10 @@ export default function ConnectChannelPage() {
   });
 
   const go = () => {
-    if (platform === 'woocommerce') {
-      if (!site.trim()) return toast.error('Website ka address daalein — jaise ahmedstore.pk');
+    if (oneClick) {
+      if (!site.trim()) {
+        return toast.error(platform === 'shopify' ? 'Shopify store ka naam daalein — jaise nafaa-test' : 'Website ka address daalein — jaise ahmedstore.pk');
+      }
       woo.start({ siteUrl: site.trim(), displayName: name.trim() || undefined, shopId: shopId || undefined });
     } else {
       create.mutate();
@@ -112,19 +118,27 @@ export default function ConnectChannelPage() {
           </Step>
 
           {woo.phase === 'connected' ? (
-            <ConnectedCard channelId={woo.channelId!} />
+            <ConnectedCard channelId={woo.channelId!} name={pName} />
           ) : woo.phase === 'manual' && woo.channelId ? (
             <div className="space-y-3">
               <HttpsNotice reason={woo.hint?.reason} fix={woo.hint?.fix} />
-              <ManualKeysForm channelId={woo.channelId} site={site} />
+              {platform === 'woocommerce' ? (
+                <ManualKeysForm channelId={woo.channelId} site={site} />
+              ) : (
+                <div className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 p-4 text-[12px] font-bold text-slate-600 dark:text-slate-300">
+                  Local test ke liye ngrok ka address Shopify Dev dashboard → app → naya version → <b>Allowed redirection URL(s)</b> me bhi daalein:
+                  <code className="mt-2 block rounded-lg bg-slate-100 dark:bg-slate-800 px-2 py-1 font-mono">https://&lt;ngrok&gt;/api/integrations/shopify/callback</code>
+                </div>
+              )}
             </div>
           ) : woo.phase === 'waiting' || woo.phase === 'denied' ? (
-            <WaitingCard phase={woo.phase} onReopen={woo.reopen} onRetry={() => woo.reset()} channelId={woo.channelId} site={site} />
+            <WaitingCard platform={platform === 'shopify' ? 'shopify' : 'woocommerce'} phase={woo.phase} onReopen={woo.reopen} onRetry={() => woo.reset()} channelId={woo.channelId} site={site} />
           ) : (
             <>
               <Step n={2}
-                title={platform === 'woocommerce' ? 'Website ka address' : platform === 'shopify' ? 'Store ka naam' : 'Website ka naam'}
-                sub={platform === 'woocommerce' ? 'Jahan aap ki WooCommerce dukaan hai' : 'Sirf aap ki pehchan ke liye'}>
+                title={platform === 'woocommerce' ? 'Website ka address' : platform === 'shopify' ? 'Shopify store ka naam' : 'Website ka naam'}
+                sub={platform === 'woocommerce' ? 'Jahan aap ki WooCommerce dukaan hai'
+                  : platform === 'shopify' ? 'Shopify admin ke URL me jo naam hai — admin.shopify.com/store/<naam>' : 'Sirf aap ki pehchan ke liye'}>
                 <div className="grid gap-3 sm:grid-cols-2 max-w-2xl">
                   {platform === 'woocommerce' ? (
                     <div className="relative sm:col-span-2">
@@ -133,9 +147,17 @@ export default function ConnectChannelPage() {
                         onKeyDown={(e) => { if (e.key === 'Enter' && !busy) go(); }}
                         className={cn(input, 'h-12 pl-10 text-base')} />
                     </div>
+                  ) : platform === 'shopify' ? (
+                    <div className="relative sm:col-span-2 flex items-center">
+                      <span className="absolute left-3.5 text-base">🟢</span>
+                      <input autoFocus value={site} onChange={(e) => setSite(e.target.value)} placeholder="nafaa-test"
+                        onKeyDown={(e) => { if (e.key === 'Enter' && !busy) go(); }}
+                        className={cn(input, 'h-12 pl-10 pr-36 text-base')} />
+                      <span className="pointer-events-none absolute right-3.5 text-sm font-bold text-slate-400">.myshopify.com</span>
+                    </div>
                   ) : (
                     <input autoFocus value={site} onChange={(e) => setSite(e.target.value)}
-                      placeholder={platform === 'shopify' ? 'mystore.myshopify.com' : 'meri-website.com (optional)'}
+                      placeholder="meri-website.com (optional)"
                       className={cn(input, 'h-12 sm:col-span-2')} />
                   )}
                   <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Naam (optional) — jaise Ahmed Store" className={cn(input, 'h-11')} />
@@ -146,23 +168,26 @@ export default function ConnectChannelPage() {
                 </div>
               </Step>
 
-              <Step n={3} title={platform === 'woocommerce' ? 'WooCommerce se jorein' : 'Channel banayein'}
+              <Step n={3} title={oneClick ? `${pName} se jorein` : 'Channel banayein'}
                 sub={platform === 'woocommerce'
                   ? 'Chhoti window me aap ki WordPress site khulegi — login karke "Approve" dabayein'
-                  : 'Key aur secret ban jayenge, agle safhe par jorne ke steps'}>
+                  : shopifyOneClick
+                    ? 'Chhoti window me Shopify khulega — login karke "Install" dabayein'
+                    : 'Key aur secret ban jayenge, agle safhe par jorne ke steps'}>
                 <div className="flex flex-wrap items-center gap-3">
                   <Button size="xl" variant="success" loading={busy} onClick={go}
-                    leftIcon={platform === 'woocommerce' ? <span className="text-lg">🟣</span> : undefined}
+                    leftIcon={oneClick ? <span className="text-lg">{platform === 'shopify' ? '🟢' : '🟣'}</span> : undefined}
                     rightIcon={<ArrowRight className="h-5 w-5" />}>
-                    {platform === 'woocommerce' ? (woo.oneClickReady ? 'WooCommerce se jorein' : 'Keys se jorein') : 'Channel banayein'}
+                    {platform === 'woocommerce' ? (woo.oneClickReady ? 'WooCommerce se jorein' : 'Keys se jorein')
+                      : shopifyOneClick ? 'Shopify se jorein' : 'Channel banayein'}
                   </Button>
-                  {platform === 'woocommerce' && (
+                  {oneClick && (
                     <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-500">
                       <Lock className="h-3.5 w-3.5" /> Password Nafaa tak nahi aata — sirf aap ki ijazat
                     </span>
                   )}
                 </div>
-                {platform === 'woocommerce' && !woo.oneClickReady && (
+                {oneClick && !woo.publicApi?.reachable && woo.publicApi && (
                   <div className="mt-3"><HttpsNotice compact reason={woo.publicApi?.reason} fix={woo.publicApi?.fix} /></div>
                 )}
                 {woo.phase === 'error' && woo.error && (
@@ -178,10 +203,10 @@ export default function ConnectChannelPage() {
         <aside className="space-y-4">
           <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-5">
             <h3 className="font-black text-slate-900 dark:text-white">
-              {platform === 'woocommerce' ? 'Approve ke baad khud ho jata hai' : 'Aap ko kya milega'}
+              {oneClick ? `${platform === 'shopify' ? 'Install' : 'Approve'} ke baad khud ho jata hai` : 'Aap ko kya milega'}
             </h3>
             <div className="mt-3 space-y-2.5">
-              {(platform === 'woocommerce'
+              {(oneClick
                 ? [
                     { icon: Zap, t: 'Webhooks khud lag jate hain', s: 'Order bana, badla, cancel — sab Nafaa me' },
                     { icon: Bell, t: 'Har order par ghanti', s: 'Sidebar me naye orders ki ginti' },
@@ -250,15 +275,17 @@ function Logo({ label, emoji }: { label: string; emoji: string }) {
 }
 
 /* ─── Popup khula hai ─── */
-function WaitingCard({ phase, onReopen, onRetry, channelId, site }: {
+function WaitingCard({ platform, phase, onReopen, onRetry, channelId, site }: {
+  platform: 'woocommerce' | 'shopify';
   phase: 'waiting' | 'denied'; onReopen: (full?: boolean) => void; onRetry: () => void; channelId: string | null; site: string;
 }) {
+  const shopify = platform === 'shopify';
   const [showKeys, setShowKeys] = useState(false);
   if (phase === 'denied') {
     return (
       <div className="rounded-3xl border-2 border-rose-200 dark:border-rose-500/30 bg-rose-50 dark:bg-rose-500/10 p-6 text-center">
         <XCircle className="mx-auto h-10 w-10 text-rose-500" />
-        <div className="mt-2 font-black text-rose-900 dark:text-rose-200">WordPress me "Approve" nahi dabaya gaya</div>
+        <div className="mt-2 font-black text-rose-900 dark:text-rose-200">{shopify ? 'Shopify me "Install" nahi hua' : 'WordPress me "Approve" nahi dabaya gaya'}</div>
         <p className="mt-1 text-[12px] font-bold text-rose-700 dark:text-rose-300">Koi baat nahi — dobara koshish karein.</p>
         <Button className="mt-4" onClick={onRetry} leftIcon={<RefreshCw className="h-4 w-4" />}>Dobara</Button>
       </div>
@@ -268,17 +295,17 @@ function WaitingCard({ phase, onReopen, onRetry, channelId, site }: {
     <div className="rounded-3xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-500/10 dark:to-teal-500/5 p-6">
       <div className="flex items-start gap-4">
         <div className="relative h-14 w-14 shrink-0 rounded-2xl bg-white dark:bg-slate-900 shadow-lg flex items-center justify-center text-3xl">
-          🟣
+          {shopify ? '🟢' : '🟣'}
           <span className="absolute -right-1 -top-1 flex h-4 w-4">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
             <span className="relative inline-flex h-4 w-4 rounded-full bg-emerald-500 border-2 border-white" />
           </span>
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-lg font-black text-slate-900 dark:text-white">WordPress window me "Approve" dabayein</div>
+          <div className="text-lg font-black text-slate-900 dark:text-white">{shopify ? 'Shopify window me "Install" dabayein' : 'WordPress window me "Approve" dabayein'}</div>
           <ol className="mt-2 space-y-1 text-[13px] font-bold text-slate-600 dark:text-slate-300">
-            <li>1. Login nahi hain to WordPress admin ka login karein</li>
-            <li>2. "Nafaa POS would like to connect…" par <b>Approve</b></li>
+            <li>1. Login nahi hain to {shopify ? 'Shopify' : 'WordPress admin'} ka login karein</li>
+            <li>2. {shopify ? <>"Nafaa" app ki ijazaton par <b>Install</b></> : <>"Nafaa POS would like to connect…" par <b>Approve</b></>}</li>
             <li>3. Window khud band hogi — yahan ✅ aa jayega</li>
           </ol>
           <div className="mt-3 flex items-center gap-2 text-xs font-black text-emerald-700 dark:text-emerald-400">
@@ -287,7 +314,7 @@ function WaitingCard({ phase, onReopen, onRetry, channelId, site }: {
           <div className="mt-4 flex flex-wrap gap-2">
             <Button size="sm" variant="outline" onClick={() => onReopen()} leftIcon={<ExternalLink className="h-4 w-4" />}>Window dobara kholo</Button>
             <Button size="sm" variant="ghost" onClick={() => onReopen(true)}>Isi tab me kholo</Button>
-            <Button size="sm" variant="ghost" onClick={() => setShowKeys((v) => !v)} leftIcon={<KeyRound className="h-4 w-4" />}>Keys khud daalein</Button>
+            {!shopify && <Button size="sm" variant="ghost" onClick={() => setShowKeys((v) => !v)} leftIcon={<KeyRound className="h-4 w-4" />}>Keys khud daalein</Button>}
           </div>
         </div>
       </div>
@@ -297,7 +324,7 @@ function WaitingCard({ phase, onReopen, onRetry, channelId, site }: {
 }
 
 /* ─── Jur gaya! ─── */
-function ConnectedCard({ channelId }: { channelId: string }) {
+function ConnectedCard({ channelId, name }: { channelId: string; name: string }) {
   const navigate = useNavigate();
   const test = useMutation({
     mutationFn: () => onlineOrdersApi.testOrder(channelId),
@@ -309,7 +336,7 @@ function ConnectedCard({ channelId }: { channelId: string }) {
       <div className="mx-auto h-16 w-16 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-xl shadow-emerald-500/40 animate-in zoom-in duration-300">
         <CheckCircle2 className="h-9 w-9" />
       </div>
-      <h2 className="mt-3 text-2xl font-black text-slate-900 dark:text-white">WooCommerce jur gaya!</h2>
+      <h2 className="mt-3 text-2xl font-black text-slate-900 dark:text-white">{name} jur gaya!</h2>
       <p className="mt-1 text-sm font-bold text-slate-600 dark:text-slate-300">
         Webhooks lag gaye aur stock sync shuru. Ab website par jo order hoga, yahan ghanti bajegi.
       </p>

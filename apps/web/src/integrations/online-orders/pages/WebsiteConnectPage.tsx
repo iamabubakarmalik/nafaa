@@ -133,7 +133,8 @@ function Connected({ channelId, data, onChange, onGuide, onRefresh, refreshing }
     fixedPlatform ?? (cfg.platform === 'shopify' ? 'shopify' : cfg.platform === 'woocommerce' || cfg.platform === 'wordpress' ? 'woocommerce' : 'custom'),
   );
 
-  const receiving = !!stats.lastOrderAt || i.webhookVerified || !!i.woo?.connected;
+  const oneClick = !!i.woo?.connected || !!i.shopify?.connected;
+  const receiving = !!stats.lastOrderAt || i.webhookVerified || oneClick;
   const ordersLink = `/online-orders?channel=${channelId}`;
   const paused = !i.isActive;
   const links = linkedCount((stats as any).productLinks);
@@ -165,7 +166,7 @@ function Connected({ channelId, data, onChange, onGuide, onRefresh, refreshing }
     mutationFn: () => onlineOrdersApi.rotateKeys(channelId),
     onSuccess: (d) => {
       onChange(d);
-      toast.success(i.woo?.connected ? 'Nayi key ban gayi — WooCommerce webhooks khud update ho gaye' : 'Nayi key ban gayi — website/plugin me nayi key daalein');
+      toast.success(oneClick ? 'Nayi key ban gayi — webhooks khud nayi key par shift ho gaye' : 'Nayi key ban gayi — website/plugin me nayi key daalein');
     },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
@@ -191,7 +192,7 @@ function Connected({ channelId, data, onChange, onGuide, onRefresh, refreshing }
     { key: 'linked', label: 'Website se jora', hint: 'Plugin / webhook lagayein', done: receiving, sec: 'sec-connect' },
     { key: 'order', label: 'Pehla order aaya', hint: 'Test order bhej kar dekhein', done: (stats.totalOrders ?? 0) > 0, sec: 'sec-test' },
     { key: 'products', label: 'Products jore', hint: 'POS aur website ke products milayein', done: links > 0, sec: 'sec-products' },
-    { key: 'status', label: 'Status website ko', hint: 'Customer ko website par halat dikhe', done: !!cfg.statusWebhookUrl || !!i.woo?.connected, sec: 'sec-settings' },
+    { key: 'status', label: 'Status website ko', hint: 'Customer ko website par halat dikhe', done: !!cfg.statusWebhookUrl || oneClick, sec: 'sec-settings' },
   ];
   const doneCount = steps.filter((s) => s.done).length;
   const pct = (doneCount / steps.length) * 100;
@@ -238,7 +239,7 @@ function Connected({ channelId, data, onChange, onGuide, onRefresh, refreshing }
             <div className="min-w-0">
               <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-black border border-white/25 uppercase tracking-widest">
                 <Globe className="h-3.5 w-3.5" /> {platformLabel(fixedPlatform ?? cfg.platform)}
-                {i.woo?.connected && <span className="normal-case tracking-normal text-emerald-200">· ek click se jura ✓</span>}
+                {oneClick && <span className="normal-case tracking-normal text-emerald-200">· ek click se jura ✓</span>}
               </div>
               <h1 className="mt-2 text-2xl sm:text-3xl font-black leading-tight truncate">{i.displayName}</h1>
               <p className="mt-1 text-xs sm:text-sm font-bold text-white/85">
@@ -321,12 +322,12 @@ function Connected({ channelId, data, onChange, onGuide, onRefresh, refreshing }
           </Section>
 
           <Section id="sec-settings" icon={Settings2} tone="violet" title="Settings" sub="Order aane par kya ho, kis branch se, kis qeemat par">
-            <SettingsForm channelId={channelId} cfg={cfg} name={i.displayName} saving={save.isPending} platform={platform} woo={!!i.woo?.connected} onSave={(p) => save.mutate(p)} />
+            <SettingsForm channelId={channelId} cfg={cfg} name={i.displayName} saving={save.isPending} platform={platform} woo={oneClick} onSave={(p) => save.mutate(p)} />
           </Section>
 
           <Section id="sec-products" icon={Package} tone="orange" title="Products — dono taraf" sub="POS se website par lagao, ya website se POS me lao"
             badge={links > 0 ? { t: `${links} jore`, ok: true } : { t: 'Koi nahi jora', ok: false }}>
-            <ProductSyncCard channelId={channelId} productLinks={stats.productLinks} platform={cfg.platform} wooConnected={!!i.woo?.connected} />
+            <ProductSyncCard channelId={channelId} productLinks={stats.productLinks} platform={cfg.platform} wooConnected={!!i.woo?.connected} shopifyConnected={!!i.shopify?.connected} />
           </Section>
 
           <Section id="sec-keys" icon={KeyRound} tone="slate" title="Keys" sub="Sirf apni website, plugin ya developer ko dein">
@@ -493,7 +494,7 @@ function SettingsForm({ channelId, cfg, name, saving, platform, woo, onSave }: {
               label="🔒 Sirf signed orders"
               description="Bina signature wala order reject. Plugin aur WooCommerce webhook khud sign karte hain." />
           </Tile>
-          {platform === 'shopify' && (
+          {platform === 'shopify' && !woo && (
             <div>
               <Label>Shopify signing key</Label>
               <div className="flex gap-2">
@@ -512,7 +513,9 @@ function SettingsForm({ channelId, cfg, name, saving, platform, woo, onSave }: {
             <div className="min-w-0 flex-1">
               <div className="text-sm font-black text-emerald-900 dark:text-emerald-200">Khud ho raha hai — koi URL nahi chahiye</div>
               <div className="text-[12px] font-bold text-emerald-800 dark:text-emerald-300">
-                Accept par WooCommerce order "Processing", deliver par "Completed", cancel par "Cancelled" — aur customer ko "raste me hai" ka note.
+                {platform === 'shopify'
+                  ? 'Accept par order par "Nafaa: Accepted" tag, raste me par fulfillment + tracking (customer ko Shopify email), deliver par "Delivered", cancel par order cancel.'
+                  : 'Accept par WooCommerce order "Processing", deliver par "Completed", cancel par "Cancelled" — aur customer ko "raste me hai" ka note.'}
               </div>
             </div>
             <Button size="sm" variant="ghost" loading={testHook.isPending} onClick={() => testHook.mutate()}>Check</Button>

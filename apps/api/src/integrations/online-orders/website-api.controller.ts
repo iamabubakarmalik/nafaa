@@ -12,6 +12,7 @@ import { OnlineOrdersService } from './online-orders.service';
 import { WebsiteCatalogService } from './website-catalog.service';
 import { WebsiteSetupService } from './website-setup.service';
 import { WooCommerceService } from './woocommerce.service';
+import { ShopifyService } from './shopify.service';
 import { detectPlatform, normalizeOrder } from './order-normalizer';
 import { readWebsiteConfig, verifySignature } from './website-config';
 
@@ -38,6 +39,7 @@ export class WebsiteApiController {
     private readonly catalog: WebsiteCatalogService,
     private readonly setup: WebsiteSetupService,
     private readonly woo: WooCommerceService,
+    private readonly shopify: ShopifyService,
   ) {}
 
   // ═══ WooCommerce "Approve" ke baad keys yahan aati hain ═══
@@ -92,6 +94,11 @@ export class WebsiteApiController {
     }
 
     const topic = String(req.headers['x-wc-webhook-topic'] ?? req.headers['x-shopify-topic'] ?? '');
+    if (topic === 'app/uninstalled') {
+      this.checkSignature(integration, req);
+      await this.shopify.onUninstalled(integration);
+      return { success: true };
+    }
     if (/deleted|delete/.test(topic)) {
       this.checkSignature(integration, req);
       const externalId = String(body?.id ?? '');
@@ -213,7 +220,8 @@ export class WebsiteApiController {
       rawBody: (req as any).rawBody,
       headers: req.headers as any,
       webhookSecret: integration.webhookSecret,
-      shopifySecret: config.shopifySecret,
+      // Ek-click se jura Shopify apni app ke secret se sign karta hai
+      shopifySecret: this.shopify.isConnected(integration) ? process.env.SHOPIFY_CLIENT_SECRET ?? null : config.shopifySecret,
     });
     if (result === 'invalid') throw new UnauthorizedException('Signature match nahi hua — secret dobara check karein');
     if (result === 'missing' && config.requireSignature) {
@@ -229,6 +237,10 @@ export class WebsiteApiController {
       const signed = this.checkSignature(integration, req);
       const normalized = normalizeOrder(body, platform);
       const order = await this.orders.receive(integration, normalized, { signed });
+      // Website par cancel hua aur hamara bill ban chuka tha → malik ko bata do
+      if (normalized.cancelled && order.nafaaSaleId) {
+        await this.orders.applyWebsiteUpdate(integration, normalized.externalOrderId, { cancelled: true, reason: 'Website par cancel hua' }).catch(() => null);
+      }
       await this.markVerified(integration);
       await this.log(integration, topic, body, true);
       return {

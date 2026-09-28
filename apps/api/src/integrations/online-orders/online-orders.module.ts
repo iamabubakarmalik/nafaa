@@ -8,6 +8,8 @@ import { WebsiteSetupService } from './website-setup.service';
 import { StatusWebhookService } from './status-webhook.service';
 import { WebsiteApiController } from './website-api.controller';
 import { WooCommerceService } from './woocommerce.service';
+import { ShopifyService } from './shopify.service';
+import { ShopifyPublicController } from './shopify-public.controller';
 import {
   ChannelsController,
   LegacyChannelOrdersController,
@@ -25,8 +27,9 @@ import {
     OnlineOrdersController,
     LegacyChannelOrdersController,
     ChannelsController,
+    ShopifyPublicController,
   ],
-  providers: [OnlineOrdersService, WebsiteCatalogService, WebsiteSetupService, StatusWebhookService, WooCommerceService],
+  providers: [OnlineOrdersService, WebsiteCatalogService, WebsiteSetupService, StatusWebhookService, WooCommerceService, ShopifyService],
   exports: [OnlineOrdersService, WebsiteCatalogService],
 })
 export class OnlineOrdersModule {}

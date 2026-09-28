@@ -10,6 +10,7 @@ import { WebsiteSetupService } from './website-setup.service';
 import { StatusWebhookService } from './status-webhook.service';
 import { readWebsiteConfig } from './website-config';
 import { WooCommerceService } from './woocommerce.service';
+import { ShopifyService } from './shopify.service';
 
 // ═══════════════════════════════════════════════════════════════
 // ONLINE ORDERS — dukandar ka order manage karne ka safha
@@ -130,6 +131,7 @@ export class ChannelsController {
     private readonly catalog: WebsiteCatalogService,
     private readonly statusHook: StatusWebhookService,
     private readonly woo: WooCommerceService,
+    private readonly shopify: ShopifyService,
   ) {}
 
   @Get()
@@ -152,7 +154,7 @@ export class ChannelsController {
   @Get('capabilities')
   @ApiOperation({ summary: 'Ek-click connect chal sakta hai? (API https par bahar se dikhta hai)' })
   capabilities() {
-    return { publicApi: this.setup.publicApi() };
+    return { publicApi: this.setup.publicApi(), shopifyOAuth: this.shopify.configured() };
   }
 
   // ─── WooCommerce ek click ───
@@ -163,6 +165,16 @@ export class ChannelsController {
     @Body() body: { siteUrl: string; displayName?: string; shopId?: string; channelId?: string; returnOrigin?: string },
   ) {
     return this.woo.start(user, body ?? ({} as any));
+  }
+
+  // ─── Shopify ek click ───
+  @Post('shopify/start')
+  @ApiOperation({ summary: 'Shopify popup ka URL (Install → khud jur jata hai)' })
+  shopifyStart(
+    @GetUser() user: AuthenticatedUser,
+    @Body() body: { shop: string; displayName?: string; shopId?: string; channelId?: string; returnOrigin?: string },
+  ) {
+    return this.shopify.start(user, body ?? ({} as any));
   }
 
   @Get(':id')
@@ -180,6 +192,7 @@ export class ChannelsController {
     const integration = await this.setup.rotateKeys(user, id);
     // WooCommerce ke webhooks nayi key/secret wale URL par shift karo
     if (this.woo.isConnected(integration)) await this.woo.installWebhooks(integration);
+    if (this.shopify.isConnected(integration)) await this.shopify.installWebhooks(integration);
     return this.setup.channelOverview(user, id);
   }
 
@@ -214,6 +227,14 @@ export class ChannelsController {
       const client = this.woo.client(integration);
       try {
         await client!.ping();
+        return { ok: true };
+      } catch (e: any) {
+        return { ok: false, error: e?.message };
+      }
+    }
+    if (this.shopify.isConnected(integration)) {
+      try {
+        await this.shopify.client(integration)!.graphql('{ shop { name } }');
         return { ok: true };
       } catch (e: any) {
         return { ok: false, error: e?.message };
@@ -257,6 +278,33 @@ export class ChannelsController {
   @Post(':id/woocommerce/export-products')
   wooExport(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { updatePrice?: boolean }) {
     return this.woo.exportToWoo(user, id, body ?? {});
+  }
+
+  // ─── Shopify: webhooks dobara, stock, products ───
+  @Post(':id/shopify/repair')
+  async shopifyRepair(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {
+    this.setup.assertCanManage(user);
+    const integration = await this.setup.requireChannel(user.tenantId, id);
+    await this.shopify.afterConnect(integration.id);
+    const fresh = await this.setup.requireChannel(user.tenantId, id);
+    return { ok: fresh.webhookVerified, installed: 0 };
+  }
+
+  @Post(':id/shopify/sync-stock')
+  async shopifyStock(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {
+    this.setup.assertCanManage(user);
+    const integration = await this.setup.requireChannel(user.tenantId, id);
+    return this.shopify.syncStock(integration);
+  }
+
+  @Post(':id/shopify/import-products')
+  shopifyImport(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { updatePrice?: boolean; updateStock?: boolean }) {
+    return this.shopify.importFromShopify(user, id, body ?? {});
+  }
+
+  @Post(':id/shopify/export-products')
+  shopifyExport(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { updatePrice?: boolean }) {
+    return this.shopify.exportToShopify(user, id, body ?? {});
   }
 
   // ─── CSV (har platform) ───

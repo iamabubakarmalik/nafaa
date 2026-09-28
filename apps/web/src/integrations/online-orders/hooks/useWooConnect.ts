@@ -12,7 +12,22 @@ export type WooPhase = 'idle' | 'starting' | 'waiting' | 'manual' | 'connected' 
  * Nafaa ko → yahan "connected". Popup ka message na aaye (browser ne roka)
  * to har 2 second channel check karte hain.
  */
+export type ConnectKind = 'woocommerce' | 'shopify';
+const NAME: Record<ConnectKind, string> = { woocommerce: 'WooCommerce', shopify: 'Shopify' };
+
 export function useWooConnect(onConnected?: (channelId: string) => void) {
+  return useChannelConnect('woocommerce', onConnected);
+}
+
+export function useShopifyConnect(onConnected?: (channelId: string) => void) {
+  return useChannelConnect('shopify', onConnected);
+}
+
+/**
+ * Ek-click connect (WooCommerce "Approve" / Shopify "Install"): popup kholo,
+ * jawab ka intezar, aur na aaye to channel check karte raho.
+ */
+export function useChannelConnect(kind: ConnectKind, onConnected?: (channelId: string) => void) {
   const qc = useQueryClient();
   const [phase, setPhase] = useState<WooPhase>('idle');
   const [channelId, setChannelId] = useState<string | null>(null);
@@ -22,7 +37,7 @@ export function useWooConnect(onConnected?: (channelId: string) => void) {
   // API bahar se https par na dikhe to WooCommerce popup "callback_url needs SSL" deta hai —
   // pehle se pata ho to popup kholte hi nahi, seedha keys wala raasta
   const caps = useQuery({ queryKey: ['online-store-capabilities'], queryFn: onlineOrdersApi.capabilities, staleTime: 5 * 60_000 });
-  const oneClickReady = caps.data?.publicApi.reachable ?? true;
+  const oneClickReady = (caps.data?.publicApi.reachable ?? true) && (kind !== 'shopify' || (caps.data?.shopifyOAuth ?? true));
   const popupRef = useRef<Window | null>(null);
   const doneRef = useRef(onConnected);
   doneRef.current = onConnected;
@@ -32,9 +47,9 @@ export function useWooConnect(onConnected?: (channelId: string) => void) {
     popupRef.current?.close();
     qc.invalidateQueries({ queryKey: CHANNELS_KEY });
     qc.invalidateQueries({ queryKey: ['sales-channel', id] });
-    toast.success('🎉 WooCommerce jur gaya!', { description: 'Webhooks khud lag gaye — ab orders seedhe Nafaa me aayenge' });
+    toast.success(`🎉 ${NAME[kind]} jur gaya!`, { description: 'Webhooks khud lag gaye — ab orders seedhe Nafaa me aayenge' });
     doneRef.current?.(id);
-  }, [qc]);
+  }, [qc, kind]);
 
   // Popup se message
   useEffect(() => onConnectMessage((m) => {
@@ -49,20 +64,27 @@ export function useWooConnect(onConnected?: (channelId: string) => void) {
     const t = setInterval(async () => {
       try {
         const o = await onlineOrdersApi.channel(channelId);
-        if (o.integration?.woo?.connected) finish(channelId);
+        if (kind === 'woocommerce' ? o.integration?.woo?.connected : o.integration?.shopify?.connected) finish(channelId);
       } catch { /* agli dafa */ }
     }, 2500);
     return () => clearInterval(t);
-  }, [phase, channelId, finish]);
+  }, [phase, channelId, finish, kind]);
 
   const start = useCallback(async (body: { siteUrl: string; displayName?: string; shopId?: string; channelId?: string }) => {
+    if (kind === 'shopify' && caps.data && !caps.data.shopifyOAuth) {
+      setError('Shopify app ki keys server par nahi lagi — neeche "Webhook" wala tareeqa istemal karein');
+      setPhase('error');
+      return null;
+    }
     setError(null);
     setPhase('starting');
     // Popup click ke foran khulna chahiye warna browser block karta hai —
     // pehle khali window kholo, URL aane par us me bhejo
     const blank = oneClickReady ? openConnectPopup('about:blank') : null;
     try {
-      const res = await onlineOrdersApi.wooStart(body);
+      const res = kind === 'woocommerce'
+        ? await onlineOrdersApi.wooStart(body)
+        : await onlineOrdersApi.shopifyStart({ shop: body.siteUrl, displayName: body.displayName, shopId: body.shopId, channelId: body.channelId });
       setChannelId(res.channelId);
       setAuthUrl(res.authUrl);
       if (!res.authUrl) {
@@ -78,7 +100,7 @@ export function useWooConnect(onConnected?: (channelId: string) => void) {
         popupRef.current = openConnectPopup(res.authUrl);
       }
       setPhase('waiting');
-      if (!popupRef.current) toast.message('Popup band tha — neeche "WordPress kholein" dabayein');
+      if (!popupRef.current) toast.message('Popup band tha — neeche "Window dobara kholo" dabayein');
       return res;
     } catch (e) {
       blank?.close();
@@ -87,7 +109,7 @@ export function useWooConnect(onConnected?: (channelId: string) => void) {
       setPhase('error');
       return null;
     }
-  }, [oneClickReady]);
+  }, [oneClickReady, kind, caps.data]);
 
   /** Popup band ho gaya ya khula hi nahi — dobara ya poore tab me */
   const reopen = useCallback((fullTab = false) => {
@@ -103,5 +125,5 @@ export function useWooConnect(onConnected?: (channelId: string) => void) {
     setError(null);
   }, []);
 
-  return { phase, channelId, authUrl, error, hint, oneClickReady, publicApi: caps.data?.publicApi, start, reopen, reset };
+  return { phase, channelId, authUrl, error, hint, oneClickReady, shopifyOAuth: caps.data?.shopifyOAuth ?? false, publicApi: caps.data?.publicApi, start, reopen, reset };
 }
