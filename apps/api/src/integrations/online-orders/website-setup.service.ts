@@ -214,6 +214,8 @@ export class WebsiteSetupService {
         shopify: integration.type === 'SHOPIFY'
           ? {
               connected: !!creds.shopifyToken,
+              // Purana (non-expiring) token ya refresh bhi mar gaya → dobara install
+              needsReinstall: !!creds.shopifyReauth || (!!creds.shopifyToken && !creds.shopifyRefreshToken),
               shop: creds.shopifyShop ?? null,
               connectedAt: creds.shopifyConnectedAt ?? null,
               locationName: (integration.config as any)?.shopifyLocationName ?? null,

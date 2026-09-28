@@ -177,7 +177,7 @@ export interface WebsiteOverview {
     lastSyncAt?: string | null;
     config: WebsiteConfig;
     woo: null | { connected: boolean; connectedAt: string | null; permissions: string | null };
-    shopify?: null | { connected: boolean; shop: string | null; connectedAt: string | null; locationName: string | null };
+    shopify?: null | { connected: boolean; needsReinstall?: boolean; shop: string | null; connectedAt: string | null; locationName: string | null };
   };
   publicApi?: PublicApi;
   urls: {

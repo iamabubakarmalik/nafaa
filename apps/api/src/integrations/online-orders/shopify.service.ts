@@ -138,7 +138,9 @@ export class ShopifyService {
       const res = await fetch(`https://${shop}/admin/oauth/access_token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ client_id: this.clientId(), client_secret: this.clientSecret(), code: query.code }),
+        // Shopify ab sirf "expiring offline token" maanta hai: 1 ghanta ka
+        // access token + 90 din ka refresh token (har refresh par naya).
+        body: JSON.stringify({ client_id: this.clientId(), client_secret: this.clientSecret(), code: query.code, expiring: 1 }),
       });
       const tok: any = await res.json().catch(() => null);
       if (!res.ok || !tok?.access_token) throw new BadRequestException(tok?.error_description ?? 'Shopify se token nahi mila');
@@ -148,7 +150,7 @@ export class ShopifyService {
         where: { id },
         data: {
           credentials: {
-            shopifyToken: encrypt(tok.access_token),
+            ...this.tokenFields(tok),
             shopifyScopes: tok.scope ?? SHOPIFY_SCOPES,
             shopifyShop: shop,
             shopifyConnectedAt: new Date().toISOString(),
@@ -171,7 +173,7 @@ export class ShopifyService {
   /** Webhooks, store ka naam, location, pehla stock sync */
   async afterConnect(id: string) {
     const integration = await this.prisma.integration.findUniqueOrThrow({ where: { id } });
-    const client = this.mustClient(integration);
+    const client = await this.mustClient(integration);
 
     // Pehle seedha check: token zinda hai? kaunse scopes mile? — Activity me saaf likha aaye
     const check = await client.accessScopes();
@@ -211,7 +213,7 @@ export class ShopifyService {
   }
 
   async installWebhooks(integration: Integration) {
-    const client = this.client(integration);
+    const client = await this.client(integration);
     const hook = this.setup.urls(integration.apiKey).hook;
     if (!client || !hook) return { ok: false, installed: 0, error: 'Shopify jura nahi' };
     try {
@@ -307,7 +309,7 @@ export class ShopifyService {
   }
 
   async pushStatus(integration: Integration, order: any, event: string) {
-    const client = this.client(integration);
+    const client = await this.client(integration);
     if (!client || !/^\d+$/.test(String(order.externalOrderId))) return;
     const id = orderGid(order.externalOrderId);
     const status: string = order.orderStatus;
@@ -409,7 +411,7 @@ export class ShopifyService {
   }
 
   async syncStock(integration: Integration, opts: { onlySkus?: string[] } = {}) {
-    const client = this.mustClient(integration);
+    const client = await this.mustClient(integration);
     const cfg = readWebsiteConfig(integration.config) as any;
     const locationId: string | null = cfg.shopifyLocationId;
     if (!locationId) throw new BadRequestException('Shopify location nahi mili — "Webhooks check" dabayein');
@@ -472,7 +474,7 @@ export class ShopifyService {
   async importFromShopify(user: AuthenticatedUser, channelId: string, opts: { updatePrice?: boolean; updateStock?: boolean }) {
     this.setup.assertCanManage(user);
     const integration = await this.setup.requireChannel(user.tenantId, channelId);
-    const client = this.mustClient(integration);
+    const client = await this.mustClient(integration);
     const products = await client.paginate<any>(`query($after: String) {
       products(first: 50, after: $after, query: "status:active") {
         nodes {
@@ -517,7 +519,7 @@ export class ShopifyService {
   async exportToShopify(user: AuthenticatedUser, channelId: string, opts: { updatePrice?: boolean }) {
     this.setup.assertCanManage(user);
     const integration = await this.setup.requireChannel(user.tenantId, channelId);
-    const client = this.mustClient(integration);
+    const client = await this.mustClient(integration);
     const cfg = readWebsiteConfig(integration.config) as any;
     const locationId: string | null = cfg.shopifyLocationId;
 
@@ -587,17 +589,98 @@ export class ShopifyService {
   // HELPERS
   // ═══════════════════════════════════════════════════════════
 
-  client(integration: Integration): ShopifyClient | null {
+  /** Token ke DB fields (encrypted) — pehli dafa aur har refresh par */
+  private tokenFields(tok: any) {
+    const now = Date.now();
+    return {
+      shopifyToken: encrypt(tok.access_token),
+      shopifyRefreshToken: tok.refresh_token ? encrypt(tok.refresh_token) : null,
+      shopifyTokenExpiresAt: tok.expires_in ? new Date(now + Number(tok.expires_in) * 1000).toISOString() : null,
+      shopifyRefreshExpiresAt: tok.refresh_token_expires_in
+        ? new Date(now + Number(tok.refresh_token_expires_in) * 1000).toISOString()
+        : null,
+      shopifyReauth: false,
+    };
+  }
+
+  /** Ek channel ka ek hi refresh ek waqt me — do refresh ek hi refresh token kha na jayen */
+  private refreshing = new Map<string, Promise<string | null>>();
+
+  /**
+   * Chalta hua access token. Expiry se 5 minute pehle khud refresh karta hai.
+   * Refresh token bhi mar gaya ho (90 din / app hata di) to null — "Dobara install".
+   */
+  private async accessToken(integration: Integration): Promise<string | null> {
     const c = (integration.credentials ?? {}) as any;
-    const token = decrypt(c.shopifyToken);
-    const shop = c.shopifyShop;
+    if (!c.shopifyToken || !c.shopifyShop) return null;
+    const exp = c.shopifyTokenExpiresAt ? new Date(c.shopifyTokenExpiresAt).getTime() : null;
+    // Purana (non-expiring) token ya abhi zinda token
+    if (!exp || exp - Date.now() > 5 * 60_000) return decrypt(c.shopifyToken);
+    if (!c.shopifyRefreshToken) return decrypt(c.shopifyToken);
+
+    const running = this.refreshing.get(integration.id);
+    if (running) return running;
+    const job = this.refresh(integration).finally(() => this.refreshing.delete(integration.id));
+    this.refreshing.set(integration.id, job);
+    return job;
+  }
+
+  private async refresh(integration: Integration): Promise<string | null> {
+    // Taaza row — ho sakta hai kisi aur request ne abhi refresh kiya ho
+    const fresh = await this.prisma.integration.findUnique({ where: { id: integration.id } });
+    const c = (fresh?.credentials ?? {}) as any;
+    const exp = c.shopifyTokenExpiresAt ? new Date(c.shopifyTokenExpiresAt).getTime() : 0;
+    if (exp - Date.now() > 5 * 60_000) return decrypt(c.shopifyToken);
+
+    const res = await fetch(`https://${c.shopifyShop}/admin/oauth/access_token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({
+        client_id: this.clientId(),
+        client_secret: this.clientSecret(),
+        grant_type: 'refresh_token',
+        refresh_token: decrypt(c.shopifyRefreshToken),
+      }),
+    }).catch(() => null);
+    const tok: any = res ? await res.json().catch(() => null) : null;
+
+    if (!res || !res.ok || !tok?.access_token) {
+      const terminal = res?.status === 401 || res?.status === 400;
+      if (terminal) {
+        await this.prisma.integration.update({
+          where: { id: integration.id },
+          data: { credentials: { ...c, shopifyReauth: true }, status: IntegrationStatus.ERROR },
+        });
+      }
+      await this.log(integration, 'SHOPIFY_TOKEN_REFRESH', false,
+        terminal ? 'Shopify ne dobara ijazat maangi — channel page par "Dobara install" dabayein' : `Refresh nahi hua (${res?.status ?? 'network'})`);
+      return null;
+    }
+
+    await this.prisma.integration.update({
+      where: { id: integration.id },
+      data: {
+        credentials: { ...c, ...this.tokenFields({ ...tok, refresh_token: tok.refresh_token ?? decrypt(c.shopifyRefreshToken) }) },
+        status: IntegrationStatus.CONNECTED,
+      },
+    });
+    return tok.access_token as string;
+  }
+
+  async client(integration: Integration): Promise<ShopifyClient | null> {
+    const shop = (integration.credentials as any)?.shopifyShop;
+    const token = await this.accessToken(integration);
     if (!token || !shop) return null;
     return new ShopifyClient(shop, token);
   }
 
-  private mustClient(integration: Integration) {
-    const c = this.client(integration);
-    if (!c) throw new BadRequestException('Shopify jura nahi — pehle "Shopify se jorein" dabayein');
+  private async mustClient(integration: Integration) {
+    const c = await this.client(integration);
+    if (!c) {
+      throw new BadRequestException((integration.credentials as any)?.shopifyReauth
+        ? 'Shopify ne dobara ijazat maangi — "Dobara install" dabayein'
+        : 'Shopify jura nahi — pehle "Shopify se jorein" dabayein');
+    }
     return c;
   }
 

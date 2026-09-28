@@ -252,7 +252,7 @@ function WooOneClick({ channelId, woo, siteUrl, name, onChange }: {
 
 function ShopifyGuide({ hook, channelId, isShopifyChannel, shopify, siteUrl, name, onChange }: {
   hook: string; channelId: string; isShopifyChannel: boolean;
-  shopify: { connected: boolean; shop: string | null; connectedAt: string | null; locationName: string | null } | null;
+  shopify: { connected: boolean; needsReinstall?: boolean; shop: string | null; connectedAt: string | null; locationName: string | null } | null;
   siteUrl: string | null; name: string; onChange: (d: WebsiteOverview) => void;
 }) {
   const [mode, setMode] = useState<'oneclick' | 'webhook'>(isShopifyChannel ? 'oneclick' : 'webhook');
@@ -272,7 +272,7 @@ function ShopifyGuide({ hook, channelId, isShopifyChannel, shopify, siteUrl, nam
 }
 
 function ShopifyOneClick({ channelId, shopify, siteUrl, name, onChange }: {
-  channelId: string; shopify: { connected: boolean; shop: string | null; connectedAt: string | null; locationName: string | null } | null;
+  channelId: string; shopify: { connected: boolean; needsReinstall?: boolean; shop: string | null; connectedAt: string | null; locationName: string | null } | null;
   siteUrl: string | null; name: string; onChange: (d: WebsiteOverview) => void;
 }) {
   const qc = useQueryClient();
@@ -287,6 +287,20 @@ function ShopifyOneClick({ channelId, shopify, siteUrl, name, onChange }: {
   if (shopify?.connected && connect.phase !== 'waiting') {
     return (
       <div className="space-y-3">
+        {shopify.needsReinstall && (
+          <div className="rounded-2xl border-2 border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10 p-4 flex flex-wrap items-center gap-3">
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-black text-amber-900 dark:text-amber-200">⚠️ Shopify ko ek dafa dobara install karein</div>
+              <div className="text-[12px] font-bold text-amber-800 dark:text-amber-300">
+                Shopify ab naya (khud-refresh hone wala) token maangta hai. Dobara install se orders, stock aur status chalne lagenge — koi data nahi mitega.
+              </div>
+            </div>
+            <Button size="sm" variant="primary" loading={connect.phase === 'starting'}
+              onClick={() => connect.start({ siteUrl: shopify.shop ?? store, channelId })} leftIcon={<span>🟢</span>}>
+              Dobara install
+            </Button>
+          </div>
+        )}
         <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-gradient-to-br from-emerald-50 to-lime-50 dark:from-emerald-500/10 dark:to-lime-500/5 p-4 flex flex-wrap items-center gap-4">
           <span className="h-12 w-12 rounded-2xl bg-white dark:bg-slate-900 shadow flex items-center justify-center text-2xl shrink-0">🟢</span>
           <div className="min-w-0 flex-1">

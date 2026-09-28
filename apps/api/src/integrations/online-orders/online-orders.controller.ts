@@ -234,7 +234,9 @@ export class ChannelsController {
     }
     if (this.shopify.isConnected(integration)) {
       try {
-        await this.shopify.client(integration)!.graphql('{ shop { name } }');
+        const c = await this.shopify.client(integration);
+        if (!c) return { ok: false, error: 'Shopify jura nahi — Dobara install' };
+        await c.graphql('{ shop { name } }');
         return { ok: true };
       } catch (e: any) {
         return { ok: false, error: e?.message };
