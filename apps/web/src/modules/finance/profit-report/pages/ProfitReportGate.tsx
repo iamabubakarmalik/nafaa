@@ -5,6 +5,7 @@ import RetailProfitReportPage from '@industries/retail/pages/RetailProfitReportP
 import MobileProfitReportPage from '@industries/mobile/pages/MobileProfitReportPage';
 import ElectronicsProfitReportPage from '@industries/electronics/pages/ElectronicsProfitReportPage';
 import BakeryProfitReportPage from '@industries/bakery/pages/BakeryProfitReportPage';
+import AgriProfitReportPage from '@industries/agri/pages/AgriProfitReportPage';
 
 /**
  * ProfitReportGate — routes /profit-report to the correct
@@ -22,6 +23,11 @@ export default function ProfitReportGate() {
        banai jati hai — is liye recipe ki cost se milan bhi hota hai. */
     case 'bakery':
       return <BakeryProfitReportPage />;
+
+    /* Agri: thok ki chhoot munafa aadha kar deti hai, aur bori ka
+       munafa per-kilo dekhe baghair samajh nahi aata. */
+    case 'agri':
+      return <AgriProfitReportPage />;
 
     case 'retail':
       return <RetailProfitReportPage />;

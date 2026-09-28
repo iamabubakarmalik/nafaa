@@ -305,7 +305,7 @@ import ClinicServiceDetailPage from '@industries/clinic/pages/ClinicServiceDetai
 
 // ─── Agri Industry ─────────────────────────────────────────────
 import AgriDashboardPage from '@industries/agri/pages/AgriDashboardPage';
-import AgriProductsPage from '@industries/agri/pages/AgriProductsPage';
+import AgriProductsListPage from '@industries/agri/pages/AgriProductsListPage';
 import FarmersPage from '@industries/agri/pages/FarmersPage';
 import BulkOrdersPage from '@industries/agri/pages/BulkOrdersPage';
 import NewBulkOrderPage from '@industries/agri/pages/NewBulkOrderPage';
@@ -886,7 +886,7 @@ export default function App() {
                   {/* Agri */}
                   <Route path="/agri" element={<AgriDashboardPage />} />
                   <Route path="/agri/dashboard" element={<AgriDashboardPage />} />
-                  <Route path="/agri/products" element={<AgriProductsPage />} />
+                  <Route path="/agri/products" element={<AgriProductsListPage />} />
                   <Route path="/agri/farmers" element={<FarmersPage />} />
                   <Route path="/agri/bulk-orders/new" element={<NewBulkOrderPage />} />
                   <Route path="/agri/bulk-orders" element={<BulkOrdersPage />} />

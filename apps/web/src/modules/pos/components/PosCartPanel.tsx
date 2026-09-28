@@ -29,6 +29,10 @@ export function PosCartPanel({
   delivery, onDeliveryChange, deliveryFee,
   hidePrices, customers, customerId, setCustomerId, selectedCustomer, onAddCustomer,
   receiver, onReceiverChange,
+  /* Industry ka apna hissa, customer chunne ke theek neeche.
+     Agri is me farmer ki tafseel dikhata hai (gaon, zameen, credit
+     limit) — baqi industries ye khali chhor deti hain. */
+  customerExtra,
   onHold, onClear, onChangeQty, onSetQty, onRemove, priceEditId, onStartPriceEdit,
   onSetPrice, onCheckout, onInstantCash, canCheckout, checkoutPending,
 }: any) {
@@ -98,6 +102,7 @@ export function PosCartPanel({
             <UserPlus className="h-5 w-5 sm:h-6 sm:w-6" />
           </button>
         </div>
+        {customerExtra}
         {selectedCustomer && selectedCustomer.balance > 0 && (
           <div className="mt-2 px-3 py-1.5 rounded-xl bg-amber-100 dark:bg-amber-500/20 border-2 border-amber-300 dark:border-amber-500/40 text-xs sm:text-sm font-extrabold text-amber-900 dark:text-amber-200 inline-flex items-center gap-1.5">
             <AlertTriangle className="h-3.5 w-3.5" /> Purana udhaar: {formatPKR(selectedCustomer.balance)}

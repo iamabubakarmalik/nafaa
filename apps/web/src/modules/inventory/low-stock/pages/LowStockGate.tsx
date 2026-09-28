@@ -6,6 +6,7 @@ import MobileLowStockPage from '@industries/mobile/pages/MobileLowStockPage';
 import ElectronicsLowStockPage from '@industries/electronics/pages/ElectronicsLowStockPage';
 import AppliancesLowStockPage from '@industries/appliances/pages/AppliancesLowStockPage';
 import BakeryLowStockPage from '@industries/bakery/pages/BakeryLowStockPage';
+import AgriLowStockPage from '@industries/agri/pages/AgriLowStockPage';
 
 /**
  * LowStockGate — routes /low-stock (ya /inventory/low-stock) to the
@@ -37,6 +38,13 @@ export default function LowStockGate() {
        bikna chahiye — teenon ek jagah. */
     case 'bakery':
       return <BakeryLowStockPage />;
+
+    /* Agri ka masla bhi alag hai: stock kam hona to ek taraf, beej
+       aur dawa ki sarkari registration khatam ho jaye to poora
+       stock hone par bhi wo bik nahi sakti. Aur season nikal jaye
+       to maal saal bhar para rehta hai. */
+    case 'agri':
+      return <AgriLowStockPage />;
 
     // Future: alag industries ka custom low-stock yahan add karo
     // case 'carpet':

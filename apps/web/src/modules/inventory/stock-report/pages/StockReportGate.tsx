@@ -6,6 +6,7 @@ import MobileStockReportPage from '@industries/mobile/pages/MobileStockReportPag
 import ElectronicsStockReportPage from '@industries/electronics/pages/ElectronicsStockReportPage';
 import AppliancesStockReportPage from '@industries/appliances/pages/AppliancesStockReportPage';
 import BakeryStockReportPage from '@industries/bakery/pages/BakeryStockReportPage';
+import AgriStockReportPage from '@industries/agri/pages/AgriStockReportPage';
 
 /**
  * StockReportGate — routes /stock-report to the correct
@@ -24,6 +25,12 @@ export default function StockReportGate() {
        gudaam ka maida aur makkhan bhi utna hi paisa hai. */
     case 'bakery':
       return <BakeryStockReportPage />;
+
+    /* Agri: registration khatam hone wala maal alag ginna parta
+       hai — wo gudaam me hone ke bawajood bik nahi sakta. Sath hi
+       bori/kilo dono ka hisab. */
+    case 'agri':
+      return <AgriStockReportPage />;
 
     case 'retail':
       return <RetailStockReportPage />;

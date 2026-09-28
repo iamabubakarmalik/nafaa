@@ -18,6 +18,11 @@ export class FarmersController {
   }
   @Get('overdue') overdue(@GetUser() user: AuthenticatedUser) { return this.service.overdueList(user); }
   @Get('summary') summary(@GetUser() user: AuthenticatedUser) { return this.service.summary(user); }
+  @Post(':id/link-customer') linkCustomer(
+    @GetUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+    @Body() body: { customerId?: string },
+  ) { return this.service.linkCustomer(user, id, body?.customerId); }
   @Get('by-customer/:customerId') byCustomer(@GetUser() user: AuthenticatedUser, @Param('customerId') customerId: string) { return this.service.byCustomer(user, customerId); }
   @Get(':id') getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(user, id); }
   @Patch(':id') update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: any) { return this.service.update(user, id, dto); }

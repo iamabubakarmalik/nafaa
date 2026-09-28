@@ -2,7 +2,7 @@ import { Wheat, LayoutDashboard, Users, Package, Leaf, Calendar, Landmark, Spark
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
 import AgriDashboardPage from './pages/AgriDashboardPage';
-import AgriProductsPage from './pages/AgriProductsPage';
+import AgriProductsListPage from './pages/AgriProductsListPage';
 import FarmersPage from './pages/FarmersPage';
 import BulkOrdersPage from './pages/BulkOrdersPage';
 import NewBulkOrderPage from './pages/NewBulkOrderPage';
@@ -43,15 +43,12 @@ export const AgriPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Agri / Feed Industry',
+      label: 'Agri / Feed Extras',
       icon: Wheat,
       emoji: '🌾',
       color: '#65a30d',
       order: 20,
       items: [
-        { to: '/agri-products/new', label: '+ Add Agri Product', icon: Sparkles, badge: 'FAST' },
-        { to: '/agri/dashboard', label: 'Agri Dashboard', icon: LayoutDashboard, badge: 'NEW' },
-        { to: '/agri/products', label: 'Seeds / Fertilizer / Feed', icon: Wheat },
         { to: '/agri/farmers', label: 'Farmers', icon: Users },
         { to: '/agri/bulk-orders', label: 'Bulk Orders', icon: Package },
         { to: '/agri/advisory', label: 'Crop Advisory', icon: Leaf },
@@ -68,7 +65,7 @@ export const AgriPack: IndustryPack = {
 
     { path: '/agri', element: AgriDashboardPage },
     { path: '/agri/dashboard', element: AgriDashboardPage },
-    { path: '/agri/products', element: AgriProductsPage },
+    { path: '/agri/products', element: AgriProductsListPage },
 
     // optional detail page
     { path: '/agri-products/:id', element: AgriProductDetailPage },

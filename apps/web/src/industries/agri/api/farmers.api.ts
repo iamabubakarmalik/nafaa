@@ -59,6 +59,9 @@ export const farmersApi = {
   overdue: () => apiClient.get('/agri/farmers/overdue').then(unwrap<Farmer[]>),
   summary: () => apiClient.get('/agri/farmers/summary').then(unwrap<any>),
   byCustomer: (customerId: string) => apiClient.get('/agri/farmers/by-customer/' + customerId).then(unwrap<Farmer | null>),
+  /** Purane farmer ko Customer khate se jorna — customerId na do to naya ban jayega */
+  linkCustomer: (id: string, customerId?: string) =>
+    apiClient.post('/agri/farmers/' + id + '/link-customer', { customerId }).then(unwrap<Farmer>),
   getOne: (id: string) => apiClient.get('/agri/farmers/' + id).then(unwrap<Farmer>),
   update: (id: string, data: Partial<Farmer>) => apiClient.patch('/agri/farmers/' + id, data).then(unwrap<Farmer>),
   suspend: (id: string, reason: string) => apiClient.post('/agri/farmers/' + id + '/suspend', { reason }).then(unwrap<Farmer>),

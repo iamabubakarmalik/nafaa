@@ -11,6 +11,7 @@ const ClinicCatalogPage = lazy(() => import('@industries/clinic/pages/ClinicCata
 const ServicesBizCatalogPage = lazy(() => import('@industries/services-biz/pages/ServicesBizCatalogPage'));
 const JewelryCatalogPage = lazy(() => import('@industries/jewelry/pages/JewelryCatalogPage'));
 const GymCatalogPage = lazy(() => import('@industries/gym/pages/GymCatalogPage'));
+const AgriCatalogPage = lazy(() => import('@industries/agri/pages/AgriCatalogPage'));
 
 function Loader() {
   return (
@@ -32,6 +33,7 @@ export default function CatalogGate() {
   if (industry?.id === 'clinic') return <Suspense fallback={<Loader />}><ClinicCatalogPage /></Suspense>;
   if (industry?.id === 'services-biz') return <Suspense fallback={<Loader />}><ServicesBizCatalogPage /></Suspense>;
   if (industry?.id === 'jewelry') return <Suspense fallback={<Loader />}><JewelryCatalogPage /></Suspense>;
+  if (industry?.id === 'agri') return <Suspense fallback={<Loader />}><AgriCatalogPage /></Suspense>;
 
   return <CatalogPage />;
 }

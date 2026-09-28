@@ -16,7 +16,13 @@ const JewelryDashboardV2 = lazy(() => import('@industries/jewelry/pages/JewelryD
 const HardwareDashboardV2 = lazy(() => import('@industries/hardware/pages/HardwareDashboardV2'));
 const DairyDashboardV2 = lazy(() => import('@industries/dairy/pages/DairyDashboardV2'));
 const MeatDashboardV2 = lazy(() => import('@industries/meat/pages/MeatDashboardV2'));
-const AgriDashboardV2 = lazy(() => import('@industries/agri/pages/AgriDashboardV2'));
+/* Agri ke do dashboard the: `AgriDashboardV2` (ye gate) aur
+   `AgriDashboardPage` (/agri aur /agri/dashboard). Dono alag numbers
+   dikhate thay — V2 ki revenue sirf bulk orders se ginti thi, is liye
+   counter par din bhar bechne wali dukaan ko "aaj 0" nazar aata tha.
+   Ab teeno raaste ek hi safhe par jate hain. Purani file hati nahi,
+   bas raaste se nikal gayi. */
+const AgriDashboardPage = lazy(() => import('@industries/agri/pages/AgriDashboardPage'));
 const AutoPartsDashboardV2 = lazy(() => import('@industries/autoparts/pages/AutoPartsDashboardV2'));
 const BookstoreDashboardV2 = lazy(() => import('@industries/bookstore/pages/BookstoreDashboardV2'));
 const SalonDashboardV2 = lazy(() => import('@industries/salon/pages/SalonDashboardV2'));
@@ -61,7 +67,7 @@ export default function DashboardGate() {
   if (industry?.id === 'hardware') return <Suspense fallback={<Loader />}><HardwareDashboardV2 /></Suspense>;
   if (industry?.id === 'dairy') return <Suspense fallback={<Loader />}><DairyDashboardV2 /></Suspense>;
   if (industry?.id === 'meat') return <Suspense fallback={<Loader />}><MeatDashboardV2 /></Suspense>;
-  if (industry?.id === 'agri') return <Suspense fallback={<Loader />}><AgriDashboardV2 /></Suspense>;
+  if (industry?.id === 'agri') return <Suspense fallback={<Loader />}><AgriDashboardPage /></Suspense>;
   if (industry?.id === 'autoparts') return <Suspense fallback={<Loader />}><AutoPartsDashboardV2 /></Suspense>;
   if (industry?.id === 'bookstore') return <Suspense fallback={<Loader />}><BookstoreDashboardV2 /></Suspense>;
   if (industry?.id === 'salon') return <Suspense fallback={<Loader />}><SalonDashboardV2 /></Suspense>;
