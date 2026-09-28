@@ -3,10 +3,18 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { Public } from '../../../modules/auth/decorators/public.decorator';
 import { IntegrationService } from '../../core/integration.service';
-import { CustomWebsiteService } from './custom-website.service';
+import { OnlineOrdersService } from '../../online-orders/online-orders.service';
+import { WebsiteCatalogService } from '../../online-orders/website-catalog.service';
+import { normalizeOrder } from '../../online-orders/order-normalizer';
+import { readWebsiteConfig } from '../../online-orders/website-config';
 
 /**
- * Custom Website Integration
+ * Custom Website Integration — PURANA (v0) raasta.
+ *
+ * Naya raasta `integrations/website/v1` hai (header key, signature,
+ * WooCommerce/Shopify webhooks). Ye raaste chalti websites ke liye
+ * zinda hain aur andar se wahi naya flow chalate hain — ghanti,
+ * auto-accept, sahi stock sab.
  *
  * WORKFLOW:
  * 1. Shop owner creates integration → gets API key + webhook URL
@@ -21,7 +29,8 @@ import { CustomWebsiteService } from './custom-website.service';
 export class CustomWebsiteController {
   constructor(
     private readonly integrationSvc: IntegrationService,
-    private readonly customSvc: CustomWebsiteService,
+    private readonly onlineOrders: OnlineOrdersService,
+    private readonly catalog: WebsiteCatalogService,
   ) {}
 
   // ═══════════════════════════════════════════════════════════
@@ -43,62 +52,41 @@ export class CustomWebsiteController {
       return { success: false, error: 'Invalid API key' };
     }
 
-    // Log webhook
+    // Purana raasta signature nahi bhejta — "sirf signed orders" on ho to band
+    if (readWebsiteConfig(integration.config).requireSignature) {
+      return { success: false, error: 'Signature zaroori hai — naya API (/integrations/website/v1/orders) use karein' };
+    }
+
+    let channelOrder: any;
+    try {
+      const normalized = normalizeOrder(body, 'custom');
+      channelOrder = await this.onlineOrders.receive(integration, normalized, { signed: false });
+    } catch (e: any) {
+      await this.integrationSvc.logWebhook({
+        integrationId: integration.id,
+        tenantId: integration.tenantId,
+        source: 'custom-website',
+        event: 'order.created',
+        method: req.method,
+        body,
+        responseStatus: 400,
+        processed: false,
+        errorMessage: String(e?.response?.message ?? e?.message ?? 'Error'),
+      }).catch(() => null);
+      return { success: false, error: e?.response?.message ?? e?.message ?? 'Order save nahi hua' };
+    }
+
     await this.integrationSvc.logWebhook({
       integrationId: integration.id,
       tenantId: integration.tenantId,
       source: 'custom-website',
       event: 'order.created',
       method: req.method,
-      url: req.url,
-      headers: { 'content-type': headers['content-type'], 'user-agent': headers['user-agent'] },
+      headers: { 'user-agent': headers['user-agent'] },
       body,
       responseStatus: 200,
       processed: true,
-    });
-
-    // Validate required fields
-    if (!body.orderId && !body.id) {
-      return { success: false, error: 'orderId (ya id) zaroori hai' };
-    }
-    if (!body.customer?.name && !body.customerName) {
-      return { success: false, error: 'customer name zaroori hai' };
-    }
-    if (!body.items?.length) {
-      return { success: false, error: 'items array zaroori hai' };
-    }
-
-    // Transform to standard format
-    const orderData = {
-      externalOrderId: String(body.orderId ?? body.id),
-      externalOrderNumber: body.orderNumber ?? body.reference ?? undefined,
-      customerName: body.customer?.name ?? body.customerName ?? 'Customer',
-      customerPhone: body.customer?.phone ?? body.customerPhone,
-      customerEmail: body.customer?.email ?? body.customerEmail,
-      customerAddress: body.customer?.address ?? body.customerAddress ?? body.deliveryAddress,
-      customerCity: body.customer?.city ?? body.customerCity,
-      customerLat: body.customer?.lat ?? body.customerLat,
-      customerLng: body.customer?.lng ?? body.customerLng,
-      items: (body.items ?? []).map((item: any) => ({
-        name: item.name ?? item.productName ?? 'Product',
-        sku: item.sku ?? item.productId,
-        quantity: item.quantity ?? item.qty ?? 1,
-        price: item.price ?? item.unitPrice ?? 0,
-        image: item.image ?? item.imageUrl,
-        variant: item.variant ?? item.size,
-      })),
-      subtotal: body.subtotal ?? body.items?.reduce((s: number, i: any) => s + (i.price * (i.quantity ?? 1)), 0) ?? 0,
-      deliveryFee: body.deliveryFee ?? body.shippingFee ?? 0,
-      discount: body.discount ?? 0,
-      total: body.total ?? body.amount ?? body.grandTotal,
-      paymentMethod: body.paymentMethod ?? body.payment?.method,
-      paymentStatus: body.paymentStatus ?? body.payment?.status ?? 'PENDING',
-      orderStatus: body.status ?? body.orderStatus ?? 'PENDING',
-      notes: body.notes ?? body.customerNotes,
-      metadata: { source: body.source ?? 'website', raw: body },
-    };
-
-    const channelOrder = await this.integrationSvc.receiveChannelOrder(integration.id, orderData);
+    }).catch(() => null);
 
     return {
       success: true,
@@ -122,7 +110,14 @@ export class CustomWebsiteController {
     const integration = await this.integrationSvc.verifyApiKey(apiKey);
     if (!integration) return { success: false, error: 'Invalid API key' };
 
-    return this.customSvc.updateOrderStatus(integration.id, body.orderId, body.status, body.paymentStatus);
+    // Website sirf "cancel hua" ya "paisa aa gaya" bata sakti hai — accept,
+    // dispatch waghera Nafaa me hote hain taake stock ka hisaab sahi rahe.
+    const status = String(body?.status ?? '').toLowerCase();
+    const pay = String(body?.paymentStatus ?? '').toLowerCase();
+    return this.onlineOrders.applyWebsiteUpdate(integration, String(body?.orderId ?? ''), {
+      cancelled: ['cancelled', 'canceled', 'refunded', 'failed'].includes(status),
+      paid: ['paid', 'completed'].includes(pay),
+    });
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -141,11 +136,15 @@ export class CustomWebsiteController {
     const integration = await this.integrationSvc.verifyApiKey(apiKey);
     if (!integration) return { success: false, error: 'Invalid API key' };
 
-    return this.customSvc.getProducts(integration, {
-      category,
-      limit: +(limit ?? 50),
-      offset: +(offset ?? 0),
+    const lim = Math.min(+(limit ?? 50) || 50, 500);
+    const off = +(offset ?? 0) || 0;
+    const config = readWebsiteConfig(integration.config);
+    const res = await this.catalog.exportProducts(integration.tenantId, config.shopId ?? integration.shopId, {
+      page: Math.floor(off / lim) + 1,
+      limit: lim,
+      search: category,
     });
+    return { products: res.products, total: res.total, limit: lim, offset: off };
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -188,10 +187,9 @@ export class CustomWebsiteController {
       return { success: false, error: 'products array zaroori hai' };
     }
 
-    const result = await this.integrationSvc.receiveProductsFromWebhook(
-      integration.id,
-      body.products,
-    );
+    const result = await this.catalog.importProducts(integration, body.products, {
+      shopId: readWebsiteConfig(integration.config).shopId ?? integration.shopId,
+    });
 
     return {
       ...result,
@@ -215,10 +213,9 @@ export class CustomWebsiteController {
       return { success: false, error: 'Invalid API key' };
     }
 
-    const result = await this.integrationSvc.receiveProductsFromWebhook(
-      integration.id,
-      [body],
-    );
+    const result = await this.catalog.importProducts(integration, [body], {
+      shopId: readWebsiteConfig(integration.config).shopId ?? integration.shopId,
+    });
 
     return {
       ...result,

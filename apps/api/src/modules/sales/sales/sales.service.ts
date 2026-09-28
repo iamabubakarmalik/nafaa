@@ -2,6 +2,7 @@ import {
   BadRequestException, Injectable, NotFoundException,
 } from '@nestjs/common';
 import { startOfDay, startOfMonth } from 'date-fns';
+import { SaleSource } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { ShopScope, resolveWriteShopId } from '../../../common/shop-scope';
@@ -9,6 +10,17 @@ import { CreateSaleDto } from './dto/create-sale.dto';
 import { DiscountsService } from '../discounts/discounts.service';
 import { FbrService } from '../../../integrations/fbr/fbr.service';
 import { NotificationsService } from '../../notifications/notifications.service';
+
+/**
+ * Sale kahan se aayi. Sirf server ke andar se set hota hai (online order
+ * accept karte waqt) — DTO me nahi, taake koi client apni sale ko
+ * "WEBSITE" na likh sake.
+ */
+export interface SaleOrigin {
+  source: SaleSource;
+  /** Online order ka number, jaise "#1042" */
+  sourceRef?: string | null;
+}
 
 @Injectable()
 export class SalesService {
@@ -18,7 +30,12 @@ export class SalesService {
     private readonly fbr: FbrService,
   ) {}
 
-  async create(user: AuthenticatedUser, scope: ShopScope, dto: CreateSaleDto) {
+  async create(
+    user: AuthenticatedUser,
+    scope: ShopScope,
+    dto: CreateSaleDto,
+    origin?: SaleOrigin,
+  ) {
     // A sale happens at exactly one counter. The body may name the branch
     // (offline queue replays carry it); otherwise use the one being viewed.
     const sellingShopId = await resolveWriteShopId(
@@ -423,6 +440,8 @@ export class SalesService {
           receivedByName: dto.receivedByName?.trim() || null,
           receivedByPhone: dto.receivedByPhone?.trim() || null,
           receivedByCnic: dto.receivedByCnic?.trim() || null,
+          source: origin?.source ?? 'POS',
+          sourceRef: origin?.sourceRef ?? null,
           items: {
             create: normalizedItems.map((item) => ({
               ...(item.productId ? { productId: item.productId } : {}),
@@ -948,6 +967,21 @@ export class SalesService {
     if (!sale.shopId) throw new BadRequestException('Sale has no shop linked — cannot void safely');
 
     return this.prisma.$transaction(async (tx) => {
+      // Pehle sale ko "apna" karo — do log (ya do tab) ek saath void karein
+      // to stock sirf ek dafa wapas aaye, do dafa nahi.
+      const claim = await tx.sale.updateMany({
+        where: { id, status: { not: 'VOIDED' } },
+        data: { status: 'VOIDED' },
+      });
+      if (claim.count === 0) throw new BadRequestException('Sale already voided');
+
+      // Online order se bani sale thi → order bhi cancel, warna wo "Deliver"
+      // aur "COD baqi" me ginta rehta jabke bill hai hi nahi.
+      await tx.channelOrder.updateMany({
+        where: { nafaaSaleId: id, orderStatus: { notIn: ['CANCELLED', 'REJECTED'] } },
+        data: { orderStatus: 'CANCELLED', cancelledAt: new Date(), cancelReason: reason?.trim() || 'Bill void hua' },
+      });
+
       // ─── Restore used phones (mark IN_STOCK again) ────────────
       const usedPhoneItems = sale.items.filter((i) => (i as any).usedPhoneId);
       for (const item of usedPhoneItems) {

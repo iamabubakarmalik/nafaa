@@ -119,6 +119,7 @@ import { WhatsappModule } from './integrations/whatsapp/whatsapp.module';
 // ─── Integration Framework ─────────────────────────────────
 import { IntegrationCoreModule } from './integrations/core/integration.module';
 import { CustomWebsiteModule } from './integrations/channels/custom-website/custom-website.module';
+import { OnlineOrdersModule } from './integrations/online-orders/online-orders.module';
 import { FoodpandaModule } from './integrations/channels/foodpanda/foodpanda.module';
 import { DarazModule } from './integrations/channels/daraz/daraz.module';
 import { TcsModule } from './integrations/courier/tcs/tcs.module';
@@ -239,6 +240,7 @@ import { AiAssistantModule } from './marketplace/ai-assistant/ai-assistant.modul
 
     // ─── Integration Framework ───
     IntegrationCoreModule,
+    OnlineOrdersModule,
     CustomWebsiteModule,
     FoodpandaModule,
     DarazModule,

@@ -53,6 +53,15 @@ async function bootstrap() {
     // ─── Body parsing (Stripe webhook + multipart uploads need raw body) ─────────
   app.use('/api/stripe/webhook', bodyParser.raw({ type: 'application/json' }));
 
+  // Website orders (WooCommerce/Shopify/Nafaa plugin) HMAC signature bhejte
+  // hain jo asli bytes par banta hai — parse se pehle wahi bytes rakh lo.
+  const keepWebsiteRawBody = (req: any, _res: any, buf: Buffer) => {
+    const url: string = req.originalUrl ?? '';
+    if (url.startsWith('/api/integrations/website/') || url.startsWith('/api/integrations/webhooks/')) {
+      req.rawBody = buf;
+    }
+  };
+
   // Helper: skip body-parser for multipart/form-data (multer handles it)
   const isMultipart = (req: any) =>
     req.headers['content-type']?.toLowerCase().includes('multipart/form-data');
@@ -60,7 +69,7 @@ async function bootstrap() {
   app.use((req: any, res: any, next: any) => {
     if (req.originalUrl === '/api/stripe/webhook') return next();
     if (isMultipart(req)) return next(); // ✅ multer will handle
-    bodyParser.json({ limit: '50mb' })(req, res, next);
+    bodyParser.json({ limit: '50mb', verify: keepWebsiteRawBody })(req, res, next);
   });
 
   app.use((req: any, res: any, next: any) => {

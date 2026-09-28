@@ -37,6 +37,17 @@ enum PaymentMethod {
   EASYPAISA
 }
 
+// Sale kahan se aayi — counter par ya kisi online channel se.
+// Sale History ka "Website" filter aur online sale ki report isi par chalti hai.
+enum SaleSource {
+  POS
+  WEBSITE
+  DARAZ
+  FOODPANDA
+  SHOPIFY
+  MARKETPLACE
+}
+
 enum SaleStatus {
   COMPLETED
   VOIDED
@@ -1229,6 +1240,11 @@ model Sale {
   receivedByPhone         String?
   receivedByCnic          String?
 
+  // Online order se bani sale ka source aur us order ka number (#1042).
+  // Purani sab sales POS hain — migration default se backfill karti hai.
+  source                  SaleSource    @default(POS)
+  sourceRef               String?
+
   soldAt                  DateTime      @default(now())
   createdAt               DateTime      @default(now())
   updatedAt               DateTime      @updatedAt
@@ -1252,6 +1268,7 @@ model Sale {
   @@index([cashRegisterId])
   // POS ki "pehle kaun aaya tha" wali list isi par chalti hai
   @@index([customerId, receivedByName])
+  @@index([tenantId, source, soldAt])
 }
 
 model SaleItem {
@@ -16145,7 +16162,9 @@ model Integration {
   webhookLogs     WebhookLog[]
   productMappings ProductChannelMapping[]
 
-  @@unique([tenantId, type])
+  // Ek dukaan ki kai websites / stores ho sakte hain (do WooCommerce
+  // sites, ek Shopify) — is liye (tenantId, type) ab unique nahi.
+  @@index([tenantId, type])
   @@index([tenantId, status])
   @@index([type, status])
   @@map("integrations")
@@ -16188,9 +16207,20 @@ model ChannelOrder {
   receivedAt  DateTime  @default(now())
   processedAt DateTime?
 
+  // Order ka safar — har qadam ka waqt, taake page par timeline dikh sake
+  acceptedAt         DateTime?
+  dispatchedAt       DateTime?
+  deliveredAt        DateTime?
+  cancelledAt        DateTime?
+  cancelReason       String?
+  paymentReceivedAt  DateTime?
+  courierName        String?
+  trackingNumber     String?
+
   @@unique([integrationId, externalOrderId])
   @@index([tenantId, orderStatus])
   @@index([integrationId, receivedAt])
+  @@index([tenantId, receivedAt])
   @@map("channel_orders")
 }
 

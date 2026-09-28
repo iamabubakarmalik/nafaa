@@ -4,9 +4,21 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationsService } from '../../modules/notifications/notifications.service';
 import * as crypto from 'crypto';
 
+type OrderReceivedListener = (order: any, integration: any) => Promise<void> | void;
+
 @Injectable()
 export class IntegrationService {
   private readonly logger = new Logger(IntegrationService.name);
+  private readonly orderListeners: OrderReceivedListener[] = [];
+
+  /**
+   * Naya channel order aane par chalne wale kaam (ghanti, auto-accept).
+   * OnlineOrdersService yahan register karta hai — seedha inject karte to
+   * dono services ek doosre par tik jatin (circular dependency).
+   */
+  onOrderReceived(listener: OrderReceivedListener) {
+    this.orderListeners.push(listener);
+  }
 
   constructor(
     private readonly prisma: PrismaService,
@@ -29,10 +41,15 @@ export class IntegrationService {
     syncIntervalMin?: number;
   }) {
     // Check if already exists
-    const existing = await this.prisma.integration.findUnique({
-      where: { tenantId_type: { tenantId, type: dto.type } },
+    // Website/store kai ho sakte hain (Online Store → Website jorein se banti hain);
+    // baaqi (Daraz, Foodpanda, courier) har dukaan me ek hi.
+    if (['CUSTOM_WEBSITE', 'WOOCOMMERCE', 'SHOPIFY'].includes(dto.type)) {
+      throw new BadRequestException('Website "Online store → Website jorein" se jorein');
+    }
+    const existing = await this.prisma.integration.findFirst({
+      where: { tenantId, type: dto.type },
     });
-    if (existing) throw new Error('Ye integration pehle se connected hai');
+    if (existing) throw new BadRequestException('Ye integration pehle se connected hai');
 
     const apiKey = crypto.randomBytes(24).toString('hex');
     const apiSecret = crypto.randomBytes(32).toString('hex');
@@ -132,6 +149,7 @@ export class IntegrationService {
   // ═══════════════════════════════════════════════════════════
 
   async disconnect(tenantId: string, integrationId: string) {
+    await this.assertOwned(tenantId, integrationId);
     return this.prisma.integration.update({
       where: { id: integrationId },
       data: { status: IntegrationStatus.DISCONNECTED, isActive: false },
@@ -139,6 +157,7 @@ export class IntegrationService {
   }
 
   async reconnect(tenantId: string, integrationId: string) {
+    await this.assertOwned(tenantId, integrationId);
     return this.prisma.integration.update({
       where: { id: integrationId },
       data: { status: IntegrationStatus.CONNECTED, isActive: true },
@@ -162,10 +181,22 @@ export class IntegrationService {
   // VERIFY API KEY (for incoming webhooks)
   // ═══════════════════════════════════════════════════════════
 
+  private async assertOwned(tenantId: string, integrationId: string) {
+    const found = await this.prisma.integration.findFirst({
+      where: { id: integrationId, tenantId },
+      select: { id: true },
+    });
+    if (!found) throw new NotFoundException('Integration not found');
+  }
+
+  /** Band (disconnected) connection ki key se order nahi aata */
   async verifyApiKey(apiKey: string) {
-    return this.prisma.integration.findUnique({
+    if (!apiKey || apiKey.length < 16) return null;
+    const integration = await this.prisma.integration.findUnique({
       where: { apiKey },
     });
+    if (!integration || !integration.isActive || integration.status !== IntegrationStatus.CONNECTED) return null;
+    return integration;
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -208,18 +239,21 @@ export class IntegrationService {
       },
     });
     if (existing) {
-      // Update status if changed
-      if (existing.orderStatus !== orderData.orderStatus) {
-        return this.prisma.channelOrder.update({
-          where: { id: existing.id },
-          data: {
-            orderStatus: orderData.orderStatus,
-            paymentStatus: orderData.paymentStatus,
-            metadata: { ...((existing.metadata as any) ?? {}), ...(orderData.metadata ?? {}) },
-          },
-        });
+      // Wahi order dobara aaya (website retry karti hai, ya "order updated"
+      // webhook). Hamara status (accept/dispatch) website ke status se
+      // overwrite nahi hota — sirf paisa aana aur bill se pehle cancel.
+      const data: Prisma.ChannelOrderUpdateInput = {};
+      if (orderData.paymentStatus === 'PAID' && existing.paymentStatus !== 'PAID') {
+        data.paymentStatus = 'PAID';
+        data.paymentReceivedAt = new Date();
       }
-      return existing; // duplicate, skip
+      if (orderData.orderStatus === 'CANCELLED' && existing.orderStatus === 'PENDING' && !existing.nafaaSaleId) {
+        data.orderStatus = 'CANCELLED';
+        data.cancelledAt = new Date();
+        data.cancelReason = 'Website par cancel hua';
+      }
+      if (Object.keys(data).length === 0) return existing;
+      return this.prisma.channelOrder.update({ where: { id: existing.id }, data });
     }
 
     // Create channel order
@@ -261,175 +295,15 @@ export class IntegrationService {
     });
 
     this.logger.log(`📦 Channel order received: ${orderData.externalOrderId} from ${integration.type}`);
+
+    for (const listener of this.orderListeners) {
+      try {
+        await listener(channelOrder, integration);
+      } catch (e: any) {
+        this.logger.warn(`Order listener fail: ${e?.message}`);
+      }
+    }
     return channelOrder;
-  }
-
-  // ═══════════════════════════════════════════════════════════
-  // CONVERT CHANNEL ORDER TO NAFAA SALE
-  // ═══════════════════════════════════════════════════════════
-
-  async convertToSale(tenantId: string, channelOrderId: string) {
-    const channelOrder = await this.prisma.channelOrder.findFirst({
-      where: { id: channelOrderId, tenantId },
-      include: { integration: true },
-    });
-    if (!channelOrder) throw new NotFoundException('Channel order not found');
-    if (channelOrder.nafaaSaleId) throw new Error('Already converted to sale');
-
-    // Find or create customer
-    let customer = null;
-    if (channelOrder.customerPhone) {
-      customer = await this.prisma.customer.findFirst({
-        where: { tenantId, phone: channelOrder.customerPhone },
-      });
-      if (!customer) {
-        customer = await this.prisma.customer.create({
-          data: {
-            tenantId,
-            name: channelOrder.customerName,
-            phone: channelOrder.customerPhone,
-            email: channelOrder.customerEmail,
-            address: channelOrder.customerAddress ?? '',
-            city: channelOrder.customerCity ?? '',
-          },
-        });
-      }
-    }
-
-    // Create sale
-    const saleNumber = `CH-${Date.now()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
-    const sale = await this.prisma.$transaction(async (tx) => {
-      const s = await tx.sale.create({
-        data: {
-          tenantId,
-          shopId: channelOrder.shopId,
-          customerId: customer?.id,
-          saleNumber,
-          status: 'COMPLETED',
-          subtotal: Number(channelOrder.subtotal),
-          discount: Number(channelOrder.discount),
-          total: Number(channelOrder.total),
-          paidAmount: Number(channelOrder.total),
-          paymentMethod: (channelOrder.paymentMethod as any) ?? 'CASH',
-          soldAt: new Date(),
-          items: {
-            create: (await this.mapItemsToSaleItems(tx, tenantId, channelOrder.items as any[], channelOrder.integrationId)).items,
-          },
-        },
-        include: { items: true },
-      });
-
-      await tx.channelOrder.update({
-        where: { id: channelOrderId },
-        data: {
-          nafaaSaleId: s.id,
-          processedAt: new Date(),
-          orderStatus: 'CONFIRMED',
-        },
-      });
-
-      return s;
-    });
-
-    this.logger.log(`✅ Channel order ${channelOrder.externalOrderId} converted to sale ${sale.saleNumber}`);
-
-    try {
-      await this.notifications.create({
-        tenantId,
-        type: 'NEW_SALE' as any,
-        title: '💰 Sale Created from Channel',
-        message: `Sale ${sale.saleNumber} · Rs ${Number(sale.total).toFixed(0)} · Stock updated`,
-        link: '/sales',
-        metadata: { saleId: sale.id, saleNumber: sale.saleNumber, total: sale.total },
-      });
-    } catch {}
-    return sale;
-  }
-
-  private async mapItemsToSaleItems(
-    tx: any,
-    tenantId: string,
-    items: any[],
-    integrationId?: string,
-  ) {
-    const result: any[] = [];
-    const unmatched: any[] = [];
-
-    for (const item of items) {
-      let product = null;
-
-      // 1. Try existing mapping (owner ne manually map kiya ho)
-      if (integrationId && item.sku) {
-        const mapping = await tx.productChannelMapping.findFirst({
-          where: {
-            integrationId,
-            OR: [{ externalSku: item.sku }, { externalProductId: item.sku }],
-          },
-        });
-        if (mapping) {
-          product = await tx.product.findUnique({ where: { id: mapping.productId } });
-        }
-      }
-
-      // 2. Try SKU match
-      if (!product && item.sku) {
-        product = await tx.product.findFirst({ where: { tenantId, sku: item.sku } });
-      }
-
-      // 3. Try exact name match
-      if (!product && item.name) {
-        product = await tx.product.findFirst({
-          where: { tenantId, name: { equals: item.name, mode: 'insensitive' } },
-        });
-      }
-
-      // 4. Try fuzzy name match (contains)
-      if (!product && item.name) {
-        product = await tx.product.findFirst({
-          where: { tenantId, name: { contains: item.name, mode: 'insensitive' } },
-        });
-      }
-
-      // 5. Auto-create product agar match nahi mila
-      if (!product && item.name) {
-        product = await tx.product.create({
-          data: {
-            tenantId,
-            name: item.name,
-            sku: item.sku ?? `AUTO-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-            price: Number(item.price ?? 0),
-            costPrice: Number(item.price ?? 0) * 0.7,
-            stock: 0,
-            isActive: true,
-            description: `Auto-created from channel order (${item.sku ?? item.name})`,
-          },
-        });
-        unmatched.push({ item, autoCreatedProductId: product.id });
-
-        // Auto-mapping bhi bana do future ke liye
-        if (integrationId && item.sku) {
-          await tx.productChannelMapping.create({
-            data: {
-              integrationId,
-              productId: product.id,
-              externalSku: item.sku,
-              externalProductId: item.sku,
-              syncStatus: 'PENDING',
-            },
-          }).catch(() => null);
-        }
-      }
-
-      if (!product) continue;
-
-      result.push({
-        product: { connect: { id: product.id } },
-        quantity: item.quantity,
-        price: Number(item.price),
-        total: Number(item.price) * item.quantity,
-      });
-    }
-    return { items: result, unmatched };
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -580,14 +454,29 @@ export class IntegrationService {
   getAvailableIntegrations() {
     return [
       {
+        type: 'WOOCOMMERCE',
+        category: 'SALES_CHANNEL',
+        name: 'WooCommerce / WordPress',
+        description: 'Ek click me jorein — orders, stock aur products khud sync',
+        icon: '🟣',
+        color: '#7f54b3',
+        docs: 'Site ka URL daalein, WordPress me Approve dabayein',
+        popular: true,
+        multiple: true,
+        connectPath: '/online-store/connect?platform=woocommerce',
+        fields: [],
+      },
+      {
         type: 'CUSTOM_WEBSITE',
         category: 'SALES_CHANNEL',
-        name: 'Custom Website / API',
-        description: 'Apni website se orders directly Nafaa mein aaye',
+        name: 'Apni website / API',
+        description: 'Apni banayi website se orders directly Nafaa mein aaye',
         icon: '🌐',
         color: '#10b981',
-        docs: 'API key generate karein, apni website mein webhook URL add karein',
+        docs: 'Developer ko tayyar code aur key dein',
         popular: true,
+        multiple: true,
+        connectPath: '/online-store/connect?platform=custom',
         fields: [],
       },
       {
@@ -627,7 +516,9 @@ export class IntegrationService {
         description: 'Shopify store products + orders sync',
         icon: '🛍️',
         color: '#95bf47',
-        docs: 'Shopify Partner Dashboard se app create karein',
+        docs: 'Shopify admin me webhook URL paste karein',
+        multiple: true,
+        connectPath: '/online-store/connect?platform=shopify',
         fields: [
           { key: 'shopDomain', label: 'Shop Domain (e.g. mystore.myshopify.com)', required: true },
           { key: 'accessToken', label: 'Access Token', required: true },
@@ -1389,64 +1280,5 @@ export class IntegrationService {
       return { success: true, message: 'Foodpanda pe product push ho gaya!', externalId };
     }
     throw new Error('Foodpanda push failed: ' + JSON.stringify(data));
-  }
-
-
-  // ═══════════════════════════════════════════════════════════
-  // ORDER STATUS UPDATE
-  // ═══════════════════════════════════════════════════════════
-
-  async updateChannelOrderStatus(
-    tenantId: string,
-    channelOrderId: string,
-    status: string,
-    reason?: string,
-  ) {
-    const order = await this.prisma.channelOrder.findFirst({
-      where: { id: channelOrderId, tenantId },
-      include: { integration: true },
-    });
-    if (!order) throw new NotFoundException('Order not found');
-
-    const validStatuses = [
-      'PENDING', 'CONFIRMED', 'PREPARING', 'READY',
-      'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED', 'REJECTED',
-    ];
-    if (!validStatuses.includes(status)) {
-      throw new BadRequestException('Invalid status');
-    }
-
-    const updated = await this.prisma.channelOrder.update({
-      where: { id: channelOrderId },
-      data: {
-        orderStatus: status,
-        ...(status === 'DELIVERED' && { processedAt: new Date() }),
-        ...(reason && { notes: `${order.notes ?? ''}\n[${status}] ${reason}`.trim() }),
-      },
-    });
-
-    this.logger.log(`📦 Order ${order.externalOrderId} status: ${order.orderStatus} → ${status}`);
-
-    // 🔔 Notify on important status changes
-    if (['DELIVERED', 'CANCELLED', 'REJECTED'].includes(status)) {
-      try {
-        await this.notifications.create({
-          tenantId,
-          type: (status === 'DELIVERED' ? 'SUCCESS' : 'WARNING') as any,
-          title: status === 'DELIVERED' ? '✅ Order Delivered' : `❌ Order ${status}`,
-          message: `Order #${order.externalOrderNumber ?? order.externalOrderId} — ${order.customerName}`,
-          link: '/integrations/orders',
-          metadata: { channelOrderId: order.id, status },
-        });
-      } catch {}
-    }
-    return updated;
-  }
-
-  async bulkUpdateStatus(tenantId: string, ids: string[], status: string) {
-    return this.prisma.channelOrder.updateMany({
-      where: { id: { in: ids }, tenantId },
-      data: { orderStatus: status },
-    });
   }
 }

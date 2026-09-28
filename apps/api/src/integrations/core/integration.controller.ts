@@ -96,14 +96,6 @@ export class IntegrationController {
     });
   }
 
-  // ─── CONVERT CHANNEL ORDER TO SALE ───
-  @UseGuards(JwtAuthGuard) @ApiBearerAuth()
-  @Post('orders/:channelOrderId/convert')
-  @ApiOperation({ summary: 'Convert a channel order into a Nafaa sale' })
-  convert(@Req() req: Request, @Param('channelOrderId') id: string) {
-    return this.svc.convertToSale(this.tid(req), id);
-  }
-
   // ═══════════════════════════════════════════════════════════
   // TEST CONNECTION — verify credentials actually work
   // ═══════════════════════════════════════════════════════════
@@ -176,28 +168,5 @@ export class IntegrationController {
     @Body() body: { productId: string },
   ) {
     return this.svc.pushProductToChannel(this.tid(req), id, body.productId);
-  }
-
-  // ═══════════════════════════════════════════════════════════
-  // ORDER STATUS MANAGEMENT
-  // ═══════════════════════════════════════════════════════════
-
-  @UseGuards(JwtAuthGuard) @ApiBearerAuth()
-  @Post('orders/:orderId/update-status')
-  async updateOrderStatus(
-    @Req() req: Request,
-    @Param('orderId') orderId: string,
-    @Body() body: { status: string; reason?: string },
-  ) {
-    return this.svc.updateChannelOrderStatus(this.tid(req), orderId, body.status, body.reason);
-  }
-
-  @UseGuards(JwtAuthGuard) @ApiBearerAuth()
-  @Post('orders/bulk-update-status')
-  async bulkUpdateStatus(
-    @Req() req: Request,
-    @Body() body: { ids: string[]; status: string },
-  ) {
-    return this.svc.bulkUpdateStatus(this.tid(req), body.ids, body.status);
   }
 }
