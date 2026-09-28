@@ -173,6 +173,15 @@ export class ShopifyService {
     const integration = await this.prisma.integration.findUniqueOrThrow({ where: { id } });
     const client = this.mustClient(integration);
 
+    // Pehle seedha check: token zinda hai? kaunse scopes mile? — Activity me saaf likha aaye
+    const check = await client.accessScopes();
+    const creds = (integration.credentials ?? {}) as any;
+    const tokenLooksEncrypted = typeof creds.shopifyToken === 'string' && creds.shopifyToken.split(':').length === 3;
+    await this.log(integration, 'SHOPIFY_TOKEN_CHECK', check.status === 200, check.error
+      ? `${check.error} · status ${check.status} · token ${tokenLooksEncrypted ? 'encrypted' : 'plain'} · api ${process.env.SHOPIFY_API_VERSION || 'default'}`
+      : undefined, { status: check.status, scopes: check.scopes });
+    if (check.status !== 200) return;
+
     // Store ka naam + stock wali location
     try {
       const data = await client.graphql<any>(`{

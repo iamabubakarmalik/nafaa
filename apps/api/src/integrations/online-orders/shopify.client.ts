@@ -50,9 +50,19 @@ export class ShopifyClient {
       await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
       return this.graphql<T>(query, variables, attempt + 1);
     }
-    const body: any = await res.json().catch(() => null);
+    const text = await res.text().catch(() => '');
+    let body: any = null;
+    try { body = text ? JSON.parse(text) : null; } catch { body = null; }
     if (res.status === 401 || res.status === 403) {
-      throw new ShopifyError('Shopify ne access nahi diya — app dobara install karein', res.status);
+      // Shopify ka asal paigham bhi dikhao — "access nahi diya" akela kuch nahi batata
+      const why = typeof body?.errors === 'string' ? body.errors
+        : body?.errors?.[0]?.message ?? (text ? text.slice(0, 160) : '');
+      const reqId = res.headers.get('x-request-id');
+      throw new ShopifyError(
+        `Shopify ne ${res.status} diya${why ? `: ${why}` : ''}${reqId ? ` (request ${reqId})` : ''}`,
+        res.status,
+        body,
+      );
     }
     if (!res.ok) throw new ShopifyError(body?.errors?.[0]?.message ?? `Shopify ne ${res.status} diya`, res.status, body);
 
@@ -72,6 +82,22 @@ export class ShopifyClient {
     const userErrors: any[] = payload?.userErrors ?? [];
     if (userErrors.length) throw new ShopifyError(userErrors.map((e) => e.message).join('; '), 422, userErrors);
     return payload as T;
+  }
+
+  /** Token asal me kaam karta hai? Aur kaunse scopes mile? (REST — sab se seedha check) */
+  async accessScopes(): Promise<{ status: number; scopes: string[]; error?: string }> {
+    try {
+      const res = await fetch(`https://${this.shop}/admin/oauth/access_scopes.json`, {
+        headers: { 'X-Shopify-Access-Token': this.token, Accept: 'application/json' },
+      });
+      const text = await res.text();
+      let body: any = null;
+      try { body = JSON.parse(text); } catch { /* html */ }
+      if (!res.ok) return { status: res.status, scopes: [], error: (typeof body?.errors === 'string' ? body.errors : text.slice(0, 160)) || `HTTP ${res.status}` };
+      return { status: res.status, scopes: (body?.access_scopes ?? []).map((x: any) => x.handle) };
+    } catch (e: any) {
+      return { status: 0, scopes: [], error: e?.message };
+    }
   }
 
   /** Cursor wali list — sab pages (hadd ke saath) */
