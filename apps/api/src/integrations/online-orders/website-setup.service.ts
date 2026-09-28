@@ -34,10 +34,14 @@ export class WebsiteSetupService {
 
   /**
    * Bahar se (WooCommerce, Shopify) pahunchne wala API address. Local par
-   * tunnel (ngrok / cloudflared) ka https URL PUBLIC_API_URL me daalein.
+   * tunnel (ngrok / cloudflared) ka https URL INTEGRATIONS_API_URL me daalein.
+   * (PUBLIC_API_URL nahi — wo uploads ke links ke liye pehle se hai, bina /api.)
    */
   apiBase() {
-    return (process.env.PUBLIC_API_URL || process.env.API_URL || 'http://localhost:4000/api').replace(/\/+$/, '');
+    const raw = (process.env.INTEGRATIONS_API_URL || process.env.API_URL || 'http://localhost:4000/api').trim().replace(/\/+$/, '');
+    // Saare raaste global prefix "/api" ke neeche hain (main.ts). Env me
+    // "https://api.nafaa.pk" likha ho to bhi callback/webhook sahi banein.
+    return /\/api$/.test(raw) ? raw : `${raw}/api`;
   }
 
   /** Websites hamare server tak pahunch sakti hain? (https + localhost nahi) */
@@ -52,7 +56,7 @@ export class WebsiteSetupService {
       url,
       reachable,
       reason: reachable ? null : 'Nafaa ka API abhi bahar se nahi dikhta (https nahi / localhost). WooCommerce keys aur orders sirf https address par bhejta hai.',
-      fix: reachable ? null : 'Local test: `ngrok http 4000` chalayein aur apps/api/.env me PUBLIC_API_URL=https://<ngrok-address>/api daal kar API restart karein.',
+      fix: reachable ? null : 'Local test: `ngrok http 4000` chalayein aur apps/api/.env me INTEGRATIONS_API_URL=https://<ngrok-address>/api daal kar API restart karein.',
     };
   }
 

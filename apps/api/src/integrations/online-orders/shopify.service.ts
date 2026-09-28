@@ -108,8 +108,9 @@ export class ShopifyService {
     };
   }
 
+  /** Dev dashboard ke "Allowed redirection URL(s)" se bilkul milna chahiye */
   redirectUri() {
-    return `${this.setup.apiBase()}/integrations/shopify/callback`;
+    return (process.env.SHOPIFY_REDIRECT_URI || `${this.setup.apiBase()}/integrations/shopify/callback`).trim();
   }
 
   /**
