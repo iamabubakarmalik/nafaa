@@ -56,8 +56,14 @@ export function useRealtimeNotifications() {
         return items;
       }
 
-      // Find new notifications
-      const newOnes = items.filter((n) => !seenRef.current.has(n.id));
+      // Find new notifications. Online order ka apna bara popup aur ghanti
+      // hai (OnlineOrderAlert) — yahan dobara bajane se dohri awaz aati thi.
+      const newOnes = items.filter(
+        (n) => !seenRef.current.has(n.id) && n.metadata?.kind !== 'ONLINE_ORDER',
+      );
+      items.forEach((n) => {
+        if (n.metadata?.kind === 'ONLINE_ORDER') seenRef.current.add(n.id);
+      });
 
       if (newOnes.length > 0) {
         // Mark them as seen

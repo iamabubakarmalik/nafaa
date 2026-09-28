@@ -26,6 +26,7 @@ import { HiddenAmount } from '../components/HiddenAmount';
 import { IndustrySlot } from '@industries/_shared/components/IndustrySlot';
 import { toast } from 'sonner';
 import { FbrSaleButton } from '@integrations/fbr';
+import { SaleSourceBadge } from '../components/SaleSourceBadge';
 
 const formatDate = (value: string) =>
   new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
@@ -79,6 +80,7 @@ export default function SalesPage() {
   const [customEndDate, setCustomEndDate] = useState('');
   const [paymentFilter, setPaymentFilter] = useState<PaymentMethod | 'all'>('all');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [sourceFilter, setSourceFilter] = useState<'all' | 'POS' | 'ONLINE'>('all');
   const [showFilters, setShowFilters] = useState(false);
   const [privacyModal, setPrivacyModal] = useState<'unlock' | 'setup' | 'disable' | null>(null);
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'highest' | 'lowest'>('newest');
@@ -160,6 +162,8 @@ export default function SalesPage() {
 
     if (paymentFilter !== 'all') result = result.filter((s) => s.paymentMethod === paymentFilter);
     if (statusFilter !== 'all') result = result.filter((s) => s.status === statusFilter);
+    if (sourceFilter === 'ONLINE') result = result.filter((s) => s.source && s.source !== 'POS');
+    if (sourceFilter === 'POS') result = result.filter((s) => !s.source || s.source === 'POS');
 
     // Sort
     result.sort((a, b) => {
@@ -173,7 +177,7 @@ export default function SalesPage() {
     });
 
     return result;
-  }, [sales, search, dateFilter, customStartDate, customEndDate, paymentFilter, statusFilter, sortBy]);
+  }, [sales, search, dateFilter, customStartDate, customEndDate, paymentFilter, statusFilter, sourceFilter, sortBy]);
 
   const filteredStats = useMemo(() => {
     const totalAmount = filteredSales.reduce((sum, s) => sum + s.total, 0);
@@ -204,7 +208,7 @@ export default function SalesPage() {
     return Object.values(buckets);
   }, [sales]);
 
-  const hasFilters = search || dateFilter !== 'all' || paymentFilter !== 'all' || statusFilter !== 'all';
+  const hasFilters = search || dateFilter !== 'all' || paymentFilter !== 'all' || statusFilter !== 'all' || sourceFilter !== 'all';
   const hideAmounts = privacy.hideStats;
 
   const clearFilters = () => {
@@ -214,6 +218,7 @@ export default function SalesPage() {
     setCustomEndDate('');
     setPaymentFilter('all');
     setStatusFilter('all');
+    setSourceFilter('all');
     setSortBy('newest');
   };
 
@@ -572,6 +577,27 @@ export default function SalesPage() {
               </div>
 
               <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-2">Kahan se</label>
+                <div className="flex gap-2 flex-wrap">
+                  {([
+                    { v: 'all', l: 'Sab' },
+                    { v: 'POS', l: '🏪 Counter (POS)' },
+                    { v: 'ONLINE', l: '🌐 Online' },
+                  ] as const).map((o) => (
+                    <button
+                      key={o.v}
+                      onClick={() => setSourceFilter(o.v)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                        sourceFilter === o.v ? 'bg-slate-900 text-white shadow-sm' : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300'
+                      }`}
+                    >
+                      {o.l}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
                 <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-2">Status</label>
                 <div className="flex gap-2 flex-wrap">
                   {[
@@ -681,6 +707,7 @@ export default function SalesPage() {
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-extrabold text-slate-900 font-mono text-sm">{sale.saleNumber}</span>
+                            <SaleSourceBadge sale={sale} />
                             {isVoided && <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-extrabold">VOIDED</span>}
                             {isReturned && (
                               <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-extrabold">

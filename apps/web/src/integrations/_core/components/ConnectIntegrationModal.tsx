@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { X, Check, Loader2, Sparkles, ExternalLink } from 'lucide-react';
@@ -25,6 +26,7 @@ export function ConnectIntegrationModal({
   available: AvailableIntegration[];
 }) {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [selected, setSelected] = useState<AvailableIntegration | null>(null);
   const [displayName, setDisplayName] = useState('');
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
@@ -133,6 +135,12 @@ export function ConnectIntegrationModal({
                   <button
                     key={avail.type}
                     onClick={() => {
+                      // Website / WooCommerce / Shopify ka apna ek-click safha hai
+                      if ((avail as any).connectPath) {
+                        onClose();
+                        navigate((avail as any).connectPath);
+                        return;
+                      }
                       setSelected(avail);
                       setDisplayName(avail.name);
                       // Pre-fill defaults

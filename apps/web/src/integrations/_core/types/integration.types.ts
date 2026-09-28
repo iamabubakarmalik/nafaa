@@ -25,6 +25,10 @@ export interface AvailableIntegration {
   fields: IntegrationField[];
   setupSteps?: string[];
   portalUrl?: string;
+  /** Kai jor sakte hain (websites) */
+  multiple?: boolean;
+  /** Apna connect safha — generic modal ke bajaye */
+  connectPath?: string;
 }
 
 export interface IntegrationItem {

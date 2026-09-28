@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { cn } from '@core/lib/cn';
 import { Sidebar } from './Sidebar';
 
 interface Props {
@@ -12,68 +12,69 @@ interface Props {
   permissions?: string[];
 }
 
-export function MobileSidebar({
-  open, onClose, tenantName, tenantSlug, businessType, role, permissions,
-}: Props) {
-  // Lock body scroll when open
+/**
+ * Phone / tablet menu. Slides in from the left, closes on backdrop tap,
+ * Escape, a link tap, or a swipe to the left.
+ */
+export function MobileSidebar({ open, onClose, ...rest }: Props) {
+  const [drag, setDrag] = useState(0);
+  const start = useRef<{ x: number; y: number; horizontal: boolean | null } | null>(null);
+
+  // Lock page scroll while open
   useEffect(() => {
-    if (open) {
-      const scrollY = window.scrollY;
-      document.body.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
-      document.body.style.top = `-${scrollY}px`;
-      return () => {
-        document.body.style.overflow = '';
-        document.body.style.position = '';
-        document.body.style.width = '';
-        document.body.style.top = '';
-        window.scrollTo(0, scrollY);
-      };
-    }
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
   }, [open]);
 
-  // ESC closes
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && open) onClose();
-    };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
-  if (!open) return null;
+  const onTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    start.current = { x: t.clientX, y: t.clientY, horizontal: null };
+  };
+  const onTouchMove = (e: React.TouchEvent) => {
+    const s = start.current;
+    if (!s) return;
+    const t = e.touches[0];
+    const dx = t.clientX - s.x;
+    const dy = t.clientY - s.y;
+    if (s.horizontal === null && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) s.horizontal = Math.abs(dx) > Math.abs(dy);
+    if (s.horizontal) setDrag(Math.min(0, dx));
+  };
+  const onTouchEnd = () => {
+    if (drag < -80) onClose();
+    setDrag(0);
+    start.current = null;
+  };
 
   return (
-    <div className="fixed inset-0 z-[60] lg:hidden">
-      {/* Backdrop */}
+    <div className={cn('fixed inset-0 z-[60] lg:hidden', !open && 'pointer-events-none')} aria-hidden={!open}>
       <div
-        className="absolute inset-0 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200"
         onClick={onClose}
+        className={cn('absolute inset-0 bg-slate-950/50 transition-opacity duration-300', open ? 'opacity-100' : 'opacity-0')}
+        style={open && drag ? { opacity: Math.max(0.2, 1 + drag / 320) } : undefined}
       />
-
-      {/* Sidebar panel */}
       <aside
-        className="absolute left-0 top-0 bottom-0 w-[320px] max-w-[88vw] bg-slate-950 text-white flex flex-col shadow-2xl animate-in slide-in-from-left duration-250 safe-top safe-bottom safe-left"
-        style={{ background: 'linear-gradient(180deg, #020617 0%, #0f172a 50%, #1e293b 100%)' }}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Main menu"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        style={{
+          transform: open ? `translateX(${drag}px)` : 'translateX(-105%)',
+          transition: drag ? 'none' : 'transform 320ms cubic-bezier(.32,.72,0,1)',
+        }}
+        className="absolute inset-y-0 left-0 flex w-[86vw] max-w-[320px] flex-col bg-[#eef0f3] pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] shadow-2xl dark:bg-slate-950"
       >
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          className="absolute top-3 right-3 z-10 h-10 w-10 rounded-xl bg-slate-800 hover:bg-slate-700 flex items-center justify-center transition ring-1 ring-slate-700 active:scale-95 text-white"
-          aria-label="Close menu"
-        >
-          <X className="h-5 w-5" />
-        </button>
-
-        <Sidebar
-          tenantName={tenantName}
-          tenantSlug={tenantSlug}
-          businessType={businessType}
-          role={role}
-          permissions={permissions}
-          onItemClick={onClose}
-        />
+        <Sidebar {...rest} onItemClick={onClose} onClose={onClose} />
       </aside>
     </div>
   );

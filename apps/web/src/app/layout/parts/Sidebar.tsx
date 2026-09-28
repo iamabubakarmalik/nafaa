@@ -1,348 +1,34 @@
-import { memo, useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
-  Activity,
-  AlertTriangle,
-  ArrowRightLeft,
-  Award,
-  BarChart3,
-  Bell,
-  Bike,
-  BookOpen,
-  BookmarkPlus,
-  Brain,
-  Building2,
-  CheckCircle2,
-  ChevronDown,
-  ChevronRight,
-  ClipboardCheck,
-  Clock,
-  Cloud,
-  Command,
-  CreditCard,
-  Database,
-  Download,
-  Eye,
-  FileText,
-  Gauge,
-  Gift,
-  Globe,
-  Hash,
-  Layers,
-  LayoutDashboard,
-  LifeBuoy,
-  Megaphone,
-  MessageCircle,
-  Navigation,
-  Package,
-  PackagePlus,
-  PanelLeftClose,
-  Percent,
-  Receipt,
-  RotateCcw,
-  ScanLine,
-  ScrollText,
-  Search,
-  Settings,
-  Settings as SettingsIcon,
-  Shield,
-  ShieldCheck,
-  ShoppingCart,
-  Sparkles,
-  Star,
-  StarOff,
-  Store,
-  Tag,
-  TrendingUp,
-  Trophy,
-  Truck,
-  UserCircle,
-  UserCog,
-  Users,
-  Wallet,
-  Wallet2,
-  X,
-  Zap,
-  Landmark,
+  ChevronDown, ChevronsDownUp, ChevronsUpDown, Clock, HelpCircle, PanelLeftClose, PanelLeftOpen,
+  Plus, Search, Settings, Star, X,
 } from 'lucide-react';
 import { Logo } from '@core/components/brand/Logo';
-import { hasPermission, isOwner, isOwnerOnlyPath, PERMISSIONS, type PermissionKey } from '@core/lib/permissions';
+import { hasPermission, isOwner, isOwnerOnlyPath } from '@core/lib/permissions';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
-import type { IndustryNavGroup, IndustryNavItem } from '@industries/_shared/types/industry-pack';
 import { useWorkspaceStore, WORKSPACES } from '@core/stores/workspace.store';
 import { useIsAllShops } from '@core/stores/auth.store';
+import { useLiveOnlineOrders } from '@integrations/online-orders/hooks/useLiveOnlineOrders';
+import { channelMeta, channelPath, useSalesChannels } from '@integrations/online-orders/hooks/useSalesChannels';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { cn } from '@core/lib/cn';
+import {
+  allShopsNavGroups, fromIndustryGroup, isActivePath, isSettingsPath, loadFavorites, loadGroupState, loadRecent,
+  marketplaceNavGroups, MAX_RECENT, posNavGroups, pushRecent, saveFavorites, saveGroupState, SETTINGS_ITEMS,
+  type NavGroup, type NavItem,
+} from './navConfig';
+import { IconButton, Kbd } from './shell-ui';
 
-const SIDEBAR_SCROLL_KEY = 'nafaa-sidebar-scroll';
-const SIDEBAR_GROUPS_KEY = 'nafaa-sidebar-groups-v7';
-const SIDEBAR_FAVORITES_KEY = 'nafaa-sidebar-favorites-v5';
-const SIDEBAR_RECENT_KEY = 'nafaa-sidebar-recent-v1';
-const MAX_RECENT = 5;
-
-type NavItem = {
-  to: string;
-  label: string;
-  icon: any;
-  permission?: PermissionKey;
-  badge?: string;
-  hot?: boolean;
-  /**
-   * Screen can only act on one counter — POS, the till, stock corrections.
-   * Hidden while the owner is on the consolidated "All Shops" view.
-   */
-  needsShop?: boolean;
-};
-
-type NavGroup = {
-  label: string;
-  icon: any;
-  emoji?: string;
-  color?: string;
-  items: NavItem[];
-  defaultOpen?: boolean;
-  order?: number;
-};
-
-// ═══════════════════════════════════════════════════════════════
-// POS WORKSPACE
-// ═══════════════════════════════════════════════════════════════
-const posNavGroups: NavGroup[] = [
-  {
-    label: 'Overview', icon: LayoutDashboard, emoji: '📊', color: '#10b981',
-    defaultOpen: true, order: 0,
-    items: [
-      { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-      { to: '/reports', label: 'All Reports', icon: BarChart3, permission: PERMISSIONS.REPORTS_VIEW },
-      { to: '/stock-report', label: 'Stock Report', icon: Package, permission: PERMISSIONS.REPORTS_VIEW },
-      { to: '/profit-report', label: 'Profit by Product', icon: TrendingUp, permission: PERMISSIONS.PROFIT_REPORT_VIEW },
-    ],
-  },
-  {
-    label: 'Sales & Orders', icon: ShoppingCart, emoji: '🛒', color: '#059669',
-    defaultOpen: true, order: 5,
-    items: [
-      { to: '/pos', label: 'POS Counter', icon: ShoppingCart, permission: PERMISSIONS.POS_USE, hot: true, needsShop: true },
-      { to: '/sales', label: 'Sales History', icon: Receipt, permission: PERMISSIONS.SALES_VIEW },
-      { to: '/bookings', label: 'Bookings', icon: BookmarkPlus, permission: PERMISSIONS.SALES_VIEW },
-      { to: '/returns', label: 'Returns', icon: RotateCcw, permission: PERMISSIONS.RETURNS_VIEW },
-      { to: '/customers', label: 'Customers', icon: Users, permission: PERMISSIONS.CUSTOMERS_VIEW },
-      { to: '/khata', label: 'Khata (Udhaar)', icon: BookOpen, permission: PERMISSIONS.KHATA_VIEW },
-      { to: '/loyalty', label: 'Loyalty', icon: Award, permission: PERMISSIONS.LOYALTY_VIEW },
-      { to: '/discounts', label: 'Discounts', icon: Percent, permission: PERMISSIONS.DISCOUNTS_VIEW },
-      { to: '/cash-register', label: 'Cash Register', icon: Wallet, permission: PERMISSIONS.CASH_REGISTER_VIEW, needsShop: true },
-    ],
-  },
-  {
-    label: 'Inventory', icon: Package, emoji: '📦', color: '#0891b2',
-    defaultOpen: true, order: 10,
-    items: [
-      { to: '/products', label: 'Products', icon: Package, permission: PERMISSIONS.PRODUCTS_VIEW },
-      { to: '/catalog', label: 'Catalog', icon: Eye, permission: PERMISSIONS.PRODUCTS_VIEW },
-      { to: '/low-stock', label: 'Low Stock', icon: AlertTriangle, permission: PERMISSIONS.LOW_STOCK_VIEW },
-      { to: '/brands', label: 'Brands', icon: Building2, permission: PERMISSIONS.BRANDS_VIEW },
-      { to: '/categories', label: 'Categories', icon: Tag, permission: PERMISSIONS.CATEGORIES_VIEW },
-      { to: '/tags', label: 'Tags', icon: Hash, permission: PERMISSIONS.TAGS_VIEW },
-      { to: '/suppliers', label: 'Suppliers', icon: Truck, permission: PERMISSIONS.SUPPLIERS_VIEW },
-      { to: '/purchases', label: 'Purchases', icon: PackagePlus, permission: PERMISSIONS.PURCHASES_VIEW },
-      { to: '/stock-movements', label: 'Movements', icon: Activity, permission: PERMISSIONS.STOCK_MOVEMENTS_VIEW },
-      { to: '/stock-adjustments', label: 'Adjustments', icon: ClipboardCheck, permission: PERMISSIONS.STOCK_ADJUSTMENTS_MANAGE, needsShop: true },
-      { to: '/transfers', label: 'Transfers', icon: ArrowRightLeft, permission: PERMISSIONS.STOCK_TRANSFERS_MANAGE },
-      { to: '/barcode-labels', label: 'Barcode Labels', icon: ScanLine, permission: PERMISSIONS.BARCODE_LABELS_VIEW },
-    ],
-  },
-  {
-    label: 'Staff & Team', icon: UserCog, emoji: '👥', color: '#8b5cf6', order: 93,
-    items: [
-      { to: '/staff', label: 'All Staff', icon: UserCog, permission: PERMISSIONS.STAFF_VIEW },
-      { to: '/staff/attendance', label: 'Attendance', icon: CheckCircle2, permission: PERMISSIONS.STAFF_VIEW },
-      { to: '/staff/salary/new', label: 'Process Salary', icon: Wallet2, permission: PERMISSIONS.STAFF_MANAGE },
-      { to: '/team', label: 'App Users', icon: ShieldCheck, permission: PERMISSIONS.TEAM_VIEW },
-    ],
-  },
-  {
-    label: 'Finance', icon: Wallet, emoji: '💰', color: '#f59e0b', order: 95,
-    items: [
-      { to: '/money', label: 'Dukaan ka Hisab', icon: Landmark, permission: PERMISSIONS.REPORTS_VIEW },
-      { to: '/expenses', label: 'Expenses', icon: Wallet, permission: PERMISSIONS.EXPENSES_VIEW },
-      { to: '/billing', label: 'Billing', icon: CreditCard, permission: PERMISSIONS.BILLING_VIEW },
-      { to: '/plans', label: 'Plans', icon: Sparkles, permission: PERMISSIONS.PLANS_VIEW },
-      { to: '/plan-usage', label: 'Plan Usage', icon: Gauge, permission: PERMISSIONS.PLAN_USAGE_VIEW },
-      { to: '/referrals', label: 'Referrals', icon: Gift, permission: PERMISSIONS.REFERRALS_VIEW },
-    ],
-  },
-  {
-    label: 'System', icon: SettingsIcon, emoji: '⚙️', color: '#64748b', order: 100,
-    items: [
-      { to: '/notifications', label: 'Notifications', icon: Bell },
-      { to: '/sync', label: 'Sync Center', icon: Cloud },
-      { to: '/integrations', label: 'Integrations', icon: Zap },
-      { to: '/fbr', label: 'FBR Setup', icon: Shield, badge: 'NEW' },
-      { to: '/fbr/invoices', label: 'FBR Invoices', icon: FileText },
-      { to: '/fbr/reports', label: 'Monthly Reports', icon: TrendingUp },
-      { to: '/fbr/analytics', label: 'Analytics', icon: BarChart3 },
-      { to: '/shops', label: 'Branches', icon: Building2, permission: PERMISSIONS.SHOPS_VIEW },
-      { to: '/exports', label: 'Exports', icon: Download, permission: PERMISSIONS.EXPORTS_VIEW },
-      { to: '/backup', label: 'Backup', icon: Database, permission: PERMISSIONS.BACKUP_MANAGE },
-      { to: '/activity-log', label: 'Activity Log', icon: Activity, permission: PERMISSIONS.ACTIVITY_VIEW },
-      { to: '/settings', label: 'Settings', icon: SettingsIcon, permission: PERMISSIONS.SETTINGS_VIEW },
-      { to: '/profile', label: 'My Profile', icon: UserCircle },
-      { to: '/help', label: 'Help', icon: LifeBuoy },
-      { to: '/legal', label: 'Terms & Privacy', icon: ScrollText },
-    ],
-  },
-];
-
-// ═══════════════════════════════════════════════════════════════
-// ALL SHOPS WORKSPACE
-// ═══════════════════════════════════════════════════════════════
-// The owner looking at every branch at once is asking different questions from
-// the person behind a counter: not "ring this up" but "which branch is doing
-// well, who is sitting on udhaar, where is stock running out". So this is a
-// deliberately short, owner-level menu rather than the full operational one —
-// the counter screens (POS, till, stock corrections) need a single branch and
-// are simply absent here.
-const allShopsNavGroups: NavGroup[] = [
-  {
-    label: 'All Shops', icon: Layers, emoji: '🏬', color: '#7c3aed', order: 10,
-    defaultOpen: true,
-    items: [
-      { to: '/dashboard', label: 'Overview', icon: LayoutDashboard },
-      { to: '/shops/overview', label: 'Branch Analytics', icon: BarChart3, permission: PERMISSIONS.SHOPS_VIEW },
-    ],
-  },
-  {
-    label: 'Reports', icon: BarChart3, emoji: '📊', color: '#10b981', order: 20,
-    defaultOpen: true,
-    items: [
-      { to: '/reports', label: 'All Reports', icon: BarChart3, permission: PERMISSIONS.REPORTS_VIEW },
-      { to: '/profit-report', label: 'Profit by Product', icon: TrendingUp, permission: PERMISSIONS.PROFIT_REPORT_VIEW },
-      { to: '/stock-report', label: 'Stock Report', icon: Package, permission: PERMISSIONS.REPORTS_VIEW },
-      { to: '/sales', label: 'Sales History', icon: Receipt, permission: PERMISSIONS.SALES_VIEW },
-      { to: '/returns', label: 'Returns', icon: RotateCcw, permission: PERMISSIONS.RETURNS_VIEW },
-      { to: '/stock-movements', label: 'Stock Movements', icon: Activity, permission: PERMISSIONS.STOCK_MOVEMENTS_VIEW },
-    ],
-  },
-  {
-    label: 'Paisa', icon: Wallet, emoji: '💰', color: '#f59e0b', order: 30,
-    defaultOpen: true,
-    items: [
-      { to: '/khata', label: 'Khata (Udhaar)', icon: BookOpen, permission: PERMISSIONS.KHATA_VIEW },
-      { to: '/customers', label: 'Customers', icon: Users, permission: PERMISSIONS.CUSTOMERS_VIEW },
-      { to: '/money', label: 'Dukaan ka Hisab', icon: Landmark, permission: PERMISSIONS.REPORTS_VIEW },
-      { to: '/expenses', label: 'Expenses', icon: Wallet, permission: PERMISSIONS.EXPENSES_VIEW },
-    ],
-  },
-  {
-    label: 'Stock & Supply', icon: Package, emoji: '📦', color: '#0891b2', order: 40,
-    items: [
-      { to: '/products', label: 'Products', icon: Package, permission: PERMISSIONS.PRODUCTS_VIEW },
-      { to: '/low-stock', label: 'Low Stock', icon: AlertTriangle, permission: PERMISSIONS.LOW_STOCK_VIEW },
-      { to: '/transfers', label: 'Transfers', icon: ArrowRightLeft, permission: PERMISSIONS.STOCK_TRANSFERS_MANAGE },
-      { to: '/purchases', label: 'Purchases', icon: PackagePlus, permission: PERMISSIONS.PURCHASES_VIEW },
-      { to: '/suppliers', label: 'Suppliers', icon: Truck, permission: PERMISSIONS.SUPPLIERS_VIEW },
-    ],
-  },
-  {
-    label: 'Team & Setup', icon: UserCog, emoji: '⚙️', color: '#64748b', order: 50,
-    items: [
-      { to: '/staff', label: 'All Staff', icon: UserCog, permission: PERMISSIONS.STAFF_VIEW },
-      { to: '/team', label: 'App Users', icon: ShieldCheck, permission: PERMISSIONS.TEAM_VIEW },
-      { to: '/billing', label: 'Billing', icon: CreditCard, permission: PERMISSIONS.BILLING_VIEW },
-      { to: '/plan-usage', label: 'Plan Usage', icon: Gauge, permission: PERMISSIONS.PLAN_USAGE_VIEW },
-      { to: '/activity-log', label: 'Activity Log', icon: Activity, permission: PERMISSIONS.ACTIVITY_VIEW },
-      { to: '/settings', label: 'Settings', icon: SettingsIcon, permission: PERMISSIONS.SETTINGS_VIEW },
-    ],
-  },
-];
-
-// ═══════════════════════════════════════════════════════════════
-// MARKETPLACE WORKSPACE
-// ═══════════════════════════════════════════════════════════════
-const marketplaceNavGroups: NavGroup[] = [
-  {
-    label: 'Overview', icon: LayoutDashboard, emoji: '🎯', color: '#a855f7',
-    defaultOpen: true, order: 0,
-    items: [
-      { to: '/marketplace/dashboard', label: 'Dashboard', icon: LayoutDashboard, permission: PERMISSIONS.SETTINGS_VIEW, hot: true },
-      { to: '/marketplace/analytics', label: 'Analytics', icon: BarChart3, permission: PERMISSIONS.REPORTS_VIEW },
-      { to: '/marketplace/sales-funnel', label: 'Sales Funnel', icon: TrendingUp, permission: PERMISSIONS.REPORTS_VIEW },
-      { to: '/marketplace/ai-insights', label: 'AI Insights', icon: Brain, permission: PERMISSIONS.SETTINGS_VIEW, badge: 'AI' },
-    ],
-  },
-  {
-    label: 'Storefront', icon: Store, emoji: '🏪', color: '#ec4899',
-    defaultOpen: true, order: 5,
-    items: [
-      { to: '/marketplace/shop-profile', label: 'Shop Profile', icon: Store, permission: PERMISSIONS.SETTINGS_VIEW },
-      { to: '/marketplace/products', label: 'Products', icon: Package, permission: PERMISSIONS.PRODUCTS_VIEW },
-      { to: '/marketplace/settings', label: 'Publish Settings', icon: Globe, permission: PERMISSIONS.SETTINGS_VIEW },
-    ],
-  },
-  {
-    label: 'Orders & Fulfillment', icon: ShoppingCart, emoji: '📦', color: '#f97316',
-    defaultOpen: true, order: 10,
-    items: [
-      { to: '/marketplace/orders', label: 'Orders', icon: ShoppingCart, permission: PERMISSIONS.SALES_VIEW, hot: true },
-      { to: '/marketplace/delivery', label: 'Delivery', icon: Bike, permission: PERMISSIONS.SETTINGS_VIEW },
-      { to: '/marketplace/rider-tracking', label: 'Rider Tracking', icon: Navigation, permission: PERMISSIONS.SETTINGS_VIEW, badge: 'LIVE' },
-    ],
-  },
-  {
-    label: 'Customer Engagement', icon: MessageCircle, emoji: '💬', color: '#3b82f6', order: 15,
-    items: [
-      { to: '/marketplace/reviews', label: 'Reviews', icon: Star, permission: PERMISSIONS.SETTINGS_VIEW },
-      { to: '/marketplace/messages', label: 'Messages', icon: MessageCircle, permission: PERMISSIONS.SETTINGS_VIEW },
-      { to: '/marketplace/bargains', label: 'Bargains', icon: MessageCircle, permission: PERMISSIONS.SETTINGS_VIEW },
-      { to: '/marketplace/segments', label: 'Customer Segments', icon: Users, permission: PERMISSIONS.SETTINGS_VIEW },
-    ],
-  },
-  {
-    label: 'Sales Boosters', icon: Zap, emoji: '⚡', color: '#eab308', order: 20,
-    items: [
-      { to: '/marketplace/group-buys', label: 'Group Buys', icon: Users, permission: PERMISSIONS.SETTINGS_VIEW },
-      { to: '/marketplace/auctions', label: 'Auctions', icon: Sparkles, permission: PERMISSIONS.SETTINGS_VIEW },
-      { to: '/marketplace/live-shop', label: 'Live Shop', icon: Sparkles, permission: PERMISSIONS.SETTINGS_VIEW, badge: 'NEW' },
-    ],
-  },
-  {
-    label: 'Marketing', icon: Megaphone, emoji: '📣', color: '#dc2626', order: 25,
-    items: [
-      { to: '/marketplace/promotions', label: 'Promotions', icon: Megaphone, permission: PERMISSIONS.SETTINGS_VIEW },
-      { to: '/marketplace/coupons-advanced', label: 'Coupons Advanced', icon: Tag, permission: PERMISSIONS.SETTINGS_VIEW },
-      { to: '/marketplace/loyalty', label: 'Loyalty & Rewards', icon: Trophy, permission: PERMISSIONS.SETTINGS_VIEW },
-    ],
-  },
-  {
-    label: 'Multi-Shop', icon: Building2, emoji: '🏢', color: '#06b6d4', order: 90,
-    items: [
-      { to: '/marketplace/multi-shop', label: 'Multi-Shop Manager', icon: Building2, permission: PERMISSIONS.SETTINGS_VIEW },
-    ],
-  },
-  {
-    label: 'System', icon: SettingsIcon, emoji: '⚙️', color: '#64748b', order: 100,
-    items: [
-      { to: '/marketplace/notifications', label: 'Notifications', icon: Bell, permission: PERMISSIONS.SETTINGS_VIEW },
-      { to: '/marketplace/settings-hub', label: 'Settings Hub', icon: Settings, permission: PERMISSIONS.SETTINGS_VIEW },
-    ],
-  },
-];
-
-function fromIndustryGroup(g: IndustryNavGroup): NavGroup {
-  return {
-    label: g.label,
-    icon: g.icon ?? LayoutDashboard,
-    emoji: g.emoji,
-    color: g.color,
-    order: g.order ?? 50,
-    defaultOpen: true,
-    items: g.items.map((it: IndustryNavItem) => ({
-      to: it.to,
-      label: it.label,
-      icon: it.icon ?? LayoutDashboard,
-      permission: it.permission as PermissionKey | undefined,
-      badge: (it as any).badge,
-    })),
-  };
-}
+/* ═════════════════════════════════════════════════════════════
+   SIDEBAR
+   Expanded: store header · search · pinned · recent · groups ·
+             Settings + Help at the bottom (Shopify style)
+   Collapsed: 72px icon rail — hover (or tap) a group to open a
+             flyout, so every page stays one click away without
+             opening the sidebar again.
+   ═════════════════════════════════════════════════════════════ */
 
 type Props = {
   tenantName?: string;
@@ -351,426 +37,267 @@ type Props = {
   role?: any;
   permissions?: string[];
   onItemClick?: () => void;
-  onCollapse?: () => void;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
+  /** Mobile drawer close */
+  onClose?: () => void;
 };
 
-const loadGroupState = (): Record<string, boolean> => {
-  try { const raw = localStorage.getItem(SIDEBAR_GROUPS_KEY); if (raw) return JSON.parse(raw); } catch {}
-  return {};
-};
-const saveGroupState = (state: Record<string, boolean>) => {
-  try { localStorage.setItem(SIDEBAR_GROUPS_KEY, JSON.stringify(state)); } catch {}
-};
-const loadFavorites = (): string[] => {
-  try { const raw = localStorage.getItem(SIDEBAR_FAVORITES_KEY); if (raw) return JSON.parse(raw); } catch {}
-  return ['/dashboard', '/pos', '/sales', '/customers', '/products', '/khata'];
-};
-const saveFavorites = (favs: string[]) => {
-  try { localStorage.setItem(SIDEBAR_FAVORITES_KEY, JSON.stringify(favs)); } catch {}
-};
-const loadRecent = (): string[] => {
-  try { const raw = localStorage.getItem(SIDEBAR_RECENT_KEY); if (raw) return JSON.parse(raw); } catch {}
-  return [];
-};
-const pushRecent = (path: string) => {
-  try {
-    const current = loadRecent().filter((p) => p !== path);
-    const next = [path, ...current].slice(0, MAX_RECENT);
-    localStorage.setItem(SIDEBAR_RECENT_KEY, JSON.stringify(next));
-    return next;
-  } catch { return []; }
-};
+/** Paths that should only be "active" on an exact match */
+const END_PATHS = new Set(['/staff', '/products', '/fbr', '/sales']);
 
-export const Sidebar = memo(function Sidebar({
-  tenantName, tenantSlug, businessType, role, permissions, onItemClick, onCollapse,
-}: Props) {
-  const navRef = useRef<HTMLElement | null>(null);
-  const searchInputRef = useRef<HTMLInputElement | null>(null);
-  const location = useLocation();
-  const [search, setSearch] = useState('');
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => loadGroupState());
-  const [favoritePaths, setFavoritePaths] = useState<string[]>(() => loadFavorites());
-  const [recentPaths, setRecentPaths] = useState<string[]>(() => loadRecent());
-
+/** Everything the current user can see, in the current workspace */
+export function useVisibleNav(role?: any, permissions?: string[]) {
   const industry = useCurrentIndustry();
   const { activeWorkspace } = useWorkspaceStore();
-  const workspace = WORKSPACES[activeWorkspace];
   const isMarketplace = activeWorkspace === 'marketplace';
   const isAllShops = useIsAllShops();
+  const { data: channels } = useSalesChannels();
 
-  // Track recent visits
-  useEffect(() => {
-    if (location.pathname && location.pathname !== '/') {
-      setRecentPaths(pushRecent(location.pathname));
-    }
-  }, [location.pathname]);
-
-  // Keyboard: Cmd+K to focus search
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        searchInputRef.current?.focus();
-        searchInputRef.current?.select();
-      }
-      if (e.key === 'Escape' && search) {
-        setSearch('');
-        searchInputRef.current?.blur();
-      }
-    };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, [search]);
-
-  const allGroups = useMemo<NavGroup[]>(() => {
-    if (isMarketplace) {
-      return [...marketplaceNavGroups].sort((a, b) => (a.order ?? 100) - (b.order ?? 100));
-    }
-    // Consolidated view gets its own short, owner-level menu. Industry packs
-    // are left out on purpose — their screens are counter workflows that
-    // belong to one branch.
-    if (isAllShops) {
-      return [...allShopsNavGroups].sort((a, b) => (a.order ?? 100) - (b.order ?? 100));
-    }
-    const industryGroups = industry?.navGroups?.map(fromIndustryGroup) ?? [];
-    return [...posNavGroups, ...industryGroups].sort(
-      (a, b) => (a.order ?? 100) - (b.order ?? 100),
-    );
-  }, [industry, isMarketplace, isAllShops]);
-
-  const allItemsByPath = useMemo(() => {
-    const map = new Map<string, NavItem>();
-    for (const group of allGroups) for (const item of group.items) map.set(item.to, item);
-    return map;
-  }, [allGroups]);
-
-  const filteredGroups = useMemo(() => {
-    const userIsOwner = isOwner(role);
-    return allGroups
-      .map((group) => ({
-        ...group,
-        items: group.items.filter((item) => {
-          // A counter screen has no meaning across every branch at once
-          if (isAllShops && item.needsShop) return false;
-          // Non-owners can never see Owner-only paths
-          if (!userIsOwner && isOwnerOnlyPath(item.to)) return false;
-          // Standard permission check
-          return item.permission ? hasPermission(role, permissions, item.permission) : true;
+  const groups = useMemo<NavGroup[]>(() => {
+    const pos = posNavGroups.map((g) => (g.id === 'online' ? { ...g, items: [...g.items, ...channelItems(channels)] } : g));
+    const base = isMarketplace
+      ? marketplaceNavGroups
+      : isAllShops
+        ? allShopsNavGroups
+        : [...pos, ...(industry?.navGroups?.map(fromIndustryGroup) ?? [])];
+    const owner = isOwner(role);
+    return [...base]
+      .sort((a, b) => (a.order ?? 100) - (b.order ?? 100))
+      .map((g) => ({
+        ...g,
+        items: g.items.filter((it) => {
+          if (isAllShops && !isMarketplace && it.needsShop) return false;
+          if (!owner && isOwnerOnlyPath(it.to)) return false;
+          // Setup screens live in Settings, not the everyday menu
+          if (!isMarketplace && isSettingsPath(it.to)) return false;
+          return it.permission ? hasPermission(role, permissions, it.permission) : true;
         }),
       }))
-      .filter((group) => group.items.length > 0);
-  }, [allGroups, role, permissions, isAllShops]);
+      .filter((g) => g.items.length > 0);
+  }, [industry, isMarketplace, isAllShops, role, permissions, channels]);
 
-  const visiblePathSet = useMemo(() => {
-    const set = new Set<string>();
-    for (const g of filteredGroups) for (const item of g.items) set.add(item.to);
-    return set;
-  }, [filteredGroups]);
+  const settingsItems = useMemo(() => {
+    const owner = isOwner(role);
+    return SETTINGS_ITEMS.filter((i) => (owner || !isOwnerOnlyPath(i.to)) && (!i.permission || hasPermission(role, permissions, i.permission)));
+  }, [role, permissions]);
 
-  const favoriteItems = useMemo(() => {
-    return favoritePaths
-      .map((p) => allItemsByPath.get(p))
-      .filter((item): item is NavItem => !!item && visiblePathSet.has(item.to));
-  }, [favoritePaths, allItemsByPath, visiblePathSet]);
+  const settingsHome = isMarketplace ? '/marketplace/settings-hub' : settingsItems[0]?.to ?? '/profile';
 
-  const recentItems = useMemo(() => {
-    return recentPaths
-      .map((p) => allItemsByPath.get(p))
-      .filter((item): item is NavItem => !!item && visiblePathSet.has(item.to))
-      .filter((item) => !favoritePaths.includes(item.to))
-      .slice(0, 5);
-  }, [recentPaths, allItemsByPath, visiblePathSet, favoritePaths]);
+  return { groups, settingsItems, settingsHome, industry, isMarketplace, isAllShops, workspace: WORKSPACES[activeWorkspace], activeWorkspace };
+}
 
-  const isFavorite = useCallback((path: string) => favoritePaths.includes(path), [favoritePaths]);
+/** Har jora hua channel ek nav item — naam, emoji, naye orders ki ginti */
+function channelItems(channels?: { id: string; type: string; displayName: string; isWebsite: boolean; live: boolean; pendingOrders: number }[]): NavItem[] {
+  const list: NavItem[] = (channels ?? []).map((c) => ({
+    to: channelPath(c),
+    label: c.displayName,
+    icon: emojiIcon(channelMeta(c.type).emoji),
+    count: c.pendingOrders,
+    dim: !c.live,
+    keywords: `${channelMeta(c.type).label} channel`,
+  }));
+  list.push({ to: '/online-store/connect', label: list.length ? 'Add channel' : 'Connect your website', icon: Plus, permission: PERMISSIONS.SETTINGS_VIEW, keywords: 'woocommerce shopify website connect add' });
+  return list;
+}
 
-  const toggleFavorite = useCallback((path: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setFavoritePaths((prev) => {
+const emojiCache = new Map<string, any>();
+/** Emoji ko icon jaisa component — NavRow `<Icon className>` hi render karta hai */
+function emojiIcon(emoji: string) {
+  const hit = emojiCache.get(emoji);
+  if (hit) return hit;
+  const C = ({ className }: { className?: string }) => (
+    <span className={cn('inline-flex items-center justify-center text-[13px] leading-none', className)} aria-hidden>{emoji}</span>
+  );
+  emojiCache.set(emoji, C);
+  return C;
+}
+
+function useRecentPaths() {
+  const location = useLocation();
+  const [recent, setRecent] = useState<string[]>(() => loadRecent());
+  useEffect(() => {
+    if (location.pathname && location.pathname !== '/') setRecent(pushRecent(location.pathname));
+  }, [location.pathname]);
+  return recent;
+}
+
+function useFavorites() {
+  const [favs, setFavs] = useState<string[]>(() => loadFavorites());
+  const toggle = useCallback((path: string, e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    setFavs((prev) => {
       const next = prev.includes(path) ? prev.filter((p) => p !== path) : [...prev, path];
       saveFavorites(next);
       return next;
     });
   }, []);
+  return { favs, toggle };
+}
 
-  const searchQuery = search.toLowerCase().trim();
-  const searchedGroups = useMemo(() => {
-    if (!searchQuery) return filteredGroups;
-    return filteredGroups
-      .map((g) => ({ ...g, items: g.items.filter((it) => it.label.toLowerCase().includes(searchQuery)) }))
-      .filter((g) => g.items.length > 0);
-  }, [filteredGroups, searchQuery]);
+export const Sidebar = memo(function Sidebar(props: Props) {
+  return props.collapsed ? <SidebarRail {...props} /> : <SidebarFull {...props} />;
+});
 
-  const searchedFavorites = useMemo(() => {
-    if (!searchQuery) return favoriteItems;
-    return favoriteItems.filter((it) => it.label.toLowerCase().includes(searchQuery));
-  }, [favoriteItems, searchQuery]);
+/* ═════════════════════════════ EXPANDED ═════════════════════════════ */
+function SidebarFull({ tenantName, tenantSlug, businessType, role, permissions, onItemClick, onToggleCollapse, onClose }: Props) {
+  const location = useLocation();
+  const searchRef = useRef<HTMLInputElement>(null);
+  const navRef = useRef<HTMLElement>(null);
+  const { groups, settingsItems, settingsHome, industry, isMarketplace, workspace, activeWorkspace } = useVisibleNav(role, permissions);
+  const recentPaths = useRecentPaths();
+  const { favs, toggle } = useFavorites();
+  const [search, setSearch] = useState('');
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => loadGroupState());
+  const [showRecent, setShowRecent] = useState(true);
 
-  const totalSearchMatches = searchedFavorites.length + searchedGroups.reduce((s, g) => s + g.items.length, 0);
+  const accent = isMarketplace ? '#a855f7' : industry?.themeColor || '#059669';
 
-  const isGroupOpen = useCallback((group: NavGroup) => {
-    if (searchQuery) return true;
-    const userState = openGroups[group.label];
-    if (userState !== undefined) return userState;
-    return group.defaultOpen ?? false;
-  }, [searchQuery, openGroups]);
+  const byPath = useMemo(() => {
+    const m = new Map<string, NavItem>();
+    groups.forEach((g) => g.items.forEach((i) => m.set(i.to, i)));
+    return m;
+  }, [groups]);
 
-  const toggleGroup = useCallback((label: string, currentlyOpen: boolean) => {
-    setOpenGroups((prev) => {
-      const next = { ...prev, [label]: !currentlyOpen };
-      saveGroupState(next);
-      return next;
-    });
-  }, []);
+  const pinned = useMemo(() => favs.map((p) => byPath.get(p)).filter(Boolean) as NavItem[], [favs, byPath]);
+  const recent = useMemo(
+    () => recentPaths.filter((p) => !favs.includes(p)).map((p) => byPath.get(p)).filter(Boolean).slice(0, MAX_RECENT) as NavItem[],
+    [recentPaths, favs, byPath],
+  );
 
-  const expandAll = () => {
-    const next: Record<string, boolean> = {};
-    filteredGroups.forEach((g) => { next[g.label] = true; });
-    setOpenGroups(next);
-    saveGroupState(next);
+  const q = search.trim().toLowerCase();
+  const matches = (i: NavItem) => `${i.label} ${i.keywords ?? ''}`.toLowerCase().includes(q);
+  const shownGroups = useMemo(
+    () => (q ? groups.map((g) => ({ ...g, items: g.items.filter(matches) })).filter((g) => g.items.length) : groups),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [groups, q],
+  );
+  const shownSettings = useMemo(() => (q ? settingsItems.filter(matches) : []), // eslint-disable-line react-hooks/exhaustive-deps
+    [settingsItems, q]);
+  const total = shownGroups.reduce((a, g) => a + g.items.length, 0) + shownSettings.length;
+
+  const isOpen = (g: NavGroup) => (q ? true : openGroups[g.id] ?? g.defaultOpen ?? false);
+  const setGroup = (id: string, v: boolean) => setOpenGroups((prev) => { const n = { ...prev, [id]: v }; saveGroupState(n); return n; });
+  const allOpen = groups.every((g) => isOpen(g));
+  const setAll = (v: boolean) => {
+    const n: Record<string, boolean> = {};
+    groups.forEach((g) => { n[g.id] = v; });
+    setOpenGroups(n); saveGroupState(n);
   };
-  const collapseAll = () => {
-    const next: Record<string, boolean> = {};
-    filteredGroups.forEach((g) => { next[g.label] = false; });
-    setOpenGroups(next);
-    saveGroupState(next);
-  };
 
+  // The group that holds the current page opens by itself
+  useEffect(() => {
+    const g = groups.find((x) => x.items.some((i) => isActivePath(location.pathname, i.to)));
+    if (g && !isOpen(g)) setGroup(g.id, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
+  // Keep scroll position per workspace
   useEffect(() => {
     const nav = navRef.current;
     if (!nav) return;
-    const saved = sessionStorage.getItem(`${SIDEBAR_SCROLL_KEY}-${activeWorkspace}`);
+    const key = `nafaa-sidebar-scroll-${activeWorkspace}`;
+    const saved = sessionStorage.getItem(key);
     if (saved) nav.scrollTop = Number(saved);
-    const handleScroll = () => sessionStorage.setItem(`${SIDEBAR_SCROLL_KEY}-${activeWorkspace}`, String(nav.scrollTop));
-    nav.addEventListener('scroll', handleScroll, { passive: true });
-    return () => nav.removeEventListener('scroll', handleScroll);
+    const onScroll = () => sessionStorage.setItem(key, String(nav.scrollTop));
+    nav.addEventListener('scroll', onScroll, { passive: true });
+    return () => nav.removeEventListener('scroll', onScroll);
   }, [activeWorkspace]);
 
-  // Dynamic header gradient per workspace / industry
-  const headerGradient = isMarketplace
-    ? 'linear-gradient(135deg, #a855f7 0%, #ec4899 50%, #f43f5e 100%)'
-    : industry?.themeColor
-      ? `linear-gradient(135deg, ${industry.themeColor} 0%, ${industry.themeColor}dd 50%, ${industry.themeColor}aa 100%)`
-      : 'linear-gradient(135deg, #16a34a 0%, #059669 50%, #047857 100%)';
-
-  const accentColor = isMarketplace ? '#a855f7' : (industry?.themeColor || '#10b981');
+  const subtitle = !isMarketplace && industry ? (industry.shortName ?? industry.name)
+    : !isMarketplace && businessType ? businessType.replace(/_/g, ' ').toLowerCase()
+      : workspace.label;
 
   return (
-    <>
-      {/* ═══ HEADER — Premium brand card ═══ */}
-      <div className="px-3 pt-3 pb-2 shrink-0">
-        <div
-          className="relative rounded-2xl p-3.5 shadow-xl overflow-hidden transition-all duration-500 ring-1 ring-white/10"
-          style={{ background: headerGradient }}
-        >
-          {/* Ambient blobs */}
-          <div className="absolute -top-10 -right-10 h-28 w-28 rounded-full bg-white/15 blur-3xl" />
-          <div className="absolute -bottom-10 -left-10 h-24 w-24 rounded-full bg-amber-400/25 blur-3xl" />
-          <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent" />
-
-          {/* Workspace pill */}
-          <div className="relative flex items-center gap-1.5 mb-2.5">
-            <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-white/20 backdrop-blur-sm ring-1 ring-white/25">
-              <Sparkles className="h-2.5 w-2.5 text-amber-300" />
-              <span className="text-[9px] uppercase tracking-widest font-black text-white leading-none">
-                {workspace.shortLabel}
-              </span>
+    <div className="flex h-full min-h-0 flex-col">
+      {/* ─── Store header ─── */}
+      <div className="flex items-center gap-2 px-3 pb-2 pt-3">
+        <div className="flex min-w-0 flex-1 items-center gap-2.5 rounded-xl p-1.5">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-lg text-white shadow-sm"
+            style={{ background: `linear-gradient(135deg, ${accent}, ${accent}cc)` }}>
+            {industry?.emoji && !isMarketplace ? <span className="leading-none">{industry.emoji}</span> : <Logo size={20} />}
+          </span>
+          <div className="min-w-0">
+            <div className="truncate text-[14px] font-semibold leading-tight text-slate-900 dark:text-white">{tenantName || 'My store'}</div>
+            <div className="truncate text-[12px] capitalize text-slate-500 dark:text-slate-400">
+              {subtitle}{tenantSlug ? <span className="normal-case"> · @{tenantSlug}</span> : null}
             </div>
-            <span className="text-base leading-none ml-auto opacity-80">{workspace.emoji}</span>
-          </div>
-
-          <div className="relative flex items-center gap-2.5">
-            <div className="h-11 w-11 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-inner ring-1 ring-white/30 shrink-0 transition-transform hover:scale-105">
-              {isMarketplace ? (
-                <Store className="h-5 w-5 text-white" />
-              ) : industry?.emoji ? (
-                <span className="text-2xl leading-none">{industry.emoji}</span>
-              ) : (
-                <Logo size={24} />
-              )}
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="font-black text-white truncate text-[14px] leading-tight tracking-tight">
-                {tenantName || 'My Store'}
-              </div>
-              <div className="flex items-center gap-1 mt-0.5">
-                {!isMarketplace && industry ? (
-                  <span className="px-1.5 py-0.5 rounded-md bg-black/20 backdrop-blur-sm text-[9px] font-black text-white uppercase tracking-wider">
-                    {industry.emoji} {industry.shortName ?? industry.name}
-                  </span>
-                ) : !isMarketplace && businessType ? (
-                  <span className="px-1.5 py-0.5 rounded-md bg-black/20 backdrop-blur-sm text-[9px] font-black text-white uppercase tracking-wider">
-                    {businessType.replace(/_/g, ' ')}
-                  </span>
-                ) : null}
-                {tenantSlug && (
-                  <span className="text-[10px] text-white/70 font-mono truncate">@{tenantSlug}</span>
-                )}
-              </div>
-            </div>
-            {onCollapse && (
-              <button
-                onClick={onCollapse}
-                className="h-9 w-9 rounded-xl bg-white/15 hover:bg-white/30 backdrop-blur-sm text-white flex items-center justify-center transition shrink-0 active:scale-90 ring-1 ring-white/20"
-                title="Hide sidebar (⌘B)"
-              >
-                <PanelLeftClose className="h-4 w-4" />
-              </button>
-            )}
           </div>
         </div>
+        {onToggleCollapse && (
+          <IconButton label="Collapse sidebar (⌘B)" onClick={onToggleCollapse}><PanelLeftClose className="h-4 w-4" /></IconButton>
+        )}
+        {onClose && (
+          <IconButton label="Close menu" onClick={onClose} className="h-10 w-10"><X className="h-5 w-5" /></IconButton>
+        )}
       </div>
 
-      {/* ═══ SEARCH + CONTROLS ═══ */}
-      <div className="px-3 pb-2 shrink-0 space-y-1.5">
-        <div className="relative group">
-          <Search className="h-3.5 w-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none group-focus-within:text-white transition" />
+      {/* ─── Search ─── */}
+      <div className="flex items-center gap-1 px-3 pb-2">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
-            ref={searchInputRef}
+            ref={searchRef}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search menu..."
-            className={`h-10 w-full rounded-xl bg-slate-800/70 border border-slate-700/70 pl-9 pr-16 text-[13px] font-semibold text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:bg-slate-800 transition ${
-              isMarketplace
-                ? 'focus:border-purple-500 focus:ring-purple-500/25'
-                : 'focus:border-emerald-500 focus:ring-emerald-500/25'
-            }`}
+            onKeyDown={(e) => { if (e.key === 'Escape') { setSearch(''); searchRef.current?.blur(); } }}
+            placeholder="Search menu"
+            aria-label="Search menu"
+            className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-8 pr-8 text-[13px] text-slate-900 placeholder:text-slate-400 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
           />
-          {search ? (
-            <button
-              onClick={() => setSearch('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 rounded-md hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition"
-            >
+          {search && (
+            <button onClick={() => setSearch('')} aria-label="Clear search"
+              className="absolute right-1.5 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800">
               <X className="h-3.5 w-3.5" />
             </button>
-          ) : (
-            <kbd className="absolute right-2 top-1/2 -translate-y-1/2 hidden lg:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-slate-700/70 border border-slate-600/70 font-mono text-[9px] font-bold text-slate-300 pointer-events-none">
-              <Command className="h-2.5 w-2.5" />K
-            </kbd>
           )}
         </div>
-
-        {searchQuery ? (
-          <div className={`text-[10px] font-bold text-center py-0.5 rounded-md ${
-            totalSearchMatches === 0 ? 'text-slate-500' : isMarketplace ? 'text-purple-300' : 'text-emerald-300'
-          }`}>
-            {totalSearchMatches === 0 ? 'No matches' : `${totalSearchMatches} result${totalSearchMatches > 1 ? 's' : ''}`}
-          </div>
-        ) : (
-          <div className="flex items-center gap-1">
-            <button
-              onClick={expandAll}
-              className="flex-1 h-6 rounded-md bg-slate-800/50 hover:bg-slate-700/70 text-[9px] font-black text-slate-400 hover:text-white transition uppercase tracking-wider"
-            >
-              Expand
-            </button>
-            <button
-              onClick={collapseAll}
-              className="flex-1 h-6 rounded-md bg-slate-800/50 hover:bg-slate-700/70 text-[9px] font-black text-slate-400 hover:text-white transition uppercase tracking-wider"
-            >
-              Collapse
-            </button>
-          </div>
+        {!q && (
+          <IconButton label={allOpen ? 'Collapse all groups' : 'Expand all groups'} onClick={() => setAll(!allOpen)}>
+            {allOpen ? <ChevronsDownUp className="h-4 w-4" /> : <ChevronsUpDown className="h-4 w-4" />}
+          </IconButton>
         )}
       </div>
 
-      {/* ═══ NAV ═══ */}
-      <nav
-        ref={navRef}
-        className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-2.5 pb-3 space-y-3 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-700/50"
-      >
-        {/* FAVORITES */}
-        {searchedFavorites.length > 0 && (
-          <SectionBlock
-            icon={Star}
-            iconClass="text-amber-400 fill-amber-400"
-            label="Favorites"
-            count={searchedFavorites.length}
-            labelColor="text-amber-400"
-          >
-            {searchedFavorites.map((item) => (
-              <NavItemLink
-                key={item.to}
-                item={item}
-                onItemClick={onItemClick}
-                isFavorite
-                isFav={isFavorite(item.to)}
-                onToggleFav={(e) => toggleFavorite(item.to, e)}
-                isMarketplace={isMarketplace}
-                accentColor={accentColor}
-              />
-            ))}
-          </SectionBlock>
+      {/* ─── Nav ─── */}
+      <nav ref={navRef} aria-label="Main" className="min-h-0 flex-1 space-y-4 overflow-y-auto overflow-x-hidden px-2 pb-4 [scrollbar-width:thin]">
+        {q && (
+          <div className="px-2.5 text-[12px] text-slate-500">{total === 0 ? 'No matches' : `${total} result${total > 1 ? 's' : ''}`}</div>
         )}
 
-        {/* RECENT */}
-        {!searchQuery && recentItems.length > 0 && (
-          <SectionBlock
-            icon={Clock}
-            iconClass="text-slate-400"
-            label="Recent"
-            count={recentItems.length}
-            labelColor="text-slate-400"
-          >
-            {recentItems.map((item) => (
-              <NavItemLink
-                key={`recent-${item.to}`}
-                item={item}
-                onItemClick={onItemClick}
-                isFav={isFavorite(item.to)}
-                onToggleFav={(e) => toggleFavorite(item.to, e)}
-                isMarketplace={isMarketplace}
-                accentColor={accentColor}
-                muted
-              />
+        {!q && pinned.length > 0 && (
+          <Section title="Pinned" icon={<Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />}>
+            {pinned.map((it) => (
+              <NavRow key={`pin-${it.to}`} item={it} accent={accent} fav onToggleFav={(e) => toggle(it.to, e)} onItemClick={onItemClick} />
             ))}
-          </SectionBlock>
+          </Section>
         )}
 
-        {/* GROUPS */}
-        {searchedGroups.map((group) => {
-          const isOpen = isGroupOpen(group);
-          const GroupIcon = group.icon;
-          const accent = group.color;
+        {!q && recent.length > 0 && (
+          <div>
+            <GroupHeader label="Recently visited" icon={Clock} open={showRecent} onClick={() => setShowRecent((v) => !v)} />
+            {showRecent && (
+              <div className="mt-0.5 space-y-0.5">
+                {recent.map((it) => (
+                  <NavRow key={`rec-${it.to}`} item={it} accent={accent} fav={false} muted onToggleFav={(e) => toggle(it.to, e)} onItemClick={onItemClick} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
+        {shownGroups.map((g) => {
+          const open = isOpen(g);
+          const hasActive = g.items.some((i) => isActivePath(location.pathname, i.to));
           return (
-            <div key={group.label} className="space-y-1">
-              <button
-                onClick={() => toggleGroup(group.label, isOpen)}
-                className="w-full px-2 py-1.5 flex items-center gap-2 rounded-lg hover:bg-slate-800/60 transition group/header text-left"
-              >
-                {group.emoji ? (
-                  <span className="text-[13px] leading-none shrink-0">{group.emoji}</span>
-                ) : (
-                  <GroupIcon className="h-3 w-3 shrink-0" style={accent ? { color: accent } : undefined} />
-                )}
-                <span
-                  className="text-[10px] uppercase tracking-widest font-black flex-1 group-hover/header:brightness-125 transition"
-                  style={{ color: accent || '#94a3b8' }}
-                >
-                  {group.label}
-                </span>
-                <span className="text-[9px] font-black text-slate-600 group-hover/header:text-slate-400 px-1 py-0.5 rounded bg-slate-800/50">
-                  {group.items.length}
-                </span>
-                <ChevronRight
-                  className={`h-3 w-3 text-slate-500 group-hover/header:text-slate-300 transition-transform ${
-                    isOpen ? 'rotate-90' : ''
-                  }`}
-                />
-              </button>
-              {isOpen && (
-                <div className="space-y-0.5 animate-in slide-in-from-top-1 fade-in duration-150">
-                  {group.items.map((item) => (
-                    <NavItemLink
-                      key={item.to}
-                      item={item}
-                      onItemClick={onItemClick}
-                      isFav={isFavorite(item.to)}
-                      onToggleFav={(e) => toggleFavorite(item.to, e)}
-                      isMarketplace={isMarketplace}
-                      accentColor={accentColor}
-                    />
+            <div key={g.id}>
+              <GroupHeader label={g.label} icon={g.icon} color={g.color} open={open} dot={!open && hasActive}
+                live={!open && g.items.some((i) => i.liveCount)} onClick={() => setGroup(g.id, !open)} />
+              {open && (
+                <div className="mt-0.5 space-y-0.5">
+                  {g.items.map((it) => (
+                    <NavRow key={it.to} item={it} accent={accent} fav={favs.includes(it.to)} onToggleFav={(e) => toggle(it.to, e)} onItemClick={onItemClick} />
                   ))}
                 </div>
               )}
@@ -778,174 +305,308 @@ export const Sidebar = memo(function Sidebar({
           );
         })}
 
-        {/* EMPTY STATE */}
-        {searchedFavorites.length === 0 && searchedGroups.length === 0 && (
-          <div className="px-4 py-12 text-center">
-            <div className="h-16 w-16 rounded-2xl bg-slate-800/60 mx-auto flex items-center justify-center mb-3 ring-1 ring-slate-700">
-              <Search className="h-7 w-7 text-slate-600" />
-            </div>
-            <div className="text-sm font-black text-slate-300">No matches</div>
-            <div className="text-xs text-slate-500 mt-1 font-semibold">Try different keywords</div>
-            <button
-              onClick={() => setSearch('')}
-              className={`mt-3 text-xs font-black underline transition ${
-                isMarketplace ? 'text-purple-400 hover:text-purple-300' : 'text-emerald-400 hover:text-emerald-300'
-              }`}
-            >
-              Clear search
-            </button>
+        {shownSettings.length > 0 && (
+          <Section title="Settings" icon={<Settings className="h-3.5 w-3.5 text-slate-400" />}>
+            {shownSettings.map((it) => (
+              <NavRow key={`set-${it.to}`} item={it} accent={accent} fav={false} hideStar onItemClick={onItemClick} />
+            ))}
+          </Section>
+        )}
+
+        {q && total === 0 && (
+          <div className="px-4 py-10 text-center">
+            <Search className="mx-auto h-8 w-8 text-slate-300 dark:text-slate-700" />
+            <div className="mt-2 text-sm font-semibold text-slate-700 dark:text-slate-200">Nothing found for “{search}”</div>
+            <button onClick={() => setSearch('')} className="mt-2 text-[13px] font-medium text-emerald-700 hover:underline dark:text-emerald-400">Clear search</button>
           </div>
         )}
       </nav>
 
-      {/* ═══ FOOTER ═══ */}
-      <div className="px-3 py-2.5 border-t border-slate-800/70 shrink-0 space-y-2 bg-gradient-to-b from-transparent to-slate-900/50">
-        <div
-          className={`rounded-xl p-2.5 border ring-1 ring-inset transition ${
-            isMarketplace
-              ? 'bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-500/25 ring-purple-500/10'
-              : 'bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-500/25 ring-amber-500/10'
-          }`}
-        >
-          <div className="flex items-start gap-2">
-            <Sparkles className={`h-3 w-3 shrink-0 mt-0.5 ${isMarketplace ? 'text-purple-400' : 'text-amber-400'}`} />
-            <p className="text-[10px] text-slate-300 leading-snug font-medium">
-              <span className={`font-black ${isMarketplace ? 'text-purple-300' : 'text-amber-300'}`}>Tip:</span>{' '}
-              {isMarketplace ? 'Switch to POS anytime ⌘⇧W' : 'Click ⭐ next to menu items to pin them'}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center justify-between px-1 text-[9px] font-black text-slate-500">
-          <span className="flex items-center gap-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            Nafaa · {workspace.shortLabel}
+      {/* ─── Footer: Settings like Shopify ─── */}
+      <div className="shrink-0 space-y-0.5 border-t border-slate-200/80 px-2 py-2 dark:border-slate-800">
+        <FooterLink to={settingsHome} icon={Settings} label="Settings" active={isSettingsPath(location.pathname)} onClick={onItemClick} />
+        <FooterLink to="/help" icon={HelpCircle} label="Help center" active={isActivePath(location.pathname, '/help')} onClick={onItemClick} />
+        <div className="flex items-center justify-between px-2.5 pt-1.5 text-[11px] text-slate-400">
+          <span className="flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> {workspace.shortLabel} workspace
           </span>
-          <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-[9px] text-slate-400">
-            ⌘B
-          </kbd>
+          {onToggleCollapse && <Kbd>⌘B</Kbd>}
         </div>
       </div>
-    </>
+    </div>
   );
-});
+}
 
-// ═══════════════════════════════════════════════════════════════
-// SectionBlock — Reusable section header + items
-// ═══════════════════════════════════════════════════════════════
-function SectionBlock({
-  icon: Icon, iconClass, label, count, labelColor, children,
-}: {
-  icon: any;
-  iconClass?: string;
-  label: string;
-  count: number;
-  labelColor: string;
-  children: React.ReactNode;
-}) {
+function Section({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="space-y-1">
-      <div className="px-2 flex items-center gap-1.5">
-        <Icon className={`h-3 w-3 ${iconClass || ''}`} />
-        <span className={`text-[10px] uppercase tracking-widest font-black ${labelColor}`}>
-          {label}
-        </span>
-        <span className="text-[9px] font-black text-slate-600 ml-auto px-1 py-0.5 rounded bg-slate-800/50">
-          {count}
-        </span>
+    <div>
+      <div className="flex items-center gap-2 px-2.5 py-1.5 text-[12px] font-semibold text-slate-500 dark:text-slate-400">
+        {icon}<span>{title}</span>
       </div>
       <div className="space-y-0.5">{children}</div>
     </div>
   );
 }
 
-// ═══════════════════════════════════════════════════════════════
-// NavItemLink — Premium item with active bar indicator
-// ═══════════════════════════════════════════════════════════════
-function NavItemLink({
-  item, onItemClick, isFavorite, isFav, onToggleFav, isMarketplace, accentColor, muted,
-}: {
-  item: NavItem;
-  onItemClick?: () => void;
-  isFavorite?: boolean;
-  isFav: boolean;
-  onToggleFav: (e: React.MouseEvent) => void;
-  isMarketplace?: boolean;
-  accentColor?: string;
-  muted?: boolean;
+function GroupHeader({ label, icon: Icon, color, open, dot, live, onClick }: {
+  label: string; icon: any; color?: string; open: boolean; dot?: boolean; live?: boolean; onClick: () => void;
+}) {
+  return (
+    <button onClick={onClick} aria-expanded={open}
+      className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-[12px] font-semibold text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
+      <Icon className="h-3.5 w-3.5 shrink-0" style={color ? { color } : undefined} />
+      <span className="flex-1 truncate">{label}</span>
+      {live && <OnlineOrdersCount compact />}
+      {dot && <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-label="Current page is in this group" />}
+      <ChevronDown className={cn('h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform duration-200', !open && '-rotate-90')} />
+    </button>
+  );
+}
+
+function NavRow({ item, accent, fav, muted, hideStar, onToggleFav, onItemClick }: {
+  item: NavItem; accent: string; fav: boolean; muted?: boolean; hideStar?: boolean;
+  onToggleFav?: (e: React.MouseEvent) => void; onItemClick?: () => void;
 }) {
   const Icon = item.icon;
-
-  const activeGradient = isMarketplace
-    ? 'bg-gradient-to-r from-purple-600/95 to-pink-600/95 shadow-purple-900/40'
-    : 'bg-gradient-to-r from-emerald-600/95 to-teal-600/95 shadow-emerald-900/40';
-
   return (
     <NavLink
       to={item.to}
-      end={item.to === '/staff' || item.to === '/products'}
+      end={END_PATHS.has(item.to)}
       onClick={onItemClick}
-      className={({ isActive }) =>
-        [
-          'group/item relative flex items-center gap-2.5 rounded-xl pl-3 pr-2 py-2 text-[12.5px] font-bold transition-all duration-150',
-          isActive
-            ? `${activeGradient} text-white shadow-lg ring-1 ring-white/10`
-            : muted
-              ? 'text-slate-500 hover:bg-slate-800/60 hover:text-slate-200 hover:translate-x-0.5'
-              : isFavorite
-                ? 'text-slate-200 hover:bg-slate-800/70 hover:text-white hover:translate-x-0.5'
-                : 'text-slate-400 hover:bg-slate-800/60 hover:text-white hover:translate-x-0.5',
-        ].join(' ')
-      }
+      className={({ isActive }) => cn(
+        'group/item relative flex h-9 items-center gap-2.5 rounded-lg pl-2.5 pr-1 text-[13.5px] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500',
+        isActive
+          ? 'bg-white font-semibold text-slate-900 shadow-sm ring-1 ring-slate-200/80 dark:bg-slate-800 dark:text-white dark:ring-slate-700'
+          : muted
+            ? 'font-medium text-slate-500 hover:bg-white/70 hover:text-slate-900 dark:text-slate-500 dark:hover:bg-slate-800/60 dark:hover:text-white'
+            : 'font-medium text-slate-600 hover:bg-white/70 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-white',
+      )}
     >
       {({ isActive }) => (
         <>
-          {/* Active left indicator bar */}
-          {isActive && (
-            <span
-              className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full bg-white shadow-lg"
-              style={{ boxShadow: `0 0 8px ${accentColor}` }}
-            />
-          )}
-
-          <div className="relative shrink-0">
-            <Icon className="h-3.5 w-3.5" />
-            {item.hot && (
-              <span className="absolute -top-1 -right-1 h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse ring-2 ring-slate-900" />
-            )}
-          </div>
-          <span className="truncate flex-1">{item.label}</span>
-
-          {item.badge && (
-            <span
-              className={`text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-wider shrink-0 shadow-sm ${
-                item.badge === 'LIVE'
-                  ? 'bg-rose-500 text-white animate-pulse'
-                  : item.badge === 'NEW'
-                    ? 'bg-emerald-500 text-white'
-                    : item.badge === 'AI'
-                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
-                      : item.badge === 'FAST'
-                        ? 'bg-orange-500 text-white'
-                        : 'bg-amber-500 text-white'
-              }`}
+          <Icon className="h-4 w-4 shrink-0" style={isActive ? { color: accent } : undefined} />
+          <span className="min-w-0 flex-1 truncate">{item.label}</span>
+          {item.hot && !isActive && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" aria-hidden />}
+          {item.liveCount === 'online-orders' && <OnlineOrdersCount />}
+          {!!item.count && <CountPill n={item.count} />}
+          {item.dim && <span className="shrink-0 text-[10px] font-medium text-slate-400">off</span>}
+          {item.badge && <ItemBadge text={item.badge} />}
+          {!hideStar && onToggleFav && (
+            <button
+              type="button"
+              onClick={onToggleFav}
+              aria-label={fav ? `Unpin ${item.label}` : `Pin ${item.label}`}
+              title={fav ? 'Unpin' : 'Pin to top'}
+              className={cn(
+                'flex h-6 w-6 shrink-0 items-center justify-center rounded-md transition',
+                fav
+                  ? 'text-amber-500 hover:bg-amber-500/10'
+                  : 'text-slate-400 opacity-0 hover:bg-slate-900/5 hover:text-amber-500 focus-visible:opacity-100 group-hover/item:opacity-100 [@media(hover:none)]:opacity-40 dark:hover:bg-white/10',
+              )}
             >
-              {item.badge}
-            </span>
+              <Star className={cn('h-3.5 w-3.5', fav && 'fill-current')} />
+            </button>
           )}
-
-          <button
-            onClick={onToggleFav}
-            className={`h-5 w-5 rounded-md flex items-center justify-center transition shrink-0 ${
-              isFav
-                ? 'opacity-100 text-amber-400 hover:text-amber-300 hover:bg-amber-500/15'
-                : 'opacity-0 group-hover/item:opacity-100 text-slate-500 hover:text-amber-400 hover:bg-slate-700/60'
-            }`}
-            title={isFav ? 'Remove from favorites' : 'Add to favorites'}
-          >
-            {isFav ? <Star className="h-3 w-3 fill-current" /> : <StarOff className="h-3 w-3" />}
-          </button>
         </>
       )}
     </NavLink>
+  );
+}
+
+function FooterLink({ to, icon: Icon, label, active, onClick }: { to: string; icon: any; label: string; active: boolean; onClick?: () => void }) {
+  return (
+    <NavLink to={to} onClick={onClick}
+      className={cn(
+        'flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-[13.5px] transition-colors',
+        active
+          ? 'bg-white font-semibold text-slate-900 shadow-sm ring-1 ring-slate-200/80 dark:bg-slate-800 dark:text-white dark:ring-slate-700'
+          : 'font-medium text-slate-600 hover:bg-white/70 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-white',
+      )}>
+      <Icon className="h-4 w-4" /> {label}
+    </NavLink>
+  );
+}
+
+function ItemBadge({ text }: { text: string }) {
+  const tone = text === 'LIVE' ? 'bg-rose-500 text-white' : text === 'NEW' ? 'bg-emerald-500 text-white'
+    : text === 'AI' ? 'bg-violet-500 text-white' : 'bg-amber-500 text-white';
+  return <span className={cn('shrink-0 rounded px-1.5 py-0.5 text-[9px] font-bold tracking-wide', tone)}>{text}</span>;
+}
+
+function CountPill({ n }: { n: number }) {
+  return (
+    <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-md bg-amber-500/15 px-1.5 text-[10px] font-bold tabular-nums text-amber-700 dark:text-amber-300">
+      {n > 99 ? '99+' : n}
+    </span>
+  );
+}
+
+/** Pending online orders — same query that powers the new-order popup */
+export function OnlineOrdersCount({ compact, dot }: { compact?: boolean; dot?: boolean }) {
+  const { data } = useLiveOnlineOrders();
+  const n = data?.pendingCount ?? 0;
+  if (!n) return null;
+  if (dot) return <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-amber-500 ring-2 ring-[#eef0f3] dark:ring-slate-950" aria-label={`${n} new online orders`} />;
+  return (
+    <span className={cn('flex shrink-0 items-center justify-center rounded-md bg-amber-500 font-bold text-white tabular-nums',
+      compact ? 'h-4 min-w-4 px-1 text-[9px]' : 'h-5 min-w-5 px-1.5 text-[10px]')}>
+      {n > 99 ? '99+' : n}
+    </span>
+  );
+}
+
+/* ═════════════════════════════ COLLAPSED RAIL ═════════════════════════════ */
+type Fly = { key: string; top: number; label: string; group?: NavGroup };
+
+function SidebarRail({ role, permissions, onToggleCollapse }: Props) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { groups, settingsHome, industry, isMarketplace } = useVisibleNav(role, permissions);
+  useRecentPaths();
+  const { favs } = useFavorites();
+  const [fly, setFly] = useState<Fly | null>(null);
+  const [pinnedOpen, setPinnedOpen] = useState(false);
+  const timer = useRef<number | undefined>(undefined);
+  const railRef = useRef<HTMLDivElement>(null);
+  const flyRef = useRef<HTMLDivElement>(null);
+
+  const accent = isMarketplace ? '#a855f7' : industry?.themeColor || '#059669';
+  const byPath = useMemo(() => {
+    const m = new Map<string, NavItem>();
+    groups.forEach((g) => g.items.forEach((i) => m.set(i.to, i)));
+    return m;
+  }, [groups]);
+  const pinned = favs.map((p) => byPath.get(p)).filter(Boolean) as NavItem[];
+
+  const show = (key: string, el: HTMLElement, label: string, group?: NavGroup) => {
+    window.clearTimeout(timer.current);
+    const r = el.getBoundingClientRect();
+    const est = group ? group.items.length * 38 + 52 : 36;
+    setFly({ key, label, group, top: Math.max(8, Math.min(r.top - (group ? 6 : -2), window.innerHeight - est - 8)) });
+  };
+  const hideSoon = () => { window.clearTimeout(timer.current); timer.current = window.setTimeout(() => setFly(null), 160); };
+  const keep = () => window.clearTimeout(timer.current);
+
+  useEffect(() => { setFly(null); }, [location.pathname]);
+  useEffect(() => () => window.clearTimeout(timer.current), []);
+
+  // Tap outside closes a flyout opened by touch
+  useEffect(() => {
+    if (!fly?.group) return;
+    const onDown = (e: MouseEvent | TouchEvent) => {
+      const t = e.target as Node;
+      if (!railRef.current?.contains(t) && !flyRef.current?.contains(t)) setFly(null);
+    };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('touchstart', onDown, { passive: true });
+    return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('touchstart', onDown); };
+  }, [fly?.group]);
+
+  const railBtn = (active: boolean) => cn(
+    'relative flex h-10 w-10 items-center justify-center rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500',
+    active ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200 dark:bg-slate-800 dark:text-white dark:ring-slate-700'
+      : 'text-slate-500 hover:bg-white/80 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/70 dark:hover:text-white',
+  );
+
+  const visiblePinned = pinnedOpen ? pinned : pinned.slice(0, 5);
+
+  return (
+    <div ref={railRef} className="flex h-full min-h-0 flex-col items-center gap-1 py-3">
+      <button onClick={onToggleCollapse} aria-label="Expand sidebar (⌘B)"
+        onMouseEnter={(e) => show('logo', e.currentTarget, 'Expand sidebar  ⌘B')} onMouseLeave={hideSoon}
+        className="group relative mb-1 flex h-10 w-10 items-center justify-center rounded-xl text-white shadow-sm"
+        style={{ background: `linear-gradient(135deg, ${accent}, ${accent}cc)` }}>
+        <span className="transition-opacity group-hover:opacity-0">
+          {industry?.emoji && !isMarketplace ? <span className="text-lg leading-none">{industry.emoji}</span> : <Logo size={20} />}
+        </span>
+        <PanelLeftOpen className="absolute h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
+      </button>
+
+      <div className="flex min-h-0 w-full flex-1 flex-col items-center gap-1 overflow-y-auto overflow-x-hidden px-2 [scrollbar-width:none]">
+        {visiblePinned.map((it) => {
+          const Icon = it.icon;
+          const active = isActivePath(location.pathname, it.to);
+          return (
+            <NavLink key={`p-${it.to}`} to={it.to} aria-label={it.label} className={railBtn(active)}
+              onMouseEnter={(e) => show(`p-${it.to}`, e.currentTarget, it.label)} onMouseLeave={hideSoon}>
+              <Icon className="h-[18px] w-[18px]" style={active ? { color: accent } : undefined} />
+              {it.liveCount && <OnlineOrdersCount dot />}
+            </NavLink>
+          );
+        })}
+        {pinned.length > 5 && (
+          <button onClick={() => setPinnedOpen((v) => !v)} className="h-5 text-[10px] font-semibold text-slate-400 hover:text-slate-700">
+            {pinnedOpen ? 'less' : `+${pinned.length - 5}`}
+          </button>
+        )}
+        {pinned.length > 0 && <div className="my-1.5 h-px w-8 shrink-0 bg-slate-300/70 dark:bg-slate-800" />}
+
+        {groups.map((g) => {
+          const Icon = g.icon;
+          const active = g.items.some((i) => isActivePath(location.pathname, i.to));
+          const openNow = fly?.key === g.id;
+          return (
+            <button key={g.id} aria-label={g.label} aria-expanded={openNow}
+              className={cn(railBtn(active), openNow && !active && 'bg-white/80 text-slate-900 dark:bg-slate-800/70 dark:text-white')}
+              onMouseEnter={(e) => show(g.id, e.currentTarget, g.label, g)} onMouseLeave={hideSoon}
+              onClick={(e) => (openNow ? setFly(null) : show(g.id, e.currentTarget, g.label, g))}>
+              <Icon className="h-[18px] w-[18px]" style={active ? { color: accent } : g.color ? { color: g.color } : undefined} />
+              {g.items.some((i) => i.liveCount) && <OnlineOrdersCount dot />}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="flex shrink-0 flex-col items-center gap-1 border-t border-slate-200/80 px-2 pt-2 dark:border-slate-800">
+        <NavLink to={settingsHome} aria-label="Settings" className={railBtn(isSettingsPath(location.pathname))}
+          onMouseEnter={(e) => show('settings', e.currentTarget, 'Settings')} onMouseLeave={hideSoon}>
+          <Settings className="h-[18px] w-[18px]" />
+        </NavLink>
+        <NavLink to="/help" aria-label="Help center" className={railBtn(isActivePath(location.pathname, '/help'))}
+          onMouseEnter={(e) => show('help', e.currentTarget, 'Help center')} onMouseLeave={hideSoon}>
+          <HelpCircle className="h-[18px] w-[18px]" />
+        </NavLink>
+        <button onClick={onToggleCollapse} aria-label="Expand sidebar" className={railBtn(false)}
+          onMouseEnter={(e) => show('expand', e.currentTarget, 'Expand sidebar  ⌘B')} onMouseLeave={hideSoon}>
+          <PanelLeftOpen className="h-[18px] w-[18px]" />
+        </button>
+      </div>
+
+      {fly && createPortal(
+        <div ref={flyRef} onMouseEnter={keep} onMouseLeave={hideSoon} style={{ top: fly.top, left: 80 }}
+          className={cn(
+            'fixed z-[80] animate-in fade-in slide-in-from-left-1 duration-100',
+            fly.group
+              ? 'w-60 rounded-xl border border-slate-200 bg-white p-1.5 text-slate-900 shadow-xl dark:border-slate-800 dark:bg-slate-900 dark:text-white'
+              : 'pointer-events-none whitespace-pre rounded-lg bg-slate-900 px-2.5 py-1.5 text-[12px] font-medium text-white shadow-lg dark:bg-white dark:text-slate-900',
+          )}>
+          {fly.group ? (
+            <>
+              <div className="flex items-center gap-2 px-2.5 pb-1.5 pt-1 text-[12px] font-semibold text-slate-500 dark:text-slate-400">
+                <fly.group.icon className="h-3.5 w-3.5" style={fly.group.color ? { color: fly.group.color } : undefined} /> {fly.group.label}
+              </div>
+              <div className="space-y-0.5">
+                {fly.group.items.map((it) => {
+                  const Icon = it.icon;
+                  const active = isActivePath(location.pathname, it.to);
+                  return (
+                    <button key={it.to} onClick={() => { navigate(it.to); setFly(null); }}
+                      className={cn('flex h-9 w-full items-center gap-2.5 rounded-lg px-2.5 text-left text-[13.5px] transition-colors',
+                        active ? 'bg-slate-100 font-semibold dark:bg-slate-800' : 'font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/60 dark:hover:text-white')}>
+                      <Icon className="h-4 w-4 shrink-0" style={active ? { color: accent } : undefined} />
+                      <span className="flex-1 truncate">{it.label}</span>
+                      {it.liveCount === 'online-orders' && <OnlineOrdersCount />}
+                      {!!it.count && <CountPill n={it.count} />}
+                      {it.badge && <ItemBadge text={it.badge} />}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          ) : fly.label}
+        </div>,
+        document.body,
+      )}
+    </div>
   );
 }

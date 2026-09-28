@@ -16,6 +16,9 @@ import MarketplaceSettingsPage from '@modules/organization/marketplace-settings/
 
 // ─── Integrations Hub ──────────────────────────────────────────
 import IntegrationHubPage from '@integrations/pages/IntegrationHubPage';
+import {
+  OnlineOrdersPage, WebsiteConnectPage, WebsiteRedirect, ConnectChannelPage, ChannelsListPage, ConnectDonePage,
+} from '@integrations/online-orders';
 
 // ─── FBR Tax Integration ───────────────────────────────────────
 import { FbrSetupPage, FbrInvoicesPage, FbrReportsPage, FbrAnalyticsPage, FbrSetupWizard } from '@integrations/fbr';
@@ -583,6 +586,8 @@ export default function App() {
               <Route path="/onboarding" element={<OnboardingPage />} />
               <Route path="/verify-email" element={<EmailVerifyPage />} />
               <Route path="/sales/:id/receipt" element={<ReceiptGate />} />
+              {/* WooCommerce "Approve" ke baad popup yahan wapas aata hai — shell ke bagair */}
+              <Route path="/connect/:platform/done" element={<ConnectDonePage />} />
 
               <Route element={<OnboardingGate />}>
                 <Route element={<AppShell />}>
@@ -658,6 +663,11 @@ export default function App() {
                   <Route path="/settings" element={secure(PERMISSIONS.SETTINGS_VIEW, <SettingsPage />)} />
                   <Route path="/marketplace/settings" element={secure(PERMISSIONS.SETTINGS_VIEW, <MarketplaceSettingsPage />)} />
                   <Route path="/integrations" element={<IntegrationHubPage />} />
+                  <Route path="/online-orders" element={secure(PERMISSIONS.SALES_VIEW, <OnlineOrdersPage />)} />
+                  <Route path="/online-store/website" element={secure(PERMISSIONS.SETTINGS_VIEW, <WebsiteRedirect />)} />
+                  <Route path="/online-store/channels" element={secure(PERMISSIONS.SETTINGS_VIEW, <ChannelsListPage />)} />
+                  <Route path="/online-store/channels/:id" element={secure(PERMISSIONS.SETTINGS_VIEW, <WebsiteConnectPage />)} />
+                  <Route path="/online-store/connect" element={secure(PERMISSIONS.SETTINGS_VIEW, <ConnectChannelPage />)} />
                   <Route path="/fbr" element={<FbrSetupPage />} />
                   <Route path="/fbr/setup" element={<FbrSetupPage />} />
                   <Route path="/fbr/invoices" element={<FbrInvoicesPage />} />

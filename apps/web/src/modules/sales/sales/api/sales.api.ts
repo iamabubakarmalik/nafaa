@@ -88,6 +88,10 @@ export interface Sale {
   receivedByName?: string | null;
   receivedByPhone?: string | null;
   receivedByCnic?: string | null;
+  /** Kahan se aayi — POS counter ya online (website, Daraz…) */
+  source?: 'POS' | 'WEBSITE' | 'DARAZ' | 'FOODPANDA' | 'SHOPIFY' | 'MARKETPLACE';
+  /** Online order ka number (#1042) */
+  sourceRef?: string | null;
   customer?: {
     id: string;
     name: string;

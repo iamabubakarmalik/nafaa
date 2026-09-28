@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import {
-  ChevronDown, Check, Sparkles, ArrowRight, Store, ShoppingBag, Zap,
-} from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Check, ChevronsUpDown } from 'lucide-react';
 import { useWorkspaceStore, WORKSPACES, type WorkspaceId } from '@core/stores/workspace.store';
+import { cn } from '@core/lib/cn';
+import { Kbd, Panel, useDismiss } from './shell-ui';
 
+/** ⌥W opens it (⌘⇧W would close the browser window) */
 export function WorkspaceSwitcher() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -12,43 +13,25 @@ export function WorkspaceSwitcher() {
   const ref = useRef<HTMLDivElement>(null);
   const { activeWorkspace, setWorkspace } = useWorkspaceStore();
   const current = WORKSPACES[activeWorkspace];
+  const close = useCallback(() => setOpen(false), []);
+  useDismiss(ref, open, close);
 
   useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.altKey && !e.metaKey && !e.ctrlKey && e.code === 'KeyW') { e.preventDefault(); setOpen((v) => !v); }
     };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
   }, []);
 
+  // Follow the URL: marketplace pages switch to marketplace, core POS pages back to POS
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && open) setOpen(false);
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'W') {
-        e.preventDefault();
-        setOpen((v) => !v);
-      }
-    };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, [open]);
-
-  // Auto-detect workspace from URL
-  useEffect(() => {
-    const isMarketplaceRoute = location.pathname.startsWith('/marketplace');
-    if (isMarketplaceRoute && activeWorkspace !== 'marketplace') {
-      setWorkspace('marketplace');
-    } else if (!isMarketplaceRoute && activeWorkspace !== 'pos') {
-      if (
-        location.pathname.startsWith('/dashboard') ||
-        location.pathname.startsWith('/pos') ||
-        location.pathname.startsWith('/products') ||
-        location.pathname.startsWith('/customers') ||
-        location.pathname.startsWith('/sales') ||
-        location.pathname.startsWith('/inventory')
-      ) {
-        setWorkspace('pos');
-      }
+    const p = location.pathname;
+    const isMarketplaceRoute = p.startsWith('/marketplace');
+    if (isMarketplaceRoute && activeWorkspace !== 'marketplace') setWorkspace('marketplace');
+    else if (!isMarketplaceRoute && activeWorkspace !== 'pos'
+      && ['/dashboard', '/pos', '/products', '/customers', '/sales', '/inventory'].some((x) => p.startsWith(x))) {
+      setWorkspace('pos');
     }
   }, [location.pathname, activeWorkspace, setWorkspace]);
 
@@ -60,127 +43,60 @@ export function WorkspaceSwitcher() {
 
   return (
     <div ref={ref} className="relative">
-      {/* TRIGGER */}
       <button
         onClick={() => setOpen((v) => !v)}
-        className={`group relative flex items-center gap-2 h-10 sm:h-11 pl-1.5 sm:pl-2 pr-2 sm:pr-3 rounded-xl sm:rounded-2xl transition-all shadow-md overflow-hidden ${
-          open ? 'ring-2 ring-white/40 scale-[1.02]' : 'hover:ring-2 hover:ring-white/25'
-        }`}
-        style={{
-          background: activeWorkspace === 'marketplace'
-            ? 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)'
-            : 'linear-gradient(135deg, #059669 0%, #14b8a6 100%)',
-        }}
-        aria-label="Switch workspace"
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        aria-label={`Workspace: ${current.label}. Switch workspace`}
+        className={cn(
+          'flex h-10 items-center gap-2 rounded-xl border px-1.5 pr-2 transition sm:pr-2.5',
+          open ? 'border-slate-300 bg-slate-50 dark:border-slate-600 dark:bg-slate-800'
+            : 'border-slate-200 bg-white hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800',
+        )}
       >
-        {/* Shine */}
-        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-
-        <div className="relative h-7 w-7 sm:h-8 sm:w-8 rounded-lg sm:rounded-xl bg-white/25 backdrop-blur flex items-center justify-center shadow-inner ring-1 ring-white/30 shrink-0">
-          <span className="text-base sm:text-lg leading-none">{current.emoji}</span>
-        </div>
-        <div className="relative hidden sm:block text-left min-w-0">
-          <div className="text-[9px] font-black uppercase tracking-widest text-white/85 leading-none">
-            Workspace
-          </div>
-          <div className="text-sm font-black text-white leading-tight mt-0.5 truncate max-w-[100px]">
-            {current.shortLabel}
-          </div>
-        </div>
-        <ChevronDown
-          className={`relative h-4 w-4 text-white/90 transition-transform shrink-0 ${open ? 'rotate-180' : ''}`}
-        />
+        <span className={cn('flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br text-[15px] leading-none shadow-sm', current.gradient)}>
+          {current.emoji}
+        </span>
+        <span className="hidden text-left sm:block">
+          <span className="block text-[10px] font-medium leading-none text-slate-500">Workspace</span>
+          <span className="mt-0.5 block max-w-[110px] truncate text-[13px] font-semibold leading-tight text-slate-900 dark:text-white">{current.shortLabel}</span>
+        </span>
+        <ChevronsUpDown className="h-3.5 w-3.5 text-slate-400" />
       </button>
 
-      {/* DROPDOWN */}
-      {open && (
-        <div className="absolute left-0 top-full mt-2 w-[360px] max-w-[calc(100vw-1.5rem)] rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-          {/* Header */}
-          <div className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white p-4">
-            <div className="absolute -top-8 -right-8 h-24 w-24 rounded-full bg-purple-400/20 blur-2xl" />
-            <div className="absolute -bottom-8 -left-8 h-24 w-24 rounded-full bg-emerald-400/20 blur-2xl" />
-            <div className="relative flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-amber-300 shrink-0" />
-              <div className="min-w-0">
-                <div className="text-[10px] font-black uppercase tracking-widest text-amber-300">
-                  Switch Workspace
-                </div>
-                <div className="text-sm font-black">Choose your view</div>
-              </div>
-              <div className="ml-auto text-[9px] font-mono font-bold px-2 py-1 rounded-md bg-white/15 backdrop-blur border border-white/20 shrink-0">
-                ⌘⇧W
-              </div>
-            </div>
+      <Panel open={open} onClose={close} align="left" widthClass="sm:w-[360px]" label="Switch workspace">
+        <div className="flex items-center justify-between px-4 pb-2 pt-3 sm:pt-4">
+          <div>
+            <div className="text-[15px] font-semibold">Workspaces</div>
+            <div className="text-[12px] text-slate-500">Same data, different tools</div>
           </div>
-
-          {/* Cards */}
-          <div className="p-3 space-y-2">
-            {(Object.values(WORKSPACES) as Array<typeof WORKSPACES[WorkspaceId]>).map((ws) => {
-              const isActive = ws.id === activeWorkspace;
-              return (
-                <button
-                  key={ws.id}
-                  onClick={() => switchTo(ws.id)}
-                  className={`group/card relative w-full text-left rounded-2xl overflow-hidden transition-all ${
-                    isActive ? 'ring-2 ring-white shadow-lg scale-[1.01]' : 'hover:shadow-md hover:scale-[1.01]'
-                  }`}
-                >
-                  <div className={`relative bg-gradient-to-br ${ws.gradient} text-white p-4`}>
-                    <div className="absolute -top-8 -right-8 h-20 w-20 rounded-full bg-white/10 blur-2xl" />
-
-                    <div className="relative flex items-start gap-3">
-                      <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center text-2xl sm:text-3xl shadow-inner ring-2 ring-white/30 shrink-0">
-                        {ws.emoji}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-black text-base sm:text-lg leading-tight">{ws.label}</span>
-                          {isActive && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/25 backdrop-blur text-[9px] font-black uppercase tracking-wider">
-                              <Check className="h-2.5 w-2.5" />
-                              Active
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-white/90 font-medium mt-1 leading-snug">
-                          {ws.description}
-                        </p>
-                        <div className="mt-2 flex items-center gap-1 text-[10px] font-black text-white/95">
-                          {ws.id === 'pos' ? (
-                            <>
-                              <Store className="h-2.5 w-2.5" />
-                              <span className="truncate">Inventory · Sales · Reports</span>
-                            </>
-                          ) : (
-                            <>
-                              <ShoppingBag className="h-2.5 w-2.5" />
-                              <span className="truncate">Storefront · Orders · Growth</span>
-                            </>
-                          )}
-                          <ArrowRight className={`h-2.5 w-2.5 ml-auto transition-transform shrink-0 ${
-                            isActive ? '' : 'group-hover/card:translate-x-1'
-                          }`} />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Footer */}
-          <div className="px-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between gap-2">
-            <p className="text-[10px] text-slate-600 dark:text-slate-400 font-bold flex items-center gap-1 min-w-0">
-              <Zap className="h-2.5 w-2.5 text-amber-500 shrink-0" />
-              <span className="truncate">Switch anytime — data stays synced</span>
-            </p>
-            <kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 font-mono text-[9px] font-black text-slate-600 dark:text-slate-300 shrink-0">
-              ⌘⇧W
-            </kbd>
-          </div>
+          <Kbd className="hidden sm:inline-flex">⌥W</Kbd>
         </div>
-      )}
+        <div className="space-y-1.5 overflow-y-auto p-2 pt-1">
+          {(Object.values(WORKSPACES) as Array<(typeof WORKSPACES)[WorkspaceId]>).map((ws) => {
+            const active = ws.id === activeWorkspace;
+            return (
+              <button key={ws.id} onClick={() => switchTo(ws.id)}
+                className={cn('flex w-full items-start gap-3 rounded-xl border p-3 text-left transition',
+                  active ? 'border-emerald-500/60 bg-emerald-50/60 dark:border-emerald-500/40 dark:bg-emerald-500/10'
+                    : 'border-transparent hover:border-slate-200 hover:bg-slate-50 dark:hover:border-slate-700 dark:hover:bg-slate-800/60')}>
+                <span className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-xl shadow-sm', ws.gradient)}>{ws.emoji}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center gap-2">
+                    <span className="text-[14px] font-semibold">{ws.label}</span>
+                    {active && <span className="rounded-full bg-emerald-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">Current</span>}
+                  </span>
+                  <span className="mt-0.5 block text-[12.5px] leading-snug text-slate-500 dark:text-slate-400">{ws.description}</span>
+                </span>
+                {active && <Check className="mt-1 h-4 w-4 shrink-0 text-emerald-600" />}
+              </button>
+            );
+          })}
+        </div>
+        <div className="border-t border-slate-100 px-4 py-2.5 text-[12px] text-slate-500 dark:border-slate-800">
+          Your products, sales and customers stay in sync across workspaces.
+        </div>
+      </Panel>
     </div>
   );
 }

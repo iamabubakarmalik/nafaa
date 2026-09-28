@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { PanelLeft } from 'lucide-react';
 import { useAuthStore } from '@core/stores/auth.store';
 import { authApi } from '@modules/auth/api/auth.api';
 import { Sidebar } from './parts/Sidebar';
 import { MobileSidebar } from './parts/MobileSidebar';
 import { Topbar } from './parts/Topbar';
+import { SettingsShell } from './parts/SettingsShell';
+import { isSettingsPath, LAST_APP_PATH_KEY } from './parts/navConfig';
 import { DesktopUpdateBanner } from '@modules/desktop/components/DesktopUpdateBanner';
 import { DesktopStatusBar } from '@modules/desktop/components/DesktopStatusBar';
 import { useRealtimeNotifications } from '@core/hooks/useRealtimeNotifications';
@@ -19,6 +20,8 @@ import { useDesktopAutoBackup } from '@core/lib/desktop/useDesktopAutoBackup';
 import { useDesktopMemory, useDesktopPower } from '@core/lib/desktop/useDesktopMemory';
 import { useDesktopDeepLink } from '@core/lib/desktop/useDesktopDeepLink';
 import { useFbrNotifications } from '@integrations/fbr/hooks/useFbrNotifications';
+import { OnlineOrderAlert } from '@integrations/online-orders/components/OnlineOrderAlert';
+import { cn } from '@core/lib/cn';
 
 const SIDEBAR_COLLAPSED_KEY = 'nafaa-sidebar-collapsed';
 
@@ -37,82 +40,83 @@ export default function AppShell() {
   const location = useLocation();
   const { user, tenant, refreshToken, logout } = useAuthStore();
 
-  // PIN ab server par hai — login hote hi uski haalat le aayein,
-  // warna pehli baar safha khulne par lock ka pata hi nahi chalta.
+  // PIN lives on the server — fetch its state right after login
   const refreshPinStatus = usePrivacyStore((s) => s.refresh);
   useEffect(() => {
     if (user?.id) refreshPinStatus();
   }, [user?.id, refreshPinStatus]);
-  const [mobileOpen, setMobileOpen] = useState(false);
 
-  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  /** Collapsed = slim icon rail, not hidden — every page stays reachable */
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
     try { return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true'; } catch { return false; }
   });
-
   useEffect(() => {
-    try { localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(sidebarCollapsed)); } catch {}
-  }, [sidebarCollapsed]);
+    try { localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(collapsed)); } catch { /* ignore */ }
+  }, [collapsed]);
 
-  // Cmd/Ctrl + B to toggle sidebar
+  // ⌘/Ctrl + B toggles the sidebar
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
+      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key.toLowerCase() === 'b') {
         e.preventDefault();
-        setSidebarCollapsed((v) => !v);
+        setCollapsed((v) => !v);
       }
     };
     document.addEventListener('keydown', h);
     return () => document.removeEventListener('keydown', h);
   }, []);
 
+  // Settings open like Shopify — full screen, no app sidebar. Remember where
+  // the user came from so the X goes back there.
+  const settingsMode = isSettingsPath(location.pathname);
+  useEffect(() => {
+    if (settingsMode) return;
+    try { sessionStorage.setItem(LAST_APP_PATH_KEY, location.pathname + location.search); } catch { /* ignore */ }
+  }, [settingsMode, location.pathname, location.search]);
+
+  useEffect(() => { setMobileOpen(false); }, [location.pathname]);
+
   const handleLogout = async () => {
-    if (!confirm('Logout karna chahte hain?')) return;
+    if (!confirm('Log out of Nafaa?')) return;
     try {
       if (refreshToken) await authApi.logout(refreshToken);
-    } catch {}
-    finally {
+    } catch { /* ignore */ } finally {
       logout();
-      toast.success('Logout ho gaya');
+      toast.success('Logged out');
       navigate('/login');
     }
   };
 
+  const page = (
+    <ErrorBoundary resetKey={location.pathname}>
+      <PageLockGate>
+        <Outlet />
+      </PageLockGate>
+    </ErrorBoundary>
+  );
+
   return (
-    <div className="h-screen-dvh bg-slate-100 dark:bg-neutral-950 overflow-hidden">
+    <div className="h-screen-dvh overflow-hidden bg-[#f6f7f9] dark:bg-neutral-950">
       <div
-        className={`h-full grid transition-[grid-template-columns] duration-300 ease-out ${
-          sidebarCollapsed
-            ? 'lg:grid-cols-[0px_minmax(0,1fr)]'
-            : 'lg:grid-cols-[300px_minmax(0,1fr)]'
-        }`}
+        className={cn(
+          'grid h-full transition-[grid-template-columns] duration-300 ease-out',
+          settingsMode ? 'grid-cols-1' : collapsed ? 'lg:grid-cols-[72px_minmax(0,1fr)]' : 'lg:grid-cols-[272px_minmax(0,1fr)]',
+        )}
       >
         {/* DESKTOP SIDEBAR */}
-        <aside
-          className={`hidden lg:flex h-screen-dvh flex-col bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900 text-white border-r border-slate-800/70 overflow-hidden transition-[width,opacity] duration-300 ${
-            sidebarCollapsed ? 'w-0 opacity-0' : 'w-[300px] opacity-100'
-          }`}
-        >
-          {!sidebarCollapsed && (
+        {!settingsMode && (
+          <aside className="hidden h-screen-dvh flex-col overflow-hidden border-r border-slate-200/80 bg-[#eef0f3] lg:flex dark:border-slate-800 dark:bg-slate-950 print:hidden">
             <Sidebar
               tenantName={tenant?.name}
               tenantSlug={tenant?.slug}
               businessType={(tenant as any)?.businessType}
               role={user?.role}
               permissions={user?.permissions}
-              onCollapse={() => setSidebarCollapsed(true)}
+              collapsed={collapsed}
+              onToggleCollapse={() => setCollapsed((v) => !v)}
             />
-          )}
-        </aside>
-
-        {/* Floating expand button */}
-        {sidebarCollapsed && (
-          <button
-            onClick={() => setSidebarCollapsed(false)}
-            className="hidden lg:flex fixed top-4 left-4 z-40 h-11 w-11 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 text-white shadow-2xl shadow-black/40 items-center justify-center transition-all hover:scale-105 border border-slate-700 group"
-            title="Show sidebar (⌘B)"
-          >
-            <PanelLeft className="h-5 w-5 group-hover:scale-110 transition-transform" />
-          </button>
+          </aside>
         )}
 
         <MobileSidebar
@@ -126,31 +130,34 @@ export default function AppShell() {
         />
 
         {/* MAIN */}
-        <div className="min-w-0 h-screen-dvh flex flex-col overflow-hidden">
-          <Topbar
-            user={user}
-            tenant={tenant}
-            onOpenMobileSidebar={() => setMobileOpen(true)}
-            onLogout={handleLogout}
-          />
+        <div className="flex h-screen-dvh min-w-0 flex-col overflow-hidden">
+          <Topbar user={user} tenant={tenant} onOpenMobileSidebar={() => setMobileOpen(true)} onLogout={handleLogout} />
 
-          <main
-            className={`flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 print:p-0 print:overflow-visible bg-slate-50 dark:bg-neutral-950 transition-[padding] ${
-              sidebarCollapsed ? 'lg:pl-24' : ''
-            }`}
-          >
+          <main className={cn(
+            'min-h-0 flex-1 overflow-y-auto print:overflow-visible print:p-0',
+            settingsMode ? 'bg-[#f1f2f4] dark:bg-neutral-950' : 'bg-[#f6f7f9] p-4 sm:p-6 dark:bg-neutral-950',
+          )}>
             <DesktopUpdateBanner />
-            {/* Kisi bhi safhe me error aaye to safed screen ke bajaye
-                saaf paighaam — aur route badalte hi khud reset. */}
-            <ErrorBoundary resetKey={location.pathname}>
-              <PageLockGate>
-                <Outlet />
-              </PageLockGate>
-            </ErrorBoundary>
+            {settingsMode ? (
+              <SettingsShell
+                role={user?.role}
+                permissions={user?.permissions}
+                tenantName={tenant?.name}
+                tenantSlug={tenant?.slug}
+                userName={user?.fullName}
+                userEmail={user?.email}
+                avatarUrl={user?.avatarUrl}
+              >
+                {page}
+              </SettingsShell>
+            ) : page}
           </main>
           <DesktopStatusBar />
         </div>
       </div>
+
+      {/* New online order — popup + sound on every page */}
+      <OnlineOrderAlert />
     </div>
   );
 }
