@@ -15,3 +15,4 @@ export { default as OnlineReportsPage } from './pages/OnlineReportsPage';
 export { default as BlocklistPage } from './pages/BlocklistPage';
 export { default as PublicOrderPage } from './public/PublicOrderPage';
 export { default as DevInvitePage } from './public/DevInvitePage';
+export { default as PublicTrackPage } from './public/PublicTrackPage';

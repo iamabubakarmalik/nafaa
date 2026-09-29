@@ -17,7 +17,7 @@ import MarketplaceSettingsPage from '@modules/organization/marketplace-settings/
 // ─── Integrations Hub ──────────────────────────────────────────
 import IntegrationHubPage from '@integrations/pages/IntegrationHubPage';
 import {
-  OnlineOrdersPage, WebsiteConnectPage, WebsiteRedirect, ConnectChannelPage, ChannelsListPage, ConnectDonePage, ShopifyAppPage, CodPage, CouriersPage, CourierDetailPage, PrintInvoicesPage, OnlineReportsPage, BlocklistPage, PublicOrderPage, DevInvitePage,
+  OnlineOrdersPage, WebsiteConnectPage, WebsiteRedirect, ConnectChannelPage, ChannelsListPage, ConnectDonePage, ShopifyAppPage, CodPage, CouriersPage, CourierDetailPage, PrintInvoicesPage, OnlineReportsPage, BlocklistPage, PublicOrderPage, DevInvitePage, PublicTrackPage,
 } from '@integrations/online-orders';
 
 // ─── FBR Tax Integration ───────────────────────────────────────
@@ -572,6 +572,7 @@ export default function App() {
           <Routes>
             {/* ═══ BILKUL PUBLIC — login ho ya na ho (customer ka order form, developer link) ═══ */}
             <Route path="/order/:key" element={<PublicOrderPage />} />
+            <Route path="/order/:key/track" element={<PublicTrackPage />} />
             <Route path="/connect/dev/:token" element={<DevInvitePage />} />
 
             {/* ═══ PUBLIC ROUTES ═══ */}

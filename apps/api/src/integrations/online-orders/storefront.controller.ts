@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Header, HttpCode, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Header, HttpCode, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Public } from '../../modules/auth/decorators/public.decorator';
@@ -30,6 +30,20 @@ export class StorefrontPublicController {
   @ApiOperation({ summary: 'Order form se order (COD)' })
   order(@Param('key') key: string, @Body() body: any) {
     return this.svc.publicOrder(key, body);
+  }
+
+  @Post('form/:key/coupon')
+  @HttpCode(200)
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  coupon(@Param('key') key: string, @Body() body: { code?: string; subtotal?: number }) {
+    return this.svc.checkCoupon(key, body ?? {});
+  }
+
+  @Get('form/:key/track')
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @ApiOperation({ summary: 'Customer: order ka haal (order # + phone ke aakhri 4)' })
+  track(@Param('key') key: string, @Query('no') no?: string, @Query('phone') phone?: string) {
+    return this.svc.track(key, { no, phone });
   }
 
   @Get('embed.js')

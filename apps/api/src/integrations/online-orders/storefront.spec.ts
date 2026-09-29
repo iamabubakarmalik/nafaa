@@ -71,3 +71,34 @@ describe('Developer invite link', () => {
     await expect(svc.inviteInfo(token.slice(0, -2) + 'xx')).rejects.toMatchObject({ status: 401 });
   });
 });
+
+import { couponDiscount } from './storefront.service';
+describe('Coupons', () => {
+  const coupons: any[] = [
+    { code: 'EID10', type: 'PERCENT', value: 10, minOrder: 1000, maxUses: null, uses: 0, active: true },
+    { code: 'FLAT200', type: 'FLAT', value: 200, minOrder: null, maxUses: 2, uses: 2, active: true },
+    { code: 'OFF', type: 'FLAT', value: 50, minOrder: null, maxUses: null, uses: 0, active: false },
+  ];
+  it('percent + had', () => {
+    expect(couponDiscount(coupons, 'eid10', 2000)).toMatchObject({ discount: 200 });
+    expect(couponDiscount(coupons, 'EID10', 500)).toMatchObject({ error: expect.stringContaining('1,000') });
+  });
+  it('khatam / band / ghalat', () => {
+    expect(couponDiscount(coupons, 'FLAT200', 5000)).toMatchObject({ error: 'Ye code khatam ho chuka' });
+    expect(couponDiscount(coupons, 'OFF', 5000)).toMatchObject({ error: 'Ye code sahi nahi' });
+    expect(couponDiscount(coupons, 'NOPE', 5000)).toMatchObject({ error: 'Ye code sahi nahi' });
+  });
+  it('flat discount subtotal se zyada nahi', () => {
+    expect(couponDiscount([{ ...coupons[1], uses: 0 }], 'FLAT200', 150)).toMatchObject({ discount: 150 });
+  });
+});
+
+describe('Customer tracking', () => {
+  it('phone ke aakhri 4 na milen to order nahi dikhta', async () => {
+    const { svc } = make();
+    (svc as any).prisma.channelOrder.findFirst = async () => ({ orderStatus: 'OUT_FOR_DELIVERY', paymentStatus: 'PENDING', customerPhone: '03001234567', receivedAt: new Date(), total: 998, courierCode: 'POSTEX', courierName: 'PostEx', trackingNumber: 'PX1' });
+    const ok = await svc.track('f_abcdefghijkl', { no: 'nf123', phone: '4567' });
+    expect(ok).toMatchObject({ label: 'Raste me hai', courier: { trackingNumber: 'PX1' } });
+    await expect(svc.track('f_abcdefghijkl', { no: 'nf123', phone: '9999' })).rejects.toMatchObject({ status: 404 });
+  });
+});

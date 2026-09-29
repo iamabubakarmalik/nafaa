@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { CheckCircle2, Code2, ExternalLink, Link2, MessageCircle, MousePointerClick, Package, Search, Send, Users } from 'lucide-react';
 import { useAuthStore } from '@core/stores/auth.store';
 import { productsApi } from '@modules/inventory/products/api/products.api';
-import { apiErrorMessage, onlineOrdersApi, type WebsiteOverview } from '../../api/online-orders.api';
+import { apiErrorMessage, onlineOrdersApi, type FormCoupon, type WebsiteOverview } from '../../api/online-orders.api';
 import { Badge, Btn, Card, EmptyState, Segmented, SettingRow, Toggle, inputCls } from '../ui/kit';
 import { CopyField } from './CopyField';
 import { ConnectGuide } from './ConnectGuides';
@@ -143,6 +143,7 @@ function FormWay({ channelId }: { channelId: string }) {
       </Card>
 
       <FormProducts channelId={channelId} selected={f.productIds} onSave={(ids) => save.mutate({ productIds: ids })} saving={save.isPending} />
+      <FormCoupons coupons={f.coupons} onSave={(coupons) => save.mutate({ coupons })} saving={save.isPending} />
 
       <Card title="Form ki settings">
         <div className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -154,12 +155,62 @@ function FormWay({ channelId }: { channelId: string }) {
               onBlur={() => free !== null && save.mutate({ freeAbove: free ? Number(free) : null })} className={cn(inputCls, 'w-28')} />} />
           <SettingRow title="Sirf stock wali cheezein dikhayein" help="Khatam hui cheez form me nahi aayegi"
             control={<Toggle checked={f.onlyInStock} onChange={(v) => save.mutate({ onlyInStock: v })} />} />
+          <SettingRow title="Form ka rang" help="Buttons aur qeemat isi rang me"
+            control={<input type="color" value={f.accent ?? '#059669'} onChange={(e) => save.mutate({ accent: e.target.value })} className="h-9 w-16 cursor-pointer rounded border border-slate-200" />} />
+          <SettingRow title="Logo ka link (https)" help="Apna logo kisi bhi jagah upload karke us ka link — khali = Nafaa icon"
+            control={<input defaultValue={f.logoUrl ?? ''} onBlur={(e) => e.target.value !== (f.logoUrl ?? '') && save.mutate({ logoUrl: e.target.value.trim() || null })} placeholder="https://…/logo.png" className={cn(inputCls, 'w-64')} />} />
+          <SettingRow title="Form par dukaan ka WhatsApp number" help="Customer sawal pooch sake (Settings me business phone)"
+            control={<Toggle checked={f.showPhone} onChange={(v) => save.mutate({ showPhone: v })} />} />
           <SettingRow title="Order ke baad paigham" help="Jaise: 24 ghante me call karke confirm karenge"
             control={<input value={msg ?? f.message ?? ''} onChange={(e) => setMsg(e.target.value)} maxLength={300} placeholder="(default)"
               onBlur={() => msg !== null && msg !== (f.message ?? '') && save.mutate({ message: msg || null })} className={cn(inputCls, 'w-64')} />} />
         </div>
       </Card>
     </>
+  );
+}
+
+/** Discount codes — EID10 (10%), FLAT200 (Rs 200). Hisaab server par. */
+function FormCoupons({ coupons, onSave, saving }: { coupons: FormCoupon[]; onSave: (c: FormCoupon[]) => void; saving: boolean }) {
+  const [draft, setDraft] = useState({ code: '', type: 'PERCENT' as 'PERCENT' | 'FLAT', value: '', minOrder: '', maxUses: '' });
+  const add = () => {
+    const code = draft.code.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (code.length < 3) return toast.error('Code kam az kam 3 harf / number');
+    if (!(Number(draft.value) > 0)) return toast.error('Discount likhein');
+    onSave([...coupons.filter((c) => c.code !== code), {
+      code, type: draft.type, value: Number(draft.value), minOrder: draft.minOrder ? Number(draft.minOrder) : null,
+      maxUses: draft.maxUses ? Number(draft.maxUses) : null, uses: 0, active: true,
+    }]);
+    setDraft({ code: '', type: 'PERCENT', value: '', minOrder: '', maxUses: '' });
+  };
+  return (
+    <Card title="Discount codes" description="Customer checkout par code likhe to discount — hisaab Nafaa server par (koi chalaki nahi).">
+      {coupons.length > 0 && (
+        <ul className="mb-3 divide-y divide-slate-100 rounded-lg border border-slate-200 dark:divide-slate-800 dark:border-slate-800">
+          {coupons.map((c) => (
+            <li key={c.code} className="flex flex-wrap items-center gap-3 px-3 py-2 text-[13px]">
+              <span className="font-mono font-bold text-slate-900 dark:text-white">{c.code}</span>
+              <span className="text-slate-600 dark:text-slate-300">{c.type === 'PERCENT' ? `${c.value}%` : `Rs ${c.value}`}{c.minOrder ? ` · Rs ${c.minOrder}+ par` : ''}</span>
+              <span className="text-slate-400">{c.uses}{c.maxUses ? ` / ${c.maxUses}` : ''} dafa chala</span>
+              <span className="flex-1" />
+              <Toggle checked={c.active} disabled={saving} onChange={(v) => onSave(coupons.map((x) => (x.code === c.code ? { ...x, active: v } : x)))} />
+              <button disabled={saving} onClick={() => onSave(coupons.filter((x) => x.code !== c.code))} className="text-[12px] font-semibold text-rose-600">Hatao</button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="grid gap-2 sm:grid-cols-[1fr_110px_90px_110px_100px_auto]">
+        <input value={draft.code} onChange={(e) => setDraft({ ...draft, code: e.target.value.toUpperCase() })} placeholder="Code (EID10)" className={cn(inputCls, 'font-mono uppercase')} maxLength={20} />
+        <select value={draft.type} onChange={(e) => setDraft({ ...draft, type: e.target.value as any })} className={inputCls}>
+          <option value="PERCENT">% off</option>
+          <option value="FLAT">Rs off</option>
+        </select>
+        <input value={draft.value} onChange={(e) => setDraft({ ...draft, value: e.target.value })} type="number" min={1} placeholder={draft.type === 'PERCENT' ? '10' : '200'} className={inputCls} />
+        <input value={draft.minOrder} onChange={(e) => setDraft({ ...draft, minOrder: e.target.value })} type="number" min={0} placeholder="Kam az kam Rs" className={inputCls} />
+        <input value={draft.maxUses} onChange={(e) => setDraft({ ...draft, maxUses: e.target.value })} type="number" min={1} placeholder="Kitni dafa" className={inputCls} />
+        <Btn variant="primary" loading={saving} onClick={add}>Jorein</Btn>
+      </div>
+    </Card>
   );
 }
 

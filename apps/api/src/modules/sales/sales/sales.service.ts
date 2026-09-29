@@ -232,6 +232,9 @@ export class SalesService {
     let subtotal = 0;
     let costOfGoods = 0;
     let totalLineDiscount = 0;
+    // Ek hi product cart me kai lines me ho to sab jor kar stock se milao
+    // (4 + 4 alag lines 5 stock par dono "pass" ho kar -3 kar deti thin)
+    const wantByKey = new Map<string, number>();
 
     const normalizedItems = dto.items.map((item, idx) => {
       const isUsedPhoneItem = usedPhoneItemIndices.has(idx);
@@ -288,11 +291,15 @@ export class SalesService {
           );
         }
 
-        if (shopStock.stock < quantity) {
+        const wanted = (wantByKey.get(stockKey) ?? 0) + quantity;
+        if (shopStock.stock < wanted) {
           throw new BadRequestException(
-            `${itemName} insufficient in ${shop.name}. Available: ${shopStock.stock}`,
+            wanted > quantity
+              ? `${itemName} insufficient in ${shop.name}. Available: ${shopStock.stock}, cart me kul: ${wanted}`
+              : `${itemName} insufficient in ${shop.name}. Available: ${shopStock.stock}`,
           );
         }
+        wantByKey.set(stockKey, wanted);
       }
 
       const lineGross = unitPrice * quantity;
@@ -594,10 +601,21 @@ export class SalesService {
         }
 
         // ─── Standard items: decrement ShopStock + global stock ──
-        const updatedShopStock = await tx.shopStock.update({
-          where: { id: item.shopStockId! },
+        // Atomic: sirf tab ghatao jab abhi bhi kaafi ho. Upar ka check
+        // transaction se pehle hai — do counter ek saath bechein (ya offline
+        // sales baad me sync hon) to dono purana stock dekh kar pass ho jate
+        // aur stock minus me chala jata. Ye shart us race ko band karti hai.
+        const claimed = await tx.shopStock.updateMany({
+          where: { id: item.shopStockId!, stock: { gte: item.quantity } },
           data: { stock: { decrement: item.quantity } },
         });
+        if (claimed.count === 0) {
+          const now = await tx.shopStock.findUnique({ where: { id: item.shopStockId! }, select: { stock: true } });
+          throw new BadRequestException(
+            `Stock abhi abhi badal gaya — ${shop.name} me ab sirf ${Number(now?.stock ?? 0)} bacha hai. Cart theek karke dobara try karein.`,
+          );
+        }
+        const updatedShopStock = (await tx.shopStock.findUnique({ where: { id: item.shopStockId! }, select: { stock: true } }))!;
 
         if (item.variantId) {
           await tx.productVariant.update({
