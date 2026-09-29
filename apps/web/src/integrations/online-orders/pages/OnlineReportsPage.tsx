@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { AlertTriangle, Download, MapPin, ShieldBan } from 'lucide-react';
+import { AlertTriangle, Download, MapPin, ShieldBan, Users } from 'lucide-react';
 import { apiErrorMessage, onlineOrdersApi } from '../api/online-orders.api';
 import { useSalesChannels } from '../hooks/useSalesChannels';
 import { rs } from '../lib/labels';
@@ -49,6 +49,7 @@ export default function OnlineReportsPage() {
       subtitle="Online sale ka poora hisaab — channel, shehar, courier, RTO aur COD."
       actions={
         <>
+          <Link to="/online-orders/customers"><Btn icon={<Users className="h-4 w-4" />}>Customers</Btn></Link>
           <Link to="/online-store/blocklist"><Btn icon={<ShieldBan className="h-4 w-4" />}>Block list</Btn></Link>
           <Btn loading={exp.isPending} onClick={() => exp.mutate()} icon={<Download className="h-4 w-4" />}>CSV (Excel)</Btn>
         </>

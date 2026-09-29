@@ -71,3 +71,30 @@ describe('OrderTools CSV + blocklist + edit', () => {
     await expect(s.editOrder(user, scope, 'o1', { customerAddress: 'C' })).rejects.toMatchObject({ status: 400 });
   });
 });
+
+describe('OrderTools customers', () => {
+  it('repeat, gayab, naye, RTO, blocked — phone se ek customer', async () => {
+    const ago = (d: number) => new Date(Date.now() - d * 86_400_000);
+    const ch = { displayName: 'Web' };
+    const rows = [
+      // Ali: 2 deliver, aakhri 45 din pehle → repeat + inactive30
+      { customerName: 'Ali', customerPhone: '0300-1111111', customerCity: 'Lahore', orderStatus: 'DELIVERED', total: 1000, receivedAt: ago(100), metadata: {}, integration: ch },
+      { customerName: 'Ali K', customerPhone: '+923001111111', customerCity: 'Lahore', orderStatus: 'DELIVERED', total: 2000, receivedAt: ago(45), metadata: {}, integration: ch },
+      // Sara: naya (1 order, 5 din)
+      { customerName: 'Sara', customerPhone: '03002222222', customerCity: 'Karachi', orderStatus: 'CONFIRMED', total: 500, receivedAt: ago(5), metadata: {}, integration: ch },
+      // Fake: wapas
+      { customerName: 'Fake', customerPhone: '03003333333', customerCity: null, orderStatus: 'RETURNED', total: 900, receivedAt: ago(20), metadata: {}, integration: ch },
+      // test order nahi gina
+      { customerName: 'T', customerPhone: '03004444444', customerCity: null, orderStatus: 'PENDING', total: 1, receivedAt: ago(1), metadata: { test: true }, integration: ch },
+    ];
+    const s = svc(rows);
+    await s.block({ id: 'u1', tenantId: 't1' } as any, { phone: '03003333333', reason: 'Fake' });
+    const r = await s.customers({ id: 'u1', tenantId: 't1' } as any, scope, {});
+    expect(r.counts).toMatchObject({ all: 3, repeat: 1, inactive30: 1, inactive60: 0, new: 1, risky: 1, blocked: 1 });
+    expect(r.rows[0]).toMatchObject({ name: 'Ali K', orders: 2, delivered: 2, spent: 3000, avgOrder: 1500 });
+    const repeat = await s.customers({ id: 'u1', tenantId: 't1' } as any, scope, { segment: 'repeat' });
+    expect(repeat.rows.map((x: any) => x.name)).toEqual(['Ali K']);
+    const found = await s.customers({ id: 'u1', tenantId: 't1' } as any, scope, { search: '2222' });
+    expect(found.rows.map((x: any) => x.name)).toEqual(['Sara']);
+  });
+});

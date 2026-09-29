@@ -105,9 +105,10 @@ export default function OnlineOrdersPage() {
   const searchRef = useRef<HTMLInputElement>(null);
 
   const [view, setView] = useState<View>('list');
-  const [tab, setTab] = useState<Tab>('PENDING');
-  const [search, setSearch] = useState('');
-  const [debounced, setDebounced] = useState('');
+  // Customers safhe se aaye (?search=phone) → sab orders me dhoondo
+  const [tab, setTab] = useState<Tab>(() => (params.get('search') ? 'ALL' : 'PENDING'));
+  const [search, setSearch] = useState(() => params.get('search') ?? '');
+  const [debounced, setDebounced] = useState(() => params.get('search') ?? '');
   const [dateFilter, setDateFilter] = useState<DateFilter>('month');
   const [customStart, setCustomStart] = useState('');
   const [customEnd, setCustomEnd] = useState('');

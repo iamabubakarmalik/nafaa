@@ -97,15 +97,8 @@ export function IntegrationDetailModal({
     onError: (e: any) => toast.error(e?.response?.data?.message ?? 'Demo order fail'),
   });
 
-  const darazAuthMutation = useMutation({
-    mutationFn: () =>
-      integrationsApi.getDarazAuthUrl(integrationId, integration?.credentials ?? {}),
-    onSuccess: (r) => {
-      if (r?.authUrl) window.open(r.authUrl, '_blank', 'noopener');
-      else toast.error('Auth URL nahi mila');
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message ?? 'Error'),
-  });
+  // Daraz ab Sales channel ke safhe par jurta hai (ek click, Daraz login)
+  const openDarazChannel = () => window.location.assign(`/online-store/channels/${integrationId}`);
 
   if (isLoading || !integration) {
     return (
@@ -117,7 +110,7 @@ export function IntegrationDetailModal({
 
   const meta = getIntegrationMeta(integration.type);
   const isSalesChannel = integration.category === 'SALES_CHANNEL';
-  const canManualSync = integration.type === 'FOODPANDA' || integration.type === 'DARAZ';
+  const canManualSync = integration.type === 'FOODPANDA';
   const isCustomWebsite = integration.type === 'CUSTOM_WEBSITE';
 
   const webhookUrl = integration.webhookUrl ?? '';
@@ -348,16 +341,15 @@ export function IntegrationDetailModal({
                 Daraz Authorization
               </div>
               <p className="text-[11px] text-orange-700 dark:text-orange-400 mb-3">
-                Orders sync karne ke liye ek baar Daraz account authorize karna hoga.
+                Daraz ab Sales channel ke safhe se ek click me jurta hai — orders, stock aur label wahin.
               </p>
               <Button
                 size="sm"
                 variant="outline"
-                loading={darazAuthMutation.isPending}
-                onClick={() => darazAuthMutation.mutate()}
+                onClick={openDarazChannel}
                 leftIcon={<ExternalLink className="h-3.5 w-3.5" />}
               >
-                Authorize Daraz Account
+                Daraz channel kholein
               </Button>
             </div>
           )}

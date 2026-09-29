@@ -1,3 +1,4 @@
+import { addCartNeed, claimShopStock } from './stock-claim.helper';
 import {
   BadRequestException, Injectable, NotFoundException,
 } from '@nestjs/common';
@@ -291,15 +292,7 @@ export class SalesService {
           );
         }
 
-        const wanted = (wantByKey.get(stockKey) ?? 0) + quantity;
-        if (shopStock.stock < wanted) {
-          throw new BadRequestException(
-            wanted > quantity
-              ? `${itemName} insufficient in ${shop.name}. Available: ${shopStock.stock}, cart me kul: ${wanted}`
-              : `${itemName} insufficient in ${shop.name}. Available: ${shopStock.stock}`,
-          );
-        }
-        wantByKey.set(stockKey, wanted);
+        addCartNeed(wantByKey, stockKey, quantity, Number(shopStock.stock), { item: itemName, shop: shop.name });
       }
 
       const lineGross = unitPrice * quantity;
@@ -601,21 +594,8 @@ export class SalesService {
         }
 
         // ─── Standard items: decrement ShopStock + global stock ──
-        // Atomic: sirf tab ghatao jab abhi bhi kaafi ho. Upar ka check
-        // transaction se pehle hai — do counter ek saath bechein (ya offline
-        // sales baad me sync hon) to dono purana stock dekh kar pass ho jate
-        // aur stock minus me chala jata. Ye shart us race ko band karti hai.
-        const claimed = await tx.shopStock.updateMany({
-          where: { id: item.shopStockId!, stock: { gte: item.quantity } },
-          data: { stock: { decrement: item.quantity } },
-        });
-        if (claimed.count === 0) {
-          const now = await tx.shopStock.findUnique({ where: { id: item.shopStockId! }, select: { stock: true } });
-          throw new BadRequestException(
-            `Stock abhi abhi badal gaya — ${shop.name} me ab sirf ${Number(now?.stock ?? 0)} bacha hai. Cart theek karke dobara try karein.`,
-          );
-        }
-        const updatedShopStock = (await tx.shopStock.findUnique({ where: { id: item.shopStockId! }, select: { stock: true } }))!;
+        // Atomic: sirf tab ghatao jab abhi bhi kaafi ho (race / offline sync se minus nahi)
+        const updatedShopStock = { stock: await claimShopStock(tx, item.shopStockId!, item.quantity, shop.name) };
 
         if (item.variantId) {
           await tx.productVariant.update({

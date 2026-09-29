@@ -17,7 +17,7 @@ import MarketplaceSettingsPage from '@modules/organization/marketplace-settings/
 // ─── Integrations Hub ──────────────────────────────────────────
 import IntegrationHubPage from '@integrations/pages/IntegrationHubPage';
 import {
-  OnlineOrdersPage, WebsiteConnectPage, WebsiteRedirect, ConnectChannelPage, ChannelsListPage, ConnectDonePage, ShopifyAppPage, CodPage, CouriersPage, CourierDetailPage, PrintInvoicesPage, OnlineReportsPage, BlocklistPage, PublicOrderPage, DevInvitePage, PublicTrackPage,
+  OnlineOrdersPage, WebsiteConnectPage, WebsiteRedirect, ConnectChannelPage, ChannelsListPage, ConnectDonePage, ShopifyAppPage, CodPage, CouriersPage, CourierDetailPage, PrintInvoicesPage, OnlineReportsPage, BlocklistPage, OnlineCustomersPage, PublicOrderPage, DevInvitePage, PublicTrackPage,
 } from '@integrations/online-orders';
 
 // ─── FBR Tax Integration ───────────────────────────────────────
@@ -673,6 +673,7 @@ export default function App() {
                   <Route path="/online-orders" element={secure(PERMISSIONS.SALES_VIEW, <OnlineOrdersPage />)} />
                   <Route path="/online-orders/cod" element={secure(PERMISSIONS.SALES_VIEW, <CodPage />)} />
                   <Route path="/online-orders/reports" element={secure(PERMISSIONS.SALES_VIEW, <OnlineReportsPage />)} />
+                  <Route path="/online-orders/customers" element={secure(PERMISSIONS.SALES_VIEW, <OnlineCustomersPage />)} />
                   <Route path="/online-store/blocklist" element={secure(PERMISSIONS.SALES_VIEW, <BlocklistPage />)} />
                   <Route path="/online-store/couriers" element={secure(PERMISSIONS.SALES_VIEW, <CouriersPage />)} />
                   <Route path="/online-store/couriers/:code" element={secure(PERMISSIONS.SALES_VIEW, <CourierDetailPage />)} />

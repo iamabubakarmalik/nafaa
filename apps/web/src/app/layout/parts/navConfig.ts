@@ -79,6 +79,7 @@ export const posNavGroups: NavGroup[] = [
       { to: '/online-orders', label: 'Online orders', icon: ShoppingBag, permission: P.SALES_VIEW, liveCount: 'online-orders', keywords: 'website cod delivery foodpanda daraz' },
       { to: '/online-orders/cod', label: 'COD & courier', icon: Wallet, permission: P.SALES_VIEW, keywords: 'cod courier tcs leopards postex rto settlement paisa' },
       { to: '/online-store/couriers', label: 'Couriers', icon: Truck, permission: P.SALES_VIEW, keywords: 'courier postex leopards tcs trax booking label cn tracking connect' },
+      { to: '/online-orders/customers', label: 'Online customers', icon: Users, permission: P.SALES_VIEW, keywords: 'customer repeat vip inactive gayab whatsapp broadcast remarketing' },
       { to: '/online-orders/reports', label: 'Online reports', icon: TrendingUp, permission: P.SALES_VIEW, keywords: 'online report rto city channel courier csv export excel block' },
       // Jore hue channels (WooCommerce, Shopify, apni website, Daraz…) yahan
       // useVisibleNav khud daalta hai — Shopify ke "Sales channels" jaisa.

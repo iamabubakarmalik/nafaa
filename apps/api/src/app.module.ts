@@ -114,16 +114,12 @@ import { SplitPaymentModule } from './marketplace/split-payment/split-payment.mo
 import { VoiceSearchModule } from './marketplace/voice-search/voice-search.module';
 import { EmergencyDeliveryModule } from './marketplace/emergency-delivery/emergency-delivery.module';
 import { FbrModule } from './integrations/fbr/fbr.module';
-import { PostExModule } from './integrations/courier/postex/postex.module';
 import { WhatsappModule } from './integrations/whatsapp/whatsapp.module';
 // ─── Integration Framework ─────────────────────────────────
 import { IntegrationCoreModule } from './integrations/core/integration.module';
 import { CustomWebsiteModule } from './integrations/channels/custom-website/custom-website.module';
 import { OnlineOrdersModule } from './integrations/online-orders/online-orders.module';
 import { FoodpandaModule } from './integrations/channels/foodpanda/foodpanda.module';
-import { DarazModule } from './integrations/channels/daraz/daraz.module';
-import { TcsModule } from './integrations/courier/tcs/tcs.module';
-import { LeopardsModule } from './integrations/courier/leopards/leopards.module';
 
 // ─── Batch E: Cart Recovery + Try Before Buy + B2B + Prayer + AI ────
 import { CartRecoveryModule } from './marketplace/cart-recovery/cart-recovery.module';
@@ -235,7 +231,6 @@ import { AiAssistantModule } from './marketplace/ai-assistant/ai-assistant.modul
     VoiceSearchModule,
     EmergencyDeliveryModule,
     FbrModule,
-    PostExModule,
     WhatsappModule,
 
     // ─── Integration Framework ───
@@ -243,9 +238,6 @@ import { AiAssistantModule } from './marketplace/ai-assistant/ai-assistant.modul
     OnlineOrdersModule,
     CustomWebsiteModule,
     FoodpandaModule,
-    DarazModule,
-    TcsModule,
-    LeopardsModule,
 
     // ─── Batch E ───
     CartRecoveryModule,

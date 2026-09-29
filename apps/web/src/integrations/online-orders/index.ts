@@ -13,6 +13,7 @@ export { default as CourierDetailPage } from './pages/CourierDetailPage';
 export { default as PrintInvoicesPage } from './pages/PrintInvoicesPage';
 export { default as OnlineReportsPage } from './pages/OnlineReportsPage';
 export { default as BlocklistPage } from './pages/BlocklistPage';
+export { default as OnlineCustomersPage } from './pages/OnlineCustomersPage';
 export { default as PublicOrderPage } from './public/PublicOrderPage';
 export { default as DevInvitePage } from './public/DevInvitePage';
 export { default as PublicTrackPage } from './public/PublicTrackPage';

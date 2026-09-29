@@ -43,6 +43,19 @@ export class OnlineOrdersController {
     return this.tools.report(user, scope, { from, to, integrationId });
   }
 
+  @Get('customers')
+  @ApiOperation({ summary: 'Online customers — repeat, VIP, gayab (30/60/90 din), naye, RTO, blocked' })
+  customers(
+    @GetUser() user: AuthenticatedUser,
+    @CurrentShop() scope: ShopScope,
+    @Query('segment') segment?: string,
+    @Query('search') search?: string,
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
+  ) {
+    return this.tools.customers(user, scope, { segment, search, limit: limit ? +limit : 50, offset: offset ? +offset : 0 });
+  }
+
   @Get('export')
   @ApiOperation({ summary: 'Orders CSV (Excel) — sirf malik / manager' })
   async export(

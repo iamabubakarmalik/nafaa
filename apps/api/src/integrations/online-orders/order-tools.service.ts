@@ -290,6 +290,82 @@ export class OrderToolsService {
   }
 
   // ═══════════════════════════════════════════════════════════
+  // CUSTOMERS — dobara bechna (repeat, VIP, gayab, naye, RTO)
+  // ═══════════════════════════════════════════════════════════
+
+  async customers(user: AuthenticatedUser, scope: ShopScope, q: { segment?: string; search?: string; limit?: number; offset?: number }) {
+    const rows = await this.prisma.channelOrder.findMany({
+      where: { tenantId: user.tenantId, ...(scope.whereLoose as any), receivedAt: { gte: new Date(Date.now() - 730 * 86_400_000) }, customerPhone: { not: null } },
+      select: { customerName: true, customerPhone: true, customerCity: true, orderStatus: true, total: true, receivedAt: true, metadata: true, integration: { select: { displayName: true } } },
+      orderBy: { receivedAt: 'asc' },
+      take: 50_000,
+    });
+    const blocks = new Set((await this.blocklist(user.tenantId)).map((b) => b.key));
+    type C = {
+      key: string; name: string; phone: string; city: string | null; orders: number; delivered: number; returned: number; cancelled: number;
+      spent: number; firstAt: Date; lastAt: Date; lastDeliveredAt: Date | null; channels: Set<string>; blocked: boolean;
+    };
+    const map = new Map<string, C>();
+    for (const r of rows) {
+      if ((r.metadata as any)?.test) continue;
+      const k = phoneKey(r.customerPhone);
+      if (!k) continue;
+      const c = map.get(k) ?? {
+        key: k, name: r.customerName, phone: String(r.customerPhone), city: r.customerCity, orders: 0, delivered: 0, returned: 0, cancelled: 0,
+        spent: 0, firstAt: r.receivedAt, lastAt: r.receivedAt, lastDeliveredAt: null, channels: new Set<string>(), blocked: blocks.has(k),
+      };
+      c.orders++;
+      c.lastAt = r.receivedAt;
+      c.name = r.customerName || c.name; // naya naam (aakhri order ka)
+      c.city = r.customerCity || c.city;
+      c.channels.add(r.integration.displayName);
+      if (r.orderStatus === 'DELIVERED') { c.delivered++; c.spent += Number(r.total); c.lastDeliveredAt = r.receivedAt; }
+      else if (r.orderStatus === 'RETURNED') c.returned++;
+      else if (r.orderStatus === 'CANCELLED' || r.orderStatus === 'REJECTED') c.cancelled++;
+      map.set(k, c);
+    }
+    const all = [...map.values()];
+    const now = Date.now();
+    const days = (d: Date) => Math.floor((now - d.getTime()) / 86_400_000);
+    // VIP: sab se zyada kharchne wale 10% (kam az kam 2 deliver)
+    const spentSorted = all.filter((c) => c.delivered >= 2).map((c) => c.spent).sort((a, b) => b - a);
+    const vipCut = spentSorted.length ? spentSorted[Math.max(0, Math.ceil(spentSorted.length * 0.1) - 1)] : Infinity;
+
+    const segOf = (c: C) => ({
+      repeat: c.delivered >= 2,
+      vip: c.delivered >= 2 && c.spent >= vipCut,
+      inactive30: c.delivered > 0 && days(c.lastAt) >= 30,
+      inactive60: c.delivered > 0 && days(c.lastAt) >= 60,
+      inactive90: c.delivered > 0 && days(c.lastAt) >= 90,
+      // Naye: pehla order haal hi me, aur wapas / block nahi (dobara bechne layak)
+      new: c.orders === 1 && days(c.firstAt) <= 30 && c.returned === 0 && !c.blocked,
+      risky: c.returned > 0,
+      blocked: c.blocked,
+    });
+    const counts: Record<string, number> = { all: all.length, repeat: 0, vip: 0, inactive30: 0, inactive60: 0, inactive90: 0, new: 0, risky: 0, blocked: 0 };
+    for (const c of all) for (const [k, v] of Object.entries(segOf(c))) if (v) counts[k]++;
+
+    const seg = q.segment && q.segment in counts ? q.segment : 'all';
+    const term = q.search?.trim().toLowerCase();
+    const digits = term?.replace(/\D/g, '');
+    let list = all.filter((c) => seg === 'all' || (segOf(c) as any)[seg]);
+    if (term) list = list.filter((c) => c.name.toLowerCase().includes(term) || (!!digits && digits.length >= 3 && c.key.includes(digits)) || (c.city ?? '').toLowerCase().includes(term));
+    list.sort((a, b) => (seg === 'inactive30' || seg === 'inactive60' || seg === 'inactive90') ? a.lastAt.getTime() - b.lastAt.getTime() : b.spent - a.spent || b.orders - a.orders);
+    const take = Math.min(Math.max(q.limit ?? 50, 1), 500);
+    const skip = Math.max(q.offset ?? 0, 0);
+    return {
+      counts,
+      totals: { customers: all.length, spent: all.reduce((s, c) => s + c.spent, 0), repeatRate: pct(counts.repeat, all.filter((c) => c.delivered > 0).length) },
+      total: list.length,
+      rows: list.slice(skip, skip + take).map((c) => ({
+        key: c.key, name: c.name, phone: c.phone, city: c.city, orders: c.orders, delivered: c.delivered, returned: c.returned, cancelled: c.cancelled,
+        spent: Math.round(c.spent), avgOrder: c.delivered ? Math.round(c.spent / c.delivered) : 0, firstAt: c.firstAt, lastAt: c.lastAt,
+        daysSince: days(c.lastAt), channels: [...c.channels], blocked: c.blocked, segments: Object.entries(segOf(c)).filter(([, v]) => v).map(([k]) => k),
+      })),
+    };
+  }
+
+  // ═══════════════════════════════════════════════════════════
   // CSV — hisaab ke liye (Excel me khulta hai)
   // ═══════════════════════════════════════════════════════════
 

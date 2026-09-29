@@ -77,51 +77,9 @@ apiClient
 .post(`/integrations/foodpanda/${id}/orders/${externalOrderId}/reject`, { reason })
 .then((r) => unwrap<any>(r)),
 
-// ═══ Daraz ═══
-syncDaraz: (id: string) =>
-apiClient.post(`/integrations/daraz/${id}/sync`).then((r) => unwrap<any>(r)),
-
-getDarazAuthUrl: (id: string, credentials: any) =>
-apiClient
-.post(`/integrations/daraz/${id}/auth-url`, credentials)
-.then((r) => unwrap<{ authUrl: string; redirectUrl?: string }>(r)),
-
-pushProductToDaraz: (id: string, productId: string) =>
-apiClient
-.post(`/integrations/daraz/${id}/push-product`, { productId })
-.then((r) => unwrap<any>(r)),
-
-// ═══ Courier — TCS ═══
-bookTcs: (data: any) =>
-apiClient.post('/integrations/courier/tcs/book', data).then((r) => unwrap<any>(r)),
-
-trackTcs: (tn: string) =>
-apiClient.get(`/integrations/courier/tcs/track/${tn}`).then((r) => unwrap<any>(r)),
-
-cancelTcs: (tn: string) =>
-apiClient.post(`/integrations/courier/tcs/cancel/${tn}`).then((r) => unwrap<any>(r)),
-
-// ═══ Courier — Leopards ═══
-bookLeopards: (data: any) =>
-apiClient.post('/integrations/courier/leopards/book', data).then((r) => unwrap<any>(r)),
-
-trackLeopards: (tn: string) =>
-apiClient.get(`/integrations/courier/leopards/track/${tn}`).then((r) => unwrap<any>(r)),
-
-cancelLeopards: (tn: string) =>
-apiClient.post(`/integrations/courier/leopards/cancel/${tn}`).then((r) => unwrap<any>(r)),
-
-// ═══ Courier — PostEx ═══
-bookPostex: (data: any) =>
-apiClient.post('/integrations/courier/postex/book', data).then((r) => unwrap<any>(r)),
-
-trackPostex: (tn: string) =>
-apiClient.get(`/integrations/courier/postex/track/${tn}`).then((r) => unwrap<any>(r)),
-
 // ═══ Generic sync dispatcher ═══
 sync: (integration: IntegrationItem): Promise<any> => {
 if (integration.type === 'FOODPANDA') return integrationsApi.syncFoodpanda(integration.id);
-if (integration.type === 'DARAZ') return integrationsApi.syncDaraz(integration.id);
 return Promise.reject(new Error('Manual sync available nahi'));
 },
 
