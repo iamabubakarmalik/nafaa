@@ -15,8 +15,10 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+    it('backend chal raha hai — naam aur waqt ke saath', () => {
+      const r: any = appController.getHello();
+      expect(r).toMatchObject({ success: true, name: 'Nafaa API' });
+      expect(typeof r.timestamp).toBe('string');
     });
   });
 });

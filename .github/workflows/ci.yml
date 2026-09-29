@@ -1,0 +1,51 @@
+# Har push / PR par: API typecheck + unit tests, web typecheck.
+# Koi bhi fail ho to GitHub par laal nishan — deploy se pehle pata chal jata hai.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    name: API — typecheck + tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Prisma client
+        working-directory: apps/api
+        run: npx prisma generate
+      - name: Typecheck
+        working-directory: apps/api
+        run: npx tsc --noEmit -p tsconfig.json
+      - name: Unit tests
+        working-directory: apps/api
+        run: npx jest --ci
+
+  web:
+    name: Web — typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Typecheck
+        working-directory: apps/web
+        run: npx tsc --noEmit
