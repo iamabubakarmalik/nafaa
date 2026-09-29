@@ -78,6 +78,7 @@ export const posNavGroups: NavGroup[] = [
     items: [
       { to: '/online-orders', label: 'Online orders', icon: ShoppingBag, permission: P.SALES_VIEW, liveCount: 'online-orders', keywords: 'website cod delivery foodpanda daraz' },
       { to: '/online-orders/cod', label: 'COD & courier', icon: Wallet, permission: P.SALES_VIEW, keywords: 'cod courier tcs leopards postex rto settlement paisa' },
+      { to: '/online-store/couriers', label: 'Couriers', icon: Truck, permission: P.SALES_VIEW, keywords: 'courier postex leopards tcs trax booking label cn tracking connect' },
       // Jore hue channels (WooCommerce, Shopify, apni website, Daraz…) yahan
       // useVisibleNav khud daalta hai — Shopify ke "Sales channels" jaisa.
     ],
@@ -275,6 +276,7 @@ export const SETTINGS_SECTIONS: { title: string; items: SettingsItem[] }[] = [
   {
     title: 'Sales channels & apps',
     items: [
+      { to: '/online-store/couriers', label: 'Couriers', icon: Truck, permission: P.SETTINGS_VIEW, desc: 'PostEx, Leopards — booking, label, tracking', keywords: 'courier postex leopards booking' },
       { to: '/online-store/channels', label: 'Sales channels', icon: Globe, permission: P.SETTINGS_VIEW, desc: 'WooCommerce, Shopify, your own website', match: ['/online-store/channels', '/online-store/website'], keywords: 'woocommerce shopify online store website' },
       { to: '/integrations', label: 'Apps & integrations', icon: Plug, desc: 'Foodpanda, Daraz, couriers, payments', keywords: 'foodpanda daraz tcs jazzcash' },
       { to: '/marketplace/settings', label: 'Marketplace publishing', icon: Send, permission: P.SETTINGS_VIEW, desc: 'What shows on the Nafaa marketplace' },

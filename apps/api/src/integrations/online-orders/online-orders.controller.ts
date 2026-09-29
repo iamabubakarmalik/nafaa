@@ -1,4 +1,5 @@
-import { BadRequestException, Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, Patch, Post, Query, Res, UseGuards } from '@nestjs/common';
+import type { Response } from 'express';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../modules/auth/guards/jwt-auth.guard';
@@ -12,6 +13,8 @@ import { readWebsiteConfig } from './website-config';
 import { WooCommerceService } from './woocommerce.service';
 import { ShopifyService } from './shopify.service';
 import { ChannelCatalogService } from './channel-catalog.service';
+import { CourierAccountsService } from './courier-accounts.service';
+import { CourierSettings } from './courier-api/types';
 
 // ═══════════════════════════════════════════════════════════════
 // ONLINE ORDERS — dukandar ka order manage karne ka safha
@@ -403,5 +406,94 @@ export class ChannelsController {
       updatePrice: !!body?.updatePrice,
       updateStock: !!body?.updateStock,
     });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// COURIERS — PostEx / Leopards ek click connect, order se booking,
+// label, tracking. Baqi couriers "manual" (CN khud likho).
+// ═══════════════════════════════════════════════════════════════
+@ApiTags('Couriers')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
+@Controller('online-store/couriers')
+export class CouriersController {
+  constructor(private readonly svc: CourierAccountsService) {}
+
+  @Get()
+  @ApiOperation({ summary: 'Sab couriers — kaun jura hai, kaise jorna hai' })
+  list(@GetUser() user: AuthenticatedUser) {
+    return this.svc.list(user);
+  }
+
+  @Post(':code/connect')
+  @ApiOperation({ summary: 'Key paste → courier se check → save (encrypted)' })
+  connect(@GetUser() user: AuthenticatedUser, @Param('code') code: string, @Body() body: { apiKey?: string; apiSecret?: string; settings?: CourierSettings }) {
+    return this.svc.connect(user, code.toUpperCase(), body ?? {});
+  }
+
+  @Post(':code/test')
+  test(@GetUser() user: AuthenticatedUser, @Param('code') code: string) {
+    return this.svc.test(user, code.toUpperCase());
+  }
+
+  @Patch(':code')
+  settings(@GetUser() user: AuthenticatedUser, @Param('code') code: string, @Body() body: { settings?: CourierSettings; active?: boolean }) {
+    return this.svc.updateSettings(user, code.toUpperCase(), body ?? {});
+  }
+
+  @Delete(':code')
+  disconnect(@GetUser() user: AuthenticatedUser, @Param('code') code: string) {
+    return this.svc.disconnect(user, code.toUpperCase());
+  }
+
+  @Get(':code/options')
+  @ApiOperation({ summary: 'Booking form: courier ke shehar + pickup address' })
+  options(@GetUser() user: AuthenticatedUser, @Param('code') code: string) {
+    return this.svc.options(user, code.toUpperCase());
+  }
+}
+
+/** Order par courier booking — online-orders/:id/courier/* */
+@ApiTags('Online Orders')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
+@Controller('online-orders/:id/courier')
+export class OrderCourierController {
+  constructor(private readonly svc: CourierAccountsService) {}
+
+  @Post('book')
+  @ApiOperation({ summary: 'Courier par book → CN + label khud' })
+  book(
+    @GetUser() user: AuthenticatedUser,
+    @CurrentShop() scope: ShopScope,
+    @Param('id') id: string,
+    @Body() body: { courier: string; cityId?: string; weightKg?: number; pieces?: number; codAmount?: number; notes?: string },
+  ) {
+    return this.svc.book(user, scope, id, body ?? ({} as any));
+  }
+
+  @Post('cancel')
+  cancel(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string) {
+    return this.svc.cancelBooking(user, scope, id);
+  }
+
+  @Post('refresh')
+  refresh(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string) {
+    return this.svc.refresh(user, scope, id);
+  }
+
+  @Get('label')
+  @ApiOperation({ summary: 'Label: PDF (PostEx) ya link (Leopards)' })
+  async label(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string, @Res() res: Response) {
+    const r = await this.svc.label(user, scope, id);
+    if (r.pdf) {
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'inline; filename="label.pdf"');
+      res.setHeader('Cache-Control', 'private, no-store');
+      res.send(r.pdf);
+      return;
+    }
+    res.json({ url: r.url });
   }
 }

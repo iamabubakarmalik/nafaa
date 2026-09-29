@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { decrypt } from '../../../core/lib/crypto';
 
 @Injectable()
 export class PostExService {
@@ -11,7 +12,8 @@ export class PostExService {
       where: { tenantId, provider: 'POSTEX', isActive: true },
     });
     if (!c) throw new BadRequestException('PostEx not configured');
-    return c;
+    // Nayi keys encrypted save hoti hain (courier-accounts)
+    return { ...c, apiKey: decrypt(c.apiKey) ?? '' };
   }
 
   async bookShipment(tenantId: string, dto: {

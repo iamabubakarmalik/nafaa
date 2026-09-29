@@ -1038,7 +1038,7 @@ export class OnlineOrdersService implements OnModuleInit {
   }
 
   /** Auto-accept ke liye: dukaan ka malik (sale uske naam se banti hai) */
-  private async systemActor(tenantId: string): Promise<AuthenticatedUser> {
+  async systemActor(tenantId: string): Promise<AuthenticatedUser> {
     const owner = await this.prisma.user.findFirst({
       where: { tenantId, isActive: true, role: UserRole.OWNER },
       orderBy: { createdAt: 'asc' },
@@ -1080,6 +1080,9 @@ export class OnlineOrdersService implements OnModuleInit {
       nextStatus: FLOW.includes(o.orderStatus) ? FLOW[FLOW.indexOf(o.orderStatus) + 1] ?? null : null,
       courierLabel: courierName(o.courierCode) ?? o.courierName ?? null,
       courierSite: COURIERS.find((c) => c.code === o.courierCode)?.site ?? null,
+      // Nafaa se courier API par book hua (PostEx/Leopards) — label/refresh/cancel yahin se
+      courierBooked: !!o.courierBookedAt && !!o.trackingNumber && o.courierStatus !== 'CANCELLED' && o.courierStatus !== 'BOOKING',
+      courierTrail: meta.courierTrail ?? null,
     };
   }
 }

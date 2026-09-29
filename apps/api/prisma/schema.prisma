@@ -96,15 +96,25 @@ enum CustomerLedgerType {
  * usay ghatati hai.
  */
 enum SupplierLedgerType {
-  /** System se pehle ka purana hisab */
+  /**
+   * System se pehle ka purana hisab
+   */
   OPENING_BALANCE
-  /** Udhaar par maal liya */
+  /**
+   * Udhaar par maal liya
+   */
   PURCHASE_CREDIT
-  /** Supplier ko paisa diya */
+  /**
+   * Supplier ko paisa diya
+   */
   PAYMENT_MADE
-  /** Maal wapas kiya — hamara dena kam hua */
+  /**
+   * Maal wapas kiya — hamara dena kam hua
+   */
   PURCHASE_RETURN
-  /** Haath se durusti (discount, ghalati waghera) */
+  /**
+   * Haath se durusti (discount, ghalati waghera)
+   */
   ADJUSTMENT
 }
 
@@ -352,7 +362,7 @@ model Tenant {
   products            Product[]
   customers           Customer[]
   sales               Sale[]
-  supplierLedgers SupplierLedger[]
+  supplierLedgers     SupplierLedger[]
   suppliers           Supplier[]
   purchases           Purchase[]
   stockMovements      StockMovement[]
@@ -1030,7 +1040,7 @@ model ProductVariant {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  product         Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product         Product                 @relation(fields: [productId], references: [id], onDelete: Cascade)
   batches         ProductBatch[]
   imeis           ProductImei[]
   saleItems       SaleItemVariant[]
@@ -1038,7 +1048,7 @@ model ProductVariant {
   channelMappings ProductChannelMapping[]
   carpetRolls     CarpetRoll[]
   carpetCutPieces CarpetCutPiece[]
-  adjustments     StockAdjustment[]  @relation("VariantAdjustments")
+  adjustments     StockAdjustment[]       @relation("VariantAdjustments")
   units           ProductUnit[]
   comboItems      ProductComboItem[]
   damageLogs      DamageLog[]
@@ -1237,18 +1247,18 @@ model Sale {
   //
   // Teenon khane khali reh sakte hain: purani sales aur walk-in cash
   // bills me koi receiver hota hi nahi.
-  receivedByName          String?
-  receivedByPhone         String?
-  receivedByCnic          String?
+  receivedByName  String?
+  receivedByPhone String?
+  receivedByCnic  String?
 
   // Online order se bani sale ka source aur us order ka number (#1042).
   // Purani sab sales POS hain — migration default se backfill karti hai.
-  source                  SaleSource    @default(POS)
-  sourceRef               String?
+  source    SaleSource @default(POS)
+  sourceRef String?
 
-  soldAt                  DateTime      @default(now())
-  createdAt               DateTime      @default(now())
-  updatedAt               DateTime      @updatedAt
+  soldAt    DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   tenant          Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   shop            Shop?         @relation(fields: [shopId], references: [id], onDelete: SetNull)
@@ -1378,40 +1388,45 @@ model Supplier {
 
 /**
  * Supplier ka khata — har entry ke sath balance bhi.
- *
  * Pehle sirf `Supplier.outstandingDue` ka ek number tha jo kharidari
  * par barhta tha aur bas. Na purana hisab darj ho sakta tha, na
  * adaigi ka koi record banta tha — dukaan-daar ko sirf kul number
  * nazar aata tha, ye nahi ke wo bana kaise.
  */
 model SupplierLedger {
-  id           String             @id @default(uuid())
-  tenantId     String
-  supplierId   String
-  shopId       String?
-  createdById  String?
-  type         SupplierLedgerType
-  /** Hamesha musbat — ghatana/barhana `type` se tay hota hai */
-  amount       Float
-  /** Is entry ke baad hum supplier ko kitna dete hain */
-  balanceAfter Float
+  id            String             @id @default(uuid())
+  tenantId      String
+  supplierId    String
+  shopId        String?
+  createdById   String?
+  type          SupplierLedgerType
+  /**
+   * Hamesha musbat — ghatana/barhana `type` se tay hota hai
+   */
+  amount        Float
+  /**
+   * Is entry ke baad hum supplier ko kitna dete hain
+   */
+  balanceAfter  Float
   /**
    * Adaigi kis zariye hui — sirf PAYMENT_MADE par maani rakhta hai.
-   *
    * Golak (cash register) ka hisab isi se tay hota hai: cash wali
    * adaigi golak se nikalti hai, bank/cheque wali nahi.
-   *
    * Nullable hai — purani entriyon par kuch likha hi nahi tha, aur
    * unhein cash maan liya jata hai (kiryana me qariban hamesha cash
    * hi hota tha).
    */
   paymentMethod PaymentMethod?
-  /** Purchase number, cheque number waghera */
-  reference    String?
-  note         String?
-  /** Kis tareekh ka hisab hai — purana khata daalte waqt kaam aata hai */
-  entryDate    DateTime           @default(now())
-  createdAt    DateTime           @default(now())
+  /**
+   * Purchase number, cheque number waghera
+   */
+  reference     String?
+  note          String?
+  /**
+   * Kis tareekh ka hisab hai — purana khata daalte waqt kaam aata hai
+   */
+  entryDate     DateTime           @default(now())
+  createdAt     DateTime           @default(now())
 
   tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   supplier Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
@@ -2043,9 +2058,9 @@ model TenantSettings {
   notifyNewCustomer     Boolean @default(false)
 
   // ===== 9. SECURITY =====
-  requirePinForVoid     Boolean @default(false)
-  requirePinForDiscount Boolean @default(false)
-  requirePinForRefund   Boolean @default(true)
+  requirePinForVoid     Boolean   @default(false)
+  requirePinForDiscount Boolean   @default(false)
+  requirePinForRefund   Boolean   @default(true)
   /**
    * Malik ka PIN — bcrypt hash. Yehi EK PIN poore app me chalta hai:
    * cost/profit chhupana, khata kholna aur jo safhe malik ne lock
@@ -2058,28 +2073,30 @@ model TenantSettings {
    * Jin safhon par PIN maanga jaye — malik apni marzi se chunta hai.
    * Misal: ["/khata", "/reports", "/expenses"]
    */
-  lockedRoutes          String[] @default([])
-  /** Ek dafa PIN daalne ke baad kitni der khula rahe (minute) */
-  pinUnlockMinutes      Int     @default(15)
-  /** Cost/profit by-default chhupa rahe ya nahi */
-  hideCostByDefault     Boolean @default(false)
+  lockedRoutes          String[]  @default([])
+  /**
+   * Ek dafa PIN daalne ke baad kitni der khula rahe (minute)
+   */
+  pinUnlockMinutes      Int       @default(15)
+  /**
+   * Cost/profit by-default chhupa rahe ya nahi
+   */
+  hideCostByDefault     Boolean   @default(false)
 
   /**
    * WhatsApp ke tayyar paighaam — dukaan-daar apne alfaaz me.
-   *
    * Pehle WhatsApp ka sirf ek on/off switch tha jo "WhatsApp
    * Business API" maangta tha — aam dukaan-daar ke liye be-kaar.
    * Halanke `wa.me` link ke liye koi API chahiye hi nahi: phone
    * par WhatsApp khul jata hai aur paighaam pehle se likha milta
    * hai.
-   *
    * Shakl: { receipt: "...", udhaar: "...", shukriya: "..." }
    * Andar {{customer}}, {{total}} jaise khane bharay jate hain.
    */
-  whatsappTemplates     Json?
-  autoLogoutMinutes     Int     @default(60)
-  enableTwoFactor       Boolean @default(false)
-  maxLoginAttempts      Int     @default(5)
+  whatsappTemplates Json?
+  autoLogoutMinutes Int     @default(60)
+  enableTwoFactor   Boolean @default(false)
+  maxLoginAttempts  Int     @default(5)
 
   // ===== 10. APPEARANCE =====
   theme       String  @default("light") // light, dark, auto
@@ -15634,6 +15651,11 @@ model CourierConfig {
   pickupAddress String?
   isActive      Boolean         @default(true)
   isSandbox     Boolean         @default(false)
+  // Courier-specific settings (pickup address code, origin city, shipper, default weight)
+  settings      Json?
+  lastTestedAt  DateTime?
+  lastSyncAt    DateTime?
+  lastError     String?
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
 
@@ -16209,28 +16231,34 @@ model ChannelOrder {
   processedAt DateTime?
 
   // Order ka safar — har qadam ka waqt, taake page par timeline dikh sake
-  acceptedAt         DateTime?
-  dispatchedAt       DateTime?
-  deliveredAt        DateTime?
-  cancelledAt        DateTime?
-  cancelReason       String?
-  paymentReceivedAt  DateTime?
-  courierName        String?
-  trackingNumber     String?
+  acceptedAt        DateTime?
+  dispatchedAt      DateTime?
+  deliveredAt       DateTime?
+  cancelledAt       DateTime?
+  cancelReason      String?
+  paymentReceivedAt DateTime?
+  courierName       String?
+  trackingNumber    String?
   // Courier ka code (TCS, LEOPARDS, POSTEX, …) — tracking link aur COD hisaab courier-wise
-  courierCode        String?
+  courierCode       String?
   // COD: courier ne paisa jama karwa diya (settlement) — kab aur kis reference se
-  codSettledAt       DateTime?
-  codSettlementRef   String?
+  codSettledAt      DateTime?
+  codSettlementRef  String?
   // RTO: parcel customer ne nahi liya, wapas aaya — stock wapas, bill void
-  returnedAt         DateTime?
-  returnReason       String?
+  returnedAt        DateTime?
+  returnReason      String?
+  // Courier API se booking (PostEx/Leopards): label aur courier ka apna status
+  courierBookedAt   DateTime?
+  courierLabelUrl   String?
+  courierStatus     String?
+  courierStatusAt   DateTime?
 
   @@unique([integrationId, externalOrderId])
   @@index([tenantId, orderStatus])
   @@index([integrationId, receivedAt])
   @@index([tenantId, receivedAt])
   @@index([tenantId, courierCode])
+  @@index([tenantId, courierBookedAt])
   @@map("channel_orders")
 }
 
@@ -16279,11 +16307,11 @@ model WebhookLog {
 }
 
 model ProductChannelMapping {
-  id                String      @id @default(cuid())
+  id                String          @id @default(cuid())
   integrationId     String
-  integration       Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  integration       Integration     @relation(fields: [integrationId], references: [id], onDelete: Cascade)
   productId         String
-  product           Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product           Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
   // Variant tak link: "Shirt (Small)" aur "Shirt (Large)" alag alag website variants se jurte hain
   variantId         String?
   variant           ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
@@ -16296,7 +16324,7 @@ model ProductChannelMapping {
   // Website par naam/tasveer — linking ke safhe par dikhane ke liye
   externalTitle     String?
   externalImage     String?
-  syncStatus        SyncStatus  @default(PENDING)
+  syncStatus        SyncStatus      @default(PENDING)
   lastSyncedAt      DateTime?
   externalData      Json?
 
@@ -17732,11 +17760,9 @@ enum ApplianceClaimStatus {
 
 /**
  * Brand se paisa wapas lene ka record.
- *
  * Appliance ki dukaan warranty wala repair FREE karti hai — parts
  * aur labor ka kharcha dukaan apni jeb se bhardti hai. Us ke baad
  * company/brand se wo paisa claim kiya jata hai.
- *
  * Pehle sirf ServiceRequest par `warrantyClaimNumber` ka ek khana
  * tha aur bas — claim kahan pohancha, brand ne kitna diya, kitna
  * baqi hai, iska koi record nahi tha. Wo paisa aksar zaya ho jata.
@@ -17771,7 +17797,9 @@ model ApplianceWarrantyClaim {
   claimDate     DateTime @default(now())
   issue         String   @db.Text
   issueCategory String?
-  /** MAIN / COMPRESSOR / MOTOR — kaunsi warranty par claim hai */
+  /**
+   * MAIN / COMPRESSOR / MOTOR — kaunsi warranty par claim hai
+   */
   warrantyKind  String?
 
   status ApplianceClaimStatus @default(DRAFT)
@@ -17787,17 +17815,25 @@ model ApplianceWarrantyClaim {
   partsCost      Float @default(0)
   laborCost      Float @default(0)
   otherCost      Float @default(0)
-  /** Dukaan ki kul lagat (parts + labor + baqi) */
+  /**
+   * Dukaan ki kul lagat (parts + labor + baqi)
+   */
   claimedAmount  Float @default(0)
-  /** Brand ne jitna manzoor kiya */
+  /**
+   * Brand ne jitna manzoor kiya
+   */
   approvedAmount Float @default(0)
-  /** Brand se jitna paisa asal me mila */
+  /**
+   * Brand se jitna paisa asal me mila
+   */
   receivedAmount Float @default(0)
 
-  settledAt      DateTime?
-  rejectionReason String? @db.Text
+  settledAt       DateTime?
+  rejectionReason String?   @db.Text
 
-  /** Part badla gaya to naya serial */
+  /**
+   * Part badla gaya to naya serial
+   */
   replacementSerialNumber String?
 
   documentUrls String[] @default([])

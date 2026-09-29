@@ -8,3 +8,4 @@ export { OnlineOrderAlert } from './components/OnlineOrderAlert';
 export { useLiveOnlineOrders } from './hooks/useLiveOnlineOrders';
 export { useSalesChannels } from './hooks/useSalesChannels';
 export { default as CodPage } from './pages/CodPage';
+export { default as CouriersPage } from './pages/CouriersPage';

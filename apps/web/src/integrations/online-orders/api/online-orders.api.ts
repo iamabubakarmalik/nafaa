@@ -68,12 +68,54 @@ export interface OnlineOrder {
   returnReason?: string | null;
   codSettledAt?: string | null;
   codSettlementRef?: string | null;
+  courierBookedAt?: string | null;
+  courierLabelUrl?: string | null;
+  courierStatus?: CourierState | 'BOOKING' | null;
+  courierStatusAt?: string | null;
+  courierBooked?: boolean;
+  courierTrail?: { label: string; state: CourierState; history: { label: string; at?: string | null }[]; at: string } | null;
   isCod: boolean;
   isTest: boolean;
   platform: string;
   nextStatus: OnlineOrderStatus | null;
   integration?: { id: string; type: string; displayName: string };
 }
+
+export type CourierState =
+  | 'BOOKED' | 'PICKED_UP' | 'IN_TRANSIT' | 'OUT_FOR_DELIVERY' | 'ATTEMPTED'
+  | 'DELIVERED' | 'RETURNING' | 'RETURNED' | 'CANCELLED' | 'UNKNOWN';
+
+export interface CourierSettings {
+  pickupAddressCode?: string | null;
+  originCityId?: string | null;
+  defaultWeightKg?: number | null;
+  bookingNote?: string | null;
+}
+
+export interface CourierAccount {
+  code: string;
+  name: string;
+  site: string | null;
+  mode: 'api' | 'manual';
+  connected: boolean;
+  active: boolean;
+  maskedKey: string | null;
+  lastTestedAt: string | null;
+  lastSyncAt: string | null;
+  lastError: string | null;
+  settings: CourierSettings | null;
+  booked30: number;
+  connect: null | {
+    fields: { key: 'apiKey' | 'apiSecret'; label: string; placeholder?: string }[];
+    portalUrl: string;
+    steps: string[];
+    labelKind: 'pdf' | 'link';
+    autoSettlement: boolean;
+  };
+}
+
+export interface PickupAddress { code: string; address: string; city?: string | null }
+export interface CourierCity { id: string; name: string }
 
 export interface CodCourier {
   code: string; name: string;
@@ -420,6 +462,55 @@ export const onlineOrdersApi = {
 };
 
 /** Backend ke error ka asli paigham (NestJS kai shaklon me deta hai) */
+export const couriersApi = {
+  list: () => apiClient.get('/online-store/couriers').then((r) => unwrap<CourierAccount[]>(r)),
+  connect: (code: string, body: { apiKey: string; apiSecret?: string; settings?: CourierSettings }) =>
+    apiClient.post(`/online-store/couriers/${code}/connect`, body)
+      .then((r) => unwrap<{ ok: true; cities: number; pickupAddresses: PickupAddress[]; settings: CourierSettings }>(r)),
+  test: (code: string) =>
+    apiClient.post(`/online-store/couriers/${code}/test`).then((r) => unwrap<{ ok: true; cities: number; pickupAddresses: PickupAddress[] }>(r)),
+  update: (code: string, body: { settings?: CourierSettings; active?: boolean }) =>
+    apiClient.patch(`/online-store/couriers/${code}`, body).then((r) => unwrap<{ ok: true; settings: CourierSettings }>(r)),
+  disconnect: (code: string) => apiClient.delete(`/online-store/couriers/${code}`).then((r) => unwrap<{ ok: true }>(r)),
+  options: (code: string) =>
+    apiClient.get(`/online-store/couriers/${code}/options`).then((r) => unwrap<{ cities: CourierCity[]; pickupAddresses: PickupAddress[] }>(r)),
+
+  book: (orderId: string, body: { courier: string; cityId?: string; weightKg?: number; pieces?: number; codAmount?: number; notes?: string }) =>
+    apiClient.post(`/online-orders/${orderId}/courier/book`, body)
+      .then((r) => unwrap<{ ok: true; trackingNumber: string; labelKind: 'pdf' | 'link' }>(r)),
+  cancel: (orderId: string) => apiClient.post(`/online-orders/${orderId}/courier/cancel`).then((r) => unwrap<{ ok: true }>(r)),
+  refresh: (orderId: string) =>
+    apiClient.post(`/online-orders/${orderId}/courier/refresh`)
+      .then((r) => unwrap<{ ok: true; status: CourierState; label: string | null; history: { label: string; at?: string | null }[] }>(r)),
+  /** PostEx: PDF blob. Leopards: {url} JSON. Dono ko naye tab me kholo. */
+  openLabel: async (orderId: string) => {
+    // Popup blocker: tab pehle kholo (click ke waqt), phir URL do
+    const tab = window.open('', '_blank');
+    try {
+      const r = await apiClient.get(`/online-orders/${orderId}/courier/label`, { responseType: 'blob' });
+      const blob: Blob = r.data;
+      if (blob.type.includes('pdf')) {
+        const url = URL.createObjectURL(blob);
+        if (tab) tab.location.href = url; else window.open(url, '_blank');
+        setTimeout(() => URL.revokeObjectURL(url), 60_000);
+        return;
+      }
+      const json = JSON.parse(await blob.text());
+      const url = json?.data?.url ?? json?.url;
+      if (!url) throw new Error('Label nahi mila');
+      if (tab) tab.location.href = url; else window.open(url, '_blank', 'noopener');
+    } catch (e: any) {
+      tab?.close();
+      // Error bhi blob me aata hai — message nikalo
+      const data = e?.response?.data;
+      if (data instanceof Blob) {
+        try { e.response.data = JSON.parse(await data.text()); } catch { /* jaisa hai */ }
+      }
+      throw e;
+    }
+  },
+};
+
 export function apiErrorMessage(err: any, fallback = 'Kuch ghalat ho gaya'): string {
   const d = err?.response?.data;
   const m = d?.message ?? d?.error?.message ?? d?.data?.message ?? err?.message;

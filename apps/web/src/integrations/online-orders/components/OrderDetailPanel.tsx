@@ -14,6 +14,7 @@ import {
 import { LIVE_ORDERS_KEY } from '../hooks/useLiveOnlineOrders';
 import { COURIER_OPTIONS, NEXT_ACTION, PAYMENT_LABEL, STATUS_LABEL, rs, sourceOf, waNumber, whenText } from '../lib/labels';
 import { MatchItemsModal, type Matches } from './MatchItemsModal';
+import { CourierSection } from './CourierSection';
 import { cn } from '@core/lib/cn';
 
 const CANCEL_REASONS = ['Stock khatam', 'Customer ne mana kiya', 'Address/number ghalat', 'Fake order', 'Delivery nahi ho sakti'];
@@ -320,7 +321,8 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
               : <Step done={!!o.deliveredAt} at={o.deliveredAt} label="Customer ko mil gaya" icon={<Package className="h-3.5 w-3.5" />} />}
           </ol>
         </section>
-        {o.trackingNumber && (
+        <CourierSection order={o} onChanged={refresh} />
+        {o.trackingNumber && !o.courierBooked && (
           <section className="flex items-center gap-3 rounded-2xl border border-slate-200 p-4 dark:border-neutral-800">
             <Truck className="h-5 w-5 text-slate-400" />
             <div className="min-w-0 flex-1">
@@ -361,7 +363,8 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
                   loading={setStatus.isPending}
                   rightIcon={<ArrowRight className="h-4 w-4" />}
                   onClick={() =>
-                    o.nextStatus === 'OUT_FOR_DELIVERY' ? setDispatchOpen(true) : setStatus.mutate({ status: o.nextStatus! })
+                    // Courier par book hai to CN/courier pehle se — seedha "raste me"
+                    o.nextStatus === 'OUT_FOR_DELIVERY' && !o.courierBooked ? setDispatchOpen(true) : setStatus.mutate({ status: o.nextStatus! })
                   }
                 >
                   {NEXT_ACTION[o.orderStatus] ?? 'Aage'}

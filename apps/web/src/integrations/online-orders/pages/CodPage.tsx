@@ -46,7 +46,8 @@ export default function CodPage() {
 
   return (
     <Page back={{ to: '/online-orders', label: 'Online orders' }} title="COD & courier"
-      subtitle="Cash on delivery ka paisa kahan hai — courier-wise. Settlement sheet aaye to orders chun kar 'mil gaya' karein.">
+      subtitle="Cash on delivery ka paisa kahan hai — courier-wise. Settlement sheet aaye to orders chun kar 'mil gaya' karein."
+      actions={<Link to="/online-store/couriers"><Btn icon={<Truck className="h-4 w-4" />}>Couriers jorein</Btn></Link>}>
       {isLoading ? (
         <div className="grid gap-3 sm:grid-cols-4">{[0, 1, 2, 3].map((i) => <div key={i} className="h-20 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" />)}</div>
       ) : error || !data ? (

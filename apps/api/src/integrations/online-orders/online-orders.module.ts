@@ -12,8 +12,11 @@ import { ShopifyService } from './shopify.service';
 import { ChannelCatalogService } from './channel-catalog.service';
 import { DataRetentionService } from './data-retention.service';
 import { ShopifyPublicController } from './shopify-public.controller';
+import { CourierAccountsService } from './courier-accounts.service';
 import {
   ChannelsController,
+  CouriersController,
+  OrderCourierController,
   LegacyChannelOrdersController,
   OnlineOrdersController,
 } from './online-orders.controller';
@@ -30,8 +33,10 @@ import {
     LegacyChannelOrdersController,
     ChannelsController,
     ShopifyPublicController,
+    CouriersController,
+    OrderCourierController,
   ],
-  providers: [OnlineOrdersService, WebsiteCatalogService, WebsiteSetupService, StatusWebhookService, WooCommerceService, ShopifyService, ChannelCatalogService, DataRetentionService],
+  providers: [OnlineOrdersService, WebsiteCatalogService, WebsiteSetupService, StatusWebhookService, WooCommerceService, ShopifyService, ChannelCatalogService, DataRetentionService, CourierAccountsService],
   exports: [OnlineOrdersService, WebsiteCatalogService],
 })
 export class OnlineOrdersModule {}
