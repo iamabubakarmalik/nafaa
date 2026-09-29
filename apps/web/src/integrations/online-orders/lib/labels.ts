@@ -91,5 +91,7 @@ export const COURIER_OPTIONS = [
   { code: 'MNP', name: 'M&P' },
   { code: 'BLUE_EX', name: 'BlueEx' },
   { code: 'CALL_COURIER', name: 'Call Courier' },
+  { code: 'DAEWOO', name: 'Daewoo FastEx' },
+  { code: 'TPL_RIDER', name: 'Rider (TPL)' },
   { code: 'OTHER', name: 'Doosra' },
 ];

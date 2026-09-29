@@ -12,6 +12,8 @@ export const COURIERS = [
   { code: 'MNP', name: 'M&P', site: 'https://www.mulphilog.com' },
   { code: 'BLUE_EX', name: 'BlueEx', site: 'https://www.blue-ex.com' },
   { code: 'CALL_COURIER', name: 'Call Courier', site: 'https://callcourier.com.pk' },
+  { code: 'DAEWOO', name: 'Daewoo FastEx', site: 'https://fastex.pk' },
+  { code: 'TPL_RIDER', name: 'Rider (TPL)', site: 'https://track.withrider.com' },
   { code: 'OTHER', name: 'Doosra', site: null },
 ] as const;
 

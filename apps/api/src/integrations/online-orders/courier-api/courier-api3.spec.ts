@@ -82,3 +82,19 @@ describe('Call Courier adapter', () => {
     expect(t).toMatchObject({ state: 'ATTEMPTED' });
   });
 });
+
+import { leopardsAdapter } from './leopards.adapter';
+describe('Leopards COD settlement', () => {
+  afterAll(() => { global.fetch = realFetch; });
+  it('GET getPaymentDetails, "Paid" = settled', async () => {
+    calls = [];
+    mock((u) => (u.includes('/getPaymentDetails/format/json/') ? { body: { status: 1, payment_list: [{ booked_packet_cn: 'LE9', status: 'Paid', invoice_cheque_no: 'CHQ12', invoice_cheque_date: '2026-09-20' }] } } : undefined));
+    const r = await leopardsAdapter.paymentSettled!({ apiKey: 'k', apiSecret: 'p' }, 'LE9');
+    expect(r).toMatchObject({ settled: true, reference: 'cheque CHQ12 (2026-09-20)' });
+    expect(calls[0].init.method).toBeUndefined();
+  });
+  it('"Pending" = settled nahi', async () => {
+    mock(() => ({ body: { status: 1, payment_list: [{ booked_packet_cn: 'LE9', status: 'Pending' }] } }));
+    expect((await leopardsAdapter.paymentSettled!({ apiKey: 'k', apiSecret: 'p' }, 'LE9'))?.settled).toBe(false);
+  });
+});

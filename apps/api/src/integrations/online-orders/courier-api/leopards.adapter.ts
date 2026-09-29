@@ -92,6 +92,19 @@ export const leopardsAdapter: CourierAdapter = {
     await call(creds, 'cancelBookedPackets', { cn_numbers: tn });
   },
 
+  /** COD: getPaymentDetails (sirf GET) — status "Paid" = paisa aa gaya */
+  async paymentSettled(creds, tn) {
+    const q = new URLSearchParams({ api_key: creds.apiKey, api_password: creds.apiSecret ?? '', cn_numbers: tn });
+    const { body } = await courierFetch(`${BASE}/getPaymentDetails/format/json/?${q}`).catch(() => ({ body: null } as any));
+    if (Number(body?.status) !== 1) return null;
+    const row = (body.payment_list ?? []).find((p: any) => String(p?.booked_packet_cn) === tn) ?? body.payment_list?.[0];
+    if (!row) return null;
+    return {
+      settled: /^paid$/i.test(String(row.status ?? row.payment_status ?? '').trim()),
+      reference: row.invoice_cheque_no ? `cheque ${row.invoice_cheque_no}${row.invoice_cheque_date ? ` (${row.invoice_cheque_date})` : ''}` : null,
+    };
+  },
+
   async label(_creds, _tn, savedUrl) {
     if (savedUrl && /^https:\/\//.test(savedUrl)) return { url: savedUrl };
     throw new CourierApiError('Leopards ka label link nahi mila — Leopards portal se print karein');

@@ -117,7 +117,7 @@ export const COURIER_APIS: Record<string, CourierApiDef> = {
       'API key aur API password dono copy karke yahan paste karein',
     ],
     labelKind: 'link',
-    features: { cancel: true, label: true, settlement: false },
+    features: { cancel: true, label: true, settlement: true },
     color: '#e11d48',
   },
   TRAX: {
