@@ -13,6 +13,7 @@ import { ChannelCatalogService } from './channel-catalog.service';
 import { DataRetentionService } from './data-retention.service';
 import { ShopifyPublicController } from './shopify-public.controller';
 import { CourierAccountsService } from './courier-accounts.service';
+import { StockPushService } from './stock-push.service';
 import {
   ChannelsController,
   CouriersController,
@@ -36,7 +37,7 @@ import {
     CouriersController,
     OrderCourierController,
   ],
-  providers: [OnlineOrdersService, WebsiteCatalogService, WebsiteSetupService, StatusWebhookService, WooCommerceService, ShopifyService, ChannelCatalogService, DataRetentionService, CourierAccountsService],
+  providers: [OnlineOrdersService, WebsiteCatalogService, WebsiteSetupService, StatusWebhookService, WooCommerceService, ShopifyService, ChannelCatalogService, DataRetentionService, CourierAccountsService, StockPushService],
   exports: [OnlineOrdersService, WebsiteCatalogService],
 })
 export class OnlineOrdersModule {}

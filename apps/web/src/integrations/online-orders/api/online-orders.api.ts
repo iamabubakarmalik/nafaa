@@ -22,6 +22,13 @@ export interface OnlineOrderItem {
   productId?: string;
 }
 
+export interface CustomerRisk {
+  level: 'NEW' | 'TRUSTED' | 'OK' | 'WATCH' | 'HIGH';
+  label: string;
+  reason: string;
+  total: number; delivered: number; returned: number; cancelled: number; open: number; spent: number;
+}
+
 export interface OnlineOrder {
   id: string;
   integrationId: string;
@@ -74,6 +81,9 @@ export interface OnlineOrder {
   courierStatusAt?: string | null;
   courierBooked?: boolean;
   courierTrail?: { label: string; state: CourierState; history: { label: string; at?: string | null }[]; at: string } | null;
+  risk?: CustomerRisk | null;
+  confirmation?: { result: 'CONFIRMED' | 'NO_ANSWER' | 'REFUSED'; at: string; attempts: number; note?: string | null } | null;
+  autoBookError?: string | null;
   isCod: boolean;
   isTest: boolean;
   platform: string;
@@ -235,6 +245,7 @@ export interface WebsiteConfig {
   autoPrint: boolean;
   shopId: string | null;
   priceSource: 'WEBSITE' | 'NAFAA';
+  pushPrice?: boolean;
   statusWebhookUrl: string | null;
   requireSignature: boolean;
   shopifySecret: string | null;
@@ -379,6 +390,11 @@ export const onlineOrdersApi = {
   cancel: (id: string, reason?: string) =>
     apiClient.post(`/online-orders/${id}/cancel`, { reason }).then((r) => unwrap<OnlineOrder>(r)),
 
+  bulk: (action: 'accept' | 'next' | 'cancel' | 'confirm', ids: string[], reason?: string) =>
+    apiClient.post('/online-orders/bulk', { action, ids, reason })
+      .then((r) => unwrap<{ done: number; failed: number; results: { id: string; ok: boolean; error?: string }[] }>(r)),
+  setConfirmation: (id: string, result: 'CONFIRMED' | 'NO_ANSWER' | 'REFUSED', note?: string) =>
+    apiClient.post(`/online-orders/${id}/confirmation`, { result, note }).then((r) => unwrap<OnlineOrder>(r)),
   markReturned: (id: string, reason?: string) =>
     apiClient.post(`/online-orders/${id}/returned`, { reason }).then((r) => unwrap<OnlineOrder>(r)),
 

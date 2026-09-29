@@ -14,6 +14,8 @@ import { readWebsiteConfig } from './website-config';
 import { StatusWebhookService } from './status-webhook.service';
 import { COURIERS, courierHoldsCash, courierName } from './couriers';
 import { mappingKey } from './mapping-key';
+import { CustomerRisk, emptyHistory, phoneKey, riskOf } from './customer-risk';
+import { emitOrderAccepted } from './order-events';
 
 /**
  * Online order ka poora safar:
@@ -216,8 +218,15 @@ export class OnlineOrdersService implements OnModuleInit {
     const statusCounts: Record<string, number> = {};
     counts.forEach((c) => { statusCounts[c.orderStatus] = c._count._all; });
 
+    const risks = await this.customerRisk(user.tenantId, items.map((o) => o.customerPhone)).catch(() => new Map<string, CustomerRisk>());
+
     return {
-      items: items.map((o) => this.present(o)),
+      items: items.map((o) => {
+        // Is order ko chhod kar pichhli history
+        const r = risks.get(phoneKey(o.customerPhone) ?? '');
+        const isTest = !!(o.metadata as any)?.test;
+        return { ...this.present(o), risk: r && !isTest ? riskOf(minusSelf(r, o.orderStatus, Number(o.total))) : null };
+      }),
       total,
       counts: statusCounts,
       stats: {
@@ -255,6 +264,39 @@ export class OnlineOrdersService implements OnModuleInit {
         items: undefined,
       })),
     };
+  }
+
+  /**
+   * Phone se customer ki history (is dukaan ke saare channels, 1 saal) —
+   * ek hi query me kai phones. excludeIds = jin orders ko ginti me na lo.
+   */
+  async customerRisk(tenantId: string, phones: (string | null | undefined)[], excludeIds: string[] = []): Promise<Map<string, CustomerRisk>> {
+    const keys = [...new Set(phones.map(phoneKey).filter((k): k is string => !!k))].slice(0, 100);
+    const out = new Map<string, CustomerRisk>();
+    if (!keys.length) return out;
+    const rows = await this.prisma.channelOrder.findMany({
+      where: {
+        tenantId,
+        receivedAt: { gte: new Date(Date.now() - 365 * 86_400_000) },
+        OR: keys.map((k) => ({ customerPhone: { endsWith: k.slice(-7) } })),
+        ...(excludeIds.length ? { id: { notIn: excludeIds } } : {}),
+      },
+      select: { id: true, customerPhone: true, orderStatus: true, total: true, metadata: true },
+      take: 5000,
+    });
+    const hist = new Map(keys.map((k) => [k, emptyHistory()]));
+    for (const o of rows) {
+      const k = phoneKey(o.customerPhone);
+      const h = k ? hist.get(k) : undefined;
+      if (!h || (o.metadata as any)?.test) continue;
+      h.total++;
+      if (o.orderStatus === 'DELIVERED') { h.delivered++; h.spent += Number(o.total); }
+      else if (o.orderStatus === 'RETURNED') h.returned++;
+      else if (o.orderStatus === 'CANCELLED' || o.orderStatus === 'REJECTED') h.cancelled++;
+      else h.open++;
+    }
+    for (const [k, h] of hist) out.set(k, riskOf(h));
+    return out;
   }
 
   async detail(user: AuthenticatedUser, scope: ShopScope, id: string) {
@@ -303,8 +345,11 @@ export class OnlineOrdersService implements OnModuleInit {
         })
       : null;
 
+    const risk = (await this.customerRisk(order.tenantId, [order.customerPhone], [order.id]).catch(() => null))?.get(phoneKey(order.customerPhone) ?? '') ?? null;
+
     return {
       ...this.present(order),
+      risk,
       integration: { id: order.integration.id, type: order.integration.type, displayName: order.integration.displayName },
       autoPrint: config.autoPrint,
       fulfilShopId: shopId,
@@ -493,6 +538,7 @@ export class OnlineOrdersService implements OnModuleInit {
 
       await this.rememberMatches(order.integrationId, items, matched);
       this.statusHook.send(updated.integration, updated, 'order.confirmed');
+      emitOrderAccepted({ tenantId: updated.tenantId, orderId: updated.id });
 
       return {
         order: this.present(updated),
@@ -615,6 +661,74 @@ export class OnlineOrdersService implements OnModuleInit {
     });
     this.statusHook.send(updated.integration, updated, 'order.cancelled');
     return this.present(updated);
+  }
+
+  /**
+   * COD confirmation — dukandar ne customer se (call / WhatsApp) poocha:
+   * CONFIRMED = haan, NO_ANSWER = jawab nahi (dobara koshish), REFUSED = mana.
+   * Record order par — kitni dafa koshish hui, kis ne ki.
+   */
+  async setConfirmation(user: AuthenticatedUser, scope: ShopScope, id: string, body: { result?: string; note?: string }) {
+    const result = String(body?.result ?? '').toUpperCase();
+    if (!['CONFIRMED', 'NO_ANSWER', 'REFUSED'].includes(result)) throw new BadRequestException('Ghalat jawab');
+    const order = await this.prisma.channelOrder.findFirst({ where: { id, ...this.scopeWhere(user, scope) }, include: { integration: true } });
+    if (!order) throw new NotFoundException('Order nahi mila');
+    if (CLOSED.includes(order.orderStatus)) throw new BadRequestException('Band order ki confirmation nahi hoti');
+    const meta = (order.metadata ?? {}) as any;
+    const prev = meta.confirmation ?? {};
+    const confirmation = {
+      result,
+      at: new Date().toISOString(),
+      by: user.id,
+      attempts: (prev.attempts ?? 0) + 1,
+      note: body?.note?.trim().slice(0, 200) || null,
+      history: [...(prev.history ?? []), { result, at: new Date().toISOString() }].slice(-10),
+    };
+    const updated = await this.prisma.channelOrder.update({
+      where: { id },
+      data: { metadata: { ...meta, confirmation } },
+      include: { integration: true },
+    });
+    return this.present(updated);
+  }
+
+  /**
+   * Kai orders ek saath: accept (bill + stock), agla qadam, cancel, confirm.
+   * Har order alag — ek fail ho to baqi chalte rahen; har ek ka natija wapas.
+   */
+  async bulk(user: AuthenticatedUser, scope: ShopScope, body: { action?: string; ids?: string[]; reason?: string }) {
+    const ids = [...new Set(body?.ids ?? [])].slice(0, 100);
+    if (!ids.length) throw new BadRequestException('Koi order nahi chuna');
+    const action = String(body?.action ?? '');
+    if (!['accept', 'next', 'cancel', 'confirm'].includes(action)) throw new BadRequestException('Ghalat kaam');
+    if (action === 'cancel' && !body.reason?.trim()) throw new BadRequestException('Cancel ki wajah likhein');
+
+    const results: { id: string; ok: boolean; error?: string; saleId?: string }[] = [];
+    for (const id of ids) {
+      try {
+        if (action === 'accept') {
+          const r = await this.accept(user, scope, id, {});
+          results.push({ id, ok: true, saleId: r.sale.id });
+        } else if (action === 'next') {
+          const o = await this.prisma.channelOrder.findFirst({ where: { id, ...this.scopeWhere(user, scope) }, select: { orderStatus: true } });
+          if (!o) throw new NotFoundException('Order nahi mila');
+          const next = FLOW.includes(o.orderStatus as OrderStatus) ? FLOW[FLOW.indexOf(o.orderStatus as OrderStatus) + 1] : undefined;
+          if (!next) throw new BadRequestException('Is order ka agla qadam nahi');
+          await this.updateStatus(user, scope, id, { status: next });
+          results.push({ id, ok: true });
+        } else if (action === 'cancel') {
+          await this.cancel(user, scope, id, body.reason!.trim());
+          results.push({ id, ok: true });
+        } else {
+          await this.setConfirmation(user, scope, id, { result: 'CONFIRMED' });
+          results.push({ id, ok: true });
+        }
+      } catch (e: any) {
+        const m = e?.response?.message ?? e?.message ?? 'Nahi hua';
+        results.push({ id, ok: false, error: Array.isArray(m) ? m.join(', ') : String(m) });
+      }
+    }
+    return { done: results.filter((r) => r.ok).length, failed: results.filter((r) => !r.ok).length, results };
   }
 
   async markPaid(user: AuthenticatedUser, scope: ShopScope, id: string) {
@@ -1083,6 +1197,19 @@ export class OnlineOrdersService implements OnModuleInit {
       // Nafaa se courier API par book hua (PostEx/Leopards) — label/refresh/cancel yahin se
       courierBooked: !!o.courierBookedAt && !!o.trackingNumber && o.courierStatus !== 'CANCELLED' && o.courierStatus !== 'BOOKING',
       courierTrail: meta.courierTrail ?? null,
+      confirmation: meta.confirmation ? { result: meta.confirmation.result, at: meta.confirmation.at, attempts: meta.confirmation.attempts ?? 1, note: meta.confirmation.note ?? null } : null,
+      autoBookError: meta.autoBookError ?? null,
     };
   }
+}
+
+/** List me sab orders ek saath ginte hain — har row se us ka apna order nikalo */
+function minusSelf(r: CustomerRisk, status: string, total: number) {
+  const h = { total: r.total - 1, delivered: r.delivered, returned: r.returned, cancelled: r.cancelled, open: r.open, spent: r.spent };
+  if (status === 'DELIVERED') { h.delivered--; h.spent -= total; }
+  else if (status === 'RETURNED') h.returned--;
+  else if (status === 'CANCELLED' || status === 'REJECTED') h.cancelled--;
+  else h.open--;
+  for (const k of Object.keys(h) as (keyof typeof h)[]) h[k] = Math.max(0, h[k]);
+  return h;
 }

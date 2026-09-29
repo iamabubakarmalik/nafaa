@@ -19,6 +19,8 @@ import { OrderDetailPanel } from '../components/OrderDetailPanel';
 import { STATUS_LABEL, rs, sourceOf, timeAgo } from '../lib/labels';
 import { channelMeta, useSalesChannels } from '../hooks/useSalesChannels';
 import { cn } from '@core/lib/cn';
+import { RiskBadge } from '../components/RiskBadge';
+import { BulkBar } from '../components/BulkBar';
 import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 
 /* ═════════════════════════════════════════════════════════════
@@ -213,6 +215,12 @@ export default function OnlineOrdersPage() {
   const matchPay = (o: OnlineOrder) => payFilter === 'all' || (payFilter === 'COD' ? o.isCod : o.paymentStatus === 'PAID');
 
   /* ── List ki rows ── */
+  // Kai orders ek saath (accept / agla qadam / book / cancel)
+  const [selecting, setSelecting] = useState(false);
+  const [picked, setPicked] = useState<Set<string>>(new Set());
+  const togglePick = (id: string) => setPicked((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const stopSelecting = () => { setSelecting(false); setPicked(new Set()); };
+
   const shown = useMemo(() => {
     const items = listQ.data?.items ?? [];
     return items
@@ -1047,9 +1055,29 @@ export default function OnlineOrdersPage() {
                   </div>
                 ) : (
                   <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden print:border-0 print:shadow-none">
+                    <div className="flex items-center gap-2 border-b-2 border-slate-100 px-4 py-2 text-xs font-bold dark:border-slate-800 sm:px-5 print:hidden">
+                      {selecting ? (
+                        <>
+                          <input type="checkbox" className="h-4 w-4 rounded border-slate-300" aria-label="Sab chuno"
+                            checked={shown.slice(0, visible).every((o) => picked.has(o.id))}
+                            onChange={(e) => setPicked(e.target.checked ? new Set(shown.slice(0, visible).map((o) => o.id)) : new Set())} />
+                          <span className="text-slate-600 dark:text-slate-300">Sab {Math.min(visible, shown.length)} chuno</span>
+                          <span className="flex-1" />
+                          <button onClick={stopSelecting} className="rounded-md px-2 py-1 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">Chhoro</button>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-slate-400">{shown.length} order</span>
+                          <span className="flex-1" />
+                          <button onClick={() => setSelecting(true)} className="rounded-md px-2 py-1 text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-500/10">☑ Kai orders chunein</button>
+                        </>
+                      )}
+                    </div>
                     <div className="divide-y-2 divide-slate-100 dark:divide-slate-800">
                       {shown.slice(0, visible).map((o) => (
-                        <OrderRow key={o.id} order={o} now={now} active={o.id === selectedId} hide={hideAmounts} onClick={() => open(o.id)} />
+                        <OrderRow key={o.id} order={o} now={now} active={o.id === selectedId} hide={hideAmounts}
+                          selecting={selecting} checked={picked.has(o.id)}
+                          onClick={() => (selecting ? togglePick(o.id) : open(o.id))} />
                       ))}
                     </div>
                     {visible < shown.length && (
@@ -1110,12 +1138,15 @@ export default function OnlineOrdersPage() {
           [data-sonner-toaster] { display: none !important; }
         }
       `}</style>
+      <BulkBar orders={shown} picked={picked} onClear={stopSelecting} onKeep={(ids) => setPicked(new Set(ids))} />
     </div>
   );
 }
 
 /* ═══ ORDER KI LINE ═══ */
-function OrderRow({ order: o, now, active, hide, onClick }: { order: OnlineOrder; now: number; active: boolean; hide: boolean; onClick: () => void }) {
+function OrderRow({ order: o, now, active, hide, onClick, selecting, checked }: {
+  order: OnlineOrder; now: number; active: boolean; hide: boolean; onClick: () => void; selecting?: boolean; checked?: boolean;
+}) {
   const st = STATUS_LABEL[o.orderStatus] ?? STATUS_LABEL.PENDING;
   const src = sourceOf(o);
   const isNew = o.orderStatus === 'PENDING';
@@ -1136,7 +1167,12 @@ function OrderRow({ order: o, now, active, hide, onClick }: { order: OnlineOrder
       {(active || isNew) && <span className={cn('absolute left-0 top-0 bottom-0 w-1', active ? 'bg-emerald-500' : late ? 'bg-rose-500' : 'bg-amber-400')} />}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 flex-1 min-w-0">
-          <span className="h-12 w-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 text-xl">{src.emoji}</span>
+          {selecting ? (
+            <span className={cn('h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 border-2 text-lg font-black',
+              checked ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-slate-300 dark:border-slate-600 text-transparent')}>✓</span>
+          ) : (
+            <span className="h-12 w-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 text-xl">{src.emoji}</span>
+          )}
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="font-mono font-black text-sm text-slate-900 dark:text-white">#{orderNo(o)}</span>
@@ -1151,6 +1187,16 @@ function OrderRow({ order: o, now, active, hide, onClick }: { order: OnlineOrder
                 <span className="rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-black text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">PAID</span>
               )}
               {o.isTest && <span className="rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-black text-amber-700">TEST</span>}
+              {!isClosed(o) && <RiskBadge risk={o.risk} />}
+              {o.isCod && o.paymentStatus !== 'PAID' && !isClosed(o) && !o.dispatchedAt && (
+                o.confirmation?.result === 'CONFIRMED'
+                  ? <span className="rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-black text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">✓ Confirm</span>
+                  : o.confirmation?.result === 'REFUSED'
+                    ? <span className="rounded-md bg-rose-100 px-1.5 py-0.5 text-[10px] font-black text-rose-700">Mana kiya</span>
+                    : <span className="rounded-md bg-amber-50 px-1.5 py-0.5 text-[10px] font-bold text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
+                        {o.confirmation?.result === 'NO_ANSWER' ? `Jawab nahi (${o.confirmation.attempts})` : 'Confirm baqi'}
+                      </span>
+              )}
               {o.metadata?.cancelRequested && o.orderStatus !== 'CANCELLED' && (
                 <span className="rounded-md bg-rose-600 px-1.5 py-0.5 text-[10px] font-black text-white">Customer ne cancel maanga</span>
               )}

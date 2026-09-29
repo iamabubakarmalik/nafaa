@@ -14,6 +14,8 @@ export interface WebsiteConfig {
   shopId: string | null;
   /** Bill me qeemat: website wali (jo customer ne di) ya Nafaa wali */
   priceSource: 'WEBSITE' | 'NAFAA';
+  /** Nafaa me qeemat badle to website (Woo/Shopify) par bhi — jore hue products */
+  pushPrice: boolean;
   /** Status badalne par Nafaa is URL par batata hai (plugin khud set karta hai) */
   statusWebhookUrl: string | null;
   /** Sirf signature wale orders qabool hon */
@@ -29,6 +31,7 @@ export const DEFAULT_WEBSITE_CONFIG: WebsiteConfig = {
   autoPrint: true,
   shopId: null,
   priceSource: 'WEBSITE',
+  pushPrice: false,
   statusWebhookUrl: null,
   requireSignature: false,
   shopifySecret: null,
@@ -42,6 +45,7 @@ export function readWebsiteConfig(raw: unknown): WebsiteConfig {
     ...DEFAULT_WEBSITE_CONFIG,
     ...c,
     priceSource: c.priceSource === 'NAFAA' ? 'NAFAA' : 'WEBSITE',
+    pushPrice: c.pushPrice === true,
   };
 }
 

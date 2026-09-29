@@ -414,24 +414,71 @@ export class ShopifyService {
     }
   }
 
-  async syncStock(integration: Integration, opts: { onlySkus?: string[] } = {}) {
+  /** Nafaa → Shopify qeemat (jore hue variants). Product ke hisaab se ek mutation */
+  async pushPrices(integration: Integration, items: { externalProductId: string; externalVariantId: string | null; price: number }[]) {
+    const client = await this.mustClient(integration);
+    const byProduct = new Map<string, { id: string; price: string }[]>();
+    for (const i of items) {
+      let vid = i.externalVariantId;
+      if (!vid) {
+        // Sirf product jura (ek variant wala) — pehla variant lo
+        const d = await this.graphqlSafe(client, `query($id: ID!) { product(id: $id) { variants(first: 1) { nodes { id } } } }`, { id: `gid://shopify/Product/${i.externalProductId}` });
+        vid = d?.product?.variants?.nodes?.[0]?.id ? numericId(d.product.variants.nodes[0].id) : null;
+      }
+      if (!vid) continue;
+      const pid = `gid://shopify/Product/${i.externalProductId}`;
+      byProduct.set(pid, [...(byProduct.get(pid) ?? []), { id: `gid://shopify/ProductVariant/${vid}`, price: String(i.price) }]);
+    }
+    let sent = 0;
+    for (const [pid, variants] of byProduct) {
+      await client.mutate(`mutation($pid: ID!, $v: [ProductVariantsBulkInput!]!) {
+        productVariantsBulkUpdate(productId: $pid, variants: $v) { productVariants { id } userErrors { field message } }
+      }`, { pid, v: variants }, 'productVariantsBulkUpdate');
+      sent += variants.length;
+    }
+    await this.log(integration, 'PRICE_PUSH', true, undefined, { sent });
+    return sent;
+  }
+
+  private async graphqlSafe(client: any, q: string, v: Record<string, any>) {
+    return client.graphql(q, v).catch(() => null);
+  }
+
+  /** Nafaa → Shopify stock. onlySkus / onlyLinks = sirf badle hue (POS sale ke baad tez push) */
+  async syncStock(integration: Integration, opts: { onlySkus?: string[]; onlyLinks?: { externalProductId: string; externalVariantId: string | null }[] } = {}) {
     const client = await this.mustClient(integration);
     const cfg = readWebsiteConfig(integration.config) as any;
     const locationId: string | null = cfg.shopifyLocationId;
     if (!locationId) throw new BadRequestException('Shopify location nahi mili — "Webhooks check" dabayein');
 
+    const partial = !!(opts.onlySkus?.length || opts.onlyLinks?.length);
     const q = opts.onlySkus?.length
       ? [...new Set(opts.onlySkus)].slice(0, 50).map((s) => `sku:${JSON.stringify(s)}`).join(' OR ')
       : null;
-    const variants = await client.paginate<any>(`query($after: String, $q: String, $loc: ID!) {
-      productVariants(first: 250, after: $after, query: $q) {
-        nodes {
-          id sku
-          inventoryItem { id tracked inventoryLevel(locationId: $loc) { quantities(names: ["available"]) { quantity } } }
+    const VARIANT = `id sku inventoryItem { id tracked inventoryLevel(locationId: $loc) { quantities(names: ["available"]) { quantity } } }`;
+    let variants: any[] = [];
+    if (!partial || q) {
+      variants = await client.paginate<any>(`query($after: String, $q: String, $loc: ID!) {
+        productVariants(first: 250, after: $after, query: $q) { nodes { ${VARIANT} } pageInfo { hasNextPage endCursor } }
+      }`, 'productVariants', { q, loc: locationId }, 20);
+    }
+    // Jore hue variants / products seedha id se (SKU ho ya na ho)
+    const links = opts.onlyLinks ?? [];
+    const ids = [...new Set(links.map((l) => (l.externalVariantId ? `gid://shopify/ProductVariant/${l.externalVariantId}` : `gid://shopify/Product/${l.externalProductId}`)))];
+    for (let i = 0; i < ids.length; i += 50) {
+      const data = await client.graphql<any>(`query($ids: [ID!]!, $loc: ID!) {
+        nodes(ids: $ids) {
+          ... on ProductVariant { ${VARIANT} }
+          ... on Product { variants(first: 100) { nodes { ${VARIANT} } } }
         }
-        pageInfo { hasNextPage endCursor }
+      }`, { ids: ids.slice(i, i + 50), loc: locationId }).catch(() => null);
+      for (const n of data?.nodes ?? []) {
+        if (!n) continue;
+        if (n.variants) variants.push(...(n.variants.nodes ?? []));
+        else if (n.inventoryItem) variants.push(n);
       }
-    }`, 'productVariants', { q, loc: locationId }, 20);
+    }
+    variants = [...new Map(variants.map((v) => [v.id, v])).values()];
 
     // Pehle jore hue variants (link), phir SKU — stock ka malik Nafaa
     const linkStock = await this.catalog.stockByLink(integration);

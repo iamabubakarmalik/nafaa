@@ -1,5 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { StockMovementType } from '@prisma/client';
+import { emitStockChanged } from './stock-events';
 
 /**
  * ════════════════════════════════════════════════════════════════
@@ -116,6 +117,9 @@ export async function applyStockDelta(
       },
     });
   }
+
+  // Online store ko batao — website ka stock foran (debounce ke baad) update
+  emitStockChanged({ tenantId, productId, variantId });
 
   return { shopStockId, shopStock: after, globalStock };
 }

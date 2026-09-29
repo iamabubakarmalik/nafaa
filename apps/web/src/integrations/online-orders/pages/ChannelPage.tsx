@@ -415,6 +415,15 @@ function SettingsTab({ id, cfg, name, platform, automatic, onChange }: {
             </select>
           </Field>
         </div>
+        {automatic && (platform === 'woocommerce' || platform === 'shopify') && (
+          <div className="mt-4 border-t border-slate-100 pt-2 dark:border-slate-800">
+            <SettingRow title="Nafaa ki qeemat website par bhi"
+              help="Nafaa me product ki qeemat badlein → jore hue product ki website qeemat 1-2 minute me khud badle. Website par sale/offer chalate hon to band rakhein."
+              control={<Toggle checked={!!cfg.pushPrice} onChange={(v) => save.mutate({ pushPrice: v })} />} />
+            <SettingRow title="Stock khud website par" help="POS par sale, purchase ya adjustment → website ka stock 15-60 second me update (hamesha chalu)."
+              control={<span className="text-[12px] font-semibold text-emerald-700 dark:text-emerald-400">Chalu ✓</span>} />
+          </div>
+        )}
       </Card>
 
       <div className="text-[13px] text-slate-500 lg:pt-4">

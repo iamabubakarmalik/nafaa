@@ -261,6 +261,7 @@ export class WebsiteSetupService {
     if (body.autoAccept !== undefined) next.autoAccept = !!body.autoAccept;
     if (body.autoPrint !== undefined) next.autoPrint = !!body.autoPrint;
     if (body.requireSignature !== undefined) next.requireSignature = !!body.requireSignature;
+    if (body.pushPrice !== undefined) next.pushPrice = !!body.pushPrice;
     if (body.priceSource !== undefined) next.priceSource = body.priceSource === 'NAFAA' ? 'NAFAA' : 'WEBSITE';
     if (body.platform !== undefined) next.platform = body.platform;
     if (body.siteUrl !== undefined) next.siteUrl = body.siteUrl ? String(body.siteUrl).slice(0, 300) : null;

@@ -73,6 +73,10 @@ const TRAX_PRODUCT_TYPES = [
 ];
 
 const COMMON_SETTINGS: SettingField[] = [
+  {
+    key: 'autoBook', label: 'Accept hote hi khud book', help: 'Order accept → isi courier par CN khud ban jaye (sirf ek courier par chalu karein)', type: 'select', placeholder: 'Band',
+    options: [{ value: 'true', label: 'Chalu' }],
+  },
   { key: 'defaultWeightKg', label: 'Aam wazan (kg)', help: 'Har booking me pehle se bhara hoga', type: 'number', placeholder: '0.5' },
   { key: 'bookingNote', label: 'Har booking ka note', help: 'Jaise: Call karke aayein · Fragile', type: 'text' },
 ];

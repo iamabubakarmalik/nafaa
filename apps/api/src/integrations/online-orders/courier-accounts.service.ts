@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { CourierConfig, CourierProvider, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -7,6 +7,7 @@ import { ShopScope } from '../../common/shop-scope';
 import { decrypt, encrypt } from '../../core/lib/crypto';
 import { OnlineOrdersService } from './online-orders.service';
 import { WebsiteSetupService } from './website-setup.service';
+import { OrderAccepted, orderEvents } from './order-events';
 import { COURIERS, courierName } from './couriers';
 import { COURIER_APIS, SettingField, courierApi } from './courier-api/registry';
 import { cityKey } from './courier-api/http';
@@ -24,7 +25,7 @@ const SETTLEMENT_WINDOW_DAYS = 45;
  * khud-ba-khud. Keys AES-256-GCM se encrypted (courier_configs).
  */
 @Injectable()
-export class CourierAccountsService {
+export class CourierAccountsService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(CourierAccountsService.name);
   private readonly cityCache = new Map<string, { at: number; list: CourierCity[] }>();
   private running = false;
@@ -34,6 +35,41 @@ export class CourierAccountsService {
     private readonly orders: OnlineOrdersService,
     private readonly setup: WebsiteSetupService,
   ) {}
+
+  private readonly onAccepted = (e: OrderAccepted) => {
+    this.autoBook(e).catch((err) => this.logger.warn(`Auto-book ${e.orderId}: ${msg(err)}`));
+  };
+
+  onModuleInit() {
+    orderEvents.on('accepted', this.onAccepted);
+  }
+
+  onModuleDestroy() {
+    orderEvents.off('accepted', this.onAccepted);
+  }
+
+  /**
+   * Accept hote hi courier par khud booking — sirf jab kisi jure courier ki
+   * setting "autoBook" chalu ho. Fail ho to order par wajah likh do (order
+   * waise hi accept rehta hai, dukandar khud book kar le).
+   */
+  private async autoBook(e: OrderAccepted) {
+    const configs = await this.prisma.courierConfig.findMany({ where: { tenantId: e.tenantId, isActive: true } });
+    const cfg = configs.find((c) => COURIER_APIS[c.provider] && String((c.settings as any)?.autoBook) === 'true');
+    if (!cfg) return;
+    const actor = await this.orders.systemActor(e.tenantId);
+    try {
+      const r = await this.book(actor, new ShopScope(null, true), e.orderId, { courier: cfg.provider });
+      this.logger.log(`⚡ Auto-book ${cfg.provider}: ${r.trackingNumber}`);
+    } catch (err: any) {
+      const reason = String(err?.response?.message ?? err?.message ?? 'Auto-book nahi hua').slice(0, 300);
+      const row = await this.prisma.channelOrder.findUnique({ where: { id: e.orderId }, select: { metadata: true } });
+      await this.prisma.channelOrder.update({
+        where: { id: e.orderId },
+        data: { metadata: { ...((row?.metadata as any) ?? {}), autoBookError: `${courierName(cfg.provider)}: ${reason}` } },
+      }).catch(() => null);
+    }
+  }
 
   // ═══════════════════════════════════════════════════════════
   // ACCOUNTS
@@ -115,6 +151,13 @@ export class CourierAccountsService {
     this.setup.assertCanManage(user);
     const { cfg } = await this.account(user.tenantId, code, { includeInactive: true });
     const settings = { ...readSettings(cfg), ...cleanSettings(courierApi(code)!.settings, body?.settings) };
+    // Auto-book sirf ek courier par — do CN na banein
+    if (String(settings.autoBook) === 'true') {
+      const others = await this.prisma.courierConfig.findMany({ where: { tenantId: user.tenantId, id: { not: cfg.id } } });
+      for (const o of others.filter((x) => String((x.settings as any)?.autoBook) === 'true')) {
+        await this.prisma.courierConfig.update({ where: { id: o.id }, data: { settings: { ...((o.settings as any) ?? {}), autoBook: null } } });
+      }
+    }
     await this.prisma.courierConfig.update({
       where: { id: cfg.id },
       data: { settings: settings as any, ...(typeof body?.active === 'boolean' ? { isActive: body.active } : {}) },
@@ -349,7 +392,7 @@ export class CourierAccountsService {
           courierLabelUrl: result.labelUrl ?? null,
           courierStatus: 'BOOKED',
           courierStatusAt: new Date(),
-          metadata: { ...((order.metadata as any) ?? {}), courierBooking: { by: user.id, cod, weightKg, pieces, city: city.name, at: new Date().toISOString() } },
+          metadata: { ...((order.metadata as any) ?? {}), autoBookError: undefined, courierBooking: { by: user.id, cod, weightKg, pieces, city: city.name, at: new Date().toISOString() } },
         },
       });
       return { ok: true, trackingNumber: result.trackingNumber, labelKind: api.labelKind, order: { id: updated.id, trackingNumber: updated.trackingNumber, courierCode: updated.courierCode } };

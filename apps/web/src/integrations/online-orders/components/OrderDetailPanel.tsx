@@ -15,6 +15,8 @@ import { LIVE_ORDERS_KEY } from '../hooks/useLiveOnlineOrders';
 import { COURIER_OPTIONS, NEXT_ACTION, PAYMENT_LABEL, STATUS_LABEL, rs, sourceOf, waNumber, whenText } from '../lib/labels';
 import { MatchItemsModal, type Matches } from './MatchItemsModal';
 import { CourierSection } from './CourierSection';
+import { RiskCard } from './RiskBadge';
+import { ConfirmCard } from './ConfirmCard';
 import { cn } from '@core/lib/cn';
 
 const CANCEL_REASONS = ['Stock khatam', 'Customer ne mana kiya', 'Address/number ghalat', 'Fake order', 'Delivery nahi ho sakti'];
@@ -188,6 +190,14 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
           </Warn>
         )}
 
+        {o.autoBookError && !o.courierBooked && (
+          <Warn tone="amber" icon={<Truck className="h-4 w-4" />}>
+            Courier par khud booking nahi hui: {o.autoBookError}
+          </Warn>
+        )}
+
+        <ConfirmCard order={o} onChanged={refresh} onRefused={() => setCancelOpen(true)} />
+
         {/* ─── Customer ─── */}
         <section className="rounded-2xl border border-slate-200 p-4 dark:border-neutral-800">
           <div className="mb-2 text-[11px] font-black uppercase tracking-wider text-slate-400">Customer</div>
@@ -200,6 +210,7 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
               <span>{[o.customerAddress, o.customerCity].filter(Boolean).join(', ')}</span>
             </div>
           )}
+          <RiskCard risk={o.risk} />
           {o.notes && (
             <div className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:bg-amber-500/10 dark:text-amber-200">
               📝 {o.notes}

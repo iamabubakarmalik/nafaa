@@ -56,6 +56,12 @@ export class OnlineOrdersController {
     return this.svc.settleCod(user, scope, body ?? ({} as any));
   }
 
+  @Post('bulk')
+  @ApiOperation({ summary: 'Kai orders ek saath: accept / next / cancel / confirm' })
+  bulk(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Body() body: { action?: string; ids?: string[]; reason?: string }) {
+    return this.svc.bulk(user, scope, body ?? {});
+  }
+
   @Get('live')
   @ApiOperation({ summary: 'Naye (pending) orders — sidebar badge aur popup ke liye' })
   live(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope) {
@@ -76,6 +82,17 @@ export class OnlineOrdersController {
     @Body() body: { matches?: Record<string, ItemMatch>; shopId?: string },
   ) {
     return this.svc.accept(user, scope, id, body ?? {});
+  }
+
+  @Post(':id/confirmation')
+  @ApiOperation({ summary: 'COD confirm: customer ne haan / jawab nahi / mana' })
+  confirmation(
+    @GetUser() user: AuthenticatedUser,
+    @CurrentShop() scope: ShopScope,
+    @Param('id') id: string,
+    @Body() body: { result?: string; note?: string },
+  ) {
+    return this.svc.setConfirmation(user, scope, id, body ?? {});
   }
 
   @Post(':id/status')

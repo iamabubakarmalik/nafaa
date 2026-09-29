@@ -268,7 +268,11 @@ export class WooCommerceService {
     }
   }
 
-  async syncStock(integration: Integration, opts: { onlySkus?: string[] } = {}) {
+  /**
+   * Nafaa → website stock. opts khali = sab products. onlySkus / onlyLinks =
+   * sirf badle hue (POS sale ke foran baad ka tez push).
+   */
+  async syncStock(integration: Integration, opts: { onlySkus?: string[]; onlyLinks?: { externalProductId: string; externalVariantId: string | null }[] } = {}) {
     const client = this.client(integration);
     if (!client) throw new BadRequestException('WooCommerce jura nahi — pehle connect karein');
     const cfg = readWebsiteConfig(integration.config);
@@ -277,11 +281,26 @@ export class WooCommerceService {
     // Website ke products + variations (id, sku, stock)
     type Row = { id: number; parentId?: number; sku: string; stock: number | null; manage: boolean };
     const rows: Row[] = [];
-    if (opts.onlySkus?.length) {
-      for (const sku of [...new Set(opts.onlySkus)].slice(0, 30)) {
+    if (opts.onlySkus?.length || opts.onlyLinks?.length) {
+      const seen = new Set<number>();
+      const add = (r: Row) => { if (!seen.has(r.id)) { seen.add(r.id); rows.push(r); } };
+      // Jore hue: simple product id se, variation parent ke andar
+      const links = opts.onlyLinks ?? [];
+      const simpleIds = [...new Set(links.filter((l) => !l.externalVariantId).map((l) => l.externalProductId))];
+      for (let i = 0; i < simpleIds.length; i += 50) {
+        const found = await client.request<any[]>('GET', '/products', { query: { include: simpleIds.slice(i, i + 50).join(','), per_page: '50', _fields: 'id,sku,type,manage_stock,stock_quantity' } }).catch(() => []);
+        for (const p of found ?? []) if (p.type !== 'variable') add({ id: p.id, sku: p.sku ?? '', stock: p.stock_quantity, manage: !!p.manage_stock });
+      }
+      const byParent = new Map<string, string[]>();
+      for (const l of links.filter((x) => x.externalVariantId)) byParent.set(l.externalProductId, [...(byParent.get(l.externalProductId) ?? []), l.externalVariantId!]);
+      for (const [parent, vids] of [...byParent].slice(0, 40)) {
+        const found = await client.request<any[]>('GET', `/products/${parent}/variations`, { query: { include: vids.slice(0, 100).join(','), per_page: '100', _fields: 'id,sku,manage_stock,stock_quantity' } }).catch(() => []);
+        for (const v of found ?? []) add({ id: v.id, parentId: Number(parent), sku: v.sku ?? '', stock: v.stock_quantity, manage: !!v.manage_stock });
+      }
+      for (const sku of [...new Set(opts.onlySkus ?? [])].slice(0, 30)) {
         const found = await client.request<any[]>('GET', '/products', { query: { sku, _fields: 'id,sku,type,parent_id,manage_stock,stock_quantity' } }).catch(() => []);
         for (const p of found ?? []) {
-          rows.push({ id: p.id, parentId: p.type === 'variation' ? p.parent_id : undefined, sku: p.sku, stock: p.stock_quantity, manage: !!p.manage_stock });
+          add({ id: p.id, parentId: p.type === 'variation' ? p.parent_id : undefined, sku: p.sku, stock: p.stock_quantity, manage: !!p.manage_stock });
         }
       }
     } else {
@@ -483,6 +502,27 @@ export class WooCommerceService {
       },
       update: { externalProductId: externalId, externalVariantId: externalVariantId ?? null, externalSku: sku, syncStatus: 'SUCCESS', lastSyncedAt: new Date() },
     }).catch(() => null);
+  }
+
+  /** Nafaa → website qeemat (jore hue products). Kitne bheje */
+  async pushPrices(integration: Integration, items: { externalProductId: string; externalVariantId: string | null; price: number }[]) {
+    const client = this.mustClient(integration);
+    const simple = items.filter((i) => !i.externalVariantId).map((i) => ({ id: Number(i.externalProductId), regular_price: String(i.price) }));
+    const byParent = new Map<string, any[]>();
+    for (const i of items.filter((x) => x.externalVariantId)) {
+      byParent.set(i.externalProductId, [...(byParent.get(i.externalProductId) ?? []), { id: Number(i.externalVariantId), regular_price: String(i.price) }]);
+    }
+    let sent = 0;
+    for (let k = 0; k < simple.length; k += 100) {
+      await client.request('POST', '/products/batch', { body: { update: simple.slice(k, k + 100) }, timeoutMs: 60_000 });
+      sent += Math.min(100, simple.length - k);
+    }
+    for (const [parent, list] of byParent) {
+      await client.request('POST', `/products/${parent}/variations/batch`, { body: { update: list }, timeoutMs: 60_000 });
+      sent += list.length;
+    }
+    await this.log(integration, 'PRICE_PUSH', true, undefined, { sent });
+    return sent;
   }
 
   client(integration: Integration): WooClient | null {
