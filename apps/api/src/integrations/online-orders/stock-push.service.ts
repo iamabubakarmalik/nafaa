@@ -6,6 +6,7 @@ import { StockChanged, stockEvents } from '../../common/shop-scope/stock-events'
 import { readWebsiteConfig } from './website-config';
 import { WooCommerceService } from './woocommerce.service';
 import { ShopifyService } from './shopify.service';
+import { DarazService } from './daraz.service';
 
 const DEBOUNCE_MS = 15_000;
 /** Pehli dafa (server start) kitna pichhe dekhna hai */
@@ -35,6 +36,7 @@ export class StockPushService implements OnModuleInit, OnModuleDestroy {
     private readonly prisma: PrismaService,
     private readonly woo: WooCommerceService,
     private readonly shopify: ShopifyService,
+    private readonly daraz: DarazService,
   ) {}
 
   onModuleInit() {
@@ -80,7 +82,7 @@ export class StockPushService implements OnModuleInit, OnModuleDestroy {
     try {
       const channels = await this.prisma.integration.findMany({
         where: {
-          type: { in: ['WOOCOMMERCE', 'SHOPIFY'] },
+          type: { in: ['WOOCOMMERCE', 'SHOPIFY', 'DARAZ'] },
           isActive: true,
           status: IntegrationStatus.CONNECTED,
           ...(tenants ? { tenantId: { in: tenants } } : {}),
@@ -103,8 +105,7 @@ export class StockPushService implements OnModuleInit, OnModuleDestroy {
    * mapping me yaad rakhte hain aur sirf asal farq par bhejte hain.
    */
   private async pushChannelPrices(ch: Integration) {
-    const connected = ch.type === 'WOOCOMMERCE' ? this.woo.isConnected(ch) : this.shopify.isConnected(ch);
-    if (!connected) return;
+    if (ch.type === 'DARAZ' || !this.connected(ch)) return; // Daraz qeemat Seller Center se
     const now = new Date();
     const since = this.priceWatermark.get(ch.id) ?? new Date(now.getTime() - FIRST_LOOKBACK_MS);
     const maps = await this.prisma.productChannelMapping.findMany({
@@ -136,8 +137,12 @@ export class StockPushService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  private connected(ch: Integration) {
+    return ch.type === 'WOOCOMMERCE' ? this.woo.isConnected(ch) : ch.type === 'SHOPIFY' ? this.shopify.isConnected(ch) : this.daraz.isConnected(ch);
+  }
+
   private async pushChannel(ch: Integration) {
-    const connected = ch.type === 'WOOCOMMERCE' ? this.woo.isConnected(ch) : this.shopify.isConnected(ch);
+    const connected = this.connected(ch);
     if (!connected) return;
     const cfg = readWebsiteConfig(ch.config);
     const shopId = cfg.shopId ?? ch.shopId;
@@ -157,6 +162,11 @@ export class StockPushService implements OnModuleInit, OnModuleDestroy {
     const productIds = [...new Set(changed.map((c) => c.productId))];
     // Bahut zyada badla (bulk import / stock count) → 15 minute wala poora sync sambhal lega
     if (productIds.length > MAX_PRODUCTS_PER_PUSH) return;
+    // Daraz: sirf SKU se jore hue products (ItemId + SkuId mapping me)
+    if (ch.type === 'DARAZ') {
+      await this.daraz.syncStock(ch, { productIds });
+      return;
+    }
 
     const [links, products] = await Promise.all([
       this.prisma.productChannelMapping.findMany({

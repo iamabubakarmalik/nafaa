@@ -1,4 +1,5 @@
 import { CustomConnect } from '../components/website/CustomConnect';
+import { DarazChannelCard } from '../components/daraz/Daraz';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -93,7 +94,7 @@ function Channel({ id, data, onChange, tab, setTab }: {
   const stats = data.stats!;
   const meta = channelMeta(i.type);
   const platform: Platform = i.type === 'WOOCOMMERCE' ? 'woocommerce' : i.type === 'SHOPIFY' ? 'shopify' : (cfg.platform === 'shopify' ? 'shopify' : cfg.platform === 'woocommerce' || cfg.platform === 'wordpress' ? 'woocommerce' : 'custom');
-  const automatic = !!i.woo?.connected || !!i.shopify?.connected;
+  const automatic = !!i.woo?.connected || !!i.shopify?.connected || !!i.daraz?.connected;
   const needsReinstall = !!i.shopify?.needsReinstall;
   const paused = !i.isActive;
   const receiving = !!stats.lastOrderAt || i.webhookVerified || automatic;
@@ -133,7 +134,7 @@ function Channel({ id, data, onChange, tab, setTab }: {
         { value: 'overview', label: 'Overview' },
         { value: 'products', label: 'Products', count: stats.productLinks, tone: 'success' },
         { value: 'settings', label: 'Settings' },
-        { value: 'developer', label: automatic ? 'Developer' : 'Setup & keys' },
+        ...(i.type === 'DARAZ' ? [] : [{ value: 'developer' as Tab, label: automatic ? 'Developer' : 'Setup & keys' }]),
         { value: 'activity', label: 'Activity', count: errors, tone: 'critical' },
       ]} />}
     >
@@ -172,10 +173,10 @@ function Overview({ id, data, platform, onChange, setTab }: {
 
   const steps = [
     { label: 'Channel bana', done: true, tab: 'developer' as Tab },
-    { label: oneClickType ? `${platform === 'shopify' ? 'Shopify' : 'WooCommerce'} se jora (automatic)` : 'Website se jora', done: automatic || !!stats.lastOrderAt || i.webhookVerified, tab: (oneClickType ? 'overview' : 'developer') as Tab },
+    { label: i.type === 'DARAZ' ? 'Daraz se jora' : oneClickType ? `${platform === 'shopify' ? 'Shopify' : 'WooCommerce'} se jora (automatic)` : 'Website se jora', done: !!i.daraz?.connected || automatic || !!stats.lastOrderAt || i.webhookVerified, tab: (oneClickType || i.type === 'DARAZ' ? 'overview' : 'developer') as Tab },
     { label: 'Products jore', done: stats.productLinks > 0, tab: 'products' as Tab },
     { label: 'Pehla order aaya', done: (stats.totalOrders ?? 0) > 0, tab: 'overview' as Tab },
-    { label: 'Status website ko jata hai', done: automatic || !!i.config.statusWebhookUrl, tab: 'settings' as Tab },
+    ...(i.type === 'DARAZ' ? [] : [{ label: 'Status website ko jata hai', done: automatic || !!i.config.statusWebhookUrl, tab: 'settings' as Tab }]),
   ];
   const done = steps.filter((s) => s.done).length;
 
@@ -189,7 +190,9 @@ function Overview({ id, data, platform, onChange, setTab }: {
           <Stat label="Jure products" value={stats.productLinks} hint={stats.lastSyncAt ? `stock sync ${timeAgo(stats.lastSyncAt)}` : undefined} />
         </div>
 
-        {oneClickType ? (
+        {i.type === 'DARAZ' ? (
+          <DarazChannelCard id={id} data={data} />
+        ) : oneClickType ? (
           <ConnectionCard id={id} data={data} platform={platform as 'woocommerce' | 'shopify'} onChange={onChange} setTab={setTab} />
         ) : (
           <CustomConnect channelId={id} data={data} onChange={onChange} />

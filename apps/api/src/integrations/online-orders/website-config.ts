@@ -22,7 +22,7 @@ export interface WebsiteConfig {
   requireSignature: boolean;
   /** Shopify webhook ka signing key (Shopify admin me milta hai) */
   shopifySecret: string | null;
-  platform: 'custom' | 'woocommerce' | 'shopify' | 'wordpress' | null;
+  platform: 'custom' | 'woocommerce' | 'shopify' | 'wordpress' | 'daraz' | null;
   siteUrl: string | null;
 }
 

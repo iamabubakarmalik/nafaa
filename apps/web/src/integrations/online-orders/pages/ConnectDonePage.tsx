@@ -34,7 +34,7 @@ export default function ConnectDonePage() {
     return () => clearTimeout(t);
   }, [channelId, success, navigate]);
 
-  const name = platform === 'woocommerce' ? 'WooCommerce' : platform === 'shopify' ? 'Shopify' : 'Website';
+  const name = platform === 'woocommerce' ? 'WooCommerce' : platform === 'shopify' ? 'Shopify' : platform === 'daraz' ? 'Daraz' : 'Website';
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-950 via-emerald-900 to-teal-700 p-6 text-white">
@@ -47,7 +47,7 @@ export default function ConnectDonePage() {
         <h1 className="mt-4 text-2xl font-black">{success ? `${name} jur gaya!` : platform === 'shopify' ? 'Install nahi hua' : 'Approve nahi hua'}</h1>
         <p className="mt-2 text-sm font-bold text-white/80">
           {success
-            ? 'Nafaa ab khud webhooks laga raha hai — orders, stock aur status sab sync honge.'
+            ? platform === 'daraz' ? 'Nafaa ab Daraz ke products jor raha hai aur pichhle 3 din ke orders la raha hai.' : 'Nafaa ab khud webhooks laga raha hai — orders, stock aur status sab sync honge.'
             : error || 'Aap ne access nahi diya. Nafaa me wapas ja kar dobara koshish karein.'}
         </p>
         <div className="mt-5 flex items-center justify-center gap-2 text-xs font-bold text-white/70">

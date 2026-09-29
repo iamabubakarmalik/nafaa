@@ -10,19 +10,21 @@ import { CHANNELS_KEY, channelMeta, channelPath, useSalesChannels } from '../hoo
 import { HttpsNotice, ManualKeysForm } from '../components/website/ManualKeysForm';
 import { Badge, Btn, Card, Field, Page, inputCls } from '../components/ui/kit';
 import { cn } from '@core/lib/cn';
+import { DarazConnectCard } from '../components/daraz/Daraz';
 
 /* ═════════════════════════════════════════════════════════════
    SALES CHANNEL JOREIN — Google Search Console jaisa:
    1. Platform  2. Tareeqa (Automatic / Manual)  3. Details → Jorein
    ═════════════════════════════════════════════════════════════ */
 
-type Platform = 'woocommerce' | 'shopify' | 'custom';
+type Platform = 'woocommerce' | 'shopify' | 'custom' | 'daraz';
 type Method = 'auto' | 'manual';
 
 const PLATFORMS: { key: Platform; type: WebsiteType; name: string; desc: string }[] = [
   { key: 'woocommerce', type: 'WOOCOMMERCE', name: 'WordPress / WooCommerce', desc: 'WordPress par bani dukaan' },
   { key: 'shopify', type: 'SHOPIFY', name: 'Shopify', desc: 'myshopify.com store' },
   { key: 'custom', type: 'CUSTOM_WEBSITE', name: 'Apni website / Instagram', desc: 'Code ke bina order form, button, ya developer' },
+  { key: 'daraz', type: 'DARAZ', name: 'Daraz', desc: 'Daraz seller account — orders, stock, label' },
 ];
 
 export default function ConnectChannelPage() {
@@ -92,8 +94,8 @@ export default function ConnectChannelPage() {
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
         <div className="min-w-0 space-y-4">
           {/* ─── 1. Platform ─── */}
-          <Card title={<Step n={1}>Website kis par bani hai?</Step>}>
-            <div className="grid gap-2 sm:grid-cols-3">
+          <Card title={<Step n={1}>Kahan bechte hain?</Step>}>
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
               {PLATFORMS.map((p) => {
                 const m = channelMeta(p.type);
                 const on = platform === p.key;
@@ -112,6 +114,9 @@ export default function ConnectChannelPage() {
             </div>
           </Card>
 
+          {platform === 'daraz' && <DarazConnectCard shopList={shopList} />}
+
+          {platform !== 'daraz' && <>
           {/* ─── 2. Tareeqa ─── */}
           <Card title={<Step n={2}>Kaise jorna hai?</Step>}>
             <div className="grid gap-2 sm:grid-cols-2">
@@ -196,6 +201,7 @@ export default function ConnectChannelPage() {
               </div>
             )}
           </Card>
+          </>}
         </div>
 
         <aside className="space-y-4">

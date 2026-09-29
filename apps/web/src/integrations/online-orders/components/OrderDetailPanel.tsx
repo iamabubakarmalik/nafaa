@@ -18,6 +18,7 @@ import { CourierSection } from './CourierSection';
 import { RiskCard } from './RiskBadge';
 import { ConfirmCard } from './ConfirmCard';
 import { OrderExtras } from './OrderExtras';
+import { DarazOrderSection } from './daraz/Daraz';
 import { cn } from '@core/lib/cn';
 
 const CANCEL_REASONS = ['Stock khatam', 'Customer ne mana kiya', 'Address/number ghalat', 'Fake order', 'Delivery nahi ho sakti'];
@@ -340,7 +341,9 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
               : <Step done={!!o.deliveredAt} at={o.deliveredAt} label="Customer ko mil gaya" icon={<Package className="h-3.5 w-3.5" />} />}
           </ol>
         </section>
-        <CourierSection order={o} onChanged={refresh} />
+        {o.integration?.type === 'DARAZ'
+          ? <DarazOrderSection order={o} onChanged={refresh} />
+          : <CourierSection order={o} onChanged={refresh} />}
         {o.trackingNumber && !o.courierBooked && (
           <section className="flex items-center gap-3 rounded-2xl border border-slate-200 p-4 dark:border-neutral-800">
             <Truck className="h-5 w-5 text-slate-400" />

@@ -58,7 +58,7 @@ const TABS: { value: HubTab; label: string; hint: string; icon: any }[] = [
 const rate = (ok: number, bad: number) => (ok + bad > 0 ? (ok / (ok + bad)) * 100 : 100);
 
 /** Website jaise channels apne safhe par khulte hain (Online store → channel) */
-const WEBSITE_TYPES = ['CUSTOM_WEBSITE', 'WOOCOMMERCE', 'SHOPIFY'];
+const WEBSITE_TYPES = ['CUSTOM_WEBSITE', 'WOOCOMMERCE', 'SHOPIFY', 'DARAZ'];
 /** Couriers ka asli connect Couriers safhe par hai */
 const COURIER_PAGE: Record<string, string> = { TCS_COURIER: 'tcs', LEOPARDS_COURIER: 'leopards', POSTEX: 'postex', TRAX: 'trax', MNP_COURIER: 'mnp', CALLCOURIER: 'call_courier' };
 

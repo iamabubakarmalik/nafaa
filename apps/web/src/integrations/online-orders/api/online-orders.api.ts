@@ -290,7 +290,7 @@ export interface WebsiteConfig {
   siteUrl: string | null;
 }
 
-export type WebsiteType = 'CUSTOM_WEBSITE' | 'WOOCOMMERCE' | 'SHOPIFY';
+export type WebsiteType = 'CUSTOM_WEBSITE' | 'WOOCOMMERCE' | 'SHOPIFY' | 'DARAZ';
 
 /** Websites hamare API tak pahunch sakti hain? (WooCommerce ek-click ko https chahiye) */
 export interface PublicApi { url: string; reachable: boolean; reason: string | null; fix: string | null }
@@ -328,6 +328,10 @@ export interface WebsiteOverview {
     config: WebsiteConfig;
     woo: null | { connected: boolean; connectedAt: string | null; permissions: string | null };
     shopify?: null | { connected: boolean; needsReinstall?: boolean; shop: string | null; connectedAt: string | null; locationName: string | null };
+    daraz?: null | {
+      connected: boolean; configured: boolean; account: string | null; sellerId: string | null; shortCode: string | null;
+      connectedAt: string | null; expiresAt: string | null; refreshExpiresAt: string | null; error: string | null; ordersSyncedAt: string | null;
+    };
   };
   publicApi?: PublicApi;
   urls: {
@@ -652,6 +656,31 @@ export const couriersApi = {
       if (data instanceof Blob) {
         try { e.response.data = JSON.parse(await data.text()); } catch { /* jaisa hai */ }
       }
+      throw e;
+    }
+  },
+};
+
+export const darazApi = {
+  status: () => apiClient.get('/online-store/channels/daraz/status').then((r) => unwrap<{ configured: boolean; callbackUrl: string }>(r)),
+  start: (body: { displayName?: string; shopId?: string; channelId?: string }) =>
+    apiClient.post('/online-store/channels/daraz/start', { ...body, returnOrigin: window.location.origin }).then((r) => unwrap<{ channelId: string; authUrl: string }>(r)),
+  syncOrders: (id: string) => apiClient.post(`/online-store/channels/${id}/daraz/sync-orders`).then((r) => unwrap<{ seen: number; created: number }>(r)),
+  linkProducts: (id: string) => apiClient.post(`/online-store/channels/${id}/daraz/link-products`).then((r) => unwrap<{ daraz: number; linked: number; unmatched: number }>(r)),
+  syncStock: (id: string) => apiClient.post(`/online-store/channels/${id}/daraz/sync-stock`).then((r) => unwrap<{ updated: number }>(r)),
+  readyToShip: (orderId: string) => apiClient.post(`/online-orders/${orderId}/daraz/rts`).then((r) => unwrap<{ ok: true; trackingNumber: string | null; provider: string | null }>(r)),
+  openLabel: async (orderId: string) => {
+    const tab = window.open('', '_blank');
+    try {
+      const r = await apiClient.get(`/online-orders/${orderId}/daraz/label`, { responseType: 'blob' });
+      const blob: Blob = r.data;
+      const url = blob.type.includes('pdf') ? URL.createObjectURL(blob) : (JSON.parse(await blob.text())?.url as string);
+      if (!url) throw new Error('Label nahi mila');
+      if (tab) tab.location.href = url; else window.open(url, '_blank');
+    } catch (e: any) {
+      tab?.close();
+      const data = e?.response?.data;
+      if (data instanceof Blob) { try { e.response.data = JSON.parse(await data.text()); } catch { /* jaisa hai */ } }
       throw e;
     }
   },

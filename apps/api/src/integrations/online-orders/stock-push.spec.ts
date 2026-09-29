@@ -15,7 +15,8 @@ function setup(opts: { changed: { productId: string; variantId: string | null }[
   };
   const woo: any = { isConnected: () => true, syncStock: async (_i: any, o: any) => { pushed.push(o); }, pushPrices: async (_i: any, items: any) => { prices.push(items); } };
   const shopify: any = { isConnected: () => true };
-  return { svc: new StockPushService(prisma, woo, shopify), pushed, prices };
+  const daraz: any = { isConnected: () => false };
+  return { svc: new StockPushService(prisma, woo, shopify, daraz), pushed, prices };
 }
 
 describe('StockPushService', () => {

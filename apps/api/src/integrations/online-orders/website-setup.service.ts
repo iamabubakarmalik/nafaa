@@ -8,12 +8,13 @@ import { startOfDayTz } from '../../common/helpers/business-time.helper';
 import { WebsiteConfig, assertSafeWebhookUrl, readWebsiteConfig } from './website-config';
 
 /** Website jaise channels — har ek ki apni key, settings aur safha */
-export const WEBSITE_TYPES: IntegrationType[] = ['CUSTOM_WEBSITE', 'WOOCOMMERCE', 'SHOPIFY'];
+export const WEBSITE_TYPES: IntegrationType[] = ['CUSTOM_WEBSITE', 'WOOCOMMERCE', 'SHOPIFY', 'DARAZ'];
 
 const PLATFORM_OF: Record<string, WebsiteConfig['platform']> = {
   CUSTOM_WEBSITE: 'custom',
   WOOCOMMERCE: 'woocommerce',
   SHOPIFY: 'shopify',
+  DARAZ: 'daraz',
 };
 
 /**
@@ -154,7 +155,7 @@ export class WebsiteSetupService {
       platform: PLATFORM_OF[body.type],
       siteUrl: body.siteUrl ?? null,
     };
-    const fallbackName = body.type === 'WOOCOMMERCE' ? 'WooCommerce store' : body.type === 'SHOPIFY' ? 'Shopify store' : 'Meri website';
+    const fallbackName = body.type === 'WOOCOMMERCE' ? 'WooCommerce store' : body.type === 'SHOPIFY' ? 'Shopify store' : body.type === 'DARAZ' ? 'Daraz store' : 'Meri website';
 
     return this.prisma.integration.create({
       data: {
@@ -223,6 +224,20 @@ export class WebsiteSetupService {
           : null,
         woo: integration.type === 'WOOCOMMERCE'
           ? { connected: !!creds.wooKey, connectedAt: creds.wooConnectedAt ?? null, permissions: creds.wooPermissions ?? null }
+          : null,
+        daraz: integration.type === 'DARAZ'
+          ? {
+              connected: !!creds.darazAccessToken,
+              configured: !!(process.env.DARAZ_APP_KEY && process.env.DARAZ_APP_SECRET),
+              account: creds.darazAccount ?? null,
+              sellerId: creds.darazSellerId ?? null,
+              shortCode: creds.darazShortCode ?? null,
+              connectedAt: creds.darazConnectedAt ?? null,
+              expiresAt: creds.darazExpiresAt ?? null,
+              refreshExpiresAt: creds.darazRefreshExpiresAt ?? null,
+              error: (integration.config as any)?.darazError ?? null,
+              ordersSyncedAt: (integration.config as any)?.darazOrdersSyncedAt ?? null,
+            }
           : null,
       },
       urls: this.urls(integration.apiKey),

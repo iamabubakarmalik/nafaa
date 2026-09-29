@@ -11,7 +11,7 @@ import { BadRequestException } from '@nestjs/common';
  * sirf URL paste karna hai. Teeno ko yahan ek hi shakal me badal dete hain.
  */
 
-export type OrderPlatform = 'custom' | 'woocommerce' | 'shopify';
+export type OrderPlatform = 'custom' | 'woocommerce' | 'shopify' | 'daraz';
 
 export interface NormalizedItem {
   name: string;

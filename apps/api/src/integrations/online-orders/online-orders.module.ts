@@ -16,6 +16,8 @@ import { CourierAccountsService } from './courier-accounts.service';
 import { StockPushService } from './stock-push.service';
 import { OrderToolsService } from './order-tools.service';
 import { StorefrontService } from './storefront.service';
+import { DarazService } from './daraz.service';
+import { DarazController, DarazPublicController } from './daraz.controller';
 import { StorefrontAdminController, StorefrontPublicController } from './storefront.controller';
 import {
   BlocklistController,
@@ -43,8 +45,10 @@ import {
     BlocklistController,
     StorefrontPublicController,
     StorefrontAdminController,
+    DarazPublicController,
+    DarazController,
   ],
-  providers: [OnlineOrdersService, WebsiteCatalogService, WebsiteSetupService, StatusWebhookService, WooCommerceService, ShopifyService, ChannelCatalogService, DataRetentionService, CourierAccountsService, StockPushService, OrderToolsService, StorefrontService],
+  providers: [OnlineOrdersService, WebsiteCatalogService, WebsiteSetupService, StatusWebhookService, WooCommerceService, ShopifyService, ChannelCatalogService, DataRetentionService, CourierAccountsService, StockPushService, OrderToolsService, StorefrontService, DarazService],
   exports: [OnlineOrdersService, WebsiteCatalogService],
 })
 export class OnlineOrdersModule {}
