@@ -22,7 +22,7 @@ type Method = 'auto' | 'manual';
 const PLATFORMS: { key: Platform; type: WebsiteType; name: string; desc: string }[] = [
   { key: 'woocommerce', type: 'WOOCOMMERCE', name: 'WordPress / WooCommerce', desc: 'WordPress par bani dukaan' },
   { key: 'shopify', type: 'SHOPIFY', name: 'Shopify', desc: 'myshopify.com store' },
-  { key: 'custom', type: 'CUSTOM_WEBSITE', name: 'Apni banayi website', desc: 'Developer ne khud banayi' },
+  { key: 'custom', type: 'CUSTOM_WEBSITE', name: 'Apni website / Instagram', desc: 'Code ke bina order form, button, ya developer' },
 ];
 
 export default function ConnectChannelPage() {
@@ -56,8 +56,8 @@ export default function ConnectChannelPage() {
     }),
     onSuccess: (d) => {
       qc.invalidateQueries({ queryKey: CHANNELS_KEY });
-      toast.success('Channel ban gaya — ab setup ke steps');
-      navigate(`/online-store/channels/${d.integration!.id}?tab=developer`);
+      toast.success(typeOf === 'CUSTOM_WEBSITE' ? 'Channel ban gaya — ab jorne ka aasaan tareeqa chunein' : 'Channel ban gaya — ab setup ke steps');
+      navigate(`/online-store/channels/${d.integration!.id}${typeOf === 'CUSTOM_WEBSITE' ? '' : '?tab=developer'}`);
     },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });

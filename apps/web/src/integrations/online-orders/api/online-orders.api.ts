@@ -171,6 +171,11 @@ export interface PortalParcel {
 export interface PickupAddress { code: string; address: string; city?: string | null }
 export interface CourierCity { id: string; name: string }
 
+export interface ChannelForm {
+  enabled: boolean; key: string | null; deliveryFee: number; freeAbove: number | null; onlyInStock: boolean; message: string | null;
+  productIds: string[] | null; formUrl: string | null; embedCode: string | null; buttonCode: string;
+}
+
 export interface BlockEntry { key: string; phone: string; name: string | null; reason: string | null; at: string }
 
 type Rated = { dispatched: number; delivered: number; returned: number; rtoRate: number; deliveryRate: number };
@@ -423,6 +428,10 @@ export const onlineOrdersApi = {
   bulk: (action: 'accept' | 'next' | 'cancel' | 'confirm', ids: string[], reason?: string) =>
     apiClient.post('/online-orders/bulk', { action, ids, reason })
       .then((r) => unwrap<{ done: number; failed: number; results: { id: string; ok: boolean; error?: string }[] }>(r)),
+  channelForm: (id: string) => apiClient.get(`/online-store/channels/${id}/form`).then((r) => unwrap<ChannelForm>(r)),
+  updateChannelForm: (id: string, body: Partial<Pick<ChannelForm, 'enabled' | 'deliveryFee' | 'freeAbove' | 'onlyInStock' | 'message'>> & { regenerate?: boolean }) =>
+    apiClient.patch(`/online-store/channels/${id}/form`, body).then((r) => unwrap<ChannelForm>(r)),
+  devInvite: (id: string) => apiClient.post(`/online-store/channels/${id}/dev-invite`).then((r) => unwrap<{ url: string; expiresAt: string }>(r)),
   report: (q: { from?: string; to?: string; integrationId?: string }) =>
     apiClient.get('/online-orders/report', { params: q }).then((r) => unwrap<OnlineReport>(r)),
   /** CSV file download (Excel) */

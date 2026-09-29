@@ -15,6 +15,8 @@ import { ShopifyPublicController } from './shopify-public.controller';
 import { CourierAccountsService } from './courier-accounts.service';
 import { StockPushService } from './stock-push.service';
 import { OrderToolsService } from './order-tools.service';
+import { StorefrontService } from './storefront.service';
+import { StorefrontAdminController, StorefrontPublicController } from './storefront.controller';
 import {
   BlocklistController,
   ChannelsController,
@@ -39,8 +41,10 @@ import {
     CouriersController,
     OrderCourierController,
     BlocklistController,
+    StorefrontPublicController,
+    StorefrontAdminController,
   ],
-  providers: [OnlineOrdersService, WebsiteCatalogService, WebsiteSetupService, StatusWebhookService, WooCommerceService, ShopifyService, ChannelCatalogService, DataRetentionService, CourierAccountsService, StockPushService, OrderToolsService],
+  providers: [OnlineOrdersService, WebsiteCatalogService, WebsiteSetupService, StatusWebhookService, WooCommerceService, ShopifyService, ChannelCatalogService, DataRetentionService, CourierAccountsService, StockPushService, OrderToolsService, StorefrontService],
   exports: [OnlineOrdersService, WebsiteCatalogService],
 })
 export class OnlineOrdersModule {}

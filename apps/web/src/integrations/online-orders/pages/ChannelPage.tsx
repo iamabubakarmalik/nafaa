@@ -1,3 +1,4 @@
+import { CustomConnect } from '../components/website/CustomConnect';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -191,14 +192,7 @@ function Overview({ id, data, platform, onChange, setTab }: {
         {oneClickType ? (
           <ConnectionCard id={id} data={data} platform={platform as 'woocommerce' | 'shopify'} onChange={onChange} setTab={setTab} />
         ) : (
-          <Card title="Connection" description="Apni banayi website — developer code se orders bhejta hai"
-            actions={<Btn size="sm" onClick={() => setTab('developer')} icon={<KeyRound className="h-3.5 w-3.5" />}>Keys aur code</Btn>}>
-            <div className="flex items-center gap-2 text-[13px]">
-              {i.webhookVerified || stats.lastOrderAt
-                ? <><CheckCircle2 className="h-4 w-4 text-emerald-600" /> Website orders bhej rahi hai</>
-                : <><Circle className="h-4 w-4 text-amber-500" /> Pehle order ka intezar — developer ko "Setup & keys" tab dikhayein</>}
-            </div>
-          </Card>
+          <CustomConnect channelId={id} data={data} onChange={onChange} />
         )}
 
         <Card title="Haal ke orders" flush actions={<Link to={`/online-orders?channel=${id}`}><Btn size="sm" variant="plain">Sab dekho</Btn></Link>}>
