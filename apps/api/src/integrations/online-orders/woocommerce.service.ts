@@ -207,7 +207,7 @@ export class WooCommerceService {
     const status: string = order.orderStatus;
     const tracking = [order.courierName, order.trackingNumber].filter(Boolean).join(' ');
 
-    const map: Record<string, string> = { CONFIRMED: 'processing', DELIVERED: 'completed', CANCELLED: 'cancelled', REJECTED: 'cancelled' };
+    const map: Record<string, string> = { CONFIRMED: 'processing', DELIVERED: 'completed', CANCELLED: 'cancelled', REJECTED: 'cancelled', RETURNED: 'failed' };
     const notes: Record<string, { text: string; customer: boolean }> = {
       CONFIRMED: { text: 'Nafaa: order accept ho gaya, bill ban gaya', customer: false },
       PREPARING: { text: 'Nafaa: order pack ho raha hai', customer: false },
@@ -216,6 +216,7 @@ export class WooCommerceService {
       DELIVERED: { text: 'Nafaa: order deliver ho gaya', customer: false },
       CANCELLED: { text: `Nafaa: order cancel${order.cancelReason ? ` (${order.cancelReason})` : ''}`, customer: false },
       REJECTED: { text: `Nafaa: order reject${order.cancelReason ? ` (${order.cancelReason})` : ''}`, customer: false },
+      RETURNED: { text: `Nafaa: parcel wapas aaya (RTO)${order.returnReason ? ` — ${order.returnReason}` : ''}`, customer: false },
     };
 
     let ok = true;
@@ -240,7 +241,7 @@ export class WooCommerceService {
     await this.log(integration, `STATUS_PUSH:${status}`, ok, error, { orderId: wooId });
 
     // Accept/cancel se stock badla — website par foran lagao
-    if (['CONFIRMED', 'CANCELLED', 'REJECTED'].includes(status)) {
+    if (['CONFIRMED', 'CANCELLED', 'REJECTED', 'RETURNED'].includes(status)) {
       const skus = ((order.items as any[]) ?? []).map((i) => i?.sku).filter(Boolean);
       if (skus.length) this.syncStock(integration, { onlySkus: skus }).catch(() => null);
     }

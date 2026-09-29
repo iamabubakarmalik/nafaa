@@ -12,7 +12,7 @@ import {
   apiErrorMessage, onlineOrdersApi, unmatchedFromError, type OnlineOrderDetail,
 } from '../api/online-orders.api';
 import { LIVE_ORDERS_KEY } from '../hooks/useLiveOnlineOrders';
-import { NEXT_ACTION, STATUS_LABEL, rs, sourceOf, waNumber, whenText } from '../lib/labels';
+import { COURIER_OPTIONS, NEXT_ACTION, PAYMENT_LABEL, STATUS_LABEL, rs, sourceOf, waNumber, whenText } from '../lib/labels';
 import { MatchItemsModal, type Matches } from './MatchItemsModal';
 import { cn } from '@core/lib/cn';
 
@@ -65,7 +65,7 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
   });
 
   const setStatus = useMutation({
-    mutationFn: (body: { status: string; trackingNumber?: string; courierName?: string }) => onlineOrdersApi.setStatus(orderId, body),
+    mutationFn: (body: { status: string; trackingNumber?: string; courierName?: string; courierCode?: string }) => onlineOrdersApi.setStatus(orderId, body),
     onSuccess: (r) => {
       refresh();
       setDispatchOpen(false);
@@ -81,6 +81,13 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
       setCancelOpen(false);
       toast.success(o?.nafaaSaleId ? 'Order cancel — bill void, stock wapas aa gaya' : 'Order cancel ho gaya');
     },
+    onError: (err) => toast.error(apiErrorMessage(err)),
+  });
+
+  const [rtoOpen, setRtoOpen] = useState(false);
+  const returned = useMutation({
+    mutationFn: (reason: string) => onlineOrdersApi.markReturned(orderId, reason),
+    onSuccess: () => { refresh(); setRtoOpen(false); toast.success('Parcel wapas — bill void, stock wapas aa gaya'); },
     onError: (err) => toast.error(apiErrorMessage(err)),
   });
 
@@ -111,7 +118,13 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
   const src = sourceOf(o);
   const num = o.externalOrderNumber ?? o.externalOrderId;
   const isPending = o.orderStatus === 'PENDING';
-  const isClosed = ['CANCELLED', 'REJECTED'].includes(o.orderStatus);
+  const isClosed = ['CANCELLED', 'REJECTED', 'RETURNED'].includes(o.orderStatus);
+  const canRto = !!o.nafaaSaleId && !!o.dispatchedAt && !isClosed && !o.codSettledAt;
+  const pay = PAYMENT_LABEL[o.paymentStatus] ?? PAYMENT_LABEL.PENDING;
+  const track = () => {
+    if (o.trackingNumber) navigator.clipboard?.writeText(o.trackingNumber).then(() => toast.success(`CN ${o.trackingNumber} copy — courier ke safhe par paste karein`));
+    if (o.courierSite) window.open(o.courierSite, '_blank', 'noopener');
+  };
   const unmatched = o.lines.filter((l) => !l.match).length;
   const lowStock = o.lines.filter((l) => l.match && !l.match.enough && isPending);
   const wa = waNumber(o.customerPhone);
@@ -258,15 +271,16 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
             </div>
             <div className="text-xs text-slate-500">
               {o.paymentStatus === 'PAID'
-                ? `Paisa mil gaya${o.paymentReceivedAt ? ` · ${whenText(o.paymentReceivedAt)}` : ''}`
-                : o.isCod ? 'Delivery par cash milega (COD)' : 'Payment baqi'}
+                ? `Paisa mil gaya${o.paymentReceivedAt ? ` · ${whenText(o.paymentReceivedAt)}` : ''}${o.codSettlementRef ? ` · ref ${o.codSettlementRef}` : ''}`
+                : o.paymentStatus === 'COLLECTED' ? `${o.courierLabel ?? 'Courier'} ne customer se le liya — aap ke paas settlement par aayega`
+                  : o.paymentStatus === 'NOT_COLLECTED' ? 'Parcel wapas aaya — paisa nahi aayega'
+                    : o.isCod ? 'Delivery par cash milega (COD)' : 'Payment baqi'}
             </div>
           </div>
-          {o.paymentStatus === 'PAID'
-            ? <span className="rounded-lg bg-emerald-100 px-2 py-1 text-xs font-black text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300">PAID</span>
-            : o.nafaaSaleId && !isClosed && (
-              <Button size="xs" variant="outline" loading={paid.isPending} onClick={() => paid.mutate()}>Paisa mil gaya</Button>
-            )}
+          <span className={cn('rounded-lg px-2 py-1 text-xs font-black', pay.tone)}>{pay.label}</span>
+          {o.paymentStatus !== 'PAID' && o.nafaaSaleId && !isClosed && (
+            <Button size="xs" variant="outline" loading={paid.isPending} onClick={() => paid.mutate()}>Paisa mil gaya</Button>
+          )}
         </section>
 
         {/* ─── Bill ─── */}
@@ -296,18 +310,30 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
             <Step
               done={!!o.dispatchedAt}
               at={o.dispatchedAt}
-              label={`Rider/courier ko diya${o.courierName ? ` (${o.courierName})` : ''}${o.trackingNumber ? ` · ${o.trackingNumber}` : ''}`}
+              label={`Rider/courier ko diya${o.courierLabel ?? o.courierName ? ` (${o.courierLabel ?? o.courierName})` : ''}${o.trackingNumber ? ` · CN ${o.trackingNumber}` : ''}`}
               icon={<Truck className="h-3.5 w-3.5" />}
             />
-            {isClosed
+            {o.orderStatus === 'RETURNED'
+              ? <Step done bad at={o.returnedAt} label={`Parcel wapas aaya (RTO)${o.returnReason ? ` — ${o.returnReason}` : ''}`} icon={<Ban className="h-3.5 w-3.5" />} />
+              : isClosed
               ? <Step done bad at={o.cancelledAt} label={`Cancel${o.cancelReason ? ` — ${o.cancelReason}` : ''}`} icon={<Ban className="h-3.5 w-3.5" />} />
               : <Step done={!!o.deliveredAt} at={o.deliveredAt} label="Customer ko mil gaya" icon={<Package className="h-3.5 w-3.5" />} />}
           </ol>
         </section>
+        {o.trackingNumber && (
+          <section className="flex items-center gap-3 rounded-2xl border border-slate-200 p-4 dark:border-neutral-800">
+            <Truck className="h-5 w-5 text-slate-400" />
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-black text-slate-900 dark:text-white">{o.courierLabel ?? o.courierName ?? 'Courier'} · CN {o.trackingNumber}</div>
+              <div className="text-xs text-slate-500">Track dabane se CN copy hota hai aur courier ka safha khulta hai</div>
+            </div>
+            <Button size="xs" variant="outline" onClick={track} leftIcon={<ExternalLink className="h-3.5 w-3.5" />}>Track</Button>
+          </section>
+        )}
       </div>
 
       {/* ─── Actions ─── */}
-      {!isClosed && o.orderStatus !== 'DELIVERED' && (
+      {!isClosed && (o.orderStatus !== 'DELIVERED' || canRto) && (
         <div className="border-t border-slate-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-950">
           {isPending ? (
             <div className="grid grid-cols-[1fr_auto] gap-2">
@@ -327,7 +353,7 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
               <Loader2 className="h-4 w-4 animate-spin" /> Bill ban raha hai…
             </div>
           ) : (
-            <div className="grid grid-cols-[1fr_auto] gap-2">
+            <div className="flex flex-wrap gap-2 [&>*:first-child]:flex-1">
               {o.nextStatus && (
                 <Button
                   size="lg"
@@ -341,7 +367,12 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
                   {NEXT_ACTION[o.orderStatus] ?? 'Aage'}
                 </Button>
               )}
-              <Button size="lg" variant="ghost" className="text-rose-600" onClick={() => setCancelOpen(true)}>Cancel</Button>
+              {canRto && (
+                <Button size="lg" variant="outline" onClick={() => setRtoOpen(true)}>Wapas aaya (RTO)</Button>
+              )}
+              {o.orderStatus !== 'DELIVERED' && !o.dispatchedAt && (
+                <Button size="lg" variant="ghost" className="text-rose-600" onClick={() => setCancelOpen(true)}>Cancel</Button>
+              )}
             </div>
           )}
         </div>
@@ -368,8 +399,10 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
         order={o}
         loading={setStatus.isPending}
         onClose={() => setDispatchOpen(false)}
-        onConfirm={(courierName, trackingNumber) => setStatus.mutate({ status: 'OUT_FOR_DELIVERY', courierName, trackingNumber })}
+        onConfirm={(courierCode, courierName, trackingNumber) => setStatus.mutate({ status: 'OUT_FOR_DELIVERY', courierCode, courierName, trackingNumber })}
       />
+
+      <RtoModal open={rtoOpen} loading={returned.isPending} onClose={() => setRtoOpen(false)} onConfirm={(r) => returned.mutate(r)} />
     </div>
   );
 }
@@ -458,55 +491,79 @@ function CancelModal({ open, hasBill, loading, onClose, onConfirm }: {
 
 function DispatchModal({ open, order, loading, onClose, onConfirm }: {
   open: boolean; order: OnlineOrderDetail; loading: boolean; onClose: () => void;
-  onConfirm: (courierName?: string, trackingNumber?: string) => void;
+  onConfirm: (courierCode?: string, courierName?: string, trackingNumber?: string) => void;
 }) {
-  const [courier, setCourier] = useState(order.courierName ?? '');
+  const [code, setCode] = useState(order.courierCode ?? '');
+  const [other, setOther] = useState(order.courierCode === 'OTHER' ? order.courierName ?? '' : '');
   const [tracking, setTracking] = useState(order.trackingNumber ?? '');
-  const couriers = ['Apna rider', 'TCS', 'Leopards', 'PostEx', 'Trax', 'M&P', 'BlueEx'];
+  const isRider = code === 'RIDER';
   return (
     <Modal
       open={open}
       onClose={onClose}
       size="sm"
       title="Rider / courier ko de diya"
-      description="Tracking number daalein to customer ko website par bhi dikhega (optional)."
+      description="Courier chunein aur CN daalein — tracking aur COD ka hisaab courier-wise banega."
       footer={
         <div className="flex w-full justify-end gap-2">
           <Button variant="ghost" onClick={onClose}>Wapas</Button>
-          <Button loading={loading} leftIcon={<Truck className="h-4 w-4" />} onClick={() => onConfirm(courier || undefined, tracking || undefined)}>
+          <Button loading={loading} disabled={!code} leftIcon={<Truck className="h-4 w-4" />}
+            onClick={() => onConfirm(code || undefined, code === 'OTHER' ? other.trim() || undefined : undefined, tracking.trim() || undefined)}>
             Raste me hai
           </Button>
         </div>
       }
     >
-      <div className="flex flex-wrap gap-1.5">
-        {couriers.map((c) => (
-          <button
-            key={c}
-            onClick={() => setCourier(c)}
-            className={cn('rounded-lg border px-2.5 py-1.5 text-xs font-bold', courier === c
-              ? 'border-brand-500 bg-brand-50 text-brand-800 dark:bg-brand-500/10 dark:text-brand-300'
-              : 'border-slate-200 text-slate-700 hover:bg-slate-50 dark:border-neutral-700 dark:text-slate-200')}
-          >{c}</button>
+      <div className="grid grid-cols-3 gap-1.5">
+        {COURIER_OPTIONS.map((c) => (
+          <button key={c.code} onClick={() => setCode(c.code)}
+            className={cn('rounded-lg border px-2 py-2 text-xs font-bold', code === c.code
+              ? 'border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-slate-900'
+              : 'border-slate-200 text-slate-700 hover:bg-slate-50 dark:border-neutral-700 dark:text-slate-200')}>
+            {c.name}
+          </button>
         ))}
       </div>
-      <input
-        value={courier}
-        onChange={(e) => setCourier(e.target.value)}
-        placeholder="Courier ka naam"
-        className="mt-3 h-10 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm outline-none focus:border-brand-500 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white"
-      />
-      <input
-        value={tracking}
-        onChange={(e) => setTracking(e.target.value)}
-        placeholder="Tracking / CN number (optional)"
-        className="mt-2 h-10 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm outline-none focus:border-brand-500 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white"
-      />
+      {code === 'OTHER' && (
+        <input value={other} onChange={(e) => setOther(e.target.value)} placeholder="Courier ka naam"
+          className="mt-3 h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none focus:border-slate-900 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white" />
+      )}
+      {!isRider && (
+        <input value={tracking} onChange={(e) => setTracking(e.target.value)} placeholder="CN / tracking number"
+          className="mt-3 h-10 w-full rounded-lg border border-slate-300 bg-white px-3 font-mono text-sm outline-none focus:border-slate-900 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white" />
+      )}
       {order.isCod && order.paymentStatus !== 'PAID' && (
         <p className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-amber-700">
-          <ExternalLink className="h-3.5 w-3.5" /> COD: rider ko {rs(order.total)} wasool karne hain
+          <Wallet className="h-3.5 w-3.5" />
+          {isRider ? `Rider ko ${rs(order.total)} wasool karne hain` : `COD ${rs(order.total)} — deliver ke baad courier ke paas, settlement par aap ko milega`}
         </p>
       )}
+    </Modal>
+  );
+}
+
+function RtoModal({ open, loading, onClose, onConfirm }: { open: boolean; loading: boolean; onClose: () => void; onConfirm: (reason: string) => void }) {
+  const [reason, setReason] = useState('');
+  const reasons = ['Customer ne parcel nahi liya', 'Phone band / nahi utha', 'Address ghalat', 'Customer ne mana kar diya', 'Fake order'];
+  return (
+    <Modal open={open} onClose={onClose} size="sm" title="Parcel wapas aaya (RTO)?"
+      description="Bill void ho jayega aur saara stock wapas inventory me. COD ka paisa nahi aayega."
+      footer={
+        <div className="flex w-full justify-end gap-2">
+          <Button variant="ghost" onClick={onClose}>Nahi</Button>
+          <Button variant="danger" loading={loading} disabled={!reason.trim()} onClick={() => onConfirm(reason.trim())}>Haan, wapas aaya</Button>
+        </div>
+      }>
+      <div className="flex flex-wrap gap-1.5">
+        {reasons.map((r) => (
+          <button key={r} onClick={() => setReason(r)}
+            className={cn('rounded-lg border px-2.5 py-1.5 text-xs font-bold', reason === r
+              ? 'border-rose-400 bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-300'
+              : 'border-slate-200 text-slate-700 hover:bg-slate-50 dark:border-neutral-700 dark:text-slate-200')}>{r}</button>
+        ))}
+      </div>
+      <textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={2} placeholder="Wajah…"
+        className="mt-3 w-full rounded-lg border border-slate-300 bg-white p-3 text-sm outline-none focus:border-rose-400 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white" />
     </Modal>
   );
 }

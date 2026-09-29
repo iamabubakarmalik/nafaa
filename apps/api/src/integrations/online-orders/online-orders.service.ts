@@ -7,11 +7,12 @@ import { NotificationsService } from '../../modules/notifications/notifications.
 import { SalesService } from '../../modules/sales/sales/sales.service';
 import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
 import { ShopScope, resolveWriteShopId } from '../../common/shop-scope';
-import { startOfDayTz } from '../../common/helpers/business-time.helper';
+import { startOfDayTz, startOfMonthTz } from '../../common/helpers/business-time.helper';
 import { IntegrationService } from '../core/integration.service';
 import { NormalizedOrder, isCashOnDelivery, mapPaymentMethod } from './order-normalizer';
 import { readWebsiteConfig } from './website-config';
 import { StatusWebhookService } from './status-webhook.service';
+import { COURIERS, courierHoldsCash, courierName } from './couriers';
 import { mappingKey } from './mapping-key';
 
 /**
@@ -26,8 +27,11 @@ import { mappingKey } from './mapping-key';
  */
 
 export const ORDER_STATUSES = [
-  'PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED', 'REJECTED',
+  'PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED', 'REJECTED', 'RETURNED',
 ] as const;
+
+/** Band orders — in par aage kuch nahi hota */
+const CLOSED: string[] = ['CANCELLED', 'REJECTED', 'RETURNED'];
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
 /** Accept ke doran order ko "lock" karne wala andar ka status */
@@ -166,12 +170,12 @@ export class OnlineOrdersService implements OnModuleInit {
     };
     const where: Prisma.ChannelOrderWhereInput = { ...base };
     if (q.status === 'ACTIVE') where.orderStatus = { in: ['CONFIRMED', 'PREPARING', 'READY', 'OUT_FOR_DELIVERY'] };
-    else if (q.status === 'CLOSED') where.orderStatus = { in: ['CANCELLED', 'REJECTED'] };
+    else if (q.status === 'CLOSED') where.orderStatus = { in: CLOSED };
     else if (q.status) where.orderStatus = q.status;
     if (q.payment === 'COD_DUE') {
       where.paymentStatus = { not: 'PAID' };
       where.nafaaSaleId = { not: null };
-      where.orderStatus = { notIn: ['CANCELLED', 'REJECTED'] };
+      where.orderStatus = { notIn: CLOSED };
     }
     if (q.search?.trim()) {
       const s = q.search.trim();
@@ -198,12 +202,12 @@ export class OnlineOrdersService implements OnModuleInit {
       this.prisma.channelOrder.count({ where }),
       this.prisma.channelOrder.groupBy({ by: ['orderStatus'], where: base, _count: { _all: true } }),
       this.prisma.channelOrder.aggregate({
-        where: { ...base, receivedAt: { gte: today }, orderStatus: { notIn: ['CANCELLED', 'REJECTED'] } },
+        where: { ...base, receivedAt: { gte: today }, orderStatus: { notIn: CLOSED } },
         _count: { _all: true },
         _sum: { total: true },
       }),
       this.prisma.channelOrder.aggregate({
-        where: { ...base, paymentStatus: { not: 'PAID' }, nafaaSaleId: { not: null }, orderStatus: { notIn: ['CANCELLED', 'REJECTED'] } },
+        where: { ...base, paymentStatus: { not: 'PAID' }, nafaaSaleId: { not: null }, orderStatus: { notIn: CLOSED } },
         _count: { _all: true },
         _sum: { total: true },
       }),
@@ -259,6 +263,19 @@ export class OnlineOrdersService implements OnModuleInit {
       include: { integration: true },
     });
     if (!order) throw new NotFoundException('Order nahi mila');
+
+    // Customer ki shakhsi details kis ne dekhin — access log (Shopify/GDPR shart)
+    this.prisma.activityLog.create({
+      data: {
+        tenantId: user.tenantId,
+        userId: user.id,
+        action: 'ONLINE_ORDER_VIEWED',
+        entityType: 'ChannelOrder',
+        entityId: order.id,
+        description: `Online order #${String(order.externalOrderNumber ?? order.externalOrderId).replace(/^#+/, '')} ki customer details dekhi`,
+        metadata: { channel: order.integration.type },
+      },
+    }).catch(() => null);
 
     const config = readWebsiteConfig(order.integration.config);
     const shopId = order.shopId ?? config.shopId ?? order.integration.shopId ?? scope.shopId ?? null;
@@ -512,11 +529,12 @@ export class OnlineOrdersService implements OnModuleInit {
     user: AuthenticatedUser,
     scope: ShopScope,
     id: string,
-    body: { status: string; reason?: string; trackingNumber?: string; courierName?: string },
+    body: { status: string; reason?: string; trackingNumber?: string; courierName?: string; courierCode?: string },
   ) {
     const status = body.status as OrderStatus;
     if (!ORDER_STATUSES.includes(status)) throw new BadRequestException('Ghalat status');
     if (status === 'CANCELLED' || status === 'REJECTED') return this.cancel(user, scope, id, body.reason, status);
+    if (status === 'RETURNED') return this.markReturned(user, scope, id, body.reason);
 
     const order = await this.prisma.channelOrder.findFirst({
       where: { id, ...this.scopeWhere(user, scope) },
@@ -527,8 +545,8 @@ export class OnlineOrdersService implements OnModuleInit {
     if (!order.nafaaSaleId) {
       throw new BadRequestException('Pehle order accept karein — accept se hi bill banta hai aur stock kam hota hai');
     }
-    if (['CANCELLED', 'REJECTED'].includes(order.orderStatus)) {
-      throw new BadRequestException('Cancel hue order ka status nahi badal sakta');
+    if (CLOSED.includes(order.orderStatus)) {
+      throw new BadRequestException('Band (cancel / wapas) order ka status nahi badal sakta');
     }
     await this.assertBillAlive(order);
 
@@ -536,15 +554,27 @@ export class OnlineOrdersService implements OnModuleInit {
     const meta = (order.metadata ?? {}) as any;
     const data: Prisma.ChannelOrderUpdateInput = { orderStatus: status };
     if (body.trackingNumber !== undefined) data.trackingNumber = body.trackingNumber.trim() || null;
+    if (body.courierCode !== undefined) {
+      const code = body.courierCode ? String(body.courierCode).toUpperCase() : null;
+      if (code && !COURIERS.some((c) => c.code === code)) throw new BadRequestException('Courier sahi nahi');
+      data.courierCode = code;
+      if (body.courierName === undefined) data.courierName = courierName(code);
+    }
     if (body.courierName !== undefined) data.courierName = body.courierName.trim() || null;
     if (status === 'OUT_FOR_DELIVERY' && !order.dispatchedAt) data.dispatchedAt = now;
     if (status === 'DELIVERED') {
       data.deliveredAt = now;
       if (!order.dispatchedAt) data.dispatchedAt = now;
-      // COD: deliver hone ka matlab rider paisa le aaya
+      // COD: apna rider → paisa haath me. Courier → paisa courier ke paas
+      // (COLLECTED) jab tak settlement na aaye — warna "paid" jhoot hota.
       if (order.paymentStatus !== 'PAID' && meta.cod) {
-        data.paymentStatus = 'PAID';
-        data.paymentReceivedAt = now;
+        const code = (data.courierCode as string | null | undefined) ?? order.courierCode;
+        if (courierHoldsCash(code)) {
+          data.paymentStatus = 'COLLECTED';
+        } else {
+          data.paymentStatus = 'PAID';
+          data.paymentReceivedAt = now;
+        }
       }
     }
 
@@ -559,7 +589,7 @@ export class OnlineOrdersService implements OnModuleInit {
       include: { integration: true },
     });
     if (!order) throw new NotFoundException('Order nahi mila');
-    if (['CANCELLED', 'REJECTED'].includes(order.orderStatus)) return this.present(order);
+    if (CLOSED.includes(order.orderStatus)) return this.present(order);
     if (order.orderStatus === 'DELIVERED') {
       throw new BadRequestException('Deliver ho chuka order cancel nahi hota — Returns se wapsi karein');
     }
@@ -590,8 +620,8 @@ export class OnlineOrdersService implements OnModuleInit {
   async markPaid(user: AuthenticatedUser, scope: ShopScope, id: string) {
     const order = await this.prisma.channelOrder.findFirst({ where: { id, ...this.scopeWhere(user, scope) } });
     if (!order) throw new NotFoundException('Order nahi mila');
-    if (['CANCELLED', 'REJECTED'].includes(order.orderStatus)) {
-      throw new BadRequestException('Cancel hue order par paisa mark nahi hota');
+    if (CLOSED.includes(order.orderStatus)) {
+      throw new BadRequestException('Band (cancel / wapas) order par paisa mark nahi hota');
     }
     await this.assertBillAlive(order);
     const updated = await this.prisma.channelOrder.update({
@@ -601,6 +631,148 @@ export class OnlineOrdersService implements OnModuleInit {
     });
     this.statusHook.send(updated.integration, updated, 'order.paid');
     return this.present(updated);
+  }
+
+  /**
+   * RTO — customer ne parcel nahi liya, courier wapas le aaya. Bill void
+   * (stock khud wapas), order "Wapas aaya". COD ka paisa kabhi aana hi nahi.
+   */
+  async markReturned(user: AuthenticatedUser, scope: ShopScope, id: string, reason?: string) {
+    const order = await this.prisma.channelOrder.findFirst({
+      where: { id, ...this.scopeWhere(user, scope) },
+      include: { integration: true },
+    });
+    if (!order) throw new NotFoundException('Order nahi mila');
+    if (order.orderStatus === 'RETURNED') return this.present(order);
+    if (!order.nafaaSaleId || !order.dispatchedAt) {
+      throw new BadRequestException('Wapas sirf bheja hua (raste me / deliver) order aata hai — warna Cancel karein');
+    }
+    if (order.paymentStatus === 'PAID' && order.codSettledAt) {
+      throw new BadRequestException('Is order ka paisa settle ho chuka — Returns se wapsi karein');
+    }
+    const sale = await this.prisma.sale.findFirst({
+      where: { id: order.nafaaSaleId, tenantId: user.tenantId },
+      select: { id: true, status: true },
+    });
+    if (sale && sale.status !== 'VOIDED') {
+      await this.sales.voidSale(user, new ShopScope(null, true), sale.id, `RTO — parcel wapas: ${reason ?? '-'}`);
+    }
+    const updated = await this.prisma.channelOrder.update({
+      where: { id },
+      data: {
+        orderStatus: 'RETURNED',
+        returnedAt: new Date(),
+        returnReason: reason?.trim() || null,
+        paymentStatus: order.paymentStatus === 'PAID' ? 'PAID' : 'NOT_COLLECTED',
+      },
+      include: { integration: true },
+    });
+    this.statusHook.send(updated.integration, updated, 'order.returned');
+    return this.present(updated);
+  }
+
+  /** Courier ne COD ka paisa jama karwaya — ek saath kai orders (settlement sheet se) */
+  async settleCod(user: AuthenticatedUser, scope: ShopScope, body: { orderIds: string[]; reference?: string }) {
+    const ids = [...new Set(body?.orderIds ?? [])].slice(0, 500);
+    if (!ids.length) throw new BadRequestException('Koi order nahi chuna');
+    const now = new Date();
+    const res = await this.prisma.channelOrder.updateMany({
+      where: {
+        id: { in: ids },
+        ...this.scopeWhere(user, scope),
+        nafaaSaleId: { not: null },
+        orderStatus: { notIn: CLOSED },
+        paymentStatus: { not: 'PAID' },
+      },
+      data: {
+        paymentStatus: 'PAID',
+        paymentReceivedAt: now,
+        codSettledAt: now,
+        codSettlementRef: body.reference?.trim().slice(0, 120) || null,
+      },
+    });
+    return { settled: res.count };
+  }
+
+  /**
+   * COD ka hisaab — courier-wise: raste me kitna, courier ke paas kitna
+   * (deliver ho chuka, paisa nahi aaya), is mahine kitna mila, RTO kitne %.
+   */
+  async codSummary(user: AuthenticatedUser, scope: ShopScope) {
+    const base: Prisma.ChannelOrderWhereInput = { ...this.scopeWhere(user, scope), nafaaSaleId: { not: null } };
+    const since = new Date(Date.now() - 30 * 86_400_000);
+    const month = startOfMonthTz();
+    const rows = await this.prisma.channelOrder.findMany({
+      where: {
+        ...base,
+        OR: [
+          { paymentStatus: { not: 'PAID' }, orderStatus: { notIn: ['CANCELLED', 'REJECTED'] } },
+          { codSettledAt: { gte: month } },
+          { dispatchedAt: { gte: since } },
+        ],
+      },
+      select: {
+        id: true, externalOrderNumber: true, externalOrderId: true, customerName: true, customerCity: true, total: true,
+        orderStatus: true, paymentStatus: true, courierCode: true, courierName: true, trackingNumber: true,
+        dispatchedAt: true, deliveredAt: true, returnedAt: true, codSettledAt: true, metadata: true,
+        integration: { select: { type: true, displayName: true } },
+      },
+      orderBy: { dispatchedAt: 'desc' },
+      take: 2000,
+    });
+
+    type Bucket = { code: string; name: string; inTransit: number; inTransitValue: number; withCourier: number; withCourierValue: number; settledMonth: number; settledMonthValue: number; dispatched30: number; returned30: number };
+    const buckets = new Map<string, Bucket>();
+    const bucket = (code: string | null, name: string | null) => {
+      const k = code ?? 'NONE';
+      if (!buckets.has(k)) {
+        buckets.set(k, { code: k, name: courierName(code) ?? name ?? 'Courier nahi likha', inTransit: 0, inTransitValue: 0, withCourier: 0, withCourierValue: 0, settledMonth: 0, settledMonthValue: 0, dispatched30: 0, returned30: 0 });
+      }
+      return buckets.get(k)!;
+    };
+
+    const withCourier: any[] = [];
+    for (const o of rows) {
+      const b = bucket(o.courierCode, o.courierName);
+      const total = Number(o.total);
+      const cod = !!(o.metadata as any)?.cod;
+      if (o.dispatchedAt && o.dispatchedAt >= since) {
+        b.dispatched30++;
+        if (o.orderStatus === 'RETURNED') b.returned30++;
+      }
+      if (!cod) continue;
+      if (o.codSettledAt && o.codSettledAt >= month) { b.settledMonth++; b.settledMonthValue += total; }
+      if (o.paymentStatus === 'PAID' || CLOSED.includes(o.orderStatus)) continue;
+      if (o.orderStatus === 'OUT_FOR_DELIVERY') { b.inTransit++; b.inTransitValue += total; }
+      if (o.orderStatus === 'DELIVERED') {
+        b.withCourier++; b.withCourierValue += total;
+        withCourier.push({
+          ...o,
+          externalOrderNumber: o.externalOrderNumber ? String(o.externalOrderNumber).replace(/^#+/, '') : o.externalOrderNumber,
+          total, metadata: undefined, courier: courierName(o.courierCode) ?? o.courierName,
+          daysWaiting: o.deliveredAt ? Math.floor((Date.now() - o.deliveredAt.getTime()) / 86_400_000) : null,
+        });
+      }
+    }
+
+    const couriers = [...buckets.values()]
+      .map((b) => ({ ...b, rtoRate: b.dispatched30 ? Math.round((b.returned30 / b.dispatched30) * 100) : 0 }))
+      .sort((a, b) => b.withCourierValue + b.inTransitValue - (a.withCourierValue + a.inTransitValue));
+    const sum = (k: keyof Bucket) => couriers.reduce((s, c) => s + Number(c[k] ?? 0), 0);
+    const dispatched30 = sum('dispatched30');
+
+    return {
+      totals: {
+        inTransit: sum('inTransit'), inTransitValue: sum('inTransitValue'),
+        withCourier: sum('withCourier'), withCourierValue: sum('withCourierValue'),
+        settledMonth: sum('settledMonth'), settledMonthValue: sum('settledMonthValue'),
+        rtoRate: dispatched30 ? Math.round((sum('returned30') / dispatched30) * 100) : 0,
+        returned30: sum('returned30'), dispatched30,
+      },
+      couriers,
+      withCourier,
+      courierList: COURIERS,
+    };
   }
 
   /** Website ne khud order cancel/paid kiya (customer ne cancel kiya, refund hua) */
@@ -651,26 +823,18 @@ export class OnlineOrdersService implements OnModuleInit {
       select: { product: { select: { id: true, name: true, sku: true, price: true } } },
     });
 
+    // Test order ke items seedha Nafaa product se jure aate hain (productId) —
+    // is ke liye koi channel link nahi banta, warna Products tab me "TEST-…"
+    // ka jhoota link dikhta tha.
     const items = stocked.length
       ? stocked.map((s, i) => ({
           name: s.product.name,
           sku: s.product.sku ?? undefined,
-          externalProductId: `TEST-${s.product.id}`,
+          productId: s.product.id,
           quantity: i === 0 ? 1 : 2,
           price: Number(s.product.price),
         }))
       : [{ name: 'Test Product', sku: 'TEST-001', quantity: 1, price: 500 }];
-
-    // SKU nahi to test ke liye link bana do, warna matching ka safha khulega
-    for (const s of stocked) {
-      if (!s.product.sku) {
-        await this.prisma.productChannelMapping.upsert({
-          where: { integrationId_linkKey: { integrationId: integration.id, linkKey: mappingKey(s.product.id) } },
-          create: { linkKey: mappingKey(s.product.id), integrationId: integration.id, productId: s.product.id, externalProductId: `TEST-${s.product.id}`, syncStatus: 'SUCCESS' },
-          update: {},
-        }).catch(() => null);
-      }
-    }
 
     const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
     const n = Date.now().toString().slice(-5);
@@ -913,7 +1077,9 @@ export class OnlineOrdersService implements OnModuleInit {
       isCod: !!meta.cod,
       isTest: !!meta.test,
       platform: meta.platform ?? 'custom',
-      nextStatus: FLOW[FLOW.indexOf(o.orderStatus) + 1] ?? null,
+      nextStatus: FLOW.includes(o.orderStatus) ? FLOW[FLOW.indexOf(o.orderStatus) + 1] ?? null : null,
+      courierLabel: courierName(o.courierCode) ?? o.courierName ?? null,
+      courierSite: COURIERS.find((c) => c.code === o.courierCode)?.site ?? null,
     };
   }
 }

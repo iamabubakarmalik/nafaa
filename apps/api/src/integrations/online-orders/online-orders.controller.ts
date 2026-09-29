@@ -41,6 +41,18 @@ export class OnlineOrdersController {
     });
   }
 
+  @Get('cod-summary')
+  @ApiOperation({ summary: 'COD ka hisaab courier-wise — raste me, courier ke paas, mila, RTO %' })
+  codSummary(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope) {
+    return this.svc.codSummary(user, scope);
+  }
+
+  @Post('cod/settle')
+  @ApiOperation({ summary: 'Courier ne COD jama karwaya — chune orders paid' })
+  settle(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Body() body: { orderIds: string[]; reference?: string }) {
+    return this.svc.settleCod(user, scope, body ?? ({} as any));
+  }
+
   @Get('live')
   @ApiOperation({ summary: 'Naye (pending) orders — sidebar badge aur popup ke liye' })
   live(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope) {
@@ -68,7 +80,7 @@ export class OnlineOrdersController {
     @GetUser() user: AuthenticatedUser,
     @CurrentShop() scope: ShopScope,
     @Param('id') id: string,
-    @Body() body: { status: string; reason?: string; trackingNumber?: string; courierName?: string },
+    @Body() body: { status: string; reason?: string; trackingNumber?: string; courierName?: string; courierCode?: string },
   ) {
     return this.svc.updateStatus(user, scope, id, body);
   }
@@ -82,6 +94,12 @@ export class OnlineOrdersController {
     @Body() body: { reason?: string },
   ) {
     return this.svc.cancel(user, scope, id, body?.reason);
+  }
+
+  @Post(':id/returned')
+  @ApiOperation({ summary: 'RTO — parcel wapas aaya: bill void, stock wapas' })
+  returned(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string, @Body() body: { reason?: string }) {
+    return this.svc.markReturned(user, scope, id, body?.reason);
   }
 
   @Post(':id/payment-received')

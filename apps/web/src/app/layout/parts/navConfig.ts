@@ -77,6 +77,7 @@ export const posNavGroups: NavGroup[] = [
     id: 'online', label: 'Online store', icon: Globe, color: '#0ea5e9', defaultOpen: true, order: 6,
     items: [
       { to: '/online-orders', label: 'Online orders', icon: ShoppingBag, permission: P.SALES_VIEW, liveCount: 'online-orders', keywords: 'website cod delivery foodpanda daraz' },
+      { to: '/online-orders/cod', label: 'COD & courier', icon: Wallet, permission: P.SALES_VIEW, keywords: 'cod courier tcs leopards postex rto settlement paisa' },
       // Jore hue channels (WooCommerce, Shopify, apni website, Daraz…) yahan
       // useVisibleNav khud daalta hai — Shopify ke "Sales channels" jaisa.
     ],

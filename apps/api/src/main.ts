@@ -1,4 +1,5 @@
 import { ValidationPipe, Logger, RequestMethod } from '@nestjs/common';
+import { usingDefaultEncryptionKey } from './core/lib/crypto';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
@@ -217,6 +218,12 @@ async function bootstrap() {
   const host = '0.0.0.0';
 
   await app.listen(port, host);
+
+  // Tokens/keys (FBR, WooCommerce, Shopify) isi key se encrypt hote hain
+  if (process.env.NODE_ENV === 'production' && usingDefaultEncryptionKey()) {
+    // eslint-disable-next-line no-console
+    console.warn('⚠️  FBR_ENCRYPTION_KEY set nahi — secrets default key se encrypt ho rahe hain. Railway par lambi random key lagayein (purana data phir bhi khulega).');
+  }
 
   const publicUrl = isProduction
     ? 'https://api.nafaa.pk'

@@ -172,6 +172,11 @@ export class ChannelCatalogService {
       }
     }
 
+    // Purane test orders ne "TEST-…" link banaye the — wo asli nahi, saaf kar do
+    await this.prisma.productChannelMapping.deleteMany({
+      where: { integrationId: integration.id, externalProductId: { startsWith: 'TEST-' } },
+    });
+
     const mappings = await this.prisma.productChannelMapping.findMany({
       where: { integrationId: integration.id },
       include: {

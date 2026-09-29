@@ -23,6 +23,8 @@ export interface NormalizedItem {
   /** Ek unit ki qeemat (website wali) */
   price: number;
   image?: string;
+  /** Sirf Nafaa ke apne test order me — product pehle se maloom */
+  productId?: string;
 }
 
 export interface NormalizedOrder {

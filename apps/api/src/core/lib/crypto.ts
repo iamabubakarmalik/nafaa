@@ -4,9 +4,31 @@ const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 16;
 const AUTH_TAG_LENGTH = 16;
 
+const LEGACY_DEFAULT = 'default-dev-key-32-chars-required!!';
+const derive = (secret: string) => crypto.createHash('sha256').update(secret).digest();
+
+/**
+ * Encrypt hamesha pehli key se. Decrypt har key se koshish karta hai —
+ * taake production me `FBR_ENCRYPTION_KEY` lagane ke baad bhi purana
+ * (default key wala) data khulta rahe, aur agli save par nayi key me aa jaye.
+ */
+function getKeys(): Buffer[] {
+  const secrets = [
+    process.env.FBR_ENCRYPTION_KEY,
+    process.env.JWT_SECRET,
+    LEGACY_DEFAULT,
+    ...(process.env.OLD_ENCRYPTION_KEYS ?? '').split(',').map((k) => k.trim()),
+  ].filter((k): k is string => !!k);
+  return [...new Set(secrets)].map(derive);
+}
+
 function getKey(): Buffer {
-  const secret = process.env.FBR_ENCRYPTION_KEY ?? process.env.JWT_SECRET ?? 'default-dev-key-32-chars-required!!';
-  return crypto.createHash('sha256').update(secret).digest();
+  return getKeys()[0];
+}
+
+/** Production me asli key lagi hai ya default (sab ko maloom) wali? */
+export function usingDefaultEncryptionKey(): boolean {
+  return !process.env.FBR_ENCRYPTION_KEY && !process.env.JWT_SECRET;
 }
 
 /**
@@ -50,15 +72,17 @@ export function decrypt(ciphertext: string | null | undefined): string | null {
     const authTag = Buffer.from(authTagB64, 'base64');
     const encrypted = Buffer.from(encryptedB64, 'base64');
 
-    const decipher = crypto.createDecipheriv(ALGORITHM, getKey(), iv);
-    decipher.setAuthTag(authTag);
-
-    const decrypted = Buffer.concat([
-      decipher.update(encrypted),
-      decipher.final(),
-    ]);
-
-    return decrypted.toString('utf8');
+    for (const key of getKeys()) {
+      try {
+        const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
+        decipher.setAuthTag(authTag);
+        const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]);
+        return decrypted.toString('utf8');
+      } catch {
+        // agli key
+      }
+    }
+    return ciphertext;
   } catch (e) {
     // If decryption fails, assume it's legacy plain text
     return ciphertext;

@@ -10,6 +10,7 @@ export const STATUS_LABEL: Record<OnlineOrderStatus, { label: string; short: str
   DELIVERED:        { label: 'Deliver ho gaya', short: 'Delivered', tone: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300', dot: 'bg-emerald-500' },
   CANCELLED:        { label: 'Cancel',        short: 'Cancel',   tone: 'bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300',           dot: 'bg-rose-500' },
   REJECTED:         { label: 'Reject',        short: 'Reject',   tone: 'bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300',           dot: 'bg-rose-500' },
+  RETURNED:         { label: 'Wapas aaya (RTO)', short: 'RTO',    tone: 'bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-500/15 dark:text-fuchsia-300', dot: 'bg-fuchsia-500' },
 };
 
 /** Agle qadam ka button — "kya karna hai" saaf likha ho */
@@ -72,3 +73,23 @@ export function waNumber(phone?: string | null): string | null {
   if (d.length === 10) return '92' + d;
   return d;
 }
+
+/** COD ka paisa kahan hai */
+export const PAYMENT_LABEL: Record<string, { label: string; tone: string }> = {
+  PAID: { label: 'Paisa mil gaya', tone: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300' },
+  COLLECTED: { label: 'Courier ke paas', tone: 'bg-orange-100 text-orange-800 dark:bg-orange-500/15 dark:text-orange-300' },
+  NOT_COLLECTED: { label: 'Paisa nahi aaya (RTO)', tone: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300' },
+  PENDING: { label: 'Baqi', tone: 'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300' },
+};
+
+export const COURIER_OPTIONS = [
+  { code: 'RIDER', name: 'Apna rider' },
+  { code: 'TCS', name: 'TCS' },
+  { code: 'LEOPARDS', name: 'Leopards' },
+  { code: 'POSTEX', name: 'PostEx' },
+  { code: 'TRAX', name: 'Trax' },
+  { code: 'MNP', name: 'M&P' },
+  { code: 'BLUE_EX', name: 'BlueEx' },
+  { code: 'CALL_COURIER', name: 'Call Courier' },
+  { code: 'OTHER', name: 'Doosra' },
+];

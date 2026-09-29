@@ -44,7 +44,7 @@ type Props = {
 };
 
 /** Paths that should only be "active" on an exact match */
-const END_PATHS = new Set(['/staff', '/products', '/fbr', '/sales']);
+const END_PATHS = new Set(['/staff', '/products', '/fbr', '/sales', '/online-orders']);
 
 /** Everything the current user can see, in the current workspace */
 export function useVisibleNav(role?: any, permissions?: string[]) {

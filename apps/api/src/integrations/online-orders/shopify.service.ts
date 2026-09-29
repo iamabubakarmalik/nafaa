@@ -332,6 +332,9 @@ export class ShopifyService {
           await client.mutate(`mutation($e: FulfillmentEventInput!) { fulfillmentEventCreate(fulfillmentEvent: $e) { fulfillmentEvent { id } userErrors { field message } } }`,
             { e: { fulfillmentId, status: 'DELIVERED' } }, 'fulfillmentEventCreate').catch(() => null);
         }
+      } else if (status === 'RETURNED') {
+        // Fulfilled order Shopify me cancel nahi hota — tag + note
+        await this.tag(client, id, ['Nafaa: Returned (RTO)']);
       } else if (status === 'CANCELLED' || status === 'REJECTED') {
         await client.mutate(`mutation($id: ID!, $note: String) {
           orderCancel(orderId: $id, reason: OTHER, refund: false, restock: true, notifyCustomer: false, staffNote: $note) {
@@ -349,7 +352,7 @@ export class ShopifyService {
     }
     await this.log(integration, `STATUS_PUSH:${status}`, ok, error, { orderId: order.externalOrderId });
 
-    if (['CONFIRMED', 'CANCELLED', 'REJECTED'].includes(status)) {
+    if (['CONFIRMED', 'CANCELLED', 'REJECTED', 'RETURNED'].includes(status)) {
       const skus = ((order.items as any[]) ?? []).map((i) => i?.sku).filter(Boolean);
       if (skus.length) this.syncStock(integration, { onlySkus: skus }).catch(() => null);
     }

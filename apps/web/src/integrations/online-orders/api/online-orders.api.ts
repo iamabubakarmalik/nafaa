@@ -9,7 +9,7 @@ function unwrap<T>(r: any): T {
 
 export type OnlineOrderStatus =
   | 'PENDING' | 'ACCEPTING' | 'CONFIRMED' | 'PREPARING' | 'READY'
-  | 'OUT_FOR_DELIVERY' | 'DELIVERED' | 'CANCELLED' | 'REJECTED';
+  | 'OUT_FOR_DELIVERY' | 'DELIVERED' | 'CANCELLED' | 'REJECTED' | 'RETURNED';
 
 export interface OnlineOrderItem {
   name: string;
@@ -61,11 +61,38 @@ export interface OnlineOrder {
   paymentReceivedAt?: string;
   courierName?: string;
   trackingNumber?: string;
+  courierCode?: string | null;
+  courierLabel?: string | null;
+  courierSite?: string | null;
+  returnedAt?: string | null;
+  returnReason?: string | null;
+  codSettledAt?: string | null;
+  codSettlementRef?: string | null;
   isCod: boolean;
   isTest: boolean;
   platform: string;
   nextStatus: OnlineOrderStatus | null;
   integration?: { id: string; type: string; displayName: string };
+}
+
+export interface CodCourier {
+  code: string; name: string;
+  inTransit: number; inTransitValue: number;
+  withCourier: number; withCourierValue: number;
+  settledMonth: number; settledMonthValue: number;
+  dispatched30: number; returned30: number; rtoRate: number;
+}
+export interface CodSummary {
+  totals: {
+    inTransit: number; inTransitValue: number; withCourier: number; withCourierValue: number;
+    settledMonth: number; settledMonthValue: number; rtoRate: number; returned30: number; dispatched30: number;
+  };
+  couriers: CodCourier[];
+  withCourier: Array<{
+    id: string; externalOrderNumber?: string | null; externalOrderId: string; customerName: string; customerCity?: string | null;
+    total: number; courier: string | null; trackingNumber?: string | null; deliveredAt?: string | null; daysWaiting: number | null;
+    integration?: { type: string; displayName: string };
+  }>;
 }
 
 export interface OrderLine extends OnlineOrderItem {
@@ -271,11 +298,19 @@ export const onlineOrdersApi = {
   accept: (id: string, body: { matches?: Record<string, { productId: string; variantId?: string | null }>; shopId?: string } = {}) =>
     apiClient.post(`/online-orders/${id}/accept`, body).then((r) => unwrap<AcceptResult>(r)),
 
-  setStatus: (id: string, body: { status: string; reason?: string; trackingNumber?: string; courierName?: string }) =>
+  setStatus: (id: string, body: { status: string; reason?: string; trackingNumber?: string; courierName?: string; courierCode?: string }) =>
     apiClient.post(`/online-orders/${id}/status`, body).then((r) => unwrap<OnlineOrder>(r)),
 
   cancel: (id: string, reason?: string) =>
     apiClient.post(`/online-orders/${id}/cancel`, { reason }).then((r) => unwrap<OnlineOrder>(r)),
+
+  markReturned: (id: string, reason?: string) =>
+    apiClient.post(`/online-orders/${id}/returned`, { reason }).then((r) => unwrap<OnlineOrder>(r)),
+
+  codSummary: () => apiClient.get('/online-orders/cod-summary').then((r) => unwrap<CodSummary>(r)),
+
+  settleCod: (orderIds: string[], reference?: string) =>
+    apiClient.post('/online-orders/cod/settle', { orderIds, reference }).then((r) => unwrap<{ settled: number }>(r)),
 
   paymentReceived: (id: string) =>
     apiClient.post(`/online-orders/${id}/payment-received`).then((r) => unwrap<OnlineOrder>(r)),

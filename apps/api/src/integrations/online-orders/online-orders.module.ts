@@ -10,6 +10,7 @@ import { WebsiteApiController } from './website-api.controller';
 import { WooCommerceService } from './woocommerce.service';
 import { ShopifyService } from './shopify.service';
 import { ChannelCatalogService } from './channel-catalog.service';
+import { DataRetentionService } from './data-retention.service';
 import { ShopifyPublicController } from './shopify-public.controller';
 import {
   ChannelsController,
@@ -30,7 +31,7 @@ import {
     ChannelsController,
     ShopifyPublicController,
   ],
-  providers: [OnlineOrdersService, WebsiteCatalogService, WebsiteSetupService, StatusWebhookService, WooCommerceService, ShopifyService, ChannelCatalogService],
+  providers: [OnlineOrdersService, WebsiteCatalogService, WebsiteSetupService, StatusWebhookService, WooCommerceService, ShopifyService, ChannelCatalogService, DataRetentionService],
   exports: [OnlineOrdersService, WebsiteCatalogService],
 })
 export class OnlineOrdersModule {}

@@ -48,7 +48,7 @@ describe('order-normalizer', () => {
     };
     expect(detectPlatform(body)).toBe('shopify');
     const o = normalizeOrder(body, 'shopify');
-    expect(o.externalOrderNumber).toBe('#1001');
+    expect(o.externalOrderNumber).toBe('1001'); // '#' UI khud lagata hai
     expect(o.paymentStatus).toBe('PAID');
     expect(o.deliveryFee).toBe(200);
     expect(o.items[0].variant).toBe('Black');

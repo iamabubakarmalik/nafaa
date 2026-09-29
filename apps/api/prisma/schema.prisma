@@ -16217,11 +16217,20 @@ model ChannelOrder {
   paymentReceivedAt  DateTime?
   courierName        String?
   trackingNumber     String?
+  // Courier ka code (TCS, LEOPARDS, POSTEX, …) — tracking link aur COD hisaab courier-wise
+  courierCode        String?
+  // COD: courier ne paisa jama karwa diya (settlement) — kab aur kis reference se
+  codSettledAt       DateTime?
+  codSettlementRef   String?
+  // RTO: parcel customer ne nahi liya, wapas aaya — stock wapas, bill void
+  returnedAt         DateTime?
+  returnReason       String?
 
   @@unique([integrationId, externalOrderId])
   @@index([tenantId, orderStatus])
   @@index([integrationId, receivedAt])
   @@index([tenantId, receivedAt])
+  @@index([tenantId, courierCode])
   @@map("channel_orders")
 }
 

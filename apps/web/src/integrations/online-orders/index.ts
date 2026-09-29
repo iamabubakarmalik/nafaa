@@ -7,3 +7,4 @@ export { default as ConnectDonePage } from './pages/ConnectDonePage';
 export { OnlineOrderAlert } from './components/OnlineOrderAlert';
 export { useLiveOnlineOrders } from './hooks/useLiveOnlineOrders';
 export { useSalesChannels } from './hooks/useSalesChannels';
+export { default as CodPage } from './pages/CodPage';

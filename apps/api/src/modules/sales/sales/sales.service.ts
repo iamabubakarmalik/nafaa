@@ -978,7 +978,7 @@ export class SalesService {
       // Online order se bani sale thi → order bhi cancel, warna wo "Deliver"
       // aur "COD baqi" me ginta rehta jabke bill hai hi nahi.
       await tx.channelOrder.updateMany({
-        where: { nafaaSaleId: id, orderStatus: { notIn: ['CANCELLED', 'REJECTED'] } },
+        where: { nafaaSaleId: id, orderStatus: { notIn: ['CANCELLED', 'REJECTED', 'RETURNED'] } },
         data: { orderStatus: 'CANCELLED', cancelledAt: new Date(), cancelReason: reason?.trim() || 'Bill void hua' },
       });
 
