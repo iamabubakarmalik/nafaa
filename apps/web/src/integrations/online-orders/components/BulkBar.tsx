@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ArrowRight, Ban, CheckCircle2, Loader2, Truck, X, Zap } from 'lucide-react';
+import { ArrowRight, Ban, CheckCircle2, FileText, Loader2, Truck, X, Zap } from 'lucide-react';
 import { apiErrorMessage, couriersApi, onlineOrdersApi, type OnlineOrder } from '../api/online-orders.api';
 import { LIVE_ORDERS_KEY } from '../hooks/useLiveOnlineOrders';
 import { COURIERS_KEY } from './couriers/CourierForms';
@@ -103,6 +103,7 @@ export function BulkBar({ orders, picked, onClear, onKeep }: {
                 <Pill disabled={busy} onClick={() => run.mutate('book')}><Truck className="h-3.5 w-3.5" /> {n.book} book{couriers.length === 1 ? ` (${couriers[0].name})` : ''}</Pill>
               </span>
             )}
+            <Pill disabled={busy} onClick={() => window.open(`/online-orders/print?auto=1&ids=${[...picked].join(',')}`, '_blank')}><FileText className="h-3.5 w-3.5" /> Invoice print</Pill>
             {n.cancel > 0 && <Pill tone="danger" disabled={busy} onClick={() => setCancelOpen(true)}><Ban className="h-3.5 w-3.5" /> Cancel</Pill>}
             {busy && <span className="inline-flex items-center gap-1 text-xs text-white/70"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Ho raha hai…</span>}
             {!busy && n.accept + n.next + n.confirm + n.book + n.cancel === 0 && <span className="text-xs text-white/60"><Zap className="mr-1 inline h-3 w-3" />In orders par abhi koi ek-saath kaam nahi</span>}

@@ -306,9 +306,14 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
               </div>
             </div>
             {o.sale.status !== 'VOIDED' && (
-              <Button size="xs" variant="outline" leftIcon={<Printer className="h-3.5 w-3.5" />} onClick={() => navigate(`/sales/${o.sale!.id}/receipt`)}>
-                Receipt
-              </Button>
+              <div className="flex gap-1.5">
+                <Button size="xs" variant="outline" leftIcon={<Printer className="h-3.5 w-3.5" />} onClick={() => window.open(`/online-orders/print?auto=1&ids=${o.id}`, '_blank')}>
+                  Invoice
+                </Button>
+                <Button size="xs" variant="outline" leftIcon={<Printer className="h-3.5 w-3.5" />} onClick={() => navigate(`/sales/${o.sale!.id}/receipt`)}>
+                  Receipt
+                </Button>
+              </div>
             )}
           </section>
         )}

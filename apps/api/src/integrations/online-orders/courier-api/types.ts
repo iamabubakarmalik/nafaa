@@ -76,6 +76,19 @@ export interface TrackResult {
   history: { label: string; at?: string | null }[];
 }
 
+/** Courier portal par book hua parcel (Nafaa se ho ya seedha portal se) */
+export interface PortalShipment {
+  trackingNumber: string;
+  orderRef: string | null;
+  customerName: string | null;
+  customerPhone: string | null;
+  city: string | null;
+  address: string | null;
+  codAmount: number;
+  statusLabel: string;
+  bookedAt: Date | null;
+}
+
 export interface TestResult {
   cities: number;
   pickupAddresses?: PickupAddress[];
@@ -94,6 +107,10 @@ export interface CourierAdapter {
   cancel(creds: CourierCreds, trackingNumber: string, settings?: CourierSettings): Promise<void>;
   /** Label: PDF bytes (token chahiye) ya public URL */
   label(creds: CourierCreds, trackingNumber: string, savedUrl?: string | null): Promise<{ pdf?: Buffer; url?: string }>;
+  /** Courier portal ke saare parcels (tareekh ke beech) — Nafaa ke bahar book hue bhi */
+  listShipments?(creds: CourierCreds, from: string, to: string): Promise<PortalShipment[]>;
+  /** Kai CN ka ek hi label PDF */
+  bulkLabel?(creds: CourierCreds, trackingNumbers: string[]): Promise<{ pdf?: Buffer; url?: string }>;
   /** COD settle hua? null = pata nahi (courier ye nahi batata) */
   paymentSettled?(creds: CourierCreds, trackingNumber: string): Promise<{ settled: boolean; reference?: string | null } | null>;
 }

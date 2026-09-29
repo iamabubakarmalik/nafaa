@@ -17,7 +17,7 @@ import MarketplaceSettingsPage from '@modules/organization/marketplace-settings/
 // ─── Integrations Hub ──────────────────────────────────────────
 import IntegrationHubPage from '@integrations/pages/IntegrationHubPage';
 import {
-  OnlineOrdersPage, WebsiteConnectPage, WebsiteRedirect, ConnectChannelPage, ChannelsListPage, ConnectDonePage, ShopifyAppPage, CodPage, CouriersPage, CourierDetailPage,
+  OnlineOrdersPage, WebsiteConnectPage, WebsiteRedirect, ConnectChannelPage, ChannelsListPage, ConnectDonePage, ShopifyAppPage, CodPage, CouriersPage, CourierDetailPage, PrintInvoicesPage,
 } from '@integrations/online-orders';
 
 // ─── FBR Tax Integration ───────────────────────────────────────
@@ -586,6 +586,8 @@ export default function App() {
               <Route path="/onboarding" element={<OnboardingPage />} />
               <Route path="/verify-email" element={<EmailVerifyPage />} />
               <Route path="/sales/:id/receipt" element={<ReceiptGate />} />
+              {/* Online orders ke invoice / packing slip — shell ke bina (print) */}
+              <Route path="/online-orders/print" element={<PrintInvoicesPage />} />
               {/* WooCommerce "Approve" ke baad popup yahan wapas aata hai — shell ke bagair */}
               <Route path="/connect/:platform/done" element={<ConnectDonePage />} />
 

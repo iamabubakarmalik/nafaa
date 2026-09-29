@@ -1,6 +1,6 @@
 import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
-import { CourierConfig, CourierProvider, Prisma } from '@prisma/client';
+import { CourierConfig, CourierProvider, CourierShipmentStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
 import { ShopScope } from '../../common/shop-scope';
@@ -11,8 +11,8 @@ import { OrderAccepted, orderEvents } from './order-events';
 import { COURIERS, courierName } from './couriers';
 import { COURIER_APIS, SettingField, courierApi } from './courier-api/registry';
 import { cityKey } from './courier-api/http';
-import { isDispatched, isFinal } from './courier-api/status';
-import { CourierApiError, CourierCity, CourierCreds, CourierSettings, TrackResult } from './courier-api/types';
+import { isDispatched, isFinal, normalizeCourierStatus } from './courier-api/status';
+import { CourierApiError, CourierCity, CourierCreds, CourierSettings, CourierState, PortalShipment, TrackResult } from './courier-api/types';
 
 const CLOSED = ['CANCELLED', 'REJECTED', 'RETURNED'];
 const CITY_TTL_MS = 12 * 3600_000;
@@ -306,6 +306,27 @@ export class CourierAccountsService implements OnModuleInit, OnModuleDestroy {
       if (recent && r.orderStatus === 'RETURNED') s.returned30++;
       if (r.orderStatus === 'DELIVERED' && r.paymentStatus === 'COLLECTED') { s.codPending++; s.codPendingValue += Number(r.total); }
     }
+    // Portal par seedha book hue (kisi Nafaa order se nahi jure) — double na gino
+    const portal = await this.prisma.courierShipment.findMany({
+      where: {
+        tenantId,
+        orderId: { startsWith: 'ext:' },
+        OR: [{ bookedAt: { gte: since } }, { status: { in: ['CREATED', 'PICKED_UP', 'IN_TRANSIT', 'OUT_FOR_DELIVERY', 'ON_HOLD'] } }],
+      },
+      select: { provider: true, status: true, bookedAt: true },
+    });
+    for (const p of portal) {
+      const s = (out[p.provider] ??= emptyStats());
+      const recent = p.bookedAt >= since;
+      if (recent) { s.booked30++; s.dispatched30++; }
+      if (['CREATED', 'PICKED_UP', 'IN_TRANSIT', 'OUT_FOR_DELIVERY', 'ON_HOLD'].includes(p.status)) {
+        s.active++;
+        if (p.status === 'CREATED') s.awaitingPickup++;
+        if (p.status === 'ON_HOLD') s.attempted++;
+      }
+      if (recent && p.status === 'DELIVERED') s.delivered30++;
+      if (recent && p.status === 'RETURNED') s.returned30++;
+    }
     for (const s of Object.values(out)) s.rtoRate = s.dispatched30 ? Math.round((s.returned30 / s.dispatched30) * 100) : 0;
     return out;
   }
@@ -461,6 +482,13 @@ export class CourierAccountsService implements OnModuleInit, OnModuleDestroy {
     const api = COURIER_APIS[cfg.provider];
     if (!api) return;
     const creds = credsOf(cfg);
+    // Portal par seedha book hue parcels bhi (Nafaa ke bahar) — aur Nafaa orders se jorna
+    if (api.adapter.listShipments) {
+      await this.importPortal(cfg, creds).catch((e) => {
+        if (e instanceof CourierApiError && e.auth) throw e;
+        this.logger.warn(`Portal import ${cfg.provider}: ${msg(e)}`);
+      });
+    }
     const settleSince = new Date(Date.now() - SETTLEMENT_WINDOW_DAYS * 86_400_000);
     const orders = await this.prisma.channelOrder.findMany({
       where: {
@@ -477,7 +505,10 @@ export class CourierAccountsService implements OnModuleInit, OnModuleDestroy {
       orderBy: { courierStatusAt: 'asc' },
       take: 300,
     });
-    if (!orders.length) return;
+    if (!orders.length) {
+      await this.prisma.courierConfig.update({ where: { id: cfg.id }, data: { lastSyncAt: new Date(), lastError: null } });
+      return;
+    }
 
     let results: TrackResult[] = [];
     try {
@@ -506,6 +537,142 @@ export class CourierAccountsService implements OnModuleInit, OnModuleDestroy {
       }
     }
     await this.prisma.courierConfig.update({ where: { id: cfg.id }, data: { lastSyncAt: new Date(), lastError: null } });
+  }
+
+  /**
+   * Courier portal ke parcels (pichhle 30 din, phir har sync par 7 din) →
+   * courier_shipments. Order # mil jaye to Nafaa order se jor do — us ke
+   * baad tracking, RTO, COD sab usi order par khud.
+   */
+  private async importPortal(cfg: CourierConfig, creds: CourierCreds) {
+    const api = COURIER_APIS[cfg.provider]!;
+    const days = cfg.lastSyncAt ? 7 : 30;
+    const list: PortalShipment[] = [];
+    // 7 din ke tukde — courier lambi range par mana kar deta hai
+    for (let end = 0; end < days; end += 7) {
+      const to = pkDate(new Date(Date.now() - end * 86_400_000));
+      const from = pkDate(new Date(Date.now() - Math.min(days, end + 7) * 86_400_000));
+      list.push(...(await api.adapter.listShipments!(creds, from, to)));
+    }
+    const seen = new Set<string>();
+    let linked = 0;
+    for (const p of list) {
+      if (seen.has(p.trackingNumber)) continue;
+      seen.add(p.trackingNumber);
+      const state = normalizeCourierStatus(p.statusLabel);
+      const existing = await this.prisma.courierShipment.findUnique({ where: { trackingNumber: p.trackingNumber } });
+      if (existing && existing.tenantId !== cfg.tenantId) continue;
+
+      // Nafaa order dhoondo (order # se) — jo abhi kisi aur CN se na jura ho
+      let orderId = existing && !existing.orderId.startsWith('ext:') ? existing.orderId : null;
+      if (!orderId && p.orderRef) {
+        const ref = p.orderRef.replace(/^#+/, '').trim();
+        const order = await this.prisma.channelOrder.findFirst({
+          where: {
+            tenantId: cfg.tenantId,
+            OR: [{ externalOrderNumber: ref }, { externalOrderNumber: `#${ref}` }, { externalOrderId: ref }],
+            AND: [{ OR: [{ trackingNumber: null }, { trackingNumber: p.trackingNumber }] }],
+          },
+          select: { id: true, trackingNumber: true, courierBookedAt: true, orderStatus: true },
+        });
+        if (order && !(await this.prisma.courierShipment.findUnique({ where: { orderId: order.id } }))) {
+          orderId = order.id;
+          if (!order.trackingNumber) {
+            await this.prisma.channelOrder.update({
+              where: { id: order.id },
+              data: {
+                courierCode: cfg.provider, courierName: courierName(cfg.provider), trackingNumber: p.trackingNumber,
+                courierBookedAt: order.courierBookedAt ?? p.bookedAt ?? new Date(), courierStatus: state, courierStatusAt: new Date(),
+              },
+            });
+            linked++;
+          }
+        }
+      }
+
+      const data = {
+        status: shipmentStatus(state),
+        codAmount: p.codAmount,
+        cnValue: p.codAmount,
+        destinationCity: p.city,
+        lastEvent: p.statusLabel || null,
+        lastEventAt: new Date(),
+        deliveredAt: state === 'DELIVERED' ? existing?.deliveredAt ?? new Date() : existing?.deliveredAt ?? null,
+        returnedAt: state === 'RETURNED' ? existing?.returnedAt ?? new Date() : existing?.returnedAt ?? null,
+        metadata: { source: 'portal', state, orderRef: p.orderRef, customerName: p.customerName, customerPhone: p.customerPhone, address: p.address } as Prisma.InputJsonValue,
+      };
+      if (existing) {
+        await this.prisma.courierShipment.update({ where: { id: existing.id }, data: { ...data, ...(orderId && existing.orderId.startsWith('ext:') ? { orderId } : {}) } });
+      } else {
+        await this.prisma.courierShipment.create({
+          data: {
+            tenantId: cfg.tenantId, provider: cfg.provider, trackingNumber: p.trackingNumber,
+            orderId: orderId ?? `ext:${cfg.provider}:${p.trackingNumber}`,
+            bookedAt: p.bookedAt && !isNaN(+p.bookedAt) ? p.bookedAt : new Date(),
+            ...data,
+          },
+        }).catch(() => null); // do sync ek saath — unique par dusra chup
+      }
+    }
+    return { total: seen.size, linked };
+  }
+
+  /** Portal parcels ki list (courier ke safhe ka "Sab parcels") */
+  async portalParcels(user: AuthenticatedUser, code: string, q: { filter?: string; search?: string; limit?: number; offset?: number }) {
+    const where: Prisma.CourierShipmentWhereInput = { tenantId: user.tenantId, provider: code as CourierProvider };
+    const f = q.filter ?? 'all';
+    const and: Prisma.CourierShipmentWhereInput[] = [];
+    if (f === 'active') and.push({ status: { in: ['CREATED', 'PICKED_UP', 'IN_TRANSIT', 'OUT_FOR_DELIVERY', 'ON_HOLD'] } });
+    if (f === 'delivered') and.push({ status: 'DELIVERED' });
+    if (f === 'returned') and.push({ status: 'RETURNED' });
+    if (f === 'attempted') and.push({ status: 'ON_HOLD' });
+    if (f === 'unlinked') and.push({ orderId: { startsWith: 'ext:' } });
+    const term = q.search?.trim();
+    if (term) and.push({ OR: [{ trackingNumber: { contains: term, mode: 'insensitive' } }, { destinationCity: { contains: term, mode: 'insensitive' } }] });
+    if (and.length) where.AND = and;
+    const take = Math.min(Math.max(q.limit ?? 50, 1), 200);
+    const [rows, total] = await Promise.all([
+      this.prisma.courierShipment.findMany({ where, orderBy: { bookedAt: 'desc' }, take, skip: Math.max(q.offset ?? 0, 0) }),
+      this.prisma.courierShipment.count({ where }),
+    ]);
+    const orderIds = rows.map((r) => r.orderId).filter((id) => !id.startsWith('ext:'));
+    const orders = orderIds.length
+      ? await this.prisma.channelOrder.findMany({ where: { id: { in: orderIds }, tenantId: user.tenantId }, select: { id: true, externalOrderNumber: true, externalOrderId: true, orderStatus: true, paymentStatus: true } })
+      : [];
+    return {
+      total,
+      rows: rows.map((r) => {
+        const m = (r.metadata ?? {}) as any;
+        const o = orders.find((x) => x.id === r.orderId);
+        return {
+          id: r.id,
+          trackingNumber: r.trackingNumber,
+          bookedAt: r.bookedAt,
+          state: (m.state ?? 'UNKNOWN') as CourierState,
+          statusLabel: r.lastEvent,
+          codAmount: Number(r.codAmount),
+          city: r.destinationCity,
+          customerName: m.customerName ?? null,
+          customerPhone: m.customerPhone ?? null,
+          orderRef: m.orderRef ?? null,
+          order: o ? { id: o.id, number: String(o.externalOrderNumber ?? o.externalOrderId).replace(/^#+/, ''), status: o.orderStatus, paymentStatus: o.paymentStatus } : null,
+        };
+      }),
+    };
+  }
+
+  /** Kai CN ka ek label PDF (PostEx) — warna pehle CN ka */
+  async bulkLabels(user: AuthenticatedUser, code: string, trackingNumbers: string[]) {
+    const tns = [...new Set((trackingNumbers ?? []).map(String).filter(Boolean))].slice(0, 50);
+    if (!tns.length) throw new BadRequestException('Koi CN nahi chuna');
+    const { creds, api } = await this.account(user.tenantId, code);
+    if (!api.features.label) throw new BadRequestException(`${courierName(code)} ka label un ke portal se print karein`);
+    // Sirf apne tenant ke CN
+    const own = await this.prisma.courierShipment.count({ where: { tenantId: user.tenantId, trackingNumber: { in: tns } } })
+      + await this.prisma.channelOrder.count({ where: { tenantId: user.tenantId, trackingNumber: { in: tns } } });
+    if (own < 1) throw new BadRequestException('Ye CN aap ke nahi');
+    if (api.adapter.bulkLabel) return this.wrap(() => api.adapter.bulkLabel!(creds, tns));
+    return this.wrap(() => api.adapter.label(creds, tns[0]));
   }
 
   /** Courier ka status order par lagao: utha → raste me, deliver, RTO */
@@ -652,4 +819,20 @@ const msg = (e: unknown) => (e instanceof Error ? e.message : String(e)).slice(0
 function toHttp(e: unknown) {
   if (e instanceof CourierApiError) return new BadRequestException(e.message);
   return e;
+}
+
+/** Pakistan ki tareekh YYYY-MM-DD (server UTC hai) */
+const pkDate = (d: Date) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Karachi' }).format(d);
+
+function shipmentStatus(s: CourierState): CourierShipmentStatus {
+  switch (s) {
+    case 'BOOKED': return 'CREATED';
+    case 'PICKED_UP': return 'PICKED_UP';
+    case 'OUT_FOR_DELIVERY': return 'OUT_FOR_DELIVERY';
+    case 'ATTEMPTED': return 'ON_HOLD';
+    case 'DELIVERED': return 'DELIVERED';
+    case 'RETURNED': return 'RETURNED';
+    case 'CANCELLED': return 'CANCELLED';
+    default: return 'IN_TRANSIT';
+  }
 }

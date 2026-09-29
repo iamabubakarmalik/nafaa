@@ -40,7 +40,8 @@ export interface CourierApiDef {
   steps: string[];
   /** none = label courier ke portal se */
   labelKind: 'pdf' | 'link' | 'none';
-  features: { cancel: boolean; label: boolean; settlement: boolean };
+  /** portal = courier portal ke saare parcels Nafaa me aate hain */
+  features: { cancel: boolean; label: boolean; settlement: boolean; portal?: boolean };
   /** Dashboard par rang */
   color: string;
 }
@@ -101,7 +102,7 @@ export const COURIER_APIS: Record<string, CourierApiDef> = {
       'Token copy karke yahan paste karein — bas',
     ],
     labelKind: 'pdf',
-    features: { cancel: true, label: true, settlement: true },
+    features: { cancel: true, label: true, settlement: true, portal: true },
     color: '#f15a22',
   },
   LEOPARDS: {
@@ -121,7 +122,7 @@ export const COURIER_APIS: Record<string, CourierApiDef> = {
       'API key aur API password dono copy karke yahan paste karein',
     ],
     labelKind: 'link',
-    features: { cancel: true, label: true, settlement: true },
+    features: { cancel: true, label: true, settlement: true, portal: true },
     color: '#e11d48',
   },
   TRAX: {

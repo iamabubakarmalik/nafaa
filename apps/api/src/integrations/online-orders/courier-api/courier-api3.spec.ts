@@ -98,3 +98,22 @@ describe('Leopards COD settlement', () => {
     expect((await leopardsAdapter.paymentSettled!({ apiKey: 'k', apiSecret: 'p' }, 'LE9'))?.settled).toBe(false);
   });
 });
+
+import { postexAdapter } from './postex.adapter';
+describe('Portal parcels list', () => {
+  afterAll(() => { global.fetch = realFetch; });
+  it('PostEx get-all-order → trackingResponse fields', async () => {
+    calls = [];
+    mock((u) => (u.includes('/v1/get-all-order') ? { body: { statusCode: '200', dist: [
+      { trackingNumber: 'PX1', trackingResponse: { trackingNumber: 'PX1', customerName: 'Ali', customerPhone: '03001234567', cityName: 'Lahore', invoicePayment: 998, orderRefNumber: '2938', transactionStatus: 'Delivered', transactionDate: '2026-09-20' } },
+    ] } } : undefined));
+    const list = await postexAdapter.listShipments!({ apiKey: 't' }, '2026-09-01', '2026-09-29');
+    expect(list[0]).toMatchObject({ trackingNumber: 'PX1', orderRef: '2938', codAmount: 998, city: 'Lahore', statusLabel: 'Delivered' });
+    expect(calls[0].url).toContain('startDate=2026-09-01&endDate=2026-09-29');
+  });
+  it('Leopards getBookedPacketLastStatus → packet_list', async () => {
+    mock((u) => (u.includes('/getBookedPacketLastStatus/') ? { body: { status: 1, packet_list: [{ track_number: 'LE5', booked_packet_status: 'Delivered', booked_packet_order_id: '#1001', booked_packet_collect_amount: '1500', booking_date: '2026-09-21' }] } } : undefined));
+    const list = await leopardsAdapter.listShipments!({ apiKey: 'k', apiSecret: 'p' }, '2026-09-01', '2026-09-29');
+    expect(list[0]).toMatchObject({ trackingNumber: 'LE5', orderRef: '#1001', codAmount: 1500, statusLabel: 'Delivered' });
+  });
+});

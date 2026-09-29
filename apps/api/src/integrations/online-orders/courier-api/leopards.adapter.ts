@@ -2,7 +2,7 @@ import { courierFetch } from './http';
 import { normalizeCourierStatus } from './status';
 import { pkPhone } from './postex.adapter';
 import {
-  BookInput, BookResult, CourierAdapter, CourierApiError, CourierCity, CourierCreds, CourierSettings, TestResult, TrackResult,
+  BookInput, BookResult, CourierAdapter, CourierApiError, CourierCity, CourierCreds, CourierSettings, PortalShipment, TestResult, TrackResult,
 } from './types';
 
 /**
@@ -86,6 +86,27 @@ export const leopardsAdapter: CourierAdapter = {
       }
     }
     return out.filter((r) => r.trackingNumber);
+  },
+
+  /** getBookedPacketLastStatus (GET) — tareekh ke beech ke saare packets */
+  async listShipments(creds, from, to): Promise<PortalShipment[]> {
+    const q = new URLSearchParams({ api_key: creds.apiKey, api_password: creds.apiSecret ?? '', from_date: from, to_date: to });
+    const { body } = await courierFetch(`${BASE}/getBookedPacketLastStatus/format/json/?${q}`);
+    if (Number(body?.status) !== 1) {
+      const err = String(body?.error ?? 'Leopards list nahi mili');
+      throw new CourierApiError(/api key|password/i.test(err) ? 'Leopards ne API key nahi maani' : err.slice(0, 200), /api key|password/i.test(err));
+    }
+    return ((body.packet_list ?? []) as any[]).map((p) => ({
+      trackingNumber: String(p.track_number ?? ''),
+      orderRef: p.booked_packet_order_id ? String(p.booked_packet_order_id) : null,
+      customerName: p.consignment_name_eng || p.consignee_name || null,
+      customerPhone: p.consignment_phone || null,
+      city: p.destination_city_name || p.destination_city || null,
+      address: p.consignment_address || null,
+      codAmount: Number(p.booked_packet_collect_amount ?? 0) || 0,
+      statusLabel: String(p.booked_packet_status ?? ''),
+      bookedAt: p.booking_date ? new Date(p.booking_date) : null,
+    })).filter((s) => s.trackingNumber);
   },
 
   async cancel(creds, tn) {

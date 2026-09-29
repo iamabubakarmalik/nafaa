@@ -1,7 +1,7 @@
 import { courierFetch } from './http';
 import { normalizeCourierStatus } from './status';
 import {
-  BookInput, BookResult, CourierAdapter, CourierApiError, CourierCity, CourierCreds, CourierSettings, PickupAddress, TestResult, TrackResult,
+  BookInput, BookResult, CourierAdapter, CourierApiError, CourierCity, CourierCreds, CourierSettings, PickupAddress, PortalShipment, TestResult, TrackResult,
 } from './types';
 
 /**
@@ -102,6 +102,28 @@ export const postexAdapter: CourierAdapter = {
       });
     }
     return out;
+  },
+
+  async listShipments(creds, from, to): Promise<PortalShipment[]> {
+    const dist = await call(creds, `/v1/get-all-order?orderStatusId=0&startDate=${from}&endDate=${to}`);
+    return (Array.isArray(dist) ? dist : []).map((row: any) => {
+      const t = row?.trackingResponse ?? row ?? {};
+      return {
+        trackingNumber: String(t.trackingNumber ?? row?.trackingNumber ?? ''),
+        orderRef: t.orderRefNumber ? String(t.orderRefNumber) : null,
+        customerName: t.customerName || null,
+        customerPhone: t.customerPhone || null,
+        city: t.cityName || null,
+        address: t.deliveryAddress || null,
+        codAmount: Number(t.invoicePayment ?? 0) || 0,
+        statusLabel: String(t.transactionStatus ?? t.orderStatus ?? ''),
+        bookedAt: t.transactionDate ? new Date(t.transactionDate) : t.orderDate ? new Date(t.orderDate) : null,
+      };
+    }).filter((s) => s.trackingNumber);
+  },
+
+  async bulkLabel(creds, tns) {
+    return this.label(creds, tns.slice(0, 50).join(','));
   },
 
   async cancel(creds, tn) {

@@ -495,6 +495,33 @@ export class CouriersController {
     return this.svc.bulkBook(user, scope, code.toUpperCase(), body ?? {});
   }
 
+  @Get(':code/portal-parcels')
+  @ApiOperation({ summary: 'Courier portal ke saare parcels (Nafaa ke bahar book hue bhi)' })
+  portalParcels(
+    @GetUser() user: AuthenticatedUser,
+    @Param('code') code: string,
+    @Query('filter') filter?: string,
+    @Query('search') search?: string,
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
+  ) {
+    return this.svc.portalParcels(user, code.toUpperCase(), { filter, search, limit: limit ? +limit : 50, offset: offset ? +offset : 0 });
+  }
+
+  @Post(':code/labels')
+  @ApiOperation({ summary: 'Kai CN ka ek label PDF' })
+  async labels(@GetUser() user: AuthenticatedUser, @Param('code') code: string, @Body() body: { trackingNumbers?: string[] }, @Res() res: Response) {
+    const r = await this.svc.bulkLabels(user, code.toUpperCase(), body?.trackingNumbers ?? []);
+    if (r.pdf) {
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'inline; filename="labels.pdf"');
+      res.setHeader('Cache-Control', 'private, no-store');
+      res.send(r.pdf);
+      return;
+    }
+    res.json({ url: r.url });
+  }
+
   @Post(':code/sync')
   @ApiOperation({ summary: 'Abhi courier se sab parcels ka status lo' })
   sync(@GetUser() user: AuthenticatedUser, @Param('code') code: string) {

@@ -144,7 +144,7 @@ export interface CourierAccount {
     portalUrl: string;
     steps: string[];
     labelKind: 'pdf' | 'link' | 'none';
-    features: { cancel: boolean; label: boolean; settlement: boolean };
+    features: { cancel: boolean; label: boolean; settlement: boolean; portal?: boolean };
   };
 }
 
@@ -155,6 +155,12 @@ export interface CourierShipment {
   dispatchedAt?: string | null; deliveredAt?: string | null; returnedAt?: string | null; codSettledAt?: string | null;
   courierLabel: string | null; viaApi: boolean;
   pieces: number; customerAddress?: string | null; acceptedAt?: string | null;
+}
+
+export interface PortalParcel {
+  id: string; trackingNumber: string; bookedAt: string; state: CourierState; statusLabel: string | null;
+  codAmount: number; city: string | null; customerName: string | null; customerPhone: string | null; orderRef: string | null;
+  order: { id: string; number: string; status: OnlineOrderStatus; paymentStatus: string } | null;
 }
 
 export interface PickupAddress { code: string; address: string; city?: string | null }
@@ -529,6 +535,31 @@ export const couriersApi = {
   bulkBook: (code: string, body: { orderIds: string[]; weightKg?: number; serviceType?: string }) =>
     apiClient.post(`/online-store/couriers/${code}/bulk-book`, body)
       .then((r) => unwrap<{ booked: number; failed: number; results: { orderId: string; ok: boolean; trackingNumber?: string; error?: string }[] }>(r)),
+  portalParcels: (code: string, q: { filter?: string; search?: string; limit?: number; offset?: number }) =>
+    apiClient.get(`/online-store/couriers/${code}/portal-parcels`, { params: q }).then((r) => unwrap<{ total: number; rows: PortalParcel[] }>(r)),
+  /** Kai CN ka label — naye tab me */
+  openLabels: async (code: string, trackingNumbers: string[]) => {
+    const tab = window.open('', '_blank');
+    try {
+      const r = await apiClient.post(`/online-store/couriers/${code}/labels`, { trackingNumbers }, { responseType: 'blob' });
+      const blob: Blob = r.data;
+      if (blob.type.includes('pdf')) {
+        const url = URL.createObjectURL(blob);
+        if (tab) tab.location.href = url; else window.open(url, '_blank');
+        setTimeout(() => URL.revokeObjectURL(url), 60_000);
+        return;
+      }
+      const json = JSON.parse(await blob.text());
+      const url = json?.data?.url ?? json?.url;
+      if (!url) throw new Error('Label nahi mila');
+      if (tab) tab.location.href = url; else window.open(url, '_blank', 'noopener');
+    } catch (e: any) {
+      tab?.close();
+      const data = e?.response?.data;
+      if (data instanceof Blob) { try { e.response.data = JSON.parse(await data.text()); } catch { /* jaisa hai */ } }
+      throw e;
+    }
+  },
   sync: (code: string) =>
     apiClient.post(`/online-store/couriers/${code}/sync`).then((r) => unwrap<{ ok: true; lastSyncAt: string | null; lastError: string | null }>(r)),
 
