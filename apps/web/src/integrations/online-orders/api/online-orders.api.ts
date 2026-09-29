@@ -429,7 +429,7 @@ export const onlineOrdersApi = {
     apiClient.post('/online-orders/bulk', { action, ids, reason })
       .then((r) => unwrap<{ done: number; failed: number; results: { id: string; ok: boolean; error?: string }[] }>(r)),
   channelForm: (id: string) => apiClient.get(`/online-store/channels/${id}/form`).then((r) => unwrap<ChannelForm>(r)),
-  updateChannelForm: (id: string, body: Partial<Pick<ChannelForm, 'enabled' | 'deliveryFee' | 'freeAbove' | 'onlyInStock' | 'message'>> & { regenerate?: boolean }) =>
+  updateChannelForm: (id: string, body: Partial<Pick<ChannelForm, 'enabled' | 'deliveryFee' | 'freeAbove' | 'onlyInStock' | 'message' | 'productIds'>> & { regenerate?: boolean }) =>
     apiClient.patch(`/online-store/channels/${id}/form`, body).then((r) => unwrap<ChannelForm>(r)),
   devInvite: (id: string) => apiClient.post(`/online-store/channels/${id}/dev-invite`).then((r) => unwrap<{ url: string; expiresAt: string }>(r)),
   report: (q: { from?: string; to?: string; integrationId?: string }) =>

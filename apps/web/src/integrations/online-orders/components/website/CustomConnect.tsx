@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { CheckCircle2, Code2, ExternalLink, Link2, MessageCircle, MousePointerClick, Send, Users } from 'lucide-react';
+import { CheckCircle2, Code2, ExternalLink, Link2, MessageCircle, MousePointerClick, Package, Search, Send, Users } from 'lucide-react';
 import { useAuthStore } from '@core/stores/auth.store';
+import { productsApi } from '@modules/inventory/products/api/products.api';
 import { apiErrorMessage, onlineOrdersApi, type WebsiteOverview } from '../../api/online-orders.api';
-import { Badge, Btn, Card, SettingRow, Toggle, inputCls } from '../ui/kit';
+import { Badge, Btn, Card, EmptyState, Segmented, SettingRow, Toggle, inputCls } from '../ui/kit';
 import { CopyField } from './CopyField';
 import { ConnectGuide } from './ConnectGuides';
 import { cn } from '@core/lib/cn';
@@ -129,6 +130,8 @@ function FormWay({ channelId }: { channelId: string }) {
         </details>
       </Card>
 
+      <FormProducts channelId={channelId} selected={f.productIds} onSave={(ids) => save.mutate({ productIds: ids })} saving={save.isPending} />
+
       <Card title="Form ki settings">
         <div className="divide-y divide-slate-100 dark:divide-slate-800">
           <SettingRow title="Delivery charges (Rs)" help="Har order par — 0 = free delivery"
@@ -145,6 +148,54 @@ function FormWay({ channelId }: { channelId: string }) {
         </div>
       </Card>
     </>
+  );
+}
+
+/** Form par kaunse products — sab, ya sirf chune hue */
+function FormProducts({ selected, onSave, saving }: { channelId: string; selected: string[] | null; onSave: (ids: string[]) => void; saving: boolean }) {
+  const [mode, setMode] = useState<'all' | 'some'>(selected?.length ? 'some' : 'all');
+  const [q, setQ] = useState('');
+  const [debounced, setDebounced] = useState('');
+  const picked = new Set(selected ?? []);
+  const { data, isFetching } = useQuery({
+    queryKey: ['form-products', debounced],
+    queryFn: () => productsApi.list({ search: debounced || undefined, limit: 50, isActive: true }),
+    enabled: mode === 'some',
+  });
+  const items = data?.items ?? [];
+  useEffect(() => { const t = setTimeout(() => setDebounced(q.trim()), 300); return () => clearTimeout(t); }, [q]);
+  const toggle = (id: string) => {
+    const n = new Set(picked);
+    n.has(id) ? n.delete(id) : n.add(id);
+    onSave([...n]);
+  };
+
+  return (
+    <Card title="Form par kaunse products" description={mode === 'all' ? 'Nafaa ke saare active products (qeemat > 0) form par dikhte hain.' : `${picked.size} product chune — sirf yahi form par dikhenge.`}
+      actions={<Segmented value={mode} onChange={(m) => { setMode(m); if (m === 'all' && selected?.length) onSave([]); }}
+        items={[{ value: 'all', label: 'Sab products' }, { value: 'some', label: 'Sirf chune hue' }]} />}>
+      {mode === 'some' && (
+        <>
+          {picked.size === 0 && <p className="mb-2 rounded-lg bg-amber-50 px-3 py-2 text-[12.5px] font-semibold text-amber-800 dark:bg-amber-500/10 dark:text-amber-300">Abhi koi nahi chuna — jab tak kam az kam ek na chunein, form par saare products dikhte rahenge.</p>}
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Product dhoondein…" className={cn(inputCls, 'pl-8')} />
+          </div>
+          <div className="mt-2 max-h-80 divide-y divide-slate-100 overflow-y-auto rounded-lg border border-slate-200 dark:divide-slate-800 dark:border-slate-800">
+            {isFetching && !items.length ? <div className="p-4 text-[13px] text-slate-500">Aa rahe hain…</div>
+              : !items.length ? <EmptyState icon={<Package className="h-5 w-5" />} title="Koi product nahi mila" />
+              : items.map((p: any) => (
+                <label key={p.id} className="flex cursor-pointer items-center gap-3 px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                  <input type="checkbox" className="h-4 w-4 rounded border-slate-300" checked={picked.has(p.id)} disabled={saving} onChange={() => toggle(p.id)} />
+                  <span className="min-w-0 flex-1 truncate text-[13px] text-slate-800 dark:text-slate-100">{p.name}</span>
+                  <span className="text-[12px] tabular-nums text-slate-500">Rs {Math.round(Number(p.price) || 0).toLocaleString('en-PK')}</span>
+                </label>
+              ))}
+          </div>
+          {picked.size > 0 && <button onClick={() => onSave([])} className="mt-2 text-[12.5px] font-semibold text-rose-600">Sab hatao</button>}
+        </>
+      )}
+    </Card>
   );
 }
 
