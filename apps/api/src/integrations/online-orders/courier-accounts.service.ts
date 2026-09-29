@@ -8,7 +8,7 @@ import { decrypt, encrypt } from '../../core/lib/crypto';
 import { OnlineOrdersService } from './online-orders.service';
 import { WebsiteSetupService } from './website-setup.service';
 import { COURIERS, courierName } from './couriers';
-import { COURIER_APIS, courierApi } from './courier-api/registry';
+import { COURIER_APIS, SettingField, courierApi } from './courier-api/registry';
 import { cityKey } from './courier-api/http';
 import { isDispatched, isFinal } from './courier-api/status';
 import { CourierApiError, CourierCity, CourierCreds, CourierSettings, TrackResult } from './courier-api/types';
@@ -41,12 +41,7 @@ export class CourierAccountsService {
 
   async list(user: AuthenticatedUser) {
     const configs = await this.prisma.courierConfig.findMany({ where: { tenantId: user.tenantId } });
-    const since = new Date(Date.now() - 30 * 86_400_000);
-    const counts = await this.prisma.channelOrder.groupBy({
-      by: ['courierCode'],
-      where: { tenantId: user.tenantId, courierBookedAt: { gte: since } },
-      _count: { _all: true },
-    });
+    const stats = await this.statsByCourier(user.tenantId);
     return COURIERS.filter((c) => c.code !== 'OTHER').map((c) => {
       const api = COURIER_APIS[c.code];
       const cfg = configs.find((x) => x.provider === c.code);
@@ -55,43 +50,50 @@ export class CourierAccountsService {
         name: c.name,
         site: c.site,
         mode: api ? 'api' : 'manual',
+        color: api?.color ?? '#64748b',
         connected: !!(api && cfg),
         active: !!cfg?.isActive,
         maskedKey: cfg ? mask(decrypt(cfg.apiKey)) : null,
+        connectedAt: cfg?.createdAt ?? null,
         lastTestedAt: cfg?.lastTestedAt ?? null,
         lastSyncAt: cfg?.lastSyncAt ?? null,
         lastError: cfg?.lastError ?? null,
         settings: cfg ? readSettings(cfg) : null,
-        booked30: counts.find((x) => x.courierCode === c.code)?._count._all ?? 0,
-        connect: api ? { fields: api.fields, portalUrl: api.portalUrl, steps: api.steps, labelKind: api.labelKind, autoSettlement: api.autoSettlement } : null,
+        // Zaroori settings jo abhi khali hain — booking se pehle bharni hain
+        missingSettings: cfg && api ? api.settings.filter((d) => d.required && !readSettings(cfg)[d.key]).map((d) => d.label) : [],
+        stats: stats[c.code] ?? emptyStats(),
+        booked30: stats[c.code]?.booked30 ?? 0,
+        connect: api
+          ? { credentials: api.credentials, settings: api.settings, portalUrl: api.portalUrl, steps: api.steps, labelKind: api.labelKind, features: api.features }
+          : null,
       };
     });
   }
 
   /** Key paste → courier se check → save (encrypted). Ghalat key save hi nahi hoti. */
-  async connect(user: AuthenticatedUser, code: string, body: { apiKey?: string; apiSecret?: string; settings?: CourierSettings }) {
+  async connect(user: AuthenticatedUser, code: string, body: { credentials?: Record<string, string>; apiKey?: string; apiSecret?: string; settings?: CourierSettings }) {
     this.setup.assertCanManage(user);
     const api = this.apiOrThrow(code);
-    const creds: CourierCreds = { apiKey: String(body?.apiKey ?? '').trim(), apiSecret: body?.apiSecret?.trim() || null };
-    if (!creds.apiKey) throw new BadRequestException('API key daalein');
-    if (api.fields.some((f) => f.key === 'apiSecret') && !creds.apiSecret) throw new BadRequestException('API password bhi daalein');
+    // Purana roop (apiKey/apiSecret seedhe) bhi chale
+    const raw: Record<string, string> = { ...(body?.apiKey ? { apiKey: body.apiKey } : {}), ...(body?.apiSecret ? { apiSecret: body.apiSecret } : {}), ...(body?.credentials ?? {}) };
+    const creds = { apiKey: '' } as CourierCreds;
+    for (const f of api.credentials) {
+      const v = String(raw[f.key] ?? '').trim();
+      if (!v && !f.optional) throw new BadRequestException(`${f.label} daalein`);
+      if (v) creds[f.key] = v.slice(0, 500);
+    }
 
     const test = await this.wrap(() => api.adapter.test(creds));
-    const settings: CourierSettings = { ...cleanSettings(body?.settings) };
-    // PostEx: ek hi pickup address ho to khud chun lo
+    const settings: CourierSettings = { ...cleanSettings(api.settings, body?.settings) };
+    // Ek hi pickup address ho to khud chun lo
     if (!settings.pickupAddressCode && test.pickupAddresses?.length === 1) settings.pickupAddressCode = test.pickupAddresses[0].code;
 
     const provider = code as CourierProvider;
+    const stored = storeCreds(creds);
     await this.prisma.courierConfig.upsert({
       where: { tenantId_provider: { tenantId: user.tenantId, provider } },
-      create: {
-        tenantId: user.tenantId, provider, apiKey: encrypt(creds.apiKey)!, apiSecret: encrypt(creds.apiSecret),
-        isActive: true, settings: settings as any, lastTestedAt: new Date(), lastError: null,
-      },
-      update: {
-        apiKey: encrypt(creds.apiKey)!, apiSecret: encrypt(creds.apiSecret), isActive: true,
-        settings: settings as any, lastTestedAt: new Date(), lastError: null,
-      },
+      create: { tenantId: user.tenantId, provider, ...stored, isActive: true, settings: settings as any, lastTestedAt: new Date(), lastError: null },
+      update: { ...stored, isActive: true, settings: settings as any, lastTestedAt: new Date(), lastError: null },
     });
     this.cityCache.delete(`${user.tenantId}:${code}`);
     return { ok: true, cities: test.cities, pickupAddresses: test.pickupAddresses ?? [], settings };
@@ -112,7 +114,7 @@ export class CourierAccountsService {
   async updateSettings(user: AuthenticatedUser, code: string, body: { settings?: CourierSettings; active?: boolean }) {
     this.setup.assertCanManage(user);
     const { cfg } = await this.account(user.tenantId, code, { includeInactive: true });
-    const settings = { ...readSettings(cfg), ...cleanSettings(body?.settings) };
+    const settings = { ...readSettings(cfg), ...cleanSettings(courierApi(code)!.settings, body?.settings) };
     await this.prisma.courierConfig.update({
       where: { id: cfg.id },
       data: { settings: settings as any, ...(typeof body?.active === 'boolean' ? { isActive: body.active } : {}) },
@@ -127,14 +129,142 @@ export class CourierAccountsService {
     return { ok: true };
   }
 
-  /** Booking form ke liye: shehar list + pickup addresses */
+  /** Booking form / settings ke liye: shehar, pickup addresses, services */
   async options(user: AuthenticatedUser, code: string) {
-    const { creds, api } = await this.account(user.tenantId, code);
-    const [cities, pickupAddresses] = await Promise.all([
+    const { cfg, creds, api } = await this.account(user.tenantId, code);
+    const [cities, pickupAddresses, services] = await Promise.all([
       this.cities(user.tenantId, code, creds),
-      api.adapter.pickupAddresses ? this.wrap(() => api.adapter.pickupAddresses!(creds)).catch(() => []) : Promise.resolve([]),
+      api.adapter.pickupAddresses ? this.wrap(() => api.adapter.pickupAddresses!(creds, readSettings(cfg))).catch(() => []) : Promise.resolve([]),
+      api.adapter.services ? this.wrap(() => api.adapter.services!(creds)).catch(() => []) : Promise.resolve([]),
     ]);
-    return { cities, pickupAddresses };
+    return { cities, pickupAddresses, services };
+  }
+
+  /** Courier ke sab parcels — status filter ke saath (courier ka apna safha) */
+  async shipments(
+    user: AuthenticatedUser,
+    scope: ShopScope,
+    code: string,
+    q: { filter?: string; search?: string; limit?: number; offset?: number },
+  ) {
+    const f = q.filter ?? 'active';
+    // "to-book": accept ho chuke, abhi kisi courier ko nahi diye — bulk booking ke liye
+    const where: Prisma.ChannelOrderWhereInput = f === 'to-book'
+      ? {
+          tenantId: user.tenantId,
+          ...(scope.whereLoose as any),
+          nafaaSaleId: { not: null },
+          orderStatus: { in: ['CONFIRMED', 'PREPARING', 'READY'] },
+          dispatchedAt: null,
+          OR: [{ courierBookedAt: null }, { courierStatus: 'CANCELLED' }],
+        }
+      : {
+          tenantId: user.tenantId,
+          ...(scope.whereLoose as any),
+          courierCode: code,
+          OR: [{ courierBookedAt: { not: null } }, { trackingNumber: { not: null } }],
+        };
+    const and: Prisma.ChannelOrderWhereInput[] = [];
+    if (f === 'active') and.push({ orderStatus: { notIn: [...CLOSED, 'DELIVERED'] } });
+    if (f === 'booked') and.push({ courierStatus: 'BOOKED' });
+    if (f === 'attempted') and.push({ courierStatus: 'ATTEMPTED' });
+    if (f === 'returning') and.push({ courierStatus: 'RETURNING' });
+    if (f === 'delivered') and.push({ orderStatus: 'DELIVERED' });
+    if (f === 'cod') and.push({ orderStatus: 'DELIVERED', paymentStatus: 'COLLECTED' });
+    if (f === 'returned') and.push({ orderStatus: 'RETURNED' });
+    const term = q.search?.trim();
+    if (term) {
+      and.push({ OR: [
+        { trackingNumber: { contains: term, mode: 'insensitive' } },
+        { externalOrderNumber: { contains: term.replace(/^#/, ''), mode: 'insensitive' } },
+        { customerName: { contains: term, mode: 'insensitive' } },
+        { customerPhone: { contains: term } },
+        { customerCity: { contains: term, mode: 'insensitive' } },
+      ] });
+    }
+    if (and.length) where.AND = and;
+    const take = Math.min(Math.max(q.limit ?? 50, 1), 200);
+    const [rows, total] = await Promise.all([
+      this.prisma.channelOrder.findMany({
+        where,
+        orderBy: f === 'to-book' ? [{ acceptedAt: 'asc' }] : [{ courierBookedAt: 'desc' }, { dispatchedAt: 'desc' }],
+        take,
+        skip: Math.max(q.offset ?? 0, 0),
+        select: {
+          id: true, externalOrderNumber: true, externalOrderId: true, customerName: true, customerPhone: true, customerCity: true,
+          total: true, orderStatus: true, paymentStatus: true, trackingNumber: true, courierStatus: true, courierStatusAt: true,
+          courierBookedAt: true, dispatchedAt: true, deliveredAt: true, returnedAt: true, codSettledAt: true, metadata: true,
+          customerAddress: true, acceptedAt: true, items: true,
+        },
+      }),
+      this.prisma.channelOrder.count({ where }),
+    ]);
+    return {
+      total,
+      rows: rows.map(({ metadata, items, ...r }) => ({
+        pieces: (Array.isArray(items) ? (items as any[]) : []).reduce((n, i) => n + (Number(i?.quantity) || 0), 0),
+        ...r,
+        externalOrderNumber: r.externalOrderNumber ? String(r.externalOrderNumber).replace(/^#+/, '') : r.externalOrderNumber,
+        total: Number(r.total),
+        courierLabel: (metadata as any)?.courierTrail?.label ?? null,
+        viaApi: !!r.courierBookedAt,
+      })),
+    };
+  }
+
+  /** Kai orders ek saath book — har order ka alag natija (ek fail ho to baqi chalte rahen) */
+  async bulkBook(user: AuthenticatedUser, scope: ShopScope, code: string, body: { orderIds?: string[]; weightKg?: number; serviceType?: string }) {
+    const ids = [...new Set(body?.orderIds ?? [])].slice(0, 100);
+    if (!ids.length) throw new BadRequestException('Koi order nahi chuna');
+    await this.account(user.tenantId, code);
+    const results: { orderId: string; ok: boolean; trackingNumber?: string; error?: string }[] = [];
+    for (const id of ids) {
+      try {
+        const r = await this.book(user, scope, id, { courier: code, weightKg: body.weightKg, serviceType: body.serviceType });
+        results.push({ orderId: id, ok: true, trackingNumber: r.trackingNumber });
+      } catch (e: any) {
+        results.push({ orderId: id, ok: false, error: e?.response?.message ?? msg(e) });
+      }
+    }
+    return { booked: results.filter((r) => r.ok).length, failed: results.filter((r) => !r.ok).length, results };
+  }
+
+  /** "Abhi sync karo" — 30 minute ka intezar nahi */
+  async syncNow(user: AuthenticatedUser, code: string) {
+    const { cfg } = await this.account(user.tenantId, code);
+    await this.syncAccount(cfg).catch((e) => { throw toHttp(e); });
+    const fresh = await this.prisma.courierConfig.findUnique({ where: { id: cfg.id } });
+    return { ok: true, lastSyncAt: fresh?.lastSyncAt ?? null, lastError: fresh?.lastError ?? null };
+  }
+
+  /** Har courier ka hisaab: raste me, deliver, RTO %, courier ke paas paisa */
+  private async statsByCourier(tenantId: string) {
+    const since = new Date(Date.now() - 30 * 86_400_000);
+    const rows = await this.prisma.channelOrder.findMany({
+      where: {
+        tenantId,
+        courierCode: { not: null },
+        OR: [{ dispatchedAt: { gte: since } }, { courierBookedAt: { gte: since } }, { orderStatus: { notIn: [...CLOSED, 'DELIVERED'] }, trackingNumber: { not: null } }, { paymentStatus: 'COLLECTED' }],
+      },
+      select: { courierCode: true, orderStatus: true, paymentStatus: true, courierStatus: true, courierBookedAt: true, dispatchedAt: true, total: true },
+    });
+    const out: Record<string, ReturnType<typeof emptyStats>> = {};
+    for (const r of rows) {
+      const s = (out[r.courierCode!] ??= emptyStats());
+      const recent = (r.dispatchedAt && r.dispatchedAt >= since) || (r.courierBookedAt && r.courierBookedAt >= since);
+      if (r.courierBookedAt && r.courierBookedAt >= since) s.booked30++;
+      if (!CLOSED.includes(r.orderStatus) && r.orderStatus !== 'DELIVERED') {
+        s.active++;
+        if (r.courierStatus === 'BOOKED') s.awaitingPickup++;
+        if (r.courierStatus === 'ATTEMPTED') s.attempted++;
+      }
+      if (recent && r.dispatchedAt) s.dispatched30++;
+      if (recent && r.orderStatus === 'DELIVERED') s.delivered30++;
+      if (recent && r.orderStatus === 'RETURNED') s.returned30++;
+      if (r.orderStatus === 'DELIVERED' && r.paymentStatus === 'COLLECTED') { s.codPending++; s.codPendingValue += Number(r.total); }
+    }
+    for (const s of Object.values(out)) s.rtoRate = s.dispatched30 ? Math.round((s.returned30 / s.dispatched30) * 100) : 0;
+    return out;
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -146,7 +276,7 @@ export class CourierAccountsService {
     user: AuthenticatedUser,
     scope: ShopScope,
     orderId: string,
-    body: { courier: string; cityId?: string; weightKg?: number; pieces?: number; codAmount?: number; notes?: string },
+    body: { courier: string; cityId?: string; weightKg?: number; pieces?: number; codAmount?: number; notes?: string; serviceType?: string },
   ) {
     const code = String(body?.courier ?? '').toUpperCase();
     const { cfg, creds, api } = await this.account(user.tenantId, code);
@@ -175,6 +305,7 @@ export class CourierAccountsService {
 
     try {
       const settings = readSettings(cfg);
+      if (body?.serviceType) settings.serviceType = String(body.serviceType).slice(0, 60);
       const cities = await this.cities(user.tenantId, code, creds);
       const city = body?.cityId
         ? cities.find((c) => c.id === body.cityId)
@@ -238,8 +369,9 @@ export class CourierAccountsService {
     if (order.courierStatus && order.courierStatus !== 'BOOKED') {
       throw new BadRequestException('Courier parcel utha chuka — ab booking cancel nahi hoti. Courier se baat karein ya RTO karein');
     }
-    const { creds, api } = await this.account(user.tenantId, order.courierCode!);
-    await this.wrap(() => api.adapter.cancel(creds, order.trackingNumber!));
+    const { cfg, creds, api } = await this.account(user.tenantId, order.courierCode!);
+    if (!api.features.cancel) throw new BadRequestException(`${courierName(order.courierCode)} ki booking API se cancel nahi hoti — courier portal se cancel karein`);
+    await this.wrap(() => api.adapter.cancel(creds, order.trackingNumber!, readSettings(cfg)));
     await this.prisma.channelOrder.update({
       where: { id: order.id },
       data: { trackingNumber: null, courierBookedAt: null, courierLabelUrl: null, courierStatus: 'CANCELLED', courierStatusAt: new Date() },
@@ -250,6 +382,7 @@ export class CourierAccountsService {
   async label(user: AuthenticatedUser, scope: ShopScope, orderId: string) {
     const order = await this.bookedOrder(user, scope, orderId);
     const { creds, api } = await this.account(user.tenantId, order.courierCode!);
+    if (!api.features.label) throw new BadRequestException(`${courierName(order.courierCode)} ka label un ke portal se print karein — CN ${order.trackingNumber}`);
     return this.wrap(() => api.adapter.label(creds, order.trackingNumber!, order.courierLabelUrl));
   }
 
@@ -295,7 +428,7 @@ export class CourierAccountsService {
         OR: [
           { orderStatus: { notIn: [...CLOSED, 'DELIVERED'] } },
           // Deliver ho gaya, paisa courier ke paas — settlement dekhte raho
-          ...(api.autoSettlement ? [{ orderStatus: 'DELIVERED', paymentStatus: 'COLLECTED', deliveredAt: { gte: settleSince } }] : []),
+          ...(api.features.settlement ? [{ orderStatus: 'DELIVERED', paymentStatus: 'COLLECTED', deliveredAt: { gte: settleSince } }] : []),
         ],
       },
       orderBy: { courierStatusAt: 'asc' },
@@ -319,7 +452,7 @@ export class CourierAccountsService {
     }
 
     // COD settlement (PostEx batata hai) → paisa mil gaya
-    if (api.autoSettlement && api.adapter.paymentSettled) {
+    if (api.features.settlement && api.adapter.paymentSettled) {
       for (const o of orders.filter((x) => x.orderStatus === 'DELIVERED' && x.paymentStatus === 'COLLECTED').slice(0, 100)) {
         const p = await api.adapter.paymentSettled(creds, o.trackingNumber!).catch(() => null);
         if (!p?.settled) continue;
@@ -410,24 +543,52 @@ export class CourierAccountsService {
 
 // ─── chhote helpers ──────────────────────────────────────────
 
+/**
+ * apiKey column = pehli key. apiSecret column = baqi sab (JSON), encrypted.
+ * Purana roop (apiSecret me seedha password) bhi parh lete hain.
+ */
+function storeCreds(creds: CourierCreds) {
+  const { apiKey, ...rest } = creds;
+  const extra = Object.fromEntries(Object.entries(rest).filter(([, v]) => v));
+  return { apiKey: encrypt(apiKey)!, apiSecret: Object.keys(extra).length ? encrypt(JSON.stringify(extra)) : null };
+}
+
 function credsOf(cfg: CourierConfig): CourierCreds {
-  return { apiKey: decrypt(cfg.apiKey) ?? '', apiSecret: decrypt(cfg.apiSecret) };
+  const creds = { apiKey: decrypt(cfg.apiKey) ?? '' } as CourierCreds;
+  const extra = decrypt(cfg.apiSecret);
+  if (extra) {
+    try {
+      const obj = JSON.parse(extra);
+      if (obj && typeof obj === 'object') Object.assign(creds, obj);
+      else creds.apiSecret = extra;
+    } catch {
+      creds.apiSecret = extra;
+    }
+  }
+  return creds;
 }
 
 function readSettings(cfg: CourierConfig): CourierSettings {
   return { ...((cfg.settings as any) ?? {}) };
 }
 
-function cleanSettings(s?: CourierSettings | null): CourierSettings {
+/** Sirf wahi settings jo courier ki list me hain — type ke hisaab se saaf */
+function cleanSettings(defs: SettingField[], s?: CourierSettings | null): CourierSettings {
   if (!s || typeof s !== 'object') return {};
   const out: CourierSettings = {};
-  if (s.pickupAddressCode !== undefined) out.pickupAddressCode = s.pickupAddressCode ? String(s.pickupAddressCode).slice(0, 60) : null;
-  if (s.originCityId !== undefined) out.originCityId = s.originCityId ? String(s.originCityId).slice(0, 20) : null;
-  if (s.defaultWeightKg !== undefined) {
-    const w = Number(s.defaultWeightKg);
-    out.defaultWeightKg = w > 0 && w <= 100 ? w : null;
+  for (const d of defs) {
+    if (!(d.key in s)) continue;
+    const v = s[d.key];
+    if (v === null || v === '' || v === undefined) { out[d.key] = null; continue; }
+    if (d.type === 'number') {
+      const n = Number(v);
+      out[d.key] = Number.isFinite(n) && n > 0 && n <= 100 ? n : null;
+    } else if (d.type === 'select' && d.options) {
+      out[d.key] = d.options.some((o) => o.value === String(v)) ? String(v) : null;
+    } else {
+      out[d.key] = String(v).slice(0, 200);
+    }
   }
-  if (s.bookingNote !== undefined) out.bookingNote = s.bookingNote ? String(s.bookingNote).slice(0, 200) : null;
   return out;
 }
 
@@ -436,6 +597,10 @@ export function matchCity(list: CourierCity[], name?: string | null): CourierCit
   const k = cityKey(name);
   if (!k) return undefined;
   return list.find((c) => cityKey(c.name) === k) ?? list.find((c) => cityKey(c.name).startsWith(k) && k.length >= 4);
+}
+
+function emptyStats() {
+  return { booked30: 0, active: 0, awaitingPickup: 0, attempted: 0, dispatched30: 0, delivered30: 0, returned30: 0, rtoRate: 0, codPending: 0, codPendingValue: 0 };
 }
 
 const mask = (k?: string | null) => (k ? `${'•'.repeat(6)}${k.slice(-4)}` : null);

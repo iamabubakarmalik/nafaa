@@ -16,19 +16,23 @@ export type CourierState =
   | 'CANCELLED'
   | 'UNKNOWN';
 
-export interface CourierCreds {
-  apiKey: string;
-  apiSecret?: string | null;
-}
+/**
+ * Courier ki keys. apiKey hamesha; baqi courier ke hisaab se (Leopards:
+ * apiSecret, TCS: accountNo/costCenter…). Sab encrypted save hoti hain.
+ */
+export type CourierCreds = { apiKey: string } & Record<string, string | undefined>;
 
 export interface CourierSettings {
-  /** PostEx: pickup address ka code */
+  /** Pickup address ka code (PostEx, Trax, …) */
   pickupAddressCode?: string | null;
-  /** Leopards: origin city id ('self' = account ka shehar) */
+  /** Origin city id ('self' = account ka shehar) */
   originCityId?: string | null;
   defaultWeightKg?: number | null;
   /** Har booking par courier ke liye note */
   bookingNote?: string | null;
+  /** Courier ki service (Overnight, Economy, …) */
+  serviceType?: string | null;
+  [key: string]: string | number | boolean | null | undefined;
 }
 
 export interface CourierCity {
@@ -79,12 +83,15 @@ export interface TestResult {
 
 export interface CourierAdapter {
   code: string;
+  /** Courier ki services (Overnight, Same day…) — booking form ke liye */
+  services?(creds: CourierCreds): Promise<{ code: string; name: string }[]>;
   test(creds: CourierCreds): Promise<TestResult>;
   cities(creds: CourierCreds): Promise<CourierCity[]>;
-  pickupAddresses?(creds: CourierCreds): Promise<PickupAddress[]>;
+  /** Pickup addresses — kuch couriers (Call Courier) me settings ke shehar ke hisaab se */
+  pickupAddresses?(creds: CourierCreds, settings?: CourierSettings): Promise<PickupAddress[]>;
   book(creds: CourierCreds, settings: CourierSettings, input: BookInput): Promise<BookResult>;
   track(creds: CourierCreds, trackingNumbers: string[]): Promise<TrackResult[]>;
-  cancel(creds: CourierCreds, trackingNumber: string): Promise<void>;
+  cancel(creds: CourierCreds, trackingNumber: string, settings?: CourierSettings): Promise<void>;
   /** Label: PDF bytes (token chahiye) ya public URL */
   label(creds: CourierCreds, trackingNumber: string, savedUrl?: string | null): Promise<{ pdf?: Buffer; url?: string }>;
   /** COD settle hua? null = pata nahi (courier ye nahi batata) */

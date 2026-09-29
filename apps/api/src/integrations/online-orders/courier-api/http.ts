@@ -36,3 +36,31 @@ export const cityKey = (s?: string | null) => {
   const k = String(s ?? '').toLowerCase().replace(/[^a-z]/g, '');
   return ALIASES[k] ?? k;
 };
+
+/** Aaj ki tareekh Pakistan ke waqt se (server UTC hai) — YYYY-MM-DD */
+export const pkToday = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Karachi' }).format(new Date());
+
+/** Jawab PDF hai? (label) */
+export async function fetchPdfOrJson(url: string, headers: Record<string, string>): Promise<{ pdf?: Buffer; json?: any; status: number }> {
+  let res: Response;
+  try {
+    res = await fetch(url, { headers, signal: AbortSignal.timeout(30_000) });
+  } catch {
+    return { status: 0 };
+  }
+  const type = res.headers.get('content-type') ?? '';
+  if (res.ok && /pdf|octet-stream|image\//.test(type)) return { pdf: Buffer.from(await res.arrayBuffer()), status: res.status };
+  return { json: await res.json().catch(() => null), status: res.status };
+}
+
+/** JSON me kahin bhi pehla https link */
+export function findUrl(o: any): string | null {
+  if (!o) return null;
+  if (typeof o === 'string') return /^https:\/\//.test(o) ? o : null;
+  if (typeof o !== 'object') return null;
+  for (const v of Object.values(o)) {
+    const u = findUrl(v);
+    if (u) return u;
+  }
+  return null;
+}

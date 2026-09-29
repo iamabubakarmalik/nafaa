@@ -1,3 +1,8 @@
+-- Naye couriers jin ka API connect hai
+ALTER TYPE "CourierProvider" ADD VALUE IF NOT EXISTS 'TRAX';
+ALTER TYPE "CourierProvider" ADD VALUE IF NOT EXISTS 'CALL_COURIER';
+ALTER TYPE "CourierProvider" ADD VALUE IF NOT EXISTS 'SWYFT';
+
 -- Courier accounts (PostEx, Leopards, …): ek click connect ke liye settings,
 -- aakhri test / sync ka waqt aur error. Sab khane khali ho sakte hain.
 ALTER TABLE "courier_configs"

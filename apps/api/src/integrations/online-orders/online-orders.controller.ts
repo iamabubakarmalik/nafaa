@@ -428,7 +428,7 @@ export class CouriersController {
 
   @Post(':code/connect')
   @ApiOperation({ summary: 'Key paste → courier se check → save (encrypted)' })
-  connect(@GetUser() user: AuthenticatedUser, @Param('code') code: string, @Body() body: { apiKey?: string; apiSecret?: string; settings?: CourierSettings }) {
+  connect(@GetUser() user: AuthenticatedUser, @Param('code') code: string, @Body() body: { credentials?: Record<string, string>; apiKey?: string; apiSecret?: string; settings?: CourierSettings }) {
     return this.svc.connect(user, code.toUpperCase(), body ?? {});
   }
 
@@ -448,9 +448,40 @@ export class CouriersController {
   }
 
   @Get(':code/options')
-  @ApiOperation({ summary: 'Booking form: courier ke shehar + pickup address' })
+  @ApiOperation({ summary: 'Booking form: courier ke shehar + pickup address + services' })
   options(@GetUser() user: AuthenticatedUser, @Param('code') code: string) {
     return this.svc.options(user, code.toUpperCase());
+  }
+
+  @Get(':code/shipments')
+  @ApiOperation({ summary: 'Courier ke parcels — filter: active/booked/attempted/returning/delivered/cod/returned/all' })
+  shipments(
+    @GetUser() user: AuthenticatedUser,
+    @CurrentShop() scope: ShopScope,
+    @Param('code') code: string,
+    @Query('filter') filter?: string,
+    @Query('search') search?: string,
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
+  ) {
+    return this.svc.shipments(user, scope, code.toUpperCase(), { filter, search, limit: limit ? +limit : 50, offset: offset ? +offset : 0 });
+  }
+
+  @Post(':code/bulk-book')
+  @ApiOperation({ summary: 'Kai orders ek saath book' })
+  bulkBook(
+    @GetUser() user: AuthenticatedUser,
+    @CurrentShop() scope: ShopScope,
+    @Param('code') code: string,
+    @Body() body: { orderIds?: string[]; weightKg?: number; serviceType?: string },
+  ) {
+    return this.svc.bulkBook(user, scope, code.toUpperCase(), body ?? {});
+  }
+
+  @Post(':code/sync')
+  @ApiOperation({ summary: 'Abhi courier se sab parcels ka status lo' })
+  sync(@GetUser() user: AuthenticatedUser, @Param('code') code: string) {
+    return this.svc.syncNow(user, code.toUpperCase());
   }
 }
 
@@ -468,7 +499,7 @@ export class OrderCourierController {
     @GetUser() user: AuthenticatedUser,
     @CurrentShop() scope: ShopScope,
     @Param('id') id: string,
-    @Body() body: { courier: string; cityId?: string; weightKg?: number; pieces?: number; codAmount?: number; notes?: string },
+    @Body() body: { courier: string; cityId?: string; weightKg?: number; pieces?: number; codAmount?: number; notes?: string; serviceType?: string },
   ) {
     return this.svc.book(user, scope, id, body ?? ({} as any));
   }

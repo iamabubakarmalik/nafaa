@@ -59,12 +59,16 @@ const rate = (ok: number, bad: number) => (ok + bad > 0 ? (ok / (ok + bad)) * 10
 
 /** Website jaise channels apne safhe par khulte hain (Online store → channel) */
 const WEBSITE_TYPES = ['CUSTOM_WEBSITE', 'WOOCOMMERCE', 'SHOPIFY'];
+/** Couriers ka asli connect Couriers safhe par hai */
+const COURIER_PAGE: Record<string, string> = { TCS_COURIER: 'tcs', LEOPARDS_COURIER: 'leopards', POSTEX: 'postex', TRAX: 'trax', MNP_COURIER: 'mnp', CALLCOURIER: 'call_courier' };
 
 export default function IntegrationHubPage({ defaultTab = 'overview' }: { defaultTab?: HubTab }) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const openIntegration = (it: any) =>
-    WEBSITE_TYPES.includes(it.type) ? navigate(`/online-store/channels/${it.id}`) : setSelectedIntegration(it.id);
+    WEBSITE_TYPES.includes(it.type) ? navigate(`/online-store/channels/${it.id}`)
+      : COURIER_PAGE[it.type] ? navigate(`/online-store/couriers/${COURIER_PAGE[it.type]}`)
+        : setSelectedIntegration(it.id);
   const startConnect = (a?: any) => (a?.connectPath ? navigate(a.connectPath) : setConnectModal(true));
   const tenantName = useAuthStore((s) => s.tenant?.name);
   const shopName = useAuthStore((s) => s.user?.assignedShop?.name);

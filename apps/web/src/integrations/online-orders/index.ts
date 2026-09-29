@@ -9,3 +9,4 @@ export { useLiveOnlineOrders } from './hooks/useLiveOnlineOrders';
 export { useSalesChannels } from './hooks/useSalesChannels';
 export { default as CodPage } from './pages/CodPage';
 export { default as CouriersPage } from './pages/CouriersPage';
+export { default as CourierDetailPage } from './pages/CourierDetailPage';

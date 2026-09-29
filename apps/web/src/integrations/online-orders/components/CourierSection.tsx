@@ -10,7 +10,8 @@ import { apiErrorMessage, couriersApi, type CourierState, type OnlineOrderDetail
 import { rs, whenText } from '../lib/labels';
 import { inputCls } from './ui/kit';
 
-export const COURIERS_KEY = ['courier-accounts'];
+import { COURIERS_KEY } from './couriers/CourierForms';
+export { COURIERS_KEY };
 
 const STATE_LABEL: Record<CourierState | 'BOOKING', { label: string; tone: string }> = {
   BOOKING: { label: 'Book ho raha…', tone: 'bg-slate-100 text-slate-600' },
@@ -35,6 +36,9 @@ export function CourierSection({ order: o, onChanged }: { order: OnlineOrderDeta
   const [bookOpen, setBookOpen] = useState(false);
   const { data: accounts } = useQuery({ queryKey: COURIERS_KEY, queryFn: couriersApi.list, staleTime: 5 * 60_000 });
   const connected = (accounts ?? []).filter((a) => a.connected && a.active);
+  const mine = (accounts ?? []).find((a) => a.code === o.courierCode);
+  const canLabel = mine?.connect?.features.label ?? true;
+  const canCancel = mine?.connect?.features.cancel ?? true;
 
   const isClosed = ['CANCELLED', 'REJECTED', 'RETURNED'].includes(o.orderStatus);
   const canBook = !!o.nafaaSaleId && !isClosed && o.orderStatus !== 'DELIVERED' && !o.courierBooked && !o.dispatchedAt;
@@ -93,9 +97,11 @@ export function CourierSection({ order: o, onChanged }: { order: OnlineOrderDeta
         )}
 
         <div className="mt-3 flex flex-wrap gap-2">
-          <Button size="xs" variant="primary" loading={label.isPending} onClick={() => label.mutate()} leftIcon={<Printer className="h-3.5 w-3.5" />}>
-            Label print
-          </Button>
+          {canLabel && (
+            <Button size="xs" variant="primary" loading={label.isPending} onClick={() => label.mutate()} leftIcon={<Printer className="h-3.5 w-3.5" />}>
+              Label print
+            </Button>
+          )}
           <Button size="xs" variant="outline" loading={refresh.isPending} onClick={() => refresh.mutate()} leftIcon={<RefreshCw className="h-3.5 w-3.5" />}>
             Taaza status
           </Button>
@@ -104,7 +110,7 @@ export function CourierSection({ order: o, onChanged }: { order: OnlineOrderDeta
               Courier site
             </Button>
           )}
-          {o.courierStatus === 'BOOKED' && (
+          {o.courierStatus === 'BOOKED' && canCancel && (
             <Button
               size="xs" variant="ghost" className="text-rose-600" loading={cancel.isPending}
               onClick={() => { if (window.confirm('Courier booking cancel karein? CN khatam ho jayega.')) cancel.mutate(); }}
@@ -148,16 +154,16 @@ export function CourierSection({ order: o, onChanged }: { order: OnlineOrderDeta
       {bookOpen && (
         <BookModal
           order={o}
-          couriers={connected.map((c) => ({ code: c.code, name: c.name, defaultWeightKg: c.settings?.defaultWeightKg ?? null }))}
+          couriers={connected.map((c) => ({ code: c.code, name: c.name, defaultWeightKg: c.settings?.defaultWeightKg ?? null, missing: c.missingSettings, label: !!c.connect?.features.label }))}
           onClose={() => setBookOpen(false)}
-          onBooked={(tn, name) => {
+          onBooked={(tn, name, hasLabel) => {
             setBookOpen(false);
             onChanged();
             qc.invalidateQueries({ queryKey: COURIERS_KEY });
-            toast.success(`${name} par book ho gaya · CN ${tn}`, {
+            toast.success(`${name} par book ho gaya · CN ${tn}`, hasLabel ? {
               description: 'Label print karke parcel par lagayein',
               action: { label: 'Label print', onClick: () => couriersApi.openLabel(o.id).catch((e) => toast.error(apiErrorMessage(e))) },
-            });
+            } : { description: `Label ${name} portal se print karein` });
           }}
         />
       )}
@@ -167,9 +173,9 @@ export function CourierSection({ order: o, onChanged }: { order: OnlineOrderDeta
 
 function BookModal({ order: o, couriers, onClose, onBooked }: {
   order: OnlineOrderDetail;
-  couriers: { code: string; name: string; defaultWeightKg: number | null }[];
+  couriers: { code: string; name: string; defaultWeightKg: number | null; missing: string[]; label: boolean }[];
   onClose: () => void;
-  onBooked: (trackingNumber: string, courierName: string) => void;
+  onBooked: (trackingNumber: string, courierName: string, hasLabel: boolean) => void;
 }) {
   const [courier, setCourier] = useState(couriers[0].code);
   const current = couriers.find((c) => c.code === courier)!;
@@ -206,12 +212,12 @@ function BookModal({ order: o, couriers, onClose, onBooked }: {
     mutationFn: () => couriersApi.book(o.id, {
       courier, cityId: cityId || undefined, weightKg: Number(weight), pieces: Number(pieces), codAmount: Number(cod), notes: notes.trim() || undefined,
     }),
-    onSuccess: (r) => onBooked(r.trackingNumber, current.name),
+    onSuccess: (r) => onBooked(r.trackingNumber, current.name, current.label),
     onError: (e) => toast.error(apiErrorMessage(e, 'Booking nahi hui')),
   });
 
   const cityName = opts?.cities.find((c) => c.id === cityId)?.name;
-  const valid = !!cityId && Number(weight) > 0 && Number(pieces) >= 1 && Number(cod) >= 0;
+  const valid = !current.missing.length && !!cityId && Number(weight) > 0 && Number(pieces) >= 1 && Number(cod) >= 0;
 
   return (
     <Modal
@@ -233,6 +239,12 @@ function BookModal({ order: o, couriers, onClose, onBooked }: {
       }
     >
       <div className="space-y-4">
+        {current.missing.length > 0 && (
+          <div className="rounded-lg bg-amber-50 px-3 py-2 text-[13px] text-amber-900 dark:bg-amber-500/10 dark:text-amber-200">
+            {current.name} ki settings poori karein: {current.missing.join(', ')} —{' '}
+            <Link to={`/online-store/couriers/${current.code.toLowerCase()}?tab=settings`} className="font-semibold underline">Settings kholein</Link>
+          </div>
+        )}
         {couriers.length > 1 && (
           <div className="flex flex-wrap gap-1.5">
             {couriers.map((c) => (

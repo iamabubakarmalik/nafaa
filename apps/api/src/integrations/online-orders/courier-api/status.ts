@@ -4,7 +4,8 @@ import { CourierState } from './types';
  * Courier ke lafz → Nafaa status. PostEx: "Picked By PostEx", "PostEx WareHouse",
  * "Out For Delivery", "Delivery Under Review", "Out For Return", "Returned"…
  * Leopards: "Pickup Request Sent", "Arrived at Station", "Being Return",
- * "Returned to shipper"… Tartib zaroori hai: "under review" deliver nahi hai,
+ * "Returned to shipper"… Trax: "Shipment - Delivery Unsuccessful", "Return -
+ * Delivered to Shipper". TCS: "Return To Origin". Tartib zaroori hai: "under review" deliver nahi hai,
  * "out for return" wapas pahuncha nahi hai.
  */
 export function normalizeCourierStatus(raw?: string | null): CourierState {
@@ -13,14 +14,14 @@ export function normalizeCourierStatus(raw?: string | null): CourierState {
   if (/cancel|un-?assigned by me|expired|void/.test(s)) return 'CANCELLED';
   if (/return|rto/.test(s)) {
     if (/out for return|being return|ready for return|return(ing)? in transit|en-?route|in process|initiated|request/.test(s)) return 'RETURNING';
-    if (/returned|return delivered|return to (shipper|merchant|vendor|origin)|rto delivered/.test(s)) return 'RETURNED';
+    if (/return submitted|returned|return delivered|return to (shipper|merchant|vendor|origin)|delivered to (shipper|merchant|vendor|origin)|rto delivered/.test(s)) return 'RETURNED';
     return 'RETURNING';
   }
   if (/under review|pending delivery/.test(s)) return 'IN_TRANSIT';
-  if (/out for delivery|on route|with rider|delivery in progress/.test(s)) return 'OUT_FOR_DELIVERY';
-  if (/attempt|refused|not available|unable to deliver|undelivered|failed|hold/.test(s)) return 'ATTEMPTED';
+  if (/out for delivery|on delivery|on route|with rider|delivery in progress/.test(s)) return 'OUT_FOR_DELIVERY';
+  if (/attempt|refused|not available|unable to deliver|un-? ?delivered|not delivered|unsuccessful|failed|hold|awaiting receiver/.test(s)) return 'ATTEMPTED';
   if (/delivered/.test(s)) return 'DELIVERED';
-  if (/unbooked|^booked|consignment booked|^pending$|pickup request|order created|shipment created/.test(s)) return 'BOOKED';
+  if (/booked|^booking$|^pending$|pickup request|order created|shipment created/.test(s)) return 'BOOKED';
   if (/picked|pick ?up done|collected from/.test(s)) return 'PICKED_UP';
   return 'IN_TRANSIT';
 }

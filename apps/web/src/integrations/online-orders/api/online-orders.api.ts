@@ -90,6 +90,25 @@ export interface CourierSettings {
   originCityId?: string | null;
   defaultWeightKg?: number | null;
   bookingNote?: string | null;
+  serviceType?: string | null;
+  [key: string]: string | number | boolean | null | undefined;
+}
+
+export interface CourierCredentialField {
+  key: string; label: string; placeholder?: string; secret?: boolean; optional?: boolean; help?: string;
+  options?: { value: string; label: string }[];
+}
+export interface CourierSettingField {
+  key: string; label: string; help?: string; placeholder?: string;
+  type: 'text' | 'number' | 'pickup' | 'origin-city' | 'service' | 'select';
+  options?: { value: string; label: string }[];
+  required?: boolean;
+}
+
+export interface CourierStats {
+  booked30: number; active: number; awaitingPickup: number; attempted: number;
+  dispatched30: number; delivered30: number; returned30: number; rtoRate: number;
+  codPending: number; codPendingValue: number;
 }
 
 export interface CourierAccount {
@@ -97,21 +116,35 @@ export interface CourierAccount {
   name: string;
   site: string | null;
   mode: 'api' | 'manual';
+  color: string;
   connected: boolean;
   active: boolean;
   maskedKey: string | null;
+  connectedAt: string | null;
   lastTestedAt: string | null;
   lastSyncAt: string | null;
   lastError: string | null;
   settings: CourierSettings | null;
+  missingSettings: string[];
+  stats: CourierStats;
   booked30: number;
   connect: null | {
-    fields: { key: 'apiKey' | 'apiSecret'; label: string; placeholder?: string }[];
+    credentials: CourierCredentialField[];
+    settings: CourierSettingField[];
     portalUrl: string;
     steps: string[];
-    labelKind: 'pdf' | 'link';
-    autoSettlement: boolean;
+    labelKind: 'pdf' | 'link' | 'none';
+    features: { cancel: boolean; label: boolean; settlement: boolean };
   };
+}
+
+export interface CourierShipment {
+  id: string; externalOrderNumber?: string | null; externalOrderId: string; customerName: string; customerPhone?: string | null;
+  customerCity?: string | null; total: number; orderStatus: OnlineOrderStatus; paymentStatus: string; trackingNumber?: string | null;
+  courierStatus?: CourierState | 'BOOKING' | null; courierStatusAt?: string | null; courierBookedAt?: string | null;
+  dispatchedAt?: string | null; deliveredAt?: string | null; returnedAt?: string | null; codSettledAt?: string | null;
+  courierLabel: string | null; viaApi: boolean;
+  pieces: number; customerAddress?: string | null; acceptedAt?: string | null;
 }
 
 export interface PickupAddress { code: string; address: string; city?: string | null }
@@ -464,7 +497,7 @@ export const onlineOrdersApi = {
 /** Backend ke error ka asli paigham (NestJS kai shaklon me deta hai) */
 export const couriersApi = {
   list: () => apiClient.get('/online-store/couriers').then((r) => unwrap<CourierAccount[]>(r)),
-  connect: (code: string, body: { apiKey: string; apiSecret?: string; settings?: CourierSettings }) =>
+  connect: (code: string, body: { credentials: Record<string, string>; settings?: CourierSettings }) =>
     apiClient.post(`/online-store/couriers/${code}/connect`, body)
       .then((r) => unwrap<{ ok: true; cities: number; pickupAddresses: PickupAddress[]; settings: CourierSettings }>(r)),
   test: (code: string) =>
@@ -473,9 +506,17 @@ export const couriersApi = {
     apiClient.patch(`/online-store/couriers/${code}`, body).then((r) => unwrap<{ ok: true; settings: CourierSettings }>(r)),
   disconnect: (code: string) => apiClient.delete(`/online-store/couriers/${code}`).then((r) => unwrap<{ ok: true }>(r)),
   options: (code: string) =>
-    apiClient.get(`/online-store/couriers/${code}/options`).then((r) => unwrap<{ cities: CourierCity[]; pickupAddresses: PickupAddress[] }>(r)),
+    apiClient.get(`/online-store/couriers/${code}/options`)
+      .then((r) => unwrap<{ cities: CourierCity[]; pickupAddresses: PickupAddress[]; services: { code: string; name: string }[] }>(r)),
+  shipments: (code: string, q: { filter?: string; search?: string; limit?: number; offset?: number }) =>
+    apiClient.get(`/online-store/couriers/${code}/shipments`, { params: q }).then((r) => unwrap<{ total: number; rows: CourierShipment[] }>(r)),
+  bulkBook: (code: string, body: { orderIds: string[]; weightKg?: number; serviceType?: string }) =>
+    apiClient.post(`/online-store/couriers/${code}/bulk-book`, body)
+      .then((r) => unwrap<{ booked: number; failed: number; results: { orderId: string; ok: boolean; trackingNumber?: string; error?: string }[] }>(r)),
+  sync: (code: string) =>
+    apiClient.post(`/online-store/couriers/${code}/sync`).then((r) => unwrap<{ ok: true; lastSyncAt: string | null; lastError: string | null }>(r)),
 
-  book: (orderId: string, body: { courier: string; cityId?: string; weightKg?: number; pieces?: number; codAmount?: number; notes?: string }) =>
+  book: (orderId: string, body: { courier: string; cityId?: string; weightKg?: number; pieces?: number; codAmount?: number; notes?: string; serviceType?: string }) =>
     apiClient.post(`/online-orders/${orderId}/courier/book`, body)
       .then((r) => unwrap<{ ok: true; trackingNumber: string; labelKind: 'pdf' | 'link' }>(r)),
   cancel: (orderId: string) => apiClient.post(`/online-orders/${orderId}/courier/cancel`).then((r) => unwrap<{ ok: true }>(r)),
