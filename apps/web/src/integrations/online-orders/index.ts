@@ -11,3 +11,5 @@ export { default as CodPage } from './pages/CodPage';
 export { default as CouriersPage } from './pages/CouriersPage';
 export { default as CourierDetailPage } from './pages/CourierDetailPage';
 export { default as PrintInvoicesPage } from './pages/PrintInvoicesPage';
+export { default as OnlineReportsPage } from './pages/OnlineReportsPage';
+export { default as BlocklistPage } from './pages/BlocklistPage';

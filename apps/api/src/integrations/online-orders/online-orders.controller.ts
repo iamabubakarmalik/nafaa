@@ -14,6 +14,7 @@ import { WooCommerceService } from './woocommerce.service';
 import { ShopifyService } from './shopify.service';
 import { ChannelCatalogService } from './channel-catalog.service';
 import { CourierAccountsService } from './courier-accounts.service';
+import { OrderToolsService } from './order-tools.service';
 import { CourierSettings } from './courier-api/types';
 
 // ═══════════════════════════════════════════════════════════════
@@ -24,7 +25,42 @@ import { CourierSettings } from './courier-api/types';
 @UseGuards(JwtAuthGuard)
 @Controller('online-orders')
 export class OnlineOrdersController {
-  constructor(private readonly svc: OnlineOrdersService) {}
+  constructor(
+    private readonly svc: OnlineOrdersService,
+    private readonly tools: OrderToolsService,
+    private readonly setup: WebsiteSetupService,
+  ) {}
+
+  @Get('report')
+  @ApiOperation({ summary: 'Online sales report — channel, shehar, courier, RTO, top products, COD aging' })
+  report(
+    @GetUser() user: AuthenticatedUser,
+    @CurrentShop() scope: ShopScope,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('integrationId') integrationId?: string,
+  ) {
+    return this.tools.report(user, scope, { from, to, integrationId });
+  }
+
+  @Get('export')
+  @ApiOperation({ summary: 'Orders CSV (Excel) — sirf malik / manager' })
+  async export(
+    @GetUser() user: AuthenticatedUser,
+    @CurrentShop() scope: ShopScope,
+    @Res() res: Response,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('status') status?: string,
+    @Query('integrationId') integrationId?: string,
+  ) {
+    this.setup.assertCanManage(user);
+    const csv = await this.tools.exportCsv(user, scope, { from, to, status, integrationId });
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="online-orders-${from ?? 'last30'}-${to ?? 'today'}.csv"`);
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.send(csv);
+  }
 
   @Get()
   list(
@@ -82,6 +118,28 @@ export class OnlineOrdersController {
     @Body() body: { matches?: Record<string, ItemMatch>; shopId?: string },
   ) {
     return this.svc.accept(user, scope, id, body ?? {});
+  }
+
+  @Post(':id/edit')
+  @ApiOperation({ summary: 'Customer ka naam / phone / address / shehar / note badlo (bhejne se pehle)' })
+  edit(
+    @GetUser() user: AuthenticatedUser,
+    @CurrentShop() scope: ShopScope,
+    @Param('id') id: string,
+    @Body() body: { customerName?: string; customerPhone?: string; customerAddress?: string; customerCity?: string; notes?: string },
+  ) {
+    return this.tools.editOrder(user, scope, id, body ?? {});
+  }
+
+  @Post(':id/notes')
+  @ApiOperation({ summary: 'Andar ka note (staff ke liye)' })
+  note(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string, @Body() body: { text?: string }) {
+    return this.tools.addNote(user, scope, id, body?.text);
+  }
+
+  @Post(':id/tags')
+  tags(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string, @Body() body: { tags?: string[] }) {
+    return this.tools.setTags(user, scope, id, body?.tags);
   }
 
   @Post(':id/confirmation')
@@ -570,5 +628,31 @@ export class OrderCourierController {
       return;
     }
     res.json({ url: r.url });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BLOCK LIST — fake / RTO wale numbers (order aaye to khud accept nahi)
+// ═══════════════════════════════════════════════════════════════
+@ApiTags('Online Orders')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
+@Controller('online-store/blocklist')
+export class BlocklistController {
+  constructor(private readonly tools: OrderToolsService) {}
+
+  @Get()
+  list(@GetUser() user: AuthenticatedUser) {
+    return this.tools.blocklist(user.tenantId);
+  }
+
+  @Post()
+  add(@GetUser() user: AuthenticatedUser, @Body() body: { phone?: string; name?: string; reason?: string }) {
+    return this.tools.block(user, body ?? {});
+  }
+
+  @Delete(':phone')
+  remove(@GetUser() user: AuthenticatedUser, @Param('phone') phone: string) {
+    return this.tools.unblock(user, phone);
   }
 }

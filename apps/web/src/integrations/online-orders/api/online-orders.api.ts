@@ -23,9 +23,10 @@ export interface OnlineOrderItem {
 }
 
 export interface CustomerRisk {
-  level: 'NEW' | 'TRUSTED' | 'OK' | 'WATCH' | 'HIGH';
+  level: 'NEW' | 'TRUSTED' | 'OK' | 'WATCH' | 'HIGH' | 'BLOCKED';
   label: string;
   reason: string;
+  duplicateOpen?: number;
   total: number; delivered: number; returned: number; cancelled: number; open: number; spent: number;
 }
 
@@ -58,6 +59,10 @@ export interface OnlineOrder {
     autoAcceptError?: string;
     cancelRequested?: boolean;
     cancelRequestReason?: string;
+    internalNotes?: { id: string; text: string; at: string; byName?: string | null }[];
+    tags?: string[];
+    edits?: { at: string; changes: Record<string, { from: string | null; to: string | null }> }[];
+    blocked?: { reason?: string | null; at: string };
   };
   receivedAt: string;
   acceptedAt?: string;
@@ -165,6 +170,25 @@ export interface PortalParcel {
 
 export interface PickupAddress { code: string; address: string; city?: string | null }
 export interface CourierCity { id: string; name: string }
+
+export interface BlockEntry { key: string; phone: string; name: string | null; reason: string | null; at: string }
+
+type Rated = { dispatched: number; delivered: number; returned: number; rtoRate: number; deliveryRate: number };
+export interface OnlineReport {
+  range: { from: string; to: string };
+  totals: {
+    orders: number; value: number; accepted: number; dispatched: number; delivered: number; deliveredValue: number; returned: number;
+    cancelled: number; pending: number; avgOrderValue: number; rtoRate: number; cancelRate: number; deliveryRate: number;
+    avgAcceptMinutes: number | null; avgDeliveryDays: number | null; customers: number; repeatCustomers: number;
+  };
+  byDay: { day: string; orders: number; value: number; delivered: number }[];
+  byChannel: ({ name: string; type: string; orders: number; value: number } & Rated)[];
+  byCity: ({ city: string; orders: number; value: number } & Rated)[];
+  riskyCities: ({ city: string; orders: number; value: number } & Rated)[];
+  byCourier: ({ code: string; name: string } & Rated)[];
+  topProducts: { name: string; qty: number; value: number }[];
+  codAging: { label: string; count: number; value: number }[];
+}
 
 export interface CodCourier {
   code: string; name: string;
@@ -399,6 +423,29 @@ export const onlineOrdersApi = {
   bulk: (action: 'accept' | 'next' | 'cancel' | 'confirm', ids: string[], reason?: string) =>
     apiClient.post('/online-orders/bulk', { action, ids, reason })
       .then((r) => unwrap<{ done: number; failed: number; results: { id: string; ok: boolean; error?: string }[] }>(r)),
+  report: (q: { from?: string; to?: string; integrationId?: string }) =>
+    apiClient.get('/online-orders/report', { params: q }).then((r) => unwrap<OnlineReport>(r)),
+  /** CSV file download (Excel) */
+  exportCsv: async (q: { from?: string; to?: string; status?: string; integrationId?: string }) => {
+    const r = await apiClient.get('/online-orders/export', { params: q, responseType: 'blob' }).catch(async (e: any) => {
+      const data = e?.response?.data;
+      if (data instanceof Blob) { try { e.response.data = JSON.parse(await data.text()); } catch { /* jaisa hai */ } }
+      throw e;
+    });
+    const url = URL.createObjectURL(r.data as Blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `online-orders-${q.from ?? 'last30'}-${q.to ?? 'today'}.csv`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 30_000);
+  },
+  editOrder: (id: string, body: { customerName?: string; customerPhone?: string; customerAddress?: string; customerCity?: string; notes?: string }) =>
+    apiClient.post(`/online-orders/${id}/edit`, body).then((r) => unwrap<{ ok: true; changed: number }>(r)),
+  addNote: (id: string, text: string) => apiClient.post(`/online-orders/${id}/notes`, { text }).then((r) => unwrap<{ ok: true }>(r)),
+  setTags: (id: string, tags: string[]) => apiClient.post(`/online-orders/${id}/tags`, { tags }).then((r) => unwrap<{ ok: true; tags: string[] }>(r)),
+  blocklist: () => apiClient.get('/online-store/blocklist').then((r) => unwrap<BlockEntry[]>(r)),
+  block: (body: { phone: string; name?: string; reason?: string }) => apiClient.post('/online-store/blocklist', body).then((r) => unwrap<{ ok: true }>(r)),
+  unblock: (phone: string) => apiClient.delete(`/online-store/blocklist/${encodeURIComponent(phone)}`).then((r) => unwrap<{ ok: true }>(r)),
   setConfirmation: (id: string, result: 'CONFIRMED' | 'NO_ANSWER' | 'REFUSED', note?: string) =>
     apiClient.post(`/online-orders/${id}/confirmation`, { result, note }).then((r) => unwrap<OnlineOrder>(r)),
   markReturned: (id: string, reason?: string) =>

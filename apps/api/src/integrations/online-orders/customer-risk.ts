@@ -4,7 +4,7 @@
  * ka kharcha dono taraf, maal phansa. Pehle se pata ho to call karke
  * confirm karein ya advance maangein.
  */
-export type RiskLevel = 'NEW' | 'TRUSTED' | 'OK' | 'WATCH' | 'HIGH';
+export type RiskLevel = 'NEW' | 'TRUSTED' | 'OK' | 'WATCH' | 'HIGH' | 'BLOCKED';
 
 export interface CustomerHistory {
   total: number;
@@ -19,6 +19,13 @@ export interface CustomerRisk extends CustomerHistory {
   level: RiskLevel;
   label: string;
   reason: string;
+  /** Isi customer ke abhi khule (deliver/cancel nahi hue) doosre orders — dobara order? */
+  duplicateOpen?: number;
+}
+
+/** Block list me ho to sab se upar */
+export function blockedRisk(h: CustomerHistory, reason?: string | null): CustomerRisk {
+  return { ...h, level: 'BLOCKED', label: 'Block kiya hua', reason: reason ? `Block: ${reason}` : 'Aap ne ye number block kiya hai — order accept na karein' };
 }
 
 /** 0300-1234567 / +92 300… / 3001234567 → "3001234567" (aakhri 10) */

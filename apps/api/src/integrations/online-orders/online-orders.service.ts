@@ -14,7 +14,8 @@ import { readWebsiteConfig } from './website-config';
 import { StatusWebhookService } from './status-webhook.service';
 import { COURIERS, courierHoldsCash, courierName } from './couriers';
 import { mappingKey } from './mapping-key';
-import { CustomerRisk, emptyHistory, phoneKey, riskOf } from './customer-risk';
+import { CustomerRisk, blockedRisk, emptyHistory, phoneKey, riskOf } from './customer-risk';
+import { OrderToolsService } from './order-tools.service';
 import { emitOrderAccepted } from './order-events';
 
 /**
@@ -77,6 +78,7 @@ export class OnlineOrdersService implements OnModuleInit {
     private readonly sales: SalesService,
     private readonly notifications: NotificationsService,
     private readonly statusHook: StatusWebhookService,
+    private readonly tools: OrderToolsService,
   ) {}
 
   /**
@@ -127,18 +129,21 @@ export class OnlineOrdersService implements OnModuleInit {
   private async afterNewOrder(order: any, integration: Integration) {
     const num = order.externalOrderNumber ?? order.externalOrderId;
     const itemCount = Array.isArray(order.items) ? order.items.length : 0;
+    const blocked = await this.tools.isBlocked(order.tenantId, order.customerPhone).catch(() => null);
+    if (blocked) await this.mergeMetadata(order.id, { blocked: { reason: blocked.reason, at: new Date().toISOString() } });
 
     await this.notifications.create({
       tenantId: order.tenantId,
       type: 'INFO' as any,
-      title: `🛍️ Naya online order #${num}`,
+      title: blocked ? `⛔ Blocked number se order #${num}` : `🛍️ Naya online order #${num}`,
       message: `${order.customerName} · Rs ${Math.round(Number(order.total)).toLocaleString('en-PK')} · ${itemCount} item`,
       link: `/online-orders?order=${order.id}`,
       metadata: { kind: 'ONLINE_ORDER', channelOrderId: order.id, source: integration.type },
     } as any).catch(() => null);
 
     const config = readWebsiteConfig(integration.config);
-    if (!config.autoAccept || order.orderStatus !== 'PENDING') return;
+    // Block kiye number ka order khud accept nahi — malik khud dekhe
+    if (!config.autoAccept || order.orderStatus !== 'PENDING' || blocked) return;
 
     try {
       const actor = await this.systemActor(order.tenantId);
@@ -225,7 +230,10 @@ export class OnlineOrdersService implements OnModuleInit {
         // Is order ko chhod kar pichhli history
         const r = risks.get(phoneKey(o.customerPhone) ?? '');
         const isTest = !!(o.metadata as any)?.test;
-        return { ...this.present(o), risk: r && !isTest ? riskOf(minusSelf(r, o.orderStatus, Number(o.total))) : null };
+        if (!r || isTest) return { ...this.present(o), risk: null };
+        const self = minusSelf(r, o.orderStatus, Number(o.total));
+        const risk = r.level === 'BLOCKED' ? { ...r, ...self } : riskOf(self);
+        return { ...this.present(o), risk: { ...risk, duplicateOpen: !CLOSED.includes(o.orderStatus) && o.orderStatus !== 'DELIVERED' ? self.open : 0 } };
       }),
       total,
       counts: statusCounts,
@@ -295,7 +303,11 @@ export class OnlineOrdersService implements OnModuleInit {
       else if (o.orderStatus === 'CANCELLED' || o.orderStatus === 'REJECTED') h.cancelled++;
       else h.open++;
     }
-    for (const [k, h] of hist) out.set(k, riskOf(h));
+    const blocks = await this.tools.blocklist(tenantId).catch(() => []);
+    for (const [k, h] of hist) {
+      const b = blocks.find((x) => x.key === k);
+      out.set(k, b ? blockedRisk(h, b.reason) : riskOf(h));
+    }
     return out;
   }
 
@@ -345,7 +357,8 @@ export class OnlineOrdersService implements OnModuleInit {
         })
       : null;
 
-    const risk = (await this.customerRisk(order.tenantId, [order.customerPhone], [order.id]).catch(() => null))?.get(phoneKey(order.customerPhone) ?? '') ?? null;
+    const baseRisk = (await this.customerRisk(order.tenantId, [order.customerPhone], [order.id]).catch(() => null))?.get(phoneKey(order.customerPhone) ?? '') ?? null;
+    const risk = baseRisk ? { ...baseRisk, duplicateOpen: !CLOSED.includes(order.orderStatus) && order.orderStatus !== 'DELIVERED' ? baseRisk.open : 0 } : null;
 
     return {
       ...this.present(order),

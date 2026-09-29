@@ -17,6 +17,7 @@ import { MatchItemsModal, type Matches } from './MatchItemsModal';
 import { CourierSection } from './CourierSection';
 import { RiskCard } from './RiskBadge';
 import { ConfirmCard } from './ConfirmCard';
+import { OrderExtras } from './OrderExtras';
 import { cn } from '@core/lib/cn';
 
 const CANCEL_REASONS = ['Stock khatam', 'Customer ne mana kiya', 'Address/number ghalat', 'Fake order', 'Delivery nahi ho sakti'];
@@ -231,6 +232,8 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
             <button onClick={copyAddress} className={chip}><Copy className="h-3.5 w-3.5" /> Address copy</button>
           </div>
         </section>
+
+        <OrderExtras order={o} onChanged={refresh} />
 
         {/* ─── Items ─── */}
         <section className="rounded-2xl border border-slate-200 dark:border-neutral-800">
