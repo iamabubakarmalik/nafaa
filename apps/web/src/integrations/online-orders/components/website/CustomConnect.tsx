@@ -73,7 +73,7 @@ function WayCard({ active, onClick, icon, title, desc, badge }: { active: boolea
 
 function FormWay({ channelId }: { channelId: string }) {
   const qc = useQueryClient();
-  const { data: f, isLoading } = useQuery({ queryKey: ['channel-form', channelId], queryFn: () => onlineOrdersApi.channelForm(channelId) });
+  const { data: f, isLoading, error, refetch } = useQuery({ queryKey: ['channel-form', channelId], queryFn: () => onlineOrdersApi.channelForm(channelId), retry: 1 });
   const [fee, setFee] = useState<string | null>(null);
   const [free, setFree] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
@@ -88,6 +88,18 @@ function FormWay({ channelId }: { channelId: string }) {
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
 
+  if (error) {
+    return (
+      <Card title="Order form abhi nahi khula">
+        <p className="text-[13px] text-slate-600 dark:text-slate-300">
+          {(error as any)?.response?.status === 404
+            ? 'Server par naya update abhi pahuncha nahi (deploy chal raha hai). Thori der baad dobara try karein.'
+            : apiErrorMessage(error)}
+        </p>
+        <Btn className="mt-3" size="sm" onClick={() => refetch()}>Dobara try karein</Btn>
+      </Card>
+    );
+  }
   if (isLoading || !f) return <Card><div className="h-24 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" /></Card>;
 
   if (!f.enabled) {
