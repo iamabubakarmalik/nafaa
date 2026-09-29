@@ -9,6 +9,7 @@ import { WebsiteCatalogService } from './website-catalog.service';
 import { WebsiteSetupService } from './website-setup.service';
 import { assertSafeWebhookUrl, readWebsiteConfig } from './website-config';
 import { WooClient, WooError } from './woocommerce.client';
+import { mappingKey } from './mapping-key';
 
 /**
  * WooCommerce — ek click me jorna (Shopify jaisa):
@@ -287,25 +288,27 @@ export class WooCommerceService {
       for (const p of products) {
         if (p.type === 'variable') {
           const vars = await client.all<any>(`/products/${p.id}/variations`, { _fields: 'id,sku,manage_stock,stock_quantity' }, 3).catch(() => []);
-          for (const v of vars) if (v.sku) rows.push({ id: v.id, parentId: p.id, sku: v.sku, stock: v.stock_quantity, manage: !!v.manage_stock });
-        } else if (p.sku) {
-          rows.push({ id: p.id, sku: p.sku, stock: p.stock_quantity, manage: !!p.manage_stock });
+          for (const v of vars) rows.push({ id: v.id, parentId: p.id, sku: v.sku ?? '', stock: v.stock_quantity, manage: !!v.manage_stock });
+        } else {
+          rows.push({ id: p.id, sku: p.sku ?? '', stock: p.stock_quantity, manage: !!p.manage_stock });
         }
       }
     }
 
-    const skus = [...new Set(rows.map((r) => r.sku).filter(Boolean))];
-    if (!skus.length) {
-      await this.log(integration, 'STOCK_SYNC', true, undefined, { updated: 0, note: 'SKU wala koi product nahi' });
+    // Pehle jore hue links (variant tak), phir SKU — stock ka malik Nafaa
+    const linkStock = await this.catalog.stockByLink(integration);
+    const skus = [...new Set(rows.filter((r) => !linkStock.has(String(r.id))).map((r) => r.sku).filter(Boolean))];
+    if (!skus.length && !linkStock.size) {
+      await this.log(integration, 'STOCK_SYNC', true, undefined, { updated: 0, note: 'Koi product jora hua nahi, na SKU mila' });
       return { updated: 0, checked: 0, missing: 0 };
     }
-    const stock = await this.catalog.stockBySku(integration.tenantId, shopId, integration.id, skus);
+    const stock = skus.length ? await this.catalog.stockBySku(integration.tenantId, shopId, integration.id, skus) : {};
 
     const simple: any[] = [];
     const byParent = new Map<number, any[]>();
     let missing = 0;
     for (const r of rows) {
-      const want = stock[r.sku];
+      const want = linkStock.get(String(r.id)) ?? (r.sku ? stock[r.sku] : undefined);
       if (want === undefined) { missing++; continue; }
       const qty = Math.max(0, Math.floor(want));
       if (r.manage && r.stock === qty) continue;
@@ -363,17 +366,18 @@ export class WooCommerceService {
   }
 
   /** Nafaa → WooCommerce: jo SKU website par nahi, wo ban jayen; jo hain un ki qeemat/stock */
-  async exportToWoo(user: AuthenticatedUser, channelId: string, opts: { updatePrice?: boolean }) {
+  async exportToWoo(user: AuthenticatedUser, channelId: string, opts: { updatePrice?: boolean; productIds?: string[] }) {
     this.setup.assertCanManage(user);
     const integration = await this.setup.requireChannel(user.tenantId, channelId);
     const client = this.mustClient(integration);
     const cfg = readWebsiteConfig(integration.config);
     const shopId = cfg.shopId ?? integration.shopId;
 
-    const [nafaa, woo] = await Promise.all([
+    const [all, woo] = await Promise.all([
       this.catalog.exportAll(integration.tenantId, shopId),
       client.all<any>('/products', { _fields: 'id,sku', status: 'any' }, 40),
     ]);
+    const nafaa = opts.productIds?.length ? all.filter((p) => opts.productIds!.includes(p.id)) : all;
     const wooBySku = new Map(woo.filter((w) => w.sku).map((w) => [String(w.sku), w.id]));
 
     let created = 0;
@@ -403,7 +407,7 @@ export class WooCommerceService {
             },
             timeoutMs: 60_000,
           });
-          await client.request('POST', `/products/${parent.id}/variations/batch`, {
+          const made = await client.request<any>('POST', `/products/${parent.id}/variations/batch`, {
             body: {
               create: p.variants.map((v: any) => ({
                 sku: v.sku || undefined, regular_price: String(v.price), manage_stock: true, stock_quantity: Math.floor(v.stock),
@@ -412,7 +416,12 @@ export class WooCommerceService {
             },
             timeoutMs: 60_000,
           });
-          await this.link(integration.id, p.id, String(parent.id), sku);
+          // Har variant ka apna link — stock aur orders variant tak sahi
+          const createdVars: any[] = made?.create ?? [];
+          for (let k = 0; k < p.variants.length; k++) {
+            const wv = createdVars[k];
+            if (wv?.id) await this.link(integration.id, p.id, String(parent.id), p.variants[k].sku ?? undefined, p.variants[k].id, String(wv.id), `${p.name} — ${p.variants[k].name}`);
+          }
           created++;
         } catch (e: any) {
           failed++;
@@ -462,11 +471,16 @@ export class WooCommerceService {
   // HELPERS
   // ═══════════════════════════════════════════════════════════
 
-  private async link(integrationId: string, productId: string, externalId: string, sku?: string) {
+  private async link(integrationId: string, productId: string, externalId: string, sku?: string, variantId?: string | null, externalVariantId?: string | null, title?: string) {
+    const linkKey = mappingKey(productId, variantId);
     await this.prisma.productChannelMapping.upsert({
-      where: { integrationId_productId: { integrationId, productId } },
-      create: { integrationId, productId, externalProductId: externalId, externalSku: sku, syncStatus: 'SUCCESS', lastSyncedAt: new Date() },
-      update: { externalProductId: externalId, externalSku: sku, syncStatus: 'SUCCESS', lastSyncedAt: new Date() },
+      where: { integrationId_linkKey: { integrationId, linkKey } },
+      create: {
+        integrationId, linkKey, productId, variantId: variantId ?? null,
+        externalProductId: externalId, externalVariantId: externalVariantId ?? null, externalSku: sku, externalTitle: title ?? null,
+        syncStatus: 'SUCCESS', lastSyncedAt: new Date(),
+      },
+      update: { externalProductId: externalId, externalVariantId: externalVariantId ?? null, externalSku: sku, syncStatus: 'SUCCESS', lastSyncedAt: new Date() },
     }).catch(() => null);
   }
 

@@ -12,6 +12,7 @@ import { IntegrationService } from '../core/integration.service';
 import { NormalizedOrder, isCashOnDelivery, mapPaymentMethod } from './order-normalizer';
 import { readWebsiteConfig } from './website-config';
 import { StatusWebhookService } from './status-webhook.service';
+import { mappingKey } from './mapping-key';
 
 /**
  * Online order ka poora safar:
@@ -244,6 +245,7 @@ export class OnlineOrdersService implements OnModuleInit {
       pendingCount,
       latest: latest.map((o) => ({
         ...o,
+        externalOrderNumber: o.externalOrderNumber ? String(o.externalOrderNumber).replace(/^#+/, '') : o.externalOrderNumber,
         total: Number(o.total),
         itemCount: Array.isArray(o.items) ? (o.items as any[]).length : 0,
         items: undefined,
@@ -663,8 +665,8 @@ export class OnlineOrdersService implements OnModuleInit {
     for (const s of stocked) {
       if (!s.product.sku) {
         await this.prisma.productChannelMapping.upsert({
-          where: { integrationId_productId: { integrationId: integration.id, productId: s.product.id } },
-          create: { integrationId: integration.id, productId: s.product.id, externalProductId: `TEST-${s.product.id}`, syncStatus: 'SUCCESS' },
+          where: { integrationId_linkKey: { integrationId: integration.id, linkKey: mappingKey(s.product.id) } },
+          create: { linkKey: mappingKey(s.product.id), integrationId: integration.id, productId: s.product.id, externalProductId: `TEST-${s.product.id}`, syncStatus: 'SUCCESS' },
           update: {},
         }).catch(() => null);
       }
@@ -727,21 +729,30 @@ export class OnlineOrdersService implements OnModuleInit {
     // 2. Pehle ka link (import ya haath se jora hua)
     const extIds = [it.externalVariantId, it.externalProductId].filter(Boolean) as string[];
     if (extIds.length || it.sku) {
-      const mapping = await this.prisma.productChannelMapping.findFirst({
+      // Variant ka link sab se pakka (Small/Red alag), phir product ka, phir SKU
+      const byVariant = it.externalVariantId
+        ? await this.prisma.productChannelMapping.findFirst({
+            where: { integrationId, externalVariantId: it.externalVariantId },
+            select: { productId: true, variantId: true },
+          })
+        : null;
+      const mapping = byVariant ?? await this.prisma.productChannelMapping.findFirst({
         where: {
           integrationId,
           OR: [
-            ...(extIds.length ? [{ externalProductId: { in: extIds } }, { externalVariantId: { in: extIds } }] : []),
+            ...(it.externalProductId ? [{ externalProductId: it.externalProductId, externalVariantId: null }] : []),
+            ...(extIds.length ? [{ externalProductId: { in: extIds } }] : []),
             ...(it.sku ? [{ externalSku: it.sku }] : []),
           ],
         },
-        select: { productId: true },
+        select: { productId: true, variantId: true },
       });
       if (mapping) {
         const p = await this.prisma.product.findFirst({
           where: { id: mapping.productId, tenantId, isActive: true },
           select: { id: true, hasVariants: true },
         });
+        if (p && mapping.variantId) return { productId: p.id, variantId: mapping.variantId, via: 'link' };
         if (p) return this.withVariant(p, it, 'link');
       }
     }
@@ -830,13 +841,13 @@ export class OnlineOrdersService implements OnModuleInit {
     for (let i = 0; i < items.length; i++) {
       const m = matched[i];
       const it = items[i];
-      if (!m || m.via !== 'manual' || m.variantId) continue;
+      if (!m || m.via !== 'manual') continue;
       const ext = it.externalProductId ?? it.sku;
       if (!ext) continue;
       await this.prisma.productChannelMapping.upsert({
-        where: { integrationId_productId: { integrationId, productId: m.productId } },
-        create: { integrationId, productId: m.productId, externalProductId: ext, externalSku: it.sku, syncStatus: 'SUCCESS', lastSyncedAt: new Date() },
-        update: { externalProductId: ext, externalSku: it.sku, syncStatus: 'SUCCESS', lastSyncedAt: new Date() },
+        where: { integrationId_linkKey: { integrationId: integrationId, linkKey: mappingKey(m.productId, m.variantId) } },
+        create: { linkKey: mappingKey(m.productId, m.variantId), integrationId, productId: m.productId, variantId: m.variantId ?? null, externalProductId: ext, externalVariantId: it.externalVariantId ?? null, externalTitle: it.variant ? `${it.name} — ${it.variant}` : it.name, externalSku: it.sku, syncStatus: 'SUCCESS', lastSyncedAt: new Date() },
+        update: { externalProductId: ext, externalVariantId: it.externalVariantId ?? null, externalSku: it.sku, syncStatus: 'SUCCESS', lastSyncedAt: new Date() },
       }).catch(() => null);
     }
   }
@@ -889,6 +900,8 @@ export class OnlineOrdersService implements OnModuleInit {
     const { raw, ...safeMeta } = meta;
     return {
       ...o,
+      // Shopify "#1002" bhejta hai — UI khud "#" lagata hai
+      externalOrderNumber: o.externalOrderNumber ? String(o.externalOrderNumber).replace(/^#+/, '') : o.externalOrderNumber,
       integration: o.integration
         ? { id: o.integration.id, type: o.integration.type, displayName: o.integration.displayName }
         : undefined,

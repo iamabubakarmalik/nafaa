@@ -17,7 +17,7 @@ import MarketplaceSettingsPage from '@modules/organization/marketplace-settings/
 // ─── Integrations Hub ──────────────────────────────────────────
 import IntegrationHubPage from '@integrations/pages/IntegrationHubPage';
 import {
-  OnlineOrdersPage, WebsiteConnectPage, WebsiteRedirect, ConnectChannelPage, ChannelsListPage, ConnectDonePage,
+  OnlineOrdersPage, WebsiteConnectPage, WebsiteRedirect, ConnectChannelPage, ChannelsListPage, ConnectDonePage, ShopifyAppPage,
 } from '@integrations/online-orders';
 
 // ─── FBR Tax Integration ───────────────────────────────────────
@@ -668,6 +668,8 @@ export default function App() {
                   <Route path="/online-store/channels" element={secure(PERMISSIONS.SETTINGS_VIEW, <ChannelsListPage />)} />
                   <Route path="/online-store/channels/:id" element={secure(PERMISSIONS.SETTINGS_VIEW, <WebsiteConnectPage />)} />
                   <Route path="/online-store/connect" element={secure(PERMISSIONS.SETTINGS_VIEW, <ConnectChannelPage />)} />
+                  {/* Shopify admin → Apps → Nafaa yahan khulta hai */}
+                  <Route path="/shopify" element={secure(PERMISSIONS.SETTINGS_VIEW, <ShopifyAppPage />)} />
                   <Route path="/fbr" element={<FbrSetupPage />} />
                   <Route path="/fbr/setup" element={<FbrSetupPage />} />
                   <Route path="/fbr/invoices" element={<FbrInvoicesPage />} />

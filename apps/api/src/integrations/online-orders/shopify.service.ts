@@ -9,6 +9,7 @@ import { WebsiteCatalogService } from './website-catalog.service';
 import { WebsiteSetupService } from './website-setup.service';
 import { readWebsiteConfig } from './website-config';
 import { SHOPIFY_SCOPES, ShopifyClient, ShopifyError, numericId, orderGid } from './shopify.client';
+import { mappingKey } from './mapping-key';
 
 /**
  * Shopify — ek click me jorna (OAuth, "legacy install flow"):
@@ -422,25 +423,27 @@ export class ShopifyService {
     const variants = await client.paginate<any>(`query($after: String, $q: String, $loc: ID!) {
       productVariants(first: 250, after: $after, query: $q) {
         nodes {
-          sku
+          id sku
           inventoryItem { id tracked inventoryLevel(locationId: $loc) { quantities(names: ["available"]) { quantity } } }
         }
         pageInfo { hasNextPage endCursor }
       }
     }`, 'productVariants', { q, loc: locationId }, 20);
 
-    const rows = variants.filter((v) => v.sku && v.inventoryItem?.id);
-    const skus = [...new Set(rows.map((r) => String(r.sku)))];
-    if (!skus.length) {
-      await this.log(integration, 'STOCK_SYNC', true, undefined, { updated: 0, note: 'SKU wala koi variant nahi' });
+    // Pehle jore hue variants (link), phir SKU — stock ka malik Nafaa
+    const linkStock = await this.catalog.stockByLink(integration);
+    const rows = variants.filter((v) => v.inventoryItem?.id && (v.sku || linkStock.has(numericId(v.id))));
+    const skus = [...new Set(rows.filter((r) => !linkStock.has(numericId(r.id))).map((r) => String(r.sku)).filter(Boolean))];
+    if (!rows.length) {
+      await this.log(integration, 'STOCK_SYNC', true, undefined, { updated: 0, note: 'Koi variant jora hua nahi, na SKU mila' });
       return { updated: 0, checked: 0, missing: 0 };
     }
-    const stock = await this.catalog.stockBySku(integration.tenantId, cfg.shopId ?? integration.shopId, integration.id, skus);
+    const stock = skus.length ? await this.catalog.stockBySku(integration.tenantId, cfg.shopId ?? integration.shopId, integration.id, skus) : {};
 
     const changes: { inventoryItemId: string; locationId: string; quantity: number; changeFromQuantity: number | null }[] = [];
     let missing = 0;
     for (const r of rows) {
-      const want = stock[String(r.sku)];
+      const want = linkStock.get(numericId(r.id)) ?? (r.sku ? stock[String(r.sku)] : undefined);
       if (want === undefined) { missing++; continue; }
       const qty = Math.max(0, Math.floor(want));
       const current = r.inventoryItem.inventoryLevel?.quantities?.[0]?.quantity;
@@ -516,19 +519,20 @@ export class ShopifyService {
   }
 
   /** Nafaa → Shopify: jo SKU Shopify par nahi, wo naye products ban jayen (variants ke saath) */
-  async exportToShopify(user: AuthenticatedUser, channelId: string, opts: { updatePrice?: boolean }) {
+  async exportToShopify(user: AuthenticatedUser, channelId: string, opts: { updatePrice?: boolean; productIds?: string[] }) {
     this.setup.assertCanManage(user);
     const integration = await this.setup.requireChannel(user.tenantId, channelId);
     const client = await this.mustClient(integration);
     const cfg = readWebsiteConfig(integration.config) as any;
     const locationId: string | null = cfg.shopifyLocationId;
 
-    const [nafaa, existing] = await Promise.all([
+    const [all, existing] = await Promise.all([
       this.catalog.exportAll(integration.tenantId, cfg.shopId ?? integration.shopId),
       client.paginate<any>(`query($after: String) {
         productVariants(first: 250, after: $after) { nodes { id sku price product { id } } pageInfo { hasNextPage endCursor } }
       }`, 'productVariants', {}, 40),
     ]);
+    const nafaa = opts.productIds?.length ? all.filter((p) => opts.productIds!.includes(p.id)) : all;
     const bySku = new Map(existing.filter((v) => v.sku).map((v) => [String(v.sku), v]));
 
     let created = 0;
@@ -540,7 +544,7 @@ export class ShopifyService {
       const sku = p.sku || `NF-${p.id.slice(0, 8)}`;
       const found = bySku.get(sku) ?? p.variants.map((v: any) => v.sku && bySku.get(v.sku)).find(Boolean);
       if (found) {
-        await this.link(integration.id, p.id, numericId(found.id), sku);
+        await this.link(integration.id, p.id, numericId(found.product.id), sku, null, numericId(found.id), p.name);
         if (opts.updatePrice && !p.variants.length && Number(found.price) !== Number(p.price)) {
           await client.mutate(`mutation($pid: ID!, $v: [ProductVariantsBulkInput!]!) {
             productVariantsBulkUpdate(productId: $pid, variants: $v) { productVariants { id } userErrors { field message } }
@@ -561,7 +565,7 @@ export class ShopifyService {
 
       try {
         const res = await client.mutate<any>(`mutation($input: ProductSetInput!) {
-          productSet(synchronous: true, input: $input) { product { id } userErrors { field message } }
+          productSet(synchronous: true, input: $input) { product { id variants(first: 100) { nodes { id sku title } } } userErrors { field message } }
         }`, {
           input: {
             title: p.name,
@@ -573,7 +577,18 @@ export class ShopifyService {
             files: p.images.slice(0, 5).map((src: string) => ({ originalSource: src, contentType: 'IMAGE' })),
           },
         }, 'productSet');
-        if (res?.product?.id) await this.link(integration.id, p.id, numericId(res.product.id), sku);
+        if (res?.product?.id) {
+          const made: any[] = res.product.variants?.nodes ?? [];
+          if (hasVariants) {
+            // Har Nafaa variant apne Shopify variant se (SKU, warna naam se)
+            for (const v of p.variants) {
+              const sv = made.find((m) => (v.sku && m.sku === v.sku) || m.title === v.name);
+              if (sv) await this.link(integration.id, p.id, numericId(res.product.id), v.sku ?? undefined, v.id, numericId(sv.id), `${p.name} — ${v.name}`);
+            }
+          } else {
+            await this.link(integration.id, p.id, numericId(res.product.id), sku, null, made[0] ? numericId(made[0].id) : null, p.name);
+          }
+        }
         created++;
       } catch (e: any) {
         failed++;
@@ -684,11 +699,16 @@ export class ShopifyService {
     return c;
   }
 
-  private async link(integrationId: string, productId: string, externalId: string, sku?: string) {
+  private async link(integrationId: string, productId: string, externalId: string, sku?: string, variantId?: string | null, externalVariantId?: string | null, title?: string) {
+    const linkKey = mappingKey(productId, variantId);
     await this.prisma.productChannelMapping.upsert({
-      where: { integrationId_productId: { integrationId, productId } },
-      create: { integrationId, productId, externalProductId: externalId, externalSku: sku, syncStatus: 'SUCCESS', lastSyncedAt: new Date() },
-      update: { externalProductId: externalId, externalSku: sku, syncStatus: 'SUCCESS', lastSyncedAt: new Date() },
+      where: { integrationId_linkKey: { integrationId, linkKey } },
+      create: {
+        integrationId, linkKey, productId, variantId: variantId ?? null,
+        externalProductId: externalId, externalVariantId: externalVariantId ?? null, externalSku: sku, externalTitle: title ?? null,
+        syncStatus: 'SUCCESS', lastSyncedAt: new Date(),
+      },
+      update: { externalProductId: externalId, externalVariantId: externalVariantId ?? null, externalSku: sku, syncStatus: 'SUCCESS', lastSyncedAt: new Date() },
     }).catch(() => null);
   }
 

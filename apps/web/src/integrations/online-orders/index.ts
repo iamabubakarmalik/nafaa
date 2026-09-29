@@ -1,5 +1,6 @@
 export { default as OnlineOrdersPage } from './pages/OnlineOrdersPage';
-export { default as WebsiteConnectPage, WebsiteRedirect } from './pages/WebsiteConnectPage';
+export { default as WebsiteConnectPage, WebsiteRedirect } from './pages/ChannelPage';
+export { default as ShopifyAppPage } from './pages/ShopifyAppPage';
 export { default as ConnectChannelPage } from './pages/ConnectChannelPage';
 export { default as ChannelsListPage } from './pages/ChannelsListPage';
 export { default as ConnectDonePage } from './pages/ConnectDonePage';

@@ -217,6 +217,41 @@ export interface ExportProduct {
   variants: Array<{ id: string; name: string; sku?: string | null; price: number; stock: number; size?: string; color?: string }>;
 }
 
+export interface CatalogLink {
+  mappingId: string; productId: string; variantId: string | null; name: string; variantName: string | null;
+  sku: string | null; price: number; stock: number; image: string | null; inactive: boolean;
+}
+export interface CatalogSuggestion {
+  productId: string; variantId: string | null; name: string; variantName: string | null; reason: 'sku' | 'name';
+}
+export interface CatalogVariant {
+  externalVariantId: string | null; title: string; sku: string | null; barcode: string | null;
+  price: number; stock: number | null; image: string | null;
+  link: CatalogLink | null; suggestion: CatalogSuggestion | null;
+}
+export interface CatalogProduct {
+  externalProductId: string; title: string; image: string | null; status: string; hasVariants: boolean;
+  variants: CatalogVariant[];
+}
+export interface ChannelCatalog {
+  kind: 'woocommerce' | 'shopify' | null;
+  canFetch: boolean;
+  remoteError: string | null;
+  fetchedAt: string;
+  stats: { products: number; variants: number; linked: number; suggested: number; unlinked: number; nafaaUnlisted: number; orphans: number };
+  products: CatalogProduct[];
+  orphans: { mappingId: string; externalProductId: string | null; externalVariantId: string | null; externalTitle: string | null; name: string; variantName: string | null }[];
+  links: { mappingId: string; externalProductId: string | null; externalVariantId: string | null; externalSku: string | null; externalTitle: string | null; name: string; variantName: string | null; stock: number }[];
+}
+export interface UnlistedProduct {
+  id: string; name: string; sku: string | null; price: number; image: string | null; category: string | null;
+  variants: { id: string; name: string; sku: string | null; price: number }[]; stock: number;
+}
+export interface LinkInput {
+  externalProductId: string; externalVariantId?: string | null; productId: string; variantId?: string | null;
+  externalTitle?: string | null; externalImage?: string | null; externalSku?: string | null;
+}
+
 export interface ImportResult {
   imported: number;
   updated: number;
@@ -276,6 +311,31 @@ export const onlineOrdersApi = {
 
   importProducts: (id: string, body: { products: any[]; updatePrice?: boolean; updateStock?: boolean; shopId?: string }) =>
     apiClient.post(`/online-store/channels/${id}/import-products`, body).then((r) => unwrap<ImportResult>(r)),
+
+  // ═══ Products linking (variant tak) ═══
+  catalog: (id: string, refresh = false) =>
+    apiClient.get(`/online-store/channels/${id}/catalog`, { params: refresh ? { refresh: 1 } : {} }).then((r) => unwrap<ChannelCatalog>(r)),
+
+  unlisted: (id: string, search?: string) =>
+    apiClient.get(`/online-store/channels/${id}/catalog/unlisted`, { params: search ? { search } : {} }).then((r) => unwrap<UnlistedProduct[]>(r)),
+
+  saveLinks: (id: string, links: LinkInput[]) =>
+    apiClient.post(`/online-store/channels/${id}/links`, { links }).then((r) => unwrap<{ saved: number; errors: string[] }>(r)),
+
+  removeLink: (id: string, mappingId: string) =>
+    apiClient.delete(`/online-store/channels/${id}/links/${mappingId}`).then((r) => unwrap<{ success: boolean }>(r)),
+
+  importSelected: (id: string, externalProductIds: string[]) =>
+    apiClient.post(`/online-store/channels/${id}/catalog/import`, { externalProductIds })
+      .then((r) => unwrap<{ created: number; linkedExisting: number; failed: number; errors: string[] }>(r)),
+
+  exportSelected: (id: string, productIds: string[]) =>
+    apiClient.post(`/online-store/channels/${id}/catalog/export`, { productIds })
+      .then((r) => unwrap<{ created: number; updated: number; failed: number; total: number; errors: string[] }>(r)),
+
+  shopifyLookup: (shop: string) =>
+    apiClient.get('/online-store/channels/shopify/lookup', { params: { shop } })
+      .then((r) => unwrap<{ shop: string; channelId: string | null; connected: boolean }>(r)),
 
   // ═══ WooCommerce ek click ═══
   wooStart: (body: { siteUrl: string; displayName?: string; shopId?: string; channelId?: string }) =>

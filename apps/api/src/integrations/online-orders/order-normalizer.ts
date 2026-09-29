@@ -223,7 +223,7 @@ function normalizeShopify(body: any): NormalizedOrder {
   return {
     platform: 'shopify',
     externalOrderId: str(body.id) ?? '',
-    externalOrderNumber: str(body.name ?? body.order_number),
+    externalOrderNumber: str(body.name ?? body.order_number)?.replace(/^#+/, ''),
     customerName:
       str(sa.name) ?? fullName(cust.first_name, cust.last_name) ?? 'Customer',
     customerPhone: str(sa.phone ?? body.phone ?? cust.phone),

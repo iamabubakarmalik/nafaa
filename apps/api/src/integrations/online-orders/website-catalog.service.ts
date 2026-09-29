@@ -2,6 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { applyStockDelta } from '../../common/shop-scope';
+import { readWebsiteConfig } from './website-config';
+import { mappingKey } from './mapping-key';
 
 export interface CatalogExportOptions {
   page?: number;
@@ -185,6 +187,46 @@ export class WebsiteCatalogService {
     return stock;
   }
 
+  // ═══════════════════════════════════════════════════════════
+  // STOCK — jore hue variants ka Nafaa stock (pending orders minus)
+  // ═══════════════════════════════════════════════════════════
+
+  /** key = website ka variant id (ya simple product id) → bechne layak stock */
+  async stockByLink(integration: { id: string; tenantId: string; shopId: string | null; config: any }): Promise<Map<string, number>> {
+    const cfg = readWebsiteConfig(integration.config);
+    const shopId = cfg.shopId ?? integration.shopId;
+    const out = new Map<string, number>();
+    if (!shopId) return out;
+    const mappings = await this.prisma.productChannelMapping.findMany({
+      where: { integrationId: integration.id },
+      select: { productId: true, variantId: true, externalProductId: true, externalVariantId: true },
+    });
+    if (!mappings.length) return out;
+    const rows = await this.prisma.shopStock.findMany({
+      where: { shopId, productId: { in: [...new Set(mappings.map((m) => m.productId))] } },
+      select: { productId: true, variantId: true, stock: true },
+    });
+    for (const m of mappings) {
+      const key = m.externalVariantId ?? m.externalProductId;
+      if (!key) continue;
+      const row = rows.find((r) => r.productId === m.productId && (r.variantId ?? null) === (m.variantId ?? null));
+      out.set(String(key), Math.max(0, Number(row?.stock ?? 0)));
+    }
+    // Aa chuke magar accept na hue orders ka maal "reserved"
+    const pending = await this.prisma.channelOrder.findMany({
+      where: { integrationId: integration.id, orderStatus: { in: ['PENDING', 'ACCEPTING'] } },
+      select: { items: true },
+      take: 500,
+    });
+    for (const o of pending) {
+      for (const it of (o.items as any[]) ?? []) {
+        const key = it?.externalVariantId ?? it?.externalProductId;
+        if (key && out.has(String(key))) out.set(String(key), Math.max(0, out.get(String(key))! - Number(it.quantity ?? 0)));
+      }
+    }
+    return out;
+  }
+
   /** Website ki CSV ke liye — sab products ek saath (page by page jama karke) */
   async exportAll(tenantId: string, shopId: string | null) {
     const all: Awaited<ReturnType<WebsiteCatalogService['exportProducts']>>['products'] = [];
@@ -302,8 +344,8 @@ export class WebsiteCatalogService {
 
           if (externalId) {
             await tx.productChannelMapping.upsert({
-              where: { integrationId_productId: { integrationId: integration.id, productId: product.id } },
-              create: {
+              where: { integrationId_linkKey: { integrationId: integration.id, linkKey: mappingKey(product.id) } },
+              create: { linkKey: mappingKey(product.id),
                 integrationId: integration.id,
                 productId: product.id,
                 externalProductId: externalId,

@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import * as crypto from 'crypto';
 import { IntegrationService } from '../../core/integration.service';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { mappingKey } from '../../online-orders/mapping-key';
 
 /**
  * Daraz Open Platform (Lazada Open Platform) Integration
@@ -218,8 +219,8 @@ export class DarazService {
     if (data.code === '0' || data.success) {
       // Create mapping
       await this.prisma.productChannelMapping.upsert({
-        where: { integrationId_productId: { integrationId, productId } },
-        create: {
+        where: { integrationId_linkKey: { integrationId: integrationId, linkKey: mappingKey(productId) } },
+        create: { linkKey: mappingKey(productId),
           integrationId, productId,
           externalProductId: data.data?.product_id ?? String(data.data?.itemId),
           externalSku: product.sku,

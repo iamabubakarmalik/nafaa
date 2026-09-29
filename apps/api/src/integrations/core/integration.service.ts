@@ -3,6 +3,7 @@ import { IntegrationCategory, IntegrationStatus, Prisma, SyncDirection, SyncStat
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationsService } from '../../modules/notifications/notifications.service';
 import * as crypto from 'crypto';
+import { mappingKey } from '../online-orders/mapping-key';
 
 type OrderReceivedListener = (order: any, integration: any) => Promise<void> | void;
 
@@ -758,10 +759,8 @@ export class IntegrationService {
     if (!integration) throw new NotFoundException('Integration not found');
 
     return this.prisma.productChannelMapping.upsert({
-      where: {
-        integrationId_productId: { integrationId, productId: body.productId },
-      },
-      create: {
+      where: { integrationId_linkKey: { integrationId: integrationId, linkKey: mappingKey(body.productId) } },
+      create: { linkKey: mappingKey(body.productId),
         integrationId,
         productId: body.productId,
         externalSku: body.externalSku,
@@ -1034,6 +1033,7 @@ export class IntegrationService {
             data: {
               integrationId: integration.id,
               productId: product.id,
+              linkKey: mappingKey(product.id),
               externalProductId: data.externalId,
               externalSku: data.sku,
               syncStatus: 'SUCCESS',
@@ -1129,6 +1129,7 @@ export class IntegrationService {
             data: {
               integrationId,
               productId: product.id,
+              linkKey: mappingKey(product.id),
               externalProductId: String(p.id ?? sku),
               externalSku: sku,
               syncStatus: 'SUCCESS',
@@ -1212,8 +1213,8 @@ export class IntegrationService {
     if (data.code === '0' || data.success) {
       const externalId = data.data?.product_id ?? String(data.data?.itemId);
       await this.prisma.productChannelMapping.upsert({
-        where: { integrationId_productId: { integrationId: integration.id, productId: product.id } },
-        create: {
+        where: { integrationId_linkKey: { integrationId: integration.id, linkKey: mappingKey(product.id) } },
+        create: { linkKey: mappingKey(product.id),
           integrationId: integration.id,
           productId: product.id,
           externalProductId: externalId,
@@ -1266,8 +1267,8 @@ export class IntegrationService {
     if (data.id || data.success) {
       const externalId = String(data.id ?? data.item_id);
       await this.prisma.productChannelMapping.upsert({
-        where: { integrationId_productId: { integrationId: integration.id, productId: product.id } },
-        create: {
+        where: { integrationId_linkKey: { integrationId: integration.id, linkKey: mappingKey(product.id) } },
+        create: { linkKey: mappingKey(product.id),
           integrationId: integration.id,
           productId: product.id,
           externalProductId: externalId,

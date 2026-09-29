@@ -11,6 +11,7 @@ import { StatusWebhookService } from './status-webhook.service';
 import { readWebsiteConfig } from './website-config';
 import { WooCommerceService } from './woocommerce.service';
 import { ShopifyService } from './shopify.service';
+import { ChannelCatalogService } from './channel-catalog.service';
 
 // ═══════════════════════════════════════════════════════════════
 // ONLINE ORDERS — dukandar ka order manage karne ka safha
@@ -132,6 +133,7 @@ export class ChannelsController {
     private readonly statusHook: StatusWebhookService,
     private readonly woo: WooCommerceService,
     private readonly shopify: ShopifyService,
+    private readonly channelCatalog: ChannelCatalogService,
   ) {}
 
   @Get()
@@ -165,6 +167,15 @@ export class ChannelsController {
     @Body() body: { siteUrl: string; displayName?: string; shopId?: string; channelId?: string; returnOrigin?: string },
   ) {
     return this.woo.start(user, body ?? ({} as any));
+  }
+
+  /** Shopify admin se app khuli → is dukaan ka wo store pehle se jura hai? */
+  @Get('shopify/lookup')
+  async shopifyLookup(@GetUser() user: AuthenticatedUser, @Query('shop') shop: string) {
+    const domain = this.shopify.normalizeShop(shop);
+    const list = await this.setup.listChannels(user, new ShopScope(null, true));
+    const hit = list.find((c) => c.type === 'SHOPIFY' && c.siteUrl === `https://${domain}`);
+    return { shop: domain, channelId: hit?.id ?? null, connected: !!hit?.oneClick };
   }
 
   // ─── Shopify ek click ───
@@ -307,6 +318,42 @@ export class ChannelsController {
   @Post(':id/shopify/export-products')
   shopifyExport(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { updatePrice?: boolean }) {
     return this.shopify.exportToShopify(user, id, body ?? {});
+  }
+
+  // ─── Products: website ⇄ Nafaa linking (variant tak) ───
+  @Get(':id/catalog')
+  @ApiOperation({ summary: 'Website ke products + variants, har ek ka Nafaa link ya salah' })
+  channelProducts(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Query('refresh') refresh?: string) {
+    return this.channelCatalog.catalog(user, id, refresh === '1');
+  }
+
+  @Get(':id/catalog/unlisted')
+  @ApiOperation({ summary: 'Nafaa ke products jo is website par nahi' })
+  unlisted(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Query('search') search?: string) {
+    return this.channelCatalog.nafaaUnlisted(user, id, search);
+  }
+
+  @Post(':id/links')
+  saveLinks(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { links: any[] }) {
+    return this.channelCatalog.saveLinks(user, id, body?.links ?? []);
+  }
+
+  @Delete(':id/links/:mappingId')
+  removeLink(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Param('mappingId') mappingId: string) {
+    return this.channelCatalog.removeLink(user, id, mappingId);
+  }
+
+  @Post(':id/catalog/import')
+  @ApiOperation({ summary: 'Chune hue website products Nafaa me (variants ke saath)' })
+  importSelected(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { externalProductIds: string[] }) {
+    return this.channelCatalog.importSelected(user, id, body?.externalProductIds ?? []);
+  }
+
+  @Post(':id/catalog/export')
+  @ApiOperation({ summary: 'Chune hue Nafaa products website par (variants ke saath)' })
+  exportSelected(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { productIds: string[] }) {
+    this.setup.assertCanManage(user);
+    return this.channelCatalog.exportSelected(user, id, body?.productIds ?? []);
   }
 
   // ─── CSV (har platform) ───
