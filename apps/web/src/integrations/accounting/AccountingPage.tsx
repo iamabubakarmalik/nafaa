@@ -8,6 +8,7 @@ import { apiErrorMessage } from '@integrations/online-orders/api/online-orders.a
 import { Badge, Banner, Btn, Card, EmptyState, Page, SettingRow, Toggle, inputCls } from '@integrations/online-orders/components/ui/kit';
 import { accountingApi, type AccountMapping, type AcctAccount, type PayMethod } from './accounting.api';
 import { cn } from '@core/lib/cn';
+import { TallyCard } from './TallyCard';
 
 /* ═════════════════════════════════════════════════════════════
    ACCOUNTING — Zoho Books / QuickBooks / Xero. Har din ka ek summary
@@ -68,6 +69,7 @@ export default function AccountingPage() {
             </div>
           </>
         ) : <Connected data={data.connected} onChange={() => qc.invalidateQueries({ queryKey: KEY })} />}
+      <TallyCard />
     </Page>
   );
 }

@@ -7,6 +7,8 @@ import { GetUser } from '../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
 import { AccountingService } from './accounting.service';
+import { TallyService } from './tally.service';
+import { TallySettings } from './tally';
 import { AccountMapping } from './daily-journal';
 
 @ApiTags('Accounting')
@@ -14,7 +16,32 @@ import { AccountMapping } from './daily-journal';
 @UseGuards(JwtAuthGuard)
 @Controller('accounting')
 export class AccountingController {
-  constructor(private readonly svc: AccountingService) {}
+  constructor(private readonly svc: AccountingService, private readonly tally: TallyService) {}
+
+  // ─── Tally (XML file — Tally ka cloud API nahi) ───
+  @Get('tally')
+  tallySettings(@GetUser() user: AuthenticatedUser) {
+    return this.tally.settings(user);
+  }
+
+  @Patch('tally')
+  tallySave(@GetUser() user: AuthenticatedUser, @Body() body: Partial<TallySettings>) {
+    return this.tally.save(user, body ?? {});
+  }
+
+  @Get('tally/preview')
+  tallyPreview(@GetUser() user: AuthenticatedUser, @Query('from') from: string, @Query('to') to: string) {
+    return this.tally.preview(user, { from, to });
+  }
+
+  @Get('tally/export')
+  @ApiOperation({ summary: 'Tally XML (vouchers / masters) ya day book CSV' })
+  async tallyExport(@GetUser() user: AuthenticatedUser, @Query('from') from: string, @Query('to') to: string, @Query('format') format: string, @Res() res: Response) {
+    const f = await this.tally.file(user, { from, to, format });
+    res.setHeader('Content-Type', f.type);
+    res.setHeader('Content-Disposition', `attachment; filename="${f.name}"`);
+    res.send(f.body);
+  }
 
   @Get()
   status(@GetUser() user: AuthenticatedUser) {

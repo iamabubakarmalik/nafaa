@@ -35,3 +35,33 @@ export const accountingApi = {
   preview: (day: string) => apiClient.get('/accounting/preview', { params: { day } }).then((r) => unwrap<JournalPreview>(r)),
   sync: (day: string, force = false) => apiClient.post('/accounting/sync', { day, force }).then((r) => unwrap<SyncRecord>(r)),
 };
+
+export interface TallySettings {
+  mapping: AccountMapping; includeCogs: boolean; includeExpenses: boolean; companyName: string; includeMasters: boolean;
+}
+export interface TallyPreview {
+  days: number; vouchers: number; ledgers: { name: string; group: string }[];
+  totals: { sales: number; refunds: number; collections: number; expenses: number; cogs: number };
+}
+
+async function download(path: string, params: Record<string, string>, fallbackName: string) {
+  const r = await apiClient.get(path, { params, responseType: 'blob' }).catch(async (e: any) => {
+    const data = e?.response?.data;
+    if (data instanceof Blob) { try { e.response.data = JSON.parse(await data.text()); } catch { /* jaisa hai */ } }
+    throw e;
+  });
+  const cd = String(r.headers?.['content-disposition'] ?? '');
+  const name = cd.match(/filename="([^"]+)"/)?.[1] ?? fallbackName;
+  const url = URL.createObjectURL(r.data as Blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
+export const tallyApi = {
+  settings: () => apiClient.get('/accounting/tally').then((r) => unwrap<TallySettings>(r)),
+  save: (b: Partial<TallySettings>) => apiClient.patch('/accounting/tally', b).then((r) => unwrap<TallySettings>(r)),
+  preview: (from: string, to: string) => apiClient.get('/accounting/tally/preview', { params: { from, to } }).then((r) => unwrap<TallyPreview>(r)),
+  download: (from: string, to: string, format: 'vouchers' | 'masters' | 'csv') =>
+    download('/accounting/tally/export', { from, to, format }, `nafaa-tally-${format}.${format === 'csv' ? 'csv' : 'xml'}`),
+};
