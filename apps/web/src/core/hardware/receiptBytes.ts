@@ -3,6 +3,7 @@ import type { PrinterWidth, ReceiptPayload } from '@modules/pos/lib/thermalRecei
 import { EscPos } from './escpos';
 import { billQr } from '@core/payments/payQr';
 import { billReviewUrl } from '@integrations/google/google.api';
+import { fiscalFor } from '@integrations/tax-authority/taxAuthority.api';
 
 /**
  * Wahi bill jo browser print karta hai (thermalReceipt.buildReceiptHtml),
@@ -64,6 +65,14 @@ export function receiptBytes(
     e.bold(true).line('MAAL LE JANE WALA').line(p.receivedByName).bold(false);
     if (p.receivedByPhone) e.line(`Ph: ${p.receivedByPhone}`);
     e.feed(2).line('_'.repeat(Math.min(24, e.cols))).line('Dastkhat / Signature');
+  }
+  const f = fiscalFor(p.saleNumber);
+  if (f === 'pending') e.rule().align('center').line('Tax invoice number: baad me').align('left');
+  else if (f) {
+    e.rule().align('center').bold(true).line(f.label).line(f.fiscalNumber ?? '').bold(false);
+    e.line(`Tax ${f.taxRate}% - ${formatPKR(f.taxAmount)}`);
+    if (f.qrText) e.qr(f.qrText, width === '80' ? 5 : 4).feed(1);
+    e.align('left');
   }
   const q = billQr(prevDue + due, p.saleNumber);
   if (q) {

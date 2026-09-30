@@ -21825,3 +21825,43 @@ model BlogPostAnalytics {
   @@index([totalViews])
   @@index([publishedAt])
 }
+
+/// Suba'i tax authority (PRA / SRB / KPRA) ko bheja gaya bill — fiscal number bill par chhapta hai
+model TaxAuthorityInvoice {
+  id            String    @id @default(cuid())
+  tenantId      String
+  shopId        String?
+  /// PRA | SRB | KPRA
+  authority     String
+  /// SALE | RETURN
+  kind          String    @default("SALE")
+  saleId        String
+  /// Sale ke liye "" (NULL unique me dohra ho jata) — return ke liye SaleReturn.id
+  returnId      String    @default("")
+  /// Hamara bill / return number (USIN / invoiceId / invoice_no)
+  usin          String
+  posId         String
+  /// PENDING | SUCCESS | FAILED | SKIPPED
+  status        String    @default("PENDING")
+  fiscalNumber  String?
+  qrText        String?   @db.Text
+  saleValue     Float     @default(0)
+  taxAmount     Float     @default(0)
+  totalAmount   Float     @default(0)
+  taxRate       Float     @default(0)
+  request       Json?
+  response      Json?
+  error         String?   @db.Text
+  attempts      Int       @default(0)
+  nextAttemptAt DateTime?
+  submittedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([authority, kind, saleId, returnId])
+  @@index([tenantId, status])
+  @@index([status, nextAttemptAt])
+  @@index([tenantId, createdAt])
+  @@index([saleId])
+  @@map("tax_authority_invoices")
+}

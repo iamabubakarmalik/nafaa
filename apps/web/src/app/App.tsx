@@ -21,6 +21,7 @@ import HardwarePage from '@core/hardware/HardwarePage';
 import DeveloperPage from '@integrations/developer/DeveloperPage';
 import PayQrPage from '@core/payments/PayQrPage';
 import GooglePage from '@integrations/google/GooglePage';
+import TaxAuthorityPage from '@integrations/tax-authority/TaxAuthorityPage';
 import CustomerDisplayPage from '@core/hardware/CustomerDisplayPage';
 import {
   OnlineOrdersPage, WebsiteConnectPage, WebsiteRedirect, ConnectChannelPage, ChannelsListPage, ConnectDonePage, ShopifyAppPage, CodPage, CouriersPage, CourierDetailPage, PrintInvoicesPage, OnlineReportsPage, BlocklistPage, OnlineCustomersPage, PaymentsPage, PublicPayPage, PublicOrderPage, DevInvitePage, PublicTrackPage,
@@ -689,6 +690,7 @@ export default function App() {
                   <Route path="/settings/developer" element={secure(PERMISSIONS.SETTINGS_VIEW, <DeveloperPage />)} />
                   <Route path="/settings/payment-qr" element={secure(PERMISSIONS.SETTINGS_VIEW, <PayQrPage />)} />
                   <Route path="/settings/google" element={secure(PERMISSIONS.SETTINGS_VIEW, <GooglePage />)} />
+                  <Route path="/settings/tax-authority" element={secure(PERMISSIONS.SETTINGS_VIEW, <TaxAuthorityPage />)} />
                   <Route path="/online-store/blocklist" element={secure(PERMISSIONS.SALES_VIEW, <BlocklistPage />)} />
                   <Route path="/online-store/couriers" element={secure(PERMISSIONS.SALES_VIEW, <CouriersPage />)} />
                   <Route path="/online-store/couriers/:code" element={secure(PERMISSIONS.SALES_VIEW, <CourierDetailPage />)} />

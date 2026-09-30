@@ -278,6 +278,7 @@ export const SETTINGS_SECTIONS: { title: string; items: SettingsItem[] }[] = [
   {
     title: 'Sales channels & apps',
     items: [
+      { to: '/settings/tax-authority', label: "Suba'i tax (PRA/SRB/KPRA)", icon: Landmark, permission: P.SETTINGS_VIEW, desc: 'Restaurant / services ka sales tax — fiscal number bill par', keywords: 'pra srb kpra punjab sindh kpk revenue authority tax fiscal invoice restaurant sales tax services' },
       { to: '/settings/google', label: 'Google', icon: Search, permission: P.SETTINGS_VIEW, desc: 'Google Shopping, Maps par stock, reviews', keywords: 'google merchant center shopping maps business profile review local inventory feed' },
       { to: '/settings/payment-qr', label: 'Payment QR (Raast)', icon: QrCode, permission: P.SETTINGS_VIEW, desc: 'Raast, JazzCash, Easypaisa QR — bill ki raqam ke saath', keywords: 'raast qr jazzcash easypaisa bank qr code scan pay till' },
       { to: '/settings/hardware', label: 'POS hardware', icon: Printer, permission: P.POS_USE, desc: 'Printer direct, cash drawer, tarazu, customer screen', keywords: 'printer thermal escpos drawer scale tarazu weighing customer display hardware usb bluetooth' },

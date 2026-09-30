@@ -5,6 +5,7 @@ import { postToDisplay } from '@core/hardware/customerDisplay';
 import { billQr } from '@core/payments/payQr';
 import { qrSvg } from '@core/payments/qrSvg';
 import { billReviewUrl } from '@integrations/google/google.api';
+import { fiscalFor } from '@integrations/tax-authority/taxAuthority.api';
 
 /* ═════════════════════════════════════════════════════════════
    THERMAL RECEIPT — ek hi jagah, sab industries ke liye
@@ -241,6 +242,18 @@ export function buildReceiptHtml(p: ReceiptPayload, widthMm: PrinterWidth): stri
       <div class="recv-sign">Dastkhat / Signature</div>
     </div>
   ` : ''}
+  ${(() => {
+    // PRA / SRB / KPRA: authority ka number + QR (qaida). Na mila ho to "baad me"
+    const f = fiscalFor(p.saleNumber);
+    if (!f) return '';
+    if (f === 'pending') return `<div class="div"></div><div class="c sub">Tax invoice number: network ki wajah se baad me</div>`;
+    return `
+    <div class="div"></div>
+    <div class="c b">${escapeHtml(f.label)}</div>
+    <div class="c b" style="font-family:monospace;word-break:break-all;">${escapeHtml(f.fiscalNumber ?? '')}</div>
+    <div class="c sub">Tax ${f.taxRate}% · ${escapeHtml(formatPKR(f.taxAmount))}</div>
+    ${f.qrText ? `<div class="barcode">${qrSvg(f.qrText, wide ? 120 : 100)}</div>` : ''}`;
+  })()}
   ${(() => {
     // Udhaar wala bill: baqi raqam dukaan ke Raast / wallet QR se (Settings → Payment QR)
     const q = billQr(prevDue + due, p.saleNumber);

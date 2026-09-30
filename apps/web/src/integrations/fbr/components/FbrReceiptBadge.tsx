@@ -1,6 +1,7 @@
 import { Shield } from 'lucide-react';
 import { useFbrForSale } from '../hooks/useFbrForSale';
 import { cn } from '@core/lib/cn';
+import { TaxAuthorityReceiptBadge } from '@integrations/tax-authority/TaxAuthorityReceiptBadge';
 
 interface Props {
   saleId: string;
@@ -14,7 +15,17 @@ interface Props {
  * - Submitted: FBR logo + invoice number + QR code
  * Print-friendly (black & white safe).
  */
-export function FbrReceiptBadge({ saleId, variant = 'thermal', className }: Props) {
+/** FBR + suba'i authority (PRA / SRB / KPRA) — sab receipt pages yahi lagate hain */
+export function FbrReceiptBadge(props: Props) {
+  return (
+    <>
+      <FbrOnlyBadge {...props} />
+      <TaxAuthorityReceiptBadge saleId={props.saleId} className={props.className} />
+    </>
+  );
+}
+
+function FbrOnlyBadge({ saleId, variant = 'thermal', className }: Props) {
   const { data: status } = useFbrForSale(saleId);
 
   if (!status?.fbrEnabled || !status.invoice) return null;

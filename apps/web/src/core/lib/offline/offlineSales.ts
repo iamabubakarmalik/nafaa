@@ -5,6 +5,7 @@ import { offlineProductsApi } from './offlineProducts';
 import { useAuthStore } from '@core/stores/auth.store';
 import { getCachedSettings } from './offlineSettings';
 import { nextOfflineSaleNumber } from './offlineDevice';
+import { fiscalizeSale } from '@integrations/tax-authority/taxAuthority.api';
 
 type SaleItemInput = CreateSalePayload['items'][number] & {
   usedPhoneId?: string;
@@ -123,6 +124,8 @@ export const offlineSalesApi = {
           await offlineProductsApi.decrementStock(it.productId, it.quantity);
         }
         void warnLowStockAfterSale(payload.items);
+        // PRA / SRB / KPRA on ho to bill chhapne se pehle fiscal number (warna chup — cron bhejega)
+        await fiscalizeSale(sale);
         return sale;
       } catch (error: any) {
         const status = error?.response?.status;
