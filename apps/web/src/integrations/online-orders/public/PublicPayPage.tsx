@@ -9,8 +9,8 @@ import { publicFetch } from './publicApi';
    tasdeeq kar li to ✓.
    ═════════════════════════════════════════════════════════════ */
 
-interface Info { shop: string; orderNumber: string; customer: string; amount: number; kind: 'FULL' | 'ADVANCE'; orderTotal: number; provider: string; methods: string[]; status: 'PENDING' | 'PAID' | 'FAILED' | 'EXPIRED' }
-type Checkout = { kind: 'redirect'; url: string } | { kind: 'form'; action: string; fields: Record<string, string> };
+interface Info { shop: string; orderNumber: string; customer: string; amount: number; kind: 'FULL' | 'ADVANCE'; orderTotal: number; provider: string; methods: string[]; collect: ('mobile' | 'cnic')[]; status: 'PENDING' | 'PAID' | 'FAILED' | 'EXPIRED' }
+type Checkout = { kind: 'redirect'; url: string } | { kind: 'form'; action: string; fields: Record<string, string> } | { kind: 'wallet'; status: 'PAID' | 'PENDING' | 'FAILED'; message: string | null };
 
 const rs = (n: number) => `Rs ${Math.round(n).toLocaleString('en-PK')}`;
 
@@ -23,6 +23,10 @@ export default function PublicPayPage() {
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState<{ action: string; fields: Record<string, string> } | null>(null);
+  const [mobile, setMobile] = useState('');
+  const [cnic, setCnic] = useState('');
+  const [walletWait, setWalletWait] = useState(false);
+  const [walletMsg, setWalletMsg] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
@@ -32,21 +36,35 @@ export default function PublicPayPage() {
       .catch((e) => { if (alive) setErr(e.message); });
     load();
     // Gateway se wapas aaye — tasdeeq me thora waqt lag sakta hai
-    const t = checking ? setInterval(load, 5000) : undefined;
+    const t = checking || walletMsg ? setInterval(load, 5000) : undefined;
     return () => { alive = false; if (t) clearInterval(t); };
-  }, [token, checking]);
+  }, [token, checking, walletMsg]);
 
   useEffect(() => { if (form) formRef.current?.submit(); }, [form]);
 
+  const wallet = !!info?.collect?.length;
   const pay = async () => {
-    setBusy(true); setErr(null);
+    setErr(null);
+    if (wallet) {
+      if (mobile.replace(/\D/g, '').length < 10) return setErr(`Apna ${info!.provider} number likhein (03xxxxxxxxx)`);
+      if (info!.collect.includes('cnic') && cnic.replace(/\D/g, '').length < 6) return setErr('CNIC ke aakhri 6 hindse likhein');
+    }
+    setBusy(true);
+    if (wallet) setWalletWait(true);
     try {
-      const c = await publicFetch<Checkout>(`/integrations/payments/v2/link/${encodeURIComponent(token)}/start`, { method: 'POST' });
+      const c = await publicFetch<Checkout>(`/integrations/payments/v2/link/${encodeURIComponent(token)}/start`, { method: 'POST', json: wallet ? { mobile, cnic } : {} });
       if (c.kind === 'redirect') window.location.href = c.url;
-      else setForm({ action: c.action, fields: c.fields });
+      else if (c.kind === 'form') setForm({ action: c.action, fields: c.fields });
+      else {
+        setWalletWait(false); setBusy(false);
+        if (c.status === 'PAID') setInfo((i) => (i ? { ...i, status: 'PAID' } : i));
+        else if (c.status === 'FAILED') setErr(`Payment nahi hui${c.message ? `: ${c.message}` : ''} — dobara try karein`);
+        else setWalletMsg('Phone par approve karne ke baad yahan khud ✓ aa jayega…');
+      }
     } catch (e: any) {
       setErr(e.message);
       setBusy(false);
+      setWalletWait(false);
     }
   };
 
@@ -86,6 +104,22 @@ export default function PublicPayPage() {
                   </div>
                 )}
                 {cancelled && <p className="mt-5 rounded-xl bg-amber-50 p-3 text-center text-sm font-semibold text-amber-800">Payment cancel ho gayi — dobara try kar sakte hain.</p>}
+                {wallet && (
+                  <div className="mt-5 space-y-2">
+                    <input value={mobile} onChange={(e) => setMobile(e.target.value)} inputMode="tel" placeholder={`Apna ${info.provider} number (03xxxxxxxxx)`}
+                      className="w-full rounded-xl border border-slate-300 px-3 py-3 text-[15px] outline-none focus:border-slate-500" />
+                    {info.collect.includes('cnic') && (
+                      <input value={cnic} onChange={(e) => setCnic(e.target.value)} inputMode="numeric" maxLength={15} placeholder="CNIC ke aakhri 6 hindse"
+                        className="w-full rounded-xl border border-slate-300 px-3 py-3 text-[15px] outline-none focus:border-slate-500" />
+                    )}
+                  </div>
+                )}
+                {walletWait && (
+                  <div className="mt-4 rounded-xl bg-sky-50 p-3 text-center text-sm font-semibold text-sky-800">
+                    📱 Apne phone par {info.provider} ka paigham dekhein aur MPIN / approve karein… (1 minute tak)
+                  </div>
+                )}
+                {walletMsg && <div className="mt-4 rounded-xl bg-sky-50 p-3 text-center text-sm font-semibold text-sky-800">{walletMsg}</div>}
                 <button onClick={pay} disabled={busy}
                   className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 py-4 text-base font-bold text-white disabled:opacity-60">
                   {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <CreditCard className="h-5 w-5" />} {rs(info.amount)} pay karein

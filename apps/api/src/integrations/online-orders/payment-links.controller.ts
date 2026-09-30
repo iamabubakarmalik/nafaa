@@ -65,8 +65,8 @@ export class PaymentLinksPublicController {
   @Post('link/:token/start')
   @HttpCode(200)
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
-  start(@Param('token') token: string) {
-    return this.svc.start(token);
+  start(@Param('token') token: string, @Body() body: { mobile?: string; cnic?: string }) {
+    return this.svc.start(token, body ?? {});
   }
 
   /** Gateway yahan wapas bhejta hai — GET (Safepay) ya form POST (JazzCash) */

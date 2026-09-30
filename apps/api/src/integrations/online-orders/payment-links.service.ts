@@ -155,12 +155,13 @@ export class PaymentLinksService {
       orderTotal: Number(order.total),
       provider: PAY_GATEWAYS[link.provider]?.name ?? link.provider,
       methods: PAY_GATEWAYS[link.provider]?.methods ?? [],
+      collect: PAY_GATEWAYS[link.provider]?.adapter.collect ?? [],
       status: expired ? 'EXPIRED' : link.status,
     };
   }
 
-  /** "Pay karein" — gateway ka checkout (redirect URL ya auto-submit form) */
-  async start(token: string): Promise<Checkout> {
+  /** "Pay karein" — gateway ka checkout (redirect URL, auto-submit form, ya wallet ka natija) */
+  async start(token: string, wallet?: { mobile?: string; cnic?: string }): Promise<Checkout | { kind: 'wallet'; status: 'PAID' | 'PENDING' | 'FAILED'; message: string | null }> {
     const { order, link } = await this.byToken(token);
     if (link.status !== 'PENDING') throw new BadRequestException(link.status === 'PAID' ? 'Ye payment ho chuki hai ✓' : 'Ye link band ho chuka — dukaan se naya link maangein');
     if (Date.now() - Date.parse(link.createdAt) > LINK_TTL_MS) throw new BadRequestException('Link ki muddat khatam — dukaan se naya link maangein');
@@ -176,9 +177,18 @@ export class PaymentLinksService {
       customer: { name: order.customerName, phone: order.customerPhone, email: order.customerEmail },
       returnUrl: `${api}/integrations/payments/v2/return/${token}`,
       cancelUrl: `${this.web()}/pay/${token}?cancelled=1`,
+      wallet,
     }));
     await this.patchLink(order.id, link.ref, { providerRef: checkout.providerRef });
-    return checkout;
+    if (checkout.kind !== 'wallet') return checkout;
+
+    // Wallet: gateway ka jawab + pakki inquiry
+    const fresh = { ...link, providerRef: checkout.providerRef };
+    if (checkout.status.failed) {
+      return { kind: 'wallet', status: 'FAILED', message: checkout.status.message ?? 'Payment nahi hui' };
+    }
+    const st = await this.verify(order, fresh).catch(() => 'PENDING' as const);
+    return { kind: 'wallet', status: st === 'PAID' ? 'PAID' : st === 'FAILED' ? 'FAILED' : 'PENDING', message: checkout.status.message ?? null };
   }
 
   /** Gateway se wapas (GET ya POST) — pakki tasdeeq, phir customer ko pay safhe par */

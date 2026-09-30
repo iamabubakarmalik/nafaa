@@ -34,7 +34,6 @@ export default function PaymentsPage() {
             <div className="grid gap-4 lg:grid-cols-2">
               {data.map((g) => <GatewayCard key={g.code} g={g} />)}
             </div>
-            <p className="text-[12.5px] text-slate-500">JazzCash aur Easypaisa jald — un ki API ki tasdeeq ho rahi hai.</p>
           </>
         )}
     </Page>

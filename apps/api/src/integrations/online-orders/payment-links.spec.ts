@@ -104,3 +104,50 @@ describe('Safepay adapter (fetch mock)', () => {
     expect(await safepayAdapter.status({ publicKey: 'sec_1', secretKey: 'S' }, 'live', 'track_abc', 'NP1')).toMatchObject({ paid: true, amount: 998 });
   });
 });
+
+import { jazzcashAdapter, jazzcashHash, jcRef, pkStamp } from './pay-api/jazzcash.adapter';
+import { easypaisaAdapter } from './pay-api/easypaisa.adapter';
+describe('JazzCash', () => {
+  it('official doc hash example', () => {
+    expect(jazzcashHash({ pp_Amount: '2995', pp_MerchantID: 'MER123', pp_OrderInfo: 'A48cvE28' }, '0F5DD14AE2'))
+      .toBe('c7689cda7474eb1adcd343fd0c0b676bad0ba66361cc46db589bdb0da4c1c867'.toUpperCase());
+  });
+  it('khali values aur pp_SecureHash hash me nahi', () => {
+    const a = jazzcashHash({ pp_Amount: '1', pp_B: '' }, 's');
+    expect(jazzcashHash({ pp_Amount: '1', pp_SecureHash: 'X', ppmpf_1: '' }, 's')).toBe(a);
+  });
+  it('ref: sirf harf/number, 20 tak; waqt PKT', () => {
+    expect(jcRef('NP-ABC_123456789012345678')).toBe('NPABC123456789012345');
+    expect(pkStamp(new Date('2026-09-30T05:00:00Z'))).toBe('20260930100000');
+  });
+  it('MWALLET: paisa, CNIC 6, 000 = paid', async () => {
+    const calls: any[] = [];
+    global.fetch = (async (url: any, init: any) => { calls.push({ url: String(url), body: JSON.parse(init.body) }); return new Response(JSON.stringify({ pp_ResponseCode: '000', pp_ResponseMessage: 'Thank you', pp_Amount: '99800' }), { status: 200 }); }) as any;
+    const r: any = await jazzcashAdapter.create({ merchantId: 'MC1', password: 'p', integritySalt: 'salt' }, 'sandbox', { ref: 'NP1X', amount: 998, description: 'Order 1/2', customer: { name: 'A' }, returnUrl: '', cancelUrl: '', wallet: { mobile: '+92 300 1234567', cnic: '35202-1234567-1' } });
+    expect(calls[0].url).toBe('https://sandbox.jazzcash.com.pk/ApplicationAPI/API/2.0/Purchase/DoMWalletTransaction');
+    expect(calls[0].body).toMatchObject({ pp_TxnType: 'MWALLET', pp_Amount: '99800', pp_MobileNumber: '03001234567', pp_CNIC: '345671', pp_TxnRefNo: 'NP1X', pp_Description: 'Order 1 2' });
+    expect(calls[0].body.pp_SecureHash).toBe(jazzcashHash(calls[0].body, 'salt'));
+    expect(r.status).toMatchObject({ paid: true, amount: 998 });
+  });
+  it('inquiry: pp_PaymentResponseCode dekhta hai, pp_ResponseCode nahi', async () => {
+    global.fetch = (async () => new Response(JSON.stringify({ pp_ResponseCode: '000', pp_PaymentResponseCode: '157' }), { status: 200 })) as any;
+    expect(await jazzcashAdapter.status({ merchantId: 'MC1', password: 'p', integritySalt: 's' }, 'live', 'NP1X', 'NP1X')).toMatchObject({ paid: false, failed: false });
+  });
+});
+
+describe('Easypaisa', () => {
+  it('MA initiate: Credentials header, raqam "998.0"', async () => {
+    const calls: any[] = [];
+    global.fetch = (async (url: any, init: any) => { calls.push({ url: String(url), init }); return new Response(JSON.stringify({ responseCode: '0000', responseDesc: 'SUCCESS' }), { status: 200 }); }) as any;
+    await easypaisaAdapter.create({ storeId: '9', accountNum: '1', username: 'u', password: 'p' }, 'sandbox', { ref: 'NP1', amount: 998, description: '', customer: { name: 'A' }, returnUrl: '', cancelUrl: '', wallet: { mobile: '03001234567' } });
+    expect(calls[0].url).toBe('https://easypaystg.easypaisa.com.pk/easypay-service/rest/v4/initiate-ma-transaction');
+    expect(calls[0].init.headers.Credentials).toBe(Buffer.from('u:p').toString('base64'));
+    expect(JSON.parse(calls[0].init.body)).toMatchObject({ orderId: 'NP1', storeId: '9', transactionAmount: '998.0', transactionType: 'MA', mobileAccountNo: '03001234567' });
+  });
+  it('inquiry: 0000 + PAID = paid; 0000 akela paid nahi', async () => {
+    global.fetch = (async () => new Response(JSON.stringify({ responseCode: '0000', transactionStatus: 'PENDING' }), { status: 200 })) as any;
+    expect((await easypaisaAdapter.status({ storeId: '9', accountNum: '1', username: 'u', password: 'p' }, 'live', 'NP1', 'NP1')).paid).toBe(false);
+    global.fetch = (async () => new Response(JSON.stringify({ responseCode: '0000', transactionStatus: 'PAID', transactionAmount: 998 }), { status: 200 })) as any;
+    expect(await easypaisaAdapter.status({ storeId: '9', accountNum: '1', username: 'u', password: 'p' }, 'live', 'NP1', 'NP1')).toMatchObject({ paid: true, amount: 998 });
+  });
+});

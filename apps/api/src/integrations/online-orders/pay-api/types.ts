@@ -14,12 +14,16 @@ export interface CheckoutInput {
   customer: { name: string; phone?: string | null; email?: string | null };
   returnUrl: string;
   cancelUrl: string;
+  /** Wallet gateways (JazzCash / Easypaisa): customer ka number + CNIC ke aakhri 6 */
+  wallet?: { mobile?: string; cnic?: string };
 }
 
 /** Customer ko kahan bhejna hai: seedha URL, ya auto-submit form (JazzCash) */
 export type Checkout =
   | { kind: 'redirect'; url: string; providerRef: string }
-  | { kind: 'form'; action: string; fields: Record<string, string>; providerRef: string };
+  | { kind: 'form'; action: string; fields: Record<string, string>; providerRef: string }
+  /** Wallet: request customer ke phone par gayi — natija yahin (ya thori der me inquiry se) */
+  | { kind: 'wallet'; providerRef: string; status: PayStatus };
 
 export interface PayStatus {
   paid: boolean;
@@ -32,6 +36,8 @@ export interface PayStatus {
 
 export interface PayAdapter {
   code: string;
+  /** Pay safhe par customer se kya poochna hai (wallet gateways) */
+  collect?: ('mobile' | 'cnic')[];
   test(creds: PayCreds, env: PayEnv): Promise<void>;
   create(creds: PayCreds, env: PayEnv, input: CheckoutInput): Promise<Checkout>;
   /** Server se pakki tasdeeq — return URL par kabhi bharosa nahi */

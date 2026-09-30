@@ -29,10 +29,12 @@ export function PaymentLinkSection({ order: o, onChanged }: { order: OnlineOrder
   const [mode, setMode] = useState<'full' | 'delivery' | 'custom'>(o.risk?.level === 'HIGH' || o.risk?.level === 'WATCH' ? 'delivery' : 'full');
   const [custom, setCustom] = useState('');
   const [last, setLast] = useState<(OrderPaymentLink & { url: string }) | null>(null);
+  const [gw, setGw] = useState('');
+  const provider = ready.find((g) => g.code === gw) ?? ready[0];
   const amount = mode === 'full' ? due : mode === 'delivery' ? Math.min(due, Math.round(o.deliveryFee) || 0) : Number(custom) || 0;
 
   const make = useMutation({
-    mutationFn: () => paymentsApi.createLink(o.id, { provider: ready[0].code, amount }),
+    mutationFn: () => paymentsApi.createLink(o.id, { provider: provider.code, amount }),
     onSuccess: (r) => { setLast(r); onChanged(); toast.success('Payment link ban gaya — customer ko bhejein'); },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
@@ -65,7 +67,7 @@ export function PaymentLinkSection({ order: o, onChanged }: { order: OnlineOrder
 
       {o.paymentStatus !== 'PAID' && due > 0 && (
         !ready.length ? (
-          <p className="mt-2 text-xs text-slate-500">Customer se card / wallet se advance lein — pehle <Link to="/online-store/payments" className="font-bold text-emerald-700 hover:underline">Safepay jorein</Link>.</p>
+          <p className="mt-2 text-xs text-slate-500">Customer se card / JazzCash / Easypaisa se advance lein — pehle <Link to="/online-store/payments" className="font-bold text-emerald-700 hover:underline">payment gateway jorein</Link>.</p>
         ) : (
           <div className="mt-3 space-y-2">
             {(o.risk?.level === 'HIGH' || o.risk?.level === 'WATCH') && (
@@ -79,9 +81,14 @@ export function PaymentLinkSection({ order: o, onChanged }: { order: OnlineOrder
                 </button>
               ))}
             </div>
+            {ready.length > 1 && (
+              <select value={provider.code} onChange={(e) => setGw(e.target.value)} className={cn(inputCls, 'h-8 w-48')}>
+                {ready.map((g) => <option key={g.code} value={g.code}>{g.name}</option>)}
+              </select>
+            )}
             {mode === 'custom' && <input type="number" min={1} max={due} value={custom} onChange={(e) => setCustom(e.target.value)} placeholder={`1 se ${due} tak`} className={cn(inputCls, 'h-8 w-40')} />}
             <Button size="xs" variant="primary" loading={make.isPending} disabled={!(amount >= 1 && amount <= due)} onClick={() => make.mutate()} leftIcon={<CreditCard className="h-3.5 w-3.5" />}>
-              {rs(amount || 0)} ka link banayein ({ready[0].name})
+              {rs(amount || 0)} ka link banayein ({provider.name})
             </Button>
           </div>
         )
