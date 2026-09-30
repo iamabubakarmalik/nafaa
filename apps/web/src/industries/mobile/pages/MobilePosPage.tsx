@@ -1,5 +1,6 @@
 // src/industries/mobile/pages/MobilePosPage.tsx
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { tryDirectPrint } from '@core/hardware/print';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Smartphone, Search, X, Plus, Minus, Trash2, User, UserPlus,
@@ -124,6 +125,18 @@ function pseudoBarcode(seed: string): string {
 }
 
 function printReceiptDirect(p: PrintPayload, widthMm: '80' | '58'): boolean {
+  // Settings → Hardware me "Direct print" ho to seedha printer par (IMEI/serial note ke saath)
+  const direct = {
+    saleNumber: p.saleNumber, date: p.date, shopName: p.shopName, shopPhone: p.shopPhone, shopAddress: p.shopAddress,
+    customerName: p.customerName, subtotal: p.subtotal, discount: p.discount,
+    total: p.total, paid: p.paid, paymentLabel: p.paymentLabel,
+    lines: p.lines.map((l) => ({ name: l.name, qty: l.qty, unit: '', price: l.price, total: l.total, note: l.detail })),
+  };
+  if (tryDirectPrint(direct, widthMm, () => browserPrintReceipt(p, widthMm))) return true;
+  return browserPrintReceipt(p, widthMm);
+}
+
+function browserPrintReceipt(p: PrintPayload, widthMm: '80' | '58'): boolean {
   const w = window.open('', '_blank', `width=${widthMm === '80' ? 400 : 330},height=700`);
   if (!w) return false;
 

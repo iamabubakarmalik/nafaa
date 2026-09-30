@@ -1,5 +1,7 @@
 import JsBarcode from 'jsbarcode';
 import { formatPKR } from '@core/lib/format';
+import { tryDirectPrint } from '@core/hardware/print';
+import { postToDisplay } from '@core/hardware/customerDisplay';
 
 /* ═════════════════════════════════════════════════════════════
    THERMAL RECEIPT — ek hi jagah, sab industries ke liye
@@ -261,6 +263,14 @@ export function buildReceiptHtml(p: ReceiptPayload, widthMm: PrinterWidth): stri
  * chup-chaap nazar-andaz nahi karna chahiye.
  */
 export function printReceiptDirect(p: ReceiptPayload, widthMm: PrinterWidth): boolean {
+  postToDisplay({ kind: 'thanks', shopName: p.shopName, total: p.total, paid: p.paid, change: Math.max(p.paid - p.total, 0) });
+  // Settings → Hardware me "Direct print" / desktop printer ho to seedha
+  // printer par; warna (aur ghalti par) wahi purana browser print.
+  if (tryDirectPrint(p, widthMm, () => browserPrint(p, widthMm))) return true;
+  return browserPrint(p, widthMm);
+}
+
+function browserPrint(p: ReceiptPayload, widthMm: PrinterWidth): boolean {
   const w = window.open('', '_blank', `width=${widthMm === '80' ? 400 : 330},height=700`);
   if (!w) return false;
   w.document.open();

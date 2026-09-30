@@ -3,6 +3,7 @@ import { X, Plus, AlertTriangle, Scale } from 'lucide-react';
 import { formatPKR } from '@core/lib/format';
 import type { Product } from '@modules/inventory/products/api/products.api';
 import type { PosUnitOption } from '../lib/posUnits';
+import { ScaleChip } from '@core/hardware/ScaleChip';
 
 /* ═════════════════════════════════════════════════════════════
    WAZAN WALI SALE — kilo, liter, meter
@@ -106,6 +107,15 @@ export function PosWeighModal({ product, unit, prefillMoney, onConfirm, onClose 
                 </button>
               ))}
             </div>
+          )}
+
+          {(base === 'kg' || base === 'gram' || base === 'g') && (
+            <ScaleChip onUse={(kg) => {
+              // Tarazu hamesha kg deta hai — jo khana chuna hai us me badlo
+              const inBase = base === 'kg' ? kg : kg * 1000;
+              setMode('weight');
+              setWeightInput(Number((inBase / activeSub.toBase).toFixed(3)));
+            }} />
           )}
 
           {mode === 'weight' ? (

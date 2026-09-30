@@ -4,7 +4,7 @@ import {
   Globe, Hash, Layers, LayoutDashboard, Megaphone, MessageCircle, Navigation, Package, PackagePlus, Percent,
   Plug, Receipt, RotateCcw, ScanLine, ScrollText, Settings, Shield, ShieldCheck, ShoppingBag, ShoppingCart,
   Sparkles, Star, Store, Tag, TrendingUp, Trophy, Truck, UserCircle, UserCog, Users, Wallet, Wallet2, Zap,
-  Landmark, Send,
+  Landmark, Send, Printer,
 } from 'lucide-react';
 import { PERMISSIONS as P, type PermissionKey } from '@core/lib/permissions';
 import type { IndustryNavGroup, IndustryNavItem } from '@industries/_shared/types/industry-pack';
@@ -278,6 +278,7 @@ export const SETTINGS_SECTIONS: { title: string; items: SettingsItem[] }[] = [
   {
     title: 'Sales channels & apps',
     items: [
+      { to: '/settings/hardware', label: 'POS hardware', icon: Printer, permission: P.POS_USE, desc: 'Printer direct, cash drawer, tarazu, customer screen', keywords: 'printer thermal escpos drawer scale tarazu weighing customer display hardware usb bluetooth' },
       { to: '/settings/accounting', label: 'Accounting', icon: Wallet2, permission: P.SETTINGS_VIEW, desc: 'Zoho Books, QuickBooks, Xero — roz ka journal', keywords: 'accounting zoho books quickbooks xero journal accountant' },
       { to: '/online-store/payments', label: 'Online payments', icon: Wallet, permission: P.SETTINGS_VIEW, desc: 'Safepay, JazzCash, Easypaisa — advance / poori raqam ka link', keywords: 'payment safepay jazzcash easypaisa card link advance' },
       { to: '/online-store/couriers', label: 'Couriers', icon: Truck, permission: P.SETTINGS_VIEW, desc: 'PostEx, Leopards — booking, label, tracking', keywords: 'courier postex leopards booking' },

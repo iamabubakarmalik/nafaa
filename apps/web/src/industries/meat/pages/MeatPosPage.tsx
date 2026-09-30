@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { ScaleChip } from '@core/hardware/ScaleChip';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -543,6 +544,8 @@ function WeightPickerModal({ product, profile, onConfirm, onClose }: any) {
               </button>
             </div>
           </div>
+
+          <ScaleChip onUse={(kg) => setWeight(String(kg))} />
 
           <div>
             <label className="text-[10px] uppercase font-extrabold text-red-700 mb-1 block">Weight (kg)</label>

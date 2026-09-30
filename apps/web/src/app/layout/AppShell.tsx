@@ -16,6 +16,7 @@ import { PageLockGate } from '@core/security/PageLockGate';
 import { usePrivacyStore } from '@core/stores/privacy.store';
 import { useDesktopNavigation, useDesktopShortcuts, useDesktopTheme } from '@core/lib/desktop/useDesktop';
 import { useDesktopScanner } from '@core/hooks/useDesktopScanner';
+import { useHardwareBoot } from '@core/hardware/HardwareBoot';
 import { useDesktopAutoBackup } from '@core/lib/desktop/useDesktopAutoBackup';
 import { useDesktopMemory, useDesktopPower } from '@core/lib/desktop/useDesktopMemory';
 import { useDesktopDeepLink } from '@core/lib/desktop/useDesktopDeepLink';
@@ -32,6 +33,7 @@ export default function AppShell() {
   useDesktopShortcuts();
   useDesktopTheme();
   useDesktopScanner();
+  useHardwareBoot();
   useDesktopAutoBackup();
   useDesktopMemory();
   useDesktopPower();

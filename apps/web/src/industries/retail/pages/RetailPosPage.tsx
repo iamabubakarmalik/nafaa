@@ -1,4 +1,6 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { useCustomerDisplayFeed } from '@core/hardware/customerDisplay';
+import { DrawerButton } from '@core/hardware/HardwareBoot';
 import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -337,6 +339,13 @@ export default function RetailPosPage() {
   const totalSavings = useMemo(() => cart.reduce((s, l) => s + (l.savings || 0) * l.quantity, 0), [cart]);
   const itemCount = cart.length;
   const totalQty = useMemo(() => cart.reduce((s, l) => s + l.quantity, 0), [cart]);
+
+  // Customer ki screen (Settings → Hardware → Customer display) — khuli na ho to kuch nahi hota
+  useCustomerDisplayFeed({
+    shopName: tenant?.name || 'My Shop',
+    items: cart.map((l) => ({ name: l.name, qty: `${l.quantity} ${l.unitLabel || l.unitName}`, total: l.lineTotal })),
+    subtotal, discount: discountAmount, total,
+  });
 
   /* ─── Cart ops ─── */
   const addProductLine = useCallback((product: Product, unit: UnitOption, qty: number, customPrice?: number) => {
@@ -991,6 +1000,7 @@ export default function RetailPosPage() {
               </div>
               <div className="flex items-center gap-1.5 shrink-0">
                 <span id="pos-voice-btn"><VoiceSaleButton onCommand={handleVoiceCommand} /></span>
+                <DrawerButton className="h-10 w-10 sm:h-11 sm:w-11 rounded-2xl bg-white/15 hover:bg-white/25 active:scale-95 flex items-center justify-center border-2 border-white/20 transition" />
                 <button onClick={() => setShowSettings(true)} title="Settings"
                   className="h-10 w-10 sm:h-11 sm:w-11 rounded-2xl bg-white/15 hover:bg-white/25 active:scale-95 flex items-center justify-center border-2 border-white/20 transition">
                   <Settings2 className="h-5 w-5" />
