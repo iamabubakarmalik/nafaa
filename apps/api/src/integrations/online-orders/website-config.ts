@@ -1,3 +1,4 @@
+import { isIP } from 'net';
 import * as crypto from 'crypto';
 
 /**
@@ -129,4 +130,15 @@ export function assertSafeWebhookUrl(raw: string): string {
     host.startsWith('[');
   if (privateHost && !isDev) throw new Error('Andar ka (private) address allowed nahi');
   return u.toString();
+}
+
+/** DNS ke baad ka IP andar (private / loopback / link-local) ka to nahi */
+export function isPrivateIp(ip: string): boolean {
+  const v = ip.replace(/^::ffff:/, '');
+  if (isIP(v) === 4) {
+    const [a, b] = v.split('.').map(Number);
+    return a === 10 || a === 127 || a === 0 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127);
+  }
+  const l = v.toLowerCase();
+  return l === '::1' || l === '::' || l.startsWith('fc') || l.startsWith('fd') || l.startsWith('fe80');
 }

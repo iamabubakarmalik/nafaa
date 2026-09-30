@@ -120,6 +120,7 @@ import { IntegrationCoreModule } from './integrations/core/integration.module';
 import { CustomWebsiteModule } from './integrations/channels/custom-website/custom-website.module';
 import { OnlineOrdersModule } from './integrations/online-orders/online-orders.module';
 import { AccountingModule } from './integrations/accounting/accounting.module';
+import { PublicApiModule } from './integrations/public-api/public-api.module';
 import { FoodpandaModule } from './integrations/channels/foodpanda/foodpanda.module';
 
 // ─── Batch E: Cart Recovery + Try Before Buy + B2B + Prayer + AI ────
@@ -238,6 +239,7 @@ import { AiAssistantModule } from './marketplace/ai-assistant/ai-assistant.modul
     IntegrationCoreModule,
     OnlineOrdersModule,
     AccountingModule,
+    PublicApiModule,
     CustomWebsiteModule,
     FoodpandaModule,
 

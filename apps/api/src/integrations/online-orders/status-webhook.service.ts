@@ -3,7 +3,7 @@ import { promises as dns } from 'dns';
 import { isIP } from 'net';
 import { Integration } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import { assertSafeWebhookUrl, readWebsiteConfig, signPayload } from './website-config';
+import { assertSafeWebhookUrl, isPrivateIp, readWebsiteConfig, signPayload } from './website-config';
 import { WooCommerceService } from './woocommerce.service';
 import { ShopifyService } from './shopify.service';
 
@@ -114,14 +114,4 @@ export class StatusWebhookService {
     if (!ok) this.logger.warn(`Status push fail (${integration.displayName}): ${error}`);
     return { ok, error };
   }
-}
-
-function isPrivateIp(ip: string): boolean {
-  const v = ip.replace(/^::ffff:/, '');
-  if (isIP(v) === 4) {
-    const [a, b] = v.split('.').map(Number);
-    return a === 10 || a === 127 || a === 0 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127);
-  }
-  const l = v.toLowerCase();
-  return l === '::1' || l === '::' || l.startsWith('fc') || l.startsWith('fd') || l.startsWith('fe80');
 }

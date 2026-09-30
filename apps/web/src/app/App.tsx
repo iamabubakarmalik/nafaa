@@ -18,6 +18,7 @@ import MarketplaceSettingsPage from '@modules/organization/marketplace-settings/
 import IntegrationHubPage from '@integrations/pages/IntegrationHubPage';
 import AccountingPage from '@integrations/accounting/AccountingPage';
 import HardwarePage from '@core/hardware/HardwarePage';
+import DeveloperPage from '@integrations/developer/DeveloperPage';
 import CustomerDisplayPage from '@core/hardware/CustomerDisplayPage';
 import {
   OnlineOrdersPage, WebsiteConnectPage, WebsiteRedirect, ConnectChannelPage, ChannelsListPage, ConnectDonePage, ShopifyAppPage, CodPage, CouriersPage, CourierDetailPage, PrintInvoicesPage, OnlineReportsPage, BlocklistPage, OnlineCustomersPage, PaymentsPage, PublicPayPage, PublicOrderPage, DevInvitePage, PublicTrackPage,
@@ -683,6 +684,7 @@ export default function App() {
                   <Route path="/online-store/payments" element={secure(PERMISSIONS.SALES_VIEW, <PaymentsPage />)} />
                   <Route path="/settings/accounting" element={secure(PERMISSIONS.SETTINGS_VIEW, <AccountingPage />)} />
                   <Route path="/settings/hardware" element={secure(PERMISSIONS.POS_USE, <HardwarePage />)} />
+                  <Route path="/settings/developer" element={secure(PERMISSIONS.SETTINGS_VIEW, <DeveloperPage />)} />
                   <Route path="/online-store/blocklist" element={secure(PERMISSIONS.SALES_VIEW, <BlocklistPage />)} />
                   <Route path="/online-store/couriers" element={secure(PERMISSIONS.SALES_VIEW, <CouriersPage />)} />
                   <Route path="/online-store/couriers/:code" element={secure(PERMISSIONS.SALES_VIEW, <CourierDetailPage />)} />

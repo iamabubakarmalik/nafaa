@@ -279,6 +279,7 @@ export const SETTINGS_SECTIONS: { title: string; items: SettingsItem[] }[] = [
     title: 'Sales channels & apps',
     items: [
       { to: '/settings/hardware', label: 'POS hardware', icon: Printer, permission: P.POS_USE, desc: 'Printer direct, cash drawer, tarazu, customer screen', keywords: 'printer thermal escpos drawer scale tarazu weighing customer display hardware usb bluetooth' },
+      { to: '/settings/developer', label: 'API & Webhooks', icon: Plug, permission: P.SETTINGS_VIEW, desc: 'Zapier, Make, Google Sheets, apna software', keywords: 'api key webhook zapier make n8n google sheets developer erp integration' },
       { to: '/settings/accounting', label: 'Accounting', icon: Wallet2, permission: P.SETTINGS_VIEW, desc: 'Zoho Books, QuickBooks, Xero — roz ka journal', keywords: 'accounting zoho books quickbooks xero journal accountant' },
       { to: '/online-store/payments', label: 'Online payments', icon: Wallet, permission: P.SETTINGS_VIEW, desc: 'Safepay, JazzCash, Easypaisa — advance / poori raqam ka link', keywords: 'payment safepay jazzcash easypaisa card link advance' },
       { to: '/online-store/couriers', label: 'Couriers', icon: Truck, permission: P.SETTINGS_VIEW, desc: 'PostEx, Leopards — booking, label, tracking', keywords: 'courier postex leopards booking' },
