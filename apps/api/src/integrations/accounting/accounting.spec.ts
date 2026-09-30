@@ -92,3 +92,62 @@ describe('Accounting sync', () => {
     restore();
   });
 });
+
+import { quickbooksAdapter } from './quickbooks.adapter';
+import { xeroAdapter, xeroNarration } from './xero.adapter';
+const lines = [{ accountId: 'A', side: 'debit' as const, amount: 150, description: 'x' }, { accountId: 'B', side: 'credit' as const, amount: 150, description: 'y' }];
+
+describe('QuickBooks adapter', () => {
+  const realFetch = global.fetch;
+  afterAll(() => { global.fetch = realFetch; });
+  const conn: any = { provider: 'QUICKBOOKS', accessToken: 'AT', refreshToken: 'RT', expiresAt: '', orgId: '9130', companyName: null, currency: null };
+
+  it('journalentry: PostingType, DocNumber, minorversion + requestid', async () => {
+    const calls: any[] = [];
+    global.fetch = (async (url: any, init: any) => { calls.push({ url: String(url), init }); return new Response(JSON.stringify({ JournalEntry: { Id: '77' } }), { status: 200 }); }) as any;
+    expect(await quickbooksAdapter.postJournal(conn, { date: '2026-09-29', ref: 'NAFAA-2026-09-29', notes: 'n', lines })).toEqual({ id: '77' });
+    const u = new URL(calls[0].url);
+    expect(u.pathname).toBe('/v3/company/9130/journalentry');
+    expect(u.searchParams.get('minorversion')).toBe('75');
+    expect(u.searchParams.get('requestid')).toMatch(/^[0-9a-f-]{36}$/);
+    expect(JSON.parse(calls[0].init.body)).toMatchObject({ TxnDate: '2026-09-29', DocNumber: 'NAFAA-2026-09-29', Line: [
+      { Amount: 150, DetailType: 'JournalEntryLineDetail', JournalEntryLineDetail: { PostingType: 'Debit', AccountRef: { value: 'A' } } },
+      { Amount: 150, JournalEntryLineDetail: { PostingType: 'Credit', AccountRef: { value: 'B' } } },
+    ] });
+  });
+
+  it('AR bina customer (6000) → saaf paigham', async () => {
+    global.fetch = (async () => new Response(JSON.stringify({ Fault: { Error: [{ code: '6000', Message: 'Business Validation Error', Detail: 'When you use Accounts Receivable, you must choose a customer in the Name field.' }] } }), { status: 400 })) as any;
+    await expect(quickbooksAdapter.postJournal(conn, { date: '2026-09-29', ref: 'R', notes: '', lines })).rejects.toMatchObject({ message: expect.stringContaining('Other Current Asset') });
+  });
+});
+
+describe('Xero adapter', () => {
+  const realFetch = global.fetch;
+  afterAll(() => { global.fetch = realFetch; });
+  const conn: any = { provider: 'XERO', accessToken: 'AT', refreshToken: 'RT', expiresAt: '', orgId: 'TEN', companyName: null, currency: null };
+
+  it('ManualJournals: debit +, credit −, POSTED, tenant header, idempotency', async () => {
+    const calls: any[] = [];
+    global.fetch = (async (url: any, init: any) => { calls.push({ url: String(url), init }); return new Response(JSON.stringify({ ManualJournals: [{ ManualJournalID: 'MJ1', ValidationErrors: [] }] }), { status: 200 }); }) as any;
+    expect(await xeroAdapter.postJournal(conn, { date: '2026-09-29', ref: 'NAFAA-2026-09-29', notes: 'n', lines })).toEqual({ id: 'MJ1' });
+    expect(calls[0].init.method).toBe('PUT');
+    expect(calls[0].init.headers['xero-tenant-id']).toBe('TEN');
+    expect(calls[0].init.headers['Idempotency-Key']).toMatch(/^nafaa-NAFAA-2026-09-29-/);
+    expect(JSON.parse(calls[0].init.body).ManualJournals[0]).toMatchObject({
+      Narration: xeroNarration('NAFAA-2026-09-29'), Date: '2026-09-29', Status: 'POSTED',
+      JournalLines: [{ LineAmount: 150, AccountCode: 'A' }, { LineAmount: -150, AccountCode: 'B' }],
+    });
+  });
+
+  it('accounts: BANK / system / bina Code nahi dikhte', async () => {
+    global.fetch = (async () => new Response(JSON.stringify({ Accounts: [
+      { Code: '200', Name: 'Sales', Type: 'REVENUE', Status: 'ACTIVE' },
+      { Code: '090', Name: 'Bank', Type: 'BANK', Status: 'ACTIVE' },
+      { Code: '610', Name: 'Accounts Receivable', Type: 'CURRENT', Status: 'ACTIVE', SystemAccount: 'DEBTORS' },
+      { Name: 'No code', Type: 'CURRENT', Status: 'ACTIVE' },
+      { Code: '615', Name: 'Cash clearing', Type: 'CURRENT', Status: 'ACTIVE' },
+    ] }), { status: 200 })) as any;
+    expect((await xeroAdapter.accounts(conn)).map((a) => a.id)).toEqual(['200', '615']);
+  });
+});

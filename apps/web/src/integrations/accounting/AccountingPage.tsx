@@ -123,6 +123,9 @@ function Connected({ data: c, onChange }: { data: NonNullable<Awaited<ReturnType
 
       <Card title="Kaun sa hisaab kis account me" description="Ek dafa chunein. Udhaar ke liye system ka 'Accounts Receivable' nahi — ek alag current asset account (jaise 'POS Udhaar') behtar hai."
         actions={<Btn size="sm" variant="plain" onClick={() => refetch()} icon={<RefreshCw className="h-3.5 w-3.5" />}>Accounts taaza</Btn>}>
+        {c.provider === 'XERO' && (
+          <div className="mb-3"><Banner tone="info" title="Xero ka qaida">Xero manual journal me Bank aur system accounts nahi leta — is liye list me nahi dikhte. Har payment tareeqe (Cash, Card, JazzCash…) ke liye Xero me ek "Current" type ka clearing account banayein (jaise "POS Cash clearing"), phir yahan chunein.</Banner></div>
+        )}
         {accLoading ? <div className="h-24 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />
           : accErr ? <p className="text-[13px] text-rose-600">{apiErrorMessage(accErr)}</p>
           : (
