@@ -674,6 +674,26 @@ export const couriersApi = {
   },
 };
 
+export interface PayGatewayAccount {
+  code: string; name: string; color: string; methods: string[]; fees: string; portalUrl: string; sandboxUrl: string | null; steps: string[];
+  credentials: { key: string; label: string; placeholder?: string; secret?: boolean; optional?: boolean; help?: string }[];
+  connected: boolean; active: boolean; env: 'sandbox' | 'live' | null; connectedAt: string | null; testedAt: string | null; maskedKey: string | null;
+}
+export interface OrderPaymentLink {
+  ref: string; provider: string; amount: number; kind: 'FULL' | 'ADVANCE'; status: 'PENDING' | 'PAID' | 'FAILED' | 'EXPIRED';
+  createdAt: string; paidAt?: string | null; url?: string;
+}
+
+export const paymentsApi = {
+  accounts: () => apiClient.get('/online-store/payments').then((r) => unwrap<PayGatewayAccount[]>(r)),
+  connect: (code: string, body: { credentials: Record<string, string>; env: 'sandbox' | 'live' }) =>
+    apiClient.post(`/online-store/payments/${code}/connect`, body).then((r) => unwrap<{ ok: true; env: string }>(r)),
+  setActive: (code: string, active: boolean) => apiClient.patch(`/online-store/payments/${code}`, { active }).then((r) => unwrap<{ ok: true }>(r)),
+  disconnect: (code: string) => apiClient.delete(`/online-store/payments/${code}`).then((r) => unwrap<{ ok: true }>(r)),
+  createLink: (orderId: string, body: { provider: string; amount?: number }) =>
+    apiClient.post(`/online-orders/${orderId}/payment-link`, body).then((r) => unwrap<OrderPaymentLink & { url: string }>(r)),
+};
+
 export const darazApi = {
   status: () => apiClient.get('/online-store/channels/daraz/status').then((r) => unwrap<{ configured: boolean; callbackUrl: string }>(r)),
   start: (body: { displayName?: string; shopId?: string; channelId?: string }) =>

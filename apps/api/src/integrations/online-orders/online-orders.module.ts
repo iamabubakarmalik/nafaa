@@ -17,6 +17,8 @@ import { StockPushService } from './stock-push.service';
 import { OrderToolsService } from './order-tools.service';
 import { StorefrontService } from './storefront.service';
 import { DarazService } from './daraz.service';
+import { PaymentLinksService } from './payment-links.service';
+import { PaymentLinksController, PaymentLinksPublicController } from './payment-links.controller';
 import { DarazController, DarazPublicController } from './daraz.controller';
 import { StorefrontAdminController, StorefrontPublicController } from './storefront.controller';
 import {
@@ -47,8 +49,10 @@ import {
     StorefrontAdminController,
     DarazPublicController,
     DarazController,
+    PaymentLinksController,
+    PaymentLinksPublicController,
   ],
-  providers: [OnlineOrdersService, WebsiteCatalogService, WebsiteSetupService, StatusWebhookService, WooCommerceService, ShopifyService, ChannelCatalogService, DataRetentionService, CourierAccountsService, StockPushService, OrderToolsService, StorefrontService, DarazService],
+  providers: [OnlineOrdersService, WebsiteCatalogService, WebsiteSetupService, StatusWebhookService, WooCommerceService, ShopifyService, ChannelCatalogService, DataRetentionService, CourierAccountsService, StockPushService, OrderToolsService, StorefrontService, DarazService, PaymentLinksService],
   exports: [OnlineOrdersService, WebsiteCatalogService],
 })
 export class OnlineOrdersModule {}

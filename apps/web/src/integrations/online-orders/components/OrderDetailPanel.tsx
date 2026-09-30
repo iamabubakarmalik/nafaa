@@ -19,6 +19,7 @@ import { RiskCard } from './RiskBadge';
 import { ConfirmCard } from './ConfirmCard';
 import { OrderExtras } from './OrderExtras';
 import { DarazOrderSection } from './daraz/Daraz';
+import { PaymentLinkSection } from './PaymentLinkSection';
 import { cn } from '@core/lib/cn';
 
 const CANCEL_REASONS = ['Stock khatam', 'Customer ne mana kiya', 'Address/number ghalat', 'Fake order', 'Delivery nahi ho sakti'];
@@ -298,6 +299,8 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
             <Button size="xs" variant="outline" loading={paid.isPending} onClick={() => paid.mutate()}>Paisa mil gaya</Button>
           )}
         </section>
+
+        {o.integration?.type !== 'DARAZ' && <PaymentLinkSection order={o} onChanged={refresh} />}
 
         {/* ─── Bill ─── */}
         {o.sale && (
