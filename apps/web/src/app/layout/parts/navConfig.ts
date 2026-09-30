@@ -278,6 +278,7 @@ export const SETTINGS_SECTIONS: { title: string; items: SettingsItem[] }[] = [
   {
     title: 'Sales channels & apps',
     items: [
+      { to: '/settings/accounting', label: 'Accounting', icon: Wallet2, permission: P.SETTINGS_VIEW, desc: 'Zoho Books, QuickBooks, Xero — roz ka journal', keywords: 'accounting zoho books quickbooks xero journal accountant' },
       { to: '/online-store/payments', label: 'Online payments', icon: Wallet, permission: P.SETTINGS_VIEW, desc: 'Safepay, JazzCash, Easypaisa — advance / poori raqam ka link', keywords: 'payment safepay jazzcash easypaisa card link advance' },
       { to: '/online-store/couriers', label: 'Couriers', icon: Truck, permission: P.SETTINGS_VIEW, desc: 'PostEx, Leopards — booking, label, tracking', keywords: 'courier postex leopards booking' },
       { to: '/online-store/channels', label: 'Sales channels', icon: Globe, permission: P.SETTINGS_VIEW, desc: 'WooCommerce, Shopify, your own website', match: ['/online-store/channels', '/online-store/website'], keywords: 'woocommerce shopify online store website' },
