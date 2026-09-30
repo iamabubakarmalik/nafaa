@@ -8,6 +8,7 @@ import { formatPKR } from '@core/lib/format';
 import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { POS_PAYMENT_METHODS, POS_QUICK_AMOUNTS, type PosCheckoutMode } from '../lib/posCart';
 import { PosReceiverField, type PosReceiverValue } from './PosReceiverField';
+import { PayQrPanel } from '@core/payments/PayQrPanel';
 
 /* ═════════════════════════════════════════════════════════════
    CHECKOUT — pura paisa, kuch cash, ya pura udhaar
@@ -169,6 +170,13 @@ export function PosCheckoutModal({
                   );
                 })}
               </div>
+            </div>
+          )}
+
+          {/* Dukaan ne is tareeqe ka QR lagaya ho to raqam wala QR (Settings → Payment QR) */}
+          {mode !== 'credit' && paymentMethod !== 'CASH' && paymentMethod !== 'CARD' && paid > 0 && (
+            <div className="px-4 sm:px-5 pt-3">
+              <PayQrPanel method={paymentMethod} amount={Math.min(paid, total)} />
             </div>
           )}
 

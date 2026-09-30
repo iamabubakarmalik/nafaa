@@ -11,6 +11,7 @@ export const DISPLAY_CHANNEL = 'nafaa-customer-display';
 export type DisplayMsg =
   | { kind: 'cart'; shopName: string; items: Array<{ name: string; qty: string; total: number }>; subtotal: number; discount: number; total: number }
   | { kind: 'thanks'; shopName: string; total: number; paid: number; change: number }
+  | { kind: 'qr'; shopName: string; amount: number; label: string; merchantName: string; svg: string }
   | { kind: 'idle'; shopName: string }
   | { kind: 'hello' };
 

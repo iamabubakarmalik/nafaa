@@ -51,6 +51,13 @@ export default function CustomerDisplayPage() {
             <div className="text-6xl font-black tabular-nums">{formatPKR(m.total)}</div>
           </aside>
         </div>
+      ) : m?.kind === 'qr' ? (
+        <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
+          <div className="text-2xl font-bold text-white/70">Scan karke pay karein — {m.label}</div>
+          <div className="rounded-3xl bg-white p-4" dangerouslySetInnerHTML={{ __html: m.svg }} />
+          <div className="text-5xl font-black tabular-nums">{formatPKR(m.amount)}</div>
+          <div className="text-xl text-white/60">{m.merchantName}</div>
+        </div>
       ) : m?.kind === 'thanks' ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
           <div className="text-6xl font-black">Shukriya! 🙏</div>

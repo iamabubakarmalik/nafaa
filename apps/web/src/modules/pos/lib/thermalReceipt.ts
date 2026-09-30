@@ -2,6 +2,8 @@ import JsBarcode from 'jsbarcode';
 import { formatPKR } from '@core/lib/format';
 import { tryDirectPrint } from '@core/hardware/print';
 import { postToDisplay } from '@core/hardware/customerDisplay';
+import { billQr } from '@core/payments/payQr';
+import { qrSvg } from '@core/payments/qrSvg';
 
 /* ═════════════════════════════════════════════════════════════
    THERMAL RECEIPT — ek hi jagah, sab industries ke liye
@@ -238,6 +240,15 @@ export function buildReceiptHtml(p: ReceiptPayload, widthMm: PrinterWidth): stri
       <div class="recv-sign">Dastkhat / Signature</div>
     </div>
   ` : ''}
+  ${(() => {
+    // Udhaar wala bill: baqi raqam dukaan ke Raast / wallet QR se (Settings → Payment QR)
+    const q = billQr(prevDue + due, p.saleNumber);
+    return q ? `
+    <div class="div"></div>
+    <div class="c b" style="margin-top:4px;">BAQI ${escapeHtml(formatPKR(prevDue + due))} QR SE BHEJEIN</div>
+    <div class="c sub">${escapeHtml(q.label)} — bank / JazzCash / Easypaisa app se scan</div>
+    <div class="barcode">${qrSvg(q.text, wide ? 150 : 120)}</div>` : '';
+  })()}
   <div class="div"></div>
   <div class="barcode">${realBarcodeSvg(p.saleNumber, widthMm)}<div class="barnum">${escapeHtml(p.saleNumber)}</div></div>
   <div class="div"></div>

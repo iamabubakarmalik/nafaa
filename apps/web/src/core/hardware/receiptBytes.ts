@@ -1,6 +1,7 @@
 import { formatPKR } from '@core/lib/format';
 import type { PrinterWidth, ReceiptPayload } from '@modules/pos/lib/thermalReceipt';
 import { EscPos } from './escpos';
+import { billQr } from '@core/payments/payQr';
 
 /**
  * Wahi bill jo browser print karta hai (thermalReceipt.buildReceiptHtml),
@@ -62,6 +63,11 @@ export function receiptBytes(
     e.bold(true).line('MAAL LE JANE WALA').line(p.receivedByName).bold(false);
     if (p.receivedByPhone) e.line(`Ph: ${p.receivedByPhone}`);
     e.feed(2).line('_'.repeat(Math.min(24, e.cols))).line('Dastkhat / Signature');
+  }
+  const q = billQr(prevDue + due, p.saleNumber);
+  if (q) {
+    e.rule().align('center').bold(true).line(`BAQI ${formatPKR(prevDue + due)} QR SE BHEJEIN`).bold(false);
+    e.line(q.label).qr(q.text, width === '80' ? 6 : 4).feed(1).align('left');
   }
   e.rule();
   if (o.barcode !== false) e.align('center').barcode(p.saleNumber).line(p.saleNumber);
