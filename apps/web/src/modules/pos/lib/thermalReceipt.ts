@@ -4,6 +4,7 @@ import { tryDirectPrint } from '@core/hardware/print';
 import { postToDisplay } from '@core/hardware/customerDisplay';
 import { billQr } from '@core/payments/payQr';
 import { qrSvg } from '@core/payments/qrSvg';
+import { billReviewUrl } from '@integrations/google/google.api';
 
 /* ═════════════════════════════════════════════════════════════
    THERMAL RECEIPT — ek hi jagah, sab industries ke liye
@@ -254,6 +255,7 @@ export function buildReceiptHtml(p: ReceiptPayload, widthMm: PrinterWidth): stri
   <div class="div"></div>
   ${p.footerNote ? `<div class="c thanks">${escapeHtml(p.footerNote)}</div>` : ''}
   <div class="c thanks">Shukriya! Phir tashreef laiye.</div>
+  ${billReviewUrl() ? `<div class="barcode">${qrSvg(billReviewUrl()!, wide ? 90 : 76)}</div><div class="c sub">Google par review dein ★</div>` : ''}
   <div class="c sub" style="margin-top:2px;">Powered by Nafaa POS</div>
   <script>
     window.onload = function() {

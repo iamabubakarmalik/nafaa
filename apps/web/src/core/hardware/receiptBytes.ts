@@ -2,6 +2,7 @@ import { formatPKR } from '@core/lib/format';
 import type { PrinterWidth, ReceiptPayload } from '@modules/pos/lib/thermalReceipt';
 import { EscPos } from './escpos';
 import { billQr } from '@core/payments/payQr';
+import { billReviewUrl } from '@integrations/google/google.api';
 
 /**
  * Wahi bill jo browser print karta hai (thermalReceipt.buildReceiptHtml),
@@ -73,7 +74,10 @@ export function receiptBytes(
   if (o.barcode !== false) e.align('center').barcode(p.saleNumber).line(p.saleNumber);
   e.align('center');
   if (p.footerNote) e.wrap(p.footerNote);
-  e.line('Shukriya! Phir tashreef laiye.').line('Powered by Nafaa POS');
+  e.line('Shukriya! Phir tashreef laiye.');
+  const review = billReviewUrl();
+  if (review) e.qr(review, width === '80' ? 4 : 3).line('Google par review dein *');
+  e.line('Powered by Nafaa POS');
   e.align('left').cut();
   return e.bytes();
 }

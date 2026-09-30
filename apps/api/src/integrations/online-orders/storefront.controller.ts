@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Header, HttpCode, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, Patch, Post, Query, Res, UseGuards } from '@nestjs/common';
+import type { Response } from 'express';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Public } from '../../modules/auth/decorators/public.decorator';
@@ -19,8 +20,8 @@ export class StorefrontPublicController {
   @Get('form/:key')
   @Throttle({ default: { limit: 60, ttl: 60_000 } })
   @ApiOperation({ summary: 'Order form: dukaan ka naam + products (qeemat Nafaa se)' })
-  catalog(@Param('key') key: string) {
-    return this.svc.publicCatalog(key);
+  catalog(@Param('key') key: string, @Query('product') product?: string) {
+    return this.svc.publicCatalog(key, product);
   }
 
   @Post('form/:key/order')
@@ -48,10 +49,11 @@ export class StorefrontPublicController {
 
   @Get('embed.js')
   @Throttle({ default: { limit: 120, ttl: 60_000 } })
-  @Header('Content-Type', 'application/javascript; charset=utf-8')
-  @Header('Cache-Control', 'public, max-age=3600')
-  embed() {
-    return embedScript(this.svc.webBase());
+  embed(@Res() res: Response) {
+    // @Res se seedha — warna global ResponseInterceptor script ko JSON me lapet deta
+    res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.send(embedScript(this.svc.webBase()));
   }
 
   @Get('dev/:token')

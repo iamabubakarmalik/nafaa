@@ -18,6 +18,7 @@ import { useDesktopNavigation, useDesktopShortcuts, useDesktopTheme } from '@cor
 import { useDesktopScanner } from '@core/hooks/useDesktopScanner';
 import { useHardwareBoot } from '@core/hardware/HardwareBoot';
 import { usePayQrs } from '@core/payments/payQr';
+import { useGoogleReviewLink } from '@integrations/google/google.api';
 import { useDesktopAutoBackup } from '@core/lib/desktop/useDesktopAutoBackup';
 import { useDesktopMemory, useDesktopPower } from '@core/lib/desktop/useDesktopMemory';
 import { useDesktopDeepLink } from '@core/lib/desktop/useDesktopDeepLink';
@@ -36,6 +37,7 @@ export default function AppShell() {
   useDesktopScanner();
   useHardwareBoot();
   usePayQrs(); // bill par QR chhapne ke liye pehle se tayyar
+  useGoogleReviewLink();
   useDesktopAutoBackup();
   useDesktopMemory();
   useDesktopPower();

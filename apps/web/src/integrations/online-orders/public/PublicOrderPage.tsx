@@ -25,6 +25,8 @@ export default function PublicOrderPage() {
   const [params] = useSearchParams();
   const embed = params.get('embed') === '1';
   const sku = params.get('sku');
+  // Google Shopping / share link: ek hi product ka safha (?product=<id>)
+  const [focus, setFocus] = useState<string | null>(params.get('product'));
 
   const [cat, setCat] = useState<Catalog | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -43,7 +45,7 @@ export default function PublicOrderPage() {
   const [checking, setChecking] = useState(false);
 
   useEffect(() => {
-    publicFetch<Catalog>(`/integrations/website/v1/form/${encodeURIComponent(key)}`)
+    publicFetch<Catalog>(`/integrations/website/v1/form/${encodeURIComponent(key)}${focus ? `?product=${encodeURIComponent(focus)}` : ''}`)
       .then((c) => {
         setCat(c);
         document.title = `${c.shop} — Order`;
@@ -102,8 +104,10 @@ export default function PublicOrderPage() {
 
   const shown = useMemo(() => {
     const t = q.trim().toLowerCase();
-    return (cat?.products ?? []).filter((p) => (!t || p.name.toLowerCase().includes(t)) && (!cat2 || p.category === cat2));
-  }, [cat, q, cat2]);
+    const all = cat?.products ?? [];
+    if (focus && all.some((p) => p.id === focus)) return all.filter((p) => p.id === focus);
+    return all.filter((p) => (!t || p.name.toLowerCase().includes(t)) && (!cat2 || p.category === cat2));
+  }, [cat, q, cat2, focus]);
 
   const submit = async () => {
     setFormErr(null);
@@ -226,7 +230,12 @@ export default function PublicOrderPage() {
         </div>
       ) : (
         <div className="p-4 pb-28">
-          {cat.products.length > 6 && (
+          {focus && cat.products.some((p) => p.id === focus) && cat.products.length > 1 && (
+            <button type="button" onClick={() => setFocus(null)} className="mb-3 text-[13px] font-semibold underline" style={{ color: accent }}>
+              ← Sab products dekhein
+            </button>
+          )}
+          {!focus && cat.products.length > 6 && (
             <div className="relative mb-3">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Dhoondein…" className="w-full rounded-xl border border-slate-300 py-2.5 pl-9 pr-3 text-[15px] outline-none focus:border-emerald-600" />

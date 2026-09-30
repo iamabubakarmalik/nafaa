@@ -176,7 +176,8 @@ export class StorefrontService {
     return ch;
   }
 
-  async publicCatalog(key: string) {
+  /** `focus` = Google / share link wala product — 400 ki hadd se bahar ho to bhi shamil */
+  async publicCatalog(key: string, focus?: string) {
     const ch = await this.channelByFormKey(key);
     const f = readForm(ch.config);
     const cfg = readWebsiteConfig(ch.config);
@@ -192,6 +193,17 @@ export class StorefrontService {
       orderBy: { name: 'asc' },
       take: 400,
     });
+    if (focus && /^[A-Za-z0-9-]{8,64}$/.test(focus) && !products.some((p) => p.id === focus)) {
+      const extra = await this.prisma.product.findFirst({
+        where: { id: focus, tenantId: ch.tenantId, isActive: true, price: { gt: 0 }, ...(f.productIds ? { id: { in: f.productIds.filter((x) => x === focus) } } : {}) },
+        select: {
+          id: true, name: true, sku: true, price: true, description: true, hasVariants: true, category: { select: { name: true } },
+          images: { orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }], take: 1, select: { url: true } },
+          variants: { where: { isActive: true }, select: { id: true, name: true, sku: true, price: true } },
+        },
+      });
+      if (extra) products.unshift(extra);
+    }
     const stocks = shopId
       ? await this.prisma.shopStock.findMany({ where: { shopId, productId: { in: products.map((p) => p.id) } }, select: { productId: true, variantId: true, stock: true } })
       : [];
