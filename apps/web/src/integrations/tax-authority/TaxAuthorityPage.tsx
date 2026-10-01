@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { ExternalLink, Landmark, Plus, Save, Send, Trash2 } from 'lucide-react';
 import { apiErrorMessage } from '@integrations/online-orders/api/online-orders.api';
 import { whenText } from '@integrations/online-orders/lib/labels';
-import { Badge, Banner, Btn, Card, EmptyState, Field, Page, Segmented, SettingRow, Stat, Toggle, inputCls } from '@integrations/online-orders/components/ui/kit';
+import { Banner, Btn, Card, EmptyState, Field, Page, Segmented, SettingRow, Toggle, inputCls } from '@integrations/online-orders/components/ui/kit';
 import { cn } from '@core/lib/cn';
 import { taxAuthorityApi, type Authority, type TaxOverview } from './taxAuthority.api';
 
@@ -41,14 +41,19 @@ const STEPS: Record<Authority, string[]> = {
   ],
 };
 
-export default function TaxAuthorityPage() {
+/** Tax → Settings tab */
+export function TaxSettingsTab() {
   const { data, isLoading, error } = useQuery({ queryKey: KEY, queryFn: taxAuthorityApi.overview });
+  return isLoading ? <div className="h-40 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" />
+    : error || !data ? <Card><EmptyState title="Settings nahi khuli">{apiErrorMessage(error)}</EmptyState></Card>
+    : <Editor data={data} />;
+}
+
+export default function TaxAuthorityPage() {
   return (
-    <Page back={{ to: '/settings', label: 'Settings' }} title="Tax authority (PRA / SRB / KPRA / FBR POS)"
-      subtitle="Restaurant, salon aur services ka sales tax — har bill authority ko, bill par fiscal number aur QR.">
-      {isLoading ? <div className="h-40 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" />
-        : error || !data ? <Card><EmptyState title="Safha nahi khula">{apiErrorMessage(error)}</EmptyState></Card>
-        : <Editor data={data} />}
+    <Page back={{ to: '/settings', label: 'Settings' }} title="Tax settings"
+      subtitle="PRA, SRB, KPRA ya FBR POS — har bill authority ko, bill par fiscal number aur QR.">
+      <TaxSettingsTab />
     </Page>
   );
 }
@@ -56,14 +61,16 @@ export default function TaxAuthorityPage() {
 function Editor({ data }: { data: TaxOverview }) {
   const qc = useQueryClient();
   const c = data.config;
-  const [authority, setAuthority] = useState<Authority>(c?.authority ?? 'PRA');
+  // Purane FBR safhe ka NTN / POS ID — pehli dafa khud bhar do
+  const legacy = !c ? data.legacyFbr : null;
+  const [authority, setAuthority] = useState<Authority>(c?.authority ?? (legacy ? 'FBR' : 'PRA'));
   const [env, setEnv] = useState<'sandbox' | 'live'>(c?.env ?? 'sandbox');
-  const [businessName, setBusinessName] = useState(c?.businessName ?? '');
+  const [businessName, setBusinessName] = useState(c?.businessName ?? legacy?.businessName ?? '');
   const [pctCode, setPct] = useState(c?.pctCode ?? '');
   const [cashRate, setCash] = useState(String(c?.cashRate ?? data.defaults[c?.authority ?? 'PRA'].cash));
   const [cardRate, setCard] = useState(String(c?.cardRate ?? data.defaults[c?.authority ?? 'PRA'].card));
   const [onlyPos, setOnlyPos] = useState(c?.onlyPos ?? true);
-  const [terms, setTerms] = useState<TermDraft[]>(c?.terminals.length ? c.terminals : [{ shopId: null, posId: '', ntn: '' }]);
+  const [terms, setTerms] = useState<TermDraft[]>(c?.terminals.length ? c.terminals : [{ shopId: null, posId: legacy?.posId ?? '', ntn: legacy?.ntn ?? '' }]);
 
   useEffect(() => {
     if (!c || c.authority !== authority) { setCash(String(data.defaults[authority].cash)); setCard(String(data.defaults[authority].card)); }
@@ -165,30 +172,7 @@ function Editor({ data }: { data: TaxOverview }) {
       </Card>
 
       {Object.keys(data.stats).length > 0 && (
-        <Card title="Bheje gaye bill" flush>
-          <div className="grid grid-cols-3 gap-3 p-4">
-            <Stat label="Kamyab" value={data.stats.SUCCESS ?? 0} />
-            <Stat label="Qatar me / dobara" value={(data.stats.PENDING ?? 0) + (data.stats.FAILED ?? 0)} tone={(data.stats.FAILED ?? 0) > 0 ? 'attention' : undefined} />
-            <Stat label="Chhore" value={data.stats.SKIPPED ?? 0} />
-          </div>
-          <div className="max-h-96 overflow-y-auto">
-            <table className="w-full text-[12.5px]">
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {data.recent.map((r) => (
-                  <tr key={r.id}>
-                    <td className="whitespace-nowrap px-4 py-1.5 text-slate-500">{whenText(r.createdAt)}</td>
-                    <td className="px-2 py-1.5 font-mono">{r.kind === 'RETURN' ? '↩ ' : ''}{r.usin}</td>
-                    <td className="px-2 py-1.5 text-right tabular-nums">Rs {r.totalAmount.toLocaleString()}</td>
-                    <td className="px-4 py-1.5 text-right">
-                      {r.status === 'SUCCESS' ? <Badge tone="success">{r.fiscalNumber}</Badge>
-                        : <span title={r.error ?? ''}><Badge tone={r.status === 'FAILED' ? 'critical' : 'warning'}>{r.status === 'FAILED' ? `Fail (${r.attempts}) — ${(r.error ?? '').slice(0, 60)}` : 'Bheja ja raha'}</Badge></span>}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+        <p className="text-[12.5px] text-slate-500">Bheje gaye bill aur un ka haal: <a href="/tax/invoices" className="font-semibold text-emerald-700 hover:underline">Tax → Invoices</a></p>
       )}
     </>
   );

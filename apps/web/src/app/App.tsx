@@ -21,7 +21,7 @@ import HardwarePage from '@core/hardware/HardwarePage';
 import DeveloperPage from '@integrations/developer/DeveloperPage';
 import PayQrPage from '@core/payments/PayQrPage';
 import GooglePage from '@integrations/google/GooglePage';
-import TaxAuthorityPage from '@integrations/tax-authority/TaxAuthorityPage';
+import TaxHubPage from '@integrations/tax-authority/TaxHubPage';
 import FoodpandaPage from '@integrations/online-orders/pages/FoodpandaPage';
 import CustomerDisplayPage from '@core/hardware/CustomerDisplayPage';
 import {
@@ -29,7 +29,6 @@ import {
 } from '@integrations/online-orders';
 
 // ─── FBR Tax Integration ───────────────────────────────────────
-import { FbrSetupPage, FbrInvoicesPage, FbrReportsPage, FbrAnalyticsPage, FbrSetupWizard } from '@integrations/fbr';
 
 // ─── Marketplace Suite ─────────────────────────────────────────
 import MarketplaceDashboardPage from '../marketplace/dashboard/MarketplaceDashboardPage';
@@ -692,7 +691,7 @@ export default function App() {
                   <Route path="/settings/developer" element={secure(PERMISSIONS.SETTINGS_VIEW, <DeveloperPage />)} />
                   <Route path="/settings/payment-qr" element={secure(PERMISSIONS.SETTINGS_VIEW, <PayQrPage />)} />
                   <Route path="/settings/google" element={secure(PERMISSIONS.SETTINGS_VIEW, <GooglePage />)} />
-                  <Route path="/settings/tax-authority" element={secure(PERMISSIONS.SETTINGS_VIEW, <TaxAuthorityPage />)} />
+                  <Route path="/settings/tax-authority" element={<Navigate to="/tax/settings" replace />} />
                   <Route path="/online-store/blocklist" element={secure(PERMISSIONS.SALES_VIEW, <BlocklistPage />)} />
                   <Route path="/online-store/couriers" element={secure(PERMISSIONS.SALES_VIEW, <CouriersPage />)} />
                   <Route path="/online-store/couriers/:code" element={secure(PERMISSIONS.SALES_VIEW, <CourierDetailPage />)} />
@@ -702,12 +701,17 @@ export default function App() {
                   <Route path="/online-store/connect" element={secure(PERMISSIONS.SETTINGS_VIEW, <ConnectChannelPage />)} />
                   {/* Shopify admin → Apps → Nafaa yahan khulta hai */}
                   <Route path="/shopify" element={secure(PERMISSIONS.SETTINGS_VIEW, <ShopifyAppPage />)} />
-                  <Route path="/fbr" element={<FbrSetupPage />} />
-                  <Route path="/fbr/setup" element={<FbrSetupPage />} />
-                  <Route path="/fbr/invoices" element={<FbrInvoicesPage />} />
-                  <Route path="/fbr/reports" element={<FbrReportsPage />} />
-                  <Route path="/fbr/analytics" element={<FbrAnalyticsPage />} />
-                  <Route path="/fbr/wizard" element={<FbrSetupWizard />} />
+                  {/* Tax ek jagah — purane FBR links yahin aate hain */}
+                  <Route path="/tax" element={secure(PERMISSIONS.SETTINGS_VIEW, <TaxHubPage />)} />
+                  <Route path="/tax/invoices" element={secure(PERMISSIONS.SETTINGS_VIEW, <TaxHubPage />)} />
+                  <Route path="/tax/reports" element={secure(PERMISSIONS.SETTINGS_VIEW, <TaxHubPage />)} />
+                  <Route path="/tax/settings" element={secure(PERMISSIONS.SETTINGS_VIEW, <TaxHubPage />)} />
+                  <Route path="/fbr" element={<Navigate to="/tax/settings" replace />} />
+                  <Route path="/fbr/setup" element={<Navigate to="/tax/settings" replace />} />
+                  <Route path="/fbr/wizard" element={<Navigate to="/tax/settings" replace />} />
+                  <Route path="/fbr/invoices" element={<Navigate to="/tax/invoices" replace />} />
+                  <Route path="/fbr/reports" element={<Navigate to="/tax/reports" replace />} />
+                  <Route path="/fbr/analytics" element={<Navigate to="/tax" replace />} />
                   <Route path="/integrations/orders" element={<IntegrationHubPage defaultTab="orders" />} />
                   <Route path="/integrations/shipments" element={<IntegrationHubPage defaultTab="shipments" />} />
                   <Route path="/integrations/logs" element={<IntegrationHubPage defaultTab="logs" />} />

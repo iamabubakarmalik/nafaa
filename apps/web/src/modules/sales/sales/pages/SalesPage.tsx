@@ -25,7 +25,6 @@ import { SalesPrivacyModal } from '../components/SalesPrivacyModal';
 import { HiddenAmount } from '../components/HiddenAmount';
 import { IndustrySlot } from '@industries/_shared/components/IndustrySlot';
 import { toast } from 'sonner';
-import { FbrSaleButton } from '@integrations/fbr';
 import { SaleSourceBadge } from '../components/SaleSourceBadge';
 
 const formatDate = (value: string) =>

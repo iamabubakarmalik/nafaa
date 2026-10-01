@@ -3,6 +3,8 @@ import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
 import { decrypt, encrypt } from '../../core/lib/crypto';
+import { dateKeyTz } from '../../common/helpers/business-time.helper';
+import { InvRow, health, monthDays, monthlyReport, reportCsv } from './tax-reports';
 import {
   AUTHORITIES, Authority, AuthorityCreds, Env, FBR_URL, FiscalBill, FiscalResult, KPRA_URL, PRA_URL, SRB_URL,
   kpraParse, kpraRequest, praParse, praRequest, srbParse, srbRequest, splitTax,
@@ -104,7 +106,9 @@ export class TaxAuthorityService {
         return { shopId: t.shopId, posId: t.posId, ntn: t.ntn, user: cr.user ?? '', hasSecret: !!(cr.token || cr.pass || cr.key) };
       }),
     };
-    return { config: safe, authorities: AUTHORITIES, defaults: DEFAULT_RATES, shops, stats, recent };
+    // Purane FBR safhe me NTN / POS ID likha tha to naye form me pehle se bhar do
+    const legacy = await this.prisma.fbrConfig.findUnique({ where: { tenantId: user.tenantId }, select: { ntn: true, posId: true, businessName: true } }).catch(() => null);
+    return { config: safe, authorities: AUTHORITIES, defaults: DEFAULT_RATES, shops, stats, recent, legacyFbr: legacy?.ntn || legacy?.posId ? legacy : null };
   }
 
   async save(user: AuthenticatedUser, body: any) {
@@ -361,5 +365,123 @@ export class TaxAuthorityService {
       })).map((x) => x.returnId));
       for (const r of rets.filter((x) => !done.has(x.id)).slice(0, 20)) await this.submitReturn(tenantId, c, r.id).catch(() => null);
     }
+  }
+
+  /* ───────────────────── INVOICES / REPORTS ───────────────────── */
+
+  async invoices(user: AuthenticatedUser, q: { status?: string; kind?: string; search?: string; from?: string; to?: string; page?: string }) {
+    this.assert(user);
+    const page = Math.max(1, Number(q.page) || 1);
+    const take = 50;
+    const where: any = { tenantId: user.tenantId };
+    if (q.status && ['SUCCESS', 'FAILED', 'PENDING', 'SKIPPED'].includes(q.status)) where.status = q.status;
+    if (q.kind && ['SALE', 'RETURN'].includes(q.kind)) where.kind = q.kind;
+    if (q.search?.trim()) where.OR = [{ usin: { contains: q.search.trim(), mode: 'insensitive' } }, { fiscalNumber: { contains: q.search.trim() } }];
+    if (q.from || q.to) where.createdAt = { ...(q.from && { gte: new Date(`${q.from}T00:00:00+05:00`) }), ...(q.to && { lt: new Date(new Date(`${q.to}T00:00:00+05:00`).getTime() + 86_400_000) }) };
+    try {
+      const [rows, total] = await Promise.all([
+        this.prisma.taxAuthorityInvoice.findMany({
+          where, orderBy: { createdAt: 'desc' }, skip: (page - 1) * take, take,
+          select: { id: true, authority: true, kind: true, saleId: true, usin: true, posId: true, status: true, fiscalNumber: true, qrText: true, saleValue: true, taxAmount: true, totalAmount: true, taxRate: true, error: true, attempts: true, createdAt: true, submittedAt: true, nextAttemptAt: true, shopId: true },
+        }),
+        this.prisma.taxAuthorityInvoice.count({ where }),
+      ]);
+      return { rows, total, page, pages: Math.max(1, Math.ceil(total / take)) };
+    } catch {
+      return { rows: [], total: 0, page: 1, pages: 1, migrationPending: true };
+    }
+  }
+
+  /** "Dobara bhejein" — fail / atka hua bill abhi */
+  async retry(user: AuthenticatedUser, id: string) {
+    this.assert(user);
+    const c = await this.read(user.tenantId);
+    if (!c?.enabled) throw new BadRequestException('Pehle tax chalu karein');
+    const r = await this.prisma.taxAuthorityInvoice.findFirst({ where: { id, tenantId: user.tenantId } });
+    if (!r) throw new NotFoundException('Invoice nahi mili');
+    if (r.status === 'SUCCESS') return this.view(r);
+    if (r.kind === 'SALE') return this.submitSale(user.tenantId, r.saleId);
+    await this.submitReturn(user.tenantId, c, r.returnId);
+    const after = await this.prisma.taxAuthorityInvoice.findUniqueOrThrow({ where: { id } });
+    return this.view(after);
+  }
+
+  /** Bill ka asal din (PKT) — sale.soldAt / return.returnedAt se */
+  private async rowsBetween(tenantId: string, start: Date, end: Date): Promise<InvRow[]> {
+    const recs = await this.prisma.taxAuthorityInvoice.findMany({
+      where: { tenantId, createdAt: { gte: new Date(start.getTime() - 7 * 86_400_000), lt: new Date(end.getTime() + 7 * 86_400_000) } },
+      select: { status: true, kind: true, authority: true, shopId: true, saleValue: true, taxAmount: true, totalAmount: true, taxRate: true, saleId: true, returnId: true, createdAt: true, submittedAt: true },
+    });
+    const sales = await this.prisma.sale.findMany({ where: { id: { in: [...new Set(recs.filter((r) => r.kind === 'SALE').map((r) => r.saleId))] } }, select: { id: true, soldAt: true } });
+    const rets = await this.prisma.saleReturn.findMany({ where: { id: { in: recs.filter((r) => r.kind === 'RETURN').map((r) => r.returnId) } }, select: { id: true, returnedAt: true } });
+    const at = new Map<string, Date>([...sales.map((x) => [x.id, x.soldAt] as [string, Date]), ...rets.map((x) => [x.id, x.returnedAt] as [string, Date])]);
+    return recs
+      .map((r) => ({ ...r, when: at.get(r.kind === 'SALE' ? r.saleId : r.returnId) ?? r.createdAt }))
+      .filter((r) => r.when >= start && r.when < end)
+      .map((r) => ({ ...r, day: dateKeyTz(r.when) }));
+  }
+
+  async report(user: AuthenticatedUser, month?: string) {
+    this.assert(user);
+    const m = /^\d{4}-\d{2}$/.test(month ?? '') ? month! : dateKeyTz(new Date()).slice(0, 7);
+    const days = monthDays(m);
+    const start = new Date(`${days[0]}T00:00:00+05:00`);
+    const end = new Date(new Date(`${days[days.length - 1]}T00:00:00+05:00`).getTime() + 86_400_000);
+    const c = await this.read(user.tenantId);
+    let rows: InvRow[] = [];
+    try { rows = await this.rowsBetween(user.tenantId, start, end); } catch { /* migration baqi */ }
+    const rep = monthlyReport(rows, days);
+    const shops = await this.prisma.shop.findMany({ where: { tenantId: user.tenantId }, select: { id: true, name: true } });
+    const tenant = await this.prisma.tenant.findUnique({ where: { id: user.tenantId }, select: { name: true } as any });
+    return {
+      month: m, authority: c?.authority ?? null, business: c?.businessName || (tenant as any)?.name || '',
+      ...rep,
+      byShop: rep.byShop.map((x) => ({ ...x, name: shops.find((s) => s.id === x.shopId)?.name ?? 'Sab branches' })),
+      health: health(rows),
+    };
+  }
+
+  async reportFile(user: AuthenticatedUser, month?: string) {
+    const r = await this.report(user, month);
+    return { name: `tax-${r.authority ?? 'report'}-${r.month}.csv`, body: reportCsv(r, { authority: r.authority ?? 'Tax', month: r.month, business: r.business }) };
+  }
+
+  /** Overview: pichle din, sehat, is mahine vs pichla, aur chhoote hue bill */
+  async analytics(user: AuthenticatedUser) {
+    this.assert(user);
+    const c = await this.read(user.tenantId);
+    const now = new Date();
+    const today = dateKeyTz(now);
+    const thisMonth = today.slice(0, 7);
+    const [py, pm] = thisMonth.split('-').map(Number);
+    const lastMonth = pm === 1 ? `${py - 1}-12` : `${py}-${String(pm - 1).padStart(2, '0')}`;
+    const start = new Date(`${lastMonth}-01T00:00:00+05:00`);
+    let rows: InvRow[] = [];
+    let migrationPending = false;
+    try { rows = await this.rowsBetween(user.tenantId, start, new Date(now.getTime() + 60_000)); } catch { migrationPending = true; }
+
+    const last30 = Array.from({ length: 30 }, (_, i) => dateKeyTz(new Date(now.getTime() - (29 - i) * 86_400_000)));
+    const series = monthlyReport(rows, last30).daily;
+    const sum = (m: string) => monthlyReport(rows.filter((r) => r.day.startsWith(m)), monthDays(m)).totals;
+
+    // Chalu hone ke baad ke bill jo abhi authority tak nahi gaye
+    let missing = 0;
+    if (c?.enabled && c.startAt && !migrationPending) {
+      const since = new Date(Math.max(Date.parse(c.startAt), now.getTime() - 3 * 86_400_000));
+      const sales = await this.prisma.sale.findMany({ where: { tenantId: user.tenantId, createdAt: { gte: since, lt: new Date(now.getTime() - 5 * 60_000) }, status: { not: 'VOIDED' }, ...(c.onlyPos && { source: 'POS' }) }, select: { id: true }, take: 2000 });
+      if (sales.length) {
+        const done = await this.prisma.taxAuthorityInvoice.count({ where: { tenantId: user.tenantId, kind: 'SALE', saleId: { in: sales.map((s) => s.id) } } });
+        missing = Math.max(0, sales.length - done);
+      }
+    }
+    const recentFails = migrationPending ? [] : await this.prisma.taxAuthorityInvoice.findMany({
+      where: { tenantId: user.tenantId, status: 'FAILED' }, orderBy: { updatedAt: 'desc' }, take: 5,
+      select: { id: true, usin: true, error: true, attempts: true, nextAttemptAt: true },
+    });
+    return {
+      enabled: !!c?.enabled, authority: c?.authority ?? null, env: c?.env ?? null, startAt: c?.startAt ?? null,
+      migrationPending, series, thisMonth: { month: thisMonth, ...sum(thisMonth) }, lastMonth: { month: lastMonth, ...sum(lastMonth) },
+      health: health(rows.filter((r) => r.day >= last30[0])), missing, recentFails,
+    };
   }
 }

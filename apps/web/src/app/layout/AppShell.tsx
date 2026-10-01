@@ -23,14 +23,12 @@ import { useTaxAuthorityBoot } from '@integrations/tax-authority/taxAuthority.ap
 import { useDesktopAutoBackup } from '@core/lib/desktop/useDesktopAutoBackup';
 import { useDesktopMemory, useDesktopPower } from '@core/lib/desktop/useDesktopMemory';
 import { useDesktopDeepLink } from '@core/lib/desktop/useDesktopDeepLink';
-import { useFbrNotifications } from '@integrations/fbr/hooks/useFbrNotifications';
 import { OnlineOrderAlert } from '@integrations/online-orders/components/OnlineOrderAlert';
 import { cn } from '@core/lib/cn';
 
 const SIDEBAR_COLLAPSED_KEY = 'nafaa-sidebar-collapsed';
 
 export default function AppShell() {
-  useFbrNotifications();
   useRealtimeNotifications();
   useDesktopNavigation();
   useDesktopShortcuts();

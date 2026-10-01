@@ -137,11 +137,12 @@ export const posNavGroups: NavGroup[] = [
     ],
   },
   {
-    id: 'fbr', label: 'Tax (FBR)', icon: Shield, color: '#64748b', order: 96,
+    id: 'tax', label: 'Tax', icon: Landmark, color: '#64748b', order: 96,
     items: [
-      { to: '/fbr/invoices', label: 'FBR invoices', icon: FileText, keywords: 'tax' },
-      { to: '/fbr/reports', label: 'Monthly reports', icon: TrendingUp, keywords: 'tax' },
-      { to: '/fbr/analytics', label: 'Tax analytics', icon: BarChart3, keywords: 'fbr' },
+      { to: '/tax', label: 'Overview', icon: BarChart3, permission: P.SETTINGS_VIEW, keywords: 'tax fbr pra srb kpra analytics' },
+      { to: '/tax/invoices', label: 'Tax invoices', icon: FileText, permission: P.SETTINGS_VIEW, keywords: 'fbr pra srb kpra fiscal invoice' },
+      { to: '/tax/reports', label: 'Monthly reports', icon: TrendingUp, permission: P.SETTINGS_VIEW, keywords: 'tax return filing report' },
+      { to: '/tax/settings', label: 'Tax settings', icon: Settings, permission: P.SETTINGS_VIEW, keywords: 'fbr pra srb kpra pos id token' },
     ],
   },
 ];
@@ -278,7 +279,6 @@ export const SETTINGS_SECTIONS: { title: string; items: SettingsItem[] }[] = [
   {
     title: 'Sales channels & apps',
     items: [
-      { to: '/settings/tax-authority', label: "Suba'i tax (PRA/SRB/KPRA)", icon: Landmark, permission: P.SETTINGS_VIEW, desc: 'Restaurant / services ka sales tax — fiscal number bill par', keywords: 'pra srb kpra punjab sindh kpk revenue authority tax fiscal invoice restaurant sales tax services' },
       { to: '/settings/google', label: 'Google', icon: Search, permission: P.SETTINGS_VIEW, desc: 'Google Shopping, Maps par stock, reviews', keywords: 'google merchant center shopping maps business profile review local inventory feed' },
       { to: '/settings/payment-qr', label: 'Payment QR (Raast)', icon: QrCode, permission: P.SETTINGS_VIEW, desc: 'Raast, JazzCash, Easypaisa QR — bill ki raqam ke saath', keywords: 'raast qr jazzcash easypaisa bank qr code scan pay till' },
       { to: '/settings/hardware', label: 'POS hardware', icon: Printer, permission: P.POS_USE, desc: 'Printer direct, cash drawer, tarazu, customer screen', keywords: 'printer thermal escpos drawer scale tarazu weighing customer display hardware usb bluetooth' },
@@ -295,7 +295,7 @@ export const SETTINGS_SECTIONS: { title: string; items: SettingsItem[] }[] = [
   {
     title: 'Tax & compliance',
     items: [
-      { to: '/fbr', label: 'FBR tax', icon: Shield, desc: 'POS integration with FBR', match: ['/fbr', '/fbr/setup', '/fbr/wizard'], keywords: 'tax pos invoice' },
+      { to: '/tax/settings', label: 'Tax (FBR / PRA / SRB / KPRA)', icon: Landmark, permission: P.SETTINGS_VIEW, desc: 'Har bill authority ko, fiscal number bill par, mahine ki report', match: ['/tax/settings', '/fbr'], keywords: 'tax fbr pra srb kpra pos invoice fiscal' },
     ],
   },
   {

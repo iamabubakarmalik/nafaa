@@ -12,10 +12,41 @@ export interface TaxOverview {
   defaults: Record<Authority, { cash: number; card: number }>;
   shops: { id: string; name: string }[];
   stats: Record<string, number>;
+  legacyFbr?: { ntn: string | null; posId: string | null; businessName: string | null } | null;
   recent: Array<{ id: string; authority: string; kind: string; usin: string; status: string; fiscalNumber: string | null; totalAmount: number; taxAmount: number; error: string | null; attempts: number; createdAt: string }>;
 }
 
+export interface TaxInvoiceRow {
+  id: string; authority: Authority; kind: 'SALE' | 'RETURN'; saleId: string; usin: string; posId: string; status: 'SUCCESS' | 'FAILED' | 'PENDING' | 'SKIPPED';
+  fiscalNumber: string | null; qrText: string | null; saleValue: number; taxAmount: number; totalAmount: number; taxRate: number;
+  error: string | null; attempts: number; createdAt: string; submittedAt: string | null; nextAttemptAt: string | null; shopId: string | null;
+}
+export interface DayTotals { day: string; bills: number; returns: number; saleValue: number; tax: number; total: number }
+export interface Health { success: number; failed: number; pending: number; skipped: number; successRate: number | null; avgSeconds: number | null }
+export interface TaxReport {
+  month: string; authority: Authority | null; business: string;
+  daily: DayTotals[]; totals: Omit<DayTotals, 'day'>;
+  byRate: { rate: number; bills: number; saleValue: number; tax: number }[];
+  byShop: { shopId: string | null; name: string; bills: number; saleValue: number; tax: number }[];
+  health: Health;
+}
+export interface TaxAnalytics {
+  enabled: boolean; authority: Authority | null; env: string | null; startAt: string | null; migrationPending: boolean;
+  series: DayTotals[]; thisMonth: Omit<DayTotals, 'day'> & { month: string }; lastMonth: Omit<DayTotals, 'day'> & { month: string };
+  health: Health; missing: number; recentFails: { id: string; usin: string; error: string | null; attempts: number; nextAttemptAt: string | null }[];
+}
+
 export const taxAuthorityApi = {
+  analytics: () => apiClient.get('/tax-authority/analytics').then((r) => unwrap<TaxAnalytics>(r)),
+  invoices: (q: Record<string, string | undefined>) => apiClient.get('/tax-authority/invoices', { params: q }).then((r) => unwrap<{ rows: TaxInvoiceRow[]; total: number; page: number; pages: number; migrationPending?: boolean }>(r)),
+  retry: (id: string) => apiClient.post(`/tax-authority/invoices/${id}/retry`).then((r) => unwrap<Fiscal>(r)),
+  report: (month: string) => apiClient.get('/tax-authority/report', { params: { month } }).then((r) => unwrap<TaxReport>(r)),
+  reportCsv: async (month: string) => {
+    const r = await apiClient.get('/tax-authority/report.csv', { params: { month }, responseType: 'blob' });
+    const url = URL.createObjectURL(r.data as Blob);
+    const a = document.createElement('a'); a.href = url; a.download = `tax-report-${month}.csv`; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+  },
   overview: () => apiClient.get('/tax-authority').then((r) => unwrap<TaxOverview>(r)),
   pos: () => apiClient.get('/tax-authority/pos').then((r) => unwrap<{ enabled: boolean; authority: Authority | null; env: string | null }>(r)),
   save: (b: unknown) => apiClient.put('/tax-authority', b).then((r) => unwrap<TaxOverview>(r)),

@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Module, Param, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Module, Param, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
+import type { Response } from 'express';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { PrismaModule } from '../../prisma/prisma.module';
@@ -34,6 +35,35 @@ export class TaxAuthorityController {
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   test(@GetUser() user: AuthenticatedUser) {
     return this.svc.test(user);
+  }
+
+  @Get('analytics')
+  analytics(@GetUser() user: AuthenticatedUser) {
+    return this.svc.analytics(user);
+  }
+
+  @Get('invoices')
+  invoices(@GetUser() user: AuthenticatedUser, @Query() q: { status?: string; kind?: string; search?: string; from?: string; to?: string; page?: string }) {
+    return this.svc.invoices(user, q);
+  }
+
+  @Post('invoices/:id/retry')
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  retry(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.svc.retry(user, id);
+  }
+
+  @Get('report')
+  report(@GetUser() user: AuthenticatedUser, @Query('month') month?: string) {
+    return this.svc.report(user, month);
+  }
+
+  @Get('report.csv')
+  async reportCsv(@GetUser() user: AuthenticatedUser, @Query('month') month: string, @Res() res: Response) {
+    const f = await this.svc.reportFile(user, month);
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${f.name}"`);
+    res.send(f.body);
   }
 
   @Post('sales/:saleId/submit')
