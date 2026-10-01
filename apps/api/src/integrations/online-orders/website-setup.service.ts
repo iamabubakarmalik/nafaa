@@ -8,13 +8,14 @@ import { startOfDayTz } from '../../common/helpers/business-time.helper';
 import { WebsiteConfig, assertSafeWebhookUrl, readWebsiteConfig } from './website-config';
 
 /** Website jaise channels — har ek ki apni key, settings aur safha */
-export const WEBSITE_TYPES: IntegrationType[] = ['CUSTOM_WEBSITE', 'WOOCOMMERCE', 'SHOPIFY', 'DARAZ'];
+export const WEBSITE_TYPES: IntegrationType[] = ['CUSTOM_WEBSITE', 'WOOCOMMERCE', 'SHOPIFY', 'DARAZ', 'FOODPANDA'];
 
 const PLATFORM_OF: Record<string, WebsiteConfig['platform']> = {
   CUSTOM_WEBSITE: 'custom',
   WOOCOMMERCE: 'woocommerce',
   SHOPIFY: 'shopify',
   DARAZ: 'daraz',
+  FOODPANDA: 'foodpanda',
 };
 
 /**
@@ -155,7 +156,7 @@ export class WebsiteSetupService {
       platform: PLATFORM_OF[body.type],
       siteUrl: body.siteUrl ?? null,
     };
-    const fallbackName = body.type === 'WOOCOMMERCE' ? 'WooCommerce store' : body.type === 'SHOPIFY' ? 'Shopify store' : body.type === 'DARAZ' ? 'Daraz store' : 'Meri website';
+    const fallbackName = body.type === 'WOOCOMMERCE' ? 'WooCommerce store' : body.type === 'SHOPIFY' ? 'Shopify store' : body.type === 'DARAZ' ? 'Daraz store' : body.type === 'FOODPANDA' ? 'Foodpanda' : 'Meri website';
 
     return this.prisma.integration.create({
       data: {

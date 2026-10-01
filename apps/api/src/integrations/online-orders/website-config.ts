@@ -23,7 +23,7 @@ export interface WebsiteConfig {
   requireSignature: boolean;
   /** Shopify webhook ka signing key (Shopify admin me milta hai) */
   shopifySecret: string | null;
-  platform: 'custom' | 'woocommerce' | 'shopify' | 'wordpress' | 'daraz' | null;
+  platform: 'custom' | 'woocommerce' | 'shopify' | 'wordpress' | 'daraz' | 'foodpanda' | null;
   siteUrl: string | null;
 }
 

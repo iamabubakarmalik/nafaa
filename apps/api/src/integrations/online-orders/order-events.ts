@@ -23,3 +23,17 @@ export function emitOrderAccepted(e: OrderAccepted) {
     }
   });
 }
+
+/**
+ * Channel ka order status badla (accept / cancel / ready…) — Foodpanda jaise
+ * channels apne server ko batate hain. StatusWebhookService bhejta hai.
+ */
+export interface ChannelStatus { integrationId: string; orderId: string; event: string }
+export const channelStatusEvents = new EventEmitter();
+channelStatusEvents.setMaxListeners(20);
+
+export function emitChannelStatus(e: ChannelStatus) {
+  setImmediate(() => {
+    try { channelStatusEvents.emit('status', e); } catch { /* sunne wale ki ghalti */ }
+  });
+}

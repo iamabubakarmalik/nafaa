@@ -5,6 +5,7 @@ import { Integration } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { assertSafeWebhookUrl, isPrivateIp, readWebsiteConfig, signPayload } from './website-config';
 import { WooCommerceService } from './woocommerce.service';
+import { emitChannelStatus } from './order-events';
 import { ShopifyService } from './shopify.service';
 
 /**
@@ -26,6 +27,11 @@ export class StatusWebhookService {
   ) {}
 
   send(integration: Integration, order: any, event: string) {
+    // Foodpanda: accept / reject / ready Delivery Hero ko — test order bhi (onboarding ke test cases)
+    if (integration.type === 'FOODPANDA') {
+      emitChannelStatus({ integrationId: integration.id, orderId: order.id, event });
+      return;
+    }
     if ((order.metadata as any)?.test) return;
     // WooCommerce ek click se jura hai → seedha uske order par status/note
     if (this.woo.isConnected(integration)) {

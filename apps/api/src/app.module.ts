@@ -124,7 +124,6 @@ import { PublicApiModule } from './integrations/public-api/public-api.module';
 import { PayQrModule } from './integrations/pay-qr/pay-qr.controller';
 import { GoogleModule } from './integrations/google/google.controller';
 import { TaxAuthorityModule } from './integrations/tax-authority/tax-authority.controller';
-import { FoodpandaModule } from './integrations/channels/foodpanda/foodpanda.module';
 
 // ─── Batch E: Cart Recovery + Try Before Buy + B2B + Prayer + AI ────
 import { CartRecoveryModule } from './marketplace/cart-recovery/cart-recovery.module';
@@ -247,7 +246,6 @@ import { AiAssistantModule } from './marketplace/ai-assistant/ai-assistant.modul
     GoogleModule,
     TaxAuthorityModule,
     CustomWebsiteModule,
-    FoodpandaModule,
 
     // ─── Batch E ───
     CartRecoveryModule,

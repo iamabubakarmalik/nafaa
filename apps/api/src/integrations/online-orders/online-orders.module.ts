@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { FoodpandaController, FoodpandaPluginController } from './foodpanda.controller';
+import { FoodpandaService } from './foodpanda.service';
 import { PrismaModule } from '../../prisma/prisma.module';
 import { SalesModule } from '../../modules/sales/sales/sales.module';
 import { IntegrationCoreModule } from '../core/integration.module';
@@ -51,8 +53,10 @@ import {
     DarazController,
     PaymentLinksController,
     PaymentLinksPublicController,
+    FoodpandaPluginController,
+    FoodpandaController,
   ],
-  providers: [OnlineOrdersService, WebsiteCatalogService, WebsiteSetupService, StatusWebhookService, WooCommerceService, ShopifyService, ChannelCatalogService, DataRetentionService, CourierAccountsService, StockPushService, OrderToolsService, StorefrontService, DarazService, PaymentLinksService],
+  providers: [OnlineOrdersService, WebsiteCatalogService, WebsiteSetupService, StatusWebhookService, WooCommerceService, ShopifyService, ChannelCatalogService, DataRetentionService, CourierAccountsService, StockPushService, OrderToolsService, StorefrontService, DarazService, PaymentLinksService, FoodpandaService],
   exports: [OnlineOrdersService, WebsiteCatalogService],
 })
 export class OnlineOrdersModule {}

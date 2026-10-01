@@ -22,6 +22,7 @@ import DeveloperPage from '@integrations/developer/DeveloperPage';
 import PayQrPage from '@core/payments/PayQrPage';
 import GooglePage from '@integrations/google/GooglePage';
 import TaxAuthorityPage from '@integrations/tax-authority/TaxAuthorityPage';
+import FoodpandaPage from '@integrations/online-orders/pages/FoodpandaPage';
 import CustomerDisplayPage from '@core/hardware/CustomerDisplayPage';
 import {
   OnlineOrdersPage, WebsiteConnectPage, WebsiteRedirect, ConnectChannelPage, ChannelsListPage, ConnectDonePage, ShopifyAppPage, CodPage, CouriersPage, CourierDetailPage, PrintInvoicesPage, OnlineReportsPage, BlocklistPage, OnlineCustomersPage, PaymentsPage, PublicPayPage, PublicOrderPage, DevInvitePage, PublicTrackPage,
@@ -685,6 +686,7 @@ export default function App() {
                   <Route path="/online-orders/reports" element={secure(PERMISSIONS.SALES_VIEW, <OnlineReportsPage />)} />
                   <Route path="/online-orders/customers" element={secure(PERMISSIONS.SALES_VIEW, <OnlineCustomersPage />)} />
                   <Route path="/online-store/payments" element={secure(PERMISSIONS.SALES_VIEW, <PaymentsPage />)} />
+                  <Route path="/online-store/foodpanda" element={secure(PERMISSIONS.SETTINGS_VIEW, <FoodpandaPage />)} />
                   <Route path="/settings/accounting" element={secure(PERMISSIONS.SETTINGS_VIEW, <AccountingPage />)} />
                   <Route path="/settings/hardware" element={secure(PERMISSIONS.POS_USE, <HardwarePage />)} />
                   <Route path="/settings/developer" element={secure(PERMISSIONS.SETTINGS_VIEW, <DeveloperPage />)} />

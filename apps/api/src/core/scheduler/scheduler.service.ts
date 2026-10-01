@@ -237,12 +237,8 @@ export class SchedulerService {
       if (nextSync > new Date()) continue; // not time yet
 
       try {
-        if (integration.type === 'FOODPANDA') {
-          // Dynamically import to avoid circular deps
-          const { FoodpandaService } = await import('../../integrations/channels/foodpanda/foodpanda.service.js');
-          // Would inject service in real impl — for now log
-          this.logger.log(`🍔 Foodpanda sync queued for tenant ${integration.tenantId}`);
-        } else if (integration.type === 'DARAZ') {
+        // Foodpanda orders khud aate hain (Delivery Hero push) — yahan sync ki zaroorat nahi
+        if (integration.type === 'DARAZ') {
           this.logger.log(`🛒 Daraz sync queued for tenant ${integration.tenantId}`);
         }
       } catch (e: any) {
