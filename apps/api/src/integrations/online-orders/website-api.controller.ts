@@ -13,7 +13,7 @@ import { WebsiteCatalogService } from './website-catalog.service';
 import { WebsiteSetupService } from './website-setup.service';
 import { WooCommerceService } from './woocommerce.service';
 import { ShopifyService } from './shopify.service';
-import { detectPlatform, normalizeOrder } from './order-normalizer';
+import { detectPlatform, isIndoljStatus, normalizeOrder } from './order-normalizer';
 import { readWebsiteConfig, verifySignature } from './website-config';
 
 /**
@@ -231,6 +231,15 @@ export class WebsiteApiController {
   }
 
   private async handleOrder(integration: Integration, req: Request, body: any) {
+    // Indolj ka status webhook (order cancel / deliver) — naya order nahi
+    if (isIndoljStatus(body)) {
+      const st = String(body.status).toLowerCase();
+      if (['cancelled', 'canceled'].includes(st)) {
+        await this.orders.applyWebsiteUpdate(integration, String(body.order_id), { cancelled: true, reason: 'Indolj par cancel hua' }).catch(() => null);
+      }
+      await this.markVerified(integration);
+      return { success: true, status: st };
+    }
     const platform = detectPlatform(body, req.headers as any);
     const topic = String(req.headers['x-wc-webhook-topic'] ?? req.headers['x-shopify-topic'] ?? 'order');
     try {

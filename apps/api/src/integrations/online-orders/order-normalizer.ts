@@ -6,12 +6,13 @@ import { BadRequestException } from '@nestjs/common';
  *  1. Nafaa ka apna simple format (custom website / Nafaa WordPress plugin)
  *  2. WooCommerce ka built-in webhook (Settings → Advanced → Webhooks)
  *  3. Shopify ka built-in webhook (Settings → Notifications → Webhooks)
+ *  4. Indolj (restaurant ordering platform) ka "General POS" webhook
  *
  * 2 aur 3 ka faida: dukandar ko koi plugin ya developer nahi chahiye —
  * sirf URL paste karna hai. Teeno ko yahan ek hi shakal me badal dete hain.
  */
 
-export type OrderPlatform = 'custom' | 'woocommerce' | 'shopify' | 'daraz';
+export type OrderPlatform = 'custom' | 'woocommerce' | 'shopify' | 'daraz' | 'indolj';
 
 export interface NormalizedItem {
   name: string;
@@ -75,6 +76,7 @@ const fullName = (first: any, last: any): string | undefined =>
 export function detectPlatform(body: any, headers: Record<string, any> = {}): OrderPlatform {
   if (headers['x-wc-webhook-source'] || headers['x-wc-webhook-topic']) return 'woocommerce';
   if (headers['x-shopify-topic'] || headers['x-shopify-shop-domain']) return 'shopify';
+  if (isIndoljOrder(body)) return 'indolj';
   if (Array.isArray(body?.line_items)) {
     if (body.billing || body.shipping_total !== undefined) return 'woocommerce';
     if (body.total_price !== undefined || body.financial_status) return 'shopify';
@@ -248,6 +250,86 @@ function normalizeShopify(body: any): NormalizedOrder {
   };
 }
 
+/** Indolj ka order: merchantId + total (object) + customer.firstName / items[].qty */
+export function isIndoljOrder(body: any): boolean {
+  if (!body || typeof body !== 'object') return false;
+  const items = body.items ?? body.Items;
+  return (body.merchantId !== undefined || body.partnerIndexCode !== undefined || body.orderSource !== undefined)
+    && !!body.orderId && Array.isArray(items) && (typeof body.total === 'object' || body.customer?.firstName !== undefined);
+}
+
+/** Indolj ka status webhook: { order_id, status, updated_at, total_amount } */
+export function isIndoljStatus(body: any): boolean {
+  return !!body && typeof body === 'object' && !!body.order_id && typeof body.status === 'string' && !body.items && !body.Items && !body.line_items;
+}
+
+function normalizeIndolj(body: any): NormalizedOrder {
+  const c = body.customer ?? {};
+  const d = body.dropOff ?? body.dropoff ?? {};
+  const t = (typeof body.total === 'object' && body.total) || {};
+  const items: NormalizedItem[] = [];
+  const notes: string[] = [];
+  for (const it of (body.items ?? body.Items ?? []) as any[]) {
+    const qty = num(it.qty ?? it.quantity, 1);
+    // discountedPrice item ki asal (discount ke baad) qeemat — warna price
+    const unit = num(it.discountedPrice, 0) > 0 ? num(it.discountedPrice) : num(it.price);
+    items.push({
+      name: str(it.name) ?? 'Item',
+      sku: str(it.sku ?? it.variationPosCode ?? it.itemPosCode ?? it.posCode),
+      externalProductId: str(it.id),
+      variant: str(it.size),
+      quantity: qty,
+      price: unit,
+    });
+    if (str(it.orderNotes)) notes.push(`${str(it.name)}: ${str(it.orderNotes)}`);
+    // Add-ons (extra cheese, drink…) alag line — bill aur kitchen dono me dikhe
+    for (const a of (it.subItems ?? it.subitems ?? []) as any[]) {
+      items.push({
+        name: `+ ${str(a.addon_name) ?? 'Add-on'}${str(a.addon_category) ? ` (${str(a.addon_category)})` : ''}`,
+        sku: str(a.pos_code),
+        externalProductId: str(a.addon_id),
+        quantity: num(a.addon_qty, 0) > 0 ? num(a.addon_qty) : qty,
+        price: num(a.addon_price),
+      });
+    }
+  }
+  const subtotal = num(t.subtotal, items.reduce((s, i) => s + i.price * i.quantity, 0));
+  const deliveryFee = num(t.deliveryCharges);
+  const discount = num(t.discountedAmount) + num(t.loyaltyPointsDiscount);
+  const status = String(body.orderStatus ?? '').toLowerCase();
+  const pay = String(body.payment ?? body.paymentStatus ?? '').toLowerCase();
+  const type = str(body.orderType);
+  if (str(c.deliveryInstruction)) notes.unshift(str(c.deliveryInstruction)!);
+  if (type) notes.unshift(`Order type: ${type}`);
+  if (num(t.tax) > 0) notes.push(`Tax ${num(t.tax)}${t.taxPercentage ? ` (${t.taxPercentage}%)` : ''} shamil`);
+  if (str(t.voucherCode)) notes.push(`Voucher: ${str(t.voucherCode)}`);
+
+  return {
+    platform: 'indolj',
+    externalOrderId: str(body.orderId) ?? '',
+    externalOrderNumber: str(body.orderId),
+    customerName: fullName(c.firstName, c.lastName) ?? 'Customer',
+    customerPhone: str(c.phoneNumber ?? c.alternatePhone),
+    customerEmail: str(c.email),
+    customerAddress: joinParts(c.address ?? d.street, d.unit, c.nearestLandMark && `Near ${c.nearestLandMark}`),
+    customerCity: str(d.city),
+    customerLat: d.latitude !== undefined ? num(d.latitude) : undefined,
+    customerLng: d.longitude !== undefined ? num(d.longitude) : undefined,
+    items,
+    subtotal,
+    deliveryFee,
+    discount,
+    // grandTotal me tax bhi — customer ne wahi dena hai
+    total: num(t.grandTotal, subtotal + deliveryFee - discount + num(t.tax)),
+    paymentMethod: str(body.paymentType),
+    paymentStatus: PAID_WORDS.includes(pay) || pay === 'paid' ? 'PAID' : 'PENDING',
+    cancelled: CANCEL_WORDS.includes(status),
+    notes: str(notes.join(' · ')),
+    shippingMethod: type,
+    paymentTitle: str(body.paymentType),
+  };
+}
+
 export function normalizeOrder(body: any, platform: OrderPlatform): NormalizedOrder {
   if (!body || typeof body !== 'object') {
     throw new BadRequestException('Order ka data JSON me bhejein');
@@ -256,7 +338,8 @@ export function normalizeOrder(body: any, platform: OrderPlatform): NormalizedOr
   const order =
     platform === 'woocommerce' ? normalizeWoo(body)
       : platform === 'shopify' ? normalizeShopify(body)
-        : normalizeCustom(body);
+        : platform === 'indolj' ? normalizeIndolj(body)
+          : normalizeCustom(body);
 
   if (!order.externalOrderId) {
     throw new BadRequestException('orderId zaroori hai');

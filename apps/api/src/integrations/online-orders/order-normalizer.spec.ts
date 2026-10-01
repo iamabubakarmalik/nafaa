@@ -103,3 +103,34 @@ describe('assertSafeWebhookUrl', () => {
     expect(assertSafeWebhookUrl('https://shop.pk/wp-json/nafaa/v1/status')).toContain('shop.pk');
   });
 });
+
+describe('Indolj', () => {
+  const { detectPlatform, normalizeOrder, isIndoljStatus } = require('./order-normalizer');
+  const body = {
+    orderId: 'IND-778', orderCreated: '2026-10-01 18:00', merchantId: 42, orderType: 'Delivery', orderStatus: 'pending',
+    payment: 'unpaid', paymentType: 'COD', partnerIndexCode: 'X', orderSource: 'web',
+    customer: { firstName: 'Ali', lastName: 'Khan', phoneNumber: '03001234567', email: 'a@x.pk', nearestLandMark: 'Masjid', address: 'House 5, Block B', deliveryInstruction: 'Bell kharab' },
+    items: [{ id: 9, sku: 'BRG', name: 'Zinger', size: 'Large', posCode: 'P9', qty: 2, price: 650, discountedPrice: 600, orderNotes: 'No mayo', categoryName: 'Burgers',
+      subItems: [{ addon_id: 3, addon_name: 'Cheese', addon_category: 'Extras', addon_qty: 2, addon_price: 100, pos_code: 'CH' }] }],
+    total: { tax: 160, taxPercentage: 16, deliveryCharges: 150, discountedAmount: 100, subtotal: 1400, grandTotal: 1610, loyaltyPointsDiscount: 0 },
+    dropOff: { city: 'Lahore', latitude: 31.5, longitude: 74.3 },
+  };
+  it('pehchan aur sahi shakal', () => {
+    expect(detectPlatform(body)).toBe('indolj');
+    const o = normalizeOrder(body, 'indolj');
+    expect(o).toMatchObject({
+      externalOrderId: 'IND-778', customerName: 'Ali Khan', customerPhone: '03001234567', customerCity: 'Lahore',
+      deliveryFee: 150, discount: 100, total: 1610, paymentMethod: 'COD', paymentStatus: 'PENDING', cancelled: false,
+    });
+    expect(o.items).toEqual([
+      expect.objectContaining({ name: 'Zinger', sku: 'BRG', variant: 'Large', quantity: 2, price: 600 }),
+      expect.objectContaining({ name: '+ Cheese (Extras)', sku: 'CH', quantity: 2, price: 100 }),
+    ]);
+    expect(o.notes).toContain('No mayo');
+    expect(o.customerAddress).toContain('Near Masjid');
+  });
+  it('status webhook alag pehchana', () => {
+    expect(isIndoljStatus({ order_id: 'IND-778', status: 'cancelled', updated_at: 'x', total_amount: '1610.00' })).toBe(true);
+    expect(isIndoljStatus(body)).toBe(false);
+  });
+});
