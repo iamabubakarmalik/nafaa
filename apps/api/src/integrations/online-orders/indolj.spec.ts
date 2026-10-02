@@ -25,7 +25,7 @@ describe('Indolj menu', () => {
   it('JWT HS512 merchant ki secret se', () => {
     const t = indoljJwt({ merchantId: '42', secret: 'sek' }, 1000).split('.');
     expect(JSON.parse(Buffer.from(t[0], 'base64url').toString())).toEqual({ alg: 'HS512', typ: 'JWT' });
-    expect(JSON.parse(Buffer.from(t[1], 'base64url').toString())).toEqual({ merchant_id: 42, iat: 1000, exp: 4600 });
+    expect(JSON.parse(Buffer.from(t[1], 'base64url').toString())).toEqual({ iat: 1000, exp: 4600, merchant_id: 42 });
     expect(t[2]).toBe(crypto.createHmac('sha512', 'sek').update(`${t[0]}.${t[1]}`).digest('base64url'));
   });
 });

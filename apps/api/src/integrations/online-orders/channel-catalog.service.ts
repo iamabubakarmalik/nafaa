@@ -67,9 +67,9 @@ export class ChannelCatalogService {
 
   private indoljCreds(i: Integration): IndoljCreds | null {
     const c = (i.config as any)?.indolj;
-    if (!c?.activationToken || !c?.secret || !c?.merchantId) return null;
+    if (!c?.activationToken || !c?.secret) return null;
     const secret = decrypt(c.secret);
-    return secret ? { baseUrl: c.baseUrl || 'https://console.indolj.io', activationToken: c.activationToken, merchantId: String(c.merchantId), secret, branchId: c.branchId ?? null } : null;
+    return secret ? { baseUrl: c.baseUrl || 'https://console.indolj.io', activationToken: c.activationToken, merchantId: String(c.merchantId ?? ''), secret, branchId: c.branchId ?? null } : null;
   }
 
   async connectIndolj(user: AuthenticatedUser, channelId: string, body: { baseUrl?: string; activationToken?: string; merchantId?: string; secret?: string; branchId?: string }) {
@@ -81,7 +81,7 @@ export class ChannelCatalogService {
     const activationToken = String(body.activationToken ?? prev.activationToken ?? '').trim();
     const merchantId = String(body.merchantId ?? prev.merchantId ?? '').trim();
     const secret = String(body.secret ?? '').trim() || (prev.secret ? decrypt(prev.secret) ?? '' : '');
-    if (!activationToken || !merchantId || !secret) throw new BadRequestException('Activation token, merchant ID aur secret key — teeno zaroori (Indolj CSR se milte hain)');
+    if (!activationToken || !secret) throw new BadRequestException('Activation token aur JWT secret key zaroori (Indolj team se milte hain)');
     const creds: IndoljCreds = { baseUrl, activationToken, merchantId, secret, branchId: String(body.branchId ?? prev.branchId ?? '').trim() || null };
     // Pehle check: menu aata hai?
     const products = await fetchIndoljMenu(creds).catch((e) => { throw new BadRequestException(e?.message ?? 'Indolj se menu nahi aaya'); });

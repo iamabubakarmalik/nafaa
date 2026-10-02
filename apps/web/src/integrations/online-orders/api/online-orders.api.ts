@@ -529,7 +529,7 @@ export const onlineOrdersApi = {
   saveLinks: (id: string, links: LinkInput[]) =>
     apiClient.post(`/online-store/channels/${id}/links`, { links }).then((r) => unwrap<{ saved: number; errors: string[] }>(r)),
 
-  connectIndolj: (id: string, b: { baseUrl?: string; activationToken: string; merchantId: string; secret: string; branchId?: string }) =>
+  connectIndolj: (id: string, b: { baseUrl?: string; activationToken: string; merchantId?: string; secret: string; branchId?: string }) =>
     apiClient.put(`/online-store/channels/${id}/indolj`, b).then((r) => unwrap<{ ok: boolean; items: number }>(r)),
 
   disconnectIndolj: (id: string) =>

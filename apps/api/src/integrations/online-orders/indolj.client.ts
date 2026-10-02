@@ -12,7 +12,8 @@ export interface IndoljCreds { baseUrl: string; activationToken: string; merchan
 
 export function indoljJwt(c: Pick<IndoljCreds, 'merchantId' | 'secret' | 'branchId'>, now = Math.floor(Date.now() / 1000)) {
   const h = Buffer.from(JSON.stringify({ alg: 'HS512', typ: 'JWT' })).toString('base64url');
-  const payload: Record<string, unknown> = { merchant_id: /^\d+$/.test(c.merchantId) ? Number(c.merchantId) : c.merchantId, iat: now, exp: now + 3600 };
+  const payload: Record<string, unknown> = { iat: now, exp: now + 3600 };
+  if (c.merchantId) payload.merchant_id = /^\d+$/.test(c.merchantId) ? Number(c.merchantId) : c.merchantId;
   if (c.branchId) payload.branch_id = /^\d+$/.test(c.branchId) ? Number(c.branchId) : c.branchId;
   const p = Buffer.from(JSON.stringify(payload)).toString('base64url');
   const sig = crypto.createHmac('sha512', c.secret).update(`${h}.${p}`).digest('base64url');

@@ -523,9 +523,9 @@ function IndoljConnect({ channelId, onDone, connected }: { channelId: string; on
       actions={!open ? <Btn size="sm" onClick={() => setOpen(true)}>Indolj jorein</Btn> : undefined}>
       {open && (
         <div className="space-y-3">
-          <p className="text-[12.5px] text-slate-500">Ye teeno cheezein Indolj ki team (CSR) deti hai: <b>activation token</b>, <b>merchant ID</b> aur <b>JWT secret key</b>.</p>
+          <p className="text-[12.5px] text-slate-500">Indolj ki team ye deti hai: <b>activation token</b> aur <b>JWT secret key</b> (Merchant Menu API key). Merchant ID ho to wo bhi.</p>
           <div className="grid gap-3 sm:grid-cols-2">
-            {([['activationToken', 'Activation token'], ['merchantId', 'Merchant ID'], ['secret', 'JWT secret key'], ['branchId', 'Branch ID (optional)'], ['baseUrl', 'API URL (khali = console.indolj.io)']] as const).map(([k, label]) => (
+            {([['activationToken', 'Activation token'], ['merchantId', 'Merchant ID (optional)'], ['secret', 'JWT secret key'], ['branchId', 'Branch ID (optional)'], ['baseUrl', 'API URL (khali = console.indolj.io)']] as const).map(([k, label]) => (
               <label key={k} className="block text-[12.5px] font-medium text-slate-700 dark:text-slate-200">
                 {label}
                 <input type={k === 'secret' ? 'password' : 'text'} autoComplete="off" value={f[k]} onChange={(e) => setF((x) => ({ ...x, [k]: e.target.value }))} className={cn(inputCls, 'mt-1 font-mono')} />
@@ -534,7 +534,7 @@ function IndoljConnect({ channelId, onDone, connected }: { channelId: string; on
           </div>
           <div className="flex justify-end gap-2">
             <Btn variant="plain" onClick={() => setOpen(false)}>Rehne dein</Btn>
-            <Btn variant="primary" loading={save.isPending} disabled={!f.activationToken || !f.merchantId || !f.secret} onClick={() => save.mutate()}>Menu check karke jorein</Btn>
+            <Btn variant="primary" loading={save.isPending} disabled={!f.activationToken || !f.secret} onClick={() => save.mutate()}>Menu check karke jorein</Btn>
           </div>
         </div>
       )}
