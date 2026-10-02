@@ -1,5 +1,5 @@
 import {
-  BadRequestException, Body, Controller, Get, HttpCode, Param, Post, Query, Req, UnauthorizedException,
+  BadRequestException, Body, Controller, Get, HttpCode, NotFoundException, Param, Post, Query, Req, UnauthorizedException,
 } from '@nestjs/common';
 import { ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
@@ -77,6 +77,16 @@ export class WebsiteApiController {
   @ApiOperation({ summary: 'Website par naya order — Nafaa me bhejein' })
   async createOrder(@Req() req: Request, @Body() body: any) {
     const integration = await this.auth(req);
+    return this.handleOrder(integration, req, body);
+  }
+
+  // ═══ Key URL me (Indolj jaise platform yahi bhejte hain): POST /orders/<api key> ═══
+  @Post('orders/:key')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Order — API key URL me (header ke bajaye)' })
+  async createOrderKeyInUrl(@Param('key') key: string, @Req() req: Request, @Body() body: any) {
+    if (!/^nfk_[a-f0-9]{20,}$/.test(key)) throw new NotFoundException('Ye raasta nahi mila');
+    const integration = await this.auth(req, key);
     return this.handleOrder(integration, req, body);
   }
 

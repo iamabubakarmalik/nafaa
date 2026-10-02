@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Delete, Get, Param, Patch, Post, Query, Res, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
 import type { Response } from 'express';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../modules/auth/decorators/get-user.decorator';
@@ -463,6 +463,18 @@ export class ChannelsController {
   exportSelected(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { productIds: string[] }) {
     this.setup.assertCanManage(user);
     return this.channelCatalog.exportSelected(user, id, body?.productIds ?? []);
+  }
+
+  // ─── Indolj (restaurant ordering platform) — menu Products safhe par ───
+  @Put(':id/indolj')
+  @ApiOperation({ summary: 'Indolj keys (activation token, merchant ID, secret) — menu check karke save' })
+  connectIndolj(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { baseUrl?: string; activationToken?: string; merchantId?: string; secret?: string; branchId?: string }) {
+    return this.channelCatalog.connectIndolj(user, id, body ?? {});
+  }
+
+  @Delete(':id/indolj')
+  disconnectIndolj(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.channelCatalog.disconnectIndolj(user, id);
   }
 
   // ─── CSV (har platform) ───

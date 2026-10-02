@@ -73,7 +73,7 @@ export function ProductLinker({ channelId, siteName }: { channelId: string; site
               <Badge tone="success" dot>{s.linked} jure</Badge>
               {s.suggested > 0 && <Badge tone="warning" dot>{s.suggested} salah</Badge>}
               {s.unlinked > 0 && <Badge tone="neutral" dot>{s.unlinked} baqi</Badge>}
-              <Badge tone="info">{s.nafaaUnlisted} Nafaa me, website par nahi</Badge>
+              {data.kind !== 'indolj' && <Badge tone="info">{s.nafaaUnlisted} Nafaa me, website par nahi</Badge>}
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -86,7 +86,9 @@ export function ProductLinker({ channelId, siteName }: { channelId: string; site
           </div>
         </div>
         <p className="mt-3 text-[12.5px] text-slate-500">
-          📦 <b>Stock ka malik Nafaa hai</b> — jora hua har variant ka stock Nafaa (branch) se {siteName} par jata hai: har 15 minute, aur har accept/cancel par foran.
+          {data.kind === 'indolj'
+            ? <>🍪 <b>Indolj ka menu</b> — har item ko Nafaa product se jorein, phir Indolj ka har order khud bill banata aur stock kam karta hai. Menu / qeemat Indolj ke panel se badalti hai.</>
+            : <>📦 <b>Stock ka malik Nafaa hai</b> — jora hua har variant ka stock Nafaa (branch) se {siteName} par jata hai: har 15 minute, aur har accept/cancel par foran.</>}
           {data.canFetch && ` · List ${timeAgo(data.fetchedAt)} ki`}
         </p>
       </Card>
@@ -99,7 +101,15 @@ export function ProductLinker({ channelId, siteName }: { channelId: string; site
       {data.orphans.length > 0 && <Orphans channelId={channelId} orphans={data.orphans} onDone={invalidate} />}
 
       {!data.canFetch ? (
-        <CustomLinks channelId={channelId} links={data.links} onDone={invalidate} />
+        <>
+          <IndoljConnect channelId={channelId} onDone={invalidate} />
+          <CustomLinks channelId={channelId} links={data.links} onDone={invalidate} />
+        </>
+      ) : data.kind === 'indolj' ? (
+        <>
+          <WebsiteList channelId={channelId} products={data.products} onDone={invalidate} />
+          <IndoljConnect channelId={channelId} onDone={invalidate} connected />
+        </>
       ) : (
         <>
           <Segmented value={view} onChange={setView} items={[
@@ -486,6 +496,47 @@ function CustomLinks({ channelId, links, onDone }: { channelId: string; links: {
             </li>
           ))}
         </ul>
+      )}
+    </Card>
+  );
+}
+
+/** Indolj (restaurant ordering) par bani website — menu ki keys se products yahan */
+function IndoljConnect({ channelId, onDone, connected }: { channelId: string; onDone: () => void; connected?: boolean }) {
+  const [open, setOpen] = useState(false);
+  const [f, setF] = useState({ activationToken: '', merchantId: '', secret: '', baseUrl: '', branchId: '' });
+  const save = useMutation({
+    mutationFn: () => onlineOrdersApi.connectIndolj(channelId, { ...f, baseUrl: f.baseUrl || undefined, branchId: f.branchId || undefined }),
+    onSuccess: (r) => { toast.success(`Indolj se ${r.items} items aa gaye ✓`); setOpen(false); onDone(); },
+    onError: (e) => toast.error(apiErrorMessage(e)),
+  });
+  const off = useMutation({ mutationFn: () => onlineOrdersApi.disconnectIndolj(channelId), onSuccess: () => { toast.success('Indolj menu hata diya'); onDone(); } });
+  if (connected) {
+    return (
+      <p className="text-[12.5px] text-slate-500">
+        Indolj menu jura hai. <button type="button" className="font-semibold text-rose-600 hover:underline" onClick={() => { if (confirm('Indolj ka menu link hatayein? Jore hue products waise hi rahenge.')) off.mutate(); }}>Hatayein</button>
+      </p>
+    );
+  }
+  return (
+    <Card title="Website Indolj par bani hai?" description="Indolj ki keys daalein — aap ka poora menu (sizes ke saath) yahan aa jayega aur har item Nafaa product se jur jayega, bilkul WooCommerce ki tarah."
+      actions={!open ? <Btn size="sm" onClick={() => setOpen(true)}>Indolj jorein</Btn> : undefined}>
+      {open && (
+        <div className="space-y-3">
+          <p className="text-[12.5px] text-slate-500">Ye teeno cheezein Indolj ki team (CSR) deti hai: <b>activation token</b>, <b>merchant ID</b> aur <b>JWT secret key</b>.</p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {([['activationToken', 'Activation token'], ['merchantId', 'Merchant ID'], ['secret', 'JWT secret key'], ['branchId', 'Branch ID (optional)'], ['baseUrl', 'API URL (khali = console.indolj.io)']] as const).map(([k, label]) => (
+              <label key={k} className="block text-[12.5px] font-medium text-slate-700 dark:text-slate-200">
+                {label}
+                <input type={k === 'secret' ? 'password' : 'text'} autoComplete="off" value={f[k]} onChange={(e) => setF((x) => ({ ...x, [k]: e.target.value }))} className={cn(inputCls, 'mt-1 font-mono')} />
+              </label>
+            ))}
+          </div>
+          <div className="flex justify-end gap-2">
+            <Btn variant="plain" onClick={() => setOpen(false)}>Rehne dein</Btn>
+            <Btn variant="primary" loading={save.isPending} disabled={!f.activationToken || !f.merchantId || !f.secret} onClick={() => save.mutate()}>Menu check karke jorein</Btn>
+          </div>
+        </div>
       )}
     </Card>
   );

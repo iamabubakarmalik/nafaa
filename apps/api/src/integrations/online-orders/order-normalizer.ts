@@ -254,8 +254,10 @@ function normalizeShopify(body: any): NormalizedOrder {
 export function isIndoljOrder(body: any): boolean {
   if (!body || typeof body !== 'object') return false;
   const items = body.items ?? body.Items;
-  return (body.merchantId !== undefined || body.partnerIndexCode !== undefined || body.orderSource !== undefined)
-    && !!body.orderId && Array.isArray(items) && (typeof body.total === 'object' || body.customer?.firstName !== undefined);
+  const marks = body.merchantId !== undefined || body.partnerIndexCode !== undefined || body.orderSource !== undefined
+    || body.customer?.firstName !== undefined || body.customer?.phoneNumber !== undefined
+    || (typeof body.total === 'object' && body.total !== null && body.total.grandTotal !== undefined);
+  return marks && !!body.orderId && Array.isArray(items);
 }
 
 /** Indolj ka status webhook: { order_id, status, updated_at, total_amount } */

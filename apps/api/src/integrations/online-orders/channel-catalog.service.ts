@@ -9,6 +9,8 @@ import { ShopifyService } from './shopify.service';
 import { readWebsiteConfig } from './website-config';
 import { mappingKey } from './mapping-key';
 import { numericId } from './shopify.client';
+import { decrypt, encrypt } from '../../core/lib/crypto';
+import { fetchIndoljMenu, IndoljCreds } from './indolj.client';
 
 /**
  * Channel ka "Products" safha:
@@ -54,10 +56,51 @@ export class ChannelCatalogService {
     private readonly shopify: ShopifyService,
   ) {}
 
-  private kind(i: Integration): 'woocommerce' | 'shopify' | null {
+  private kind(i: Integration): 'woocommerce' | 'shopify' | 'indolj' | null {
     if (this.woo.isConnected(i)) return 'woocommerce';
     if (this.shopify.isConnected(i)) return 'shopify';
+    if (this.indoljCreds(i)) return 'indolj';
     return null;
+  }
+
+  /* ─── Indolj (restaurant ordering platform) — menu ke liye keys ─── */
+
+  private indoljCreds(i: Integration): IndoljCreds | null {
+    const c = (i.config as any)?.indolj;
+    if (!c?.activationToken || !c?.secret || !c?.merchantId) return null;
+    const secret = decrypt(c.secret);
+    return secret ? { baseUrl: c.baseUrl || 'https://console.indolj.io', activationToken: c.activationToken, merchantId: String(c.merchantId), secret, branchId: c.branchId ?? null } : null;
+  }
+
+  async connectIndolj(user: AuthenticatedUser, channelId: string, body: { baseUrl?: string; activationToken?: string; merchantId?: string; secret?: string; branchId?: string }) {
+    this.setup.assertCanManage(user);
+    const integration = await this.setup.requireChannel(user.tenantId, channelId);
+    const prev = (integration.config as any)?.indolj ?? {};
+    const baseUrl = String(body.baseUrl || prev.baseUrl || 'https://console.indolj.io').trim().replace(/\/+$/, '');
+    if (!/^https:\/\/[a-z0-9.-]+\.[a-z]{2,}(\/.*)?$/i.test(baseUrl)) throw new BadRequestException('Indolj ka URL https:// wala hona chahiye');
+    const activationToken = String(body.activationToken ?? prev.activationToken ?? '').trim();
+    const merchantId = String(body.merchantId ?? prev.merchantId ?? '').trim();
+    const secret = String(body.secret ?? '').trim() || (prev.secret ? decrypt(prev.secret) ?? '' : '');
+    if (!activationToken || !merchantId || !secret) throw new BadRequestException('Activation token, merchant ID aur secret key — teeno zaroori (Indolj CSR se milte hain)');
+    const creds: IndoljCreds = { baseUrl, activationToken, merchantId, secret, branchId: String(body.branchId ?? prev.branchId ?? '').trim() || null };
+    // Pehle check: menu aata hai?
+    const products = await fetchIndoljMenu(creds).catch((e) => { throw new BadRequestException(e?.message ?? 'Indolj se menu nahi aaya'); });
+    const fresh = await this.prisma.integration.findUniqueOrThrow({ where: { id: integration.id }, select: { config: true } });
+    await this.prisma.integration.update({
+      where: { id: integration.id },
+      data: { config: { ...((fresh.config as any) ?? {}), indolj: { baseUrl, activationToken, merchantId, branchId: creds.branchId, secret: encrypt(secret) } } as any },
+    });
+    this.cache.delete(integration.id);
+    return { ok: true, items: products.length };
+  }
+
+  async disconnectIndolj(user: AuthenticatedUser, channelId: string) {
+    this.setup.assertCanManage(user);
+    const integration = await this.setup.requireChannel(user.tenantId, channelId);
+    const { indolj: _x, ...rest } = ((integration.config as any) ?? {});
+    await this.prisma.integration.update({ where: { id: integration.id }, data: { config: rest as any } });
+    this.cache.delete(integration.id);
+    return { ok: true };
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -70,7 +113,8 @@ export class ChannelCatalogService {
     const kind = this.kind(integration);
     const data = kind === 'woocommerce' ? await this.wooProducts(integration)
       : kind === 'shopify' ? await this.shopifyProducts(integration)
-        : [];
+        : kind === 'indolj' ? await fetchIndoljMenu(this.indoljCreds(integration)!)
+          : [];
     this.cache.set(integration.id, { at: Date.now(), data });
     return data;
   }
@@ -522,6 +566,7 @@ export class ChannelCatalogService {
     const integration = await this.setup.requireChannel(user.tenantId, channelId);
     const kind = this.kind(integration);
     if (!kind) throw new BadRequestException('Is website par seedha nahi bhej sakte — CSV istemal karein');
+    if (kind === 'indolj') throw new BadRequestException('Indolj par menu Indolj ke panel se banta hai — Nafaa se wahan product nahi bhej sakte');
     if (!productIds?.length) throw new BadRequestException('Koi product nahi chuna');
     const res = kind === 'woocommerce'
       ? await this.woo.exportToWoo(user, channelId, { productIds })
