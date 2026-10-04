@@ -207,6 +207,17 @@ export const staffApi = {
   list: (params?: { search?: string; status?: string }) =>
     apiClient.get<{ data: Staff[] }>('/staff', { params }).then(unwrap),
 
+  /**
+   * Login ka HR record bana ya jor dein.
+   *
+   * `staffId` do to maujooda record jur jata hai; na do to us login
+   * ke naam par naya ban jata hai (ya pehle se para hua orphan record
+   * email/phone se khud mil jata hai).
+   */
+  linkUser: (userId: string, dto?: {
+    staffId?: string; designation?: string; salaryType?: string; baseSalary?: number;
+  }) => apiClient.post(`/staff/link-user/${userId}`, dto ?? {}).then((r: any) => r.data?.data ?? r.data),
+
   stats: () =>
     apiClient.get<{ data: StaffStats }>('/staff/stats').then(unwrap),
 

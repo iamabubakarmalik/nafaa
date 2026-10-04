@@ -11,6 +11,7 @@ import { UpdateStaffDto } from './dto/update-staff.dto';
 import { MarkAttendanceDto } from './dto/mark-attendance.dto';
 import { CreateLeaveDto } from './dto/create-leave.dto';
 import { ProcessSalaryDto } from './dto/process-salary.dto';
+import { LinkUserStaffDto } from './dto/link-user-staff.dto';
 
 @ApiTags('Staff')
 @ApiBearerAuth()
@@ -18,6 +19,21 @@ import { ProcessSalaryDto } from './dto/process-salary.dto';
 @Controller('staff')
 export class StaffController {
   constructor(private readonly service: StaffService) {}
+
+  /**
+   * App user (login) ka HR record bana ya jor dein.
+   *
+   * Team me banda daalne se sirf login banta hai; tankhwah/attendance
+   * ka record alag hota hai. Ye ek call dono jor deti hai.
+   */
+  @Post('link-user/:userId')
+  linkUser(
+    @GetUser() user: AuthenticatedUser,
+    @Param('userId') userId: string,
+    @Body() dto: LinkUserStaffDto,
+  ) {
+    return this.service.linkOrCreateForUser(user, userId, dto);
+  }
 
   @Get('stats')
   stats(@GetUser() user: AuthenticatedUser) {

@@ -5,7 +5,7 @@ import {
   HandCoins, Plus, X, Trophy, Target, Gauge, CheckCircle2, Undo2,
   Download, Printer, GraduationCap, RefreshCw, AlertTriangle, Users,
   Receipt, Wallet, ChevronDown, Info, Pencil, CalendarRange, UserCheck,
-  UserX, Link2, Package, Layers, TrendingUp, Eye,
+  UserX, Link2, Package, Layers, TrendingUp, Eye, UserPlus,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatPKR } from '@core/lib/format';
@@ -13,6 +13,7 @@ import { Button } from '@core/ui/Button';
 import { useAuthStore } from '@core/stores/auth.store';
 import { useCostHidden, PrivacyToggle } from '@/core/security/HiddenValue';
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
+import { staffApi } from '@modules/organization/staff/api/staff.api';
 import { useCommission, periodLabel, recentPeriods, thisPeriod } from '../hooks/useCommission';
 import { CommissionRuleModal } from '../components/CommissionRuleModal';
 import { CommissionDetailDrawer } from '../components/CommissionDetailDrawer';
@@ -46,8 +47,28 @@ export default function CommissionPage({ tone = 'violet' }: { tone?: string }) {
   const [payTarget, setPayTarget] = useState<CommissionRow | null>(null);
   const [detailUser, setDetailUser] = useState<CommissionRow | null>(null);
   const [showTeacher, setShowTeacher] = useState(false);
+  const [linking, setLinking] = useState<string | null>(null);
 
   const c = useCommission(period);
+
+  /* App user ka HR record bana dein.
+     Login aur HR record Nafaa me do alag cheezein hain: login se bikri
+     us ke naam lagti hai, HR record se tankhwah aur attendance chalti
+     hai. Team me banda daalne par sirf login banta hai — is liye yahan
+     se ek click me doosra bhi bana dete hain, warna "tankhwah +
+     commission" ka jor adhoora rehta hai. */
+  const makeStaff = async (userId: string, name: string) => {
+    setLinking(userId);
+    try {
+      await staffApi.linkUser(userId);
+      toast.success(`${name} ka HR record ban gaya — ab tankhwah bhi daal sakte hain`);
+      c.refetch();
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message || 'HR record nahi bana');
+    } finally {
+      setLinking(null);
+    }
+  };
   const { data: categories = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list });
 
   const exportCsv = () => {
@@ -286,8 +307,9 @@ export default function CommissionPage({ tone = 'violet' }: { tone?: string }) {
             {c.people.map((p) => (
               <PersonCard key={p.userId!} p={p} tone={t} money={money}
                 row={c.rows.find((r) => r.userId === p.userId)}
-                busy={c.busy}
-                onToggle={() => c.setEnabled(p.userId!, !p.enrolled, p.staff?.id)} />
+                busy={c.busy || linking === p.userId}
+                onToggle={() => c.setEnabled(p.userId!, !p.enrolled, p.staff?.id)}
+                onMakeStaff={() => makeStaff(p.userId!, p.name)} />
             ))}
             {c.withoutLogin.map((p, i) => (
               <div key={`nl-${i}`}
@@ -567,7 +589,7 @@ function Empty({ icon: Icon, title, sub }: any) {
 }
 
 /* ── Ek bande ka switch wala khana ── */
-function PersonCard({ p, tone, money, row, busy, onToggle }: any) {
+function PersonCard({ p, tone, money, row, busy, onToggle, onMakeStaff }: any) {
   const on = p.enrolled;
   const st = p.staff;
   /* HR record kehta hai commission wala banda hai magar yahan band hai */
@@ -625,10 +647,16 @@ function PersonCard({ p, tone, money, row, busy, onToggle }: any) {
           Band hai — is ki bikri par koi commission nahi ban rahi
         </p>
       )}
-      {on && !st && (
-        <p className="mt-1.5 text-[10px] font-bold text-slate-400">
-          HR record nahi mila — Staff me is ka naam daalein to designation bhi dikhegi
-        </p>
+      {!st && (
+        <div className="mt-2 rounded-xl bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-500/30 p-2">
+          <p className="text-[11px] font-bold text-sky-900 dark:text-sky-200">
+            Is ka sirf <strong>login</strong> hai, HR record nahi — is liye tankhwah nahi dikhti.
+          </p>
+          <button onClick={onMakeStaff} disabled={busy}
+            className="mt-1.5 h-9 px-3 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-[11px] font-black inline-flex items-center gap-1.5 disabled:opacity-50 transition">
+            <UserPlus className="h-3.5 w-3.5" /> HR record bana dein
+          </button>
+        </div>
       )}
       {st?.linkedByGuess && (
         <p className="mt-1.5 text-[10px] font-bold text-sky-600 dark:text-sky-400">

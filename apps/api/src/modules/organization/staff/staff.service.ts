@@ -409,4 +409,119 @@ export class StaffService {
 
     return { total, active, onLeave, presentToday, absentToday };
   }
+
+  /* ═══════════════════════════════════════════════════════════
+     LOGIN ↔ HR RECORD KA PUL
+     ───────────────────────────────────────────────────────────
+     Nafaa me do alag cheezein hain aur logon ko yahi uljhan hoti
+     hai:
+
+       • App user (login) — POS chalata hai, bikri us ke naam lagti
+         hai, commission usi ki banti hai
+       • Staff (HR record) — tankhwah, attendance, chhutti, payroll
+
+     Team me naya banda daalne se sirf LOGIN banta tha. Us ki
+     tankhwah kahin darj hi nahi hoti thi, is liye commission ke
+     safhe par "tankhwah + commission" ka jor adhoora rehta tha.
+
+     Ab ek call se dono jur jate hain. Naya record banate waqt sirf
+     wohi cheezein maangte hain jo asal me chahiyen — baqi HR safhe
+     par baad me bhari ja sakti hain.
+     ═══════════════════════════════════════════════════════════ */
+  async linkOrCreateForUser(
+    user: AuthenticatedUser,
+    userId: string,
+    dto: {
+      staffId?: string;
+      designation?: string;
+      salaryType?: any;
+      baseSalary?: number;
+    },
+  ) {
+    const target = await this.prisma.user.findFirst({
+      where: { id: userId, tenantId: user.tenantId },
+      select: { id: true, fullName: true, email: true, phone: true, shopId: true, role: true },
+    });
+    if (!target) throw new NotFoundException('Ye banda is dukaan me nahi mila');
+
+    /* Pehle se jura hua ho to dobara banane ka koi faida nahi */
+    const already = await this.prisma.staff.findFirst({
+      where: { tenantId: user.tenantId, userId },
+    });
+    if (already) return already;
+
+    /* Maujooda record diya hai — bas jor do */
+    if (dto.staffId) {
+      const st = await this.prisma.staff.findFirst({
+        where: { id: dto.staffId, tenantId: user.tenantId },
+        select: { id: true, userId: true },
+      });
+      if (!st) throw new NotFoundException('HR record nahi mila');
+      if (st.userId && st.userId !== userId) {
+        throw new BadRequestException('Ye HR record pehle hi kisi aur login se jura hua hai');
+      }
+      return this.prisma.staff.update({
+        where: { id: st.id },
+        data: {
+          userId,
+          ...(dto.designation ? { designation: dto.designation } : {}),
+          ...(dto.salaryType ? { salaryType: dto.salaryType } : {}),
+          ...(dto.baseSalary !== undefined ? { baseSalary: dto.baseSalary } : {}),
+        },
+      });
+    }
+
+    /* Shayad us ke naam ka record pehle se para ho — email ya phone se
+       dekh lete hain, warna ek hi bande ke do record ban jate hain */
+    const digits = (v?: string | null) => (v ?? '').replace(/[^0-9]/g, '').slice(-10);
+    const phone = digits(target.phone);
+    const orphan = await this.prisma.staff.findFirst({
+      where: {
+        tenantId: user.tenantId,
+        userId: null,
+        OR: [
+          ...(target.email ? [{ email: { equals: target.email, mode: 'insensitive' as const } }] : []),
+          ...(phone.length >= 10 ? [{ phone: { endsWith: phone } }] : []),
+        ],
+      },
+    });
+    if (orphan) {
+      return this.prisma.staff.update({
+        where: { id: orphan.id },
+        data: {
+          userId,
+          ...(dto.designation ? { designation: dto.designation } : {}),
+          ...(dto.salaryType ? { salaryType: dto.salaryType } : {}),
+          ...(dto.baseSalary !== undefined ? { baseSalary: dto.baseSalary } : {}),
+        },
+      });
+    }
+
+    const count = await this.prisma.staff.count({ where: { tenantId: user.tenantId } });
+    return this.prisma.staff.create({
+      data: {
+        tenantId: user.tenantId,
+        userId,
+        staffNumber: `EMP-${String(count + 1).padStart(4, '0')}`,
+        fullName: target.fullName,
+        phone: target.phone || '—',
+        email: target.email,
+        shopId: target.shopId ?? undefined,
+        designation: dto.designation || prettyRole(target.role),
+        joinDate: new Date(),
+        salaryType: dto.salaryType ?? 'MONTHLY',
+        baseSalary: dto.baseSalary ?? 0,
+        status: 'ACTIVE',
+      },
+    });
+  }
+}
+
+/** OWNER → "Owner", CASHIER → "Cashier" — HR safhe par parha jaye */
+function prettyRole(role?: string | null) {
+  if (!role) return 'Staff';
+  return role
+    .split('_')
+    .map((w) => w.charAt(0) + w.slice(1).toLowerCase())
+    .join(' ');
 }
