@@ -25,6 +25,7 @@ import { SubscriptionBanner } from '@modules/dashboard/components/SubscriptionBa
 import { EmailVerifyBanner } from '@core/components/auth/EmailVerifyBanner';
 import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 import { useAuthStore } from '@core/stores/auth.store';
+import { CommissionCard } from '@modules/hr/commission/components/CommissionCard';
 
 /* ═════════════════════════════════════════════════════════════
    🔌 NAFAA ELECTRONICS DASHBOARD — FULL BEST (Retail-grade v2)
@@ -1142,6 +1143,10 @@ function EmptyList({ icon: Icon, message }: any) {
         <Icon className="h-6 w-6 text-slate-400 dark:text-slate-500" />
       </div>
       <p className="font-extrabold text-slate-500 dark:text-slate-400 text-sm">{message}</p>
+
+      {/* ═══ BANDON KA HISSA ═══ */}
+      <CommissionCard tone="blue" />
+
     </div>
   );
 }

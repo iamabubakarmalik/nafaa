@@ -151,6 +151,7 @@ import StaffFormPage from '@modules/organization/staff/pages/StaffFormPage';
 import StaffDetailPage from '@modules/organization/staff/pages/StaffDetailPage';
 import AttendancePage from '@modules/organization/staff/pages/AttendancePage';
 import SalaryProcessPage from '@modules/organization/staff/pages/SalaryProcessPage';
+import CommissionPage from '@modules/hr/commission/pages/CommissionPage';
 
 // ─── Billing ───────────────────────────────────────────────────
 import PlansPage from '@/modules/billing/billing/pages/PlansPage';
@@ -754,6 +755,7 @@ export default function App() {
                   <Route path="/staff/new" element={secure(PERMISSIONS.STAFF_MANAGE, <StaffFormPage />)} />
                   <Route path="/staff/attendance" element={secure(PERMISSIONS.STAFF_VIEW, <AttendancePage />)} />
                   <Route path="/staff/salary/new" element={secure(PERMISSIONS.STAFF_MANAGE, <SalaryProcessPage />)} />
+                  <Route path="/staff/commission" element={secure(PERMISSIONS.STAFF_VIEW, <CommissionPage />)} />
                   <Route path="/staff/:id/edit" element={secure(PERMISSIONS.STAFF_MANAGE, <StaffFormPage />)} />
                   <Route path="/staff/:id" element={secure(PERMISSIONS.STAFF_VIEW, <StaffDetailPage />)} />
                   <Route path="/staff" element={secure(PERMISSIONS.STAFF_VIEW, <StaffListPage />)} />

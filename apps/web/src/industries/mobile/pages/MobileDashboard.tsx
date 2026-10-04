@@ -30,6 +30,7 @@ import { EmailVerifyBanner } from '@core/components/auth/EmailVerifyBanner';
 import { useCostHidden, PrivacyToggle } from '@/core/security/HiddenValue';
 import { useAuthStore } from '@core/stores/auth.store';
 import { PrintStyles } from '@core/components/print/PrintStyles';
+import { CommissionCard } from '@modules/hr/commission/components/CommissionCard';
 
 /* ═════════════════════════════════════════════════════════════
    NAFAA MOBILE DASHBOARD — FULL BEST (Final)
@@ -1449,6 +1450,10 @@ function EmptyList({ icon: Icon, message }: any) {
         <Icon className="h-6 w-6 text-slate-400 dark:text-slate-500" />
       </div>
       <p className="font-extrabold text-slate-500 dark:text-slate-400 text-sm">{message}</p>
+
+      {/* ═══ BANDON KA HISSA ═══ */}
+      <CommissionCard tone="violet" />
+
     </div>
   );
 }

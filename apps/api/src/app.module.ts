@@ -67,6 +67,7 @@ import { SettingsModule } from './modules/organization/settings/settings.module'
 import { ShopsModule } from './modules/organization/shops/shops.module';
 import { TeamModule } from './modules/organization/team/team.module';
 import { StaffModule } from './modules/organization/staff/staff.module';
+import { CommissionModule } from './modules/hr/commission/commission.module';
 
 import { SearchModule } from './modules/pos/search/search.module';
 import { BackupModule } from './modules/backup/backup.module';
@@ -194,6 +195,7 @@ import { AiAssistantModule } from './marketplace/ai-assistant/ai-assistant.modul
     ProfitReportModule,
     TeamModule,
     StaffModule,
+    CommissionModule,
     ShopsModule,
     CashRegisterModule,
     MoneyModule,

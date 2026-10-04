@@ -1273,9 +1273,27 @@ function BakeryTile({ row, inCart, hidePrices, onClick }: {
               per {p.unit}{!hidePrices && slicePrice > 0 && ` • slice ${formatPKR(slicePrice)}`}
             </div>
           </div>
-          <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md shrink-0 ${
-            kind === 'made' ? 'bg-pink-100 dark:bg-pink-500/20 text-pink-700 dark:text-pink-300' : 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300'
-          }`}>{kind === 'made' ? '🧁' : '📦'}</span>
+
+          {/* Stock ka number HAMESHA dikhta hai.
+              Pehle sirf us waqt dikhta tha jab maal kam ya khatam ho —
+              yani counter par khare bande ko tab tak kuch nazar nahi
+              aata tha jab tak baat bigar na jaye. Grahak poochta hai
+              "kitne bache hain?" aur jawab screen par hona chahiye,
+              dimagh me nahi. Retail ke tile par bhi yehi hai. */}
+          <div className="text-right shrink-0 leading-none">
+            <div className={`text-sm font-black tabular-nums ${
+              out ? 'text-rose-600 dark:text-rose-400'
+                : low ? 'text-amber-600 dark:text-amber-400'
+                  : 'text-slate-700 dark:text-slate-200'
+            }`}>
+              {Number(stock.toFixed(2))}
+            </div>
+            {/* Unit baein taraf "per pcs" me pehle hi likha hai —
+                yahan dobara likhne se "per pcs … pcs" parha jata tha */}
+            <div className="text-[9px] font-bold text-slate-400 mt-0.5">
+              {kind === 'made' ? '🧁' : '📦'} baqi
+            </div>
+          </div>
         </div>
       </div>
     </button>

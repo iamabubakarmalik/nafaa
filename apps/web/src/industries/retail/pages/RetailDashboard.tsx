@@ -24,6 +24,7 @@ import { SubscriptionBanner } from '@modules/dashboard/components/SubscriptionBa
 import { EmailVerifyBanner } from '@core/components/auth/EmailVerifyBanner';
 import { useCostHidden, PrivacyToggle } from '@/core/security/HiddenValue';
 import { useAuthStore } from '@core/stores/auth.store';
+import { CommissionCard } from '@modules/hr/commission/components/CommissionCard';
 
 /* ═════════════════════════════════════════════════════════════
    NAFAA RETAIL DASHBOARD — FULL BEST (Final)
@@ -842,6 +843,10 @@ export default function RetailDashboardV2() {
           <OpsCard to="/cash-register" icon={Banknote} title="Cash Register" desc="Counter ka hisaab" tone="emerald" />
         </div>
       </section>
+
+
+      {/* ═══ BANDON KA HISSA ═══ */}
+      <CommissionCard tone="sky" hideAmounts={hideCost} />
 
       {/* ═══════════════════════════════════════════════════════
           KPI STAT GRID (compact)

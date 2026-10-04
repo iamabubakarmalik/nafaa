@@ -27,6 +27,7 @@ import { useAuthStore } from '@core/stores/auth.store';
 import { useCostHidden, PrivacyToggle } from '@/core/security/HiddenValue';
 import { SubscriptionBanner } from '@modules/dashboard/components/SubscriptionBanner';
 import { EmailVerifyBanner } from '@core/components/auth/EmailVerifyBanner';
+import { CommissionCard } from '@modules/hr/commission/components/CommissionCard';
 
 /* ═════════════════════════════════════════════════════════════
    BAKERY DASHBOARD — AAJ KA KAAM, PHIR POORA HISAB
@@ -837,6 +838,19 @@ export default function BakeryDashboardV2() {
                 )}
               </Link>
             )) : <EmptyList icon={Star} message="Shabash — sab maal chal raha hai" />}
+          </div>
+        </Card>
+      </section>
+
+      {/* ═══ BANDON KA HISSA ═══ */}
+      <section className="grid lg:grid-cols-2 gap-4 sm:gap-6">
+        <CommissionCard to="/staff/commission" tone="pink" hideAmounts={hideCost} />
+        <Card noPad>
+          <ListHead icon={Users} tone="from-violet-500 to-purple-700" title="Grahak"
+            sub={`${s.totalCustomers ?? 0} log · ${s.customersWithUdhaar ?? 0} par udhaar`} to="/customers" />
+          <div className="p-4 grid grid-cols-2 gap-2">
+            <OpsCard to="/customers" icon={Users} title="Sab grahak" desc={`${s.totalCustomers ?? 0} log`} tone="violet" />
+            <OpsCard to="/khata" icon={BookOpen} title="Khata" desc={hideCost ? '••••' : formatPKR(s.totalUdhaar ?? 0)} tone="rose" />
           </div>
         </Card>
       </section>

@@ -22,6 +22,7 @@ import { farmersApi } from '../api/farmers.api';
 import { seasonalPlansApi } from '../api/seasonal-plans.api';
 import { subsidyApi } from '../api/subsidy.api';
 import { certStatus, isMeasured, SEASONS } from '../lib/agriUnits';
+import { CommissionCard } from '@modules/hr/commission/components/CommissionCard';
 import {
   deriveAgriKind, prettyAgriKind, AGRI_KIND_EMOJI, needsGovtReg,
   isSeedKind, isFertKind, isSprayKind, isFeedKind, isToolKind, type AgriKind,
@@ -940,6 +941,10 @@ function Tip({ icon: Icon, title, children }: any) {
         <div className="font-extrabold text-slate-900 dark:text-white text-[13px]">{title}</div>
         <p className="text-[12px] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
       </div>
+
+      {/* ═══ BANDON KA HISSA ═══ */}
+      <CommissionCard tone="emerald" />
+
     </div>
   );
 }

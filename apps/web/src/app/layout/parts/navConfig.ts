@@ -4,7 +4,7 @@ import {
   Globe, Hash, Layers, LayoutDashboard, Megaphone, MessageCircle, Navigation, Package, PackagePlus, Percent,
   Plug, Receipt, RotateCcw, ScanLine, ScrollText, Settings, Shield, ShieldCheck, ShoppingBag, ShoppingCart,
   Sparkles, Star, Store, Tag, TrendingUp, Trophy, Truck, UserCircle, UserCog, Users, Wallet, Wallet2, Zap,
-  Landmark, Send, Printer, QrCode, Search,
+  Landmark, Send, Printer, QrCode, Search, HandCoins,
 } from 'lucide-react';
 import { PERMISSIONS as P, type PermissionKey } from '@core/lib/permissions';
 import type { IndustryNavGroup, IndustryNavItem } from '@industries/_shared/types/industry-pack';
@@ -134,6 +134,7 @@ export const posNavGroups: NavGroup[] = [
       { to: '/staff', label: 'All staff', icon: UserCog, permission: P.STAFF_VIEW, keywords: 'employees' },
       { to: '/staff/attendance', label: 'Attendance', icon: CheckCircle2, permission: P.STAFF_VIEW },
       { to: '/staff/salary/new', label: 'Payroll', icon: Wallet2, permission: P.STAFF_MANAGE, keywords: 'salary' },
+      { to: '/staff/commission', label: 'Commission', icon: HandCoins, permission: P.STAFF_VIEW, keywords: 'commission hissa bikri incentive bonus target' },
     ],
   },
   {
