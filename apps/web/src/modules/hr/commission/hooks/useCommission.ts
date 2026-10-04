@@ -87,7 +87,11 @@ export function useCommission(period: string = thisPeriod()) {
     partialReturnCount: s?.partialReturnCount ?? 0,
     orphanBills: s?.orphanBills ?? 0,
     orphanSale: s?.orphanSale ?? 0,
+    reassignedBills: s?.reassignedBills ?? 0,
+    baseTotal: s?.baseTotal ?? 0,
+    payTotal: s?.payTotal ?? 0,
     timezone: s?.timezone,
+    dayStartHour: s?.dayStartHour ?? 0,
 
     rules: rulesQ.data ?? [],
     people: peopleQ.data?.people ?? [],

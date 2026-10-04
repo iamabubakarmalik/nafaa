@@ -21,6 +21,8 @@ export interface TenantSettings {
   currency: string;
   currencySymbol: string;
   timezone: string;
+  /** Karobari din kis ghante shuru hota hai (0–23). 0 = raat 12 baje */
+  businessDayStartHour?: number;
   dateFormat: string;
   firstDayOfWeek: string;
   openTime?: string | null;

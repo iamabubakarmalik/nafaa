@@ -31,6 +31,15 @@ export class UpdateSettingsDto {
   @ApiPropertyOptional({ enum: CURRENCIES }) @IsOptional() @IsIn(CURRENCIES as any) currency?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(5) currencySymbol?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() timezone?: string;
+
+  /**
+   * Karobari din kis ghante shuru hota hai (0–23).
+   *
+   * Dhaba raat 2 baje band hota hai — uske liye raat 1:30 ki bikri
+   * "aaj" ki hai. 0 = raat 12 baje (aam), 4 = subah 4 baje.
+   */
+  @ApiPropertyOptional({ minimum: 0, maximum: 23, description: 'Karobari din ka ghanta (0-23)' })
+  @IsOptional() @IsInt() @Min(0) @Max(23) businessDayStartHour?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() dateFormat?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() firstDayOfWeek?: string;
   @ApiPropertyOptional() @IsOptional() @Matches(TIME_REGEX) openTime?: string;

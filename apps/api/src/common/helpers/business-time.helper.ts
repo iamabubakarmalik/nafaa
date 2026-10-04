@@ -130,3 +130,89 @@ export function dateKeyTz(date: Date, tz: string = DEFAULT_TZ): string {
   const dd = String(p.day).padStart(2, '0');
   return `${p.year}-${mm}-${dd}`;
 }
+
+/* ═════════════════════════════════════════════════════════════
+   KAROBARI DIN — jo raat 12 baje khatam nahi hota
+   ─────────────────────────────────────────────────────────────
+   Dhaba raat 2 baje band hota hai. Uske liye raat 1:30 ki bikri
+   "aaj" ki hai, "kal" ki nahi — chahe ghari 12 baja chuki ho.
+   Isi tarah bakery subah 5 baje khulti hai; us ke liye din 5 baje
+   shuru hota hai.
+
+   Is liye har dukaan apna `businessDayStartHour` (0–23) rakhti
+   hai. 0 ka matlab wohi purana hisab — raat 12 se raat 12. Jo
+   dukaan 4 rakhti hai, us ka din subah 4 baje shuru ho kar agli
+   subah 4 baje khatam hota hai.
+
+   Saari report, dashboard aur commission inhi do function se
+   apni haddein nikalte hain, taake hisab har jagah ek jaisa rahe.
+   ═════════════════════════════════════════════════════════════ */
+
+/** 0–23 ke beech rakho — kharab value poora hisab ulat deti hai */
+export function safeDayStart(hour?: number | null): number {
+  const h = Math.trunc(Number(hour ?? 0));
+  return Number.isFinite(h) && h >= 0 && h <= 23 ? h : 0;
+}
+
+/**
+ * Is waqt ka karobari din kaunsa hai.
+ *
+ * Agar dukaan ka din 4 baje shuru hota hai, to 3 baje raat abhi
+ * "kal" ka din hai — is liye tareekh ek din peeche kar dete hain.
+ */
+export function businessDayKey(
+  date: Date = new Date(),
+  tz: string = DEFAULT_TZ,
+  dayStartHour = 0,
+): string {
+  const start = safeDayStart(dayStartHour);
+  const p = tzParts(date, tz);
+  let { year, month, day } = p;
+  if (p.hour < start) {
+    const prev = new Date(Date.UTC(year, month - 1, day));
+    prev.setUTCDate(prev.getUTCDate() - 1);
+    year = prev.getUTCFullYear();
+    month = prev.getUTCMonth() + 1;
+    day = prev.getUTCDate();
+  }
+  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+/** Karobari din ki shuruaat — UTC Date ke tor par */
+export function startOfBusinessDayTz(
+  date: Date = new Date(),
+  tz: string = DEFAULT_TZ,
+  dayStartHour = 0,
+): Date {
+  const start = safeDayStart(dayStartHour);
+  const key = businessDayKey(date, tz, start);
+  const [y, m, d] = key.split('-').map(Number);
+  return zonedToUtc(y, m, d, start, 0, 0, tz);
+}
+
+/** Karobari din ka ikhtitam — agle din ki shuruaat se ek pal pehle */
+export function endOfBusinessDayTz(
+  date: Date = new Date(),
+  tz: string = DEFAULT_TZ,
+  dayStartHour = 0,
+): Date {
+  const from = startOfBusinessDayTz(date, tz, dayStartHour);
+  return new Date(from.getTime() + 24 * 3600_000 - 1);
+}
+
+/**
+ * Karobari mahine ki shuruaat.
+ *
+ * Mahina bhi usi ghante par palatta hai. Jo dukaan 4 baje din
+ * shuru karti hai, us ke liye 1 tareekh raat 2 baje ki bikri
+ * pichhle mahine ki hai — aur tankhwah/commission usi hisab se
+ * banni chahiye.
+ */
+export function startOfBusinessMonthTz(
+  year: number,
+  month: number,
+  tz: string = DEFAULT_TZ,
+  dayStartHour = 0,
+): Date {
+  return zonedToUtc(year, month, 1, safeDayStart(dayStartHour), 0, 0, tz);
+}

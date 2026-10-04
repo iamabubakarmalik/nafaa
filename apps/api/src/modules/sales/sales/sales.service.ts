@@ -416,6 +416,7 @@ export class SalesService {
           cashRegisterId: cashRegister?.id,
           customerId: dto.customerId,
           createdById: user.id,
+          soldById: dto.soldById || user.id,
           discountCodeId,
           discountCode: discountCodeStr,
           saleNumber,

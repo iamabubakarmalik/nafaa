@@ -89,7 +89,11 @@ export class SettingsCoreService {
     /* Timezone badla to yaad kiya hua fauran bhool jayein — warna
        dukaan-daar settings me waqt theek karta hai aur dashboard das
        minute tak purane waqt par hi report banata rehta hai. */
-    if (dto.timezone !== undefined) this.tzService.forget(user.tenantId);
+    /* Timezone ya karobari din ka ghanta badla — yaad kiya hua bhool
+       jayein, warna agle 10 minute tak report purane hisab se banti rahegi */
+    if (dto.timezone !== undefined || dto.businessDayStartHour !== undefined) {
+      this.tzService.forget(user.tenantId);
+    }
 
     // Log the change
     await this.prisma.activityLog.create({

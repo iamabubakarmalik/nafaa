@@ -38,6 +38,8 @@ export interface CreateSaleItem {
 }
 
 export interface CreateSalePayload {
+  /** Bikri kis ke naam — khali to bill banane wala khud (commission isi ko) */
+  soldById?: string;
   shopId: string;
   customerId?: string;
   paymentMethod: PaymentMethod;

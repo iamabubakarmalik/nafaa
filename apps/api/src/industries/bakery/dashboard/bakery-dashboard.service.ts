@@ -5,6 +5,10 @@ import { BusinessPulseService } from '../../../modules/dashboard/business-pulse.
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import {
   addDaysTz, endOfDayTz, startOfDayTz, startOfMonthTz, subDaysTz,
+  startOfBusinessDayTz,
+  endOfBusinessDayTz,
+  startOfBusinessMonthTz,
+  tzParts
 } from '../../../common/helpers/business-time.helper';
 
 /** Counter par bikne wali sales — draft/cancel nahi. */
@@ -23,13 +27,19 @@ export class BakeryDashboardService {
     // UTC par chalta tha: bakery ka din subah 5 baje shuru hota tha
     // aur subah-subah bikne wale nashte ki sari sales "kal" ke khate
     // me chali jati thin. Timezone tenant ka apna hai.
-    const tz = await this.tzService.resolve(user.tenantId);
+    const { tz, dayStartHour } = await this.tzService.clock(user.tenantId);
     const now = new Date();
-    const todayStart = startOfDayTz(now, tz);
-    const todayEnd = endOfDayTz(now, tz);
+    /* Karobari din: dukaan ka apna ghanta. Jo dukaan raat 2 baje band
+       hoti hai wo 4 rakhti hai, phir raat 1 baje ki bikri usi din me
+       girti hai jis din dukaan khuli thi. 0 (default) par hisab bilkul
+       wohi rehta hai jo pehle tha — kisi chalti dukaan ka kuch nahi
+       badalta jab tak wo khud na badle. */
+    const todayStart = startOfBusinessDayTz(now, tz, dayStartHour);
+    const todayEnd = endOfBusinessDayTz(now, tz, dayStartHour);
     const tomorrowEnd = endOfDayTz(addDaysTz(now, 1, tz), tz);
     const weekEnd = endOfDayTz(addDaysTz(now, 7, tz), tz);
-    const monthStart = startOfMonthTz(now, tz);
+    const _m = tzParts(todayStart, tz);
+    const monthStart = startOfBusinessMonthTz(_m.year, _m.month, tz, dayStartHour);
     const monthAgo = subDaysTz(todayStart, 30, tz);
     const weekAgo = subDaysTz(todayStart, 6, tz);
     const yesterdayStart = subDaysTz(todayStart, 1, tz);

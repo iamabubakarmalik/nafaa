@@ -7,6 +7,10 @@ import {
   startOfMonthTz,
   subDaysTz,
   subMonthsTz,
+  startOfBusinessDayTz,
+  endOfBusinessDayTz,
+  startOfBusinessMonthTz,
+  tzParts
 } from '../../../common/helpers/business-time.helper';
 import { BusinessPulseService } from '../../../modules/dashboard/business-pulse.service';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
@@ -34,13 +38,20 @@ export class RetailDashboardService {
     // liye `startOfDay(new Date())` se din 5 ghante pehle shuru ho
     // jata tha — aur timezone har tenant ka apna hai, kyunke Nafaa
     // sirf Pakistan me nahi chalta.
-    const tz = await this.tzService.resolve(user.tenantId);
+    const { tz, dayStartHour } = await this.tzService.clock(user.tenantId);
     const now = new Date();
-    const todayStart = startOfDayTz(now, tz);
+    /* Karobari din: dukaan ka apna ghanta. Jo dukaan raat 2 baje band
+       hoti hai wo 4 rakhti hai, phir raat 1 baje ki bikri usi din me
+       girti hai jis din dukaan khuli thi. 0 (default) par hisab bilkul
+       wohi rehta hai jo pehle tha — kisi chalti dukaan ka kuch nahi
+       badalta jab tak wo khud na badle. */
+    const todayStart = startOfBusinessDayTz(now, tz, dayStartHour);
     const yesterdayStart = subDaysTz(todayStart, 1, tz);
     const weekAgo = subDaysTz(todayStart, 6, tz);
-    const monthStart = startOfMonthTz(now, tz);
-    const lastMonthStart = startOfMonthTz(subMonthsTz(now, 1, tz), tz);
+    const _m = tzParts(todayStart, tz);
+    const monthStart = startOfBusinessMonthTz(_m.year, _m.month, tz, dayStartHour);
+    const _lm = tzParts(subMonthsTz(todayStart, 1, tz), tz);
+    const lastMonthStart = startOfBusinessMonthTz(_lm.year, _lm.month, tz, dayStartHour);
 
     const baseWhere = {
       tenantId: user.tenantId,

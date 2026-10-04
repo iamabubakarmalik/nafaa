@@ -5,6 +5,32 @@ import { useAutoSave } from '../hooks/useAutoSave';
 import type { TenantSettings } from '../api/settings.api';
 import { SaveStatusBar } from './_SaveStatus';
 
+/** 0 → "raat 12 baje", 14 → "dopahar 2 baje" — dukaan-daar ki zabaan me */
+function hourLabel(h: number) {
+  const n = ((Math.trunc(h) % 24) + 24) % 24;
+  const t12 = n % 12 === 0 ? 12 : n % 12;
+  const part = n === 0 ? 'raat' : n < 5 ? 'raat' : n < 12 ? 'subah'
+    : n === 12 ? 'dopahar' : n < 16 ? 'dopahar' : n < 19 ? 'shaam' : 'raat';
+  return `${part} ${t12} baje`;
+}
+
+/* Jin ghanton par dukaanein waqai din badalti hain. Raat 2 baje band
+   hone wale dhabe 4 ya 6 chunte hain; bakery jo subah 5 baje khulti
+   hai wo 5. Beech ke faltu ghante list me rakhne ka koi faida nahi. */
+const DAY_START_HOURS = [
+  { value: '0', label: '🕛 Raat 12 baje — aam (default)' },
+  { value: '1', label: '🌙 Raat 1 baje' },
+  { value: '2', label: '🌙 Raat 2 baje' },
+  { value: '3', label: '🌙 Raat 3 baje' },
+  { value: '4', label: '🌃 Subah 4 baje' },
+  { value: '5', label: '🌅 Subah 5 baje' },
+  { value: '6', label: '🌅 Subah 6 baje' },
+  { value: '7', label: '☀️ Subah 7 baje' },
+  { value: '8', label: '☀️ Subah 8 baje' },
+  { value: '9', label: '☀️ Subah 9 baje' },
+  { value: '10', label: '☀️ Subah 10 baje' },
+];
+
 const DAYS = [
   { value: 'mon', label: 'Mon', full: 'Monday' },
   { value: 'tue', label: 'Tue', full: 'Tuesday' },
@@ -117,6 +143,18 @@ export function LocalizationSection({ settings }: { settings: TenantSettings }) 
             <p className="mt-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400">
               Dukaan ka din yahin se tay hota hai — report aur "peak hours"
               isi waqt par bante hain.
+            </p>
+          </Field>
+          <Field label="Din kab shuru hota hai" hint="Raat ko band hone wali dukaanon ke liye">
+            <Select
+              value={String(draft.businessDayStartHour ?? 0)}
+              onChange={(v) => set('businessDayStartHour', Number(v) as any)}
+              options={DAY_START_HOURS}
+            />
+            <p className="mt-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+              {Number(draft.businessDayStartHour ?? 0) === 0
+                ? 'Aam hisab — din raat 12 baje badalta hai.'
+                : `Din ${hourLabel(Number(draft.businessDayStartHour))} se agle din ${hourLabel(Number(draft.businessDayStartHour))} tak chalta hai. Is se pehle ki bikri pichhle din me girti hai.`}
             </p>
           </Field>
           <Field label="Date Format" hint={`Preview: ${previewDate}`}>

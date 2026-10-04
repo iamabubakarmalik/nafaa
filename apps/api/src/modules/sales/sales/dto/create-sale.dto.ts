@@ -134,6 +134,19 @@ export class CreateSaleDto {
   @IsString()
   customerId?: string;
 
+  /**
+   * Bikri kis ke naam jaye.
+   *
+   * Counter par aksar ek hi cashier bill banata hai, magar becha
+   * kisi aur ne hota hai — commission usi ko milni chahiye. POS par
+   * wo naam chun leta hai aur wohi yahan aata hai. Khali ho to bill
+   * banane wala hi becha hua mana jata hai.
+   */
+  @ApiPropertyOptional({ description: 'Salesperson — khali to bill banane wala' })
+  @IsOptional()
+  @IsString()
+  soldById?: string;
+
   @ApiProperty({ enum: PaymentMethod, example: 'CASH' })
   @Transform(({ value }) => (value === 'BANK' ? 'BANK_TRANSFER' : value))
   @IsEnum(PaymentMethod)

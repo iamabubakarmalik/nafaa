@@ -53,6 +53,7 @@ import { combosApi, type ProductCombo } from '../api/combos.api';
 import { quickKeysApi, type QuickKey } from '../api/quick-keys.api';
 import { FbrModeIndicator } from '@integrations/fbr/components/FbrModeIndicator';
 import { VoiceSaleButton, type VoiceCommand } from '@core/components/voice/VoiceSaleButton';
+import { PosSellerPicker } from '@modules/pos/components/PosSellerPicker';
 
 /* ═════════════════════════════════════════════════════════════
    🚀 NAfaa RETAIL POS — 2-SECOND BILLING EDITION
@@ -148,6 +149,9 @@ export default function RetailPosPage() {
   const [showCustomerAdd, setShowCustomerAdd] = useState(false);
   const [showHeldCarts, setShowHeldCarts] = useState(false);
   const [showMobileCart, setShowMobileCart] = useState(false);
+  /* Bikri kis ke naam — cart par chunte hain, taake Instant Cash
+     (F12) aur poore checkout, dono me wohi naam jaye */
+  const [soldById, setSoldById] = useState<string | undefined>(undefined);
   const [showTeacher, setShowTeacher] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [heldCarts, setHeldCarts] = useState<HeldCart[]>([]);
@@ -702,7 +706,7 @@ export default function RetailPosPage() {
 
   /* ═══ CHECKOUT — with DIRECT PRINT ═══ */
   const checkoutMutation = useMutation({
-    mutationFn: (data: { paymentMethod: PaymentMethod; paidAmount: number }) => {
+    mutationFn: (data: { paymentMethod: PaymentMethod; paidAmount: number; soldById?: string }) => {
       if (!currentShopId) throw new Error('Shop select karein');
       const items: any[] = [];
       cart.forEach((l) => {
@@ -732,6 +736,9 @@ export default function RetailPosPage() {
         shopId: currentShopId,
         customerId: customerId || undefined,
         paymentMethod: data.paymentMethod,
+        /* Bikri kis ke naam — khali to server khud bill banane wale
+           ka naam laga deta hai */
+        soldById: data.soldById,
         paidAmount: data.paidAmount,
         discount: discountAmount,
         serviceCharges: deliveryServiceCharge(delivery),
@@ -799,8 +806,8 @@ export default function RetailPosPage() {
     if (cart.length === 0) { toast.error('Cart khaali hai'); return; }
     if (!currentShopId) { toast.error('Pehle shop select karo'); return; }
     if (checkoutMutation.isPending) return;
-    checkoutMutation.mutate({ paymentMethod: 'CASH', paidAmount: total });
-  }, [cart.length, currentShopId, total, checkoutMutation]);
+    checkoutMutation.mutate({ paymentMethod: 'CASH', paidAmount: total, soldById });
+  }, [cart.length, currentShopId, total, checkoutMutation, soldById]);
 
   const openCheckout = useCallback((mode: CheckoutMode = 'full') => {
     if (cart.length === 0) return;
@@ -895,7 +902,7 @@ export default function RetailPosPage() {
           customerId={customerId || undefined}
           receiver={receiver}
           onReceiverChange={setReceiver}
-          onConfirm={(d) => checkoutMutation.mutate({ paymentMethod: d.paymentMethod, paidAmount: d.paidAmount, depositExtra: d.depositExtra } as any)}
+          onConfirm={(d) => checkoutMutation.mutate({ paymentMethod: d.paymentMethod, paidAmount: d.paidAmount, depositExtra: d.depositExtra, soldById } as any)}
           onClose={() => setShowCheckout(false)}
         />
       )}
@@ -1158,6 +1165,7 @@ export default function RetailPosPage() {
         </section>
 
         <PosCartPanel
+          customerExtra={<PosSellerPicker value={soldById} onChange={setSoldById} />}
           isMobile={showMobileCart}
           onCloseMobile={() => setShowMobileCart(false)}
           cart={cart} itemCount={itemCount} totalQty={totalQty}

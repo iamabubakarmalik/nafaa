@@ -112,6 +112,17 @@ export function CommissionDetailDrawer({
             <HeroStat label="Munafa" value={money(row.profit)} />
             <HeroStat label="Commission" value={money(row.earned)} big />
           </div>
+
+          {/* Pakki tankhwah bhi ho to poora jor — banda yehi poochta hai */}
+          {row.baseSalary > 0 && (
+            <div className="mt-2 rounded-2xl bg-white/15 backdrop-blur border border-white/20 px-3 py-2 flex items-center gap-2 flex-wrap">
+              <span className="text-[10px] font-black uppercase tracking-widest text-white/75">Is mahine kul</span>
+              <span className="text-xs font-bold text-white/85">
+                tankhwah {money(row.baseSalary)} + commission {money(row.earned)} =
+              </span>
+              <span className="text-lg font-black tabular-nums">{money(row.totalPay)}</span>
+            </div>
+          )}
         </header>
 
         {/* ── Hisab kaise bana ── */}
@@ -374,6 +385,12 @@ function printDetail(data: any, row: CommissionRow, period: string, shopName?: s
     <div class="box"><div class="k">Munafa</div><div class="v">${rs(row.profit)}</div></div>
     <div class="box"><div class="k">Commission</div><div class="v">${rs(row.earned)}</div></div>
   </div>
+  ${row.baseSalary > 0 ? `
+  <div class="grid" style="grid-template-columns:repeat(3,1fr)">
+    <div class="box"><div class="k">Pakki tankhwah</div><div class="v">${rs(row.baseSalary)}</div></div>
+    <div class="box"><div class="k">+ Commission</div><div class="v">${rs(row.earned)}</div></div>
+    <div class="box" style="border-color:#0f172a"><div class="k">= Is mahine kul</div><div class="v">${rs(row.totalPay)}</div></div>
+  </div>` : ''}
 
   <h2>Hisab kaise bana</h2>
   <table><thead><tr><th>Tafseel</th><th class="r">Hisab</th><th class="r">Raqam</th></tr></thead>

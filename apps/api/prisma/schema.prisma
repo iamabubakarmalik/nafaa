@@ -704,6 +704,7 @@ model User {
   commissionRules       CommissionRule[]       @relation("CommissionRuleUser")
   commissionEnrollments CommissionEnrollment[] @relation("CommissionEnrollmentUser")
   commissionPayouts     CommissionPayout[]     @relation("CommissionPayoutUser")
+  soldSales             Sale[]                 @relation("UserSoldSales")
 }
 
 model OnboardingProgress {
@@ -1227,6 +1228,9 @@ model Sale {
   cashRegisterId          String?
   customerId              String?
   createdById             String?
+  /// Bikri kis ke naam — counter par koi aur khara ho sakta hai.
+  /// Khali ho to `createdById` hi becha hua mana jata hai.
+  soldById                String?
   discountCodeId          String?
   saleNumber              String
   subtotal                Float
@@ -1273,6 +1277,7 @@ model Sale {
   cashRegister    CashRegister? @relation(fields: [cashRegisterId], references: [id], onDelete: SetNull)
   customer        Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
   createdBy       User?         @relation("UserSales", fields: [createdById], references: [id], onDelete: SetNull)
+  soldBy          User?         @relation("UserSoldSales", fields: [soldById], references: [id], onDelete: SetNull)
   discountCodeRef DiscountCode? @relation(fields: [discountCodeId], references: [id], onDelete: SetNull)
   items           SaleItem[]
   returns         SaleReturn[]
@@ -1286,6 +1291,7 @@ model Sale {
   @@index([shopId])
   @@index([cashRegisterId])
   // POS ki "pehle kaun aaya tha" wali list isi par chalti hai
+  @@index([soldById])
   @@index([customerId, receivedByName])
   @@index([tenantId, source, soldAt])
 }
@@ -1993,6 +1999,12 @@ model TenantSettings {
   currencySymbol String   @default("Rs")
   timezone       String   @default("Asia/Karachi")
   dateFormat     String   @default("DD/MM/YYYY")
+
+  /// Karobari din kis ghante shuru hota hai (0–23, maqami waqt).
+  /// 0 = raat 12 baje (aam). Jo dukaan raat 2 baje band karti hai wo
+  /// 4 ya 6 rakh sakti hai — phir raat 1 baje ki bikri usi din me
+  /// girti hai jis din dukaan khuli thi, agle din me nahi.
+  businessDayStartHour Int @default(0)
   firstDayOfWeek String   @default("monday")
   openTime       String? // "09:00"
   closeTime      String? // "22:00"

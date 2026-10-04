@@ -41,6 +41,7 @@ import { quickKeysApi, type QuickKey } from '@industries/retail/api/quick-keys.a
 import { agriProductsApi, type AgriProductProfile } from '../api/products.api';
 import { farmersApi } from '../api/farmers.api';
 import { certStatus, isMeasured, agriUnitLabel, SEASONS as AGRI_SEASONS } from '../lib/agriUnits';
+import { PosSellerPicker } from '@modules/pos/components/PosSellerPicker';
 import {
   deriveAgriKind, prettyAgriKind, AGRI_KIND_EMOJI, needsGovtReg,
   isSeedKind, isFertKind, isSprayKind, isFeedKind, isToolKind, type AgriKind,
@@ -196,6 +197,9 @@ export default function AgriPosPage() {
   const [showCustomerAdd, setShowCustomerAdd] = useState(false);
   const [showHeldCarts, setShowHeldCarts] = useState(false);
   const [showMobileCart, setShowMobileCart] = useState(false);
+  /* Bikri kis ke naam — cart par chunte hain, taake Instant Cash
+     (F12) aur poore checkout, dono me wohi naam jaye */
+  const [soldById, setSoldById] = useState<string | undefined>(undefined);
   const [showTeacher, setShowTeacher] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [heldCarts, setHeldCarts] = useState<HeldCart[]>([]);
@@ -760,7 +764,7 @@ export default function AgriPosPage() {
 
   /* ═══ CHECKOUT ═══ */
   const checkoutMutation = useMutation({
-    mutationFn: (data: { paymentMethod: PaymentMethod; paidAmount: number; depositExtra?: boolean }) => {
+    mutationFn: (data: { paymentMethod: PaymentMethod; paidAmount: number; depositExtra?: boolean; soldById?: string }) => {
       if (!currentShopId) throw new Error('Pehle dukaan chunein');
       const items: any[] = [];
       cart.forEach((l) => {
@@ -793,6 +797,9 @@ export default function AgriPosPage() {
         shopId: currentShopId,
         customerId: customerId || undefined,
         paymentMethod: data.paymentMethod,
+        /* Bikri kis ke naam — khali to server khud bill banane wale
+           ka naam laga deta hai */
+        soldById: data.soldById,
         paidAmount: data.paidAmount,
         discount: discountAmount,
         serviceCharges: deliveryServiceCharge(delivery),
@@ -851,8 +858,8 @@ export default function AgriPosPage() {
     if (cart.length === 0) { toast.error('Cart khaali hai'); return; }
     if (!currentShopId) { toast.error('Pehle dukaan chunein'); return; }
     if (checkoutMutation.isPending) return;
-    checkoutMutation.mutate({ paymentMethod: 'CASH', paidAmount: total });
-  }, [cart.length, currentShopId, total, checkoutMutation]);
+    checkoutMutation.mutate({ paymentMethod: 'CASH', paidAmount: total, soldById });
+  }, [cart.length, currentShopId, total, checkoutMutation, soldById]);
 
   const openCheckout = useCallback((mode: PosCheckoutMode = 'full') => {
     if (cart.length === 0) return;
@@ -948,7 +955,7 @@ export default function AgriPosPage() {
           customerId={customerId || undefined}
           receiver={receiver}
           onReceiverChange={setReceiver}
-          onConfirm={(d) => checkoutMutation.mutate({ paymentMethod: d.paymentMethod, paidAmount: d.paidAmount, depositExtra: d.depositExtra })}
+          onConfirm={(d) => checkoutMutation.mutate({ paymentMethod: d.paymentMethod, paidAmount: d.paidAmount, depositExtra: d.depositExtra, soldById })}
           onClose={() => setShowCheckout(false)}
         />
       )}
@@ -1235,7 +1242,12 @@ export default function AgriPosPage() {
           hidePrices={hidePrices}
           customers={customers} customerId={customerId} setCustomerId={setCustomerId}
           selectedCustomer={selectedCustomer}
-          customerExtra={<FarmerStrip farmer={farmerProfile} hidePrices={hidePrices} />}
+          customerExtra={(
+            <>
+              <FarmerStrip farmer={farmerProfile} hidePrices={hidePrices} />
+              <PosSellerPicker value={soldById} onChange={setSoldById} />
+            </>
+          )}
           receiver={receiver} onReceiverChange={setReceiver}
           onAddCustomer={() => setShowCustomerAdd(true)}
           onHold={holdCart}

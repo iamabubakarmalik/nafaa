@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { DEFAULT_TZ } from './business-time.helper';
+import { DEFAULT_TZ, safeDayStart } from './business-time.helper';
 
 /* ═════════════════════════════════════════════════════════════
    HAR DUKAAN KA APNA WAQT
@@ -27,7 +27,15 @@ const CACHE_TTL_MS = 10 * 60_000;
 
 interface CacheEntry {
   tz: string;
+  /** Karobari din kis ghante shuru hota hai (0–23) */
+  dayStartHour: number;
   at: number;
+}
+
+/** Dukaan ka waqt: kis mulk ka, aur din kab shuru hota hai */
+export interface BusinessClock {
+  tz: string;
+  dayStartHour: number;
 }
 
 @Injectable()
@@ -44,24 +52,39 @@ export class TenantTimezoneService {
    * se kahin bura hota.
    */
   async resolve(tenantId: string): Promise<string> {
+    return (await this.clock(tenantId)).tz;
+  }
+
+  /**
+   * Poora waqt — timezone aur karobari din ka ghanta, dono.
+   *
+   * `resolve()` sirf timezone deta tha. Jin jagahon ko "din kab
+   * shuru hota hai" bhi chahiye (dashboard, report, commission),
+   * wo ye wali pukarti hain — ek hi query, dono jawab.
+   */
+  async clock(tenantId: string): Promise<BusinessClock> {
     const hit = this.cache.get(tenantId);
-    if (hit && Date.now() - hit.at < CACHE_TTL_MS) return hit.tz;
+    if (hit && Date.now() - hit.at < CACHE_TTL_MS) {
+      return { tz: hit.tz, dayStartHour: hit.dayStartHour };
+    }
 
     let tz = DEFAULT_TZ;
+    let dayStartHour = 0;
     try {
       const settings = await this.prisma.tenantSettings.findUnique({
         where: { tenantId },
-        select: { timezone: true },
+        select: { timezone: true, businessDayStartHour: true },
       });
       if (settings?.timezone && isValidTimeZone(settings.timezone)) {
         tz = settings.timezone;
       }
+      dayStartHour = safeDayStart(settings?.businessDayStartHour);
     } catch {
       // DB tak na pohnch sakein to bhi report banni chahiye
     }
 
-    this.cache.set(tenantId, { tz, at: Date.now() });
-    return tz;
+    this.cache.set(tenantId, { tz, dayStartHour, at: Date.now() });
+    return { tz, dayStartHour };
   }
 
   /** Settings me timezone badle to yaad kiya hua fauran bhool jayein. */

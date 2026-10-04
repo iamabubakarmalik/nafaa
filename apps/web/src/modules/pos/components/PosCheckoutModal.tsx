@@ -36,7 +36,10 @@ export function PosCheckoutModal({
   customerId?: string;
   receiver: PosReceiverValue;
   onReceiverChange: (v: PosReceiverValue) => void;
-  onConfirm: (d: { paymentMethod: PaymentMethod; paidAmount: number; isCredit: boolean; depositExtra: boolean }) => void;
+  onConfirm: (d: {
+    paymentMethod: PaymentMethod; paidAmount: number; isCredit: boolean;
+    depositExtra: boolean;
+  }) => void;
   onClose: () => void;
 }) {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH');
@@ -56,7 +59,10 @@ export function PosCheckoutModal({
   const submit = useCallback(() => {
     if (isCredit && !hasCustomer) { toast.error('Udhaar ke liye customer select karein'); return; }
     if (loading) return;
-    onConfirm({ paymentMethod, paidAmount: mode === 'credit' ? 0 : paid, isCredit, depositExtra: depositExtra && change > 0 });
+    onConfirm({
+      paymentMethod, paidAmount: mode === 'credit' ? 0 : paid, isCredit,
+      depositExtra: depositExtra && change > 0,
+    });
   }, [isCredit, hasCustomer, loading, onConfirm, paymentMethod, mode, paid, depositExtra, change]);
 
   useEffect(() => {

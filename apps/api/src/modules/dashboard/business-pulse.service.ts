@@ -4,6 +4,7 @@ import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
 import {
   dateKeyTz, hourInTz, startOfDayTz, startOfMonthTz,
   subDaysTz, subMonthsTz,
+  startOfBusinessDayTz, startOfBusinessMonthTz, tzParts,
 } from '../../common/helpers/business-time.helper';
 import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.service';
 
@@ -45,11 +46,16 @@ export class BusinessPulseService {
   async moneyMap(user: AuthenticatedUser, shopId?: string) {
     // Dukaan ka apna waqt — Karachi wali Karachi par, Tehran wali
     // Tehran par. Server kahin bhi ho, farq nahi parta.
-    const tz = await this.tz.resolve(user.tenantId);
+    const { tz, dayStartHour } = await this.tz.clock(user.tenantId);
     const now = new Date();
-    const todayStart = startOfDayTz(now, tz);
-    const monthStart = startOfMonthTz(now, tz);
-    const lastMonthStart = startOfMonthTz(subMonthsTz(now, 1, tz), tz);
+    /* Din raat 12 baje khatam nahi hota — dhaba 2 baje band hota hai.
+       Dukaan apna ghanta set kar sakti hai; 0 (default) par ye bilkul
+       wohi hisab deta hai jo pehle tha. */
+    const todayStart = startOfBusinessDayTz(now, tz, dayStartHour);
+    const cur = tzParts(todayStart, tz);
+    const monthStart = startOfBusinessMonthTz(cur.year, cur.month, tz, dayStartHour);
+    const prev = tzParts(subMonthsTz(todayStart, 1, tz), tz);
+    const lastMonthStart = startOfBusinessMonthTz(prev.year, prev.month, tz, dayStartHour);
 
     const saleWhere = {
       tenantId: user.tenantId,
@@ -351,10 +357,10 @@ export class BusinessPulseService {
    *             taake "asal me kaunsa waqt masroof hai" saaf nazar aaye.
    */
   async salesByHour(user: AuthenticatedUser, shopId?: string, days = 1) {
-    const tz = await this.tz.resolve(user.tenantId);
+    const { tz, dayStartHour } = await this.tz.clock(user.tenantId);
     const span = Math.min(Math.max(Math.trunc(days) || 1, 1), 90);
     const now = new Date();
-    const todayStart = startOfDayTz(now, tz);
+    const todayStart = startOfBusinessDayTz(now, tz, dayStartHour);
     const rangeStart = span > 1 ? subDaysTz(todayStart, span - 1, tz) : todayStart;
 
     const sales = await this.prisma.sale.findMany({

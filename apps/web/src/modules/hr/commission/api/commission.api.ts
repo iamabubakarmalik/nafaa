@@ -58,7 +58,14 @@ export interface CommissionRow {
   userId: string;
   name: string;
   enrolled: boolean;
-  staff?: { id: string; staffNumber?: string; designation?: string; salaryType?: string } | null;
+  staff?: {
+    id: string; staffNumber?: string; designation?: string;
+    salaryType?: string; baseSalary?: number; status?: string;
+  } | null;
+  /** Mahine ki pakki tankhwah — sirf COMMISSION wale ki 0 hoti hai */
+  baseSalary: number;
+  /** Tankhwah + commission — "is mahine kitna milega" ka jawab */
+  totalPay: number;
   bills: number;
   sale: number;
   profit: number;
@@ -75,6 +82,8 @@ export interface CommissionRow {
 export interface CommissionSummary {
   period: string;
   timezone: string;
+  /** Karobari din kis ghante shuru hota hai (0–23) */
+  dayStartHour: number;
   from: string;
   to: string;
   rows: CommissionRow[];
@@ -86,6 +95,10 @@ export interface CommissionSummary {
   partialReturnCount: number;
   orphanBills: number;
   orphanSale: number;
+  /** Jin bill par cashier koi aur tha magar bikri kisi aur ke naam lagi */
+  reassignedBills: number;
+  baseTotal: number;
+  payTotal: number;
   ruleCount: number;
 }
 

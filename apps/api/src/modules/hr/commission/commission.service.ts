@@ -3,7 +3,7 @@ import { Prisma, SaleStatus, CommissionValueType } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
-import { zonedToUtc } from '../../../common/helpers/business-time.helper';
+import { startOfBusinessMonthTz } from '../../../common/helpers/business-time.helper';
 import { UpsertRuleDto } from './dto/upsert-rule.dto';
 import { EnrollDto } from './dto/enroll.dto';
 import { PayoutDto } from './dto/payout.dto';
@@ -269,12 +269,15 @@ export class CommissionService {
     const month = Number(m[2]);
     if (month < 1 || month > 12) throw new BadRequestException('Mahina 01 se 12 ke beech ho');
 
-    const tz = await this.tzService.resolve(tenantId);
-    const from = zonedToUtc(year, month, 1, 0, 0, 0, tz);
+    /* Mahina dukaan ke apne karobari din par palatta hai. Jo dukaan
+       raat 2 baje band hoti hai aur din 4 baje shuru karti hai, us ke
+       liye 1 tareekh raat 1 baje ki bikri pichhle mahine ki hai. */
+    const { tz, dayStartHour } = await this.tzService.clock(tenantId);
+    const from = startOfBusinessMonthTz(year, month, tz, dayStartHour);
     const nextY = month === 12 ? year + 1 : year;
     const nextM = month === 12 ? 1 : month + 1;
-    const to = zonedToUtc(nextY, nextM, 1, 0, 0, 0, tz);
-    return { from, to, tz };
+    const to = startOfBusinessMonthTz(nextY, nextM, tz, dayStartHour);
+    return { from, to, tz, dayStartHour };
   }
 
   /**
@@ -285,7 +288,7 @@ export class CommissionService {
    * sawal "ye paisa kahan se aaya" ka jawab safhe par hi mil jaye.
    */
   async summary(user: AuthenticatedUser, period: string, opts: { detail?: boolean } = {}) {
-    const { from, to, tz } = await this.monthRange(user.tenantId, period);
+    const { from, to, tz, dayStartHour } = await this.monthRange(user.tenantId, period);
 
     const [rules, enrollments, sales, payouts, staff] = await Promise.all([
       this.prisma.commissionRule.findMany({
@@ -302,8 +305,10 @@ export class CommissionService {
         },
         select: {
           id: true, saleNumber: true, total: true, costOfGoods: true,
-          discount: true, soldAt: true, status: true, createdById: true,
+          discount: true, soldAt: true, status: true,
+          createdById: true, soldById: true,
           createdBy: { select: { id: true, fullName: true } },
+          soldBy: { select: { id: true, fullName: true } },
           customer: { select: { id: true, name: true } },
           items: {
             select: {
@@ -324,7 +329,10 @@ export class CommissionService {
       }),
       this.prisma.staff.findMany({
         where: { tenantId: user.tenantId },
-        select: { id: true, userId: true, staffNumber: true, designation: true, salaryType: true },
+        select: {
+          id: true, userId: true, staffNumber: true, designation: true,
+          salaryType: true, baseSalary: true, status: true,
+        },
       }),
     ]);
 
@@ -337,8 +345,14 @@ export class CommissionService {
     const byUser = new Map<string, typeof sales>();
     let orphanBills = 0;
     let orphanSale = 0;
+    let reassignedBills = 0;
     sales.forEach((sale) => {
-      const uid = sale.createdById;
+      /* Counter par aksar ek hi cashier bill banata hai, magar bikri
+         kisi aur ki hoti hai. POS par wo "kis ke naam" chun leta hai —
+         wohi `soldById` me jata hai. Na chuna ho to jis ne bill banaya
+         usi ki bikri mani jati hai. */
+      const uid = sale.soldById ?? sale.createdById;
+      if (sale.soldById && sale.soldById !== sale.createdById) reassignedBills += 1;
       if (!uid) {
         orphanBills += 1;
         orphanSale += num(sale.total);
@@ -355,7 +369,8 @@ export class CommissionService {
     for (const uid of userIds) {
       const bills = byUser.get(uid) ?? [];
       const enrolled = enrolledIds.has(uid);
-      const name = bills[0]?.createdBy?.fullName
+      const name = bills.find((b) => b.soldById === uid)?.soldBy?.fullName
+        ?? bills.find((b) => b.createdById === uid)?.createdBy?.fullName
         ?? (await this.nameOf(user.tenantId, uid))
         ?? 'Banda';
 
@@ -457,8 +472,14 @@ export class CommissionService {
         name,
         enrolled,
         staff: st
-          ? { id: st.id, staffNumber: st.staffNumber, designation: st.designation, salaryType: st.salaryType }
+          ? {
+              id: st.id, staffNumber: st.staffNumber, designation: st.designation,
+              salaryType: st.salaryType, baseSalary: num(st.baseSalary), status: st.status,
+            }
           : null,
+        /* Tankhwah + commission — banda yehi poochta hai ke "is mahine
+           kitna milega". Sirf COMMISSION wale ki base 0 hoti hai. */
+        baseSalary: st && st.salaryType !== 'COMMISSION' ? num(st.baseSalary) : 0,
         bills: bills.length,
         sale, profit,
         earned: Math.round(earned),
@@ -469,6 +490,7 @@ export class CommissionService {
         paidAt: payout?.paidAt ?? null,
         paidAmount: payout?.amount ?? null,
         lines,
+        totalPay: (st && st.salaryType !== 'COMMISSION' ? num(st.baseSalary) : 0) + Math.round(earned),
         /* Tafseel sirf maangne par — poori list har dafa bhejna bhaari hai */
         ...(opts.detail ? this.detailFor(bills, mine, enrolled) : {}),
       });
@@ -484,6 +506,7 @@ export class CommissionService {
     return {
       period,
       timezone: tz,
+      dayStartHour,
       from: from.toISOString(),
       to: to.toISOString(),
       rows,
@@ -496,6 +519,9 @@ export class CommissionService {
       partialReturnCount: sales.filter((s) => s.status === 'PARTIALLY_RETURNED').length,
       orphanBills,
       orphanSale,
+      reassignedBills,
+      baseTotal: live.reduce((a, r) => a + (r.baseSalary ?? 0), 0),
+      payTotal: live.reduce((a, r) => a + (r.totalPay ?? 0), 0),
       ruleCount: rules.length,
     };
   }

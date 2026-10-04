@@ -198,8 +198,37 @@ export default function CommissionPage({ tone = 'violet' }: { tone?: string }) {
           tone="from-sky-500 to-blue-600" />
       </section>
 
+      {/* ═══ TANKHWAH + COMMISSION ═══
+          Banda ye nahi poochta ke "meri commission kitni bani" — wo
+          poochta hai ke "is mahine mujhe kitna milega". Is liye pakki
+          tankhwah aur commission ek hi jagah jor kar dikhate hain. */}
+      {c.baseTotal > 0 && (
+        <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 print:hidden">
+          <div className="flex items-center gap-2.5 mb-3">
+            <span className={`h-9 w-9 rounded-xl bg-gradient-to-br ${t.grad} text-white flex items-center justify-center shrink-0`}>
+              <Wallet className="h-4 w-4" />
+            </span>
+            <div className="min-w-0">
+              <h2 className="text-sm font-black text-slate-900 dark:text-white">Is mahine kul kitna dena hai</h2>
+              <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                Pakki tankhwah Staff ke record se, commission bikri se — dono jor kar
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            <PayCell label="Pakki tankhwah" value={money(c.baseTotal)} sub="Staff record se" />
+            <PayCell label="+ Commission" value={money(c.total)} sub="Is mahine ki bikri par" tone={t.text} />
+            <PayCell label="= Kul" value={money(c.payTotal)} sub={`${c.enabledCount} bandon ka`} big />
+          </div>
+          <p className="mt-2 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+            Tankhwah yahan se ada nahi hoti — wo Payroll se hoti hai. Yahan sirf poora
+            naqsha hai, taake pata rahe ke mahine ka kul bojh kitna hai.
+          </p>
+        </section>
+      )}
+
       {/* ═══ KHABARDAAR ═══ */}
-      {(c.orphanBills > 0 || c.notEnrolled.length > 0 || c.withoutLogin.length > 0) && (
+      {(c.orphanBills > 0 || c.notEnrolled.length > 0 || c.withoutLogin.length > 0 || c.reassignedBills > 0) && (
         <section className="rounded-2xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-3 space-y-1.5 print:hidden">
           {c.notEnrolled.length > 0 && (
             <Warn icon={UserCheck}>
@@ -214,6 +243,13 @@ export default function CommissionPage({ tone = 'violet' }: { tone?: string }) {
               ({c.withoutLogin.map((p) => p.name).slice(0, 3).join(', ')}
               {c.withoutLogin.length > 3 && ` +${c.withoutLogin.length - 3}`}) — un ki bikri kisi ke
               naam darj nahi hoti, is liye commission ban hi nahi sakti.
+            </Warn>
+          )}
+          {c.reassignedBills > 0 && (
+            <Warn icon={UserCheck}>
+              <strong>{c.reassignedBills} bill</strong> aise hain jinka cashier koi aur tha magar
+              bikri kisi aur ke naam lagi — POS par "bikri kis ke naam" chuna gaya tha. Commission
+              usi ko gayi hai.
             </Warn>
           )}
           {c.orphanBills > 0 && (
@@ -485,6 +521,22 @@ function Kpi({ icon: Icon, label, value, sub, tone }: any) {
   );
 }
 
+function PayCell({ label, value, sub, tone, big }: any) {
+  return (
+    <div className={`rounded-2xl border-2 p-3 ${
+      big
+        ? 'border-slate-900 dark:border-white bg-slate-50 dark:bg-slate-800'
+        : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60'
+    }`}>
+      <div className="text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate">{label}</div>
+      <div className={`font-black tabular-nums truncate ${big ? 'text-xl sm:text-2xl text-slate-900 dark:text-white' : `text-lg ${tone ?? 'text-slate-700 dark:text-slate-200'}`}`}>
+        {value}
+      </div>
+      <div className="text-[10px] font-bold text-slate-400 truncate">{sub}</div>
+    </div>
+  );
+}
+
 function Warn({ icon: Icon, children }: any) {
   return (
     <p className="text-[12px] font-bold text-amber-900 dark:text-amber-200 flex items-start gap-2">
@@ -623,6 +675,12 @@ function RowCard({ r, i, tone, money, busy, onOpen, onPay, onEnable, onUndo }: a
           {r.bills} bill · bikri {money(r.sale)} · munafa {money(r.profit)}
           {r.blockedByMin && ` · hadd se ${money(r.blockedByMin.short)} kam`}
         </div>
+        {r.enrolled && r.baseSalary > 0 && (
+          <div className="mt-0.5 text-[11px] font-bold text-slate-600 dark:text-slate-300 truncate">
+            Tankhwah {money(r.baseSalary)} + commission {money(r.earned)} ={' '}
+            <strong className="text-slate-900 dark:text-white">{money(r.totalPay)}</strong>
+          </div>
+        )}
         {r.targetPct !== undefined && r.targetPct < 100 && (
           <div className="mt-1.5 flex items-center gap-2">
             <div className="h-1.5 flex-1 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden max-w-[160px]">

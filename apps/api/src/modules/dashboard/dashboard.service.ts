@@ -3,6 +3,10 @@ import { PrismaService } from '../../prisma/prisma.service';
 import {
   dateKeyTz, endOfDayTz, hourInTz, startOfDayTz, startOfMonthTz,
   subDaysTz, subMonthsTz,
+  startOfBusinessDayTz,
+  endOfBusinessDayTz,
+  startOfBusinessMonthTz,
+  tzParts
 } from '../../common/helpers/business-time.helper';
 import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.service';
 
@@ -19,13 +23,20 @@ export class DashboardService {
     // baje shuru hota tha aur subah ki sales kal ke khate me chali
     // jati thin. Aur timezone har tenant ka apna hai — Nafaa sirf
     // Pakistan me nahi chalta.
-    const tz = await this.tzService.resolve(tenantId);
+    const { tz, dayStartHour } = await this.tzService.clock(tenantId);
     const now = new Date();
-    const todayStart = startOfDayTz(now, tz);
+    /* Karobari din: dukaan ka apna ghanta. Jo dukaan raat 2 baje band
+       hoti hai wo 4 rakhti hai, phir raat 1 baje ki bikri usi din me
+       girti hai jis din dukaan khuli thi. 0 (default) par hisab bilkul
+       wohi rehta hai jo pehle tha — kisi chalti dukaan ka kuch nahi
+       badalta jab tak wo khud na badle. */
+    const todayStart = startOfBusinessDayTz(now, tz, dayStartHour);
     const yesterdayStart = subDaysTz(todayStart, 1, tz);
-    const yesterdayEnd = endOfDayTz(yesterdayStart, tz);
-    const monthStart = startOfMonthTz(now, tz);
-    const lastMonthStart = startOfMonthTz(subMonthsTz(now, 1, tz), tz);
+    const yesterdayEnd = new Date(todayStart.getTime() - 1);
+    const _m = tzParts(todayStart, tz);
+    const monthStart = startOfBusinessMonthTz(_m.year, _m.month, tz, dayStartHour);
+    const _lm = tzParts(subMonthsTz(todayStart, 1, tz), tz);
+    const lastMonthStart = startOfBusinessMonthTz(_lm.year, _lm.month, tz, dayStartHour);
     const lastMonthEnd = new Date(monthStart.getTime() - 1);
     const sevenDaysAgo = subDaysTz(todayStart, 6, tz);
     const thirtyDaysAgo = subDaysTz(todayStart, 29, tz);
