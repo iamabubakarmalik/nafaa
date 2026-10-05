@@ -35,6 +35,7 @@ export const PERMISSIONS = {
   PURCHASES_VIEW: 'purchases.view',
   PURCHASES_CREATE: 'purchases.create',
   DASHBOARD_VIEW: 'dashboard.view',
+  COST_VIEW: 'cost.view',
   REPORTS_VIEW: 'reports.view',
   PROFIT_REPORT_VIEW: 'profit_report.view',
   STAFF_VIEW: 'staff.view',
@@ -127,6 +128,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, PermissionKey[]> = {
   SUPER_ADMIN: ALL_PERMISSIONS,
 
   MANAGER: [
+    PERMISSIONS.COST_VIEW,
     // Industry ke apne kaam — manager poori dukaan chalata hai
     PERMISSIONS.BAKERY_ORDERS_VIEW, PERMISSIONS.BAKERY_ORDERS_MANAGE,
     PERMISSIONS.BAKERY_PRODUCTION_VIEW, PERMISSIONS.BAKERY_PRODUCTION_MANAGE,
@@ -313,7 +315,7 @@ export const PERMISSION_LABELS: Record<string, string> = {
   'stock_movements.view': 'View Stock Movements', 'stock_adjustments.manage': 'Manage Adjustments', 'stock_transfers.manage': 'Manage Transfers',
   'suppliers.view': 'View Suppliers', 'suppliers.edit': 'Edit Suppliers',
   'purchases.view': 'View Purchases', 'purchases.create': 'Create Purchases',
-  'dashboard.view': 'View Dashboard', 'reports.view': 'View Reports', 'profit_report.view': 'Profit Report',
+  'dashboard.view': 'View Dashboard', 'cost.view': 'Lagat aur munafa dekhein', 'reports.view': 'View Reports', 'profit_report.view': 'Profit Report',
   'staff.view': 'View Staff', 'staff.manage': 'Manage Staff',
   'expenses.view': 'View Expenses', 'expenses.create': 'Create Expenses',
   'exports.view': 'Data Exports', 'backup.manage': 'Manage Backups',
@@ -449,6 +451,7 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     title: 'Reports & Analytics', label: 'Reports & Analytics', emoji: '📊', color: '#3b82f6',
     permissions: [
       PERMISSIONS.DASHBOARD_VIEW, PERMISSIONS.REPORTS_VIEW, PERMISSIONS.PROFIT_REPORT_VIEW,
+      PERMISSIONS.COST_VIEW,
     ],
   },
   {

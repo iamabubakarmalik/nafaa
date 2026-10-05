@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Eye, EyeOff, Lock, Unlock, KeyRound, Shield, X, Trash2, Loader2, HelpCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePrivacyStore } from '../stores/privacy.store';
+import { usePermission } from '../hooks/usePermission';
+import { PERMISSIONS } from '../lib/permissions';
 
 /* ═════════════════════════════════════════════════════════════
    COST / PROFIT CHHUPANA
@@ -9,24 +11,36 @@ import { usePrivacyStore } from '../stores/privacy.store';
    Dukaan par mulazim kharid ka bhao nahi dekh sakta — bas bikri
    ka. Malik apna PIN daal kar thori der ke liye khol leta hai.
 
-   PIN ab SERVER par hai, is device par nahi. Matlab malik apne
-   ghar ke computer, dukaan ke laptop ya mobile — kahin se bhi
-   wohi PIN daal kar dekh sakta hai. Aur agar kisi ko bata de,
-   to wo bhi apne phone se dekh lega.
+   PIN SERVER par hai aur POORI DUKAAN ke liye ek hai. Malik
+   Karachi me lagaye to Gujranwala ki branch par bhi lag jata hai —
+   har device apne shuru hone par server se poochta hai ke PIN laga
+   hai ya nahi.
 
-   "Khula hua hai" ki haalat jaan boojh kar har device par alag
-   hai: malik ke phone par khulne se counter wale ke screen par
-   cost nahi khulti.
+   Sirf "abhi khula hua hai" wali haalat har device par apni hoti
+   hai: malik ke phone par 15 minute ke liye khulne se counter ki
+   screen par cost nahi khulti.
    ═════════════════════════════════════════════════════════════ */
 
 /**
  * Cost abhi chhupi hui hai ya nahi.
  *
- * Chhupi hai jab: chhupane ka switch ON ho, aur ya to PIN laga hi
- * na ho (to koi khol hi nahi sakta) ya PIN laga ho magar abhi is
- * device par khula na ho.
+ * DO ALAG CHEEZEIN, AUR YEHI FARQ AHEM HAI:
+ *
+ *   1. IJAZAT (`cost.view`) — malik tay karta hai ke kaun lagat aur
+ *      munafa dekh sakta hai. Jis ke paas nahi, us se hamesha chhupa
+ *      rehta hai. Koi switch, koi PIN kaam nahi aata.
+ *
+ *   2. PIN — malik ka apna tareeqa. Jab counter par koi peechay khara
+ *      ho to number chhupa dein, aur zaroorat par PIN se thori der ke
+ *      liye khol lein.
+ *
+ * Pehle sirf doosri cheez thi, aur wo har browser me alag thi
+ * (localStorage). Malik apne computer par chhupa deta, magar cashier
+ * ke computer par default band hota — yani us ko poora munafa, margin
+ * aur discount saaf nazar aata tha.
  */
 export function useCostHidden() {
+  const canSeeCost = usePermission(PERMISSIONS.COST_VIEW);
   const { hideCost, hasPin, unlockedUntil } = usePrivacyStore();
   const [, tick] = useState(0);
 
@@ -38,9 +52,25 @@ export function useCostHidden() {
     }
   }, [unlockedUntil]);
 
+  /* Ijazat hi nahi — baat yahin khatam. Apne browser ka switch
+     band kar ke bhi kuch nazar nahi aayega. */
+  if (!canSeeCost) return true;
+
   if (!hideCost) return false;
   if (!hasPin) return true;
   return Date.now() >= unlockedUntil;
+}
+
+/**
+ * Lagat/munafa dekhne ki ijazat hai ya nahi.
+ *
+ * `useCostHidden()` se alag: wo batata hai ke ABHI chhupa hai,
+ * ye batata hai ke kabhi dekh bhi sakte hain. PIN ka button aur
+ * "PIN bhool gaye?" jaisi cheezein isi se chhupti hain — jis ke
+ * paas ijazat nahi, us ko PIN maangna bemaani hai.
+ */
+export function useCanSeeCost() {
+  return usePermission(PERMISSIONS.COST_VIEW);
 }
 
 interface HiddenValueProps {
@@ -72,12 +102,18 @@ export function HiddenValue({ value, type = 'cost', className = '', mask = '•�
  *  • PIN laga + khula: dobara band karne ka button
  */
 export function PrivacyToggle({ compact = false }: { compact?: boolean }) {
+  const canSeeCost = useCanSeeCost();
   const store = usePrivacyStore();
   const hideCost = useCostHidden();
   const [showPinPrompt, setShowPinPrompt] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
   const hasPin = store.hasPin;
   const isUnlocked = store.isUnlocked();
+
+  /* Jis ke paas ijazat hi nahi, us ke liye ye button bemaani hai —
+     number waise bhi hamesha chhupe rahenge. PIN maangna sirf uljhan
+     paida karta: banda PIN daalta rahega aur kuch nahi khulega. */
+  if (!canSeeCost) return null;
 
   const onClick = () => {
     if (!hasPin) {

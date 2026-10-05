@@ -11,6 +11,7 @@ import { GlobalExceptionFilter } from './common/filters/global-exception.filter'
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { ShopScopeInterceptor } from './common/shop-scope/shop-scope.interceptor';
 import { PermissionsGuard } from './common/guards/permissions.guard';
+import { CostMaskingInterceptor } from './common/interceptors/cost-masking.interceptor';
 import { envValidationSchema } from './config/env.validation';
 
 // ─── Core Foundation (Global) ──────────────────────────────
@@ -262,6 +263,8 @@ import { AiAssistantModule } from './marketplace/ai-assistant/ai-assistant.modul
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: PermissionsGuard },
+    /* Lagat/munafa jin ko nahi dikhana, un ke jawab se nikal jata hai */
+    { provide: APP_INTERCEPTOR, useClass: CostMaskingInterceptor },
     { provide: APP_GUARD, useClass: SubscriptionGuard },
     // Resolves the active branch for every request before controllers run.
     { provide: APP_INTERCEPTOR, useClass: ShopScopeInterceptor },

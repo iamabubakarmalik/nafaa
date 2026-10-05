@@ -141,6 +141,21 @@ export const ROUTE_RULES: RouteRule[] = [
   { match: /(^|\/)online-orders?(\/|$)/, GET: P.ONLINE_ORDERS_VIEW, write: P.ONLINE_ORDERS_MANAGE },
   { match: /(^|\/)marketplace/, GET: P.CATALOG_VIEW, write: P.CATALOG_MANAGE },
 
+  /* ── PIN ka nizam ──
+     Ye `settings` ke andar rehta hai magar settings ka hissa nahi.
+
+     `pin-status` har logged-in bande ko chahiye: usi se app ko pata
+     chalta hai ke lagat chhupani hai ya nahi. Ye call ruk jaye to
+     app samajhta hai "koi PIN nahi laga" aur kharid ka bhao khol
+     deta hai — yani rok lagane se ulta nuqsan hota hai.
+
+     `verify-pin` bhi khula hai: PIN daal kar kholna hi to wo kaam
+     hai jo har us bande ko karna hota hai jisay ijazat hai.
+
+     Lagana / hatana / badalna — wo malik ka kaam hai. */
+  { match: /^settings\/security\/(pin-status|verify-pin)(\/|$)/ },
+  { match: /^settings\/security\/(set-pin|remove-pin|reset-pin|locked-routes)(\/|$)/, GET: P.SETTINGS_MANAGE, write: P.SETTINGS_MANAGE },
+
   /* ── Nizam ── */
   { match: /(^|\/)shops(\/|$)/, GET: P.SHOPS_VIEW, write: P.SHOPS_MANAGE },
   { match: /(^|\/)settings(\/|$)/, GET: P.SETTINGS_VIEW, write: P.SETTINGS_EDIT },

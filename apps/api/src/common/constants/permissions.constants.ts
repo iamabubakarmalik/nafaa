@@ -42,6 +42,9 @@ export const PERMISSIONS = {
 
   // Reports
   DASHBOARD_VIEW: 'dashboard.view',
+  /// Lagat, munafa aur margin dekhna. Ye bikri dekhne se alag hai:
+  /// counter wala rate dekhta hai, magar "kitne me aayi thi" nahi.
+  COST_VIEW: 'cost.view',
   REPORTS_VIEW: 'reports.view',
   PROFIT_REPORT_VIEW: 'profit_report.view',
 
@@ -142,6 +145,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, PermissionKey[]> = {
   SUPER_ADMIN: ALL_PERMISSIONS,
 
   MANAGER: [
+    PERMISSIONS.COST_VIEW,
     // Industry ke apne kaam — manager poori dukaan chalata hai
     PERMISSIONS.BAKERY_ORDERS_VIEW, PERMISSIONS.BAKERY_ORDERS_MANAGE,
     PERMISSIONS.BAKERY_PRODUCTION_VIEW, PERMISSIONS.BAKERY_PRODUCTION_MANAGE,
