@@ -338,6 +338,7 @@ export interface WebsiteOverview {
     lastSyncAt?: string | null;
     config: WebsiteConfig;
     woo: null | { connected: boolean; connectedAt: string | null; permissions: string | null };
+    indolj?: null | { connected: boolean; connectedAt: string | null; baseUrl: string | null };
     shopify?: null | { connected: boolean; needsReinstall?: boolean; shop: string | null; connectedAt: string | null; locationName: string | null };
     daraz?: null | {
       connected: boolean; configured: boolean; account: string | null; sellerId: string | null; shortCode: string | null;

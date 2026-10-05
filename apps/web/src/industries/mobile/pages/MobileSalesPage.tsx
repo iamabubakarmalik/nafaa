@@ -1,5 +1,6 @@
 // src/industries/mobile/pages/MobileSalesPage.tsx
 import { useState, useMemo, useEffect, useRef } from 'react';
+import { SaleSourceBadge } from '@modules/sales/sales/components/SaleSourceBadge';
 import { saleItemName } from '@modules/sales/sales/lib/saleItemName';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -558,7 +559,7 @@ export default function MobileSalesPage() {
                       <div className={`h-12 w-12 rounded-2xl bg-gradient-to-br ${kindCfg.grad} text-white flex items-center justify-center shrink-0 shadow-lg`}><KindIcon className="h-5 w-5" /></div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-mono font-extrabold text-slate-900 dark:text-white text-sm">{sale.saleNumber}</span>
+                          <span className="font-mono font-extrabold text-slate-900 dark:text-white text-sm">{sale.saleNumber}</span> <SaleSourceBadge sale={sale as any} className="ml-1 align-middle" />
                           {sale.status === 'VOIDED' && <span className="px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-[10px] font-extrabold">VOIDED</span>}
                           <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold inline-flex items-center gap-1 ${kindCfg.chip}`}>
                             <KindIcon className="h-2.5 w-2.5" />{kindCfg.label}

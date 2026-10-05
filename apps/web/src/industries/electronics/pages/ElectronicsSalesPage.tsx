@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
+import { SaleSourceBadge } from '@modules/sales/sales/components/SaleSourceBadge';
 import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -1042,7 +1043,7 @@ export default function ElectronicsSalesPage() {
                       </span>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="font-mono font-black text-sm text-slate-900 dark:text-white">{s.saleNumber}</span>
+                          <span className="font-mono font-black text-sm text-slate-900 dark:text-white">{s.saleNumber}</span> <SaleSourceBadge sale={s as any} className="ml-1 align-middle" />
                           <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md ${pay.chip}`}>{pay.label}</span>
                           {voided && <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-rose-600 text-white">Void</span>}
                           {gap > 0 && (

@@ -208,11 +208,16 @@ export class WebsiteSetupService {
 
     const creds = (integration.credentials ?? {}) as any;
     const { apiSecret, credentials, ...safe } = integration as any;
+    // Keys / secrets web par nahi — sirf haal
+    const { indolj: indoljCfg, foodpanda: _fp, ...cfgSafe } = readWebsiteConfig(integration.config) as any;
     return {
       connected: true,
       integration: {
         ...safe,
-        config: readWebsiteConfig(integration.config),
+        config: cfgSafe,
+        indolj: indoljCfg?.activationToken
+          ? { connected: true, connectedAt: indoljCfg.connectedAt ?? null, baseUrl: indoljCfg.baseUrl ?? null }
+          : null,
         shopify: integration.type === 'SHOPIFY'
           ? {
               connected: !!creds.shopifyToken,

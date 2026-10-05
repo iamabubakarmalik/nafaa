@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { SaleSourceBadge } from '@modules/sales/sales/components/SaleSourceBadge';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import {
@@ -454,7 +455,7 @@ export default function SalonSalesPage() {
                           </div>
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-mono font-extrabold text-slate-900">{sale.saleNumber}</span>
+                              <span className="font-mono font-extrabold text-slate-900">{sale.saleNumber}</span> <SaleSourceBadge sale={sale as any} className="ml-1 align-middle" />
                               {sale.status === 'VOIDED' && <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-extrabold">VOIDED</span>}
                             </div>
                             <div className="mt-1 text-xs text-slate-600 font-semibold flex items-center gap-2 flex-wrap">

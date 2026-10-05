@@ -94,7 +94,7 @@ function Channel({ id, data, onChange, tab, setTab }: {
   const stats = data.stats!;
   const meta = channelMeta(i.type);
   const platform: Platform = i.type === 'WOOCOMMERCE' ? 'woocommerce' : i.type === 'SHOPIFY' ? 'shopify' : (cfg.platform === 'shopify' ? 'shopify' : cfg.platform === 'woocommerce' || cfg.platform === 'wordpress' ? 'woocommerce' : 'custom');
-  const automatic = !!i.woo?.connected || !!i.shopify?.connected || !!i.daraz?.connected;
+  const automatic = !!i.woo?.connected || !!i.shopify?.connected || !!i.daraz?.connected || !!i.indolj?.connected;
   const needsReinstall = !!i.shopify?.needsReinstall;
   const paused = !i.isActive;
   const receiving = !!stats.lastOrderAt || i.webhookVerified || automatic;
@@ -103,6 +103,7 @@ function Channel({ id, data, onChange, tab, setTab }: {
 
   const status = paused ? { tone: 'neutral' as const, text: 'Band' }
     : needsReinstall ? { tone: 'critical' as const, text: 'Dobara install chahiye' }
+      : i.indolj?.connected && !stats.lastOrderAt ? { tone: 'info' as const, text: 'Jura hua · pehle order ka intezar' }
       : receiving ? { tone: 'success' as const, text: 'Live' }
         : { tone: 'warning' as const, text: 'Jorna baqi' };
 
@@ -173,10 +174,10 @@ function Overview({ id, data, platform, onChange, setTab }: {
 
   const steps = [
     { label: 'Channel bana', done: true, tab: 'developer' as Tab },
-    { label: i.type === 'DARAZ' ? 'Daraz se jora' : oneClickType ? `${platform === 'shopify' ? 'Shopify' : 'WooCommerce'} se jora (automatic)` : 'Website se jora', done: !!i.daraz?.connected || automatic || !!stats.lastOrderAt || i.webhookVerified, tab: (oneClickType || i.type === 'DARAZ' ? 'overview' : 'developer') as Tab },
+    { label: i.indolj?.connected ? 'Indolj se jora (menu + orders)' : i.type === 'DARAZ' ? 'Daraz se jora' : oneClickType ? `${platform === 'shopify' ? 'Shopify' : 'WooCommerce'} se jora (automatic)` : 'Website se jora', done: !!i.daraz?.connected || !!i.indolj?.connected || automatic || !!stats.lastOrderAt || i.webhookVerified, tab: (oneClickType || i.type === 'DARAZ' ? 'overview' : 'developer') as Tab },
     { label: 'Products jore', done: stats.productLinks > 0, tab: 'products' as Tab },
     { label: 'Pehla order aaya', done: (stats.totalOrders ?? 0) > 0, tab: 'overview' as Tab },
-    ...(i.type === 'DARAZ' ? [] : [{ label: 'Status website ko jata hai', done: automatic || !!i.config.statusWebhookUrl, tab: 'settings' as Tab }]),
+    ...(i.type === 'DARAZ' || i.indolj?.connected ? [] : [{ label: 'Status website ko jata hai', done: automatic || !!i.config.statusWebhookUrl, tab: 'settings' as Tab }]),
   ];
   const done = steps.filter((s) => s.done).length;
 
@@ -192,6 +193,8 @@ function Overview({ id, data, platform, onChange, setTab }: {
 
         {i.type === 'DARAZ' ? (
           <DarazChannelCard id={id} data={data} />
+        ) : i.indolj?.connected ? (
+          <IndoljChannelCard data={data} setTab={setTab} />
         ) : oneClickType ? (
           <ConnectionCard id={id} data={data} platform={platform as 'woocommerce' | 'shopify'} onChange={onChange} setTab={setTab} />
         ) : (
@@ -611,5 +614,29 @@ function MoreMenu({ id, data, onChange }: { id: string; data: WebsiteOverview; o
         </div>
       )}
     </div>
+  );
+}
+
+/** Indolj par bani website — jura hua haal (code / developer wale raaste ki zaroorat nahi) */
+function IndoljChannelCard({ data, setTab }: { data: WebsiteOverview; setTab: (t: Tab) => void }) {
+  const i = data.integration!;
+  const stats = data.stats!;
+  const ordersUrl = i.apiKey ? `${data.urls.base}/orders/${i.apiKey}` : data.urls.orders;
+  return (
+    <Card title={<span className="flex items-center gap-2">🍪 Indolj se jura hua <Badge tone="success" dot>Menu sync</Badge></span>}
+      description="Website Indolj par hai — menu Nafaa me aata hai aur Indolj har naya order seedha Nafaa ko bhejta hai.">
+      <ul className="space-y-2 text-[13px] text-slate-700 dark:text-slate-200">
+        <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" /> Menu jura — <b>{stats.productLinks}</b> item Nafaa products se jure <button type="button" onClick={() => setTab('products')} className="font-semibold text-emerald-700 hover:underline">dekhein</button></li>
+        <li className="flex items-center gap-2">
+          {stats.lastOrderAt
+            ? <><CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" /> Orders aa rahe hain — aakhri {timeAgo(stats.lastOrderAt)}</>
+            : <><Circle className="h-4 w-4 shrink-0 text-amber-500" /> Indolj se pehle live order ka intezar — Indolj ki team ne webhook neeche wale URL par lagana hai</>}
+        </li>
+      </ul>
+      <div className="mt-3">
+        <CopyField label="Indolj ke liye order URL (POS webhook)" value={ordersUrl} hint="Indolj ko ye URL dein — live orders aur cancel status dono isi par" />
+      </div>
+      {i.indolj?.connectedAt && <p className="mt-2 text-[12px] text-slate-500">Indolj {whenText(i.indolj.connectedAt)} jora</p>}
+    </Card>
   );
 }

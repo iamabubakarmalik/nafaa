@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { SaleSourceBadge } from '@modules/sales/sales/components/SaleSourceBadge';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import {
@@ -309,7 +310,7 @@ export default function PharmacySalesPage() {
                         <div className="h-12 w-12 rounded-2xl bg-teal-100 text-teal-700 flex items-center justify-center shrink-0"><Pill className="h-5 w-5" /></div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-mono font-extrabold text-slate-900">{sale.saleNumber}</span>
+                            <span className="font-mono font-extrabold text-slate-900">{sale.saleNumber}</span> <SaleSourceBadge sale={sale as any} className="ml-1 align-middle" />
                             {sale.status === 'VOIDED' && <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-extrabold">VOIDED</span>}
                             {hasRx && <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-extrabold inline-flex items-center gap-1"><FileText className="h-2.5 w-2.5" />Rx</span>}
                             {hasNarcotic && <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-extrabold inline-flex items-center gap-1"><ShieldAlert className="h-2.5 w-2.5" />NARCOTIC</span>}

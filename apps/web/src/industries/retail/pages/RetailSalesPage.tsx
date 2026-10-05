@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
+import { SaleSourceBadge } from '@modules/sales/sales/components/SaleSourceBadge';
 import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -1055,7 +1056,7 @@ export default function RetailSalesPage() {
                           </div>
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-mono font-black text-slate-900 dark:text-white text-sm">{sale.saleNumber}</span>
+                              <span className="font-mono font-black text-slate-900 dark:text-white text-sm">{sale.saleNumber}</span> <SaleSourceBadge sale={sale as any} className="ml-1 align-middle" />
                               {isVoided && (
                                 <span className="px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-[10px] font-black">
                                   WAPAS LI GAYI

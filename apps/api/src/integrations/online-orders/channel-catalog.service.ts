@@ -88,7 +88,7 @@ export class ChannelCatalogService {
     const fresh = await this.prisma.integration.findUniqueOrThrow({ where: { id: integration.id }, select: { config: true } });
     await this.prisma.integration.update({
       where: { id: integration.id },
-      data: { config: { ...((fresh.config as any) ?? {}), indolj: { baseUrl, activationToken, merchantId, branchId: creds.branchId, secret: encrypt(secret) } } as any },
+      data: { config: { ...((fresh.config as any) ?? {}), indolj: { baseUrl, activationToken, merchantId, branchId: creds.branchId, secret: encrypt(secret), connectedAt: prev.connectedAt ?? new Date().toISOString() } } as any },
     });
     this.cache.delete(integration.id);
     return { ok: true, items: products.length };

@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
+import { SaleSourceBadge } from '@modules/sales/sales/components/SaleSourceBadge';
 import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -852,7 +853,7 @@ function SaleRow({ s, infoOf, receiptLink, showValue, waHref, onVoid, onReturn }
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="font-mono font-extrabold text-sm text-slate-900 dark:text-white">{s.saleNumber}</span>
+              <span className="font-mono font-extrabold text-sm text-slate-900 dark:text-white">{s.saleNumber}</span> <SaleSourceBadge sale={s as any} className="ml-1 align-middle" />
               <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase inline-flex items-center gap-1 ${pay.chip}`}>
                 <PayIcon className="h-2.5 w-2.5" /> {pay.label}
               </span>
