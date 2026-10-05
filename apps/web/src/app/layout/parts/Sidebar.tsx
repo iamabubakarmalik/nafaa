@@ -6,6 +6,7 @@ import {
   Plus, Search, Settings, Star, X,
 } from 'lucide-react';
 import { Logo } from '@core/components/brand/Logo';
+import { permissionForPath } from '@core/lib/route-permissions';
 import { hasPermission, isOwner, isOwnerOnlyPath } from '@core/lib/permissions';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import { useWorkspaceStore, WORKSPACES } from '@core/stores/workspace.store';
@@ -71,7 +72,12 @@ export function useVisibleNav(role?: any, permissions?: string[]) {
           if (!owner && isOwnerOnlyPath(it.to)) return false;
           // Setup screens live in Settings, not the everyday menu
           if (!isMarketplace && isSettingsPath(it.to)) return false;
-          return it.permission ? hasPermission(role, permissions, it.permission) : true;
+          /* Industry pack apne nav items par `permission` nahi likhte —
+             is liye un ka raasta dekh kar khud nikal lete hain. Warna
+             bakery ka cashier menu me "Cake Orders" dekhta rehta tha
+             chahe us ke paas us ka access na ho. */
+          const needs = it.permission ?? permissionForPath(it.to);
+          return needs ? hasPermission(role, permissions, needs) : true;
         }),
       }))
       .filter((g) => g.items.length > 0);

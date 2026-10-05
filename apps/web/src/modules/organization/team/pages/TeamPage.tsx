@@ -13,9 +13,11 @@ import { Button } from '@core/ui/Button';
 import { Input } from '@core/ui/Input';
 import { useAuthStore } from '@core/stores/auth.store';
 import { toast } from 'sonner';
+import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import {
   DEFAULT_ROLE_PERMISSIONS,
   PERMISSION_GROUPS,
+  permissionGroupsFor,
   PERMISSION_LABELS,
 } from '@core/lib/permissions';
 
@@ -49,6 +51,14 @@ export default function TeamPage() {
   const queryClient = useQueryClient();
   const currentUser = useAuthStore((s) => s.user);
   const isOwner = currentUser?.role === 'OWNER' || currentUser?.role === 'SUPER_ADMIN';
+
+  /* Permission ke groups is dukaan ki industry ke hisab se —
+
+     bakery wale ko "Farmers" aur "Kitchen" ka shor nahi milta */
+
+  const industry = useCurrentIndustry();
+
+  const visibleGroups = useMemo(() => permissionGroupsFor(industry?.id), [industry?.id]);
 
   const [showPassword, setShowPassword] = useState(false);
   const [search, setSearch] = useState('');
@@ -487,7 +497,7 @@ export default function TeamPage() {
                 </div>
 
                 <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1">
-                  {PERMISSION_GROUPS.map((group) => {
+                  {visibleGroups.map((group) => {
                     const allSelected = group.permissions.every((p: string) => form.permissions.includes(p));
                     const someSelected = group.permissions.some((p: string) => form.permissions.includes(p));
                     const count = group.permissions.filter((p: string) => form.permissions.includes(p)).length;
@@ -703,7 +713,7 @@ export default function TeamPage() {
               </div>
 
               <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
-                {PERMISSION_GROUPS.map((group) => {
+                {visibleGroups.map((group) => {
                   const allSelected = group.permissions.every((p: string) => editPermissions.includes(p));
                   const someSelected = group.permissions.some((p: string) => editPermissions.includes(p));
                   const count = group.permissions.filter((p: string) => editPermissions.includes(p)).length;

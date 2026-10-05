@@ -629,7 +629,7 @@ export default function App() {
                   <Route path="/categories" element={secure(PERMISSIONS.CATEGORIES_VIEW, <CategoriesPage />)} />
 
                   {/* ── Mobile ─────────────────────────────────── */}
-                  <Route path="/mobile-reports" element={<MobileReportsPage />} />
+                  <Route path="/mobile-reports" element={secure(PERMISSIONS.REPORTS_VIEW, <MobileReportsPage />)} />
                   <Route path="/emi-plans/:id" element={<EmiPlanDetailPage />} />
                   <Route path="/emi-plans" element={<EmiPlansPage />} />
                   <Route path="/repair-tickets/:id" element={<RepairTicketDetailPage />} />
@@ -785,31 +785,31 @@ export default function App() {
                   <Route path="/carpet-bulk-import" element={<CarpetBulkImportPage />} />
 
                   {/* Retail */}
-                  <Route path="/retail/combos/new" element={<ComboFormPage />} />
-                  <Route path="/retail/combos/:id/edit" element={<ComboFormPage />} />
-                  <Route path="/retail/combos" element={<CombosPage />} />
-                  <Route path="/retail/damage" element={<DamageLogPage />} />
-                  <Route path="/retail/product-units" element={<ProductUnitsPage />} />
-                  <Route path="/retail/quick-keys" element={<QuickKeysPage />} />
-                  <Route path="/retail/bulk-import" element={<BulkImportPage />} />
-                  <Route path="/retail/reorders" element={<ReorderPage />} />
-                  <Route path="/retail/barcode-labels" element={<BarcodeLabelsPage />} />
+                  <Route path="/retail/combos/new" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ComboFormPage />)} />
+                  <Route path="/retail/combos/:id/edit" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ComboFormPage />)} />
+                  <Route path="/retail/combos" element={secure(PERMISSIONS.PRODUCTS_VIEW, <CombosPage />)} />
+                  <Route path="/retail/damage" element={secure(PERMISSIONS.PRODUCTS_VIEW, <DamageLogPage />)} />
+                  <Route path="/retail/product-units" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ProductUnitsPage />)} />
+                  <Route path="/retail/quick-keys" element={secure(PERMISSIONS.PRODUCTS_VIEW, <QuickKeysPage />)} />
+                  <Route path="/retail/bulk-import" element={secure(PERMISSIONS.PRODUCTS_VIEW, <BulkImportPage />)} />
+                  <Route path="/retail/reorders" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ReorderPage />)} />
+                  <Route path="/retail/barcode-labels" element={secure(PERMISSIONS.PRODUCTS_VIEW, <BarcodeLabelsPage />)} />
 
                   {/* Restaurant */}
-                  <Route path="/restaurant" element={<RestaurantDashboardPage />} />
-                  <Route path="/restaurant/dashboard" element={<RestaurantDashboardPage />} />
-                  <Route path="/restaurant/orders/new" element={<NewOrderPage />} />
-                  <Route path="/restaurant/orders/:id" element={<OrderDetailPage />} />
-                  <Route path="/restaurant/orders" element={<RestaurantOrdersPage />} />
-                  <Route path="/restaurant/tables" element={<TablesLayoutPage />} />
-                  <Route path="/restaurant/menu" element={<MenuItemsPage />} />
-                  <Route path="/restaurant/modifiers" element={<ModifiersPage />} />
-                  <Route path="/restaurant/kot" element={<KotDisplayPage />} />
-                  <Route path="/restaurant/riders" element={<RidersPage />} />
-                  <Route path="/restaurant/happy-hours" element={<HappyHoursPage />} />
-                  <Route path="/restaurant/recipes" element={<RecipesPage />} />
-                  <Route path="/restaurant/stations" element={<StationsPage />} />
-                  <Route path="/restaurant/delivery" element={<DeliveryTrackingPage />} />
+                  <Route path="/restaurant" element={secure(PERMISSIONS.DASHBOARD_VIEW, <RestaurantDashboardPage />)} />
+                  <Route path="/restaurant/dashboard" element={secure(PERMISSIONS.DASHBOARD_VIEW, <RestaurantDashboardPage />)} />
+                  <Route path="/restaurant/orders/new" element={secure(PERMISSIONS.RESTAURANT_ORDERS_VIEW, <NewOrderPage />)} />
+                  <Route path="/restaurant/orders/:id" element={secure(PERMISSIONS.RESTAURANT_ORDERS_VIEW, <OrderDetailPage />)} />
+                  <Route path="/restaurant/orders" element={secure(PERMISSIONS.RESTAURANT_ORDERS_VIEW, <RestaurantOrdersPage />)} />
+                  <Route path="/restaurant/tables" element={secure(PERMISSIONS.RESTAURANT_ORDERS_VIEW, <TablesLayoutPage />)} />
+                  <Route path="/restaurant/menu" element={secure(PERMISSIONS.RESTAURANT_MENU_VIEW, <MenuItemsPage />)} />
+                  <Route path="/restaurant/modifiers" element={secure(PERMISSIONS.RESTAURANT_MENU_VIEW, <ModifiersPage />)} />
+                  <Route path="/restaurant/kot" element={secure(PERMISSIONS.RESTAURANT_KITCHEN_VIEW, <KotDisplayPage />)} />
+                  <Route path="/restaurant/riders" element={secure(PERMISSIONS.RESTAURANT_ORDERS_VIEW, <RidersPage />)} />
+                  <Route path="/restaurant/happy-hours" element={secure(PERMISSIONS.RESTAURANT_MENU_VIEW, <HappyHoursPage />)} />
+                  <Route path="/restaurant/recipes" element={secure(PERMISSIONS.RESTAURANT_KITCHEN_VIEW, <RecipesPage />)} />
+                  <Route path="/restaurant/stations" element={secure(PERMISSIONS.RESTAURANT_KITCHEN_VIEW, <StationsPage />)} />
+                  <Route path="/restaurant/delivery" element={secure(PERMISSIONS.RESTAURANT_ORDERS_VIEW, <DeliveryTrackingPage />)} />
 
                   {/* Pharmacy */}
                   <Route path="/pharmacy" element={<PharmacyDashboardPage />} />
@@ -920,29 +920,29 @@ export default function App() {
                       inhi par safha khulta hai. Pack me naye safhe lagane
                       ke bawajood yahan purane rah gaye thay — is liye
                       sidebar se hamesha purana hi milta tha. */}
-                  <Route path="/bakery" element={<BakeryDashboardV2 />} />
-                  <Route path="/bakery/dashboard" element={<BakeryDashboardV2 />} />
-                  <Route path="/bakery/cake-orders/new" element={<CakeCustomizerPage />} />
-                  <Route path="/bakery/cake-orders/:id" element={<CakeOrderDetailPage />} />
-                  <Route path="/bakery/cake-orders" element={<CakeOrdersPage />} />
-                  <Route path="/bakery/products" element={<BakeryProductsListPage />} />
-                  <Route path="/bakery/production" element={<ProductionPage />} />
-                  <Route path="/bakery/ingredients" element={<IngredientsPage />} />
-                  <Route path="/bakery/freshness" element={<FreshnessPage />} />
-                  <Route path="/bakery/bulk-orders/new" element={<BakeryBulkOrderFormPage />} />
-                  <Route path="/bakery/bulk-orders/:id/edit" element={<BakeryBulkOrderFormPage />} />
-                  <Route path="/bakery/bulk-orders" element={<BakeryBulkOrdersPage />} />
+                  <Route path="/bakery" element={secure(PERMISSIONS.DASHBOARD_VIEW, <BakeryDashboardV2 />)} />
+                  <Route path="/bakery/dashboard" element={secure(PERMISSIONS.DASHBOARD_VIEW, <BakeryDashboardV2 />)} />
+                  <Route path="/bakery/cake-orders/new" element={secure(PERMISSIONS.BAKERY_ORDERS_VIEW, <CakeCustomizerPage />)} />
+                  <Route path="/bakery/cake-orders/:id" element={secure(PERMISSIONS.BAKERY_ORDERS_VIEW, <CakeOrderDetailPage />)} />
+                  <Route path="/bakery/cake-orders" element={secure(PERMISSIONS.BAKERY_ORDERS_VIEW, <CakeOrdersPage />)} />
+                  <Route path="/bakery/products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <BakeryProductsListPage />)} />
+                  <Route path="/bakery/production" element={secure(PERMISSIONS.BAKERY_PRODUCTION_VIEW, <ProductionPage />)} />
+                  <Route path="/bakery/ingredients" element={secure(PERMISSIONS.BAKERY_INGREDIENTS_VIEW, <IngredientsPage />)} />
+                  <Route path="/bakery/freshness" element={secure(PERMISSIONS.BAKERY_PRODUCTION_VIEW, <FreshnessPage />)} />
+                  <Route path="/bakery/bulk-orders/new" element={secure(PERMISSIONS.BAKERY_ORDERS_VIEW, <BakeryBulkOrderFormPage />)} />
+                  <Route path="/bakery/bulk-orders/:id/edit" element={secure(PERMISSIONS.BAKERY_ORDERS_VIEW, <BakeryBulkOrderFormPage />)} />
+                  <Route path="/bakery/bulk-orders" element={secure(PERMISSIONS.BAKERY_ORDERS_VIEW, <BakeryBulkOrdersPage />)} />
 
                   {/* Agri */}
-                  <Route path="/agri" element={<AgriDashboardPage />} />
-                  <Route path="/agri/dashboard" element={<AgriDashboardPage />} />
-                  <Route path="/agri/products" element={<AgriProductsListPage />} />
-                  <Route path="/agri/farmers" element={<FarmersPage />} />
-                  <Route path="/agri/bulk-orders/new" element={<NewBulkOrderPage />} />
-                  <Route path="/agri/bulk-orders" element={<BulkOrdersPage />} />
-                  <Route path="/agri/advisory" element={<AdvisoryPage />} />
-                  <Route path="/agri/seasonal-plans" element={<SeasonalPlansPage />} />
-                  <Route path="/agri/subsidy" element={<SubsidyPage />} />
+                  <Route path="/agri" element={secure(PERMISSIONS.DASHBOARD_VIEW, <AgriDashboardPage />)} />
+                  <Route path="/agri/dashboard" element={secure(PERMISSIONS.DASHBOARD_VIEW, <AgriDashboardPage />)} />
+                  <Route path="/agri/products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <AgriProductsListPage />)} />
+                  <Route path="/agri/farmers" element={secure(PERMISSIONS.AGRI_FARMERS_VIEW, <FarmersPage />)} />
+                  <Route path="/agri/bulk-orders/new" element={secure(PERMISSIONS.AGRI_ORDERS_VIEW, <NewBulkOrderPage />)} />
+                  <Route path="/agri/bulk-orders" element={secure(PERMISSIONS.AGRI_ORDERS_VIEW, <BulkOrdersPage />)} />
+                  <Route path="/agri/advisory" element={secure(PERMISSIONS.AGRI_ADVISORY_VIEW, <AdvisoryPage />)} />
+                  <Route path="/agri/seasonal-plans" element={secure(PERMISSIONS.AGRI_ORDERS_VIEW, <SeasonalPlansPage />)} />
+                  <Route path="/agri/subsidy" element={secure(PERMISSIONS.AGRI_ORDERS_VIEW, <SubsidyPage />)} />
 
                   {/* Hotel */}
                   <Route path="/hotel" element={<HotelDashboardPage />} />
@@ -1005,13 +1005,13 @@ export default function App() {
                   <Route path="/appliances/brands" element={<Navigate to="/brands" replace />} />
 
                   {/* Electronics */}
-                  <Route path="/electronics" element={<ElectronicsDashboardPage />} />
-                  <Route path="/electronics/dashboard" element={<ElectronicsDashboardPage />} />
-                  <Route path="/electronics/bundles/new" element={<ElectronicsBundleFormPage />} />
-                  <Route path="/electronics/bundles/:id/edit" element={<ElectronicsBundleFormPage />} />
-                  <Route path="/electronics/bundles" element={<ElectronicsBundlesPage />} />
+                  <Route path="/electronics" element={secure(PERMISSIONS.DASHBOARD_VIEW, <ElectronicsDashboardPage />)} />
+                  <Route path="/electronics/dashboard" element={secure(PERMISSIONS.DASHBOARD_VIEW, <ElectronicsDashboardPage />)} />
+                  <Route path="/electronics/bundles/new" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ElectronicsBundleFormPage />)} />
+                  <Route path="/electronics/bundles/:id/edit" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ElectronicsBundleFormPage />)} />
+                  <Route path="/electronics/bundles" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ElectronicsBundlesPage />)} />
                   <Route path="/electronics/serial-tracking" element={<ElectronicsSerialTrackingPage />} />
-                  <Route path="/electronics/warranty-claims" element={<ElectronicsWarrantyClaimsPage />} />
+                  <Route path="/electronics/warranty-claims" element={secure(PERMISSIONS.ELECTRONICS_WARRANTY_VIEW, <ElectronicsWarrantyClaimsPage />)} />
 
                   {/* Cosmetics */}
                   <Route path="/cosmetics" element={<CosmeticsDashboardPage />} />
