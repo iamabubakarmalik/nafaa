@@ -1,9 +1,10 @@
 import {
-  BadRequestException, Body, Controller, Get, HttpCode, NotFoundException, Param, Post, Query, Req, UnauthorizedException,
+  BadRequestException, Body, Controller, Get, HttpCode, Logger, NotFoundException, Param, Post, Query, Req, Res, UnauthorizedException,
 } from '@nestjs/common';
 import { ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
+import * as crypto from 'crypto';
 import { Integration } from '@prisma/client';
 import { Public } from '../../modules/auth/decorators/public.decorator';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -32,6 +33,7 @@ import { readWebsiteConfig, verifySignature } from './website-config';
 @Throttle({ default: { limit: 180, ttl: 60_000 } })
 @Controller('integrations/website/v1')
 export class WebsiteApiController {
+  private readonly logger = new Logger('WebsiteApi');
   constructor(
     private readonly prisma: PrismaService,
     private readonly integrations: IntegrationService,
@@ -88,6 +90,26 @@ export class WebsiteApiController {
     if (!/^nfk_[a-f0-9]{20,}$/.test(key)) throw new NotFoundException('Ye raasta nahi mila');
     const integration = await this.auth(req, key);
     return this.handleOrder(integration, req, body);
+  }
+
+  // ═══ Token handshake (Indolj ka "General POS" pehle token leta hai, phir Bearer se order bhejta hai) ═══
+  // POST {base}/api/1/access_token  body: { apiLogin | api_key | key | token: "nfk_…[/branch/<id>]" }
+  // Jawab: { token, correlationId } — token wahi key (+ branch), phir order ke header me "Authorization: Bearer <token>"
+  @Post(['orders/api/1/access_token', 'api/1/access_token', 'orders/access_token', 'access_token'])
+  @HttpCode(200)
+  @ApiOperation({ summary: 'POS token handshake (iiko-style) — key se token' })
+  async accessToken(@Req() req: Request, @Body() body: any, @Res() res: Response) {
+    const raw = [body?.apiLogin, body?.api_login, body?.apiKey, body?.api_key, body?.key, body?.token, body?.username, req.headers['x-nafaa-key'], req.headers.authorization]
+      .map((v) => String(v ?? '')).join(' ');
+    this.logger.log(`access_token request — fields: ${Object.keys(body ?? {}).join(',') || 'none'}`);
+    const key = raw.match(/nfk_[a-f0-9]{20,}/)?.[0];
+    const branch = raw.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)?.[0];
+    const integration = key ? await this.integrations.verifyApiKey(key) : null;
+    if (!integration) {
+      res.status(401).json({ errorDescription: 'Nafaa key ghalat hai — apiLogin me nfk_… key bhejein', error: 'invalid_api_login' });
+      return;
+    }
+    res.status(200).json({ correlationId: crypto.randomUUID(), token: branch ? `${key}.${branch}` : key });
   }
 
   // ═══ Branch raaste me (kuch platform ?query kaat dete hain): POST /orders/<key>/branch/<shop id> ═══
@@ -228,7 +250,7 @@ export class WebsiteApiController {
   private async auth(req: Request, pathKey?: string): Promise<Integration> {
     const header = (req.headers['x-nafaa-key'] as string | undefined)
       ?? (req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.slice(7) : undefined);
-    const key = (pathKey ?? header ?? '').trim();
+    const key = (pathKey ?? (header ?? '').match(/nfk_[a-f0-9]{20,}/)?.[0] ?? header ?? '').trim();
     const integration = key ? await this.integrations.verifyApiKey(key) : null;
     if (!integration) throw new UnauthorizedException('Nafaa key ghalat hai ya connection band hai');
     return integration;
@@ -312,7 +334,8 @@ export class WebsiteApiController {
    * 2) payload me branch ka naam bilkul Nafaa branch ke naam jaisa ho. Na mile to channel ki branch.
    */
   private async branchFor(integration: Integration, req: Request, body: any, branchParam?: string): Promise<string | null> {
-    const q = String(branchParam ?? (req.query as any)?.branch ?? (req.query as any)?.shop ?? '').trim();
+    const fromToken = String(req.headers.authorization ?? '').match(/nfk_[a-f0-9]{20,}\.([0-9a-f-]{36})/i)?.[1];
+    const q = String(branchParam ?? (req.query as any)?.branch ?? (req.query as any)?.shop ?? fromToken ?? '').trim();
     const shops = await this.prisma.shop.findMany({ where: { tenantId: integration.tenantId, isActive: true }, select: { id: true, name: true } });
     if (q) {
       const hit = shops.find((s) => s.id === q) ?? shops.find((s) => s.name.toLowerCase() === q.toLowerCase());
