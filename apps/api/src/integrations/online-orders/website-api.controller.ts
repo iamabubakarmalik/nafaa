@@ -90,6 +90,16 @@ export class WebsiteApiController {
     return this.handleOrder(integration, req, body);
   }
 
+  // ═══ Branch raaste me (kuch platform ?query kaat dete hain): POST /orders/<key>/branch/<shop id> ═══
+  @Post('orders/:key/branch/:branch')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Order — key + branch dono URL ke raaste me' })
+  async createOrderBranchPath(@Param('key') key: string, @Param('branch') branch: string, @Req() req: Request, @Body() body: any) {
+    if (!/^nfk_[a-f0-9]{20,}$/.test(key)) throw new NotFoundException('Ye raasta nahi mila');
+    const integration = await this.auth(req, key);
+    return this.handleOrder(integration, req, body, branch);
+  }
+
   // ═══ WooCommerce / Shopify built-in webhook (bina plugin) ═══
   @Post('hook/:key')
   @HttpCode(200)
@@ -240,7 +250,7 @@ export class WebsiteApiController {
     return result === 'valid';
   }
 
-  private async handleOrder(integration: Integration, req: Request, body: any) {
+  private async handleOrder(integration: Integration, req: Request, body: any, branchParam?: string) {
     // Indolj ka status webhook (order cancel / deliver) — naya order nahi
     if (isIndoljStatus(body)) {
       const st = String(body.status).toLowerCase();
@@ -255,7 +265,7 @@ export class WebsiteApiController {
     try {
       const signed = this.checkSignature(integration, req);
       const normalized = normalizeOrder(body, platform);
-      normalized.shopId = await this.branchFor(integration, req, body);
+      normalized.shopId = await this.branchFor(integration, req, body, branchParam);
       const order = await this.orders.receive(integration, normalized, { signed });
       // Website par cancel hua aur hamara bill ban chuka tha → malik ko bata do
       if (normalized.cancelled && order.nafaaSaleId) {
@@ -301,8 +311,8 @@ export class WebsiteApiController {
    * Multi-branch: order kis branch ka? 1) URL ?branch=<Nafaa branch id> (har branch ka apna URL),
    * 2) payload me branch ka naam bilkul Nafaa branch ke naam jaisa ho. Na mile to channel ki branch.
    */
-  private async branchFor(integration: Integration, req: Request, body: any): Promise<string | null> {
-    const q = String((req.query as any)?.branch ?? (req.query as any)?.shop ?? '').trim();
+  private async branchFor(integration: Integration, req: Request, body: any, branchParam?: string): Promise<string | null> {
+    const q = String(branchParam ?? (req.query as any)?.branch ?? (req.query as any)?.shop ?? '').trim();
     const shops = await this.prisma.shop.findMany({ where: { tenantId: integration.tenantId, isActive: true }, select: { id: true, name: true } });
     if (q) {
       const hit = shops.find((s) => s.id === q) ?? shops.find((s) => s.name.toLowerCase() === q.toLowerCase());

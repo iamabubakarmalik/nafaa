@@ -636,7 +636,7 @@ function BranchUrls({ ordersUrl }: { ordersUrl: string }) {
         <b>Har branch ka apna URL</b> — Indolj har branch ke webhook par usi branch ka URL lagaye. Order, bill aur stock usi branch me jayega.
       </p>
       {active.map((s) => (
-        <CopyField key={s.id} label={`${s.name} — order URL`} value={`${ordersUrl}?branch=${s.id}`} />
+        <CopyField key={s.id} label={`${s.name} — order URL`} value={`${ordersUrl}/branch/${s.id}`} />
       ))}
       <p className="text-[12px] text-slate-500">Branch ke baghair wala URL bhi chalta hai — tab order is channel ki apni branch (Settings) me aata hai.</p>
     </div>
