@@ -458,6 +458,12 @@ export class ChannelsController {
     return this.channelCatalog.importSelected(user, id, body?.externalProductIds ?? []);
   }
 
+  @Post(':id/catalog/import-into')
+  @ApiOperation({ summary: 'Website product (variants samet) chune hue Nafaa product me' })
+  importInto(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { externalProductId: string; productId: string }) {
+    return this.channelCatalog.importInto(user, id, String(body?.externalProductId ?? ''), String(body?.productId ?? ''));
+  }
+
   @Post(':id/catalog/export')
   @ApiOperation({ summary: 'Chune hue Nafaa products website par (variants ke saath)' })
   exportSelected(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { productIds: string[] }) {

@@ -474,13 +474,15 @@ export class ChannelCatalogService {
       try {
         await this.prisma.$transaction(async (tx) => {
           const firstSku = p.variants[0]?.sku ?? null;
-          // SKU pehle se Nafaa me ho to naya mat banao — jor do
-          const existing = !p.hasVariants && firstSku
+          // Pehle se Nafaa me ho (SKU / barcode, ya bilkul wahi naam) to naya mat banao — usi se jor do
+          const existing = (!p.hasVariants && firstSku
             ? await tx.product.findFirst({ where: { tenantId: user.tenantId, OR: [{ sku: firstSku }, { barcode: firstSku }] }, select: { id: true } })
-            : null;
+            : null)
+            ?? await tx.product.findFirst({ where: { tenantId: user.tenantId, isActive: true, name: { equals: p.title.trim(), mode: 'insensitive' } }, select: { id: true } });
 
           if (existing) {
-            await this.linkTx(tx, integration.id, existing.id, null, p, p.variants[0]);
+            if (p.hasVariants) await this.addVariantsTx(tx, integration.id, existing.id, p, user.tenantId, shopId);
+            else await this.linkTx(tx, integration.id, existing.id, null, p, p.variants[0]);
             linkedExisting++;
             return;
           }
@@ -491,7 +493,8 @@ export class ChannelCatalogService {
               name: p.title.slice(0, 250),
               sku: p.hasVariants ? null : firstSku,
               barcode: p.hasVariants ? null : p.variants[0]?.barcode ?? null,
-              price: Number(p.variants[0]?.price ?? 0),
+              // Variants ho to sab se kam qeemat product ki "se shuru" qeemat
+              price: p.hasVariants ? Math.min(...p.variants.map((v) => Number(v.price ?? 0)).filter((n) => n > 0), Number(p.variants[0]?.price ?? 0)) : Number(p.variants[0]?.price ?? 0),
               costPrice: 0,
               hasVariants: p.hasVariants,
               isActive: true,
@@ -539,6 +542,58 @@ export class ChannelCatalogService {
       }
     }
     return { created, linkedExisting, failed: errors.length, errors };
+  }
+
+  /**
+   * Website ke product ke variants maujooda Nafaa product me: jo variant (naam / SKU) pehle se hai us se jor do,
+   * jo nahi hai wo ban jaye. Simple Nafaa product variants wala ban jata hai.
+   */
+  private async addVariantsTx(tx: any, integrationId: string, productId: string, p: RemoteProduct, tenantId: string, shopId: string | null) {
+    const existing: Array<{ id: string; name: string; sku: string | null }> = await tx.productVariant.findMany({ where: { productId }, select: { id: true, name: true, sku: true } });
+    let order = existing.length;
+    let created = 0;
+    for (const v of p.variants) {
+      const name = (v.title === 'Default' ? p.title : v.title).slice(0, 120);
+      let match: { id: string; name: string; sku: string | null } | undefined = existing.find((e) => (v.sku && e.sku === v.sku) || e.name.trim().toLowerCase() === name.trim().toLowerCase());
+      if (!match) {
+        const nv = await tx.productVariant.create({
+          data: { productId, name, sku: v.sku, barcode: v.barcode, price: v.price, costPrice: 0, sortOrder: order++, imageUrl: v.image, isActive: true },
+          select: { id: true, name: true, sku: true },
+        });
+        if (shopId && Number(v.stock ?? 0) > 0) {
+          await applyStockDelta({
+            tx, tenantId, shopId, productId, variantId: nv.id, delta: Number(v.stock), movementType: 'OPENING_BALANCE',
+            reference: 'WEBSITE-IMPORT', note: 'Website se variant',
+          });
+        }
+        existing.push(nv); match = nv; created++;
+      }
+      await this.linkTx(tx, integrationId, productId, match!.id, p, v);
+    }
+    await tx.product.update({ where: { id: productId }, data: { hasVariants: true } });
+    // Tasveer na ho to website wali laga do
+    if (p.image && !(await tx.productImage.findFirst({ where: { productId }, select: { id: true } }))) {
+      await tx.productImage.create({ data: { productId, url: p.image, sortOrder: 0, isPrimary: true } }).catch(() => null);
+    }
+    return created;
+  }
+
+  /** "Is Nafaa product me jorein" — website product (aur us ke variants) chune hue Nafaa product me */
+  async importInto(user: AuthenticatedUser, channelId: string, externalProductId: string, productId: string) {
+    this.setup.assertCanManage(user);
+    const integration = await this.setup.requireChannel(user.tenantId, channelId);
+    const cfg = readWebsiteConfig(integration.config);
+    const shopId = cfg.shopId ?? integration.shopId;
+    const p = (await this.remoteProducts(integration)).find((x) => x.externalProductId === externalProductId);
+    if (!p) throw new BadRequestException('Website product nahi mila — "Website se taaza" dabayein');
+    const product = await this.prisma.product.findFirst({ where: { id: productId, tenantId: user.tenantId }, select: { id: true, name: true } });
+    if (!product) throw new BadRequestException('Nafaa product nahi mila');
+    const created = await this.prisma.$transaction(async (tx) => {
+      if (!p.hasVariants) { await this.linkTx(tx, integration.id, product.id, null, p, p.variants[0]); return 0; }
+      return this.addVariantsTx(tx, integration.id, product.id, p, user.tenantId, shopId);
+    });
+    this.cache.delete(integration.id);
+    return { ok: true, product: product.name, variantsCreated: created, linked: p.variants.length };
   }
 
   private async linkTx(tx: any, integrationId: string, productId: string, variantId: string | null, p: RemoteProduct, v?: RemoteVariant) {

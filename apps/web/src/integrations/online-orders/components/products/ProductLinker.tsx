@@ -144,6 +144,12 @@ function WebsiteList({ channelId, products, onDone }: { channelId: string; produ
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
 
+  const intoMut = useMutation({
+    mutationFn: (a: { ext: string; productId: string }) => onlineOrdersApi.importInto(channelId, a.ext, a.productId),
+    onSuccess: (r) => { onDone(); toast.success(`${r.product} se jor diya${r.variantsCreated ? ` — ${r.variantsCreated} naye variants bane` : ''}`); },
+    onError: (e) => toast.error(apiErrorMessage(e)),
+  });
+
   const counts = useMemo(() => {
     let todo = 0; let linked = 0;
     for (const p of products) {
@@ -180,12 +186,18 @@ function WebsiteList({ channelId, products, onDone }: { channelId: string; produ
           <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Naam ya SKU…" className={cn(inputCls, 'pl-8')} />
         </div>
+        {unlinkedIds.length > 0 && (
+          <Btn size="sm" variant="success" loading={importMut.isPending} icon={<CloudDownload className="h-3.5 w-3.5" />}
+            onClick={() => { if (confirm(`${unlinkedIds.length} products Nafaa me banayein? Naam, qeemat, tasveer aur variants sab aa jayenge. Jo naam Nafaa me pehle se hai wo nahi banega — usi se jur jayega.`)) importMut.mutate(unlinkedIds); }}>
+            Baqi {unlinkedIds.length} Nafaa me banao
+          </Btn>
+        )}
       </div>
 
       {picked.size > 0 && (
         <div className="mx-4 mt-3 flex flex-wrap items-center gap-2 rounded-lg bg-slate-900 px-3 py-2 text-white sm:mx-5 dark:bg-slate-800">
           <span className="text-[13px] font-semibold">{picked.size} chune</span>
-          <span className="text-[12px] text-white/70">— Nafaa me naye products (variants aur stock ke saath) ban jayenge aur jur jayenge</span>
+          <span className="text-[12px] text-white/70">— Nafaa me ban jayenge (naam, qeemat, tasveer, variants) aur jur jayenge · jo pehle se hai us se jurenge</span>
           <span className="flex-1" />
           <Btn size="sm" variant="plain" className="text-white hover:bg-white/10" onClick={() => setPicked(new Set())}>Chhoro</Btn>
           <Btn size="sm" variant="success" loading={importMut.isPending} onClick={() => importMut.mutate([...picked])} icon={<CloudDownload className="h-3.5 w-3.5" />}>
@@ -233,10 +245,22 @@ function WebsiteList({ channelId, products, onDone }: { channelId: string; produ
                       </button>
                       <span className="hidden text-[12.5px] text-slate-500 md:block">—</span>
                       <span className="hidden md:block" />
-                      <span className="col-start-2 md:col-start-auto">
+                      <span className="col-start-2 flex flex-wrap items-center gap-2 md:col-start-auto">
                         <Badge tone={allLinked ? 'success' : noneLinked ? 'neutral' : 'warning'} dot>
                           {allLinked ? 'Sab variants jure' : `${linkedCount}/${p.variants.length} variants jure`}
                         </Badge>
+                        {!allLinked && (
+                          <>
+                            {noneLinked && (
+                              <Btn size="sm" variant="success" loading={importMut.isPending && importMut.variables?.[0] === p.externalProductId}
+                                onClick={() => importMut.mutate([p.externalProductId])} icon={<CloudDownload className="h-3.5 w-3.5" />}>Naya banao</Btn>
+                            )}
+                            <span className="min-w-[180px] flex-1">
+                              <ProductPicker compact initialSearch={p.title.split(/\s+/).slice(0, 2).join(' ')} placeholder="Nafaa product me variants jorein"
+                                onPick={(x) => intoMut.mutate({ ext: p.externalProductId, productId: x.productId })} />
+                            </span>
+                          </>
+                        )}
                       </span>
                     </div>
                   ) : null}
@@ -244,7 +268,9 @@ function WebsiteList({ channelId, products, onDone }: { channelId: string; produ
                   {expanded && p.variants.map((v, idx) => (
                     <VariantRow key={v.externalVariantId ?? `p-${idx}`} channelId={channelId} product={p} variant={v}
                       nested={p.hasVariants} picked={picked.has(p.externalProductId)}
-                      onTogglePick={() => togglePick(p.externalProductId)} onDone={onDone} />
+                      onTogglePick={() => togglePick(p.externalProductId)} onDone={onDone}
+                      onCreate={p.hasVariants ? undefined : () => importMut.mutate([p.externalProductId])}
+                      creating={importMut.isPending && importMut.variables?.[0] === p.externalProductId} />
                   ))}
                 </li>
               );
@@ -256,9 +282,9 @@ function WebsiteList({ channelId, products, onDone }: { channelId: string; produ
   );
 }
 
-function VariantRow({ channelId, product, variant: v, nested, picked, onTogglePick, onDone }: {
+function VariantRow({ channelId, product, variant: v, nested, picked, onTogglePick, onDone, onCreate, creating }: {
   channelId: string; product: CatalogProduct; variant: CatalogVariant; nested: boolean;
-  picked: boolean; onTogglePick: () => void; onDone: () => void;
+  picked: boolean; onTogglePick: () => void; onDone: () => void; onCreate?: () => void; creating?: boolean;
 }) {
   const [changing, setChanging] = useState(false);
   const title = nested ? `${product.title} — ${v.title}` : product.title;
@@ -326,6 +352,7 @@ function VariantRow({ channelId, product, variant: v, nested, picked, onTogglePi
               onClick={() => link.mutate({ productId: v.suggestion!.productId, variantId: v.suggestion!.variantId, label: v.suggestion!.name })}
               icon={<Link2 className="h-3.5 w-3.5" />}>Jorein</Btn>
             <Btn size="sm" variant="plain" onClick={() => setChanging(true)}>Aur chuno</Btn>
+            {onCreate && <Btn size="sm" variant="plain" loading={creating} onClick={onCreate}>Naya banao</Btn>}
           </div>
         ) : (
           <div className="flex items-center gap-2">
@@ -333,6 +360,9 @@ function VariantRow({ channelId, product, variant: v, nested, picked, onTogglePi
               <ProductPicker compact initialSearch={product.title.split(/\s+/).slice(0, 2).join(' ')} onPick={(p) => link.mutate(p)}
                 placeholder={link.isPending ? 'Jor rahe hain…' : 'Nafaa product / variant chunein'} />
             </div>
+            {!changing && onCreate && (
+              <Btn size="sm" variant="success" loading={creating} onClick={onCreate} icon={<CloudDownload className="h-3.5 w-3.5" />}>Naya banao</Btn>
+            )}
             {changing && <Btn size="sm" variant="plain" onClick={() => setChanging(false)}>Wapas</Btn>}
           </div>
         )}

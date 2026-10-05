@@ -543,6 +543,9 @@ export const onlineOrdersApi = {
   removeLink: (id: string, mappingId: string) =>
     apiClient.delete(`/online-store/channels/${id}/links/${mappingId}`).then((r) => unwrap<{ success: boolean }>(r)),
 
+  importInto: (id: string, externalProductId: string, productId: string) =>
+    apiClient.post(`/online-store/channels/${id}/catalog/import-into`, { externalProductId, productId }).then((r) => unwrap<{ ok: boolean; product: string; variantsCreated: number; linked: number }>(r)),
+
   importSelected: (id: string, externalProductIds: string[]) =>
     apiClient.post(`/online-store/channels/${id}/catalog/import`, { externalProductIds })
       .then((r) => unwrap<{ created: number; linkedExisting: number; failed: number; errors: string[] }>(r)),
