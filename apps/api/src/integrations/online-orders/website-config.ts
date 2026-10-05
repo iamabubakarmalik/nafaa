@@ -15,6 +15,8 @@ export interface WebsiteConfig {
   shopId: string | null;
   /** Bill me qeemat: website wali (jo customer ne di) ya Nafaa wali */
   priceSource: 'WEBSITE' | 'NAFAA';
+  /** Delivery charge kis ke paas: SHOP = dukaan ki kamai (bill me), RIDER = bahar ka rider khud leta hai (sirf likha) */
+  deliveryFeeMode: 'SHOP' | 'RIDER';
   /** Nafaa me qeemat badle to website (Woo/Shopify) par bhi — jore hue products */
   pushPrice: boolean;
   /** Status badalne par Nafaa is URL par batata hai (plugin khud set karta hai) */
@@ -32,6 +34,7 @@ export const DEFAULT_WEBSITE_CONFIG: WebsiteConfig = {
   autoPrint: true,
   shopId: null,
   priceSource: 'WEBSITE',
+  deliveryFeeMode: 'SHOP',
   pushPrice: false,
   statusWebhookUrl: null,
   requireSignature: false,
@@ -46,6 +49,7 @@ export function readWebsiteConfig(raw: unknown): WebsiteConfig {
     ...DEFAULT_WEBSITE_CONFIG,
     ...c,
     priceSource: c.priceSource === 'NAFAA' ? 'NAFAA' : 'WEBSITE',
+    deliveryFeeMode: c.deliveryFeeMode === 'RIDER' ? 'RIDER' : 'SHOP',
     pushPrice: c.pushPrice === true,
   };
 }

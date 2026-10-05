@@ -22,7 +22,7 @@ import {
   type PosUnitOption,
 } from '@modules/pos/lib/posUnits';
 import {
-  emptyDelivery, deliveryAmount, deliveryServiceCharge, type PosDeliveryState,
+  emptyDelivery, deliveryAmount, deliveryRiderAmount, deliveryServiceCharge, type PosDeliveryState,
   PosSettingsModal, PosCheckoutModal, PosUnitPickerModal, PosWeighModal,
   PosDiscountModal, PosCartPanel, PosTeacher, PosViewTab, PosComboTile,
   PosQuickKeyTile, PosEmptyState, PosSuccessModal, PosCustomerAddModal,
@@ -823,6 +823,7 @@ export default function AgriPosPage() {
         lines: cart.map((l) => ({ name: l.name, qty: l.quantity, unit: l.unitName, price: l.unitPrice, total: l.lineTotal })),
         subtotal, discount: discountAmount, total,
         deliveryCharge: deliveryFee || undefined,
+        riderDelivery: deliveryRiderAmount(delivery) || undefined,
         deliveryAddress: delivery.on ? (delivery.address || undefined) : undefined,
         paid: vars.paidAmount,
         paymentLabel: `Paid (${payLabel})`,

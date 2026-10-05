@@ -67,6 +67,8 @@ export interface ReceiptPayload {
   discount: number;
   /** Ghar bhejne ka charge — receipt par alag line banti hai */
   deliveryCharge?: number;
+  /** Bahar ka rider ye delivery khud lega — bill me shamil nahi, sirf likha */
+  riderDelivery?: number;
   deliveryAddress?: string;
   total: number;
   paid: number;
@@ -226,6 +228,11 @@ export function buildReceiptHtml(p: ReceiptPayload, widthMm: PrinterWidth): stri
   <div class="total-row"><span>TOTAL</span><span>${formatPKR(p.total)}</span></div>
   ${row(p.paymentLabel, formatPKR(p.paid))}
   ${p.paid > p.total ? row('CHANGE (wapis dein)', formatPKR(p.paid - p.total), true) : ''}
+  ${p.riderDelivery && p.riderDelivery > 0 ? `
+    <div class="div"></div>
+    ${row('Delivery (rider ko dein)', formatPKR(p.riderDelivery))}
+    ${row('Customer dega kul', formatPKR(p.total + p.riderDelivery), true)}
+  ` : ''}
   ${due > 0 ? row('UDHAAR (baqi)', formatPKR(due), true) : ''}
   ${prevDue > 0 ? `
     <div class="div"></div>

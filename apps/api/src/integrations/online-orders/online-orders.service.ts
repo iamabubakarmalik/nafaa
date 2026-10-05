@@ -482,8 +482,10 @@ export class OnlineOrdersService implements OnModuleInit {
       const meta = (order.metadata ?? {}) as any;
       const paymentMethod = mapPaymentMethod(order.paymentMethod ?? undefined);
       const deliveryFee = Number(order.deliveryFee);
+      // Bahar ka rider (Indolj / Foodpanda / Bykea) delivery khud leta hai — bill me shamil nahi
+      const riderKeepsDelivery = config.deliveryFeeMode === 'RIDER';
       const discount = Number(order.discount) || 0;
-      const billTotal = await this.expectedBillTotal(items, matched, config.priceSource, discount, deliveryFee);
+      const billTotal = await this.expectedBillTotal(items, matched, config.priceSource, discount, riderKeepsDelivery ? 0 : deliveryFee);
       const source = SOURCE_BY_TYPE[order.integration.type] ?? 'WEBSITE';
       const sourceRef = order.externalOrderNumber ?? order.externalOrderId;
 
@@ -517,7 +519,9 @@ export class OnlineOrdersService implements OnModuleInit {
             ...(config.priceSource === 'WEBSITE' && { priceOverride: it.price }),
           })),
           serviceCharges: deliveryFee > 0
-            ? [{ type: 'DELIVERY', label: meta.shippingMethod ? `Delivery (${meta.shippingMethod})` : 'Delivery', amount: deliveryFee }]
+            ? [riderKeepsDelivery
+              ? { type: 'DELIVERY', label: 'Delivery (rider ko — bill me shamil nahi)', amount: deliveryFee, passThrough: true }
+              : { type: 'DELIVERY', label: meta.shippingMethod ? `Delivery (${meta.shippingMethod})` : 'Delivery', amount: deliveryFee }]
             : undefined,
         } as any,
         { source, sourceRef },

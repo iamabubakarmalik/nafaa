@@ -12,6 +12,8 @@ export interface ServiceChargeItem {
    */
   cost?: number;
   note?: string;
+  /** Bahar ka rider khud leta hai — bill par likha, sale / drawer me nahi */
+  passThrough?: boolean;
 }
 
 export type PaymentMethod =

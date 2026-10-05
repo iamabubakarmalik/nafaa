@@ -298,6 +298,7 @@ export class WebsiteSetupService {
     if (body.requireSignature !== undefined) next.requireSignature = !!body.requireSignature;
     if (body.pushPrice !== undefined) next.pushPrice = !!body.pushPrice;
     if (body.priceSource !== undefined) next.priceSource = body.priceSource === 'NAFAA' ? 'NAFAA' : 'WEBSITE';
+    if (body.deliveryFeeMode !== undefined) next.deliveryFeeMode = body.deliveryFeeMode === 'RIDER' ? 'RIDER' : 'SHOP';
     if (body.platform !== undefined) next.platform = body.platform;
     if (body.siteUrl !== undefined) next.siteUrl = body.siteUrl ? String(body.siteUrl).slice(0, 300) : null;
     if (body.shopifySecret !== undefined) next.shopifySecret = body.shopifySecret ? String(body.shopifySecret).trim() : null;

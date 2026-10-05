@@ -366,7 +366,10 @@ export class SalesService {
     const totalDiscount = discount + loyaltyDiscount;
 
     // ─── Service Charges ────────────────────────────────────
-    const serviceChargesArr = dto.serviceCharges ?? [];
+    const allServiceCharges = dto.serviceCharges ?? [];
+    // Bahar ka rider apna delivery charge khud leta hai — bill par sirf likha,
+    // dukaan ki sale / drawer / munafe me nahi (warna cash register kam dikhta).
+    const serviceChargesArr = allServiceCharges.filter((sc: any) => !sc.passThrough);
     const serviceChargesTotal = serviceChargesArr.reduce(
       (sum, sc) => sum + Number(sc.amount || 0),
       0,
@@ -433,8 +436,8 @@ export class SalesService {
           status: 'COMPLETED',
           serviceCharges: serviceChargesTotal,
           serviceChargesBreakdown:
-            serviceChargesArr.length > 0
-              ? (serviceChargesArr as any)
+            allServiceCharges.length > 0
+              ? (allServiceCharges as any)
               : undefined,
           // Khali string ko NULL banate hain — warna "pehle kaun aaya
           // tha" wali list me khali naam bhi shamil ho jate hain.

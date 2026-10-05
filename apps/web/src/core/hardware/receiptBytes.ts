@@ -51,6 +51,10 @@ export function receiptBytes(
   e.bold(true).size(2).row('TOTAL', formatPKR(p.total), e.cols / 2).size(1);
   e.bold(false).row(p.paymentLabel, formatPKR(p.paid));
   if (p.paid > p.total) e.bold(true).row('CHANGE (wapis dein)', formatPKR(p.paid - p.total)).bold(false);
+  if ((p.riderDelivery ?? 0) > 0) {
+    e.row('Delivery (rider ko dein)', formatPKR(p.riderDelivery!));
+    e.bold(true).row('Customer dega kul', formatPKR(p.total + p.riderDelivery!)).bold(false);
+  }
   if (due > 0) e.bold(true).row('UDHAAR (baqi)', formatPKR(due)).bold(false);
 
   if (prevDue > 0) {

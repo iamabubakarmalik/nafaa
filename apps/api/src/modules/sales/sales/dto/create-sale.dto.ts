@@ -112,6 +112,13 @@ class ServiceChargeItemDto {
   @Min(0)
   cost?: number;
 
+  @ApiPropertyOptional({
+    description: 'Bahar ka rider ye charge khud customer se leta hai — bill par likha, lekin sale / drawer / munafe me shamil nahi',
+  })
+  @IsOptional()
+  @IsBoolean()
+  passThrough?: boolean;
+
   @ApiPropertyOptional({ description: 'Optional note for this charge' })
   @IsOptional()
   @IsString()

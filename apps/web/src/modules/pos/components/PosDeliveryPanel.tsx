@@ -18,15 +18,28 @@ export interface PosDeliveryState {
   /** Rider ko diya gaya paisa — dukan ka apna kharcha */
   riderCost: number;
   address: string;
+  /**
+   * Bahar ka rider (Bykea / Indolj / khud ka koi) charge seedha customer se leta hai —
+   * bill par likha aata hai lekin sale / drawer / munafe me nahi judta.
+   */
+  byRider?: boolean;
 }
 
+const MODE_KEY = 'nafaa.delivery-by-rider';
+const savedByRider = () => { try { return localStorage.getItem(MODE_KEY) === '1'; } catch { return false; } };
+const saveByRider = (v: boolean) => { try { localStorage.setItem(MODE_KEY, v ? '1' : '0'); } catch { /* */ } };
+
 export const emptyDelivery = (): PosDeliveryState => ({
-  on: false, charge: 0, riderCost: 0, address: '',
+  on: false, charge: 0, riderCost: 0, address: '', byRider: savedByRider(),
 });
 
-/** Cart total me jitna jorna hai */
+/** Cart total me jitna jorna hai (bahar ka rider ho to kuch nahi) */
 export const deliveryAmount = (d: PosDeliveryState) =>
-  d.on ? Number(d.charge) || 0 : 0;
+  d.on && !d.byRider ? Number(d.charge) || 0 : 0;
+
+/** Bahar ke rider ka charge — sirf bill par likhne ke liye */
+export const deliveryRiderAmount = (d: PosDeliveryState) =>
+  d.on && d.byRider ? Number(d.charge) || 0 : 0;
 
 /**
  * Sale payload ke liye service charge line.
@@ -35,6 +48,10 @@ export const deliveryAmount = (d: PosDeliveryState) =>
 export const deliveryServiceCharge = (
   d: PosDeliveryState,
 ): ServiceChargeItem[] | undefined => {
+  const rider = deliveryRiderAmount(d);
+  if (rider > 0) {
+    return [{ type: 'DELIVERY', label: 'Delivery (rider ko — bill me shamil nahi)', amount: rider, passThrough: true, note: d.address || undefined }];
+  }
   const amount = deliveryAmount(d);
   if (amount <= 0) return undefined;
   return [{
@@ -66,9 +83,10 @@ const TONES = {
 
 export function PosDeliveryPanel({ value: d, onChange, tone = 'sky', compact }: Props) {
   const t = TONES[tone];
-  const amount = deliveryAmount(d);
+  const amount = d.on ? Number(d.charge) || 0 : 0;
   const profit = amount - (Number(d.riderCost) || 0);
   const set = (patch: Partial<PosDeliveryState>) => onChange({ ...d, ...patch });
+  const setMode = (byRider: boolean) => { saveByRider(byRider); set({ byRider, riderCost: byRider ? 0 : d.riderCost }); };
 
   return (
     <div className={['rounded-2xl border-2 transition', d.on ? t.on : 'border-slate-200 bg-white'].join(' ')}>
@@ -81,7 +99,7 @@ export function PosDeliveryPanel({ value: d, onChange, tone = 'sky', compact }: 
         <div className="flex-1 min-w-0">
           <div className="text-xs font-extrabold text-slate-900">Ghar Bhejna Hai?</div>
           <div className="text-[10px] font-bold text-slate-500 truncate">
-            {d.on && amount > 0 ? `${formatPKR(amount)} charge lagega` : 'Delivery charge add karein'}
+            {d.on && amount > 0 ? (d.byRider ? `${formatPKR(amount)} rider lega — bill me nahi` : `${formatPKR(amount)} charge lagega`) : 'Delivery charge add karein'}
           </div>
         </div>
         <div className={['h-5 w-9 rounded-full transition relative shrink-0', d.on ? t.btn : 'bg-slate-300'].join(' ')}>
@@ -92,7 +110,18 @@ export function PosDeliveryPanel({ value: d, onChange, tone = 'sky', compact }: 
 
       {d.on && (
         <div className="px-3 pb-3 space-y-2">
-          <div className="grid grid-cols-2 gap-2">
+          {/* Delivery ka paisa kis ke paas? */}
+          <div className="grid grid-cols-2 gap-1 rounded-lg bg-white p-1 border-2 border-slate-200">
+            <button type="button" onClick={() => setMode(false)}
+              className={['h-8 rounded-md text-[10.5px] font-extrabold transition', !d.byRider ? `${t.btn} text-white shadow` : 'text-slate-600'].join(' ')}>
+              🛵 Hamara rider
+            </button>
+            <button type="button" onClick={() => setMode(true)}
+              className={['h-8 rounded-md text-[10.5px] font-extrabold transition', d.byRider ? `${t.btn} text-white shadow` : 'text-slate-600'].join(' ')}>
+              🏍️ Bahar ka rider lega
+            </button>
+          </div>
+          <div className={d.byRider ? 'grid grid-cols-1 gap-2' : 'grid grid-cols-2 gap-2'}>
             <div>
               <div className={`text-[9px] uppercase font-extrabold mb-0.5 ${t.label}`}>Customer se</div>
               <input type="number" min={0} value={d.charge || ''}
@@ -100,13 +129,13 @@ export function PosDeliveryPanel({ value: d, onChange, tone = 'sky', compact }: 
                 placeholder="0"
                 className={`h-10 w-full rounded-lg border-2 bg-white px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none transition ${t.focus}`} />
             </div>
-            <div>
+            {!d.byRider && <div>
               <div className="text-[9px] uppercase font-extrabold text-slate-500 mb-0.5">Rider ko diya</div>
               <input type="number" min={0} value={d.riderCost || ''}
                 onChange={(e) => set({ riderCost: Number(e.target.value || 0) })}
                 placeholder="0"
                 className="h-10 w-full rounded-lg border-2 border-slate-200 bg-white px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-slate-400 transition" />
-            </div>
+            </div>}
           </div>
 
           <div className="flex gap-1">
@@ -125,7 +154,12 @@ export function PosDeliveryPanel({ value: d, onChange, tone = 'sky', compact }: 
               className={`h-10 w-full rounded-lg border-2 border-slate-200 bg-white px-2.5 text-xs font-bold focus:outline-none transition ${t.focus}`} />
           )}
 
-          {amount > 0 && (
+          {amount > 0 && d.byRider && (
+            <div className="rounded-lg bg-white border-2 border-slate-200 px-2.5 py-1.5 text-[10px] font-bold text-slate-600">
+              Customer {formatPKR(amount)} seedha rider ko dega — bill par likha aayega, lekin dukaan ki sale aur drawer me nahi judega.
+            </div>
+          )}
+          {amount > 0 && !d.byRider && (
             <div className="rounded-lg bg-white border-2 border-slate-200 px-2.5 py-1.5 flex items-center justify-between">
               <span className="text-[10px] font-bold text-slate-600">Delivery ka apna munafa</span>
               <span className={['text-xs font-extrabold tabular-nums',

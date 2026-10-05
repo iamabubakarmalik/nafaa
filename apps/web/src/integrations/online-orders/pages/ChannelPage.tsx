@@ -408,6 +408,12 @@ function SettingsTab({ id, cfg, name, platform, automatic, onChange }: {
               {shopList.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
           </Field>
+          <Field label="Delivery charges kis ke paas?" help="Bahar ka rider (Indolj / Foodpanda / Bykea) delivery khud le to 'Rider' — bill par likha aayega, sale aur drawer me nahi.">
+            <select value={cfg.deliveryFeeMode ?? 'SHOP'} onChange={(e) => save.mutate({ deliveryFeeMode: e.target.value as any })} className={inputCls}>
+              <option value="SHOP">Dukaan ke — bill aur sale me shamil (apna rider)</option>
+              <option value="RIDER">Rider ke — sirf likha, sale / drawer me nahi</option>
+            </select>
+          </Field>
           <Field label="Bill me qeemat" help="Website par offer chal raha ho to 'Website wali' rakhein.">
             <select value={cfg.priceSource} onChange={(e) => save.mutate({ priceSource: e.target.value as any })} className={inputCls}>
               <option value="WEBSITE">Website wali (jo customer ne di)</option>

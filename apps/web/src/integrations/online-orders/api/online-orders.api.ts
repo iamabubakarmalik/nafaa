@@ -293,6 +293,7 @@ export interface WebsiteConfig {
   autoPrint: boolean;
   shopId: string | null;
   priceSource: 'WEBSITE' | 'NAFAA';
+  deliveryFeeMode?: 'SHOP' | 'RIDER';
   pushPrice?: boolean;
   statusWebhookUrl: string | null;
   requireSignature: boolean;

@@ -22,7 +22,7 @@ import { categoriesApi } from '@modules/inventory/categories/api/categories.api'
 import { type PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { offlineSalesApi } from '@core/lib/offline/offlineSales';
 import {
-  PosDeliveryPanel, emptyDelivery, deliveryAmount, deliveryServiceCharge,
+  PosDeliveryPanel, emptyDelivery, deliveryAmount, deliveryRiderAmount, deliveryServiceCharge,
   type PosDeliveryState,
 } from '@modules/pos/components';
 import type { Product } from '@modules/inventory/products/api/products.api';
@@ -769,6 +769,7 @@ export default function RetailPosPage() {
         })),
         subtotal, discount: discountAmount, total,
         deliveryCharge: deliveryFee || undefined,
+        riderDelivery: deliveryRiderAmount(delivery) || undefined,
         deliveryAddress: delivery.on ? (delivery.address || undefined) : undefined,
         paid: vars.paidAmount,
         paymentLabel: `Paid (${payLabel})`,
