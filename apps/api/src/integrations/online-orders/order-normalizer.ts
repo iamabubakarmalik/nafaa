@@ -51,6 +51,8 @@ export interface NormalizedOrder {
   notes?: string;
   shippingMethod?: string;
   paymentTitle?: string;
+  /** Multi-branch: kis Nafaa branch ka order (URL ?branch= ya payload ki branch se) */
+  shopId?: string | null;
 }
 
 const MAX_ITEMS = 300;

@@ -255,6 +255,7 @@ export class WebsiteApiController {
     try {
       const signed = this.checkSignature(integration, req);
       const normalized = normalizeOrder(body, platform);
+      normalized.shopId = await this.branchFor(integration, req, body);
       const order = await this.orders.receive(integration, normalized, { signed });
       // Website par cancel hua aur hamara bill ban chuka tha → malik ko bata do
       if (normalized.cancelled && order.nafaaSaleId) {
@@ -294,5 +295,25 @@ export class WebsiteApiController {
       processed: ok,
       errorMessage: error ? String(Array.isArray(error) ? error.join(', ') : error).slice(0, 500) : undefined,
     }).catch(() => null);
+  }
+
+  /**
+   * Multi-branch: order kis branch ka? 1) URL ?branch=<Nafaa branch id> (har branch ka apna URL),
+   * 2) payload me branch ka naam bilkul Nafaa branch ke naam jaisa ho. Na mile to channel ki branch.
+   */
+  private async branchFor(integration: Integration, req: Request, body: any): Promise<string | null> {
+    const q = String((req.query as any)?.branch ?? (req.query as any)?.shop ?? '').trim();
+    const shops = await this.prisma.shop.findMany({ where: { tenantId: integration.tenantId, isActive: true }, select: { id: true, name: true } });
+    if (q) {
+      const hit = shops.find((s) => s.id === q) ?? shops.find((s) => s.name.toLowerCase() === q.toLowerCase());
+      if (hit) return hit.id;
+    }
+    const name = String(body?.branch?.name ?? body?.branchName ?? body?.branch_name ?? body?.selectedBranch ?? body?.branch ?? '').trim().toLowerCase();
+    if (name && typeof name === 'string') {
+      // Sirf bilkul wahi naam — "Brookee" aur "Brookee Bahadurabad" jaise milte julte naam ghalat branch na pakrein
+      const exact = shops.find((s) => s.name.toLowerCase() === name);
+      if (exact) return exact.id;
+    }
+    return null;
   }
 }

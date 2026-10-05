@@ -618,6 +618,31 @@ function MoreMenu({ id, data, onChange }: { id: string; data: WebsiteOverview; o
 }
 
 /** Indolj par bani website — jura hua haal (code / developer wale raaste ki zaroorat nahi) */
+/** Multi-branch: har branch ka apna order URL — Indolj har branch ke webhook par usi ka URL lagaye */
+function BranchUrls({ ordersUrl }: { ordersUrl: string }) {
+  const { data: shops } = useQuery({ queryKey: ['shops'], queryFn: shopsApi.list });
+  const list = (Array.isArray(shops) ? shops : (shops as any)?.items ?? []) as Array<{ id: string; name: string; isActive?: boolean }>;
+  const active = list.filter((s) => s.isActive !== false);
+  if (active.length <= 1) {
+    return (
+      <div className="mt-3">
+        <CopyField label="Indolj ke liye order URL (POS webhook)" value={ordersUrl} hint="Indolj ko ye URL dein — live orders aur cancel status dono isi par" />
+      </div>
+    );
+  }
+  return (
+    <div className="mt-3 space-y-2">
+      <p className="text-[12.5px] text-slate-600 dark:text-slate-300">
+        <b>Har branch ka apna URL</b> — Indolj har branch ke webhook par usi branch ka URL lagaye. Order, bill aur stock usi branch me jayega.
+      </p>
+      {active.map((s) => (
+        <CopyField key={s.id} label={`${s.name} — order URL`} value={`${ordersUrl}?branch=${s.id}`} />
+      ))}
+      <p className="text-[12px] text-slate-500">Branch ke baghair wala URL bhi chalta hai — tab order is channel ki apni branch (Settings) me aata hai.</p>
+    </div>
+  );
+}
+
 function IndoljChannelCard({ data, setTab }: { data: WebsiteOverview; setTab: (t: Tab) => void }) {
   const i = data.integration!;
   const stats = data.stats!;
@@ -633,9 +658,7 @@ function IndoljChannelCard({ data, setTab }: { data: WebsiteOverview; setTab: (t
             : <><Circle className="h-4 w-4 shrink-0 text-amber-500" /> Indolj se pehle live order ka intezar — Indolj ki team ne webhook neeche wale URL par lagana hai</>}
         </li>
       </ul>
-      <div className="mt-3">
-        <CopyField label="Indolj ke liye order URL (POS webhook)" value={ordersUrl} hint="Indolj ko ye URL dein — live orders aur cancel status dono isi par" />
-      </div>
+      <BranchUrls ordersUrl={ordersUrl} />
       {i.indolj?.connectedAt && <p className="mt-2 text-[12px] text-slate-500">Indolj {whenText(i.indolj.connectedAt)} jora</p>}
     </Card>
   );

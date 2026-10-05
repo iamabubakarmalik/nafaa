@@ -224,6 +224,8 @@ export class IntegrationService {
     orderStatus?: string;
     notes?: string;
     metadata?: any;
+    /** Multi-branch: ye order kis branch ka (warna channel ki branch) */
+    shopId?: string | null;
   }) {
     const integration = await this.prisma.integration.findUnique({
       where: { id: integrationId },
@@ -263,7 +265,7 @@ export class IntegrationService {
         data: {
           integrationId,
           tenantId: integration.tenantId,
-          shopId: integration.shopId,
+          shopId: orderData.shopId ?? integration.shopId,
           externalOrderId: orderData.externalOrderId,
           externalOrderNumber: orderData.externalOrderNumber,
           customerName: orderData.customerName,

@@ -114,6 +114,7 @@ export class OnlineOrdersService implements OnModuleInit {
       paymentStatus: order.paymentStatus,
       orderStatus: order.cancelled ? 'CANCELLED' : 'PENDING',
       notes: order.notes,
+      shopId: order.shopId ?? null,
       metadata: {
         platform: order.platform,
         shippingMethod: order.shippingMethod,
