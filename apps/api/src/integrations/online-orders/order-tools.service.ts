@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { shopDue } from './shop-due';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
@@ -244,7 +245,7 @@ export class OrderToolsService {
     // COD kitne din se courier ke paas atka (poore account ka, tareekh ka nahi)
     const collected = await this.prisma.channelOrder.findMany({
       where: { tenantId: user.tenantId, ...(scope.whereLoose as any), orderStatus: 'DELIVERED', paymentStatus: 'COLLECTED' },
-      select: { deliveredAt: true, total: true },
+      select: { deliveredAt: true, total: true, metadata: true },
       take: 10_000,
     });
     const aging = [
@@ -256,7 +257,7 @@ export class OrderToolsService {
     for (const o of collected) {
       const days = o.deliveredAt ? Math.floor((Date.now() - o.deliveredAt.getTime()) / 86_400_000) : 0;
       const b = aging.find((a) => days >= a.min && days <= a.max)!;
-      b.count++; b.value += Number(o.total);
+      b.count++; b.value += shopDue(o);
     }
 
     const withRto = <T extends { dispatched: number; returned: number; delivered: number }>(x: T) => ({ ...x, rtoRate: pct(x.returned, x.dispatched), deliveryRate: pct(x.delivered, x.dispatched) });

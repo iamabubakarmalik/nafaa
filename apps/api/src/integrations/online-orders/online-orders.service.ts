@@ -17,6 +17,7 @@ import { mappingKey } from './mapping-key';
 import { CustomerRisk, blockedRisk, emptyHistory, phoneKey, riskOf } from './customer-risk';
 import { OrderToolsService } from './order-tools.service';
 import { emitOrderAccepted } from './order-events';
+import { shopDue } from './shop-due';
 
 /**
  * Online order ka poora safar:
@@ -67,6 +68,7 @@ interface StoredItem {
   productId?: string;
   variantId?: string | null;
 }
+
 
 @Injectable()
 export class OnlineOrdersService implements OnModuleInit {
@@ -214,11 +216,11 @@ export class OnlineOrdersService implements OnModuleInit {
         _count: { _all: true },
         _sum: { total: true },
       }),
-      this.prisma.channelOrder.aggregate({
+      this.prisma.channelOrder.findMany({
         where: { ...base, paymentStatus: { not: 'PAID' }, nafaaSaleId: { not: null }, orderStatus: { notIn: CLOSED } },
-        _count: { _all: true },
-        _sum: { total: true },
-      }),
+        select: { total: true, metadata: true },
+        take: 5000,
+      }).then((rows) => ({ _count: { _all: rows.length }, _sum: { total: rows.reduce((t, r) => t + shopDue(r), 0) } })),
     ]);
 
     const statusCounts: Record<string, number> = {};
@@ -539,7 +541,8 @@ export class OnlineOrdersService implements OnModuleInit {
           acceptedAt: now,
           processedAt: now,
           items: items.map((it, i) => ({ ...it, productId: matched[i].productId, variantId: matched[i].variantId ?? null })) as any,
-          metadata: { ...meta, autoAcceptError: undefined },
+          // Rider apni delivery khud rakhta hai — dukaan ko itna kam milna hai (COD / reports)
+          metadata: { ...meta, autoAcceptError: undefined, ...(riderKeepsDelivery && deliveryFee > 0 && { riderDelivery: deliveryFee }) },
         },
       });
       if (done.count === 0) {
@@ -866,7 +869,7 @@ export class OnlineOrdersService implements OnModuleInit {
     const withCourier: any[] = [];
     for (const o of rows) {
       const b = bucket(o.courierCode, o.courierName);
-      const total = Number(o.total);
+      const total = shopDue(o);
       const cod = !!(o.metadata as any)?.cod;
       if (o.dispatchedAt && o.dispatchedAt >= since) {
         b.dispatched30++;

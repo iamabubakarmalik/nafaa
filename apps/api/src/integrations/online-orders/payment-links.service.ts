@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { shopDue } from './shop-due';
 import { Cron } from '@nestjs/schedule';
 import * as crypto from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -129,7 +130,7 @@ export class PaymentLinksService {
     const a = await this.readAccount(user.tenantId, code);
     if (!a?.active) throw new BadRequestException(`${g.name} jura nahi — Payments safhe se jorein`);
 
-    const due = Math.max(0, Math.round(Number(order.total) - advancePaid(order.metadata)));
+    const due = Math.max(0, Math.round(shopDue(order) - advancePaid(order.metadata)));
     const amount = Math.round(Number(body?.amount ?? due));
     if (!(amount >= 1)) throw new BadRequestException('Raqam kam az kam Rs 1');
     if (amount > due) throw new BadRequestException(`Baqi sirf Rs ${due.toLocaleString('en-PK')} hai`);
@@ -230,7 +231,7 @@ export class PaymentLinksService {
     await this.patchLink(orderId, ref, { status: 'PAID', paidAt: new Date().toISOString() });
     const fresh = await this.prisma.channelOrder.findUnique({ where: { id: orderId } });
     const paid = advancePaid(fresh?.metadata);
-    if (paid + 0.5 >= Number(order.total) && order.paymentStatus !== 'PAID' && !CLOSED.includes(order.orderStatus)) {
+    if (paid + 0.5 >= shopDue(order) && order.paymentStatus !== 'PAID' && !CLOSED.includes(order.orderStatus)) {
       const actor = await this.orders.systemActor(order.tenantId);
       await this.orders.markPaid(actor, new ShopScope(null, true), orderId).catch((e) => this.logger.warn(`markPaid ${orderId}: ${e?.message}`));
     }
