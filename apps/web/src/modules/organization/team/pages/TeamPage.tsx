@@ -18,6 +18,8 @@ import {
   DEFAULT_ROLE_PERMISSIONS,
   PERMISSION_GROUPS,
   permissionGroupsFor,
+  POS_REQUIRED_PERMISSIONS,
+  getPermissionLabel,
   PERMISSION_LABELS,
 } from '@core/lib/permissions';
 
@@ -496,6 +498,14 @@ export default function TeamPage() {
                   </div>
                 </div>
 
+                <PosWarning
+                  permissions={form.permissions}
+                  onFix={() => setForm((f: any) => ({
+                    ...f,
+                    permissions: [...new Set([...f.permissions, ...POS_REQUIRED_PERMISSIONS])],
+                  }))}
+                />
+
                 <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1">
                   {visibleGroups.map((group) => {
                     const allSelected = group.permissions.every((p: string) => form.permissions.includes(p));
@@ -711,6 +721,12 @@ export default function TeamPage() {
                   </Button>
                 </div>
               </div>
+
+              <PosWarning
+                permissions={editPermissions}
+                onFix={() => setEditPermissions((prev: string[]) =>
+                  [...new Set([...prev, ...POS_REQUIRED_PERMISSIONS])])}
+              />
 
               <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
                 {visibleGroups.map((group) => {
@@ -929,6 +945,51 @@ function StatCard({ label, value, icon: Icon, color, hint, isHighlight }: any) {
         </div>
         <div className={`h-12 w-12 rounded-2xl bg-gradient-to-br ${colors[color]} text-white flex items-center justify-center shadow-lg shrink-0 ml-2`}>
           <Icon className="h-6 w-6" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═════════════════════════════════════════════════════════════
+   POS KI TAMBEEH
+   ─────────────────────────────────────────────────────────────
+   `pos.use` sirf safha kholne deti hai. Maal aur rate parhe baghair
+   counter khali rehta hai — aur ye baat us waqt pata chalti hai jab
+   cashier grahak ke samne khara ho.
+
+   Rok nahi lagate: malik ka faisla malik ka hai. Bas saaf bata dete
+   hain ke kya toot jayega, aur ek click me theek karne ka raasta
+   de dete hain.
+   ═════════════════════════════════════════════════════════════ */
+function PosWarning({ permissions, onFix }: { permissions: string[]; onFix: () => void }) {
+  const usesPos = permissions.includes('pos.use');
+  const missing = POS_REQUIRED_PERMISSIONS.filter((p) => !permissions.includes(p));
+  if (!usesPos || missing.length === 0) return null;
+
+  return (
+    <div className="rounded-xl bg-amber-50 border-2 border-amber-300 p-3 mb-2">
+      <div className="flex items-start gap-2">
+        <span className="text-base leading-none">⚠️</span>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-extrabold text-amber-900">
+            POS counter theek se nahi chalega
+          </p>
+          <p className="mt-0.5 text-[11px] font-bold text-amber-800">
+            Is bande ko POS ki ijazat to hai, magar ye {missing.length === 1 ? 'cheez' : 'cheezein'} nahi
+            di gayi — in ke baghair counter par maal nazar hi nahi aayega aur offline sync bhi ruk jayegi:
+          </p>
+          <div className="mt-1.5 flex flex-wrap gap-1">
+            {missing.map((m) => (
+              <span key={m} className="px-1.5 py-0.5 rounded-md bg-white text-[10px] font-extrabold text-amber-900 border border-amber-200">
+                {getPermissionLabel(m)}
+              </span>
+            ))}
+          </div>
+          <button type="button" onClick={onFix}
+            className="mt-2 h-8 px-3 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-[11px] font-extrabold transition">
+            Ye {missing.length === 1 ? 'de dein' : 'sab de dein'}
+          </button>
         </div>
       </div>
     </div>

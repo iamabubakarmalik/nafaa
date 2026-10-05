@@ -33,18 +33,31 @@ import { PERMISSIONS, type PermissionKey } from './permissions.constants';
 
 const P = PERMISSIONS;
 
-/** Ek raaste ke liye: kis tareeqe par kaunsi ijazat */
+/**
+ * Ek raaste ke liye: kis tareeqe par kaunsi ijazat.
+ *
+ * Qeemat list bhi ho sakti hai — us surat me KOI EK kaafi hai.
+ *
+ * Abhi koi raasta is ki zaroorat nahi rakhta, aur ye jaan boojh kar
+ * hai. Pehle yahan ek chhupa hua usool tha: `pos.use` rakhne wale ko
+ * maal parhne ka haq apne aap mil jata tha. Wo ghalat tha — malik ne
+ * jab "View Products" ka nishan hata diya, to us ka matlab hata
+ * hi tha. Ab har ijazat wohi karti hai jo us par likha hai.
+ */
+type Need = PermissionKey | PermissionKey[];
+
 interface RouteRule {
   /** Raaste ka aakhri hissa — `bakery/products` me `products` */
   match: RegExp;
-  GET?: PermissionKey;
-  POST?: PermissionKey;
-  PATCH?: PermissionKey;
-  PUT?: PermissionKey;
-  DELETE?: PermissionKey;
+  GET?: Need;
+  POST?: Need;
+  PATCH?: Need;
+  PUT?: Need;
+  DELETE?: Need;
   /** Jo upar na likha ho us ke liye */
-  write?: PermissionKey;
+  write?: Need;
 }
+
 
 /**
  * Tarteeb maina rakhti hai — upar wala pehle chalta hai.
@@ -168,7 +181,7 @@ const ALWAYS_OPEN = [
 export function permissionForRoute(
   method: string,
   path: string,
-): PermissionKey | null {
+): PermissionKey[] | null {
   /* `/api/v1/bakery/products/123` → `bakery/products/123` */
   const clean = path
     .replace(/^\/+/, '')
@@ -184,6 +197,10 @@ export function permissionForRoute(
   if (!rule) return null;
 
   const m = method.toUpperCase();
-  if (m === 'GET' || m === 'HEAD') return rule.GET ?? null;
-  return (rule as any)[m] ?? rule.write ?? null;
+  const need: Need | undefined = (m === 'GET' || m === 'HEAD')
+    ? rule.GET
+    : ((rule as any)[m] ?? rule.write);
+
+  if (!need) return null;
+  return Array.isArray(need) ? need : [need];
 }

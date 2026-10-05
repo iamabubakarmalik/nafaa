@@ -54,27 +54,32 @@ export class PermissionsGuard implements CanActivate {
         context.getClass(),
       ]) ?? [];
 
-    const required: PermissionKey[] = explicit.length > 0
-      ? explicit
-      : (() => {
-          const fromPath = permissionForRoute(
-            request.method ?? 'GET',
-            request.route?.path ?? request.url ?? '',
-          );
-          return fromPath ? [fromPath] : [];
-        })();
-
-    if (required.length === 0) return true;
-
-    const missing = required.filter(
-      (perm) => !hasPermission(user.role, user.permissions, perm),
+    /* Decorator ki list me SAB chahiye; raaste ki list me KOI EK.
+       Wajah: decorator khaas hifazat ke liye lagta hai, jabke raaste
+       ka naqsha "ye kaam kis haisiyat se hota hai" batata hai — aur
+       ek kaam kai haisiyaton se ho sakta hai. Jaise maal parhna:
+       Products wala bhi parhta hai aur counter wala bhi. */
+    const fromPath = permissionForRoute(
+      request.method ?? 'GET',
+      request.route?.path ?? request.url ?? '',
     );
 
-    if (missing.length > 0) {
+    const required: PermissionKey[] = explicit.length > 0 ? explicit : (fromPath ?? []);
+    if (required.length === 0) return true;
+
+    const anyOf = explicit.length === 0 && (fromPath?.length ?? 0) > 1;
+    const ok = anyOf
+      ? required.some((perm) => hasPermission(user.role, user.permissions, perm))
+      : required.every((perm) => hasPermission(user.role, user.permissions, perm));
+
+    if (!ok) {
+      const missing = required.filter(
+        (perm) => !hasPermission(user.role, user.permissions, perm),
+      );
       /* Dukaan-daar ko Roman Urdu me, taake support par sawal na aaye.
          Log me poora raasta, taake hum dekh sakein ke kya ruk raha hai. */
       this.logger.warn(
-        `${user.email ?? user.id} → ${request.method} ${request.url} — chahiye: ${missing.join(', ')}`,
+        `${user.email ?? user.id} → ${request.method} ${request.url} — chahiye: ${missing.join(anyOf ? ' YA ' : ', ')}`,
       );
       throw new ForbiddenException(
         'Is kaam ki ijazat aap ke paas nahi — dukaan ke malik se kehein ke de dein',

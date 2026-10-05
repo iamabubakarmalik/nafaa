@@ -107,6 +107,21 @@ export const ALL_PERMISSIONS: PermissionKey[] = Object.values(PERMISSIONS);
 
    Badalna ho to BACKEND me badlein, phir yahan copy karein.
    ═════════════════════════════════════════════════════════════ */
+/**
+ * POS counter chalane ke liye kaun si ijazat lazmi hai.
+ *
+ * `pos.use` sirf safha kholne deti hai. Maal, rate aur category
+ * parhe baghair counter khali rehta hai, aur offline sync bhi ruk
+ * jati hai. Ye list Team ke safhe par tambeeh dikhane ke liye hai —
+ * rok nahi lagati, sirf batati hai ke kya toot jayega.
+ */
+export const POS_REQUIRED_PERMISSIONS: PermissionKey[] = [
+  PERMISSIONS.PRODUCTS_VIEW,
+  PERMISSIONS.CATEGORIES_VIEW,
+  PERMISSIONS.SHOPS_VIEW,
+  PERMISSIONS.SETTINGS_VIEW,
+];
+
 export const DEFAULT_ROLE_PERMISSIONS: Record<string, PermissionKey[]> = {
   OWNER: ALL_PERMISSIONS,
   SUPER_ADMIN: ALL_PERMISSIONS,
@@ -177,6 +192,17 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, PermissionKey[]> = {
   ],
 
   CASHIER: [
+    // ── POS chalane ke liye lazmi ──
+    // Counter par maal, category aur rate parhe baghair bikri hoti
+    // hi nahi. Ye nishan hata diye jayen to POS khali reh jata hai —
+    // Team ke safhe par is ki tambeeh bhi aati hai.
+    PERMISSIONS.PRODUCTS_VIEW,
+    PERMISSIONS.CATEGORIES_VIEW,
+    PERMISSIONS.BRANDS_VIEW,
+    PERMISSIONS.TAGS_VIEW,
+    PERMISSIONS.SHOPS_VIEW,
+    PERMISSIONS.SETTINGS_VIEW,
+
     // Counter wale ko wohi kaam jo bikri ke liye chahiye — order
     // lena aur dekhna. Banane/badalne ka kaam manager ka hai.
     PERMISSIONS.BAKERY_ORDERS_VIEW, PERMISSIONS.BAKERY_ORDERS_MANAGE,
