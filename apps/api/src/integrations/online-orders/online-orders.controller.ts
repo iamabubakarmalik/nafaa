@@ -466,6 +466,12 @@ export class ChannelsController {
   }
 
   // ─── Indolj (restaurant ordering platform) — menu Products safhe par ───
+  @Put(':id/branch-map')
+  @ApiOperation({ summary: 'Platform ke branch code → Nafaa branch' })
+  saveBranchMap(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { map?: Record<string, string | null> }) {
+    return this.setup.saveBranchMap(user, id, body?.map ?? {});
+  }
+
   @Put(':id/indolj')
   @ApiOperation({ summary: 'Indolj keys (activation token, merchant ID, secret) — menu check karke save' })
   connectIndolj(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { baseUrl?: string; activationToken?: string; merchantId?: string; secret?: string; branchId?: string }) {

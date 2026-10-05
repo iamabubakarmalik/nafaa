@@ -339,6 +339,7 @@ export interface WebsiteOverview {
     config: WebsiteConfig;
     woo: null | { connected: boolean; connectedAt: string | null; permissions: string | null };
     indolj?: null | { connected: boolean; connectedAt: string | null; baseUrl: string | null };
+    branchCodes?: Array<{ code: string; firstSeen: string | null; sample: string | null; shopId: string | null }>;
     shopify?: null | { connected: boolean; needsReinstall?: boolean; shop: string | null; connectedAt: string | null; locationName: string | null };
     daraz?: null | {
       connected: boolean; configured: boolean; account: string | null; sellerId: string | null; shortCode: string | null;
@@ -529,6 +530,9 @@ export const onlineOrdersApi = {
 
   saveLinks: (id: string, links: LinkInput[]) =>
     apiClient.post(`/online-store/channels/${id}/links`, { links }).then((r) => unwrap<{ saved: number; errors: string[] }>(r)),
+
+  saveBranchMap: (id: string, map: Record<string, string | null>) =>
+    apiClient.put(`/online-store/channels/${id}/branch-map`, { map }).then((r) => unwrap<{ ok: boolean }>(r)),
 
   connectIndolj: (id: string, b: { baseUrl?: string; activationToken: string; merchantId?: string; secret: string; branchId?: string }) =>
     apiClient.put(`/online-store/channels/${id}/indolj`, b).then((r) => unwrap<{ ok: boolean; items: number }>(r)),

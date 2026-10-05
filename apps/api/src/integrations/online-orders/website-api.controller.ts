@@ -345,6 +345,22 @@ export class WebsiteApiController {
       const hit = shops.find((s) => s.id === q) ?? shops.find((s) => s.name.toLowerCase() === q.toLowerCase());
       if (hit) return hit.id;
     }
+    // Platform ka branch code (Indolj: merchantId "35ecf - 1af67" / partnerIndexCode) → malik ka chuna hua Nafaa branch
+    const code = String(body?.merchantId ?? body?.partnerIndexCode ?? body?.storeId ?? body?.store_id ?? body?.outletId ?? '').trim();
+    if (code) {
+      const cfg = (integration.config as any) ?? {};
+      const mapped = cfg.branchMap?.[code];
+      if (!cfg.branchCodes?.[code]) {
+        // Naya code dekha — yaad rakho taake channel page par branch chuni ja sake
+        const fresh = await this.prisma.integration.findUnique({ where: { id: integration.id }, select: { config: true } });
+        const c = (fresh?.config as any) ?? {};
+        await this.prisma.integration.update({
+          where: { id: integration.id },
+          data: { config: { ...c, branchCodes: { ...(c.branchCodes ?? {}), [code]: { firstSeen: new Date().toISOString(), sample: String(body?.orderId ?? body?.orderNumber ?? '').slice(0, 30) } } } as any },
+        }).catch(() => null);
+      }
+      if (mapped && shops.some((s) => s.id === mapped)) return mapped;
+    }
     const name = String(body?.branch?.name ?? body?.branchName ?? body?.branch_name ?? body?.selectedBranch ?? body?.branch ?? '').trim().toLowerCase();
     if (name && typeof name === 'string') {
       // Sirf bilkul wahi naam — "Brookee" aur "Brookee Bahadurabad" jaise milte julte naam ghalat branch na pakrein

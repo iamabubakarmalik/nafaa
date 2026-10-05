@@ -206,6 +206,17 @@ export class WebsiteSetupService {
       }),
     ]);
 
+    // Branch codes jo pichle orders me aaye (Indolj merchantId / partnerIndexCode)
+    const seenCodes: Record<string, { firstSeen: string; sample: string }> = {};
+    const recentBodies = await this.prisma.webhookLog.findMany({
+      where: { integrationId: integration.id, processed: true }, orderBy: { receivedAt: 'desc' }, take: 50, select: { body: true, receivedAt: true },
+    }).catch(() => [] as any[]);
+    for (const l of recentBodies) {
+      const b = (l.body ?? {}) as any;
+      const code = String(b?.merchantId ?? b?.partnerIndexCode ?? b?.storeId ?? b?.outletId ?? '').trim();
+      if (code && !seenCodes[code]) seenCodes[code] = { firstSeen: new Date(l.receivedAt).toISOString(), sample: String(b?.orderId ?? '').slice(0, 30) };
+    }
+
     const creds = (integration.credentials ?? {}) as any;
     const { apiSecret, credentials, ...safe } = integration as any;
     // Keys / secrets web par nahi — sirf haal
@@ -215,6 +226,9 @@ export class WebsiteSetupService {
       integration: {
         ...safe,
         config: cfgSafe,
+        branchCodes: Object.entries({ ...seenCodes, ...((integration.config as any)?.branchCodes ?? {}) }).map(([code, v]: [string, any]) => ({
+          code, firstSeen: v?.firstSeen ?? null, sample: v?.sample ?? null, shopId: (integration.config as any)?.branchMap?.[code] ?? null,
+        })),
         indolj: indoljCfg?.activationToken
           ? { connected: true, connectedAt: indoljCfg.connectedAt ?? null, baseUrl: indoljCfg.baseUrl ?? null }
           : null,
@@ -372,5 +386,17 @@ export class WebsiteSetupService {
     const shop = await this.prisma.shop.findFirst({ where: { id: shopId, tenantId, isActive: true }, select: { id: true } });
     if (!shop) throw new BadRequestException('Branch nahi mili');
     return shop.id;
+  }
+
+  /** Platform ke branch code → Nafaa branch (multi-branch online orders) */
+  async saveBranchMap(user: AuthenticatedUser, id: string, map: Record<string, string | null>) {
+    this.assertCanManage(user);
+    const integration = await this.requireChannel(user.tenantId, id);
+    const shopIds = new Set((await this.prisma.shop.findMany({ where: { tenantId: user.tenantId }, select: { id: true } })).map((s) => s.id));
+    const clean: Record<string, string> = {};
+    for (const [code, shopId] of Object.entries(map ?? {})) if (shopId && shopIds.has(shopId)) clean[String(code).slice(0, 80)] = shopId;
+    const cfg = (integration.config as any) ?? {};
+    await this.prisma.integration.update({ where: { id: integration.id }, data: { config: { ...cfg, branchMap: clean } as any } });
+    return { ok: true, branchMap: clean };
   }
 }
