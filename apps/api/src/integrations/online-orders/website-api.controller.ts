@@ -99,7 +99,8 @@ export class WebsiteApiController {
   @HttpCode(200)
   @ApiOperation({ summary: 'POS token handshake (iiko-style) — key se token' })
   async accessToken(@Req() req: Request, @Body() body: any, @Res() res: Response) {
-    const raw = [body?.apiLogin, body?.api_login, body?.apiKey, body?.api_key, body?.key, body?.token, body?.username, req.headers['x-nafaa-key'], req.headers.authorization]
+    // Key kisi bhi khaane me ho (apiLogin / token / key…) — POS Code me branch ki ID
+    const raw = [JSON.stringify(body ?? {}), JSON.stringify(req.query ?? {}), req.headers['x-nafaa-key'], req.headers.authorization]
       .map((v) => String(v ?? '')).join(' ');
     this.logger.log(`access_token request — fields: ${Object.keys(body ?? {}).join(',') || 'none'}`);
     const key = raw.match(/nfk_[a-f0-9]{20,}/)?.[0];
@@ -334,7 +335,10 @@ export class WebsiteApiController {
    * 2) payload me branch ka naam bilkul Nafaa branch ke naam jaisa ho. Na mile to channel ki branch.
    */
   private async branchFor(integration: Integration, req: Request, body: any, branchParam?: string): Promise<string | null> {
-    const fromToken = String(req.headers.authorization ?? '').match(/nfk_[a-f0-9]{20,}\.([0-9a-f-]{36})/i)?.[1];
+    const fromToken = String(req.headers.authorization ?? '').match(/nfk_[a-f0-9]{20,}\.([0-9a-f-]{36})/i)?.[1]
+      // Indolj "POS Code" / branch code payload me
+      ?? [body?.posCode, body?.pos_code, body?.partnerIndexCode, body?.branchCode, body?.branch_code, body?.branchId, body?.branch_id]
+        .map((v) => String(v ?? '').trim()).find((v) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v));
     const q = String(branchParam ?? (req.query as any)?.branch ?? (req.query as any)?.shop ?? fromToken ?? '').trim();
     const shops = await this.prisma.shop.findMany({ where: { tenantId: integration.tenantId, isActive: true }, select: { id: true, name: true } });
     if (q) {
