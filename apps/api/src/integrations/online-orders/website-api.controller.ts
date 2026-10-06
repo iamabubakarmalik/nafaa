@@ -259,7 +259,12 @@ export class WebsiteApiController {
       ?? anyHeader.match(/nfk_[a-f0-9]{20,}/)?.[0]
       ?? fromBody.match(/nfk_[a-f0-9]{20,}/)?.[0]
       ?? header ?? '').trim();
-    const integration = key ? await this.integrations.verifyApiKey(key) : null;
+    let integration = key ? await this.integrations.verifyApiKey(key) : null;
+    // "nfk_" ke baghair chipki key (Indolj ke Token khaane me aksar) — 48 hex wala hissa dhoond kar prefix laga do
+    if (!integration) {
+      const bare = `${anyHeader} ${fromBody}`.match(/(?<![a-z0-9_])([a-f0-9]{48})(?![a-f0-9])/i)?.[1];
+      if (bare) integration = await this.integrations.verifyApiKey(`nfk_${bare.toLowerCase()}`);
+    }
     if (!integration) {
       // Masla pakarne ke liye: sirf header ke NAAM (values nahi) aur key ka shape
       this.logger.warn(`401 ${req.method} ${req.path} — headers: ${Object.keys(req.headers).join(',')} · key mila: ${key ? `${key.slice(0, 8)}…(${key.length})` : 'nahi'}`);
@@ -352,7 +357,10 @@ export class WebsiteApiController {
       // Indolj "POS Code" / branch code payload me
       ?? [body?.posCode, body?.pos_code, body?.partnerIndexCode, body?.branchCode, body?.branch_code, body?.branchId, body?.branch_id]
         .map((v) => String(v ?? '').trim()).find((v) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v));
-    const q = String(branchParam ?? (req.query as any)?.branch ?? (req.query as any)?.shop ?? fromToken ?? '').trim();
+    // POS Code (branch id) kisi header me aaye — tenant ki kisi branch se mile to wahi
+    const shopsAll = await this.prisma.shop.findMany({ where: { tenantId: integration.tenantId, isActive: true }, select: { id: true } });
+    const headerUuid = (allHeaders.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi) ?? []).find((u) => shopsAll.some((x) => x.id === u.toLowerCase()));
+    const q = String(branchParam ?? (req.query as any)?.branch ?? (req.query as any)?.shop ?? fromToken ?? headerUuid ?? '').trim();
     const shops = await this.prisma.shop.findMany({ where: { tenantId: integration.tenantId, isActive: true }, select: { id: true, name: true } });
     if (q) {
       const hit = shops.find((s) => s.id === q) ?? shops.find((s) => s.name.toLowerCase() === q.toLowerCase());
