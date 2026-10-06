@@ -18,6 +18,7 @@ import { CourierSection } from './CourierSection';
 import { RiskCard } from './RiskBadge';
 import { ConfirmCard } from './ConfirmCard';
 import { OrderExtras } from './OrderExtras';
+import { OrderBranchPicker } from './OrderBranchPicker';
 import { DarazOrderSection } from './daraz/Daraz';
 import { PaymentLinkSection } from './PaymentLinkSection';
 import { cn } from '@core/lib/cn';
@@ -198,6 +199,8 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
             Courier par khud booking nahi hui: {o.autoBookError}
           </Warn>
         )}
+
+        <OrderBranchPicker order={o} onChanged={refresh} />
 
         <ConfirmCard order={o} onChanged={refresh} onRefused={() => setCancelOpen(true)} />
 

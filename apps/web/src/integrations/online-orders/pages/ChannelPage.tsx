@@ -176,7 +176,7 @@ function Overview({ id, data, platform, onChange, setTab }: {
     { label: 'Channel bana', done: true, tab: 'developer' as Tab },
     { label: i.indolj?.connected ? 'Indolj se jora (menu + orders)' : i.type === 'DARAZ' ? 'Daraz se jora' : oneClickType ? `${platform === 'shopify' ? 'Shopify' : 'WooCommerce'} se jora (automatic)` : 'Website se jora', done: !!i.daraz?.connected || !!i.indolj?.connected || automatic || !!stats.lastOrderAt || i.webhookVerified, tab: (oneClickType || i.type === 'DARAZ' ? 'overview' : 'developer') as Tab },
     { label: 'Products jore', done: stats.productLinks > 0, tab: 'products' as Tab },
-    { label: 'Pehla order aaya', done: (stats.totalOrders ?? 0) > 0, tab: 'overview' as Tab },
+    { label: 'Pehla order aaya', done: (stats.allBranchesOrders ?? stats.totalOrders ?? 0) > 0, tab: 'overview' as Tab },
     ...(i.type === 'DARAZ' || i.indolj?.connected ? [] : [{ label: 'Status website ko jata hai', done: automatic || !!i.config.statusWebhookUrl, tab: 'settings' as Tab }]),
   ];
   const done = steps.filter((s) => s.done).length;
@@ -190,6 +190,7 @@ function Overview({ id, data, platform, onChange, setTab }: {
           <Stat label="Kul orders" value={stats.totalOrders ?? 0} hint={stats.lastOrderAt ? `aakhri ${timeAgo(stats.lastOrderAt)}` : undefined} />
           <Stat label="Jure products" value={stats.productLinks} hint={stats.lastSyncAt ? `stock sync ${timeAgo(stats.lastSyncAt)}` : undefined} />
         </div>
+        {stats.allBranchesOrders != null && <BranchScopeNote total={stats.totalOrders ?? 0} all={stats.allBranchesOrders} />}
 
         {i.type === 'DARAZ' ? (
           <DarazChannelCard id={id} data={data} />
@@ -203,7 +204,9 @@ function Overview({ id, data, platform, onChange, setTab }: {
 
         <Card title="Haal ke orders" flush actions={<Link to={`/online-orders?channel=${id}`}><Btn size="sm" variant="plain">Sab dekho</Btn></Link>}>
           {!orders?.items.length ? (
-            <EmptyState icon={<ShoppingBag className="h-5 w-5" />} title="Abhi koi order nahi">Website par order hote hi yahan aayega aur ghanti bajegi.</EmptyState>
+            (stats.allBranchesOrders ?? 0) > 0
+              ? <EmptyState icon={<ShoppingBag className="h-5 w-5" />} title="Is branch me abhi koi order nahi">Is channel ke {stats.allBranchesOrders} order doosri branches me hain — upar se branch badal kar dekhein.</EmptyState>
+              : <EmptyState icon={<ShoppingBag className="h-5 w-5" />} title="Abhi koi order nahi">Website par order hote hi yahan aayega aur ghanti bajegi.</EmptyState>
           ) : (
             <ul className="divide-y divide-slate-100 border-t border-slate-100 dark:divide-slate-800 dark:border-slate-800">
               {orders.items.map((o) => {
@@ -628,12 +631,33 @@ function MoreMenu({ id, data, onChange }: { id: string; data: WebsiteOverview; o
  * Multi-branch: platform har branch ka apna code bhejta hai (Indolj: merchantId). Malik ek dafa
  * batata hai kaun sa code kis Nafaa branch ka — phir har order khud sahi branch (bill + stock) me.
  */
-function BranchCodeMap({ channelId, codes }: { channelId: string; codes: Array<{ code: string; firstSeen: string | null; sample: string | null; shopId: string | null }> }) {
+/** Upar branch chuni ho to batao ke ginti sirf usi branch ki hai */
+function BranchScopeNote({ total, all }: { total: number; all: number }) {
+  const shopId = useAuthStore((s) => s.currentShopId);
+  const { data: shops } = useQuery({ queryKey: ['shops'], queryFn: shopsApi.list });
+  const list = (Array.isArray(shops) ? shops : (shops as any)?.items ?? []) as Array<{ id: string; name: string }>;
+  const name = list.find((s) => s.id === shopId)?.name ?? 'is branch';
+  return (
+    <p className="-mt-1 text-[12.5px] text-slate-500">
+      Ye ginti sirf <b className="text-slate-700 dark:text-slate-200">{name}</b> ki hai — {total} order. Poore channel (sab branches) me kul <b className="text-slate-700 dark:text-slate-200">{all}</b>.
+    </p>
+  );
+}
+
+function BranchCodeMap({ channelId, codes, defaultShopId }: {
+  channelId: string;
+  codes: NonNullable<NonNullable<WebsiteOverview['integration']>['branchCodes']>;
+  defaultShopId: string | null;
+}) {
   const qc = useQueryClient();
   const { data: shops } = useQuery({ queryKey: ['shops'], queryFn: shopsApi.list });
   const list = (Array.isArray(shops) ? shops : (shops as any)?.items ?? []) as Array<{ id: string; name: string; isActive?: boolean }>;
   const active = list.filter((s) => s.isActive !== false);
+  // Channel ki apni branch hi "default" hai — us ke liye alag "Main branch" option nahi (warna 3 naam, 2 branches)
+  const fallback = defaultShopId && active.some((s) => s.id === defaultShopId) ? defaultShopId : active[0]?.id ?? '';
   const [map, setMap] = useState<Record<string, string | null>>(() => Object.fromEntries(codes.map((c) => [c.code, c.shopId])));
+  const codesKey = JSON.stringify(codes.map((c) => [c.code, c.shopId]));
+  useEffect(() => { setMap(Object.fromEntries(codes.map((c) => [c.code, c.shopId]))); }, [codesKey]); // eslint-disable-line react-hooks/exhaustive-deps
   const save = useMutation({
     mutationFn: () => onlineOrdersApi.saveBranchMap(channelId, map),
     onSuccess: () => { toast.success('Branches mehfooz — ab har order sahi branch me jayega'); qc.invalidateQueries({ queryKey: ['sales-channel', channelId] }); },
@@ -641,25 +665,37 @@ function BranchCodeMap({ channelId, codes }: { channelId: string; codes: Array<{
   });
   if (active.length <= 1) return null;
   const dirty = codes.some((c) => (map[c.code] ?? null) !== c.shopId);
+  const hasTokens = codes.some((c) => c.kind === 'token');
   return (
     <div className="mt-4 rounded-xl border border-slate-200 p-3 dark:border-slate-800">
       <div className="text-[13px] font-semibold text-slate-900 dark:text-white">Kaun sa order kis branch ka?</div>
-      <p className="mt-0.5 text-[12.5px] text-slate-500">Indolj har branch ka apna code bhejta hai. Har code ke saamne Nafaa ki branch chunein — bill aur stock usi branch ka. Na chuna to order main branch me aata hai.</p>
+      <p className="mt-0.5 text-[12.5px] text-slate-500">
+        {hasTokens
+          ? <>Indolj me har branch ka apna <b>Token</b> khaana hai — order usi Token ke saath aata hai. Jo Token jis branch me likha hai, us ke saamne wahi branch chunein.</>
+          : <>Website har branch ka apna code bhejti hai. Har code ke saamne Nafaa ki branch chunein — bill aur stock usi branch ka.</>}
+      </p>
       {codes.length === 0 ? (
         <p className="mt-2 text-[12.5px] text-amber-700">Abhi koi order nahi aaya — har branch se ek order aate hi us ka code yahan dikhega.</p>
       ) : (
         <div className="mt-2 space-y-2">
           {codes.map((c) => (
             <div key={c.code} className="flex flex-wrap items-center gap-2 text-[13px]">
-              <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[12px] dark:bg-slate-800">{c.code}</code>
-              {c.sample && <span className="text-[12px] text-slate-500">misaal: order {c.sample}</span>}
+              <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[12px] dark:bg-slate-800">{c.label ?? c.code}</code>
+              {c.sample ? <span className="text-[12px] text-slate-500">aakhri order {c.sample}</span>
+                : c.kind === 'token' && <span className="text-[12px] text-slate-400">abhi order nahi aaya</span>}
               <span className="flex-1" />
-              <select value={map[c.code] ?? ''} onChange={(e) => setMap((m) => ({ ...m, [c.code]: e.target.value || null }))} className={cn(inputCls, 'w-56')}>
-                <option value="">Main branch (khud)</option>
-                {active.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+              <select
+                value={map[c.code] ?? fallback}
+                onChange={(e) => setMap((m) => ({ ...m, [c.code]: e.target.value === fallback ? null : e.target.value }))}
+                className={cn(inputCls, 'w-64')}
+              >
+                {active.map((s) => <option key={s.id} value={s.id}>{s.name}{s.id === fallback ? ' (main)' : ''}</option>)}
               </select>
             </div>
           ))}
+          {hasTokens && (
+            <p className="text-[12px] text-slate-500">Misaal: ek branch ka Token <code>nfk_…</code> ke saath likha hai, doosri ka <code>nfk_</code> ke baghair — isi farq se pata chalta hai order kis branch ka hai.</p>
+          )}
           {dirty && <div className="flex justify-end"><Btn size="sm" variant="primary" loading={save.isPending} onClick={() => save.mutate()}>Mehfooz karein</Btn></div>}
         </div>
       )}
@@ -707,7 +743,7 @@ function IndoljChannelCard({ data, setTab }: { data: WebsiteOverview; setTab: (t
             : <><Circle className="h-4 w-4 shrink-0 text-amber-500" /> Indolj se pehle live order ka intezar — Indolj ki team ne webhook neeche wale URL par lagana hai</>}
         </li>
       </ul>
-      <BranchCodeMap channelId={data.integration!.id} codes={i.branchCodes ?? []} />
+      <BranchCodeMap channelId={data.integration!.id} codes={i.branchCodes ?? []} defaultShopId={i.config?.shopId ?? (i as any).shopId ?? null} />
       {i.indolj?.connectedAt && <p className="mt-2 text-[12px] text-slate-500">Indolj {whenText(i.indolj.connectedAt)} jora</p>}
     </Card>
   );

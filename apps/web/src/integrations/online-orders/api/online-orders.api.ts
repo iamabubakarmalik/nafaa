@@ -33,6 +33,8 @@ export interface CustomerRisk {
 export interface OnlineOrder {
   id: string;
   integrationId: string;
+  /** Kis branch ka order (multi-branch) */
+  shopId?: string | null;
   externalOrderId: string;
   externalOrderNumber?: string;
   customerName: string;
@@ -54,6 +56,8 @@ export interface OnlineOrder {
   notes?: string;
   metadata: {
     platform?: string;
+    /** Order kis Token / branch code se aaya (multi-branch) */
+    route?: string;
     shippingMethod?: string;
     paymentTitle?: string;
     autoAcceptError?: string;
@@ -340,7 +344,7 @@ export interface WebsiteOverview {
     config: WebsiteConfig;
     woo: null | { connected: boolean; connectedAt: string | null; permissions: string | null };
     indolj?: null | { connected: boolean; connectedAt: string | null; baseUrl: string | null };
-    branchCodes?: Array<{ code: string; firstSeen: string | null; sample: string | null; shopId: string | null }>;
+    branchCodes?: Array<{ code: string; kind?: 'token' | 'code'; label?: string; firstSeen: string | null; sample: string | null; shopId: string | null }>;
     shopify?: null | { connected: boolean; needsReinstall?: boolean; shop: string | null; connectedAt: string | null; locationName: string | null };
     daraz?: null | {
       connected: boolean; configured: boolean; account: string | null; sellerId: string | null; shortCode: string | null;
@@ -365,6 +369,8 @@ export interface WebsiteOverview {
     lastOrderNumber: string | null;
     productLinks: number;
     lastSyncAt?: string | null;
+    /** Branch chuni ho to poore channel (sab branches) ke kul orders */
+    allBranchesOrders?: number | null;
   };
   logs: Array<{ id: string; kind: 'IN' | 'OUT'; label: string; ok: boolean; error?: string | null; at: string }>;
 }
@@ -470,6 +476,8 @@ export const onlineOrdersApi = {
   },
   editOrder: (id: string, body: { customerName?: string; customerPhone?: string; customerAddress?: string; customerCity?: string; notes?: string }) =>
     apiClient.post(`/online-orders/${id}/edit`, body).then((r) => unwrap<{ ok: true; changed: number }>(r)),
+  moveBranch: (id: string, body: { shopId: string; remember?: boolean }) =>
+    apiClient.post(`/online-orders/${id}/branch`, body).then((r) => unwrap<{ ok: true; shopId: string; shopName: string; remembered: boolean }>(r)),
   addNote: (id: string, text: string) => apiClient.post(`/online-orders/${id}/notes`, { text }).then((r) => unwrap<{ ok: true }>(r)),
   setTags: (id: string, tags: string[]) => apiClient.post(`/online-orders/${id}/tags`, { tags }).then((r) => unwrap<{ ok: true; tags: string[] }>(r)),
   customers: (q: { segment?: string; search?: string; limit?: number; offset?: number }) =>

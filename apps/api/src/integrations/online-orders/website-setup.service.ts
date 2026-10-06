@@ -177,15 +177,17 @@ export class WebsiteSetupService {
     });
   }
 
-  async channelOverview(user: AuthenticatedUser, id: string) {
+  async channelOverview(user: AuthenticatedUser, id: string, scope?: ShopScope) {
     this.assertCanManage(user);
     const integration = await this.requireChannel(user.tenantId, id);
 
     const today = startOfDayTz();
-    const [total, pending, todayCount, lastOrder, links, webhookLogs, pushLogs] = await Promise.all([
-      this.prisma.channelOrder.count({ where: { integrationId: integration.id } }),
-      this.prisma.channelOrder.count({ where: { integrationId: integration.id, orderStatus: 'PENDING' } }),
-      this.prisma.channelOrder.count({ where: { integrationId: integration.id, receivedAt: { gte: today } } }),
+    // Ginti usi branch ki jo upar chuni hai (orders list jaisi) — "Sab branches" par poore channel ki
+    const own = { integrationId: integration.id, ...((scope?.whereLoose ?? {}) as any) };
+    const [total, pending, todayCount, lastOrder, links, webhookLogs, pushLogs, allBranches] = await Promise.all([
+      this.prisma.channelOrder.count({ where: own }),
+      this.prisma.channelOrder.count({ where: { ...own, orderStatus: 'PENDING' } }),
+      this.prisma.channelOrder.count({ where: { ...own, receivedAt: { gte: today } } }),
       this.prisma.channelOrder.findFirst({
         where: { integrationId: integration.id, NOT: { externalOrderId: { startsWith: 'TEST-' } } },
         orderBy: { receivedAt: 'desc' },
@@ -204,6 +206,7 @@ export class WebsiteSetupService {
         take: 10,
         select: { id: true, operation: true, status: true, errorMessage: true, direction: true, startedAt: true },
       }),
+      scope?.shopId ? this.prisma.channelOrder.count({ where: { integrationId: integration.id } }) : Promise.resolve(null),
     ]);
 
     // Branch codes jo pichle orders me aaye (Indolj merchantId / partnerIndexCode)
@@ -221,14 +224,34 @@ export class WebsiteSetupService {
     const { apiSecret, credentials, ...safe } = integration as any;
     // Keys / secrets web par nahi — sirf haal
     const { indolj: indoljCfg, foodpanda: _fp, ...cfgSafe } = readWebsiteConfig(integration.config) as any;
+    // Indolj: har branch ka Token alag shakal me (nfk_ ke saath / baghair) — dono shaklein pehle se dikhao,
+    // taake malik pehle order ka intezar kiye baghair branch chun le. Merchant code sab branches ka ek hota hai.
+    const rawCfg = (integration.config as any) ?? {};
+    const isIndolj = !!indoljCfg?.activationToken || Object.keys(seenCodes).some((c) => / - /.test(c));
+    const codeMap: Record<string, any> = { ...seenCodes, ...(rawCfg.branchCodes ?? {}) };
+    const hex = String(integration.apiKey ?? '').replace(/^nfk_/, '');
+    if (isIndolj && hex.length >= 20) {
+      for (const k of [`token:nfk_${hex.slice(0, 8)}`, `token:${hex.slice(0, 8)}`]) codeMap[k] ??= { firstSeen: null, sample: null };
+    }
+    const hasTokens = Object.keys(codeMap).some((k) => k.startsWith('token:'));
+    const branchCodes = Object.entries(codeMap)
+      // Token wali pehchan ho to merchant code tabhi dikhao jab us par branch lagi ho (warna sab orders ek branch me)
+      .filter(([code]) => code.startsWith('token:') || !hasTokens || !!rawCfg.branchMap?.[code])
+      .map(([code, v]: [string, any]) => ({
+        code,
+        kind: code.startsWith('token:') ? ('token' as const) : ('code' as const),
+        label: code.startsWith('token:')
+          ? (() => { const [t, suffix] = code.slice(6).split('+'); return `Token ${t}…${suffix ? ` + ${suffix}` : ''}${t.startsWith('nfk_') ? '' : ' (bina nfk_)'}`; })()
+          : code,
+        firstSeen: v?.firstSeen ?? null, sample: v?.sample ?? null, shopId: rawCfg.branchMap?.[code] ?? null,
+      }))
+      .sort((a, b) => (a.kind === b.kind ? a.code.localeCompare(b.code) : a.kind === 'token' ? -1 : 1));
     return {
       connected: true,
       integration: {
         ...safe,
         config: cfgSafe,
-        branchCodes: Object.entries({ ...seenCodes, ...((integration.config as any)?.branchCodes ?? {}) }).map(([code, v]: [string, any]) => ({
-          code, firstSeen: v?.firstSeen ?? null, sample: v?.sample ?? null, shopId: (integration.config as any)?.branchMap?.[code] ?? null,
-        })),
+        branchCodes,
         indolj: indoljCfg?.activationToken
           ? { connected: true, connectedAt: indoljCfg.connectedAt ?? null, baseUrl: indoljCfg.baseUrl ?? null }
           : null,
@@ -270,6 +293,8 @@ export class WebsiteSetupService {
         lastOrderNumber: lastOrder?.externalOrderNumber ?? null,
         productLinks: links,
         lastSyncAt: integration.lastSyncAt,
+        // Branch chuni ho to: poore channel (sab branches) ke kul orders — "is branch me 0, kul 8" dikhane ke liye
+        allBranchesOrders: allBranches,
       },
       logs: [
         ...webhookLogs.map((l) => ({ id: l.id, kind: 'IN' as const, label: l.event, ok: l.processed, error: l.errorMessage, at: l.receivedAt })),

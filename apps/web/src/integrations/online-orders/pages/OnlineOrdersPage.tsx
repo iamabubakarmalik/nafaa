@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { shopsApi } from '@modules/organization/shops/api/shops.api';
+import { useAuthStore } from '@core/stores/auth.store';
 import {
   Bell, Globe, Package, RefreshCw, Search, ShoppingBag, TrendingUp, Wallet, Zap, X,
   BarChart3, CalendarRange, CalendarDays, ChevronDown, Clock, Filter, FileSpreadsheet,
@@ -1156,6 +1158,10 @@ function OrderRow({ order: o, now, active, hide, onClick, selecting, checked }: 
   const qty = o.items.reduce((a, i) => a + Number(i.quantity || 0), 0);
   const phone = phoneOf(o);
   const ref = useRef<HTMLButtonElement>(null);
+  // Kai branches ho to har order par us ki branch ka naam — pata rahe order kahan ka hai
+  const { data: shopsData } = useQuery({ queryKey: ['shops'], queryFn: shopsApi.list, staleTime: 5 * 60_000 });
+  const shopList = (Array.isArray(shopsData) ? shopsData : (shopsData as any)?.items ?? []) as Array<{ id: string; name: string; isActive?: boolean }>;
+  const branchName = shopList.filter((x) => x.isActive !== false).length > 1 ? shopList.find((x) => x.id === o.shopId)?.name : undefined;
 
   useEffect(() => { if (active) ref.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }, [active]);
 
@@ -1181,6 +1187,9 @@ function OrderRow({ order: o, now, active, hide, onClick, selecting, checked }: 
                 <span className={cn('h-1.5 w-1.5 rounded-full', st.dot, isNew && 'animate-pulse')} />{st.short}
               </span>
               <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">{src.label}</span>
+              {branchName && (
+                <span className="rounded-md bg-violet-100 px-1.5 py-0.5 text-[10px] font-bold text-violet-700 dark:bg-violet-500/15 dark:text-violet-300">🏪 {branchName}</span>
+              )}
               {o.isCod && o.paymentStatus !== 'PAID' && (
                 <span className="rounded-md bg-orange-100 px-1.5 py-0.5 text-[10px] font-black text-orange-700 dark:bg-orange-500/15 dark:text-orange-300">COD</span>
               )}
@@ -1334,6 +1343,24 @@ function EmptyBox({ text }: { text?: string }) {
 }
 
 function EmptyState() {
+  // Channel jura hua hai lekin upar chuni branch me order nahi — "Website jodein" ghalat lagta hai
+  const { data: channels } = useSalesChannels();
+  const shopId = useAuthStore((st) => st.currentShopId);
+  const { data: shopsData } = useQuery({ queryKey: ['shops'], queryFn: shopsApi.list, staleTime: 5 * 60_000 });
+  const shopList = (Array.isArray(shopsData) ? shopsData : (shopsData as any)?.items ?? []) as Array<{ id: string; name: string }>;
+  const branch = shopList.find((x) => x.id === shopId)?.name;
+  if ((channels?.length ?? 0) > 0) {
+    return (
+      <div className="rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50 p-8 text-center dark:border-slate-700 dark:bg-slate-900/40 md:p-12">
+        <div className="text-5xl">🛍️</div>
+        <h2 className="mt-3 text-xl font-black text-slate-900 dark:text-white">{branch ? `${branch} me abhi koi online order nahi` : 'Abhi koi online order nahi'}</h2>
+        <p className="mx-auto mt-1 max-w-lg text-sm text-slate-600 dark:text-slate-300">
+          Website jura hua hai — naya order aate hi yahan aayega aur ghanti bajegi.
+          {branch && shopList.length > 1 && <> Doosri branch ke orders dekhne ke liye upar se branch badlein.</>}
+        </p>
+      </div>
+    );
+  }
   return (
     <div className="rounded-3xl border-2 border-dashed border-emerald-300 bg-gradient-to-br from-emerald-50 to-teal-50 p-8 text-center dark:border-emerald-500/30 dark:from-emerald-500/5 dark:to-teal-500/5 md:p-12">
       <div className="text-5xl">🌐</div>

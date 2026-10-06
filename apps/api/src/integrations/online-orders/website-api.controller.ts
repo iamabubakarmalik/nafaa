@@ -270,6 +270,7 @@ export class WebsiteApiController {
       this.logger.warn(`401 ${req.method} ${req.path} — headers: ${Object.keys(req.headers).join(',')} · key mila: ${key ? `${key.slice(0, 8)}…(${key.length})` : 'nahi'}`);
       throw new UnauthorizedException('Nafaa key ghalat hai ya connection band hai');
     }
+    (req as any).nafaaRoute = tokenRoute(req, integration.apiKey);
     return integration;
   }
 
@@ -306,12 +307,19 @@ export class WebsiteApiController {
       const normalized = normalizeOrder(body, platform);
       normalized.shopId = await this.branchFor(integration, req, body, branchParam);
       const order = await this.orders.receive(integration, normalized, { signed });
+      // Order kis Token / code se aaya — baad me "branch badlo + yaad rakho" isi se kaam karta hai
+      const routeKey = (req as any).nafaaRoute ?? (String(body?.merchantId ?? body?.storeId ?? body?.outletId ?? '').trim() || null);
+      if (routeKey && !(order.metadata as any)?.route) {
+        await this.prisma.channelOrder.update({
+          where: { id: order.id }, data: { metadata: { ...((order.metadata as any) ?? {}), route: routeKey } },
+        }).catch(() => null);
+      }
       // Website par cancel hua aur hamara bill ban chuka tha → malik ko bata do
       if (normalized.cancelled && order.nafaaSaleId) {
         await this.orders.applyWebsiteUpdate(integration, normalized.externalOrderId, { cancelled: true, reason: 'Website par cancel hua' }).catch(() => null);
       }
       await this.markVerified(integration);
-      await this.log(integration, topic, body, true);
+      await this.log(integration, topic, body, true, undefined, req);
       return {
         success: true,
         message: 'Order Nafaa me aa gaya ✅',
@@ -319,7 +327,7 @@ export class WebsiteApiController {
         status: order.orderStatus,
       };
     } catch (e: any) {
-      await this.log(integration, topic, body, false, e?.response?.message ?? e?.message);
+      await this.log(integration, topic, body, false, e?.response?.message ?? e?.message, req);
       throw e;
     }
   }
@@ -332,13 +340,16 @@ export class WebsiteApiController {
     }).catch(() => null);
   }
 
-  private async log(integration: Integration, event: string, body: any, ok: boolean, error?: any) {
+  private async log(integration: Integration, event: string, body: any, ok: boolean, error?: any, req?: Request) {
     await this.integrations.logWebhook({
       integrationId: integration.id,
       tenantId: integration.tenantId,
       source: 'website',
       event,
       method: 'POST',
+      url: req?.path,
+      // Masla pakarne ke liye headers bhi — key ka sirf shuru ka hissa, cookie nahi
+      headers: req ? maskHeaders(req, integration.apiKey) : undefined,
       body,
       responseStatus: ok ? 200 : 400,
       processed: ok,
@@ -366,20 +377,25 @@ export class WebsiteApiController {
       const hit = shops.find((s) => s.id === q) ?? shops.find((s) => s.name.toLowerCase() === q.toLowerCase());
       if (hit) return hit.id;
     }
-    // Platform ka branch code (Indolj: merchantId "35ecf - 1af67" / partnerIndexCode) → malik ka chuna hua Nafaa branch
+    // Branch ki pehchan: 1) Token jis shakal me aaya (Indolj har branch ka apna Token bhejta hai —
+    // merchant code sab branches ka ek hi hota hai), 2) platform ka branch code → malik ki chuni branch
     const code = String(body?.merchantId ?? body?.partnerIndexCode ?? body?.storeId ?? body?.store_id ?? body?.outletId ?? '').trim();
-    if (code) {
-      const cfg = (integration.config as any) ?? {};
-      const mapped = cfg.branchMap?.[code];
-      if (!cfg.branchCodes?.[code]) {
-        // Naya code dekha — yaad rakho taake channel page par branch chuni ja sake
-        const fresh = await this.prisma.integration.findUnique({ where: { id: integration.id }, select: { config: true } });
-        const c = (fresh?.config as any) ?? {};
-        await this.prisma.integration.update({
-          where: { id: integration.id },
-          data: { config: { ...c, branchCodes: { ...(c.branchCodes ?? {}), [code]: { firstSeen: new Date().toISOString(), sample: String(body?.orderId ?? body?.orderNumber ?? '').slice(0, 30) } } } as any },
-        }).catch(() => null);
-      }
+    const route = String((req as any).nafaaRoute ?? '');
+    const cfg = (integration.config as any) ?? {};
+    const unseen = [route, code].filter((c) => c && !cfg.branchCodes?.[c]);
+    if (unseen.length) {
+      // Naya code dekha — yaad rakho taake channel page par branch chuni ja sake
+      const sample = String(body?.orderId ?? body?.orderNumber ?? '').slice(0, 30);
+      const fresh = await this.prisma.integration.findUnique({ where: { id: integration.id }, select: { config: true } });
+      const c = (fresh?.config as any) ?? {};
+      const added = Object.fromEntries(unseen.map((k) => [k, { firstSeen: new Date().toISOString(), sample }]));
+      await this.prisma.integration.update({
+        where: { id: integration.id },
+        data: { config: { ...c, branchCodes: { ...(c.branchCodes ?? {}), ...added } } as any },
+      }).catch(() => null);
+    }
+    for (const k of [route, code]) {
+      const mapped = k ? cfg.branchMap?.[k] : null;
       if (mapped && shops.some((s) => s.id === mapped)) return mapped;
     }
     const name = String(body?.branch?.name ?? body?.branchName ?? body?.branch_name ?? body?.selectedBranch ?? body?.branch ?? '').trim().toLowerCase();
@@ -390,4 +406,35 @@ export class WebsiteApiController {
     }
     return null;
   }
+}
+
+/**
+ * Key kis shakal me aayi — "token:nfk_1c9c8def" ya "token:1c9c8def" (bina nfk_) + aage koi hissa.
+ * Indolj ki har branch ka apna Token khaana hota hai; isi farq se branch pehchani jati hai.
+ */
+export function tokenRoute(req: Request, apiKey: string | null | undefined): string | null {
+  const hex = String(apiKey ?? '').replace(/^nfk_/, '');
+  if (hex.length < 20) return null;
+  for (const v of Object.values(req.headers)) {
+    const val = Array.isArray(v) ? v.join(' ') : String(v ?? '');
+    const i = val.indexOf(hex);
+    if (i < 0) continue;
+    const prefixed = val.slice(Math.max(0, i - 4), i) === 'nfk_';
+    const suffix = val.slice(i + hex.length).trim().replace(/[^\w.\-:/]/g, '').slice(0, 40);
+    return `token:${prefixed ? 'nfk_' : ''}${hex.slice(0, 8)}${suffix ? `+${suffix}` : ''}`;
+  }
+  return null;
+}
+
+/** Headers log ke liye — key chhupa do, cookie/x-forwarded jaisi cheezein chhor do */
+function maskHeaders(req: Request, apiKey: string | null | undefined): Record<string, string> {
+  const hex = String(apiKey ?? '').replace(/^nfk_/, '');
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(req.headers)) {
+    if (/^(cookie|x-forwarded-|x-real-ip|x-railway)/i.test(k)) continue;
+    let val = Array.isArray(v) ? v.join(' ') : String(v ?? '');
+    if (hex.length >= 20) val = val.split(hex).join(`${hex.slice(0, 6)}…`);
+    out[k] = val.slice(0, 200);
+  }
+  return out;
 }

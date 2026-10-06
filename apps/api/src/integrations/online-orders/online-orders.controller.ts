@@ -144,6 +144,12 @@ export class OnlineOrdersController {
     return this.tools.editOrder(user, scope, id, body ?? {});
   }
 
+  @Post(':id/branch')
+  @ApiOperation({ summary: 'Naya order doosri branch me bhejo (accept se pehle) — chahein to aage ke liye yaad rakho' })
+  moveBranch(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string, @Body() body: { shopId?: string; remember?: boolean }) {
+    return this.tools.moveBranch(user, scope, id, body ?? {});
+  }
+
   @Post(':id/notes')
   @ApiOperation({ summary: 'Andar ka note (staff ke liye)' })
   note(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string, @Body() body: { text?: string }) {
@@ -298,8 +304,8 @@ export class ChannelsController {
   }
 
   @Get(':id')
-  overview(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {
-    return this.setup.channelOverview(user, id);
+  overview(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string) {
+    return this.setup.channelOverview(user, id, scope);
   }
 
   @Patch(':id/settings')

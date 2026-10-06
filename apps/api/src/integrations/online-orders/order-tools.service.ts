@@ -125,6 +125,39 @@ export class OrderToolsService {
     return { ok: true, changed: Object.keys(changes).length };
   }
 
+  /**
+   * Order ghalat branch me aa gaya (multi-branch website) — accept se pehle doosri branch me bhejo.
+   * `remember`: aage se isi Token / code wale orders seedha usi branch me (channel ka branchMap).
+   */
+  async moveBranch(user: AuthenticatedUser, scope: ShopScope, id: string, body: { shopId?: string; remember?: boolean }) {
+    const order = await this.prisma.channelOrder.findFirst({ where: { id, tenantId: user.tenantId, ...(scope.whereLoose as any) } });
+    if (!order) throw new NotFoundException('Order nahi mila');
+    if (order.nafaaSaleId) throw new BadRequestException('Bill ban chuka — accept ke baad branch nahi badalti. Pehle cancel karein.');
+    if (order.orderStatus !== 'PENDING') throw new BadRequestException('Sirf naye (accept se pehle) order ki branch badalti hai');
+    const shop = await this.prisma.shop.findFirst({ where: { id: String(body?.shopId ?? ''), tenantId: user.tenantId, isActive: true }, select: { id: true, name: true } });
+    if (!shop) throw new BadRequestException('Branch nahi mili');
+    const meta = (order.metadata ?? {}) as any;
+    await this.prisma.channelOrder.update({
+      where: { id },
+      data: {
+        shopId: shop.id,
+        metadata: { ...meta, edits: [...(meta.edits ?? []), { at: new Date().toISOString(), by: user.id, changes: { branch: { from: order.shopId, to: shop.id } } }].slice(-20) },
+      },
+    });
+    let remembered = false;
+    const route = meta.route ?? meta.branchCode;
+    if (body?.remember && route) {
+      const integ = await this.prisma.integration.findUnique({ where: { id: order.integrationId }, select: { config: true, shopId: true } });
+      const cfg = (integ?.config as any) ?? {};
+      const branchMap = { ...(cfg.branchMap ?? {}) };
+      // Channel ki apni branch = default, us ke liye map ki zaroorat nahi
+      if (shop.id === (cfg.shopId ?? integ?.shopId)) delete branchMap[route]; else branchMap[route] = shop.id;
+      await this.prisma.integration.update({ where: { id: order.integrationId }, data: { config: { ...cfg, branchMap } as any } });
+      remembered = true;
+    }
+    return { ok: true, shopId: shop.id, shopName: shop.name, remembered };
+  }
+
   // ═══════════════════════════════════════════════════════════
   // ANDAR KE NOTES + TAGS (customer ko nahi dikhte)
   // ═══════════════════════════════════════════════════════════
