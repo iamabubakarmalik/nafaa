@@ -224,28 +224,30 @@ export class WebsiteSetupService {
     const { apiSecret, credentials, ...safe } = integration as any;
     // Keys / secrets web par nahi — sirf haal
     const { indolj: indoljCfg, foodpanda: _fp, ...cfgSafe } = readWebsiteConfig(integration.config) as any;
-    // Indolj: har branch ka Token alag shakal me (nfk_ ke saath / baghair) — dono shaklein pehle se dikhao,
-    // taake malik pehle order ka intezar kiye baghair branch chun le. Merchant code sab branches ka ek hota hai.
+    // Sirf wohi pehchan dikhao jo branches me farq karti ho: Token tabhi jab 2+ alag shaklein aayi hon;
+    // merchant code (Indolj me sab branches ka ek) tabhi jab us par branch lagi ho ya aur kuch na ho
     const rawCfg = (integration.config as any) ?? {};
-    const isIndolj = !!indoljCfg?.activationToken || Object.keys(seenCodes).some((c) => / - /.test(c));
-    const codeMap: Record<string, any> = { ...seenCodes, ...(rawCfg.branchCodes ?? {}) };
-    const hex = String(integration.apiKey ?? '').replace(/^nfk_/, '');
-    if (isIndolj && hex.length >= 20) {
-      for (const k of [`token:nfk_${hex.slice(0, 8)}`, `token:${hex.slice(0, 8)}`]) codeMap[k] ??= { firstSeen: null, sample: null };
-    }
-    const hasTokens = Object.keys(codeMap).some((k) => k.startsWith('token:'));
+    const codeMap: Record<string, any> = { ...Object.fromEntries(Object.entries(seenCodes).map(([k, v]) => [k, { ...v, field: 'merchantId' }])), ...(rawCfg.branchCodes ?? {}) };
+    const tokenKeys = Object.keys(codeMap).filter((k) => k.startsWith('token:'));
+    const branchKeys = Object.keys(codeMap).filter((k) => !k.startsWith('token:') && codeMap[k]?.field && codeMap[k].field !== 'merchantId');
+    const show = (k: string) => {
+      if (rawCfg.branchMap?.[k]) return true;
+      if (k.startsWith('token:')) return tokenKeys.length >= 2;
+      if (codeMap[k]?.field === 'merchantId' || !codeMap[k]?.field) return branchKeys.length === 0 && tokenKeys.length < 2;
+      return true;
+    };
+    const FIELD_LABEL: Record<string, string> = { posCode: 'POS code', branchCode: 'Branch code', branchId: 'Branch id', storeId: 'Store id', outletId: 'Outlet id', branchName: 'Branch', merchantId: 'Merchant code' };
     const branchCodes = Object.entries(codeMap)
-      // Token wali pehchan ho to merchant code tabhi dikhao jab us par branch lagi ho (warna sab orders ek branch me)
-      .filter(([code]) => code.startsWith('token:') || !hasTokens || !!rawCfg.branchMap?.[code])
+      .filter(([code]) => show(code))
       .map(([code, v]: [string, any]) => ({
         code,
-        kind: code.startsWith('token:') ? ('token' as const) : ('code' as const),
+        kind: code.startsWith('token:') ? ('token' as const) : v?.field === 'merchantId' || !v?.field ? ('merchant' as const) : ('code' as const),
         label: code.startsWith('token:')
           ? (() => { const [t, suffix] = code.slice(6).split('+'); return `Token ${t}…${suffix ? ` + ${suffix}` : ''}${t.startsWith('nfk_') ? '' : ' (bina nfk_)'}`; })()
-          : code,
+          : `${FIELD_LABEL[v?.field] ?? 'Code'}: ${code}`,
         firstSeen: v?.firstSeen ?? null, sample: v?.sample ?? null, shopId: rawCfg.branchMap?.[code] ?? null,
       }))
-      .sort((a, b) => (a.kind === b.kind ? a.code.localeCompare(b.code) : a.kind === 'token' ? -1 : 1));
+      .sort((a, b) => (a.kind === b.kind ? a.code.localeCompare(b.code) : a.kind === 'merchant' ? 1 : b.kind === 'merchant' ? -1 : 0));
     return {
       connected: true,
       integration: {

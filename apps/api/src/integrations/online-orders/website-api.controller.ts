@@ -308,7 +308,8 @@ export class WebsiteApiController {
       normalized.shopId = await this.branchFor(integration, req, body, branchParam);
       const order = await this.orders.receive(integration, normalized, { signed });
       // Order kis Token / code se aaya — baad me "branch badlo + yaad rakho" isi se kaam karta hai
-      const routeKey = (req as any).nafaaRoute ?? (String(body?.merchantId ?? body?.storeId ?? body?.outletId ?? '').trim() || null);
+      const routeKey = (req as any).nafaaRoute
+        ?? (String(body?.posCode ?? body?.branchCode ?? body?.branchId ?? body?.storeId ?? body?.outletId ?? body?.branchName ?? body?.merchantId ?? '').trim().slice(0, 80) || null);
       if (routeKey && !(order.metadata as any)?.route) {
         await this.prisma.channelOrder.update({
           where: { id: order.id }, data: { metadata: { ...((order.metadata as any) ?? {}), route: routeKey } },
@@ -377,25 +378,45 @@ export class WebsiteApiController {
       const hit = shops.find((s) => s.id === q) ?? shops.find((s) => s.name.toLowerCase() === q.toLowerCase());
       if (hit) return hit.id;
     }
-    // Branch ki pehchan: 1) Token jis shakal me aaya (Indolj har branch ka apna Token bhejta hai —
-    // merchant code sab branches ka ek hi hota hai), 2) platform ka branch code → malik ki chuni branch
-    const code = String(body?.merchantId ?? body?.partnerIndexCode ?? body?.storeId ?? body?.store_id ?? body?.outletId ?? '').trim();
+    // Branch ki pehchan: 1) Token jis shakal me aaya, 2) payload me branch ka code / POS code / naam,
+    // 3) merchant code (Indolj me sab branches ka ek hi hota hai — aakhri chara). Har naya code yaad rakho
+    // taake malik channel page par us ke saamne branch chun sake.
     const route = String((req as any).nafaaRoute ?? '');
+    const pick = (v: unknown) => (typeof v === 'string' || typeof v === 'number' ? String(v).trim().slice(0, 80) : '');
+    const branchFields: Array<[string, unknown]> = [
+      ['posCode', body?.posCode], ['posCode', body?.pos_code], ['branchCode', body?.branchCode], ['branchCode', body?.branch_code],
+      ['branchId', body?.branchId], ['branchId', body?.branch_id], ['storeId', body?.storeId], ['storeId', body?.store_id],
+      ['outletId', body?.outletId], ['branchName', body?.branchName], ['branchName', body?.branch_name],
+      ['branchName', body?.branch?.name], ['branchName', typeof body?.branch === 'string' ? body.branch : null],
+      ['branchName', body?.selectedBranch], ['branchName', body?.pickup?.branchName],
+    ];
+    const candidates: Array<{ code: string; field: string }> = [];
+    if (route) candidates.push({ code: route, field: 'token' });
+    for (const [field, v] of branchFields) { const c = pick(v); if (c && !candidates.some((x) => x.code === c)) candidates.push({ code: c, field }); }
+    const merchant = pick(body?.merchantId);
+    if (merchant && !candidates.some((x) => x.code === merchant)) candidates.push({ code: merchant, field: 'merchantId' });
     const cfg = (integration.config as any) ?? {};
-    const unseen = [route, code].filter((c) => c && !cfg.branchCodes?.[c]);
-    if (unseen.length) {
-      // Naya code dekha — yaad rakho taake channel page par branch chuni ja sake
+    const unseen = candidates.filter((c) => !cfg.branchCodes?.[c.code]);
+    if (unseen.length && Object.keys(cfg.branchCodes ?? {}).length < 60) {
       const sample = String(body?.orderId ?? body?.orderNumber ?? '').slice(0, 30);
       const fresh = await this.prisma.integration.findUnique({ where: { id: integration.id }, select: { config: true } });
       const c = (fresh?.config as any) ?? {};
-      const added = Object.fromEntries(unseen.map((k) => [k, { firstSeen: new Date().toISOString(), sample }]));
+      const added = Object.fromEntries(unseen.map((k) => [k.code, { firstSeen: new Date().toISOString(), sample, field: k.field }]));
       await this.prisma.integration.update({
         where: { id: integration.id },
         data: { config: { ...c, branchCodes: { ...(c.branchCodes ?? {}), ...added } } as any },
       }).catch(() => null);
+    } else if (candidates.length) {
+      // Aakhri order ka number taaza rakho (page par "aakhri order …")
+      const sample = String(body?.orderId ?? body?.orderNumber ?? '').slice(0, 30);
+      const fresh = await this.prisma.integration.findUnique({ where: { id: integration.id }, select: { config: true } });
+      const c = (fresh?.config as any) ?? {};
+      const codes = { ...(c.branchCodes ?? {}) };
+      for (const k of candidates) if (codes[k.code]) codes[k.code] = { ...codes[k.code], sample, lastSeen: new Date().toISOString() };
+      await this.prisma.integration.update({ where: { id: integration.id }, data: { config: { ...c, branchCodes: codes } as any } }).catch(() => null);
     }
-    for (const k of [route, code]) {
-      const mapped = k ? cfg.branchMap?.[k] : null;
+    for (const k of candidates) {
+      const mapped = cfg.branchMap?.[k.code];
       if (mapped && shops.some((s) => s.id === mapped)) return mapped;
     }
     const name = String(body?.branch?.name ?? body?.branchName ?? body?.branch_name ?? body?.selectedBranch ?? body?.branch ?? '').trim().toLowerCase();

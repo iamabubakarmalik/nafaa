@@ -666,6 +666,8 @@ function BranchCodeMap({ channelId, codes, defaultShopId }: {
   if (active.length <= 1) return null;
   const dirty = codes.some((c) => (map[c.code] ?? null) !== c.shopId);
   const hasTokens = codes.some((c) => c.kind === 'token');
+  // Sirf merchant code (sab branches ka ek) — website branch ki nishani bhejti hi nahi
+  const noBranchSignal = codes.length > 0 && codes.every((c) => c.kind === 'merchant' && !c.shopId);
   return (
     <div className="mt-4 rounded-xl border border-slate-200 p-3 dark:border-slate-800">
       <div className="text-[13px] font-semibold text-slate-900 dark:text-white">Kaun sa order kis branch ka?</div>
@@ -674,6 +676,13 @@ function BranchCodeMap({ channelId, codes, defaultShopId }: {
           ? <>Indolj me har branch ka apna <b>Token</b> khaana hai — order usi Token ke saath aata hai. Jo Token jis branch me likha hai, us ke saamne wahi branch chunein.</>
           : <>Website har branch ka apna code bhejti hai. Har code ke saamne Nafaa ki branch chunein — bill aur stock usi branch ka.</>}
       </p>
+      {noBranchSignal && (
+        <div className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-[12.5px] text-amber-800 dark:bg-amber-500/10 dark:text-amber-200">
+          Website abhi order ke saath <b>branch nahi bhejti</b> — sab branches ka ek hi code aata hai, is liye har order
+          main branch me aata hai. Tab tak: order kholein → <b>Branch</b> se sahi branch chunein. Website wale jaise hi branch ka
+          code / POS code bhejna shuru karein, wo yahan khud aa jayega aur us ke saamne branch chun lein.
+        </div>
+      )}
       {codes.length === 0 ? (
         <p className="mt-2 text-[12.5px] text-amber-700">Abhi koi order nahi aaya — har branch se ek order aate hi us ka code yahan dikhega.</p>
       ) : (
