@@ -251,9 +251,20 @@ export class WebsiteApiController {
   private async auth(req: Request, pathKey?: string): Promise<Integration> {
     const header = (req.headers['x-nafaa-key'] as string | undefined)
       ?? (req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.slice(7) : undefined);
-    const key = (pathKey ?? (header ?? '').match(/nfk_[a-f0-9]{20,}/)?.[0] ?? header ?? '').trim();
+    // Platform key kisi bhi header (token / api-key / authorization…) ya body me bhej sakta hai
+    const anyHeader = Object.values(req.headers).map((v) => (Array.isArray(v) ? v.join(' ') : String(v ?? ''))).join(' ');
+    const fromBody = (() => { try { return JSON.stringify(req.body ?? {}).slice(0, 4000); } catch { return ''; } })();
+    const key = (pathKey
+      ?? (header ?? '').match(/nfk_[a-f0-9]{20,}/)?.[0]
+      ?? anyHeader.match(/nfk_[a-f0-9]{20,}/)?.[0]
+      ?? fromBody.match(/nfk_[a-f0-9]{20,}/)?.[0]
+      ?? header ?? '').trim();
     const integration = key ? await this.integrations.verifyApiKey(key) : null;
-    if (!integration) throw new UnauthorizedException('Nafaa key ghalat hai ya connection band hai');
+    if (!integration) {
+      // Masla pakarne ke liye: sirf header ke NAAM (values nahi) aur key ka shape
+      this.logger.warn(`401 ${req.method} ${req.path} — headers: ${Object.keys(req.headers).join(',')} · key mila: ${key ? `${key.slice(0, 8)}…(${key.length})` : 'nahi'}`);
+      throw new UnauthorizedException('Nafaa key ghalat hai ya connection band hai');
+    }
     return integration;
   }
 
@@ -335,7 +346,9 @@ export class WebsiteApiController {
    * 2) payload me branch ka naam bilkul Nafaa branch ke naam jaisa ho. Na mile to channel ki branch.
    */
   private async branchFor(integration: Integration, req: Request, body: any, branchParam?: string): Promise<string | null> {
-    const fromToken = String(req.headers.authorization ?? '').match(/nfk_[a-f0-9]{20,}\.([0-9a-f-]{36})/i)?.[1]
+    // Token me branch: "nfk_….<id>" ya "nfk_…/branch/<id>" — kisi bhi header me
+    const allHeaders = Object.values(req.headers).map((v) => (Array.isArray(v) ? v.join(' ') : String(v ?? ''))).join(' ');
+    const fromToken = allHeaders.match(/nfk_[a-f0-9]{20,}(?:\.|\/branch\/|:)([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i)?.[1]
       // Indolj "POS Code" / branch code payload me
       ?? [body?.posCode, body?.pos_code, body?.partnerIndexCode, body?.branchCode, body?.branch_code, body?.branchId, body?.branch_id]
         .map((v) => String(v ?? '').trim()).find((v) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v));
