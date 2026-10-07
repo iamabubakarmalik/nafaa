@@ -755,7 +755,7 @@ export default function App() {
                   <Route path="/staff/new" element={secure(PERMISSIONS.STAFF_MANAGE, <StaffFormPage />)} />
                   <Route path="/staff/attendance" element={secure(PERMISSIONS.STAFF_VIEW, <AttendancePage />)} />
                   <Route path="/staff/salary/new" element={secure(PERMISSIONS.STAFF_MANAGE, <SalaryProcessPage />)} />
-                  <Route path="/staff/commission" element={secure(PERMISSIONS.STAFF_VIEW, <CommissionPage />)} />
+                  <Route path="/staff/commission" element={secure(PERMISSIONS.COMMISSION_OWN, <CommissionPage />)} />
                   <Route path="/staff/:id/edit" element={secure(PERMISSIONS.STAFF_MANAGE, <StaffFormPage />)} />
                   <Route path="/staff/:id" element={secure(PERMISSIONS.STAFF_VIEW, <StaffDetailPage />)} />
                   <Route path="/staff" element={secure(PERMISSIONS.STAFF_VIEW, <StaffListPage />)} />

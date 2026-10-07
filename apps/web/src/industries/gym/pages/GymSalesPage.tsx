@@ -11,6 +11,7 @@ import { useSalesPrivacy } from '@modules/sales/sales/hooks/useSalesPrivacy';
 import { SalesPrivacyModal } from '@modules/sales/sales/components/SalesPrivacyModal';
 import { HiddenAmount } from '@modules/sales/sales/components/HiddenAmount';
 import { toast } from 'sonner';
+import { useBusinessDayStart, setToDayStart, setToDayEnd } from '@core/lib/business-day';
 
 const paymentConfig: Record<string, { label: string; icon: any; hex: string }> = {
   CASH: { label: 'Cash', icon: Banknote, hex: '#10b981' },
@@ -24,6 +25,9 @@ type DateFilter = 'all' | 'today' | 'week' | 'month' | 'year';
 
 export default function GymSalesPage() {
   const privacy = useSalesPrivacy();
+  /* Dukaan ka apna din — raat 12 baje band hone wali dukaan ke
+     liye raat 1 baje ki bikri abhi "aaj" ki hai */
+  const bdStart = useBusinessDayStart();
   const [search, setSearch] = useState('');
   const [dateFilter, setDateFilter] = useState<DateFilter>('today');
   const [paymentFilter, setPaymentFilter] = useState<PaymentMethod | 'all'>('all');
@@ -50,7 +54,7 @@ export default function GymSalesPage() {
     let list = [...sales];
     const now = new Date();
     let start = new Date();
-    if (dateFilter === 'today') start.setHours(0, 0, 0, 0);
+    if (dateFilter === 'today') setToDayStart(start, bdStart);
     else if (dateFilter === 'week') start.setDate(now.getDate() - 7);
     else if (dateFilter === 'month') start.setMonth(now.getMonth() - 1);
     else if (dateFilter === 'year') start.setFullYear(now.getFullYear() - 1);

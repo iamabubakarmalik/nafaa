@@ -27,6 +27,7 @@ import { formatPKR } from '@core/lib/format';
 import { Button } from '@core/ui/Button';
 import { useAuthStore } from '@core/stores/auth.store';
 import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
+import { useBusinessDay } from '@core/lib/business-day';
 
 /* ═════════════════════════════════════════════════════════════
    BAKERY BIKRI — DIN KA POORA RECORD  (Retail jaisa, poora)
@@ -87,6 +88,9 @@ function getPrefs(): ReceiptPrefs {
 }
 
 /* ── Waqt — sab maqami din par (toISOString London ka din deta hai) ── */
+/* Ye sirf fallback hain — asli haddein `useBusinessDay()` se aati
+   hain, jo dukaan ka apna ghanta jaanti hai (dhaba raat 2 baje
+   band hota hai, us ka din 12 baje nahi badalta). */
 const dayStart = (d: Date) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; };
 const dayEnd = (d: Date) => { const x = new Date(d); x.setHours(23, 59, 59, 999); return x; };
 const dayKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -127,6 +131,10 @@ export default function BakerySalesPage() {
   const hideAmounts = useCostHidden();
   const searchRef = useRef<HTMLInputElement>(null);
   const prefsBtnRef = useRef<HTMLButtonElement>(null);
+
+  /* Dukaan ka apna din — Settings me set hota hai */
+
+  const bd = useBusinessDay();
 
   const [tab, setTab] = useState<Tab>('list');
   const [search, setSearch] = useState('');
@@ -193,23 +201,26 @@ export default function BakerySalesPage() {
   const [from, to] = useMemo<[Date, Date]>(() => {
     const now = new Date();
     switch (dateFilter) {
-      case 'today': return [dayStart(now), dayEnd(now)];
-      case 'yesterday': { const y = new Date(now); y.setDate(y.getDate() - 1); return [dayStart(y), dayEnd(y)]; }
-      case 'week': { const f = new Date(now); f.setDate(f.getDate() - 6); return [dayStart(f), dayEnd(now)]; }
-      case 'month': { const f = new Date(now); f.setDate(f.getDate() - 29); return [dayStart(f), dayEnd(now)]; }
-      case 'year': return [new Date(now.getFullYear(), 0, 1), dayEnd(now)];
+      case 'today': return [bd.dayStart(now), bd.dayEnd(now)];
+      case 'yesterday': { const y = new Date(now); y.setDate(y.getDate() - 1); return [bd.dayStart(y), bd.dayEnd(y)]; }
+      case 'week': { const f = new Date(now); f.setDate(f.getDate() - 6); return [bd.dayStart(f), bd.dayEnd(now)]; }
+      case 'month': { const f = new Date(now); f.setDate(f.getDate() - 29); return [bd.dayStart(f), bd.dayEnd(now)]; }
+      case 'year': return [new Date(now.getFullYear(), 0, 1), bd.dayEnd(now)];
       case 'custom': return [
-        customStart ? dayStart(new Date(customStart)) : new Date(0),
-        customEnd ? dayEnd(new Date(customEnd)) : dayEnd(now),
+        customStart ? bd.dayStart(new Date(customStart)) : new Date(0),
+        customEnd ? bd.dayEnd(new Date(customEnd)) : bd.dayEnd(now),
       ];
-      default: return [new Date(0), dayEnd(now)];
+      default: return [new Date(0), bd.dayEnd(now)];
     }
-  }, [dateFilter, customStart, customEnd]);
+  /* `bd.startHour` bhi yahan hai: malik Settings me dukaan ka ghanta
+     badle to safha foran naye hisab se banta hai, refresh ka
+     intezar nahi karna parta. */
+  }, [dateFilter, customStart, customEnd, bd.startHour]);
 
   const rangeLabel = useMemo(() => {
     if (dateFilter === 'all') return 'Shuru se ab tak';
     const f = (d: Date) => new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium' }).format(d);
-    return dayKey(from) === dayKey(to) ? f(from) : `${f(from)} — ${f(to)}`;
+    return bd.dayKey(from) === bd.dayKey(to) ? f(from) : `${f(from)} — ${f(to)}`;
   }, [dateFilter, from, to]);
 
   useEffect(() => { setVisible(50); }, [dateFilter, customStart, customEnd, payFilter, creditOnly, search]);
@@ -293,16 +304,16 @@ export default function BakerySalesPage() {
   /* Rozana — khali din bhi dikhein, warna chart jhoot bolta hai */
   const daily = useMemo(() => {
     const start = dateFilter === 'all' && live.length
-      ? dayStart(new Date(Math.min(...live.map((s) => new Date(s.soldAt).getTime()))))
+      ? bd.dayStart(new Date(Math.min(...live.map((s) => new Date(s.soldAt).getTime()))))
       : from;
     const days = Math.min(Math.max(Math.ceil((to.getTime() - start.getTime()) / 86400000), 1), 90);
     const b: Record<string, { name: string; bikri: number; munafa: number; bill: number }> = {};
     for (let i = days - 1; i >= 0; i--) {
       const d = new Date(to); d.setDate(to.getDate() - i);
-      b[dayKey(d)] = { name: d.toLocaleDateString('en-PK', days > 14 ? { day: 'numeric', month: 'short' } : { weekday: 'short', day: 'numeric' }), bikri: 0, munafa: 0, bill: 0 };
+      b[bd.dayKey(d)] = { name: d.toLocaleDateString('en-PK', days > 14 ? { day: 'numeric', month: 'short' } : { weekday: 'short', day: 'numeric' }), bikri: 0, munafa: 0, bill: 0 };
     }
     live.forEach((s) => {
-      const k = dayKey(new Date(s.soldAt));
+      const k = bd.dayKey(new Date(s.soldAt));
       if (!b[k]) return;
       b[k].bikri += Number(s.total || 0);
       b[k].munafa += Number(s.total || 0) - Number(s.costOfGoods || 0);
@@ -419,7 +430,7 @@ export default function BakerySalesPage() {
     const csv = [...head, cols, ...body].map((r) => r.map(esc).join(',')).join('\n');
     const url = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' }));
     const a = document.createElement('a'); a.href = url;
-    a.download = `bakery-bikri-${dayKey(new Date())}.csv`;
+    a.download = `bakery-bikri-${bd.dayKey(new Date())}.csv`;
     a.click(); URL.revokeObjectURL(url);
     toast.success(`${filtered.length} bill CSV me`);
   };

@@ -4,8 +4,9 @@ import * as crypto from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
 import { ShopScope } from '../../common/shop-scope';
-import { startOfDayTz } from '../../common/helpers/business-time.helper';
+import { startOfBusinessDayTz } from '../../common/helpers/business-time.helper';
 import { WebsiteConfig, assertSafeWebhookUrl, readWebsiteConfig } from './website-config';
+import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.service';
 
 /** Website jaise channels — har ek ki apni key, settings aur safha */
 export const WEBSITE_TYPES: IntegrationType[] = ['CUSTOM_WEBSITE', 'WOOCOMMERCE', 'SHOPIFY', 'DARAZ', 'FOODPANDA'];
@@ -24,7 +25,10 @@ const PLATFORM_OF: Record<string, WebsiteConfig['platform']> = {
  */
 @Injectable()
 export class WebsiteSetupService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly tzService: TenantTimezoneService,
+  ) {}
 
   /** Keys sirf malik/manager dekh sakte hain — cashier nahi */
   assertCanManage(user: AuthenticatedUser) {
@@ -181,7 +185,10 @@ export class WebsiteSetupService {
     this.assertCanManage(user);
     const integration = await this.requireChannel(user.tenantId, id);
 
-    const today = startOfDayTz();
+    /* Dukaan ka apna karobari din — raat 12 baje band hone wali
+       dukaan ke liye raat 1 baje ka order abhi "aaj" ka hai */
+    const { tz, dayStartHour } = await this.tzService.clock(user.tenantId);
+    const today = startOfBusinessDayTz(new Date(), tz, dayStartHour);
     // Ginti usi branch ki jo upar chuni hai (orders list jaisi) — "Sab branches" par poore channel ki
     const own = { integrationId: integration.id, ...((scope?.whereLoose ?? {}) as any) };
     const [total, pending, todayCount, lastOrder, links, webhookLogs, pushLogs, allBranches] = await Promise.all([

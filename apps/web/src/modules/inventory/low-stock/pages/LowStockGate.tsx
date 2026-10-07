@@ -7,6 +7,7 @@ import ElectronicsLowStockPage from '@industries/electronics/pages/ElectronicsLo
 import AppliancesLowStockPage from '@industries/appliances/pages/AppliancesLowStockPage';
 import BakeryLowStockPage from '@industries/bakery/pages/BakeryLowStockPage';
 import AgriLowStockPage from '@industries/agri/pages/AgriLowStockPage';
+import RestaurantLowStockPage from '@industries/restaurant/pages/RestaurantLowStockPage';
 
 /**
  * LowStockGate — routes /low-stock (ya /inventory/low-stock) to the
@@ -45,6 +46,12 @@ export default function LowStockGate() {
        to maal saal bhar para rehta hai. */
     case 'agri':
       return <AgriLowStockPage />;
+
+    /* Restaurant ka sawal hi alag hai: biryani stock me nahi hoti,
+       chawal aur murghi hote hain. Is liye yahan "kaunsa maal kam
+       hai" nahi, balke "ab kaunsi dish nahi ban sakti" dikhta hai. */
+    case 'restaurant':
+      return <RestaurantLowStockPage />;
 
     // Future: alag industries ka custom low-stock yahan add karo
     // case 'carpet':

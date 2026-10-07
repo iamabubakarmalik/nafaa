@@ -10,6 +10,7 @@ import { jobsApi, type JobStatus, type Priority } from '../api/jobs.api';
 import { formatPKR } from '@core/lib/format';
 import { Button } from '@core/ui/Button';
 import { format, differenceInMinutes, isToday, isTomorrow } from 'date-fns';
+import { useBusinessDayStart, setToDayStart, setToDayEnd } from '@core/lib/business-day';
 
 const STATUS_CONFIG: Record<JobStatus, { label: string; color: string; icon: any }> = {
   DRAFT: { label: 'Draft', color: 'bg-slate-500', icon: AlertCircle },
@@ -43,6 +44,9 @@ const PRIORITY_CONFIG: Record<Priority, { label: string; color: string; emoji: s
 };
 
 export default function JobsListPage() {
+  /* Dukaan ka apna din — raat 12 baje band hone wali dukaan ke
+     liye raat 1 baje ki bikri abhi "aaj" ki hai */
+  const bdStart = useBusinessDayStart();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('active');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
@@ -54,12 +58,12 @@ export default function JobsListPage() {
     const start = new Date(now);
     const end = new Date(now);
     if (dateFilter === 'today') {
-      start.setHours(0, 0, 0, 0);
-      end.setHours(23, 59, 59, 999);
+      setToDayStart(start, bdStart);
+      setToDayEnd(end, bdStart);
     } else if (dateFilter === 'week') {
-      start.setHours(0, 0, 0, 0);
+      setToDayStart(start, bdStart);
       end.setDate(end.getDate() + 7);
-      end.setHours(23, 59, 59, 999);
+      setToDayEnd(end, bdStart);
     }
     return { from: start.toISOString(), to: end.toISOString() };
   };

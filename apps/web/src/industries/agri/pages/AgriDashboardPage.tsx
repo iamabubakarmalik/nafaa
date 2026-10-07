@@ -23,6 +23,7 @@ import { seasonalPlansApi } from '../api/seasonal-plans.api';
 import { subsidyApi } from '../api/subsidy.api';
 import { certStatus, isMeasured, SEASONS } from '../lib/agriUnits';
 import { CommissionCard } from '@modules/hr/commission/components/CommissionCard';
+import { useBusinessDayStart, setToDayStart, setToDayEnd } from '@core/lib/business-day';
 import {
   deriveAgriKind, prettyAgriKind, AGRI_KIND_EMOJI, needsGovtReg,
   isSeedKind, isFertKind, isSprayKind, isFeedKind, isToolKind, type AgriKind,
@@ -67,8 +68,8 @@ const KINDS: Array<{ v: string; l: string; e: string; hex: string; test: (k: Agr
 ];
 
 const dayMs = 86_400_000;
-const dayStart = (d: Date) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; };
-const dayEnd = (d: Date) => { const x = new Date(d); x.setHours(23, 59, 59, 999); return x; };
+const dayStart = (d: Date, h = 0) => { const x = new Date(d); setToDayStart(x, h); return x; };
+const dayEnd = (d: Date, h = 0) => { const x = new Date(d); setToDayEnd(x, h); return x; };
 const dayKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const fmtQty = (q: number) => Number(q || 0).toFixed(Number(q || 0) % 1 === 0 ? 0 : 2);
 
@@ -91,6 +92,8 @@ export default function AgriDashboardPage() {
   const tenant = useAuthStore((s) => s.tenant);
   const shopName = useAuthStore((s) => s.user?.assignedShop?.name);
   const hideAmounts = useCostHidden();
+  /* Dukaan ka apna karobari din — Settings se */
+  const bdStart = useBusinessDayStart();
   const [showTeacher, setShowTeacher] = useState(false);
 
   /* ── Wohi queries jo baqi safhe chalate hain ── */
@@ -156,13 +159,13 @@ export default function AgriDashboardPage() {
   const live = useMemo(() => sales.filter((s) => s.status !== 'VOIDED'), [sales]);
 
   const today = useMemo(() => {
-    const f = dayStart(new Date()).getTime(), t = dayEnd(new Date()).getTime();
+    const f = dayStart(new Date(), bdStart).getTime(), t = dayEnd(new Date(), bdStart).getTime();
     return live.filter((s) => { const x = new Date(s.soldAt).getTime(); return x >= f && x <= t; });
   }, [live]);
 
   const yesterday = useMemo(() => {
     const y = new Date(); y.setDate(y.getDate() - 1);
-    const f = dayStart(y).getTime(), t = dayEnd(y).getTime();
+    const f = dayStart(y, bdStart).getTime(), t = dayEnd(y, bdStart).getTime();
     return live.filter((s) => { const x = new Date(s.soldAt).getTime(); return x >= f && x <= t; });
   }, [live]);
 

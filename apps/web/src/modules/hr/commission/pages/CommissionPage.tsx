@@ -199,10 +199,12 @@ export default function CommissionPage({ tone = 'violet' }: { tone?: string }) {
             </button>
             <button onClick={exportCsv} title="CSV" className={heroBtn}><Download className="h-4 w-4" /></button>
             <button onClick={() => window.print()} title="Print (P)" className={heroBtn}><Printer className="h-4 w-4" /></button>
-            <button onClick={() => setRuleModal({})}
-              className="h-11 px-4 rounded-xl bg-white text-slate-900 hover:bg-slate-100 text-xs font-black inline-flex items-center gap-1.5 shadow-2xl transition active:scale-[0.97]">
-              <Plus className="h-4 w-4" /> Naya rule
-            </button>
+            {!c.onlyMine && (
+              <button onClick={() => setRuleModal({})}
+                className="h-11 px-4 rounded-xl bg-white text-slate-900 hover:bg-slate-100 text-xs font-black inline-flex items-center gap-1.5 shadow-2xl transition active:scale-[0.97]">
+                <Plus className="h-4 w-4" /> Naya rule
+              </button>
+            )}
           </div>
         </div>
       </section>
@@ -248,8 +250,20 @@ export default function CommissionPage({ tone = 'violet' }: { tone?: string }) {
         </section>
       )}
 
+      {/* ═══ APNI COMMISSION WALA KHANA ═══
+          Jis ke paas sirf `commission.own` hai, usay rules aur baqi
+          bandon ki kamai nahi dikhti — wo us ka maamla nahi. */}
+      {c.onlyMine && (
+        <section className="rounded-2xl bg-sky-50 dark:bg-sky-500/10 border-2 border-sky-200 dark:border-sky-500/30 p-3 flex items-start gap-2.5 print:hidden">
+          <Info className="h-4 w-4 text-sky-600 shrink-0 mt-0.5" />
+          <p className="text-[12px] font-bold text-sky-900 dark:text-sky-200">
+            Ye aap ka apna hisab hai. Rate ya adaigi par sawal ho to dukaan ke malik se baat karein.
+          </p>
+        </section>
+      )}
+
       {/* ═══ KHABARDAAR ═══ */}
-      {(c.orphanBills > 0 || c.notEnrolled.length > 0 || c.withoutLogin.length > 0 || c.reassignedBills > 0) && (
+      {!c.onlyMine && (c.orphanBills > 0 || c.notEnrolled.length > 0 || c.withoutLogin.length > 0 || c.reassignedBills > 0) && (
         <section className="rounded-2xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-3 space-y-1.5 print:hidden">
           {c.notEnrolled.length > 0 && (
             <Warn icon={UserCheck}>
@@ -283,6 +297,7 @@ export default function CommissionPage({ tone = 'violet' }: { tone?: string }) {
       )}
 
       {/* ═══ KIS PAR CHAALU ═══ */}
+      {!c.onlyMine && (
       <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden print:hidden">
         <header className="px-4 sm:px-5 py-3 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-2.5 flex-wrap">
           <span className={`h-9 w-9 rounded-xl bg-gradient-to-br ${t.grad} text-white flex items-center justify-center shrink-0`}>
@@ -340,7 +355,10 @@ export default function CommissionPage({ tone = 'violet' }: { tone?: string }) {
         )}
       </section>
 
+      )}
+
       {/* ═══ RULES ═══ */}
+      {!c.onlyMine && (
       <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden print:hidden">
         <header className="px-4 sm:px-5 py-3 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-2.5 flex-wrap">
           <span className={`h-9 w-9 rounded-xl bg-gradient-to-br ${t.grad} text-white flex items-center justify-center shrink-0`}>
@@ -417,6 +435,8 @@ export default function CommissionPage({ tone = 'violet' }: { tone?: string }) {
         )}
       </section>
 
+      )}
+
       {/* ═══ BANDON KA HISAB ═══ */}
       <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
         <header className="px-4 sm:px-5 py-3 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-2.5">
@@ -443,6 +463,7 @@ export default function CommissionPage({ tone = 'violet' }: { tone?: string }) {
               <RowCard key={r.userId} r={r} i={i} tone={t} money={money} busy={c.busy}
                 onOpen={() => setDetailUser(r)}
                 onPay={() => setPayTarget(r)}
+                canManage={!c.onlyMine}
                 onEnable={() => c.setEnabled(r.userId, true, r.staff?.id)}
                 onUndo={() => c.undoPaid(r.userId)} />
             ))}
@@ -668,7 +689,7 @@ function PersonCard({ p, tone, money, row, busy, onToggle, onMakeStaff }: any) {
 }
 
 /* ── Hisab ki ek line ── */
-function RowCard({ r, i, tone, money, busy, onOpen, onPay, onEnable, onUndo }: any) {
+function RowCard({ r, i, tone, money, busy, canManage = true, onOpen, onPay, onEnable, onUndo }: any) {
   const rate = r.sale > 0 ? (r.earned / r.sale) * 100 : 0;
   return (
     <div className={`px-4 sm:px-5 py-3.5 flex items-center gap-3 transition ${
@@ -732,7 +753,12 @@ function RowCard({ r, i, tone, money, busy, onOpen, onPay, onEnable, onUndo }: a
       </div>
 
       <div className="flex gap-1.5 shrink-0 print:hidden">
-        {!r.enrolled ? (
+        {!canManage ? (
+          <button onClick={onOpen} title="Poora khata"
+            className="h-10 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[11px] font-black inline-flex items-center gap-1.5 transition">
+            <Eye className="h-3.5 w-3.5" /> Tafseel
+          </button>
+        ) : !r.enrolled ? (
           <button onClick={onEnable} disabled={busy}
             className="h-10 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-black inline-flex items-center gap-1.5 disabled:opacity-50 transition">
             <UserCheck className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Chaalu</span>

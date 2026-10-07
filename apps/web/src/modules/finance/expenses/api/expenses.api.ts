@@ -1,6 +1,7 @@
 import { apiClient } from '@core/api/client';
 import type { ShopStamp } from '@core/lib/shopScope';
 import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import { setToDayStart, cachedDayStartHour } from '@core/lib/business-day';
 
 export interface ExpenseCategory {
   id: string;
@@ -206,8 +207,10 @@ export const expensesApi = {
     } catch (e) {
       if (!isNetFail(e)) throw e;
       const rows = await localExpenseList();
-      const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
-      const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
+      /* Offline ka hisab bhi dukaan ke apne din par */
+      const h = cachedDayStartHour();
+      const todayStart = setToDayStart(new Date(), h);
+      const monthStart = new Date(); monthStart.setDate(1); setToDayStart(monthStart, h);
       const today = rows.filter((r) => new Date(r.expenseDate).getTime() >= todayStart.getTime());
       const month = rows.filter((r) => new Date(r.expenseDate).getTime() >= monthStart.getTime());
       const sum = (arr: Expense[]) => arr.reduce((s, r) => s + (r.amount || 0), 0);

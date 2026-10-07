@@ -134,7 +134,7 @@ export const posNavGroups: NavGroup[] = [
       { to: '/staff', label: 'All staff', icon: UserCog, permission: P.STAFF_VIEW, keywords: 'employees' },
       { to: '/staff/attendance', label: 'Attendance', icon: CheckCircle2, permission: P.STAFF_VIEW },
       { to: '/staff/salary/new', label: 'Payroll', icon: Wallet2, permission: P.STAFF_MANAGE, keywords: 'salary' },
-      { to: '/staff/commission', label: 'Commission', icon: HandCoins, permission: P.STAFF_VIEW, keywords: 'commission hissa bikri incentive bonus target' },
+      { to: '/staff/commission', label: 'Commission', icon: HandCoins, permission: P.COMMISSION_OWN, keywords: 'commission hissa bikri incentive bonus target' },
     ],
   },
   {

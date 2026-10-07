@@ -13,6 +13,7 @@ import { Button } from '@core/ui/Button';
 import { toast } from 'sonner';
 import { useCostHidden, PrivacyToggle } from '@/core/security/HiddenValue';
 import { useAuthStore } from '@core/stores/auth.store';
+import { useBusinessDayStart, setToDayStart, setToDayEnd } from '@core/lib/business-day';
 
 /* ═════════════════════════════════════════════════════════════
    NAFAA DAMAGE & WASTAGE — FULL BEST v3
@@ -66,9 +67,9 @@ const DATE_PRESETS = [
   { v: 'month', l: 'Is Mahine' },
 ] as const;
 
-function presetFromDate(v: string): Date | null {
+function presetFromDate(v: string, h = 0): Date | null {
   const now = new Date();
-  if (v === 'today') { const d = new Date(now); d.setHours(0, 0, 0, 0); return d; }
+  if (v === 'today') { const d = new Date(now); setToDayStart(d, h); return d; }
   if (v === '7d')    return new Date(now.getTime() - 7 * 864e5);
   if (v === '30d')   return new Date(now.getTime() - 30 * 864e5);
   if (v === 'month') return new Date(now.getFullYear(), now.getMonth(), 1);
@@ -83,6 +84,10 @@ export default function DamageLogPage() {
   const hideCost = useCostHidden();
   const tenantName = useAuthStore((s) => s.tenant?.name);
   const shopName = useAuthStore((s) => s.user?.assignedShop?.name);
+
+  /* Dukaan ka apna karobari din — Settings se */
+
+  const bdStart = useBusinessDayStart();
 
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -156,7 +161,7 @@ export default function DamageLogPage() {
   /* ─── Filtering (search + date) ────────────────────── */
   const filtered = useMemo(() => {
     let list = damages;
-    const from = presetFromDate(datePreset);
+    const from = presetFromDate(datePreset, bdStart);
     if (from) list = list.filter((d) => new Date(d.createdAt) >= from);
     if (debouncedSearch) {
       const q = debouncedSearch.toLowerCase();

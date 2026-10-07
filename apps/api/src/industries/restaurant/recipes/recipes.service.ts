@@ -127,4 +127,108 @@ export class RecipesService {
       });
     }
   }
+
+  /* ═══════════════════════════════════════════════════════════
+     KITCHEN KI SAB SE AHEM REPORT
+     ───────────────────────────────────────────────────────────
+     Sawal ye nahi ke "kaunsa saamaan kam hai" — sawal ye hai ke
+     "ab kaunsi dish nahi ban sakti".
+
+     Rush me ye farq sab kuch hai. Grahak order deta hai, kitchen
+     se awaz aati hai "khatam ho gaya", aur order wapas karna parta
+     hai. Agar pehle hi pata ho ke biryani sirf 4 aur ban sakti hai,
+     to menu se hata dein ya saamaan mangwa lein.
+
+     Har recipe ke har ingredient ka stock dekh kar batate hain ke
+     us dish ki kitni plate aur ban sakti hain, aur kaunsa ingredient
+     rok raha hai.
+     ═══════════════════════════════════════════════════════════ */
+  async cookability(user: AuthenticatedUser) {
+    const recipes = await this.prisma.recipe.findMany({
+      where: { menuItem: { tenantId: user.tenantId } },
+      include: {
+        ingredients: {
+          include: {
+            ingredient: {
+              select: { id: true, name: true, unit: true, stock: true, costPrice: true, lowStockAlert: true },
+            },
+          },
+        },
+        menuItem: {
+          select: {
+            id: true, isAvailable: true, prepTimeMinutes: true, totalOrdered: true,
+            product: { select: { id: true, name: true, price: true, unit: true } },
+          },
+        },
+      },
+    });
+
+    const rows = recipes.map((r) => {
+      let canMake = Infinity;
+      let blocker: { name: string; have: number; need: number; unit: string } | null = null;
+      const missing: Array<{ name: string; have: number; need: number; unit: string }> = [];
+
+      for (const ing of r.ingredients) {
+        /* Jo cheez marzi ki hai us ke baghair bhi dish ban jati hai */
+        if (ing.isOptional) continue;
+        const need = Number(ing.quantity) || 0;
+        if (need <= 0) continue;
+        const have = Number(ing.ingredient?.stock ?? 0);
+        const plates = Math.floor(have / need);
+        if (plates < canMake) {
+          canMake = plates;
+          blocker = {
+            name: ing.ingredient?.name ?? 'Saamaan',
+            have, need, unit: ing.unit || ing.ingredient?.unit || '',
+          };
+        }
+        if (plates <= 0) {
+          missing.push({
+            name: ing.ingredient?.name ?? 'Saamaan',
+            have, need, unit: ing.unit || ing.ingredient?.unit || '',
+          });
+        }
+      }
+
+      const plates = Number.isFinite(canMake) ? canMake : null;
+      const price = Number(r.menuItem?.product?.price ?? 0);
+      const cost = Number(r.totalCost ?? 0);
+
+      return {
+        recipeId: r.id,
+        menuItemId: r.menuItemId,
+        productId: r.menuItem?.product?.id ?? null,
+        name: r.menuItem?.product?.name ?? 'Dish',
+        isAvailable: r.menuItem?.isAvailable ?? true,
+        prepTimeMinutes: r.menuItem?.prepTimeMinutes ?? null,
+        totalOrdered: r.menuItem?.totalOrdered ?? 0,
+        price,
+        cost,
+        /* Food cost % — restaurant ki asal sehat ka paimana.
+           30–35% aam hai; 45% se upar jaye to rate ya recipe me
+           kuch theek karna parta hai. */
+        foodCostPct: price > 0 ? (cost / price) * 100 : 0,
+        profit: price - cost,
+        /** Kitni plate aur ban sakti hain — null matlab recipe khali hai */
+        canMake: plates,
+        /** Jo ingredient sab se pehle rok raha hai */
+        blocker,
+        /** Jo bilkul khatam hain */
+        missing,
+        ingredientCount: r.ingredients.length,
+      };
+    });
+
+    rows.sort((a, b) => (a.canMake ?? 9e9) - (b.canMake ?? 9e9));
+
+    return {
+      rows,
+      /* Jo ab bilkul nahi ban sakti — menu se hata dein */
+      outOfStock: rows.filter((r) => r.canMake === 0).length,
+      /* 5 se kam plate bachi hain */
+      running: rows.filter((r) => r.canMake !== null && r.canMake > 0 && r.canMake <= 5).length,
+      /* Jin par recipe hi nahi bani — un ka food cost pata hi nahi */
+      withoutRecipe: 0,
+    };
+  }
 }

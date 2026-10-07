@@ -1,4 +1,5 @@
 import { apiClient } from '@core/api/client';
+import { setToDayStart, cachedDayStartHour } from '@core/lib/business-day';
 
 export interface ServiceChargeItem {
   type: string;
@@ -298,7 +299,8 @@ export const salesApi = {
         .toArray();
     } catch {}
 
-    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+    /* Offline ka hisab bhi dukaan ke apne din par */
+    const todayStart = setToDayStart(new Date(), cachedDayStartHour());
     const todayP = pending.filter((p) => p.createdAt >= todayStart.getTime());
     const sumTotal = (arr: typeof pending) => arr.reduce((s, p) => s + p.total, 0);
     const sumCredit = (arr: typeof pending) => arr.reduce((s, p) => s + p.creditAmount, 0);

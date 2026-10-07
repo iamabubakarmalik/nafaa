@@ -6,6 +6,7 @@ import MobileProfitReportPage from '@industries/mobile/pages/MobileProfitReportP
 import ElectronicsProfitReportPage from '@industries/electronics/pages/ElectronicsProfitReportPage';
 import BakeryProfitReportPage from '@industries/bakery/pages/BakeryProfitReportPage';
 import AgriProfitReportPage from '@industries/agri/pages/AgriProfitReportPage';
+import RestaurantProfitReportPage from '@industries/restaurant/pages/RestaurantProfitReportPage';
 
 /**
  * ProfitReportGate — routes /profit-report to the correct
@@ -37,6 +38,11 @@ export default function ProfitReportGate() {
 
     case 'electronics':
       return <ElectronicsProfitReportPage />;
+
+    /* Hotel me jo dish sab se zyada bikti hai aksar wohi sab se kam
+     kamati hai — is liye food cost aur kul kamai alag dikhti hai */
+    case 'restaurant':
+      return <RestaurantProfitReportPage />;
 
     // Future industry-specific reports here:
     // case 'carpet':   return <CarpetProfitReportPage />;

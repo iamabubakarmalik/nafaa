@@ -13,6 +13,7 @@ import {
 import { stockMovementsApi, type StockMovementType } from '@modules/inventory/stock-movements/api/stock-movements.api';
 import { Button } from '@core/ui/Button';
 import { useAuthStore } from '@core/stores/auth.store';
+import { useBusinessDayStart, setToDayStart, setToDayEnd } from '@core/lib/business-day';
 
 /* ═════════════════════════════════════════════════════════════
    NAFAA STOCK MOVEMENTS — GLOBAL FULL BEST v3
@@ -86,6 +87,12 @@ export default function StockMovementsPage() {
   const shopName = useAuthStore((s) => s.user?.assignedShop?.name);
   const searchRef = useRef<HTMLInputElement>(null);
 
+  /* Dukaan ka apna din — raat 12 baje band hone wali dukaan ke
+
+     liye raat 1 baje ki bikri abhi "aaj" ki hai */
+
+  const bdStart = useBusinessDayStart();
+
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<StockMovementType | 'all'>('all');
   const [dateFilter, setDateFilter] = useState<DateFilter>('week');
@@ -113,11 +120,11 @@ export default function StockMovementsPage() {
       let cutoff = new Date();
       let end: Date | null = null;
       if (dateFilter === 'today') {
-        cutoff.setHours(0, 0, 0, 0);
+        setToDayStart(cutoff, bdStart);
       } else if (dateFilter === 'yesterday') {
         cutoff.setDate(now.getDate() - 1);
-        cutoff.setHours(0, 0, 0, 0);
-        end = new Date(cutoff); end.setHours(23, 59, 59, 999);
+        setToDayStart(cutoff, bdStart);
+        end = new Date(cutoff); setToDayEnd(end, bdStart);
       } else if (dateFilter === 'week') {
         cutoff.setDate(now.getDate() - 7);
       } else if (dateFilter === 'month') {
@@ -155,7 +162,7 @@ export default function StockMovementsPage() {
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      d.setHours(0, 0, 0, 0);
+      setToDayStart(d, bdStart);
       const key = d.toISOString().slice(0, 10);
       buckets[key] = { date: key, label: formatDateShort(d.toISOString()), in: 0, out: 0 };
     }

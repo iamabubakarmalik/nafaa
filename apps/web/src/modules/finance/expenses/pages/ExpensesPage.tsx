@@ -19,6 +19,7 @@ import { Button } from '@core/ui/Button';
 import { formatPKR } from '@core/lib/format';
 import { toast } from 'sonner';
 import { useAuthStore } from '@core/stores/auth.store';
+import { useBusinessDayStart, setToDayStart, setToDayEnd } from '@core/lib/business-day';
 
 /* ═════════════════════════════════════════════════════════════
    NAFAA EXPENSES — WORLD BEST v10
@@ -93,10 +94,10 @@ const formatRelative = (v: string) => {
   return formatDate(v);
 };
 
-function dateGroupLabel(v: string): string {
+function dateGroupLabel(v: string, h = 0): string {
   const d = new Date(v);
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  const itemDay = new Date(d); itemDay.setHours(0, 0, 0, 0);
+  const today = new Date(); setToDayStart(today, h);
+  const itemDay = new Date(d); setToDayStart(itemDay, h);
   const diffDays = Math.floor((today.getTime() - itemDay.getTime()) / 86400000);
   if (diffDays === 0) return 'Aaj';
   if (diffDays === 1) return 'Kal';
@@ -135,6 +136,10 @@ export default function ExpensesPage() {
 
   const searchRef = useRef<HTMLInputElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
+
+  /* Dukaan ka apna karobari din — Settings se */
+
+  const bdStart = useBusinessDayStart();
 
   const [tab, setTab] = useState<MainTab>('expenses');
   const [search, setSearch] = useState('');
@@ -241,21 +246,21 @@ export default function ExpensesPage() {
   /* ─── Period filter ─── */
   const { periodStart, periodEnd, periodLabel } = useMemo(() => {
     const now = new Date();
-    const end = new Date(); end.setHours(23, 59, 59, 999);
+    const end = new Date(); setToDayEnd(end, bdStart);
     let start = new Date(0);
     let label = 'All Time';
 
     if (period === 'today') {
-      start = new Date(); start.setHours(0, 0, 0, 0);
+      start = new Date(); setToDayStart(start, bdStart);
       label = `Aaj — ${formatDate(now)}`;
     } else if (period === 'week') {
-      start = new Date(); start.setDate(start.getDate() - 7); start.setHours(0, 0, 0, 0);
+      start = new Date(); start.setDate(start.getDate() - 7); setToDayStart(start, bdStart);
       label = `Pichlay 7 Din (${formatShortDate(start)} — ${formatShortDate(now)})`;
     } else if (period === 'month') {
-      start = new Date(); start.setDate(start.getDate() - 30); start.setHours(0, 0, 0, 0);
+      start = new Date(); start.setDate(start.getDate() - 30); setToDayStart(start, bdStart);
       label = `Pichlay 30 Din (${formatShortDate(start)} — ${formatShortDate(now)})`;
     } else if (period === 'year') {
-      start = new Date(); start.setFullYear(start.getFullYear() - 1); start.setHours(0, 0, 0, 0);
+      start = new Date(); start.setFullYear(start.getFullYear() - 1); setToDayStart(start, bdStart);
       label = `Pichla 1 Saal (${formatShortDate(start)} — ${formatShortDate(now)})`;
     } else if (period === 'custom') {
       start = new Date(customFrom + 'T00:00:00');
@@ -400,7 +405,7 @@ export default function ExpensesPage() {
   const grouped = useMemo(() => {
     const map = new Map<string, Expense[]>();
     for (const e of filtered) {
-      const g = dateGroupLabel(e.expenseDate);
+      const g = dateGroupLabel(e.expenseDate, bdStart);
       if (!map.has(g)) map.set(g, []);
       map.get(g)!.push(e);
     }

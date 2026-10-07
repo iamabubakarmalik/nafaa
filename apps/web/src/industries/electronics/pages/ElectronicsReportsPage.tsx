@@ -28,6 +28,7 @@ import {
 import { electronicsAnalyticsApi } from '../api/analytics.api';
 import { warrantyClaimsApi } from '../api/warranty-claims.api';
 import { CATEGORY_META, CONDITION_META, type CategoryType, type ConditionType } from '../constants';
+import { useBusinessDayStart, setToDayStart, setToDayEnd } from '@core/lib/business-day';
 
 /* ═════════════════════════════════════════════════════════════
    NAFAA ELECTRONICS — POORI DUKAN KI REPORTS (ek hi jagah)
@@ -46,9 +47,9 @@ const TABS = [
   { id: 'customers', label: 'Customers', icon: Users },
 ];
 
-const isoDaysAgo = (d: number) => {
+const isoDaysAgo = (d: number, h = 0) => {
   const x = new Date();
-  x.setHours(0, 0, 0, 0);
+  setToDayStart(x, h);
   x.setDate(x.getDate() - d + 1);
   return x.toISOString().slice(0, 10);
 };
@@ -64,6 +65,10 @@ export default function ElectronicsReportsPage() {
   const shopName = useAuthStore((s: any) => s.user?.assignedShop?.name);
   const tenantName = useAuthStore((s: any) => s.tenant?.name);
 
+  /* Dukaan ka apna karobari din — Settings se */
+
+  const bdStart = useBusinessDayStart();
+
   const [days, setDays] = useState(30);
   const [tab, setTab] = useState('overview');
   const [showTeacher, setShowTeacher] = useState(false);
@@ -71,7 +76,7 @@ export default function ElectronicsReportsPage() {
 
   const reports = useReportsData(days);
 
-  const range = useMemo(() => ({ from: isoDaysAgo(days), to: todayIso() }), [days]);
+  const range = useMemo(() => ({ from: isoDaysAgo(days, bdStart), to: todayIso() }), [days]);
 
   const { data: profit, isLoading: profitLoading } = useQuery({
     queryKey: ['electronics-profit', currentShopId, range.from, range.to],

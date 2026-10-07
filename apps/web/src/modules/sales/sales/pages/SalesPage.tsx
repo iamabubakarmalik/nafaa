@@ -26,6 +26,7 @@ import { HiddenAmount } from '../components/HiddenAmount';
 import { IndustrySlot } from '@industries/_shared/components/IndustrySlot';
 import { toast } from 'sonner';
 import { SaleSourceBadge } from '../components/SaleSourceBadge';
+import { useBusinessDayStart, setToDayStart, setToDayEnd } from '@core/lib/business-day';
 
 const formatDate = (value: string) =>
   new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
@@ -50,6 +51,9 @@ export default function SalesPage() {
      `voidSale` pehle se mukammal tha (stock wapas, IMEI wapas,
      khata theek, FBR cancel) magar list me use karne ka koi
      raasta hi nahi tha. */
+  /* Dukaan ka apna din — raat 12 baje band hone wali dukaan ke
+     liye raat 1 baje ki bikri abhi "aaj" ki hai */
+  const bdStart = useBusinessDayStart();
   const [voidTarget, setVoidTarget] = useState<any>(null);
   const [voidReason, setVoidReason] = useState('');
   const qc = useQueryClient();
@@ -138,19 +142,19 @@ export default function SalesPage() {
       let start = new Date();
       let end = new Date();
 
-      if (dateFilter === 'today') { start.setHours(0, 0, 0, 0); end = now; }
+      if (dateFilter === 'today') { setToDayStart(start, bdStart); end = now; }
       else if (dateFilter === 'yesterday') {
         start.setDate(now.getDate() - 1);
-        start.setHours(0, 0, 0, 0);
+        setToDayStart(start, bdStart);
         end = new Date(start);
-        end.setHours(23, 59, 59, 999);
+        setToDayEnd(end, bdStart);
       }
       else if (dateFilter === 'week') { start.setDate(now.getDate() - 7); end = now; }
       else if (dateFilter === 'month') { start.setMonth(now.getMonth() - 1); end = now; }
       else if (dateFilter === 'year') { start.setFullYear(now.getFullYear() - 1); end = now; }
       else if (dateFilter === 'custom') {
-        if (customStartDate) { start = new Date(customStartDate); start.setHours(0, 0, 0, 0); }
-        if (customEndDate) { end = new Date(customEndDate); end.setHours(23, 59, 59, 999); }
+        if (customStartDate) { start = new Date(customStartDate); setToDayStart(start, bdStart); }
+        if (customEndDate) { end = new Date(customEndDate); setToDayEnd(end, bdStart); }
       }
 
       result = result.filter((s) => {
@@ -192,7 +196,7 @@ export default function SalesPage() {
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      d.setHours(0, 0, 0, 0);
+      setToDayStart(d, bdStart);
       const key = d.toISOString().slice(0, 10);
       const label = d.toLocaleDateString('en-PK', { weekday: 'short' });
       buckets[key] = { date: key, label, sales: 0, orders: 0 };

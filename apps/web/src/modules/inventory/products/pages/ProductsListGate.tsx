@@ -19,6 +19,7 @@ const PetshopProductsPage = lazy(() => import('@industries/petshop/pages/Petshop
 const ShoeProductsPage = lazy(() => import('@industries/shoe/pages/ShoeProductsPage'));
 const SportsProductsPage = lazy(() => import('@industries/sports/pages/SportsProductsPage'));
 const ToystoreProductsPage = lazy(() => import('@industries/toystore/pages/ToyProductsPage'));
+const RestaurantProductsListPage = lazy(() => import('@industries/restaurant/pages/RestaurantProductsListPage'));
 
 function Loader() {
   return (
@@ -51,6 +52,9 @@ export default function ProductsListGate() {
   if (industry?.id === 'shoe') return <Suspense fallback={<Loader />}><ShoeProductsPage /></Suspense>;
   if (industry?.id === 'sports') return <Suspense fallback={<Loader />}><SportsProductsPage /></Suspense>;
   if (industry?.id === 'toystore') return <Suspense fallback={<Loader />}><ToystoreProductsPage /></Suspense>;
+  /* Hotel ka "maal" menu hai — biryani stock me nahi hoti,
+     is liye yahan ginti ki jagah "ban sakti hai ya nahi" dikhta hai */
+  if (industry?.id === 'restaurant') return <Suspense fallback={<Loader />}><RestaurantProductsListPage /></Suspense>;
 
   return <ProductsListPage />;
 }

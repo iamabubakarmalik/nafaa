@@ -31,6 +31,7 @@ import { useCostHidden, PrivacyToggle } from '@/core/security/HiddenValue';
 import { useAuthStore } from '@core/stores/auth.store';
 import { PrintStyles } from '@core/components/print/PrintStyles';
 import { CommissionCard } from '@modules/hr/commission/components/CommissionCard';
+import { useBusinessDayStart, setToDayStart, setToDayEnd } from '@core/lib/business-day';
 
 /* ═════════════════════════════════════════════════════════════
    NAFAA MOBILE DASHBOARD — FULL BEST (Final)
@@ -91,6 +92,8 @@ export default function MobileDashboard() {
   const shopName = useAuthStore((s) => s.user?.assignedShop?.name);
   const userName = useAuthStore((s) => s.user?.fullName?.split(' ')[0] ?? 'Boss');
   // 30 din default — 7 din me aksar repair/used phone nazar hi nahi aate
+  /* Dukaan ka apna karobari din — Settings se */
+  const bdStart = useBusinessDayStart();
   const [range, setRange] = useState<Range>('30d');
   const [customFrom, setCustomFrom] = useState(() => {
     const d = new Date(); d.setDate(d.getDate() - 7); return isoDay(d);
@@ -135,7 +138,7 @@ export default function MobileDashboard() {
     if (range === 'custom') return { from: customFrom, to: customTo };
     const to = new Date();
     const from = new Date();
-    if (range === 'today') from.setHours(0, 0, 0, 0);
+    if (range === 'today') setToDayStart(from, bdStart);
     else from.setDate(from.getDate() - (range === '30d' ? 30 : 7));
     return { from: from.toISOString(), to: to.toISOString() };
   }, [range, customFrom, customTo]);

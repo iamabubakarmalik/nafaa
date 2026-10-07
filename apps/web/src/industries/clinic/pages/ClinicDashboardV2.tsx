@@ -20,8 +20,12 @@ import {
   formatPercent,
 } from '@modules/dashboard/components/shared/DashboardShared';
 import { differenceInMinutes, format } from 'date-fns';
+import { useBusinessDayStart, setToDayStart, setToDayEnd } from '@core/lib/business-day';
 
 export default function ClinicDashboardV2() {
+  /* Dukaan ka apna din — 24 ghante khulne wali jagah par
+     raat 1 baje ki class abhi "aaj" ki hai */
+  const bdStart = useBusinessDayStart();
   const { data, refetch, isRefetching } = useQuery({
     queryKey: ['dashboard-overview'],
     queryFn: () => dashboardApi.overview(),
@@ -43,8 +47,8 @@ export default function ClinicDashboardV2() {
     queryKey: ['clinic-today-apts'],
     queryFn: () => {
       const now = new Date();
-      const start = new Date(now); start.setHours(0, 0, 0, 0);
-      const end = new Date(now); end.setHours(23, 59, 59, 999);
+      const start = new Date(now); setToDayStart(start, bdStart);
+      const end = new Date(now); setToDayEnd(end, bdStart);
       return appointmentsApi.list({ from: start.toISOString(), to: end.toISOString() });
     },
     refetchInterval: 60_000,

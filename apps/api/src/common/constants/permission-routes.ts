@@ -111,7 +111,12 @@ export const ROUTE_RULES: RouteRule[] = [
 
   /* ── Bande ── */
   { match: /(^|\/)staff(\/|$)/, GET: P.STAFF_VIEW, write: P.STAFF_MANAGE },
-  { match: /(^|\/)commission(\/|$)/, GET: P.STAFF_VIEW, write: P.STAFF_MANAGE },
+  /* Commission — rules aur adaigi malik ka kaam; dekhna alag.
+     `summary` aur `detail` ke andar service khud chaant deti hai:
+     jis ke paas sirf `commission.own` hai, usay apni hi line milti
+     hai. Is liye yahan par sab se halki ijazat chalti hai. */
+  { match: /^commission\/(rules|enroll|pay|people)(\/|$)/, GET: P.COMMISSION_MANAGE, write: P.COMMISSION_MANAGE },
+  { match: /(^|\/)commission(\/|$)/, GET: [P.COMMISSION_OWN, P.COMMISSION_VIEW, P.COMMISSION_MANAGE], write: P.COMMISSION_MANAGE },
   { match: /(^|\/)team(\/|$)/, GET: P.TEAM_VIEW, write: P.TEAM_MANAGE },
 
   /* ── Industry ke apne kaam ──

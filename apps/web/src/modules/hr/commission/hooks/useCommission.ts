@@ -92,6 +92,8 @@ export function useCommission(period: string = thisPeriod()) {
     payTotal: s?.payTotal ?? 0,
     timezone: s?.timezone,
     dayStartHour: s?.dayStartHour ?? 0,
+    scope: s?.scope ?? 'all',
+    onlyMine: s?.scope === 'own',
 
     rules: rulesQ.data ?? [],
     people: peopleQ.data?.people ?? [],

@@ -6,6 +6,7 @@ import {
   Plus, Edit3, Trash2, LogIn, LogOut, Settings, Key, Eye,
 } from 'lucide-react';
 import { activityLogApi } from '@modules/reports/activity-log/api/activity-log.api';
+import { useBusinessDayStart, setToDayStart, setToDayEnd } from '@core/lib/business-day';
 
 const formatDate = (value: string) =>
   new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
@@ -48,6 +49,9 @@ type DateFilter = 'all' | 'today' | 'week' | 'month';
 type ActionFilter = 'all' | 'login' | 'sale' | 'product' | 'customer' | 'delete' | 'edit' | 'access';
 
 export default function ActivityLogPage() {
+  /* Dukaan ka apna din — raat 12 baje band hone wali dukaan ke
+     liye raat 1 baje ki bikri abhi "aaj" ki hai */
+  const bdStart = useBusinessDayStart();
   const [search, setSearch] = useState('');
   const [dateFilter, setDateFilter] = useState<DateFilter>('all');
   const [actionFilter, setActionFilter] = useState<ActionFilter>('all');
@@ -82,7 +86,7 @@ export default function ActivityLogPage() {
     if (dateFilter !== 'all') {
       const now = new Date();
       let cutoff = new Date();
-      if (dateFilter === 'today') cutoff.setHours(0, 0, 0, 0);
+      if (dateFilter === 'today') setToDayStart(cutoff, bdStart);
       else if (dateFilter === 'week') cutoff.setDate(now.getDate() - 7);
       else if (dateFilter === 'month') cutoff.setMonth(now.getMonth() - 1);
       result = result.filter((l: any) => new Date(l.createdAt) >= cutoff);

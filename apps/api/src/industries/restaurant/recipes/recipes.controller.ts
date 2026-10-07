@@ -14,6 +14,9 @@ export class RecipesController {
   constructor(private readonly service: RecipesService) {}
 
   @Post() upsert(@GetUser() user: AuthenticatedUser, @Body() dto: UpsertRecipeDto) { return this.service.upsert(user, dto); }
+  /** Kaunsi dish ab kitni ban sakti hai — kitchen ki sab se ahem report */
+  @Get('cookability') cookability(@GetUser() user: AuthenticatedUser) { return this.service.cookability(user); }
+
   @Get('by-menu-item/:menuItemId') getByMenu(@GetUser() user: AuthenticatedUser, @Param('menuItemId') menuItemId: string) { return this.service.getByMenuItem(user, menuItemId); }
   @Delete(':id') remove(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.remove(user, id); }
 }

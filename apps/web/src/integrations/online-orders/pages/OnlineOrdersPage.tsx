@@ -24,6 +24,7 @@ import { cn } from '@core/lib/cn';
 import { RiskBadge } from '../components/RiskBadge';
 import { BulkBar } from '../components/BulkBar';
 import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
+import { useBusinessDayStart, setToDayStart, setToDayEnd } from '@core/lib/business-day';
 
 /* ═════════════════════════════════════════════════════════════
    ONLINE ORDERS — WEBSITE KA POORA HISAAB  (Bikri page jaisa)
@@ -77,8 +78,8 @@ const C = { value: '#10b981', orders: '#0ea5e9', hours: '#f59e0b', peak: '#05966
 const PALETTE = ['#10b981', '#0ea5e9', '#8b5cf6', '#f59e0b', '#ec4899', '#14b8a6', '#64748b'];
 
 /* ── Waqt — maqami din par ── */
-const dayStart = (d: Date) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; };
-const dayEnd = (d: Date) => { const x = new Date(d); x.setHours(23, 59, 59, 999); return x; };
+const dayStart = (d: Date, h = 0) => { const x = new Date(d); setToDayStart(x, h); return x; };
+const dayEnd = (d: Date, h = 0) => { const x = new Date(d); setToDayEnd(x, h); return x; };
 const dayKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const fmtDT = (v: string) => new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(v));
 const fmtTime = (v: string) => new Intl.DateTimeFormat('en-PK', { hour: 'numeric', minute: '2-digit', hour12: true }).format(new Date(v));
@@ -105,6 +106,10 @@ export default function OnlineOrdersPage() {
   const [params, setParams] = useSearchParams();
   const hideAmounts = useCostHidden();
   const searchRef = useRef<HTMLInputElement>(null);
+
+  /* Dukaan ka apna karobari din — Settings se */
+
+  const bdStart = useBusinessDayStart();
 
   const [view, setView] = useState<View>('list');
   // Customers safhe se aaye (?search=phone) → sab orders me dhoondo
@@ -191,16 +196,16 @@ export default function OnlineOrdersPage() {
   const [from, to] = useMemo<[Date, Date]>(() => {
     const n = new Date();
     switch (dateFilter) {
-      case 'today': return [dayStart(n), dayEnd(n)];
-      case 'yesterday': { const y = new Date(n); y.setDate(y.getDate() - 1); return [dayStart(y), dayEnd(y)]; }
-      case 'week': { const f = new Date(n); f.setDate(f.getDate() - 6); return [dayStart(f), dayEnd(n)]; }
-      case 'month': { const f = new Date(n); f.setDate(f.getDate() - 29); return [dayStart(f), dayEnd(n)]; }
-      case 'year': return [new Date(n.getFullYear(), 0, 1), dayEnd(n)];
+      case 'today': return [dayStart(n, bdStart), dayEnd(n, bdStart)];
+      case 'yesterday': { const y = new Date(n); y.setDate(y.getDate() - 1); return [dayStart(y, bdStart), dayEnd(y, bdStart)]; }
+      case 'week': { const f = new Date(n); f.setDate(f.getDate() - 6); return [dayStart(f, bdStart), dayEnd(n, bdStart)]; }
+      case 'month': { const f = new Date(n); f.setDate(f.getDate() - 29); return [dayStart(f, bdStart), dayEnd(n, bdStart)]; }
+      case 'year': return [new Date(n.getFullYear(), 0, 1), dayEnd(n, bdStart)];
       case 'custom': return [
-        customStart ? dayStart(new Date(customStart)) : new Date(0),
-        customEnd ? dayEnd(new Date(customEnd)) : dayEnd(n),
+        customStart ? dayStart(new Date(customStart), bdStart) : new Date(0),
+        customEnd ? dayEnd(new Date(customEnd), bdStart) : dayEnd(n, bdStart),
       ];
-      default: return [new Date(0), dayEnd(n)];
+      default: return [new Date(0), dayEnd(n, bdStart)];
     }
   }, [dateFilter, customStart, customEnd]);
 
@@ -285,7 +290,7 @@ export default function OnlineOrdersPage() {
 
   const daily = useMemo(() => {
     const start = dateFilter === 'all' && valid.length
-      ? dayStart(new Date(Math.min(...valid.map((o) => new Date(o.receivedAt).getTime()))))
+      ? dayStart(new Date(Math.min(...valid.map((o, bdStart) => new Date(o.receivedAt).getTime()))))
       : from;
     const days = Math.min(Math.max(Math.ceil((to.getTime() - start.getTime()) / 86400000), 1), 90);
     const b: Record<string, { name: string; value: number; orders: number }> = {};

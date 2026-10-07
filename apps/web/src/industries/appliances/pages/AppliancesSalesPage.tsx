@@ -16,6 +16,7 @@ import { formatPKR } from '@core/lib/format';
 import { Button } from '@core/ui/Button';
 import { useAuthStore } from '@core/stores/auth.store';
 import { salesApi } from '@modules/sales/sales/api/sales.api';
+import { useBusinessDayStart, setToDayStart, setToDayEnd } from '@core/lib/business-day';
 import {
   ApplianceHero, Kpi, Panel, Teacher, Empty, useShortcuts, printHtml,
   downloadCsv, a4Shell, escapeHtml, toDateInput, fmtDate, fmtDateTime,
@@ -59,6 +60,10 @@ export default function AppliancesSalesPage() {
   const shopPhone = useAuthStore((s: any) => s.tenant?.phone || '');
   const searchRef = useRef<HTMLInputElement>(null);
 
+  /* Dukaan ka apna karobari din — Settings se */
+
+  const bdStart = useBusinessDayStart();
+
   const [showTeacher, setShowTeacher] = useState(false);
   const [days, setDays] = useState(7);
   const [search, setSearch] = useState('');
@@ -69,7 +74,7 @@ export default function AppliancesSalesPage() {
   const range = useMemo(() => {
     const to = new Date();
     const from = new Date();
-    if (days === 0) from.setHours(0, 0, 0, 0);
+    if (days === 0) setToDayStart(from, bdStart);
     else from.setDate(from.getDate() - days);
     return { from: toDateInput(from), to: toDateInput(to) };
   }, [days]);

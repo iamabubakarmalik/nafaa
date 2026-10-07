@@ -21,6 +21,7 @@ import { salesApi } from '@modules/sales/sales/api/sales.api';
 import { stockMovementsApi } from '@modules/inventory/stock-movements/api/stock-movements.api';
 import { petProductsApi } from '../api/products.api';
 import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
+import { useBusinessDayStart, setToDayStart, setToDayEnd } from '@core/lib/business-day';
 
 type Tab = 'overview' | 'nutrition' | 'medicine' | 'variants' | 'sales' | 'log';
 
@@ -29,6 +30,10 @@ export default function PetshopProductDetailPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const hideCost = useCostHidden();
+
+  /* Dukaan ka apna karobari din — Settings se */
+
+  const bdStart = useBusinessDayStart();
 
   const [tab, setTab] = useState<Tab>('overview');
   const [imgIndex, setImgIndex] = useState(0);
@@ -135,7 +140,7 @@ export default function PetshopProductDetailPage() {
     for (let i = 29; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      d.setHours(0, 0, 0, 0);
+      setToDayStart(d, bdStart);
       const key = d.toISOString().slice(0, 10);
       buckets[key] = { label: `${d.getDate()}/${d.getMonth() + 1}`, revenue: 0, qty: 0 };
     }

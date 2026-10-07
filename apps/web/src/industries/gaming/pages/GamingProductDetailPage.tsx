@@ -23,6 +23,7 @@ import { stockMovementsApi } from '@modules/inventory/stock-movements/api/stock-
 import { gamingProductsApi } from '../api/products.api';
 import { gamingRentalsApi } from '../api/rentals.api';
 import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
+import { useBusinessDayStart, setToDayStart, setToDayEnd } from '@core/lib/business-day';
 
 type Tab = 'overview' | 'details' | 'rental' | 'editions' | 'sales' | 'rentals' | 'log';
 
@@ -31,6 +32,10 @@ export default function GamingProductDetailPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const hideCost = useCostHidden();
+
+  /* Dukaan ka apna karobari din — Settings se */
+
+  const bdStart = useBusinessDayStart();
 
   const [tab, setTab] = useState<Tab>('overview');
   const [imgIndex, setImgIndex] = useState(0);
@@ -139,7 +144,7 @@ export default function GamingProductDetailPage() {
     for (let i = 29; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      d.setHours(0, 0, 0, 0);
+      setToDayStart(d, bdStart);
       const key = d.toISOString().slice(0, 10);
       buckets[key] = { label: `${d.getDate()}/${d.getMonth() + 1}`, revenue: 0, qty: 0 };
     }

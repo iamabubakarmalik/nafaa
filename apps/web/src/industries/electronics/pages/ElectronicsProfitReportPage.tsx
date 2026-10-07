@@ -20,6 +20,7 @@ import { useCostHidden, PrivacyToggle } from '@/core/security/HiddenValue';
 import { PrintStyles } from '@core/components/print/PrintStyles';
 import { electronicsAnalyticsApi } from '../api/analytics.api';
 import { CATEGORY_META, CONDITION_META, type CategoryType, type ConditionType } from '../constants';
+import { useBusinessDayStart, setToDayStart, setToDayEnd } from '@core/lib/business-day';
 
 /* ═════════════════════════════════════════════════════════════
    NAFAA ELECTRONICS — PROFIT REPORT
@@ -39,9 +40,9 @@ const PRESETS = [
 
 const PALETTE = ['#2563eb', '#7c3aed', '#059669', '#f59e0b', '#e11d48', '#0891b2', '#db2777', '#65a30d'];
 
-const isoDaysAgo = (d: number) => {
+const isoDaysAgo = (d: number, h = 0) => {
   const x = new Date();
-  x.setHours(0, 0, 0, 0);
+  setToDayStart(x, h);
   x.setDate(x.getDate() - d + 1);
   return x.toISOString().slice(0, 10);
 };
@@ -55,9 +56,13 @@ export default function ElectronicsProfitReportPage() {
   const shopName = useAuthStore((s: any) => s.user?.assignedShop?.name);
   const tenantName = useAuthStore((s: any) => s.tenant?.name);
 
+  /* Dukaan ka apna karobari din — Settings se */
+
+  const bdStart = useBusinessDayStart();
+
   const [preset, setPreset] = useState<string>('30');
   const [custom, setCustom] = useState(false);
-  const [from, setFrom] = useState(isoDaysAgo(30));
+  const [from, setFrom] = useState(isoDaysAgo(30, bdStart));
   const [to, setTo] = useState(todayIso());
   const [dim, setDim] = useState<Dim>('category');
   const [search, setSearch] = useState('');
@@ -66,7 +71,7 @@ export default function ElectronicsProfitReportPage() {
   const searchRef = useRef<HTMLInputElement>(null);
 
   const range = useMemo(
-    () => (custom ? { from, to } : { from: isoDaysAgo(Number(preset)), to: todayIso() }),
+    () => (custom ? { from, to } : { from: isoDaysAgo(Number(preset), bdStart), to: todayIso() }),
     [custom, from, to, preset],
   );
 

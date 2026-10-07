@@ -25,6 +25,7 @@ import { UsedPhoneDetailsModal, TradeInReceipt } from '../components/UsedPhoneDe
 import { PtaStatusBadge } from '../components/PtaStatusBadge';
 import { useAuthStore } from '@core/stores/auth.store';
 import { PTA_STATUS_LABELS, type PtaStatus } from '../api/imei.api';
+import { useBusinessDayStart, setToDayStart, setToDayEnd } from '@core/lib/business-day';
 
 /* ═════════════════════════════════════════════════════════════
    NAFAA USED PHONES — TRADE-IN • FULL BEST v5
@@ -111,6 +112,9 @@ export function buildTradeInMsg(p: any, shopName?: string): string {
 }
 
 export default function UsedPhonesPage() {
+  /* Dukaan ka apna karobari din — Settings se */
+  const bdStart = useBusinessDayStart();
+
   const queryClient = useQueryClient();
   const tenantName = useAuthStore((s) => s.tenant?.name);
   const shopName = useAuthStore((s) => s.user?.assignedShop?.name);
@@ -227,8 +231,8 @@ export default function UsedPhonesPage() {
 
   /* ═══ ANALYTICS — custom date range ═══ */
   const analytics = useMemo(() => {
-    const from = new Date(dateFrom); from.setHours(0, 0, 0, 0);
-    const to = new Date(dateTo); to.setHours(23, 59, 59, 999);
+    const from = new Date(dateFrom); setToDayStart(from, bdStart);
+    const to = new Date(dateTo); setToDayEnd(to, bdStart);
     const inRange = phones.filter((p) => {
       const d = new Date(p.receivedAt);
       return d >= from && d <= to;

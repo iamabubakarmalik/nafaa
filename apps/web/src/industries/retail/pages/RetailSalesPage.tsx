@@ -27,6 +27,7 @@ import { Button } from '@core/ui/Button';
 import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 import { useAuthStore } from '@core/stores/auth.store';
 import { toast } from 'sonner';
+import { useBusinessDay } from '@core/lib/business-day';
 
 /* ═════════════════════════════════════════════════════════════
    NAFAA RETAIL SALES — FULL BEST v4
@@ -110,6 +111,9 @@ function saveReceiptPrefs(p: ReceiptPrefs) {
    ════════════════════════════════════════════════════════════ */
 
 /** Maqami din ki shuruaat — raat 12 baje */
+/* Ye sirf fallback hain — asli haddein `useBusinessDay()` se aati
+   hain, jo dukaan ka apna ghanta jaanti hai (dhaba raat 2 baje
+   band hota hai, us ka din 12 baje nahi badalta). */
 const dayStart = (d: Date) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; };
 /** Maqami din ka ant — 11:59:59 raat */
 const dayEnd = (d: Date) => { const x = new Date(d); x.setHours(23, 59, 59, 999); return x; };
@@ -178,6 +182,10 @@ export default function RetailSalesPage() {
   const shopName = useAuthStore((s) => s.user?.assignedShop?.name);
   const searchRef = useRef<HTMLInputElement>(null);
   const qc = useQueryClient();
+
+  /* Dukaan ka apna din — Settings me set hota hai */
+
+  const bd = useBusinessDay();
 
   const [tab, setTab] = useState<'list' | 'analytics'>('list');
   const [search, setSearch] = useState('');
@@ -277,37 +285,40 @@ export default function RetailSalesPage() {
     const now = new Date();
     switch (dateFilter) {
       case 'today':
-        return [dayStart(now), dayEnd(now)];
+        return [bd.dayStart(now), bd.dayEnd(now)];
       case 'yesterday': {
         const y = new Date(now); y.setDate(now.getDate() - 1);
-        return [dayStart(y), dayEnd(y)];
+        return [bd.dayStart(y), bd.dayEnd(y)];
       }
       case 'week': {
         const s = new Date(now); s.setDate(now.getDate() - 6);
-        return [dayStart(s), dayEnd(now)];      // aaj mila kar poore 7 din
+        return [bd.dayStart(s), bd.dayEnd(now)];      // aaj mila kar poore 7 din
       }
       case 'month': {
         const s = new Date(now); s.setDate(now.getDate() - 29);
-        return [dayStart(s), dayEnd(now)];      // 29 din peeche + aaj = 30
+        return [bd.dayStart(s), bd.dayEnd(now)];      // 29 din peeche + aaj = 30
       }
       case 'year': {
         const s = new Date(now.getFullYear(), 0, 1);
-        return [dayStart(s), dayEnd(now)];      // 1 January se — "pichlay 365 din" nahi
+        return [bd.dayStart(s), bd.dayEnd(now)];      // 1 January se — "pichlay 365 din" nahi
       }
       case 'custom': {
-        const s = customStart ? dayStart(new Date(customStart)) : new Date(0);
-        const e = customEnd ? dayEnd(new Date(customEnd)) : dayEnd(now);
+        const s = customStart ? bd.dayStart(new Date(customStart)) : new Date(0);
+        const e = customEnd ? bd.dayEnd(new Date(customEnd)) : bd.dayEnd(now);
         return [s, e];
       }
       default:
-        return [new Date(0), dayEnd(now)];
+        return [new Date(0), bd.dayEnd(now)];
     }
-  }, [dateFilter, customStart, customEnd]);
+  /* `bd.startHour` bhi yahan hai: malik Settings me dukaan ka ghanta
+     badle to safha foran naye hisab se banta hai, refresh ka
+     intezar nahi karna parta. */
+  }, [dateFilter, customStart, customEnd, bd.startHour]);
 
   const rangeLabel = useMemo(() => {
     if (dateFilter === 'all') return 'Shuru se ab tak';
     const f = (d: Date) => new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium' }).format(d);
-    if (dayKey(rangeStart) === dayKey(rangeEnd)) return f(rangeStart);
+    if (bd.dayKey(rangeStart) === bd.dayKey(rangeEnd)) return f(rangeStart);
     return `${f(rangeStart)} — ${f(rangeEnd)}`;
   }, [dateFilter, rangeStart, rangeEnd]);
 
@@ -369,14 +380,14 @@ export default function RetailSalesPage() {
     const buckets: Record<string, { label: string; sales: number; orders: number; profit: number }> = {};
     for (let i = days - 1; i >= 0; i--) {
       const d = new Date(rangeEnd); d.setDate(rangeEnd.getDate() - i);
-      buckets[dayKey(d)] = {
+      buckets[bd.dayKey(d)] = {
         label: d.toLocaleDateString('en-PK', days > 14 ? { day: 'numeric', month: 'short' } : { weekday: 'short' }),
         sales: 0, orders: 0, profit: 0,
       };
     }
     for (const s of inRange) {
       if (s.status === 'VOIDED') continue;
-      const k = dayKey(new Date(s.soldAt));
+      const k = bd.dayKey(new Date(s.soldAt));
       if (buckets[k]) {
         buckets[k].sales += s.total;
         buckets[k].orders += 1;
@@ -500,7 +511,7 @@ export default function RetailSalesPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `bikri-${dayKey(new Date())}.csv`;
+    a.download = `bikri-${bd.dayKey(new Date())}.csv`;
     a.click();
     URL.revokeObjectURL(url);
     toast.success(`${filteredSales.length} bill CSV me`);

@@ -31,6 +31,7 @@ import { freshnessApi, type FreshnessLog } from '../api/freshness.api';
 import { FLAVORS, SHAPES, CREAMS } from '../api/constants';
 import { deriveBakeryCategory, isCakeLike, prettyCategory } from '../lib/bakeryCategory';
 import { unitDef, rateBetween, priceField, extraUnitsFor } from '../lib/bakeryUnits';
+import { useBusinessDayStart, setToDayStart, setToDayEnd } from '@core/lib/business-day';
 
 /* ═════════════════════════════════════════════════════════════
    BAKERY — EK CHEEZ KI POORI KAHANI  (Retail jaisa, poora)
@@ -96,6 +97,10 @@ export default function BakeryProductDetailPage() {
   const hideCost = useCostHidden();
   const tenant = useAuthStore((s) => s.tenant);
   const shopName = useAuthStore((s) => s.user?.assignedShop?.name);
+
+  /* Dukaan ka apna karobari din — Settings se */
+
+  const bdStart = useBusinessDayStart();
 
   const [tab, setTab] = useState<Tab>('overview');
   const [imgIndex, setImgIndex] = useState(0);
@@ -265,7 +270,7 @@ export default function BakeryProductDetailPage() {
   const chartData = useMemo(() => {
     const b: Record<string, { label: string; revenue: number; qty: number }> = {};
     for (let i = 29; i >= 0; i--) {
-      const d = new Date(); d.setDate(d.getDate() - i); d.setHours(0, 0, 0, 0);
+      const d = new Date(); d.setDate(d.getDate() - i); setToDayStart(d, bdStart);
       b[d.toISOString().slice(0, 10)] = { label: `${d.getDate()}/${d.getMonth() + 1}`, revenue: 0, qty: 0 };
     }
     for (const it of soldLines) {

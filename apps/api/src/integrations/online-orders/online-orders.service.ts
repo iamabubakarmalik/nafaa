@@ -7,7 +7,7 @@ import { NotificationsService } from '../../modules/notifications/notifications.
 import { SalesService } from '../../modules/sales/sales/sales.service';
 import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
 import { ShopScope, resolveWriteShopId } from '../../common/shop-scope';
-import { startOfDayTz, startOfMonthTz } from '../../common/helpers/business-time.helper';
+import { startOfBusinessDayTz, startOfBusinessMonthTz, tzParts } from '../../common/helpers/business-time.helper';
 import { IntegrationService } from '../core/integration.service';
 import { NormalizedOrder, isCashOnDelivery, mapPaymentMethod } from './order-normalizer';
 import { readWebsiteConfig } from './website-config';
@@ -18,6 +18,7 @@ import { CustomerRisk, blockedRisk, emptyHistory, phoneKey, riskOf } from './cus
 import { OrderToolsService } from './order-tools.service';
 import { emitOrderAccepted } from './order-events';
 import { shopDue } from './shop-due';
+import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.service';
 
 /**
  * Online order ka poora safar:
@@ -75,6 +76,7 @@ export class OnlineOrdersService implements OnModuleInit {
   private readonly logger = new Logger(OnlineOrdersService.name);
 
   constructor(
+    private readonly tzService: TenantTimezoneService,
     private readonly prisma: PrismaService,
     private readonly integrations: IntegrationService,
     private readonly sales: SalesService,
@@ -200,7 +202,10 @@ export class OnlineOrdersService implements OnModuleInit {
       }];
     }
 
-    const today = startOfDayTz();
+    /* Dukaan ka apna karobari din — raat 12 baje band hone wali
+       dukaan ke liye raat 1 baje ka order abhi "aaj" ka hai */
+    const { tz, dayStartHour } = await this.tzService.clock(user.tenantId);
+    const today = startOfBusinessDayTz(new Date(), tz, dayStartHour);
     const [items, total, counts, todayAgg, codDue] = await Promise.all([
       this.prisma.channelOrder.findMany({
         where,
@@ -836,7 +841,9 @@ export class OnlineOrdersService implements OnModuleInit {
   async codSummary(user: AuthenticatedUser, scope: ShopScope) {
     const base: Prisma.ChannelOrderWhereInput = { ...this.scopeWhere(user, scope), nafaaSaleId: { not: null } };
     const since = new Date(Date.now() - 30 * 86_400_000);
-    const month = startOfMonthTz();
+    const { tz, dayStartHour } = await this.tzService.clock(user.tenantId);
+    const nowP = tzParts(startOfBusinessDayTz(new Date(), tz, dayStartHour), tz);
+    const month = startOfBusinessMonthTz(nowP.year, nowP.month, tz, dayStartHour);
     const rows = await this.prisma.channelOrder.findMany({
       where: {
         ...base,

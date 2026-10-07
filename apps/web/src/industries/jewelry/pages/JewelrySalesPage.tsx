@@ -16,6 +16,7 @@ import { useSalesPrivacy } from '@modules/sales/sales/hooks/useSalesPrivacy';
 import { SalesPrivacyModal } from '@modules/sales/sales/components/SalesPrivacyModal';
 import { HiddenAmount } from '@modules/sales/sales/components/HiddenAmount';
 import { toast } from 'sonner';
+import { useBusinessDayStart, setToDayStart, setToDayEnd } from '@core/lib/business-day';
 
 const formatDate = (v: string) =>
   new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(v));
@@ -31,6 +32,9 @@ type DateFilter = 'all' | 'today' | 'yesterday' | 'week' | 'month' | 'year' | 'c
 
 export default function JewelrySalesPage() {
   const privacy = useSalesPrivacy();
+  /* Dukaan ka apna din — raat 12 baje band hone wali dukaan ke
+     liye raat 1 baje ki bikri abhi "aaj" ki hai */
+  const bdStart = useBusinessDayStart();
   const [search, setSearch] = useState('');
   const [dateFilter, setDateFilter] = useState<DateFilter>('month');
   const [customStart, setCustomStart] = useState('');
@@ -55,14 +59,14 @@ export default function JewelrySalesPage() {
     const now = new Date();
     let start = new Date();
     let end = new Date();
-    if (dateFilter === 'today') start.setHours(0, 0, 0, 0);
-    else if (dateFilter === 'yesterday') { start.setDate(now.getDate() - 1); start.setHours(0, 0, 0, 0); end = new Date(start); end.setHours(23, 59, 59, 999); }
+    if (dateFilter === 'today') setToDayStart(start, bdStart);
+    else if (dateFilter === 'yesterday') { start.setDate(now.getDate() - 1); setToDayStart(start, bdStart); end = new Date(start); setToDayEnd(end, bdStart); }
     else if (dateFilter === 'week') start.setDate(now.getDate() - 7);
     else if (dateFilter === 'month') start.setMonth(now.getMonth() - 1);
     else if (dateFilter === 'year') start.setFullYear(now.getFullYear() - 1);
     else if (dateFilter === 'custom') {
-      if (customStart) { start = new Date(customStart); start.setHours(0, 0, 0, 0); }
-      if (customEnd) { end = new Date(customEnd); end.setHours(23, 59, 59, 999); }
+      if (customStart) { start = new Date(customStart); setToDayStart(start, bdStart); }
+      if (customEnd) { end = new Date(customEnd); setToDayEnd(end, bdStart); }
     }
     else if (dateFilter === 'all') start = new Date(0);
     return [start, end];
@@ -94,7 +98,7 @@ export default function JewelrySalesPage() {
   const trendData = useMemo(() => {
     const buckets: Record<string, { date: string; label: string; sales: number }> = {};
     for (let i = 6; i >= 0; i--) {
-      const d = new Date(); d.setDate(d.getDate() - i); d.setHours(0, 0, 0, 0);
+      const d = new Date(); d.setDate(d.getDate() - i); setToDayStart(d, bdStart);
       const key = d.toISOString().slice(0, 10);
       buckets[key] = { date: key, label: d.toLocaleDateString('en-PK', { weekday: 'short' }), sales: 0 };
     }

@@ -84,6 +84,8 @@ export interface CommissionSummary {
   timezone: string;
   /** Karobari din kis ghante shuru hota hai (0–23) */
   dayStartHour: number;
+  /** `own` = sirf apni commission dikhti hai, `all` = sab ki */
+  scope: 'own' | 'all';
   from: string;
   to: string;
   rows: CommissionRow[];

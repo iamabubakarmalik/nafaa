@@ -24,8 +24,12 @@ import {
   formatPercent,
 } from '@modules/dashboard/components/shared/DashboardShared';
 import { format, differenceInDays, differenceInMinutes } from 'date-fns';
+import { useBusinessDayStart, setToDayStart, setToDayEnd } from '@core/lib/business-day';
 
 export default function GymDashboardV2() {
+  /* Dukaan ka apna din — 24 ghante khulne wali jagah par
+     raat 1 baje ki class abhi "aaj" ki hai */
+  const bdStart = useBusinessDayStart();
   const { data, refetch, isRefetching } = useQuery({
     queryKey: ['dashboard-overview'],
     queryFn: () => dashboardApi.overview(),
@@ -52,8 +56,8 @@ export default function GymDashboardV2() {
   const { data: todayClasses = [] } = useQuery({
     queryKey: ['classes-today'],
     queryFn: () => {
-      const start = new Date(); start.setHours(0, 0, 0, 0);
-      const end = new Date(); end.setHours(23, 59, 59, 999);
+      const start = new Date(); setToDayStart(start, bdStart);
+      const end = new Date(); setToDayEnd(end, bdStart);
       return classesApi.calendar(start.toISOString(), end.toISOString());
     },
     refetchInterval: 60_000,

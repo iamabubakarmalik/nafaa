@@ -24,6 +24,7 @@ import { useCostHidden, PrivacyToggle } from '@/core/security/HiddenValue';
 import { AppLockGate } from '@core/security/AppLockGate';
 import { Plus, UserPlus, Loader2, ShieldAlert, History, Package, BarChart3, Users } from 'lucide-react';
 import { useAuthStore } from '@core/stores/auth.store';
+import { useBusinessDayStart, setToDayStart, setToDayEnd } from '@core/lib/business-day';
 
 /* ═════════════════════════════════════════════════════════════
    NAFAA GLOBAL KHATA — FULL BEST v11
@@ -255,6 +256,10 @@ function GlobalKhataContent() {
   const shopAddress = useAuthStore((s: any) => s.user?.assignedShop?.address || s.tenant?.address || '');
   const searchRef = useRef<HTMLInputElement>(null);
 
+  /* Dukaan ka apna karobari din — Settings se */
+
+  const bdStart = useBusinessDayStart();
+
   const [search, setSearch] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('balance-high');
   const [filter, setFilter] = useState<FilterKey>('pending');
@@ -300,21 +305,21 @@ function GlobalKhataContent() {
 
   const { periodStart, periodEnd, periodLabel } = useMemo(() => {
     const now = new Date();
-    const end = new Date(); end.setHours(23, 59, 59, 999);
+    const end = new Date(); setToDayEnd(end, bdStart);
     let start = new Date(0);
     let label = 'All Time';
 
     if (period === 'today') {
-      start = new Date(); start.setHours(0, 0, 0, 0);
+      start = new Date(); setToDayStart(start, bdStart);
       label = `Aaj — ${formatDate(now)}`;
     } else if (period === 'week') {
-      start = new Date(); start.setDate(start.getDate() - 7); start.setHours(0, 0, 0, 0);
+      start = new Date(); start.setDate(start.getDate() - 7); setToDayStart(start, bdStart);
       label = `Pichlay 7 Din (${formatShortDate(start)} — ${formatShortDate(now)})`;
     } else if (period === 'month') {
-      start = new Date(); start.setDate(start.getDate() - 30); start.setHours(0, 0, 0, 0);
+      start = new Date(); start.setDate(start.getDate() - 30); setToDayStart(start, bdStart);
       label = `Pichlay 30 Din (${formatShortDate(start)} — ${formatShortDate(now)})`;
     } else if (period === 'year') {
-      start = new Date(); start.setFullYear(start.getFullYear() - 1); start.setHours(0, 0, 0, 0);
+      start = new Date(); start.setFullYear(start.getFullYear() - 1); setToDayStart(start, bdStart);
       label = `Pichla 1 Saal (${formatShortDate(start)} — ${formatShortDate(now)})`;
     } else if (period === 'custom') {
       start = new Date(customFrom + 'T00:00:00');

@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, SaleStatus, CommissionValueType } from '@prisma/client';
+import { PERMISSIONS, hasPermission } from '../../../common/constants/permissions.constants';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
@@ -45,8 +46,14 @@ export class CommissionService {
   /* ══════════ RULES ══════════ */
 
   listRules(user: AuthenticatedUser) {
+    /* Jis ke paas sirf apni commission ka haq hai, usay doosron ke
+       rate nahi dikhne chahiyen — sirf wo rule jo us par lagta hai */
+    const mine = !this.seesEveryone(user);
     return this.prisma.commissionRule.findMany({
-      where: { tenantId: user.tenantId },
+      where: {
+        tenantId: user.tenantId,
+        ...(mine ? { OR: [{ userId: user.id }, { userId: null }] } : {}),
+      },
       include: { user: { select: { id: true, fullName: true } } },
       orderBy: [{ isActive: 'desc' }, { createdAt: 'desc' }],
     });
@@ -287,6 +294,20 @@ export class CommissionService {
    * (jab maanga jaye) har cheez aur har bill ki tafseel — taake
    * sawal "ye paisa kahan se aaya" ka jawab safhe par hi mil jaye.
    */
+  /**
+   * Sab ki commission dekh sakta hai ya sirf apni.
+   *
+   * Counter wale ko apna hisab dekhna chahiye — wo us ki apni kamai
+   * hai. Magar doosron ka rate aur kamai us ka maamla nahi. Pehle
+   * poora safha `staff.view` ke peechay tha, jis ka matlab tha ke
+   * apni commission dekhne ke liye sab ki tankhwah aur attendance
+   * bhi khol deni parti thi.
+   */
+  private seesEveryone(user: AuthenticatedUser) {
+    return hasPermission(user.role, user.permissions, PERMISSIONS.COMMISSION_VIEW)
+      || hasPermission(user.role, user.permissions, PERMISSIONS.COMMISSION_MANAGE);
+  }
+
   async summary(user: AuthenticatedUser, period: string, opts: { detail?: boolean } = {}) {
     const { from, to, tz, dayStartHour } = await this.monthRange(user.tenantId, period);
 
@@ -499,7 +520,13 @@ export class CommissionService {
     rows.sort((a, b) =>
       Number(b.enrolled) - Number(a.enrolled) || b.earned - a.earned || b.sale - a.sale);
 
-    const live = rows.filter((r) => r.enrolled);
+    /* Sirf apni commission wala banda — baqi lines hata do.
+       Chhupana safhe par nahi, yahin hona chahiye: warna number
+       browser tak pohnch jata hai aur koi bhi dekh leta hai. */
+    const onlyMine = !this.seesEveryone(user);
+    const visible = onlyMine ? rows.filter((r) => r.userId === user.id) : rows;
+
+    const live = visible.filter((r) => r.enrolled);
     const total = live.reduce((a, r) => a + r.earned, 0);
     const paidTotal = live.filter((r) => r.paid).reduce((a, r) => a + r.earned, 0);
 
@@ -507,19 +534,22 @@ export class CommissionService {
       period,
       timezone: tz,
       dayStartHour,
+      /* Safha isi se tay karta hai ke rules aur doosre bande
+         dikhane hain ya nahi */
+      scope: onlyMine ? ('own' as const) : ('all' as const),
       from: from.toISOString(),
       to: to.toISOString(),
-      rows,
+      rows: visible,
       total,
       paidTotal,
       pendingTotal: total - paidTotal,
       enabledCount: live.length,
-      notEnrolled: rows.filter((r) => !r.enrolled && r.bills > 0)
+      notEnrolled: onlyMine ? [] : rows.filter((r) => !r.enrolled && r.bills > 0)
         .map((r) => ({ userId: r.userId, name: r.name, bills: r.bills, sale: r.sale })),
       partialReturnCount: sales.filter((s) => s.status === 'PARTIALLY_RETURNED').length,
-      orphanBills,
-      orphanSale,
-      reassignedBills,
+      orphanBills: onlyMine ? 0 : orphanBills,
+      orphanSale: onlyMine ? 0 : orphanSale,
+      reassignedBills: onlyMine ? 0 : reassignedBills,
       baseTotal: live.reduce((a, r) => a + (r.baseSalary ?? 0), 0),
       payTotal: live.reduce((a, r) => a + (r.totalPay ?? 0), 0),
       ruleCount: rules.length,
@@ -528,6 +558,10 @@ export class CommissionService {
 
   /** Ek bande ka poora khata — kaunsi cheez, kitne ki, kitni commission */
   async detail(user: AuthenticatedUser, userId: string, period: string) {
+    /* Doosre ka khata sirf wohi khol sakta hai jisay sab dikhte hain */
+    if (userId !== user.id && !this.seesEveryone(user)) {
+      throw new NotFoundException('Is mahine is bande ka koi hisab nahi');
+    }
     const all = await this.summary(user, period, { detail: true });
     const row = all.rows.find((r: any) => r.userId === userId);
     if (!row) throw new NotFoundException('Is mahine is bande ka koi hisab nahi');

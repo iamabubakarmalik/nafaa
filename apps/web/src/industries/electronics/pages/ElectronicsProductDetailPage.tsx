@@ -27,6 +27,7 @@ import { brandsApi } from '@modules/inventory/brands/api/brands.api';
 import { serialTrackingApi } from '../api/serial-tracking.api';
 import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 import { PrintStyles } from '@core/components/print/PrintStyles';
+import { useBusinessDayStart, setToDayStart, setToDayEnd } from '@core/lib/business-day';
 
 type Tab = 'overview' | 'specs' | 'warranty' | 'variants' | 'serials' | 'sales' | 'log';
 
@@ -35,6 +36,10 @@ export default function ElectronicsProductDetailPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const hideCost = useCostHidden();
+
+  /* Dukaan ka apna karobari din — Settings se */
+
+  const bdStart = useBusinessDayStart();
 
   const [tab, setTab] = useState<Tab>('overview');
   const [imgIndex, setImgIndex] = useState(0);
@@ -157,7 +162,7 @@ export default function ElectronicsProductDetailPage() {
     for (let i = 29; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      d.setHours(0, 0, 0, 0);
+      setToDayStart(d, bdStart);
       const key = d.toISOString().slice(0, 10);
       buckets[key] = { label: `${d.getDate()}/${d.getMonth() + 1}`, revenue: 0, qty: 0 };
     }

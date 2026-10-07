@@ -16,6 +16,7 @@ import { formatPKR } from '@core/lib/format';
 import { useAuthStore } from '@core/stores/auth.store';
 import { useCostHidden, PrivacyToggle } from '@/core/security/HiddenValue';
 import { PrintStyles } from '@core/components/print/PrintStyles';
+import { useBusinessDayStart, setToDayStart, setToDayEnd } from '@core/lib/business-day';
 import {
   mobileReportsApi,
   type ProfitSourceKey,
@@ -76,11 +77,11 @@ const SOURCE_ORDER: ProfitSourceKey[] = ['NEW_PHONE', 'USED_PHONE', 'ACCESSORY',
 
 type SortBy = 'profit' | 'margin' | 'revenue' | 'units';
 
-const rangeFor = (period: Period) => {
+const rangeFor = (period: Period, h = 0) => {
   const to = new Date();
   const from = new Date();
   const days = PERIODS.find((p) => p.value === period)?.days ?? 30;
-  if (days === 0) from.setHours(0, 0, 0, 0);
+  if (days === 0) setToDayStart(from, h);
   else from.setDate(from.getDate() - days);
   return { from: from.toISOString(), to: to.toISOString() };
 };
@@ -93,11 +94,15 @@ export default function MobileProfitReportPage() {
   const tenantName = useAuthStore((s: any) => s.tenant?.name);
   const shopName = useAuthStore((s: any) => s.user?.assignedShop?.name);
 
+  /* Dukaan ka apna karobari din — Settings se */
+
+  const bdStart = useBusinessDayStart();
+
   const [period, setPeriod] = useState<Period>('month');
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState<SortBy>('profit');
 
-  const range = useMemo(() => rangeFor(period), [period]);
+  const range = useMemo(() => rangeFor(period, bdStart), [period]);
 
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['mobile-profit-by-source', period],

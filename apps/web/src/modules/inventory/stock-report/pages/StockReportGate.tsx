@@ -7,6 +7,7 @@ import ElectronicsStockReportPage from '@industries/electronics/pages/Electronic
 import AppliancesStockReportPage from '@industries/appliances/pages/AppliancesStockReportPage';
 import BakeryStockReportPage from '@industries/bakery/pages/BakeryStockReportPage';
 import AgriStockReportPage from '@industries/agri/pages/AgriStockReportPage';
+import RestaurantStockReportPage from '@industries/restaurant/pages/RestaurantStockReportPage';
 
 /**
  * StockReportGate — routes /stock-report to the correct
@@ -42,6 +43,11 @@ export default function StockReportGate() {
       return <ElectronicsStockReportPage />;
     case 'appliances':
       return <AppliancesStockReportPage />;
+
+    /* Hotel ka gudaam do hisson me: kacha saamaan jo pak kar dish
+     banta hai, aur bana banaya maal (bottle, chips) */
+    case 'restaurant':
+      return <RestaurantStockReportPage />;
 
     // Future: alag industries ka custom report yahan add karo
     // case 'carpet':

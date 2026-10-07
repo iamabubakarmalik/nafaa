@@ -26,6 +26,7 @@ import { QuickStockModal } from '../components/QuickStockModal';
 import { ProductDeleteButton } from '@core/components/ProductDeleteButton';
 import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 import { useAuthStore } from '@core/stores/auth.store';
+import { useBusinessDayStart, setToDayStart, setToDayEnd } from '@core/lib/business-day';
 
 /* ═════════════════════════════════════════════════════════════
    NAFAA RETAIL PRODUCT DETAIL — FULL BEST v3
@@ -49,6 +50,10 @@ export default function RetailProductDetailPage() {
   const hideCost = useCostHidden();
   const tenantName = useAuthStore((s) => s.tenant?.name);
   const shopName = useAuthStore((s) => s.user?.assignedShop?.name);
+
+  /* Dukaan ka apna karobari din — Settings se */
+
+  const bdStart = useBusinessDayStart();
 
   const [tab, setTab] = useState<Tab>('overview');
   const [imgIndex, setImgIndex] = useState(0);
@@ -195,7 +200,7 @@ export default function RetailProductDetailPage() {
     for (let i = 29; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      d.setHours(0, 0, 0, 0);
+      setToDayStart(d, bdStart);
       const key = d.toISOString().slice(0, 10);
       buckets[key] = { label: `${d.getDate()}/${d.getMonth() + 1}`, revenue: 0, qty: 0 };
     }

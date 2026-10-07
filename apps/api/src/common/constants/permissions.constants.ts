@@ -52,6 +52,16 @@ export const PERMISSIONS = {
   STAFF_VIEW: 'staff.view',
   STAFF_MANAGE: 'staff.manage',
 
+  // Commission — staff se alag, jaan boojh kar.
+  // Counter wale ko apni commission dekhni hoti hai, magar is ka
+  // matlab ye nahi ke wo sab ki tankhwah aur attendance bhi dekhe.
+  /// Sirf apni commission
+  COMMISSION_OWN: 'commission.own',
+  /// Sab bandon ki commission
+  COMMISSION_VIEW: 'commission.view',
+  /// Rules banana aur adaigi likhna
+  COMMISSION_MANAGE: 'commission.manage',
+
   // Finance
   EXPENSES_VIEW: 'expenses.view',
   EXPENSES_CREATE: 'expenses.create',
@@ -146,6 +156,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, PermissionKey[]> = {
 
   MANAGER: [
     PERMISSIONS.COST_VIEW,
+    PERMISSIONS.COMMISSION_OWN, PERMISSIONS.COMMISSION_VIEW, PERMISSIONS.COMMISSION_MANAGE,
     // Industry ke apne kaam — manager poori dukaan chalata hai
     PERMISSIONS.BAKERY_ORDERS_VIEW, PERMISSIONS.BAKERY_ORDERS_MANAGE,
     PERMISSIONS.BAKERY_PRODUCTION_VIEW, PERMISSIONS.BAKERY_PRODUCTION_MANAGE,
@@ -211,6 +222,8 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, PermissionKey[]> = {
   ],
 
   CASHIER: [
+    // Apni commission — doosron ki nahi
+    PERMISSIONS.COMMISSION_OWN,
     // ── POS chalane ke liye lazmi ──
     // Counter par maal, category aur rate parhe baghair bikri hoti
     // hi nahi. Ye nishan hata diye jayen to POS khali reh jata hai —

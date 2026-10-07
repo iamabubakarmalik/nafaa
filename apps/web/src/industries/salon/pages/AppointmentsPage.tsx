@@ -10,6 +10,7 @@ import { appointmentsApi, type AppointmentStatus } from '../api/appointments.api
 import { formatPKR } from '@core/lib/format';
 import { Button } from '@core/ui/Button';
 import { format, differenceInMinutes, isToday, isTomorrow } from 'date-fns';
+import { useBusinessDayStart, setToDayStart, setToDayEnd } from '@core/lib/business-day';
 
 const STATUS_CONFIG: Record<AppointmentStatus, { label: string; color: string; icon: any }> = {
   DRAFT: { label: 'Draft', color: 'bg-slate-500', icon: AlertCircle },
@@ -23,6 +24,9 @@ const STATUS_CONFIG: Record<AppointmentStatus, { label: string; color: string; i
 };
 
 export default function AppointmentsPage() {
+  /* Dukaan ka apna din — raat 12 baje band hone wali dukaan ke
+     liye raat 1 baje ki bikri abhi "aaj" ki hai */
+  const bdStart = useBusinessDayStart();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('upcoming');
   const [dateFilter, setDateFilter] = useState<string>('today');
@@ -34,21 +38,21 @@ export default function AppointmentsPage() {
     const end = new Date(now);
 
     if (dateFilter === 'today') {
-      start.setHours(0, 0, 0, 0);
-      end.setHours(23, 59, 59, 999);
+      setToDayStart(start, bdStart);
+      setToDayEnd(end, bdStart);
     } else if (dateFilter === 'tomorrow') {
       start.setDate(start.getDate() + 1);
-      start.setHours(0, 0, 0, 0);
+      setToDayStart(start, bdStart);
       end.setDate(end.getDate() + 1);
-      end.setHours(23, 59, 59, 999);
+      setToDayEnd(end, bdStart);
     } else if (dateFilter === 'week') {
-      start.setHours(0, 0, 0, 0);
+      setToDayStart(start, bdStart);
       end.setDate(end.getDate() + 7);
-      end.setHours(23, 59, 59, 999);
+      setToDayEnd(end, bdStart);
     } else if (dateFilter === 'month') {
-      start.setHours(0, 0, 0, 0);
+      setToDayStart(start, bdStart);
       end.setDate(end.getDate() + 30);
-      end.setHours(23, 59, 59, 999);
+      setToDayEnd(end, bdStart);
     }
     return { from: start.toISOString(), to: end.toISOString() };
   };

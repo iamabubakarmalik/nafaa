@@ -18,6 +18,7 @@ import { Button } from '@core/ui/Button';
 import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 import { useAuthStore } from '@core/stores/auth.store';
 import { toast } from 'sonner';
+import { useBusinessDayStart, setToDayStart, setToDayEnd } from '@core/lib/business-day';
 
 /* ═════════════════════════════════════════════════════════════
    NAFAA MOBILE SALES — FULL BEST v1
@@ -75,6 +76,12 @@ export default function MobileSalesPage() {
   const shopName = useAuthStore((s) => s.user?.assignedShop?.name);
   const searchRef = useRef<HTMLInputElement>(null);
 
+  /* Dukaan ka apna din — raat 12 baje band hone wali dukaan ke
+
+     liye raat 1 baje ki bikri abhi "aaj" ki hai */
+
+  const bdStart = useBusinessDayStart();
+
   const [view, setView] = useState<View>('all');
   const [search, setSearch] = useState('');
   const [ptaFilter, setPtaFilter] = useState<string>('all');
@@ -94,12 +101,12 @@ export default function MobileSalesPage() {
   const getDateRange = (): [Date, Date] => {
     const now = new Date();
     let start = new Date(); let end = new Date();
-    if (dateFilter === 'today') start.setHours(0, 0, 0, 0);
-    else if (dateFilter === 'yesterday') { start.setDate(now.getDate() - 1); start.setHours(0, 0, 0, 0); end = new Date(start); end.setHours(23, 59, 59, 999); }
+    if (dateFilter === 'today') setToDayStart(start, bdStart);
+    else if (dateFilter === 'yesterday') { start.setDate(now.getDate() - 1); setToDayStart(start, bdStart); end = new Date(start); setToDayEnd(end, bdStart); }
     else if (dateFilter === 'week') start.setDate(now.getDate() - 7);
     else if (dateFilter === 'month') start.setMonth(now.getMonth() - 1);
     else if (dateFilter === 'year') start.setFullYear(now.getFullYear() - 1);
-    else if (dateFilter === 'custom') { if (customStart) { start = new Date(customStart); start.setHours(0, 0, 0, 0); } if (customEnd) { end = new Date(customEnd); end.setHours(23, 59, 59, 999); } }
+    else if (dateFilter === 'custom') { if (customStart) { start = new Date(customStart); setToDayStart(start, bdStart); } if (customEnd) { end = new Date(customEnd); setToDayEnd(end, bdStart); } }
     else if (dateFilter === 'all') start = new Date(0);
     return [start, end];
   };

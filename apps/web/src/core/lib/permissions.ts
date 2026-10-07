@@ -40,6 +40,9 @@ export const PERMISSIONS = {
   PROFIT_REPORT_VIEW: 'profit_report.view',
   STAFF_VIEW: 'staff.view',
   STAFF_MANAGE: 'staff.manage',
+  COMMISSION_OWN: 'commission.own',
+  COMMISSION_VIEW: 'commission.view',
+  COMMISSION_MANAGE: 'commission.manage',
   EXPENSES_VIEW: 'expenses.view',
   EXPENSES_CREATE: 'expenses.create',
   EXPORTS_VIEW: 'exports.view',
@@ -129,6 +132,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, PermissionKey[]> = {
 
   MANAGER: [
     PERMISSIONS.COST_VIEW,
+    PERMISSIONS.COMMISSION_OWN, PERMISSIONS.COMMISSION_VIEW, PERMISSIONS.COMMISSION_MANAGE,
     // Industry ke apne kaam — manager poori dukaan chalata hai
     PERMISSIONS.BAKERY_ORDERS_VIEW, PERMISSIONS.BAKERY_ORDERS_MANAGE,
     PERMISSIONS.BAKERY_PRODUCTION_VIEW, PERMISSIONS.BAKERY_PRODUCTION_MANAGE,
@@ -194,6 +198,8 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, PermissionKey[]> = {
   ],
 
   CASHIER: [
+    // Apni commission — doosron ki nahi
+    PERMISSIONS.COMMISSION_OWN,
     // ── POS chalane ke liye lazmi ──
     // Counter par maal, category aur rate parhe baghair bikri hoti
     // hi nahi. Ye nishan hata diye jayen to POS khali reh jata hai —
@@ -317,6 +323,9 @@ export const PERMISSION_LABELS: Record<string, string> = {
   'purchases.view': 'View Purchases', 'purchases.create': 'Create Purchases',
   'dashboard.view': 'View Dashboard', 'cost.view': 'Lagat aur munafa dekhein', 'reports.view': 'View Reports', 'profit_report.view': 'Profit Report',
   'staff.view': 'View Staff', 'staff.manage': 'Manage Staff',
+  'commission.own': 'Apni commission dekhein',
+  'commission.view': 'Sab ki commission dekhein',
+  'commission.manage': 'Commission rules aur adaigi',
   'expenses.view': 'View Expenses', 'expenses.create': 'Create Expenses',
   'exports.view': 'Data Exports', 'backup.manage': 'Manage Backups',
   'team.view': 'View Team', 'team.manage': 'Manage Team',
@@ -458,6 +467,7 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     title: 'Staff & Finance', label: 'Staff & Finance', emoji: '👨‍💼', color: '#ec4899',
     permissions: [
       PERMISSIONS.STAFF_VIEW, PERMISSIONS.STAFF_MANAGE,
+      PERMISSIONS.COMMISSION_OWN, PERMISSIONS.COMMISSION_VIEW, PERMISSIONS.COMMISSION_MANAGE,
       PERMISSIONS.EXPENSES_VIEW, PERMISSIONS.EXPENSES_CREATE,
       PERMISSIONS.EXPORTS_VIEW, PERMISSIONS.BACKUP_MANAGE,
     ],
