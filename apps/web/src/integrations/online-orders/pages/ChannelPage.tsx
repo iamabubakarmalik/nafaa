@@ -712,27 +712,22 @@ function BranchCodeMap({ channelId, codes, defaultShopId }: {
   );
 }
 
-/** Multi-branch: har branch ka apna order URL — Indolj har branch ke webhook par usi ka URL lagaye */
-function BranchUrls({ ordersUrl }: { ordersUrl: string }) {
+/** Multi-branch: har branch ka apna Callback URL — Indolj isi se batata hai order kis branch ka hai */
+function BranchUrls({ base }: { base: string }) {
   const { data: shops } = useQuery({ queryKey: ['shops'], queryFn: shopsApi.list });
   const list = (Array.isArray(shops) ? shops : (shops as any)?.items ?? []) as Array<{ id: string; name: string; isActive?: boolean }>;
   const active = list.filter((s) => s.isActive !== false);
-  if (active.length <= 1) {
-    return (
-      <div className="mt-3">
-        <CopyField label="Indolj ke liye order URL (POS webhook)" value={ordersUrl} hint="Indolj ko ye URL dein — live orders aur cancel status dono isi par" />
-      </div>
-    );
-  }
+  if (active.length <= 1) return null;
   return (
-    <div className="mt-3 space-y-2">
-      <p className="text-[12.5px] text-slate-600 dark:text-slate-300">
-        <b>Har branch ka apna URL</b> — Indolj har branch ke webhook par usi branch ka URL lagaye. Order, bill aur stock usi branch me jayega.
+    <div className="mt-4 space-y-2 rounded-xl border border-slate-200 p-3 dark:border-slate-800">
+      <div className="text-[13px] font-semibold text-slate-900 dark:text-white">Har branch ka Callback URL</div>
+      <p className="text-[12.5px] text-slate-500">
+        Indolj me har branch ki <b>General POS</b> settings me <b>Call Back URL</b> aur <b>Cancel Call Back URL</b> dono me usi branch ka URL lagayein.
+        Token wahi rahe. Order, bill aur stock khud usi branch me jayega.
       </p>
       {active.map((s) => (
-        <CopyField key={s.id} label={`${s.name} — order URL`} value={`${ordersUrl}/branch/${s.id}`} />
+        <CopyField key={s.id} label={s.name} value={`${base}/orders/branch/${s.id}`} />
       ))}
-      <p className="text-[12px] text-slate-500">Branch ke baghair wala URL bhi chalta hai — tab order is channel ki apni branch (Settings) me aata hai.</p>
     </div>
   );
 }
@@ -740,7 +735,6 @@ function BranchUrls({ ordersUrl }: { ordersUrl: string }) {
 function IndoljChannelCard({ data, setTab }: { data: WebsiteOverview; setTab: (t: Tab) => void }) {
   const i = data.integration!;
   const stats = data.stats!;
-  const ordersUrl = i.apiKey ? `${data.urls.base}/orders/${i.apiKey}` : data.urls.orders;
   return (
     <Card title={<span className="flex items-center gap-2">🍪 Indolj se jura hua <Badge tone="success" dot>Menu sync</Badge></span>}
       description="Website Indolj par hai — menu Nafaa me aata hai aur Indolj har naya order seedha Nafaa ko bhejta hai.">
@@ -752,6 +746,7 @@ function IndoljChannelCard({ data, setTab }: { data: WebsiteOverview; setTab: (t
             : <><Circle className="h-4 w-4 shrink-0 text-amber-500" /> Indolj se pehle live order ka intezar — Indolj ki team ne webhook neeche wale URL par lagana hai</>}
         </li>
       </ul>
+      <BranchUrls base={data.urls.base} />
       <BranchCodeMap channelId={data.integration!.id} codes={i.branchCodes ?? []} defaultShopId={i.config?.shopId ?? (i as any).shopId ?? null} />
       {i.indolj?.connectedAt && <p className="mt-2 text-[12px] text-slate-500">Indolj {whenText(i.indolj.connectedAt)} jora</p>}
     </Card>

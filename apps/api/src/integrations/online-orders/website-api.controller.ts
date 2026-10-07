@@ -103,7 +103,9 @@ export class WebsiteApiController {
     const raw = [JSON.stringify(body ?? {}), JSON.stringify(req.query ?? {}), req.headers['x-nafaa-key'], req.headers.authorization]
       .map((v) => String(v ?? '')).join(' ');
     this.logger.log(`access_token request — fields: ${Object.keys(body ?? {}).join(',') || 'none'}`);
-    const key = raw.match(/nfk_[a-f0-9]{20,}/)?.[0];
+    // "nfk_" ke baghair chipki key bhi (Indolj ke Token khaane me aksar)
+    const bare = raw.match(/(?<![a-z0-9_])([a-f0-9]{48})(?![a-f0-9])/i)?.[1];
+    const key = raw.match(/nfk_[a-f0-9]{20,}/)?.[0] ?? (bare ? `nfk_${bare.toLowerCase()}` : undefined);
     const branch = raw.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)?.[0];
     const integration = key ? await this.integrations.verifyApiKey(key) : null;
     if (!integration) {
@@ -111,6 +113,23 @@ export class WebsiteApiController {
       return;
     }
     res.status(200).json({ correlationId: crypto.randomUUID(), token: branch ? `${key}.${branch}` : key });
+  }
+
+  // ═══ Har branch ka apna Callback URL (Indolj isi tarah branch batata hai): POST /orders/branch/<shop id> ═══
+  // Key header (Token) me hi rehti hai. Indolj base URL ke peeche "api/1/access_token" laga kar token bhi maangta hai —
+  // wo bhi isi raaste ke neeche sambhala jata hai.
+  @Post(['orders/branch/:branch', 'orders/branch/:branch/*rest'])
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Order — branch Callback URL ke raaste me, key header me' })
+  async createOrderForBranch(@Param('branch') branch: string, @Req() req: Request, @Body() body: any, @Res() res: Response) {
+    if (/access_token\/?$/.test(req.path)) return this.accessToken(req, body, res);
+    try {
+      const integration = await this.auth(req);
+      res.status(200).json(await this.handleOrder(integration, req, body, branch));
+    } catch (e: any) {
+      const status = typeof e?.getStatus === 'function' ? e.getStatus() : 500;
+      res.status(status).json({ success: false, message: e?.response?.message ?? e?.message ?? 'Error' });
+    }
   }
 
   // ═══ Branch raaste me (kuch platform ?query kaat dete hain): POST /orders/<key>/branch/<shop id> ═══
