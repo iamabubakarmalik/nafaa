@@ -216,6 +216,31 @@ export class WebsiteSetupService {
       scope?.shopId ? this.prisma.channelOrder.count({ where: { integrationId: integration.id } }) : Promise.resolve(null),
     ]);
 
+    // Har branch ka hisaab (2+ branches ho to) — overview par "kaun si branch me kitne"
+    const shopsAll = await this.prisma.shop.findMany({ where: { tenantId: user.tenantId, isActive: true }, select: { id: true, name: true }, orderBy: { createdAt: 'asc' } });
+    let branches: Array<{ shopId: string | null; name: string; total: number; pending: number; today: number; isDefault: boolean }> | null = null;
+    if (shopsAll.length > 1) {
+      const [byTotal, byPending, byToday] = await Promise.all([
+        this.prisma.channelOrder.groupBy({ by: ['shopId'], where: { integrationId: integration.id }, _count: { _all: true } }),
+        this.prisma.channelOrder.groupBy({ by: ['shopId'], where: { integrationId: integration.id, orderStatus: 'PENDING' }, _count: { _all: true } }),
+        this.prisma.channelOrder.groupBy({ by: ['shopId'], where: { integrationId: integration.id, receivedAt: { gte: today } }, _count: { _all: true } }),
+      ]);
+      const n = (rows: any[], id: string | null) => rows.find((r) => r.shopId === id)?._count?._all ?? 0;
+      const defaultShop = (integration.config as any)?.shopId ?? integration.shopId ?? shopsAll[0]?.id ?? null;
+      branches = shopsAll.map((sh) => ({
+        shopId: sh.id, name: sh.name, isDefault: sh.id === defaultShop,
+        total: n(byTotal, sh.id), pending: n(byPending, sh.id), today: n(byToday, sh.id),
+      }));
+      const orphan = n(byTotal, null);
+      if (orphan) branches.push({ shopId: null, name: 'Bina branch', isDefault: false, total: orphan, pending: n(byPending, null), today: n(byToday, null) });
+    }
+    // Sehat: pichle 24 ghante me kitni requests fail hui, aakhri ghalti kya thi
+    const since = new Date(Date.now() - 24 * 3600e3);
+    const [failed24h, lastFail] = await Promise.all([
+      this.prisma.webhookLog.count({ where: { integrationId: integration.id, processed: false, receivedAt: { gte: since } } }),
+      this.prisma.webhookLog.findFirst({ where: { integrationId: integration.id, processed: false }, orderBy: { receivedAt: 'desc' }, select: { errorMessage: true, receivedAt: true } }),
+    ]);
+
     // Branch codes jo pichle orders me aaye (Indolj merchantId / partnerIndexCode)
     const seenCodes: Record<string, { firstSeen: string; sample: string }> = {};
     const recentBodies = await this.prisma.webhookLog.findMany({
@@ -305,6 +330,8 @@ export class WebsiteSetupService {
         // Branch chuni ho to: poore channel (sab branches) ke kul orders — "is branch me 0, kul 8" dikhane ke liye
         allBranchesOrders: allBranches,
       },
+      branches,
+      health: { failed24h, lastError: lastFail ? { message: lastFail.errorMessage, at: lastFail.receivedAt } : null },
       logs: [
         ...webhookLogs.map((l) => ({ id: l.id, kind: 'IN' as const, label: l.event, ok: l.processed, error: l.errorMessage, at: l.receivedAt })),
         ...pushLogs.map((l) => ({

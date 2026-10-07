@@ -25,7 +25,7 @@ import TaxHubPage from '@integrations/tax-authority/TaxHubPage';
 import FoodpandaPage from '@integrations/online-orders/pages/FoodpandaPage';
 import CustomerDisplayPage from '@core/hardware/CustomerDisplayPage';
 import {
-  OnlineOrdersPage, WebsiteConnectPage, WebsiteRedirect, ConnectChannelPage, ChannelsListPage, ConnectDonePage, ShopifyAppPage, CodPage, CouriersPage, CourierDetailPage, PrintInvoicesPage, OnlineReportsPage, BlocklistPage, OnlineCustomersPage, PaymentsPage, PublicPayPage, PublicOrderPage, DevInvitePage, PublicTrackPage,
+  OnlineOrdersPage, WebsiteConnectPage, WebsiteRedirect, ConnectChannelPage, ChannelsListPage, ConnectDonePage, ShopifyAppPage, CodPage, CouriersPage, CourierDetailPage, PrintInvoicesPage, OnlineReportsPage, BlocklistPage, OnlineCustomersPage, PaymentsPage, PublicPayPage, PublicOrderPage, DevInvitePage, PublicTrackPage, OnlineStoreDocsPage,
 } from '@integrations/online-orders';
 
 // ─── FBR Tax Integration ───────────────────────────────────────
@@ -583,6 +583,7 @@ export default function App() {
             <Route path="/order/:key/track" element={<PublicTrackPage />} />
             <Route path="/pay/:token" element={<PublicPayPage />} />
             <Route path="/connect/dev/:token" element={<DevInvitePage />} />
+            <Route path="/docs/online-store" element={<OnlineStoreDocsPage />} />
             {/* Customer ki screen — sirf isi computer ki POS window se sunti hai, server se kuch nahi */}
             <Route path="/customer-display" element={<CustomerDisplayPage />} />
 

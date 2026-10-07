@@ -410,6 +410,10 @@ export class StorefrontService {
       apiKey: ch.apiKey,
       secret: ch.webhookSecret,
       urls: this.setup.urls(ch.apiKey),
+      // Kai branches ho to har branch ka apna orders URL (key header me hi rehti hai)
+      branches: await this.prisma.shop.findMany({ where: { tenantId: ch.tenantId, isActive: true }, select: { id: true, name: true }, orderBy: { createdAt: 'asc' } })
+        .then((list) => (list.length > 1 ? list.map((s) => ({ id: s.id, name: s.name, ordersUrl: `${this.setup.urls(ch.apiKey).base}/orders/branch/${s.id}` })) : [])),
+      platform: (ch.config as any)?.indolj?.activationToken ? 'indolj' : ((ch.config as any)?.platform ?? 'custom'),
       connected: !!ch.webhookVerified,
       lastOrder: last ? { at: last.receivedAt, number: last.externalOrderNumber, test: !!(last.metadata as any)?.test } : null,
     };

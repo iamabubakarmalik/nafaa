@@ -1,6 +1,6 @@
 import { CustomConnect } from '../components/website/CustomConnect';
 import { DarazChannelCard } from '../components/daraz/Daraz';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -18,6 +18,7 @@ import { ProductSyncCard } from '../components/website/ProductSyncCard';
 import { CopyField } from '../components/website/CopyField';
 import { HttpsNotice } from '../components/website/ManualKeysForm';
 import { ProductLinker } from '../components/products/ProductLinker';
+import { BranchSetup, DocsLink, HelpCard, IndoljGuide, Troubleshoot } from '../components/website/SetupGuides';
 import { Badge, Banner, Btn, Card, ChannelAvatar, EmptyState, Field, Page, SettingRow, Stat, Tabs, Toggle, inputCls } from '../components/ui/kit';
 import { STATUS_LABEL, rs, timeAgo, whenText } from '../lib/labels';
 import { cn } from '@core/lib/cn';
@@ -135,7 +136,7 @@ function Channel({ id, data, onChange, tab, setTab }: {
         { value: 'overview', label: 'Overview' },
         { value: 'products', label: 'Products', count: stats.productLinks, tone: 'success' },
         { value: 'settings', label: 'Settings' },
-        ...(i.type === 'DARAZ' ? [] : [{ value: 'developer' as Tab, label: automatic ? 'Developer' : 'Setup & keys' }]),
+        ...(i.type === 'DARAZ' ? [] : [{ value: 'developer' as Tab, label: 'Setup' }]),
         { value: 'activity', label: 'Activity', count: errors, tone: 'critical' },
       ]} />}
     >
@@ -150,7 +151,7 @@ function Channel({ id, data, onChange, tab, setTab }: {
       {tab === 'overview' && <Overview id={id} data={data} platform={platform} onChange={onChange} setTab={setTab} />}
       {tab === 'products' && <ProductLinker channelId={id} siteName={meta.label === 'Website' ? 'Website' : meta.label} />}
       {tab === 'settings' && <SettingsTab id={id} cfg={cfg} name={i.displayName} platform={platform} automatic={automatic} onChange={onChange} />}
-      {tab === 'developer' && <DeveloperTab id={id} data={data} platform={platform} automatic={automatic} onChange={onChange} />}
+      {tab === 'developer' && <DeveloperTab id={id} data={data} platform={platform} automatic={automatic} onChange={onChange} setTab={setTab} />}
       {tab === 'activity' && <ActivityTab logs={data.logs} />}
     </Page>
   );
@@ -194,13 +195,10 @@ function Overview({ id, data, platform, onChange, setTab }: {
 
         {i.type === 'DARAZ' ? (
           <DarazChannelCard id={id} data={data} />
-        ) : i.indolj?.connected ? (
-          <IndoljChannelCard data={data} setTab={setTab} />
-        ) : oneClickType ? (
-          <ConnectionCard id={id} data={data} platform={platform as 'woocommerce' | 'shopify'} onChange={onChange} setTab={setTab} />
         ) : (
-          <CustomConnect channelId={id} data={data} onChange={onChange} />
+          <ConnectionSummary data={data} platform={platform} setTab={setTab} />
         )}
+        {data.branches && <BranchesCard branches={data.branches} />}
 
         <Card title="Haal ke orders" flush actions={<Link to={`/online-orders?channel=${id}`}><Btn size="sm" variant="plain">Sab dekho</Btn></Link>}>
           {!orders?.items.length ? (
@@ -244,6 +242,7 @@ function Overview({ id, data, platform, onChange, setTab }: {
             ))}
           </ul>
         </Card>
+        <HelpCard />
         <Card title="Stock ka hisaab">
           <p className="text-[13px] leading-relaxed text-slate-600 dark:text-slate-300">
             Stock ka malik <b>Nafaa</b> hai. Jore hue product ka stock <b>{i.config.shopId ? 'chuni hui branch' : 'main branch'}</b> se website par jata hai —
@@ -389,6 +388,7 @@ function SettingsTab({ id, cfg, name, platform, automatic, onChange }: {
       <div className="text-[13px] text-slate-500 lg:pt-4">
         <div className="font-semibold text-slate-900 dark:text-white">Order aane par</div>
         Kitna kaam Nafaa khud kare.
+        <div className="mt-1"><DocsLink anchor="setting-auto-accept">Kaise?</DocsLink></div>
       </div>
       <Card>
         <div className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -402,13 +402,15 @@ function SettingsTab({ id, cfg, name, platform, automatic, onChange }: {
       <div className="text-[13px] text-slate-500 lg:pt-4">
         <div className="font-semibold text-slate-900 dark:text-white">Stock aur qeemat</div>
         Kis branch ka maal, bill me kaun si qeemat.
+        <div className="mt-1 flex flex-col gap-1"><DocsLink anchor="setting-stock-branch">Branch kaise?</DocsLink><DocsLink anchor="setting-delivery">Delivery charges kaise?</DocsLink></div>
       </div>
       <Card>
         <div className="grid gap-4 md:grid-cols-2">
           <Field label="Stock kis branch se" help="Isi branch ka stock kam hoga aur website ko isi ka dikhega.">
-            <select value={cfg.shopId ?? ''} onChange={(e) => save.mutate({ shopId: e.target.value || null })} className={inputCls}>
-              <option value="">Main branch</option>
-              {shopList.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+            {/* "Main branch" alag option nahi — main branch list me "(main)" ke saath hai (warna ek hi branch do naam se) */}
+            <select value={cfg.shopId ?? shopList.find((s) => s.isMain)?.id ?? ''} onChange={(e) => save.mutate({ shopId: e.target.value || null })} className={inputCls}>
+              {!shopList.length && <option value="">Main branch</option>}
+              {shopList.filter((s) => s.isActive !== false).map((s) => <option key={s.id} value={s.id}>{s.name}{s.isMain ? ' (main)' : ''}</option>)}
             </select>
           </Field>
           <Field label="Delivery charges kis ke paas?" help="Bahar ka rider (Indolj / Foodpanda / Bykea) delivery khud le to 'Rider' — bill par likha aayega, sale aur drawer me nahi.">
@@ -438,6 +440,7 @@ function SettingsTab({ id, cfg, name, platform, automatic, onChange }: {
       <div className="text-[13px] text-slate-500 lg:pt-4">
         <div className="font-semibold text-slate-900 dark:text-white">Website ko status</div>
         Accept, raste me, deliver, cancel.
+        <div className="mt-1"><DocsLink anchor="setting-status-url">Kaise?</DocsLink></div>
       </div>
       <Card>
         {automatic ? (
@@ -464,10 +467,11 @@ function SettingsTab({ id, cfg, name, platform, automatic, onChange }: {
 
       <div className="text-[13px] text-slate-500 lg:pt-4">
         <div className="font-semibold text-slate-900 dark:text-white">Hifazat aur naam</div>
+        <div className="mt-1"><DocsLink anchor="setting-signed">Kaise?</DocsLink></div>
       </div>
       <Card>
         <div className="divide-y divide-slate-100 dark:divide-slate-800">
-          <SettingRow title="Sirf signed orders" help="Bina signature wala order reject. Automatic connection aur plugin khud sign karte hain."
+          <SettingRow title="Sirf signed orders" help="Bina signature wala order reject. Automatic connection aur plugin khud sign karte hain — Indolj sign nahi karta, us ke liye band rakhein."
             control={<Toggle checked={cfg.requireSignature} onChange={(v) => save.mutate({ requireSignature: v })} />} />
           {platform === 'shopify' && !automatic && (
             <div className="py-3">
@@ -495,41 +499,60 @@ function SettingsTab({ id, cfg, name, platform, automatic, onChange }: {
 
 /* ═════════════════════ DEVELOPER / SETUP ═════════════════════ */
 
-function DeveloperTab({ id, data, platform, automatic, onChange }: {
-  id: string; data: WebsiteOverview; platform: Platform; automatic: boolean; onChange: (d: WebsiteOverview) => void;
+function DeveloperTab({ id, data, platform, automatic, onChange, setTab }: {
+  id: string; data: WebsiteOverview; platform: Platform; automatic: boolean; onChange: (d: WebsiteOverview) => void; setTab: (t: Tab) => void;
 }) {
   const i = data.integration!;
   const tenantName = useAuthStore((s) => s.tenant?.name) ?? 'Meri dukaan';
+  const isIndolj = !!i.indolj?.connected;
+  const oneClickType = i.type === 'WOOCOMMERCE' || i.type === 'SHOPIFY';
+  const kind = isIndolj ? 'indolj' : oneClickType ? platform : 'custom';
   const rotate = useMutation({
     mutationFn: () => onlineOrdersApi.rotateKeys(id),
-    onSuccess: (d) => { onChange(d); toast.success(automatic ? 'Nayi key ban gayi — webhooks khud shift ho gaye' : 'Nayi key ban gayi — website/plugin me nayi daalein'); },
+    onSuccess: (d) => { onChange(d); toast.success(automatic ? 'Nayi key ban gayi — webhooks khud shift ho gaye' : 'Nayi key ban gayi — website / plugin / Indolj me nayi daalein'); },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
 
   return (
     <div className="space-y-4">
-      {!automatic && (
-        <Card title="Manual setup" description="Automatic nahi chahiye ya nahi chal raha? Yahan se khud jorein.">
-          <ConnectGuide platform={platform} overview={data} shopName={tenantName} channelId={id} onChange={onChange} />
-        </Card>
+      {isIndolj ? (
+        <IndoljGuide data={data} onOpenProducts={() => setTab('products')} />
+      ) : oneClickType ? (
+        <>
+          <ConnectionCard id={id} data={data} platform={platform as 'woocommerce' | 'shopify'} onChange={onChange} setTab={setTab} />
+          {!automatic && (
+            <Card title="Manual setup" description="Ek click nahi chal raha? Yahan se khud jorein." actions={<DocsLink anchor={platform} />}>
+              <ConnectGuide platform={platform} overview={data} shopName={tenantName} channelId={id} onChange={onChange} />
+            </Card>
+          )}
+        </>
+      ) : (
+        <CustomConnect channelId={id} data={data} onChange={onChange} />
       )}
 
-      <Card title="Keys" description="Sirf apni website, plugin ya developer ko dein. Key galat haath lage to foran nayi banayein."
+      {!isIndolj && <BranchSetup data={data} />}
+
+      <Card title="Keys" description="Sirf apni website, plugin, Indolj ya developer ko dein. Key galat haath lage to foran nayi banayein."
         actions={<Btn size="sm" variant="critical" loading={rotate.isPending} icon={<RefreshCw className="h-3.5 w-3.5" />}
           onClick={() => { if (confirm('Nayi key banayein? Purani foran band ho jayegi.')) rotate.mutate(); }}>Nayi key</Btn>}>
         <div className="grid gap-3 md:grid-cols-2">
-          <CopyField label="Nafaa key" value={i.apiKey} secret />
-          <CopyField label="Secret" value={i.webhookSecret} secret />
+          <CopyField label="Nafaa key (Token)" value={i.apiKey} secret />
+          <CopyField label="Secret (signature)" value={i.webhookSecret} secret />
         </div>
         <div className="mt-3 grid gap-3 md:grid-cols-2">
           <CopyField label="Orders API (POST)" value={data.urls.orders} />
-          {data.urls.hook && <CopyField label="Webhook URL (WooCommerce/Shopify)" value={data.urls.hook} secret />}
+          {data.urls.hook && !isIndolj && <CopyField label="Webhook URL (WooCommerce / Shopify)" value={data.urls.hook} secret />}
         </div>
+        <div className="mt-3"><DocsLink anchor="api">Developer API ki poori guide</DocsLink></div>
       </Card>
 
-      <Card title="Products — CSV" description="API ke bagair bhi: website ki CSV yahan daalein, ya Nafaa ki CSV website ke import me.">
-        <ProductSyncCard channelId={id} productLinks={data.stats?.productLinks ?? 0} platform={i.config.platform} />
-      </Card>
+      {!isIndolj && (
+        <Card title="Products — CSV" description="API ke bagair bhi: website ki CSV yahan daalein, ya Nafaa ki CSV website ke import me." actions={<DocsLink anchor="products" />}>
+          <ProductSyncCard channelId={id} productLinks={data.stats?.productLinks ?? 0} platform={i.config.platform} />
+        </Card>
+      )}
+
+      <Troubleshoot kind={kind as any} onOpenActivity={() => setTab('activity')} />
     </div>
   );
 }
@@ -626,11 +649,6 @@ function MoreMenu({ id, data, onChange }: { id: string; data: WebsiteOverview; o
   );
 }
 
-/** Indolj par bani website — jura hua haal (code / developer wale raaste ki zaroorat nahi) */
-/**
- * Multi-branch: platform har branch ka apna code bhejta hai (Indolj: merchantId). Malik ek dafa
- * batata hai kaun sa code kis Nafaa branch ka — phir har order khud sahi branch (bill + stock) me.
- */
 /** Upar branch chuni ho to batao ke ginti sirf usi branch ki hai */
 function BranchScopeNote({ total, all }: { total: number; all: number }) {
   const shopId = useAuthStore((s) => s.currentShopId);
@@ -644,111 +662,76 @@ function BranchScopeNote({ total, all }: { total: number; all: number }) {
   );
 }
 
-function BranchCodeMap({ channelId, codes, defaultShopId }: {
-  channelId: string;
-  codes: NonNullable<NonNullable<WebsiteOverview['integration']>['branchCodes']>;
-  defaultShopId: string | null;
-}) {
-  const qc = useQueryClient();
-  const { data: shops } = useQuery({ queryKey: ['shops'], queryFn: shopsApi.list });
-  const list = (Array.isArray(shops) ? shops : (shops as any)?.items ?? []) as Array<{ id: string; name: string; isActive?: boolean }>;
-  const active = list.filter((s) => s.isActive !== false);
-  // Channel ki apni branch hi "default" hai — us ke liye alag "Main branch" option nahi (warna 3 naam, 2 branches)
-  const fallback = defaultShopId && active.some((s) => s.id === defaultShopId) ? defaultShopId : active[0]?.id ?? '';
-  const [map, setMap] = useState<Record<string, string | null>>(() => Object.fromEntries(codes.map((c) => [c.code, c.shopId])));
-  const codesKey = JSON.stringify(codes.map((c) => [c.code, c.shopId]));
-  useEffect(() => { setMap(Object.fromEntries(codes.map((c) => [c.code, c.shopId]))); }, [codesKey]); // eslint-disable-line react-hooks/exhaustive-deps
-  const save = useMutation({
-    mutationFn: () => onlineOrdersApi.saveBranchMap(channelId, map),
-    onSuccess: () => { toast.success('Branches mehfooz — ab har order sahi branch me jayega'); qc.invalidateQueries({ queryKey: ['sales-channel', channelId] }); },
-    onError: (e) => toast.error(apiErrorMessage(e)),
-  });
-  if (active.length <= 1) return null;
-  const dirty = codes.some((c) => (map[c.code] ?? null) !== c.shopId);
-  const hasTokens = codes.some((c) => c.kind === 'token');
-  // Sirf merchant code (sab branches ka ek) — website branch ki nishani bhejti hi nahi
-  const noBranchSignal = codes.length > 0 && codes.every((c) => c.kind === 'merchant' && !c.shopId);
-  return (
-    <div className="mt-4 rounded-xl border border-slate-200 p-3 dark:border-slate-800">
-      <div className="text-[13px] font-semibold text-slate-900 dark:text-white">Kaun sa order kis branch ka?</div>
-      <p className="mt-0.5 text-[12.5px] text-slate-500">
-        {hasTokens
-          ? <>Indolj me har branch ka apna <b>Token</b> khaana hai — order usi Token ke saath aata hai. Jo Token jis branch me likha hai, us ke saamne wahi branch chunein.</>
-          : <>Website har branch ka apna code bhejti hai. Har code ke saamne Nafaa ki branch chunein — bill aur stock usi branch ka.</>}
-      </p>
-      {noBranchSignal && (
-        <div className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-[12.5px] text-amber-800 dark:bg-amber-500/10 dark:text-amber-200">
-          Website abhi order ke saath <b>branch nahi bhejti</b> — sab branches ka ek hi code aata hai, is liye har order
-          main branch me aata hai. Tab tak: order kholein → <b>Branch</b> se sahi branch chunein. Website wale jaise hi branch ka
-          code / POS code bhejna shuru karein, wo yahan khud aa jayega aur us ke saamne branch chun lein.
-        </div>
-      )}
-      {codes.length === 0 ? (
-        <p className="mt-2 text-[12.5px] text-amber-700">Abhi koi order nahi aaya — har branch se ek order aate hi us ka code yahan dikhega.</p>
-      ) : (
-        <div className="mt-2 space-y-2">
-          {codes.map((c) => (
-            <div key={c.code} className="flex flex-wrap items-center gap-2 text-[13px]">
-              <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[12px] dark:bg-slate-800">{c.label ?? c.code}</code>
-              {c.sample ? <span className="text-[12px] text-slate-500">aakhri order {c.sample}</span>
-                : c.kind === 'token' && <span className="text-[12px] text-slate-400">abhi order nahi aaya</span>}
-              <span className="flex-1" />
-              <select
-                value={map[c.code] ?? fallback}
-                onChange={(e) => setMap((m) => ({ ...m, [c.code]: e.target.value === fallback ? null : e.target.value }))}
-                className={cn(inputCls, 'w-64')}
-              >
-                {active.map((s) => <option key={s.id} value={s.id}>{s.name}{s.id === fallback ? ' (main)' : ''}</option>)}
-              </select>
-            </div>
-          ))}
-          {hasTokens && (
-            <p className="text-[12px] text-slate-500">Misaal: ek branch ka Token <code>nfk_…</code> ke saath likha hai, doosri ka <code>nfk_</code> ke baghair — isi farq se pata chalta hai order kis branch ka hai.</p>
-          )}
-          {dirty && <div className="flex justify-end"><Btn size="sm" variant="primary" loading={save.isPending} onClick={() => save.mutate()}>Mehfooz karein</Btn></div>}
-        </div>
-      )}
-    </div>
-  );
-}
+/* ═════════════════════ OVERVIEW KE HISSE ═════════════════════ */
 
-/** Multi-branch: har branch ka apna Callback URL — Indolj isi se batata hai order kis branch ka hai */
-function BranchUrls({ base }: { base: string }) {
-  const { data: shops } = useQuery({ queryKey: ['shops'], queryFn: shopsApi.list });
-  const list = (Array.isArray(shops) ? shops : (shops as any)?.items ?? []) as Array<{ id: string; name: string; isActive?: boolean }>;
-  const active = list.filter((s) => s.isActive !== false);
-  if (active.length <= 1) return null;
-  return (
-    <div className="mt-4 space-y-2 rounded-xl border border-slate-200 p-3 dark:border-slate-800">
-      <div className="text-[13px] font-semibold text-slate-900 dark:text-white">Har branch ka Callback URL</div>
-      <p className="text-[12.5px] text-slate-500">
-        Indolj me har branch ki <b>General POS</b> settings me <b>Call Back URL</b> aur <b>Cancel Call Back URL</b> dono me usi branch ka URL lagayein.
-        Token wahi rahe. Order, bill aur stock khud usi branch me jayega.
-      </p>
-      {active.map((s) => (
-        <CopyField key={s.id} label={s.name} value={`${base}/orders/branch/${s.id}`} />
-      ))}
-    </div>
-  );
-}
-
-function IndoljChannelCard({ data, setTab }: { data: WebsiteOverview; setTab: (t: Tab) => void }) {
+/** Connection ka haal ek nazar me — jorne ka saara kaam Setup tab me */
+function ConnectionSummary({ data, platform, setTab }: { data: WebsiteOverview; platform: Platform; setTab: (t: Tab) => void }) {
   const i = data.integration!;
   const stats = data.stats!;
+  const health = data.health;
+  const isIndolj = !!i.indolj?.connected;
+  const auto = i.type === 'SHOPIFY' ? i.shopify : i.type === 'WOOCOMMERCE' ? i.woo : null;
+  const name = isIndolj ? 'Indolj' : i.type === 'SHOPIFY' ? 'Shopify' : i.type === 'WOOCOMMERCE' ? 'WooCommerce' : platform === 'woocommerce' ? 'WordPress' : 'Website';
+  const receiving = !!stats.lastOrderAt;
+  const joined = receiving || !!auto?.connected || isIndolj || i.webhookVerified;
+
+  const lines: Array<{ ok: boolean; text: ReactNode }> = [];
+  if (isIndolj) lines.push({ ok: true, text: <>Menu jura — <b>{stats.productLinks}</b> item Nafaa products se jure</> });
+  if (auto) lines.push({ ok: !!auto.connected, text: auto.connected ? <>{name} se automatic jura {i.config.siteUrl ? `· ${i.config.siteUrl.replace(/^https?:\/\//, '')}` : ''}</> : <>{name} se jorna baqi</> });
+  lines.push({ ok: receiving, text: receiving ? <>Orders aa rahe hain — aakhri {timeAgo(stats.lastOrderAt!)}{stats.lastOrderNumber ? ` (#${stats.lastOrderNumber})` : ''}</> : <>Pehle order ka intezar</> });
+  if (auto?.connected) lines.push({ ok: true, text: <>Stock website par khud{stats.lastSyncAt ? ` — aakhri sync ${timeAgo(stats.lastSyncAt)}` : ''}</> });
+
   return (
-    <Card title={<span className="flex items-center gap-2">🍪 Indolj se jura hua <Badge tone="success" dot>Menu sync</Badge></span>}
-      description="Website Indolj par hai — menu Nafaa me aata hai aur Indolj har naya order seedha Nafaa ko bhejta hai.">
+    <Card title={<span className="flex items-center gap-2">Connection {joined ? <Badge tone="success" dot>{name}</Badge> : <Badge tone="warning" dot>Jorna baqi</Badge>}</span>}
+      actions={<Btn size="sm" variant={joined ? 'secondary' : 'primary'} onClick={() => setTab('developer')} icon={<Wrench className="h-3.5 w-3.5" />}>{joined ? 'Setup' : 'Setup kholein'}</Btn>}>
+      {!joined && (
+        <p className="mb-3 text-[13px] text-slate-600 dark:text-slate-300">
+          {name} ko Nafaa se jorne ka har qadam <b>Setup</b> tab me hai — keys aur URL copy button ke saath. Developer ho to wahan se link bhej dein.
+        </p>
+      )}
       <ul className="space-y-2 text-[13px] text-slate-700 dark:text-slate-200">
-        <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" /> Menu jura — <b>{stats.productLinks}</b> item Nafaa products se jure <button type="button" onClick={() => setTab('products')} className="font-semibold text-emerald-700 hover:underline">dekhein</button></li>
-        <li className="flex items-center gap-2">
-          {stats.lastOrderAt
-            ? <><CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" /> Orders aa rahe hain — aakhri {timeAgo(stats.lastOrderAt)}</>
-            : <><Circle className="h-4 w-4 shrink-0 text-amber-500" /> Indolj se pehle live order ka intezar — Indolj ki team ne webhook neeche wale URL par lagana hai</>}
-        </li>
+        {lines.map((l, n) => (
+          <li key={n} className="flex items-center gap-2">
+            {l.ok ? <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" /> : <Circle className="h-4 w-4 shrink-0 text-amber-500" />} <span>{l.text}</span>
+          </li>
+        ))}
+        {health && health.failed24h > 0 && (
+          <li className="flex items-start gap-2 text-rose-700 dark:text-rose-300">
+            <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>
+              Pichle 24 ghante me <b>{health.failed24h}</b> request fail hui{health.lastError?.message ? ` — "${health.lastError.message}"` : ''}.{' '}
+              <button onClick={() => setTab('activity')} className="font-semibold underline">Activity dekhein</button>
+            </span>
+          </li>
+        )}
       </ul>
-      <BranchUrls base={data.urls.base} />
-      <BranchCodeMap channelId={data.integration!.id} codes={i.branchCodes ?? []} defaultShopId={i.config?.shopId ?? (i as any).shopId ?? null} />
-      {i.indolj?.connectedAt && <p className="mt-2 text-[12px] text-slate-500">Indolj {whenText(i.indolj.connectedAt)} jora</p>}
+    </Card>
+  );
+}
+
+/** 2+ branches — har branch ke orders ek nazar me */
+function BranchesCard({ branches }: { branches: NonNullable<WebsiteOverview['branches']> }) {
+  const current = useAuthStore((s) => s.currentShopId);
+  return (
+    <Card title="Branches" description="Is channel ke orders har branch me" flush>
+      <table className="w-full border-t border-slate-100 text-[13px] dark:border-slate-800">
+        <thead className="text-left text-[12px] text-slate-500">
+          <tr><th className="px-4 py-2 font-medium sm:px-5">Branch</th><th className="px-2 py-2 text-right font-medium">Aaj</th><th className="px-2 py-2 text-right font-medium">Naye</th><th className="px-4 py-2 text-right font-medium sm:px-5">Kul</th></tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+          {branches.map((b) => (
+            <tr key={b.shopId ?? 'none'} className={cn(b.shopId && b.shopId === current && 'bg-emerald-50/60 dark:bg-emerald-500/5')}>
+              <td className="px-4 py-2 sm:px-5">
+                <span className="font-medium text-slate-900 dark:text-white">{b.name}</span>
+                {b.isDefault && <span className="ml-1.5 text-[11.5px] text-slate-500">(main)</span>}
+              </td>
+              <td className="px-2 py-2 text-right tabular-nums">{b.today}</td>
+              <td className={cn('px-2 py-2 text-right tabular-nums', b.pending > 0 && 'font-semibold text-amber-700')}>{b.pending}</td>
+              <td className="px-4 py-2 text-right tabular-nums sm:px-5">{b.total}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </Card>
   );
 }

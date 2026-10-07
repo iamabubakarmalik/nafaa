@@ -4,6 +4,7 @@ import { CheckCircle2, Clock, Loader2, Send, Terminal } from 'lucide-react';
 import { CodeBlock } from '@integrations/_core/components/CodeBlock';
 import { CopyField } from '../components/website/CopyField';
 import { snippets } from '../lib/snippets';
+import { docsUrl } from '../lib/docs';
 import { publicFetch } from './publicApi';
 
 /* ═════════════════════════════════════════════════════════════
@@ -16,6 +17,8 @@ interface Info {
   business: string | null; channel: string; apiKey: string; secret: string;
   urls: { base: string; orders: string; products: string; stock: string; verify: string };
   connected: boolean; lastOrder: { at: string; number: string | null; test: boolean } | null;
+  branches?: Array<{ id: string; name: string; ordersUrl: string }>;
+  platform?: string;
 }
 
 export default function DevInvitePage() {
@@ -79,6 +82,19 @@ export default function DevInvitePage() {
           <div className="mt-3"><CopyField label="Signature secret (optional)" value={info.secret} secret hint="HMAC-SHA256(raw body, secret) → header X-Nafaa-Signature: sha256=<hex>" /></div>
         </section>
 
+        {!!info.branches?.length && (
+          <section className="rounded-2xl bg-white p-6 shadow-sm">
+            <h2 className="font-bold text-slate-900">Kai branches — har branch ka URL</h2>
+            <p className="mt-0.5 text-sm text-slate-600">
+              Har branch ka order usi branch ke URL par bhejein — bill aur stock usi branch ka. Key sab ki ek hi.
+              {info.platform === 'indolj' && <> Indolj: har branch ki General POS settings me <b>Call Back URL</b> aur <b>Cancel Call Back URL</b> dono yahi, <b>Token</b> = upar wali key.</>}
+            </p>
+            <div className="mt-3 space-y-2">
+              {info.branches.map((b) => <CopyField key={b.id} label={b.name} value={b.ordersUrl} />)}
+            </div>
+          </section>
+        )}
+
         <section className="rounded-2xl bg-white p-6 shadow-sm">
           <h2 className="font-bold text-slate-900">2. Code (copy karein)</h2>
           <div className="mb-2 mt-3 flex flex-wrap gap-1">
@@ -109,6 +125,10 @@ export default function DevInvitePage() {
             <li><code className="text-[12.5px]">POST {info.urls.base}/orders/&#123;orderId&#125;/status</code> — customer ne cancel kiya: <code>{'{"status":"cancelled"}'}</code></li>
             <li><code className="text-[12.5px]">GET {info.urls.verify}</code> — key check</li>
           </ul>
+          <p className="mt-3 text-sm">
+            Poori reference (saare fields, errors, status webhook, signature):{' '}
+            <a href={docsUrl('api')} target="_blank" rel="noreferrer" className="font-semibold text-emerald-700 underline">Developer API guide</a>
+          </p>
           <p className="mt-3 text-xs text-slate-500">Ye link 7 din chalega. Dukandar "Nayi key" banaye to ye link khud band ho jata hai.</p>
         </section>
       </div>

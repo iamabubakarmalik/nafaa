@@ -15,6 +15,7 @@ function make() {
     shopStock: { findMany: async () => [] },
     tenant: { findUnique: async () => ({ name: 'Key Phantom' }) },
     channelOrder: { findFirst: async () => null },
+    shop: { findMany: async () => [] },
   };
   const orders: any = { receive: async (_c: any, o: any) => { received.push(o); return { id: 'o1' }; }, createTestOrder: async () => 'o2' };
   const setup: any = { requireChannel: async () => ch, assertCanManage: () => undefined, apiBase: () => 'https://api.nafaa.pk/api', urls: () => ({}) };

@@ -18,4 +18,5 @@ export { default as PaymentsPage } from './pages/PaymentsPage';
 export { default as PublicPayPage } from './public/PublicPayPage';
 export { default as PublicOrderPage } from './public/PublicOrderPage';
 export { default as DevInvitePage } from './public/DevInvitePage';
+export { default as OnlineStoreDocsPage } from './public/DocsPage';
 export { default as PublicTrackPage } from './public/PublicTrackPage';

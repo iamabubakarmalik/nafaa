@@ -373,6 +373,9 @@ export interface WebsiteOverview {
     allBranchesOrders?: number | null;
   };
   logs: Array<{ id: string; kind: 'IN' | 'OUT'; label: string; ok: boolean; error?: string | null; at: string }>;
+  /** 2+ branches ho to har branch ke orders */
+  branches?: Array<{ shopId: string | null; name: string; total: number; pending: number; today: number; isDefault: boolean }> | null;
+  health?: { failed24h: number; lastError: { message: string | null; at: string } | null };
 }
 
 export interface ExportProduct {
