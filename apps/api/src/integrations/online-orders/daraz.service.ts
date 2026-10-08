@@ -1,3 +1,4 @@
+import { createHmac, timingSafeEqual } from 'crypto';
 import { BadRequestException, Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import * as crypto from 'crypto';
@@ -233,6 +234,37 @@ export class DarazService {
     } finally {
       this.running = false;
     }
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // PUSH — Daraz order badle to foran sync (5-minute wala cron phir bhi chalta hai)
+  // Daraz: Authorization = hex(HMAC_SHA256(appKey + rawBody, appSecret))
+  // ═══════════════════════════════════════════════════════════
+
+  private pushAt = new Map<string, number>();
+
+  verifyPush(raw: string, signature?: string): boolean {
+    if (!this.configured() || !signature) return false;
+    const { key, secret } = this.app();
+    const want = createHmac('sha256', secret).update(key + raw).digest('hex');
+    const got = signature.trim().toLowerCase();
+    return want.length === got.length && timingSafeEqual(Buffer.from(want), Buffer.from(got));
+  }
+
+  /** Push aaya — us seller ke channel ka order sync (10 second me ek dafa se zyada nahi) */
+  async onPush(body: any) {
+    const sellerId = String(body?.seller_id ?? '').trim();
+    if (!sellerId) return { ok: true, matched: 0 };
+    const list = await this.prisma.integration.findMany({ where: { type: 'DARAZ', isActive: true, status: IntegrationStatus.CONNECTED } });
+    const hits = list.filter((i) => String((i.credentials as any)?.darazSellerId ?? '') === sellerId && this.isConnected(i));
+    for (const i of hits) {
+      const last = this.pushAt.get(i.id) ?? 0;
+      if (Date.now() - last < 10_000) continue;
+      this.pushAt.set(i.id, Date.now());
+      // Jawab foran (Daraz chand second intezar karta hai) — sync peeche
+      setTimeout(() => { this.syncOrders(i).catch((e) => this.logger.warn(`Daraz push sync ${i.displayName}: ${e?.message}`)); }, 0);
+    }
+    return { ok: true, matched: hits.length };
   }
 
   async syncOrders(i: Integration) {

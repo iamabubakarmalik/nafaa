@@ -1,7 +1,7 @@
-import { Body, Controller, Get, Param, Post, Query, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Logger, Param, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 import { Public } from '../../modules/auth/decorators/public.decorator';
 import { GetUser } from '../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../modules/auth/guards/jwt-auth.guard';
@@ -22,6 +22,28 @@ export class DarazPublicController {
   @ApiOperation({ summary: 'Daraz OAuth callback' })
   async callback(@Query() query: Record<string, string>, @Res() res: Response) {
     return res.redirect(302, await this.daraz.callback(query));
+  }
+}
+
+/** Daraz push (Webhooks) — order badla to foran sync. Daraz ka "Verify" bhi yahin aata hai. */
+@ApiTags('Daraz (public)')
+@Public()
+@Throttle({ default: { limit: 600, ttl: 60_000 } })
+@Controller('integrations/daraz')
+export class DarazPushController {
+  private readonly logger = new Logger('DarazPush');
+  constructor(private readonly daraz: DarazService) {}
+
+  @Post('push')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Daraz push messages (order / fulfillment)' })
+  async push(@Req() req: Request, @Body() body: any, @Res() res: Response) {
+    const raw = (req as any).rawBody ? String((req as any).rawBody) : JSON.stringify(body ?? {});
+    const signed = this.daraz.verifyPush(raw, req.headers.authorization as string | undefined);
+    // Bina sahi signature kuch nahi karte — lekin 200 dete hain (Daraz ka verify / dobara bhejna na atke)
+    if (signed) await this.daraz.onPush(body).catch((e) => this.logger.warn(`push: ${e?.message}`));
+    else this.logger.warn(`Daraz push bina sahi signature — type ${body?.message_type ?? '?'}`);
+    res.status(200).json({ success: true });
   }
 }
 

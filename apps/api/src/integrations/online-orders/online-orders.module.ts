@@ -22,7 +22,7 @@ import { StorefrontService } from './storefront.service';
 import { DarazService } from './daraz.service';
 import { PaymentLinksService } from './payment-links.service';
 import { PaymentLinksController, PaymentLinksPublicController } from './payment-links.controller';
-import { DarazController, DarazPublicController } from './daraz.controller';
+import { DarazController, DarazPublicController, DarazPushController } from './daraz.controller';
 import { StorefrontAdminController, StorefrontPublicController } from './storefront.controller';
 import {
   BlocklistController,
@@ -51,6 +51,7 @@ import {
     StorefrontPublicController,
     StorefrontAdminController,
     DarazPublicController,
+    DarazPushController,
     DarazController,
     PaymentLinksController,
     PaymentLinksPublicController,
